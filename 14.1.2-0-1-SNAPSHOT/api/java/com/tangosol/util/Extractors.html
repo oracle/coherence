@@ -102,7 +102,7 @@ loadScripts(document, 'script');</script>
  of <code>Extractor</code> classes.</div>
 <dl class="notes">
 <dt>Author:</dt>
-<dd>lh, hr, as, mf  2018.06.14</dd>
+<dd>lh, hr, as, mf  2018.06.14, Gunnar Hillert  2024.09.19</dd>
 </dl>
 </section>
 <section class="summary">
@@ -173,6 +173,18 @@ E&gt;&nbsp;<a href="extractor/ChainedFragmentExtractor.html" title="class in com
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Return a <code>ValueExtractor</code> that extracts a nested <a href="Fragment.html" title="class in com.tangosol.util"><code>Fragment</code></a> from a
  property of the target object.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor">CollectionExtractor</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fromCollection(com.tangosol.util.ValueExtractor)" class="member-name-link">fromCollection</a><wbr>(<a href="ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Returns a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that wraps the specified <a href="ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor">CollectionExtractor</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fromCollection(java.lang.String)" class="member-name-link">fromCollection</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;from)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Returns a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that extracts the specified field.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static &lt;T&gt;&nbsp;<a href="extractor/PofExtractor.html" title="class in com.tangosol.util.extractor">PofExtractor</a><wbr>&lt;T,<wbr>?&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#fromPof(int...)" class="member-name-link">fromPof</a><wbr>(int...&nbsp;indexes)</code></div>
@@ -463,6 +475,56 @@ E&gt;</span>&nbsp;<span class="return-type"><a href="ValueExtractor.html" title=
 <dd><code>E</code> - the type of the output objects to the function</dd>
 <dt>Returns:</dt>
 <dd>an extractor that always returns its input argument</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="fromCollection(java.lang.String)">
+<h3>fromCollection</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;T,<wbr>
+E&gt;</span>&nbsp;<span class="return-type"><a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor">CollectionExtractor</a>&lt;T,<wbr>E&gt;</span>&nbsp;<span class="element-name">fromCollection</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;from)</span></div>
+<div class="block">Returns a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that extracts the specified field.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><code>T</code> - the type of the object to extract from</dd>
+<dd><code>E</code> - the type of the extracted value</dd>
+<dt>Parameters:</dt>
+<dd><code>from</code> - the field name to extract the value from</dd>
+<dt>Returns:</dt>
+<dd>a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that extracts the value(s) of the specified field</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalArgumentException.html" title="class or interface in java.lang" class="external-link">IllegalArgumentException</a></code> - if the fields parameter is <code>null</code> or empty</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="fromCollection(com.tangosol.util.ValueExtractor)">
+<h3>fromCollection</h3>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;T,<wbr>
+E&gt;</span>&nbsp;<span class="return-type"><a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor">CollectionExtractor</a>&lt;T,<wbr>E&gt;</span>&nbsp;<span class="element-name">fromCollection</span><wbr><span class="parameters">(<a href="ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</span></div>
+<div class="block">Returns a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that wraps the specified <a href="ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
+<dl class="notes">
+<dt>Type Parameters:</dt>
+<dd><code>T</code> - the type of the object to extract from</dd>
+<dd><code>E</code> - the type of the extracted value</dd>
+<dt>Parameters:</dt>
+<dd><code>extractor</code> - the <a href="ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> to use to extract the value</dd>
+<dt>Returns:</dt>
+<dd>a <a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that extracts the value(s) of the specified field</dd>
+<dt>Throws:</dt>
+<dd><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/IllegalArgumentException.html" title="class or interface in java.lang" class="external-link">IllegalArgumentException</a></code> - if the fields parameter is <code>null</code></dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a></li>
+</ul>
+</dd>
 </dl>
 </section>
 </li>

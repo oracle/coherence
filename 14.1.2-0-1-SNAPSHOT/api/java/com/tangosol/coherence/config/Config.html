@@ -102,7 +102,14 @@ loadScripts(document, 'script');</script>
  lastly by replacing the <code>coherence.</code> in the system property name to
  support Coherence system property naming conventions prior to Coherence 12.2.1.
  <p>
- Note:  These methods should only be used when the system property name may begin with "coherence.*" or "tangosol.*".
+ As of Coherence 14.1.1.0, package <code>com.oracle.common</code> was moved to <code>com.oracle.coherence.common</code>.
+ Backwards compatibility support is added to system properties look up to allow
+ system properties used in 12.2.1 to work in later versions. If a system property
+ with prefix <code>com.oracle.coherence.common</code> is not found, it will be looked up
+ with backwards compatibile prefix <code>com.oracle.common</code> as it was in 12.2.1.
+ <p>
+ Note:  These methods should only be used when the system property name may begin with "coherence.*", "tangosol.*",
+ "com.oracle.coherence.common.*" or "com.oracle.common.*".
  The native method for looking up a system or environment property should be used to lookup up a OS/Language
  native property.</div>
 <dl class="notes">

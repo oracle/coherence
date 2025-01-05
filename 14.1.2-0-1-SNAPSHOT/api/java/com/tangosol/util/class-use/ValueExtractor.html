@@ -1729,289 +1729,295 @@ E&gt;&nbsp;<a href="../extractor/ChainedFragmentExtractor.html" title="class in 
 <div class="block">Return a <code>ValueExtractor</code> that extracts a nested <a href="../Fragment.html" title="class in com.tangosol.util"><code>Fragment</code></a> from a
  property of the target object.</div>
 </div>
-<div class="col-first even-row-color"><code>&lt;E&gt;&nbsp;E</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Fragment.</span><code><a href="../Fragment.html#get(com.tangosol.util.ValueExtractor)" class="member-name-link">get</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super <a href="../Fragment.html" title="type parameter in Fragment">T</a>,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="../extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor">CollectionExtractor</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Extractors.</span><code><a href="../Extractors.html#fromCollection(com.tangosol.util.ValueExtractor)" class="member-name-link">fromCollection</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Returns a <a href="../extractor/CollectionExtractor.html" title="class in com.tangosol.util.extractor"><code>CollectionExtractor</code></a> that wraps the specified <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>&lt;E&gt;&nbsp;E</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Fragment.</span><code><a href="../Fragment.html#get(com.tangosol.util.ValueExtractor)" class="member-name-link">get</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super <a href="../Fragment.html" title="type parameter in Fragment">T</a>,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Get the value of the attribute extracted by the specified extractor.</div>
 </div>
-<div class="col-first odd-row-color"><code>&lt;E&gt;&nbsp;<a href="../Fragment.html" title="class in com.tangosol.util">Fragment</a><wbr>&lt;E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Fragment.</span><code><a href="../Fragment.html#getFragment(com.tangosol.util.ValueExtractor)" class="member-name-link">getFragment</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super <a href="../Fragment.html" title="type parameter in Fragment">T</a>,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>&lt;E&gt;&nbsp;<a href="../Fragment.html" title="class in com.tangosol.util">Fragment</a><wbr>&lt;E&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Fragment.</span><code><a href="../Fragment.html#getFragment(com.tangosol.util.ValueExtractor)" class="member-name-link">getFragment</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super <a href="../Fragment.html" title="type parameter in Fragment">T</a>,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Get the nested fragment extracted from the specified attribute.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super E&gt;&gt;<br><a href="../filter/GreaterFilter.html" title="class in com.tangosol.util.filter">GreaterFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#greater(com.tangosol.util.ValueExtractor,E)" class="member-name-link">greater</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#greater(com.tangosol.util.ValueExtractor,E)" class="member-name-link">greater</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  E&nbsp;value)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Return a filter that tests if the extracted value is greater than the
  specified value.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super E&gt;&gt;<br><a href="../filter/GreaterEqualsFilter.html" title="class in com.tangosol.util.filter">GreaterEqualsFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#greaterEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">greaterEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#greaterEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">greaterEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  E&nbsp;value)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a filter that tests if the extracted value is greater than or equal
  to the specified value.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;K,<wbr>
-V,<wbr>
-T,<wbr>
-E,<wbr>
-R&gt;<br><a href="../aggregator/GroupAggregator.html" title="class in com.tangosol.util.aggregator">GroupAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>E,<wbr>R&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#grouping(com.tangosol.util.ValueExtractor,com.tangosol.util.InvocableMap.EntryAggregator,com.tangosol.util.Filter)" class="member-name-link">grouping</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor,
- <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util">InvocableMap.EntryAggregator</a>&lt;? super K,<wbr>? super V,<wbr>R&gt;&nbsp;aggregator,
- <a href="../Filter.html" title="interface in com.tangosol.util">Filter</a>&nbsp;filter)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Create an instance of group aggregator based on a specified property or method
- name(s) and an <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util"><code>InvocableMap.EntryAggregator</code></a>.</div>
-</div>
 <div class="col-first odd-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T,<wbr>
 E,<wbr>
 R&gt;<br><a href="../aggregator/GroupAggregator.html" title="class in com.tangosol.util.aggregator">GroupAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>E,<wbr>R&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#grouping(com.tangosol.util.ValueExtractor,com.tangosol.util.InvocableMap.EntryAggregator)" class="member-name-link">grouping</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor,
- <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util">InvocableMap.EntryAggregator</a>&lt;K,<wbr>V,<wbr>R&gt;&nbsp;aggregator)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#grouping(com.tangosol.util.ValueExtractor,com.tangosol.util.InvocableMap.EntryAggregator,com.tangosol.util.Filter)" class="member-name-link">grouping</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor,
+ <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util">InvocableMap.EntryAggregator</a>&lt;? super K,<wbr>? super V,<wbr>R&gt;&nbsp;aggregator,
+ <a href="../Filter.html" title="interface in com.tangosol.util">Filter</a>&nbsp;filter)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Create an instance of group aggregator based on a specified property or method
  name(s) and an <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util"><code>InvocableMap.EntryAggregator</code></a>.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
-E&gt;&nbsp;<a href="../filter/InFilter.html" title="class in com.tangosol.util.filter">InFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#in(com.tangosol.util.ValueExtractor,E...)" class="member-name-link">in</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
- E...&nbsp;values)</code></div>
+<div class="col-first even-row-color"><code>static &lt;K,<wbr>
+V,<wbr>
+T,<wbr>
+E,<wbr>
+R&gt;<br><a href="../aggregator/GroupAggregator.html" title="class in com.tangosol.util.aggregator">GroupAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>E,<wbr>R&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#grouping(com.tangosol.util.ValueExtractor,com.tangosol.util.InvocableMap.EntryAggregator)" class="member-name-link">grouping</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor,
+ <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util">InvocableMap.EntryAggregator</a>&lt;K,<wbr>V,<wbr>R&gt;&nbsp;aggregator)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Create an instance of group aggregator based on a specified property or method
+ name(s) and an <a href="../InvocableMap.EntryAggregator.html" title="interface in com.tangosol.util"><code>InvocableMap.EntryAggregator</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="../filter/InFilter.html" title="class in com.tangosol.util.filter">InFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#in(com.tangosol.util.ValueExtractor,E...)" class="member-name-link">in</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+ E...&nbsp;values)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return a filter that tests if the extracted value is contained in the
  specified array.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/InFilter.html" title="class in com.tangosol.util.filter">InFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#in(com.tangosol.util.ValueExtractor,java.util.Set)" class="member-name-link">in</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#in(com.tangosol.util.ValueExtractor,java.util.Set)" class="member-name-link">in</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;? extends E&gt;&nbsp;setValues)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a filter that tests if the extracted value is contained in the
  specified set.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T&gt;&nbsp;<a href="../filter/EqualsFilter.html" title="class in com.tangosol.util.filter">EqualsFilter</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isFalse(com.tangosol.util.ValueExtractor)" class="member-name-link">isFalse</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static &lt;T&gt;&nbsp;<a href="../filter/EqualsFilter.html" title="class in com.tangosol.util.filter">EqualsFilter</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isFalse(com.tangosol.util.ValueExtractor)" class="member-name-link">isFalse</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return a filter that evaluates to true if the extracted value is <code>false</code>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/IsNotNullFilter.html" title="class in com.tangosol.util.filter">IsNotNullFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isNotNull(com.tangosol.util.ValueExtractor)" class="member-name-link">isNotNull</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isNotNull(com.tangosol.util.ValueExtractor)" class="member-name-link">isNotNull</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return a filter that evaluates to true for non-null values.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/IsNullFilter.html" title="class in com.tangosol.util.filter">IsNullFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isNull(com.tangosol.util.ValueExtractor)" class="member-name-link">isNull</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isNull(com.tangosol.util.ValueExtractor)" class="member-name-link">isNull</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return a filter that evaluates to true for null values.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T&gt;&nbsp;<a href="../filter/EqualsFilter.html" title="class in com.tangosol.util.filter">EqualsFilter</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isTrue(com.tangosol.util.ValueExtractor)" class="member-name-link">isTrue</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static &lt;T&gt;&nbsp;<a href="../filter/EqualsFilter.html" title="class in com.tangosol.util.filter">EqualsFilter</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#isTrue(com.tangosol.util.ValueExtractor)" class="member-name-link">isTrue</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return a filter that evaluates to true if the extracted value is <code>true</code>.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 R&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;T,<wbr>R&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Extractors.</span><code><a href="../Extractors.html#key(com.tangosol.util.ValueExtractor...)" class="member-name-link">key</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;...&nbsp;extractors)</code></div>
-<div class="col-last even-row-color">
+<div class="col-second odd-row-color"><span class="type-name-label">Extractors.</span><code><a href="../Extractors.html#key(com.tangosol.util.ValueExtractor...)" class="member-name-link">key</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;...&nbsp;extractors)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Returns a <a href="../extractor/KeyExtractor.html" title="class in com.tangosol.util.extractor"><code>KeyExtractor</code></a> that wraps the specified <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>s.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super E&gt;&gt;<br><a href="../filter/LessFilter.html" title="class in com.tangosol.util.filter">LessFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#less(com.tangosol.util.ValueExtractor,E)" class="member-name-link">less</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#less(com.tangosol.util.ValueExtractor,E)" class="member-name-link">less</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  E&nbsp;value)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a filter that tests if the extracted value is less than the
  specified value.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super E&gt;&gt;<br><a href="../filter/LessEqualsFilter.html" title="class in com.tangosol.util.filter">LessEqualsFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#lessEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">lessEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#lessEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">lessEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  E&nbsp;value)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Return a filter that tests if the extracted value is less than or equal
  to the specified value.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
-E&gt;&nbsp;<a href="../filter/LikeFilter.html" title="class in com.tangosol.util.filter">LikeFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Return a LikeFilter for pattern match.</div>
-</div>
 <div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/LikeFilter.html" title="class in com.tangosol.util.filter">LikeFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,boolean)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern,
- boolean&nbsp;fIgnoreCase)</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern)</code></div>
 <div class="col-last even-row-color">
 <div class="block">Return a LikeFilter for pattern match.</div>
 </div>
 <div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/LikeFilter.html" title="class in com.tangosol.util.filter">LikeFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,char)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,boolean)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern,
- char&nbsp;chEscape)</code></div>
+ boolean&nbsp;fIgnoreCase)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Return a LikeFilter for pattern match.</div>
 </div>
 <div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/LikeFilter.html" title="class in com.tangosol.util.filter">LikeFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,char,boolean)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,char)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern,
+ char&nbsp;chEscape)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Return a LikeFilter for pattern match.</div>
+</div>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="../filter/LikeFilter.html" title="class in com.tangosol.util.filter">LikeFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#like(com.tangosol.util.ValueExtractor,java.lang.String,char,boolean)" class="member-name-link">like</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
  <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sPattern,
  char&nbsp;chEscape,
  boolean&nbsp;fIgnoreCase)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Return a LikeFilter for pattern match.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;K,<wbr>
+<div class="col-first even-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T&gt;&nbsp;<a href="../InvocableMap.StreamingAggregator.html" title="interface in com.tangosol.util">InvocableMap.StreamingAggregator</a><wbr>&lt;K,<wbr>V,<wbr>?,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longMax(com.tangosol.util.ValueExtractor)" class="member-name-link">longMax</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longMax(com.tangosol.util.ValueExtractor)" class="member-name-link">longMax</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return an aggregator that calculates a maximum of the numeric values extracted
  from a set of entries in a Map.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;K,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T&gt;&nbsp;<a href="../InvocableMap.StreamingAggregator.html" title="interface in com.tangosol.util">InvocableMap.StreamingAggregator</a><wbr>&lt;K,<wbr>V,<wbr>?,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longMin(com.tangosol.util.ValueExtractor)" class="member-name-link">longMin</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
+<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longMin(com.tangosol.util.ValueExtractor)" class="member-name-link">longMin</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return an aggregator that calculates a minimum of the numeric values extracted
  from a set of entries in a Map.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;K,<wbr>
+<div class="col-first even-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T&gt;&nbsp;<a href="../InvocableMap.StreamingAggregator.html" title="interface in com.tangosol.util">InvocableMap.StreamingAggregator</a><wbr>&lt;K,<wbr>V,<wbr>?,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Long.html" title="class or interface in java.lang" class="external-link">Long</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longSum(com.tangosol.util.ValueExtractor)" class="member-name-link">longSum</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#longSum(com.tangosol.util.ValueExtractor)" class="member-name-link">longSum</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return an aggregator that calculates a sum of the numeric values extracted
  from a set of entries in a Map.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;?&gt;&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Extractors.</span><code><a href="../Extractors.html#multi(com.tangosol.util.ValueExtractor...)" class="member-name-link">multi</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>?&gt;...&nbsp;extractors)</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static &lt;T&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;T,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;?&gt;&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Extractors.</span><code><a href="../Extractors.html#multi(com.tangosol.util.ValueExtractor...)" class="member-name-link">multi</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>?&gt;...&nbsp;extractors)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Returns an extractor that extracts values using the specified
  <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>s and returns the extracted values in a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link"><code>List</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/NotEqualsFilter.html" title="class in com.tangosol.util.filter">NotEqualsFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#notEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">notEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#notEqual(com.tangosol.util.ValueExtractor,E)" class="member-name-link">notEqual</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  E&nbsp;value)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a filter that tests for non-equality.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ValueExtractor.</span><code><a href="../ValueExtractor.html#of(com.tangosol.util.ValueExtractor)" class="member-name-link">of</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
+<div class="col-second odd-row-color"><span class="type-name-label">ValueExtractor.</span><code><a href="../ValueExtractor.html#of(com.tangosol.util.ValueExtractor)" class="member-name-link">of</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Helper method to allow composition/chaining of extractors.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../filter/PredicateFilter.html" title="class in com.tangosol.util.filter">PredicateFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#predicate(com.tangosol.util.ValueExtractor,com.tangosol.util.function.Remote.Predicate)" class="member-name-link">predicate</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#predicate(com.tangosol.util.ValueExtractor,com.tangosol.util.function.Remote.Predicate)" class="member-name-link">predicate</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor,
  <a href="../function/Remote.Predicate.html" title="interface in com.tangosol.util.function">Remote.Predicate</a>&lt;? super E&gt;&nbsp;predicate)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a PredicateFilter for a given <code>Predicate</code>.</div>
 </div>
-<div class="col-first even-row-color"><code>void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">QueryRecord.PartialResult.RecordableStep.</span><code><a href="../QueryRecord.PartialResult.RecordableStep.html#recordExtractor(com.tangosol.util.ValueExtractor)" class="member-name-link">recordExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Record all relevant index information for any index associated
- with the given extractor (e.g. index lookup and range scan).</div>
-</div>
 <div class="col-first odd-row-color"><code>void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">SimpleQueryRecord.PartialResult.AbstractRecordableStep.</span><code><a href="../SimpleQueryRecord.PartialResult.AbstractRecordableStep.html#recordExtractor(com.tangosol.util.ValueExtractor)" class="member-name-link">recordExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">QueryRecord.PartialResult.RecordableStep.</span><code><a href="../QueryRecord.PartialResult.RecordableStep.html#recordExtractor(com.tangosol.util.ValueExtractor)" class="member-name-link">recordExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Record all relevant index information for any index associated
  with the given extractor (e.g. index lookup and range scan).</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;K,<wbr>
-V,<wbr>
-T,<wbr>
-R extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super R&gt;&gt;<br><a href="../aggregator/ReducerAggregator.html" title="class in com.tangosol.util.aggregator">ReducerAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#reduce(com.tangosol.util.ValueExtractor)" class="member-name-link">reduce</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor)</code></div>
+<div class="col-first even-row-color"><code>void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">SimpleQueryRecord.PartialResult.AbstractRecordableStep.</span><code><a href="../SimpleQueryRecord.PartialResult.AbstractRecordableStep.html#recordExtractor(com.tangosol.util.ValueExtractor)" class="member-name-link">recordExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor)</code></div>
 <div class="col-last even-row-color">
-<div class="block">Return an aggregator that will return the extracted value for each entry in the map.</div>
-</div>
-<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
-E&gt;&nbsp;<a href="../filter/RegexFilter.html" title="class in com.tangosol.util.filter">RegexFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#regex(com.tangosol.util.ValueExtractor,java.lang.String)" class="member-name-link">regex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sRegex)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Return a RegexFilter for pattern match.</div>
-</div>
-<div class="col-first even-row-color"><code>&lt;T,<wbr>
-E&gt;&nbsp;void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ConverterCollections.ConverterNamedCache.</span><code><a href="../ConverterCollections.ConverterNamedCache.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Remove an index from this QueryMap.</div>
-</div>
-<div class="col-first odd-row-color"><code>&lt;T,<wbr>
-E&gt;&nbsp;void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ConverterCollections.ConverterQueryMap.</span><code><a href="../ConverterCollections.ConverterQueryMap.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Remove an index from this QueryMap.</div>
-</div>
-<div class="col-first even-row-color"><code>static void</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">InvocableMapHelper.</span><code><a href="../InvocableMapHelper.html#removeIndex(com.tangosol.util.ValueExtractor,com.tangosol.util.ObservableMap,java.util.Map)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor,
- <a href="../ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;map,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapIndex)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Remove the index keyed by the given extractor from the given map of
- indexes.</div>
-</div>
-<div class="col-first odd-row-color"><code>&lt;T,<wbr>
-E&gt;&nbsp;void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">QueryMap.</span><code><a href="../QueryMap.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Remove an index from this QueryMap.</div>
-</div>
-<div class="col-first even-row-color"><code>default &lt;T,<wbr>
-E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="../Filter.html" title="interface in com.tangosol.util">Filter</a>&nbsp;filter,
- <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Return a stream of values extracted from all the entries that satisfy
- the specified filter.</div>
-</div>
-<div class="col-first odd-row-color"><code>default &lt;T,<wbr>
-E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color">
-<div class="block">Return a stream of values extracted from the entries of this map.</div>
-</div>
-<div class="col-first even-row-color"><code>default &lt;T,<wbr>
-E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(java.util.Collection,com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;? extends <a href="../InvocableMap.html" title="type parameter in InvocableMap">K</a>&gt;&nbsp;collKeys,
- <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
-<div class="block">Return a stream of values extracted from the entries with the specified keys.</div>
+<div class="block">Record all relevant index information for any index associated
+ with the given extractor (e.g. index lookup and range scan).</div>
 </div>
 <div class="col-first odd-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T,<wbr>
-R extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super R&gt;&gt;<br><a href="../aggregator/TopNAggregator.html" title="class in com.tangosol.util.aggregator">TopNAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#topN(com.tangosol.util.ValueExtractor,int)" class="member-name-link">topN</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor,
- int&nbsp;cResults)</code></div>
+R extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super R&gt;&gt;<br><a href="../aggregator/ReducerAggregator.html" title="class in com.tangosol.util.aggregator">ReducerAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#reduce(com.tangosol.util.ValueExtractor)" class="member-name-link">reduce</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor)</code></div>
 <div class="col-last odd-row-color">
-<div class="block">Return an aggregator that calculates the top n of the <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link"><code>Comparable</code></a> values
- extracted from a set of entries in a Map.</div>
+<div class="block">Return an aggregator that will return the extracted value for each entry in the map.</div>
+</div>
+<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+E&gt;&nbsp;<a href="../filter/RegexFilter.html" title="class in com.tangosol.util.filter">RegexFilter</a><wbr>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Filters.</span><code><a href="../Filters.html#regex(com.tangosol.util.ValueExtractor,java.lang.String)" class="member-name-link">regex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sRegex)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Return a RegexFilter for pattern match.</div>
+</div>
+<div class="col-first odd-row-color"><code>&lt;T,<wbr>
+E&gt;&nbsp;void</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ConverterCollections.ConverterNamedCache.</span><code><a href="../ConverterCollections.ConverterNamedCache.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Remove an index from this QueryMap.</div>
+</div>
+<div class="col-first even-row-color"><code>&lt;T,<wbr>
+E&gt;&nbsp;void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ConverterCollections.ConverterQueryMap.</span><code><a href="../ConverterCollections.ConverterQueryMap.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Remove an index from this QueryMap.</div>
+</div>
+<div class="col-first odd-row-color"><code>static void</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">InvocableMapHelper.</span><code><a href="../InvocableMapHelper.html#removeIndex(com.tangosol.util.ValueExtractor,com.tangosol.util.ObservableMap,java.util.Map)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&nbsp;extractor,
+ <a href="../ObservableMap.html" title="interface in com.tangosol.util">ObservableMap</a>&nbsp;map,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&nbsp;mapIndex)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Remove the index keyed by the given extractor from the given map of
+ indexes.</div>
+</div>
+<div class="col-first even-row-color"><code>&lt;T,<wbr>
+E&gt;&nbsp;void</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">QueryMap.</span><code><a href="../QueryMap.html#removeIndex(com.tangosol.util.ValueExtractor)" class="member-name-link">removeIndex</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Remove an index from this QueryMap.</div>
+</div>
+<div class="col-first odd-row-color"><code>default &lt;T,<wbr>
+E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="../Filter.html" title="interface in com.tangosol.util">Filter</a>&nbsp;filter,
+ <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Return a stream of values extracted from all the entries that satisfy
+ the specified filter.</div>
+</div>
+<div class="col-first even-row-color"><code>default &lt;T,<wbr>
+E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Return a stream of values extracted from the entries of this map.</div>
+</div>
+<div class="col-first odd-row-color"><code>default &lt;T,<wbr>
+E&gt;&nbsp;<a href="../stream/RemoteStream.html" title="interface in com.tangosol.util.stream">RemoteStream</a><wbr>&lt;E&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">InvocableMap.</span><code><a href="../InvocableMap.html#stream(java.util.Collection,com.tangosol.util.ValueExtractor)" class="member-name-link">stream</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;? extends <a href="../InvocableMap.html" title="type parameter in InvocableMap">K</a>&gt;&nbsp;collKeys,
+ <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>? extends E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Return a stream of values extracted from the entries with the specified keys.</div>
 </div>
 <div class="col-first even-row-color"><code>static &lt;K,<wbr>
 V,<wbr>
 T,<wbr>
-R&gt;<br><a href="../aggregator/TopNAggregator.html" title="class in com.tangosol.util.aggregator">TopNAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#topN(com.tangosol.util.ValueExtractor,java.util.Comparator,int)" class="member-name-link">topN</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html" title="class or interface in java.util" class="external-link">Comparator</a>&lt;? super R&gt;&nbsp;comparator,
+R extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link">Comparable</a>&lt;? super R&gt;&gt;<br><a href="../aggregator/TopNAggregator.html" title="class in com.tangosol.util.aggregator">TopNAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#topN(com.tangosol.util.ValueExtractor,int)" class="member-name-link">topN</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor,
  int&nbsp;cResults)</code></div>
 <div class="col-last even-row-color">
+<div class="block">Return an aggregator that calculates the top n of the <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Comparable.html" title="class or interface in java.lang" class="external-link"><code>Comparable</code></a> values
+ extracted from a set of entries in a Map.</div>
+</div>
+<div class="col-first odd-row-color"><code>static &lt;K,<wbr>
+V,<wbr>
+T,<wbr>
+R&gt;<br><a href="../aggregator/TopNAggregator.html" title="class in com.tangosol.util.aggregator">TopNAggregator</a><wbr>&lt;K,<wbr>V,<wbr>T,<wbr>R&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Aggregators.</span><code><a href="../Aggregators.html#topN(com.tangosol.util.ValueExtractor,java.util.Comparator,int)" class="member-name-link">topN</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super T,<wbr>? extends R&gt;&nbsp;extractor,
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Comparator.html" title="class or interface in java.util" class="external-link">Comparator</a>&lt;? super R&gt;&nbsp;comparator,
+ int&nbsp;cResults)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return an aggregator that calculates the top n of the values extracted from a set
  of entries in a Map.</div>
 </div>
@@ -2351,73 +2357,78 @@ R&gt;<br><a href="../aggregator/GroupAggregator.html" title="class in com.tangos
  nested property of the target object.</div>
 </div>
 <div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/ComparisonValueExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ComparisonValueExtractor</a>&lt;T,<wbr>E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/CollectionExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">CollectionExtractor</a>&lt;T,<wbr>E&gt;</code></div>
 <div class="col-last even-row-color">
+<div class="block">Collection Extractor is used to extract values from Collections using the provided <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/ComparisonValueExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ComparisonValueExtractor</a>&lt;T,<wbr>E extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Number.html" title="class or interface in java.lang" class="external-link">Number</a>&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">A synthetic ValueExtractor that returns a result of comparison between two
  values extracted from the same target.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/ConditionalExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ConditionalExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/ConditionalExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ConditionalExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">An IndexAwareExtractor implementation that is only used to create a
  <a href="../ConditionalIndex.html" title="class in com.tangosol.util"><code>ConditionalIndex</code></a>.</div>
 </div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/DeserializationAccelerator.html" class="type-name-link" title="class in com.tangosol.util.extractor">DeserializationAccelerator</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/DeserializationAccelerator.html" class="type-name-link" title="class in com.tangosol.util.extractor">DeserializationAccelerator</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">DeserializationAccelerator is an <a href="../extractor/IndexAwareExtractor.html" title="interface in com.tangosol.util.extractor"><code>IndexAwareExtractor</code></a> implementation that
  is used to create a <a href="../ForwardOnlyMapIndex.html" title="class in com.tangosol.util"><code>ForwardOnlyMapIndex</code></a>, which in turn is used for
  deserialization optimization.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/EntryExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">EntryExtractor</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/EntryExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">EntryExtractor</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The EntryExtractor is a base abstract class for special purpose custom
  ValueExtractor implementations.</div>
 </div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/FragmentExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">FragmentExtractor</a>&lt;T&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/FragmentExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">FragmentExtractor</a>&lt;T&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">A <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> that is used to extract a <a href="../Fragment.html" title="class in com.tangosol.util"><code>Fragment</code></a> from
  an object.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/IdentityExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">IdentityExtractor</a>&lt;T&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/IdentityExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">IdentityExtractor</a>&lt;T&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">Trivial ValueExtractor implementation that does not actually extract
  anything from the passed value, but returns the value itself.</div>
 </div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/KeyExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">KeyExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/KeyExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">KeyExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">The KeyExtractor is a special purpose ValueExtractor implementation that
  serves as an indicator that a query should be run against the key objects
  rather than the values.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/MultiExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">MultiExtractor</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/MultiExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">MultiExtractor</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Composite ValueExtractor implementation based on an array of extractors.</div>
 </div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/PofExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">PofExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/PofExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">PofExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">POF-based ValueExtractor implementation.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/ReflectionExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ReflectionExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/ReflectionExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ReflectionExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">Reflection-based ValueExtractor implementation.</div>
 </div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../extractor/ScriptValueExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ScriptValueExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/ScriptValueExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">ScriptValueExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">ScriptValueExtractor is an <a href="../extractor/AbstractExtractor.html" title="class in com.tangosol.util.extractor"><code>AbstractExtractor</code></a> that wraps a script
  written in one of the languages supported by Graal VM.</div>
 </div>
-<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../extractor/UniversalExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">UniversalExtractor</a>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/UniversalExtractor.html" class="type-name-link" title="class in com.tangosol.util.extractor">UniversalExtractor</a>&lt;T,<wbr>E&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">Universal ValueExtractor implementation.</div>
 </div>
 </div>
@@ -2431,24 +2442,29 @@ R&gt;<br><a href="../aggregator/GroupAggregator.html" title="class in com.tangos
 <div class="col-last even-row-color">
 <div class="block">The ValueExtractor array.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">CompositeUpdater.</span><code><a href="../extractor/CompositeUpdater.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
+<div class="col-first odd-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">T</a>,<wbr><a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">E</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CollectionExtractor.</span><code><a href="../extractor/CollectionExtractor.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
 <div class="col-last odd-row-color">
+<div class="block">The underlying ValueExtractor.</div>
+</div>
+<div class="col-first even-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">CompositeUpdater.</span><code><a href="../extractor/CompositeUpdater.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The ValueExtractor part.</div>
 </div>
-<div class="col-first even-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/ConditionalExtractor.html" title="type parameter in ConditionalExtractor">T</a>,<wbr><a href="../extractor/ConditionalExtractor.html" title="type parameter in ConditionalExtractor">E</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ConditionalExtractor.</span><code><a href="../extractor/ConditionalExtractor.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
-<div class="col-last even-row-color">
-<div class="block">The underlying extractor.</div>
-</div>
-<div class="col-first odd-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">DeserializationAccelerator.</span><code><a href="../extractor/DeserializationAccelerator.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
+<div class="col-first odd-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/ConditionalExtractor.html" title="type parameter in ConditionalExtractor">T</a>,<wbr><a href="../extractor/ConditionalExtractor.html" title="type parameter in ConditionalExtractor">E</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ConditionalExtractor.</span><code><a href="../extractor/ConditionalExtractor.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
 <div class="col-last odd-row-color">
 <div class="block">The underlying extractor.</div>
 </div>
-<div class="col-first even-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;? super <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">T</a>,<wbr>? extends <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">E</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
+<div class="col-first even-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">DeserializationAccelerator.</span><code><a href="../extractor/DeserializationAccelerator.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">The underlying extractor.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;? super <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">T</a>,<wbr>? extends <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">E</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#m_extractor" class="member-name-link">m_extractor</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The underlying ValueExtractor.</div>
 </div>
 </div>
@@ -2482,51 +2498,54 @@ E&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.uti
 <div class="col-last even-row-color">
 <div class="block"><span class="deprecated-label">Deprecated.</span>&nbsp;</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/PofExtractor.html" title="type parameter in PofExtractor">T</a>,<wbr><a href="../extractor/PofExtractor.html" title="type parameter in PofExtractor">E</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">PofExtractor.</span><code><a href="../extractor/PofExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
+<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Collection.html" title="class or interface in java.util" class="external-link">Collection</a>&lt;<a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">T</a>&gt;,<wbr><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;<a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">E</a>&gt;&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CollectionExtractor.</span><code><a href="../extractor/CollectionExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/ReflectionExtractor.html" title="type parameter in ReflectionExtractor">T</a>,<wbr><a href="../extractor/ReflectionExtractor.html" title="type parameter in ReflectionExtractor">E</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">ReflectionExtractor.</span><code><a href="../extractor/ReflectionExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
+<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/PofExtractor.html" title="type parameter in PofExtractor">T</a>,<wbr><a href="../extractor/PofExtractor.html" title="type parameter in PofExtractor">E</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">PofExtractor.</span><code><a href="../extractor/PofExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/UniversalExtractor.html" title="type parameter in UniversalExtractor">T</a>,<wbr><a href="../extractor/UniversalExtractor.html" title="type parameter in UniversalExtractor">E</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">UniversalExtractor.</span><code><a href="../extractor/UniversalExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
+<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/ReflectionExtractor.html" title="type parameter in ReflectionExtractor">T</a>,<wbr><a href="../extractor/ReflectionExtractor.html" title="type parameter in ReflectionExtractor">E</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">ReflectionExtractor.</span><code><a href="../extractor/ReflectionExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">CompositeUpdater.</span><code><a href="../extractor/CompositeUpdater.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
-<div class="col-last even-row-color">
+<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;<a href="../extractor/UniversalExtractor.html" title="type parameter in UniversalExtractor">T</a>,<wbr><a href="../extractor/UniversalExtractor.html" title="type parameter in UniversalExtractor">E</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">UniversalExtractor.</span><code><a href="../extractor/UniversalExtractor.html#fromKey()" class="member-name-link">fromKey</a>()</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">CompositeUpdater.</span><code><a href="../extractor/CompositeUpdater.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Retrieve the ValueExtractor part.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ConditionalExtractor.</span><code><a href="../extractor/ConditionalExtractor.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
-<div class="col-last odd-row-color">&nbsp;</div>
-<div class="col-first even-row-color"><code>default <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
-<div class="col-second even-row-color"><span class="type-name-label">IndexAwareExtractor.</span><code><a href="../extractor/IndexAwareExtractor.html#getExtractor(java.util.Map,com.tangosol.util.MapIndex)" class="member-name-link">getExtractor</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;<a href="../extractor/IndexAwareExtractor.html" title="type parameter in IndexAwareExtractor">T</a>,<wbr><a href="../extractor/IndexAwareExtractor.html" title="type parameter in IndexAwareExtractor">E</a>&gt;,<wbr><a href="../MapIndex.html" title="interface in com.tangosol.util">MapIndex</a>&gt;&nbsp;mapIndex,
+<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ConditionalExtractor.</span><code><a href="../extractor/ConditionalExtractor.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>default <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a></code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">IndexAwareExtractor.</span><code><a href="../extractor/IndexAwareExtractor.html#getExtractor(java.util.Map,com.tangosol.util.MapIndex)" class="member-name-link">getExtractor</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Map.html" title="class or interface in java.util" class="external-link">Map</a>&lt;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;<a href="../extractor/IndexAwareExtractor.html" title="type parameter in IndexAwareExtractor">T</a>,<wbr><a href="../extractor/IndexAwareExtractor.html" title="type parameter in IndexAwareExtractor">E</a>&gt;,<wbr><a href="../MapIndex.html" title="interface in com.tangosol.util">MapIndex</a>&gt;&nbsp;mapIndex,
  <a href="../MapIndex.html" title="interface in com.tangosol.util">MapIndex</a>&nbsp;index)</code></div>
-<div class="col-last even-row-color">
+<div class="col-last odd-row-color">
 <div class="block">Obtain the underlying ValueExtractor that was added to the index map
  during the <a href="../extractor/IndexAwareExtractor.html#createIndex(boolean,java.util.Comparator,java.util.Map,com.tangosol.net.BackingMapContext)"><code>index creation</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;? super <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">T</a>,<wbr>? extends <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">E</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;? super <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">T</a>,<wbr>? extends <a href="../extractor/KeyExtractor.html" title="type parameter in KeyExtractor">E</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#getExtractor()" class="member-name-link">getExtractor</a>()</code></div>
+<div class="col-last even-row-color">
 <div class="block">Obtain the underlying ValueExtractor.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">AbstractCompositeExtractor.</span><code><a href="../extractor/AbstractCompositeExtractor.html#getExtractors()" class="member-name-link">getExtractors</a>()</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code><a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">AbstractCompositeExtractor.</span><code><a href="../extractor/AbstractCompositeExtractor.html#getExtractors()" class="member-name-link">getExtractors</a>()</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Obtain the ValueExtractor array.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected static <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">ChainedExtractor.</span><code><a href="../extractor/ChainedExtractor.html#merge(com.tangosol.util.ValueExtractor%5B%5D,com.tangosol.util.ValueExtractor%5B%5D)" class="member-name-link">merge</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]&nbsp;aHead,
+<div class="col-first even-row-color"><code>protected static <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">ChainedExtractor.</span><code><a href="../extractor/ChainedExtractor.html#merge(com.tangosol.util.ValueExtractor%5B%5D,com.tangosol.util.ValueExtractor%5B%5D)" class="member-name-link">merge</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]&nbsp;aHead,
  <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>[]&nbsp;aTail)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-last even-row-color">
 <div class="block">Return a <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> array with the provided arrays merged
  into a single array.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;T,<wbr>
+<div class="col-first odd-row-color"><code>static &lt;T,<wbr>
 E&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a><wbr>&lt;T,<wbr>E&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#of(com.tangosol.util.ValueExtractor)" class="member-name-link">of</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color">
+<div class="col-second odd-row-color"><span class="type-name-label">KeyExtractor.</span><code><a href="../extractor/KeyExtractor.html#of(com.tangosol.util.ValueExtractor)" class="member-name-link">of</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;T,<wbr>E&gt;&nbsp;extractor)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Factory method for key extractor.</div>
 </div>
 </div>
@@ -2621,6 +2640,17 @@ E&gt;&nbsp;<a href="../ValueExtractor.html" title="interface in com.tangosol.uti
  <a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;? super <a href="../extractor/ChainedFragmentExtractor.html" title="type parameter in ChainedFragmentExtractor">E</a>,<wbr>?&gt;...&nbsp;aExtractors)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Construct <code>ChainedFragmentExtractor</code> instance.</div>
+</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../extractor/CollectionExtractor.html#%3Cinit%3E(com.tangosol.util.ValueExtractor)" class="member-name-link">CollectionExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;<a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">T</a>,<wbr><a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">E</a>&gt;&nbsp;extractor)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Construct a CollectionExtractor based on the specified <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../extractor/CollectionExtractor.html#%3Cinit%3E(com.tangosol.util.ValueExtractor,int)" class="member-name-link">CollectionExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;<a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">T</a>,<wbr><a href="../extractor/CollectionExtractor.html" title="type parameter in CollectionExtractor">E</a>&gt;&nbsp;extractor,
+ int&nbsp;nTarget)</code></div>
+<div class="col-last odd-row-color">
+<div class="block">Construct a CollectionExtractor based on the specified <a href="../ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a>.</div>
 </div>
 <div class="col-first even-row-color"><code>&nbsp;</code></div>
 <div class="col-second even-row-color"><code><a href="../extractor/ComparisonValueExtractor.html#%3Cinit%3E(com.tangosol.util.ValueExtractor,com.tangosol.util.ValueExtractor)" class="member-name-link">ComparisonValueExtractor</a><wbr>(<a href="../ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;<a href="../extractor/ComparisonValueExtractor.html" title="type parameter in ComparisonValueExtractor">T</a>,<wbr><a href="../extractor/ComparisonValueExtractor.html" title="type parameter in ComparisonValueExtractor">E</a>&gt;&nbsp;ve1,

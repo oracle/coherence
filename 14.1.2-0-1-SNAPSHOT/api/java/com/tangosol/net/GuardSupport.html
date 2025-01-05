@@ -135,22 +135,22 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>protected static final long</code></div>
-<div class="col-second even-row-color"><code><a href="#GUARDIAN_EARLY_THRESHOLD" class="member-name-link">GUARDIAN_EARLY_THRESHOLD</a></code></div>
+<div class="col-first even-row-color"><code>protected static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#DEFAULT_LOG_THREADDUMP_INTERVAL" class="member-name-link">DEFAULT_LOG_THREADDUMP_INTERVAL</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">Default guardian log thread dump interval as a time duration.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected static final long</code></div>
+<div class="col-second odd-row-color"><code><a href="#GUARDIAN_EARLY_THRESHOLD" class="member-name-link">GUARDIAN_EARLY_THRESHOLD</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The threshold before which than which a guardian considers itself early
  in checking its guardables.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected static final long</code></div>
-<div class="col-second odd-row-color"><code><a href="#GUARDIAN_LATE_THRESHOLD" class="member-name-link">GUARDIAN_LATE_THRESHOLD</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>protected static final long</code></div>
+<div class="col-second even-row-color"><code><a href="#GUARDIAN_LATE_THRESHOLD" class="member-name-link">GUARDIAN_LATE_THRESHOLD</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The threshold past which a guardian considers itself late in checking
  its guardables.</div>
-</div>
-<div class="col-first even-row-color"><code>protected static final long</code></div>
-<div class="col-second even-row-color"><code><a href="#GUARDIAN_LOG_INTERVAL" class="member-name-link">GUARDIAN_LOG_INTERVAL</a></code></div>
-<div class="col-last even-row-color">
-<div class="block">The minimum interval at which the Guardian should log thread dumps.</div>
 </div>
 <div class="col-first odd-row-color"><code>static final long</code></div>
 <div class="col-second odd-row-color"><code><a href="#GUARDIAN_MAX_CHECK_INTERVAL" class="member-name-link">GUARDIAN_MAX_CHECK_INTERVAL</a></code></div>
@@ -158,31 +158,49 @@ loadScripts(document, 'script');</script>
 <div class="block">The maximum interval at which the Guardian thread should call check() to
  verify its guardables.</div>
 </div>
-<div class="col-first even-row-color"><code>protected <a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a>[]</code></div>
-<div class="col-second even-row-color"><code><a href="#m_aGuardContext" class="member-name-link">m_aGuardContext</a></code></div>
+<div class="col-first even-row-color"><code>protected static final long</code></div>
+<div class="col-second even-row-color"><code><a href="#LOG_THREADDUMP_INTERVAL_MS" class="member-name-link">LOG_THREADDUMP_INTERVAL_MS</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">The minimum interval at which the Guardian should log thread dumps in milliseconds.</div>
+</div>
+<div class="col-first odd-row-color"><code>protected <a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a>[]</code></div>
+<div class="col-second odd-row-color"><code><a href="#m_aGuardContext" class="member-name-link">m_aGuardContext</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">Array of GuardContexts for the registered Guardables.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected int</code></div>
-<div class="col-second odd-row-color"><code><a href="#m_cGuardable" class="member-name-link">m_cGuardable</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>protected int</code></div>
+<div class="col-second even-row-color"><code><a href="#m_cGuardable" class="member-name-link">m_cGuardable</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The number of registered Guardables.</div>
 </div>
-<div class="col-first even-row-color"><code>protected <a href="Guardian.html" title="interface in com.tangosol.net">Guardian</a></code></div>
-<div class="col-second even-row-color"><code><a href="#m_guardian" class="member-name-link">m_guardian</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>protected <a href="Guardian.html" title="interface in com.tangosol.net">Guardian</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#m_guardian" class="member-name-link">m_guardian</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The Guardian that is managing this GuardSupport.</div>
 </div>
-<div class="col-first odd-row-color"><code>protected long</code></div>
-<div class="col-second odd-row-color"><code><a href="#m_ldtNextCheck" class="member-name-link">m_ldtNextCheck</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>protected long</code></div>
+<div class="col-second even-row-color"><code><a href="#m_ldtNextCheck" class="member-name-link">m_ldtNextCheck</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The next time at which the Guardables should be checked.</div>
 </div>
-<div class="col-first even-row-color"><code>protected static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ThreadLocal.html" title="class or interface in java.lang" class="external-link">ThreadLocal</a></code></div>
-<div class="col-second even-row-color"><code><a href="#m_tlContext" class="member-name-link">m_tlContext</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>protected static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ThreadLocal.html" title="class or interface in java.lang" class="external-link">ThreadLocal</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#m_tlContext" class="member-name-link">m_tlContext</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">ThreadLocal containing the GuardContext associated with the
  current thread.</div>
+</div>
+<div class="col-first even-row-color"><code>protected static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#MAX_LOG_THREADDUMP_INTERVAL" class="member-name-link">MAX_LOG_THREADDUMP_INTERVAL</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>protected static final long</code></div>
+<div class="col-second odd-row-color"><code><a href="#MAX_LOG_THREADDUMP_INTERVAL_MS" class="member-name-link">MAX_LOG_THREADDUMP_INTERVAL_MS</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">Max interval in milliseconds at which the Guardian log thread dump interval can be configured.</div>
+</div>
+<div class="col-first even-row-color"><code>protected static final <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color"><code><a href="#PROP_LOG_THREADDUMP_INTERVAL" class="member-name-link">PROP_LOG_THREADDUMP_INTERVAL</a></code></div>
+<div class="col-last even-row-color">
+<div class="block">Property for configuring minimum Guardian log thread dump interval as a time duration.</div>
 </div>
 <div class="col-first odd-row-color"><code>protected static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/atomic/AtomicLong.html" title="class or interface in java.util.concurrent.atomic" class="external-link">AtomicLong</a></code></div>
 <div class="col-second odd-row-color"><code><a href="#s_atomicLogTime" class="member-name-link">s_atomicLogTime</a></code></div>
@@ -253,78 +271,84 @@ loadScripts(document, 'script');</script>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the Guardian that manages this GuardSupport.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getNextCheckTime()" class="member-name-link">getNextCheckTime</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>protected static long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getLogThreaddumpIntervalMs()" class="member-name-link">getLogThreaddumpIntervalMs</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="block">Configure guardian log thread dump interval using property <a href="#PROP_LOG_THREADDUMP_INTERVAL"><code>PROP_LOG_THREADDUMP_INTERVAL</code></a> set to
+ a time duration, i.e.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getNextCheckTime()" class="member-name-link">getNextCheckTime</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Return the next time at which the Guardables should be checked.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="Guardian.GuardContext.html" title="interface in com.tangosol.net">Guardian.GuardContext</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getThreadContext()" class="member-name-link">getThreadContext</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="Guardian.GuardContext.html" title="interface in com.tangosol.net">Guardian.GuardContext</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getThreadContext()" class="member-name-link">getThreadContext</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Obtain the GuardContext associated with the current thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getThreadDump()" class="member-name-link">getThreadDump</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getThreadDump()" class="member-name-link">getThreadDump</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Get the full thread dump.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heartbeat()" class="member-name-link">heartbeat</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heartbeat()" class="member-name-link">heartbeat</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Issue a heartbeat on the GuardContext associated with the current thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heartbeat(long)" class="member-name-link">heartbeat</a><wbr>(long&nbsp;cMillis)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#heartbeat(long)" class="member-name-link">heartbeat</a><wbr>(long&nbsp;cMillis)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Issue a heartbeat of the specified duration on the GuardContext
  associated with the current thread.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateContext(com.tangosol.net.Guardable,long,float)" class="member-name-link">instantiateContext</a><wbr>(<a href="Guardable.html" title="interface in com.tangosol.net">Guardable</a>&nbsp;guardable,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected <a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#instantiateContext(com.tangosol.net.Guardable,long,float)" class="member-name-link">instantiateContext</a><wbr>(<a href="Guardable.html" title="interface in com.tangosol.net">Guardable</a>&nbsp;guardable,
  long&nbsp;cMillis,
  float&nbsp;flPctRecover)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#logStackTraces()" class="member-name-link">logStackTraces</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#logStackTraces()" class="member-name-link">logStackTraces</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Collect stack traces and synchronization information
  for all running threads and write them to the error log.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#release()" class="member-name-link">release</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#release()" class="member-name-link">release</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Release the Guardables managed by this GuardSupport.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#remove(com.tangosol.net.Guardable)" class="member-name-link">remove</a><wbr>(<a href="Guardable.html" title="interface in com.tangosol.net">Guardable</a>&nbsp;guardable)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#remove(com.tangosol.net.Guardable)" class="member-name-link">remove</a><wbr>(<a href="Guardable.html" title="interface in com.tangosol.net">Guardable</a>&nbsp;guardable)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Remove the specified Guardable from the set of Guardables managed by
  this manager.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reset()" class="member-name-link">reset</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#reset()" class="member-name-link">reset</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Issue a reset on the GuardContext associated with the current thread.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGuardableCount(int)" class="member-name-link">setGuardableCount</a><wbr>(int&nbsp;cGuardable)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGuardableCount(int)" class="member-name-link">setGuardableCount</a><wbr>(int&nbsp;cGuardable)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the number of Guardables that are registered with this GuardSupport.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGuardContexts(com.tangosol.net.GuardSupport.Context%5B%5D)" class="member-name-link">setGuardContexts</a><wbr>(<a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a>[]&nbsp;aGuardContext)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGuardContexts(com.tangosol.net.GuardSupport.Context%5B%5D)" class="member-name-link">setGuardContexts</a><wbr>(<a href="GuardSupport.Context.html" title="class in com.tangosol.net">GuardSupport.Context</a>[]&nbsp;aGuardContext)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the array of GuardContext objects for the Guardables that are
  managed by this GuardSupport.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setNextCheckTime(long)" class="member-name-link">setNextCheckTime</a><wbr>(long&nbsp;ldtNextCheck)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>protected void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setNextCheckTime(long)" class="member-name-link">setNextCheckTime</a><wbr>(long&nbsp;ldtNextCheck)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Set the next time at which the Guardables should be checked.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#setThreadContext(com.tangosol.net.Guardian.GuardContext)" class="member-name-link">setThreadContext</a><wbr>(<a href="Guardian.GuardContext.html" title="interface in com.tangosol.net">Guardian.GuardContext</a>&nbsp;context)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#setThreadContext(com.tangosol.net.Guardian.GuardContext)" class="member-name-link">setThreadContext</a><wbr>(<a href="Guardian.GuardContext.html" title="interface in com.tangosol.net">Guardian.GuardContext</a>&nbsp;context)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Associate the specified GuardContext with the current thread.</div>
 </div>
 </div>
@@ -396,15 +420,85 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="GUARDIAN_LOG_INTERVAL">
-<h3>GUARDIAN_LOG_INTERVAL</h3>
-<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">GUARDIAN_LOG_INTERVAL</span></div>
-<div class="block">The minimum interval at which the Guardian should log thread dumps.</div>
+<section class="detail" id="PROP_LOG_THREADDUMP_INTERVAL">
+<h3>PROP_LOG_THREADDUMP_INTERVAL</h3>
+<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">PROP_LOG_THREADDUMP_INTERVAL</span></div>
+<div class="block">Property for configuring minimum Guardian log thread dump interval as a time duration.
+ Configure this property to reduce the number of Guardian log thread dumps in logs when
+ too many are occurring over a short duration of time.
+
+ Format is documented as <code>String</code> parameter of <code>Duration(String)</code>.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>25.03</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list-long">
+<li><a href="#DEFAULT_LOG_THREADDUMP_INTERVAL"><code>DEFAULT_LOG_THREADDUMP_INTERVAL</code></a></li>
+<li><a href="#MAX_LOG_THREADDUMP_INTERVAL"><code>MAX_LOG_THREADDUMP_INTERVAL</code></a></li>
+<li><a href="../../../constant-values.html#com.tangosol.net.GuardSupport.PROP_LOG_THREADDUMP_INTERVAL">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="DEFAULT_LOG_THREADDUMP_INTERVAL">
+<h3>DEFAULT_LOG_THREADDUMP_INTERVAL</h3>
+<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">DEFAULT_LOG_THREADDUMP_INTERVAL</span></div>
+<div class="block">Default guardian log thread dump interval as a time duration.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>25.03</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="../../../constant-values.html#com.tangosol.net.GuardSupport.DEFAULT_LOG_THREADDUMP_INTERVAL">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_LOG_THREADDUMP_INTERVAL">
+<h3>MAX_LOG_THREADDUMP_INTERVAL</h3>
+<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">MAX_LOG_THREADDUMP_INTERVAL</span></div>
 <dl class="notes">
 <dt>See Also:</dt>
 <dd>
 <ul class="tag-list">
-<li><a href="../../../constant-values.html#com.tangosol.net.GuardSupport.GUARDIAN_LOG_INTERVAL">Constant Field Values</a></li>
+<li><a href="../../../constant-values.html#com.tangosol.net.GuardSupport.MAX_LOG_THREADDUMP_INTERVAL">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_LOG_THREADDUMP_INTERVAL_MS">
+<h3>MAX_LOG_THREADDUMP_INTERVAL_MS</h3>
+<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">MAX_LOG_THREADDUMP_INTERVAL_MS</span></div>
+<div class="block">Max interval in milliseconds at which the Guardian log thread dump interval can be configured.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>25.03</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="LOG_THREADDUMP_INTERVAL_MS">
+<h3>LOG_THREADDUMP_INTERVAL_MS</h3>
+<div class="member-signature"><span class="modifiers">protected static final</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">LOG_THREADDUMP_INTERVAL_MS</span></div>
+<div class="block">The minimum interval at which the Guardian should log thread dumps in milliseconds.
+
+ Override default <a href="#DEFAULT_LOG_THREADDUMP_INTERVAL"><code>DEFAULT_LOG_THREADDUMP_INTERVAL</code></a> by setting property
+ <a href="#PROP_LOG_THREADDUMP_INTERVAL"><code>PROP_LOG_THREADDUMP_INTERVAL</code></a> to a time duration.</div>
+<dl class="notes">
+<dt>Since:</dt>
+<dd>25.03</dd>
+<dt>See Also:</dt>
+<dd>
+<ul class="tag-list">
+<li><a href="#MAX_LOG_THREADDUMP_INTERVAL"><code>MAX_LOG_THREADDUMP_INTERVAL</code></a></li>
 </ul>
 </dd>
 </dl>
@@ -698,6 +792,22 @@ loadScripts(document, 'script');</script>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>a string containing the thread dump</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getLogThreaddumpIntervalMs()">
+<h3>getLogThreaddumpIntervalMs</h3>
+<div class="member-signature"><span class="modifiers">protected static</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">getLogThreaddumpIntervalMs</span>()</div>
+<div class="block">Configure guardian log thread dump interval using property <a href="#PROP_LOG_THREADDUMP_INTERVAL"><code>PROP_LOG_THREADDUMP_INTERVAL</code></a> set to
+ a time duration, i.e. <code>15m</code> or <code>2h</code>. The maximum allowed duration is <a href="#MAX_LOG_THREADDUMP_INTERVAL"><code>MAX_LOG_THREADDUMP_INTERVAL</code></a>, any value
+ provided above this value is treated as the max allowed log thread dump interval.
+ Default duration of <a href="#DEFAULT_LOG_THREADDUMP_INTERVAL"><code>DEFAULT_LOG_THREADDUMP_INTERVAL</code></a> is used when property is not or set to an invalid time duration.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the computed guardian log thread dump interval in milliseconds.</dd>
+<dt>Since:</dt>
+<dd>25.03</dd>
 </dl>
 </section>
 </li>

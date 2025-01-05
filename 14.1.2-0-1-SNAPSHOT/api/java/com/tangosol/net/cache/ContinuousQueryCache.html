@@ -1516,7 +1516,7 @@ E&gt;&nbsp;void</code></div>
 <dd><code>filter</code> - the <a href="../../util/Filter.html" title="interface in com.tangosol.util"><code>Filter</code></a> that defines the view</dd>
 <dd><code>fCacheValues</code> - pass <code>true</code> to cache both the keys and values of the
                       materialized view locally, or <code>false</code> to only cache
-                      the keys</dd>
+                      the keys. Override of <code>false</code> described in <a href="#isCacheValues()"><code>isCacheValues()</code></a>.</dd>
 </dl>
 </section>
 </li>
@@ -1588,15 +1588,19 @@ E&gt;&nbsp;void</code></div>
 <dt>Parameters:</dt>
 <dd><code>cache</code> - the <a href="../NamedCache.html" title="interface in com.tangosol.net"><code>NamedCache</code></a> to create a view of</dd>
 <dd><code>filter</code> - the <a href="../../util/Filter.html" title="interface in com.tangosol.util"><code>Filter</code></a> that defines the view</dd>
-<dd><code>fCacheValues</code> - pass true to cache both the keys and values of the
-                      materialized view locally, or false to only cache
-                      the keys</dd>
+<dd><code>fCacheValues</code> - pass <code>true</code> to cache both the keys and values of the
+                      materialized view locally, or <code>false</code> to only cache
+                      the keys. Override of <code>false</code> described in <a href="#isCacheValues()"><code>isCacheValues()</code></a></dd>
 <dd><code>listener</code> - an optional <a href="../../util/MapListener.html" title="interface in com.tangosol.util"><code>MapListener</code></a> that will receive all
                       events starting from the initialization of the <code>ContinuousQueryCache</code></dd>
 <dd><code>transformer</code> - an optional <a href="../../util/ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> that would be used to
                       transform values retrieved from the underlying cache
                       before storing them locally; if specified, this
-                      <code>ContinuousQueryCache</code> will become "read-only"</dd>
+                      <code>ContinuousQueryCache</code> will become "read-only"
+ <p>
+ Note: When parameter <code>fCacheValues</code> is <code>false</code>, it is inferred that provided parameter
+ <code>listener</code> is a lite listener as described by <code>fLite</code> parameter of
+ <a href="#addMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter,boolean)"><code>addMapListener(MapListener, Filter, boolean)</code></a>.</dd>
 </dl>
 </section>
 </li>
@@ -1629,7 +1633,7 @@ E&gt;&nbsp;void</code></div>
 <dd><code>filter</code> - the <a href="../../util/Filter.html" title="interface in com.tangosol.util"><code>Filter</code></a> that defines the view</dd>
 <dd><code>fCacheValues</code> - pass <code>true</code> to cache both the keys and values of the
                        materialized view locally, or <code>false</code> to only cache
-                       the keys</dd>
+                       the keys. Override of <code>false</code> described in <a href="#isCacheValues()"><code>isCacheValues()</code></a></dd>
 <dd><code>listener</code> - an optional <a href="../../util/MapListener.html" title="interface in com.tangosol.util"><code>MapListener</code></a> that will receive all
                        events starting from the initialization of the
                        <code>ContinuousQueryCache</code></dd>
@@ -1637,7 +1641,11 @@ E&gt;&nbsp;void</code></div>
                        transform values retrieved from the underlying cache
                        before storing them locally; if specified, this
                        <code>ContinuousQueryCache</code> will become <em>read-only</em></dd>
-<dd><code>loader</code> - an optional <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link"><code>ClassLoader</code></a></dd>
+<dd><code>loader</code> - an optional <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/ClassLoader.html" title="class or interface in java.lang" class="external-link"><code>ClassLoader</code></a>
+                            * <p>
+ Note: When parameter <code>fCacheValues</code> is <code>false</code>, it is inferred that the provided parameter
+ <code>listener</code> is a lite listener as described by <code>fLite</code> parameter of
+ <a href="#addMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter,boolean)"><code>addMapListener(MapListener, Filter, boolean)</code></a>.</dd>
 <dt>Since:</dt>
 <dd>12.2.1.4</dd>
 </dl>
@@ -1706,7 +1714,14 @@ E&gt;&nbsp;void</code></div>
 <section class="detail" id="isCacheValues()">
 <h3>isCacheValues</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">isCacheValues</span>()</div>
-<div class="block">Determine if this <code>ContinuousQueryCache</code> caches values locally.</div>
+<div class="block">Determine if this <code>ContinuousQueryCache</code> caches values locally.
+ <p>
+ Note: if <a href="#addMapListener(com.tangosol.util.MapListener,com.tangosol.util.Filter,boolean)"><code>addMapListener</code></a> adds
+ a standard (non-lite) listener or a filter to this <a href="../../util/ObservableMap.html" title="interface in com.tangosol.util"><code>ObservableMap</code></a>,
+ cache values are always maintained locally. The locally cached values are
+ used to filter events and to supply the <a href="../../util/MapEvent.html#getOldValue()"><code>old</code></a>
+ and <a href="../../util/MapEvent.html#getNewValue()"><code>new</code></a> values for the events that it raises.
+ Additionally, a non-null <a href="#getTransformer()"><code>transformer</code></a> infers caches values being stored locally.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd><code>true</code> if this object caches values locally, and <code>false</code> if it
@@ -1729,7 +1744,7 @@ E&gt;&nbsp;void</code></div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>fCacheValues</code> - pass <code>true</code> to enable local caching, or <code>false</code>
-                      to disable it</dd>
+                      to disable it. Override of <code>false</code> described in <a href="#isCacheValues()"><code>isCacheValues()</code></a>.</dd>
 </dl>
 </section>
 </li>
