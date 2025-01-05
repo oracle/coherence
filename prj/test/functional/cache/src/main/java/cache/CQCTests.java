@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,10 +29,13 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
+import com.tangosol.util.ObservableMap;
 
 import com.tangosol.util.extractor.IdentityExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.filter.BetweenFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
 
@@ -68,8 +71,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -180,6 +185,98 @@ public class CQCTests
         // check that the listener received the correct number of events after restart
         Eventually.assertThat(invoking(theCQC).getState(), is(ContinuousQueryCache.STATE_SYNCHRONIZED));
         Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA));
+        }
+
+    @Test
+    public void testNoCacheValuesToObservable()
+        {
+        NamedCache<String, Integer>                    testCache = getAndPopulateNamedCache("dist-test");
+        TestCQCListener                                listener  = new ValidateLiteListener(SOME_DATA);
+        ContinuousQueryCache<String, Integer, Integer> theCQC    = setCQC(new ContinuousQueryCache<>(
+                testCache,
+                AlwaysFilter.INSTANCE,
+                /*fCacheValues*/ false,
+                listener,
+                null));
+        assertFalse(theCQC.isCacheValues());
+
+        TestCQCListener listener1  = new TestCQCListener(SOME_DATA);
+        theCQC.addMapListener(listener1, (Filter)null, /*fLite*/ false);
+        assertTrue(theCQC.isCacheValues());
+        testCache.put("moreData", 4);
+        theCQC.release();
+        }
+
+    @Test
+    public void testEventsNoValues()
+        {
+        // put data items into inner cache to generate events
+        NamedCache<String, Integer>                    testCache = getAndPopulateNamedCache("dist-test");
+        TestCQCListener                                listener  = new ValidateLiteListener(SOME_DATA);
+        ContinuousQueryCache<String, Integer, Integer> theCQC    = setCQC(new ContinuousQueryCache<>(
+                testCache,
+                AlwaysFilter.INSTANCE,
+                /*fCacheValues*/ false,
+                listener,
+                null));
+        assertFalse(theCQC.isCacheValues());
+
+
+        // check that the listener received the correct number of events
+        // and the CQC has set its state to STATE_SYNCHRONIZED
+        Eventually.assertThat(invoking(theCQC).getState(), is(ContinuousQueryCache.STATE_SYNCHRONIZED));
+        Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA));
+        assertFalse(theCQC.isCacheValues());
+
+        // suspend service
+        getFactory().ensureService("CQCTestService").shutdown();
+
+        // verify CQC has received disconnect event before restarting service
+        Eventually.assertThat(invoking(theCQC).getState(), is(ContinuousQueryCache.STATE_DISCONNECTED));
+
+        // reset the listener
+        listener.resetActualTotal();
+
+        // restart the service
+        getFactory().ensureService("CQCTestService").start();
+
+        // ping the CQC for non-existing key to make it realize the cache needs restart
+        theCQC.get("junkKey");
+
+        // check that the listener received the correct number of events after restart
+        Eventually.assertThat(invoking(theCQC).getState(), is(ContinuousQueryCache.STATE_SYNCHRONIZED));
+        Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA));
+        }
+
+    @Test
+    public void testEventsNoValuesKeyFilter()
+        {
+        NamedCache<String, Integer>                    testCache       = getAndPopulateNamedCache("dist-test");
+        TestCQCListener                                listener        = new ValidateLiteListener(SOME_DATA/2);
+        ContinuousQueryCache<String, Integer, Integer> theCQCFirstHalf = setCQC(new ContinuousQueryCache<>(
+                testCache,
+                new BetweenFilter(new KeyExtractor(), "TestKey00", "TestKey49"),
+                /*fCacheValues*/ false,
+                listener,
+                null));
+        assertFalse(theCQCFirstHalf.isCacheValues());
+
+        TestCQCListener                                listener2        = new ValidateLiteListener(SOME_DATA/2);
+        ContinuousQueryCache<String, Integer, Integer> theCQCSecondHalf = setCQC(new ContinuousQueryCache<>(
+                testCache,
+                new BetweenFilter(new KeyExtractor(), "TestKey50", "TestKey99"),
+                /*fCacheValues*/ false,
+                listener2,
+                null));
+        assertFalse(theCQCSecondHalf.isCacheValues());
+
+        int i = theCQCFirstHalf.get("TestKey09");
+
+        assertTrue(theCQCFirstHalf.size() <= 50);
+        assertTrue(theCQCSecondHalf.size() <= 50);
+
+        Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA/2));
+        Eventually.assertThat(invoking(listener2).getActualTotal(), is(SOME_DATA/2));
         }
 
     /**
@@ -736,7 +833,7 @@ public class CQCTests
         testCache.clear();
         for (int i = 0; i < SOME_DATA; i++)
             {
-            testCache.put("TestKey" + i, i);
+            testCache.put("TestKey" + String.format("%02d", i), i);
             }
         return testCache;
         }
@@ -959,6 +1056,44 @@ public class CQCTests
          * Invoked through invokeAll.
          */
         private String m_sValue;
+        }
+
+    // ----- inner class: ValidateLiteListener -------------------------------
+
+    /**
+     * MapListener that verifies the data received in the event.
+     */
+    @SuppressWarnings("unused")
+    public class ValidateLiteListener extends TestCQCListener
+        {
+        // ----- constructors -----------------------------------------------
+
+        public ValidateLiteListener(int count)
+            {
+            super(count);
+            }
+
+        // ----- MapListener methods ----------------------------------------
+
+        public void entryUpdated(MapEvent evt)
+            {
+            super.entryUpdated(evt);
+            assertNull(evt.getNewValue());
+            assertNull(evt.getOldValue());
+            }
+
+        public void entryInserted(MapEvent evt)
+            {
+            super.entryInserted(evt);
+            assertNull(evt.getNewValue());
+            assertNull(evt.getOldValue());
+            }
+
+        public void entryDeleted(MapEvent evt)
+            {
+            super.entryDeleted(evt);
+            assertNull(evt.getOldValue());
+            }
         }
 
     /**

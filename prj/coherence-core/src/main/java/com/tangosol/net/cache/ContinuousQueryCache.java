@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -221,7 +221,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      * @param filter        the {@link Filter} that defines the view
      * @param fCacheValues  pass {@code true} to cache both the keys and values of the
      *                      materialized view locally, or {@code false} to only cache
-     *                      the keys
+     *                      the keys. Override of {@code false} described in {@link #isCacheValues()}.
      */
     public ContinuousQueryCache(NamedCache<K, V_BACK> cache, Filter filter, boolean fCacheValues)
         {
@@ -247,7 +247,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
     public ContinuousQueryCache(NamedCache<K, V_BACK> cache, Filter filter,
                                 MapListener<? super K, ? super V_FRONT> listener)
         {
-        this(cache, filter, false, listener, null);
+        this(cache, filter, true, listener, null);
         }
 
     /**
@@ -284,15 +284,19 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      *
      * @param cache         the {@link NamedCache} to create a view of
      * @param filter        the {@link Filter} that defines the view
-     * @param fCacheValues  pass true to cache both the keys and values of the
-     *                      materialized view locally, or false to only cache
-     *                      the keys
+     * @param fCacheValues  pass {@code true} to cache both the keys and values of the
+     *                      materialized view locally, or {@code false} to only cache
+     *                      the keys. Override of {@code false} described in {@link #isCacheValues()}
      * @param listener      an optional {@link MapListener} that will receive all
      *                      events starting from the initialization of the {@code ContinuousQueryCache}
      * @param transformer   an optional {@link ValueExtractor} that would be used to
      *                      transform values retrieved from the underlying cache
      *                      before storing them locally; if specified, this
      *                      {@code ContinuousQueryCache} will become "read-only"
+     * <p>
+     * Note: When parameter {@code fCacheValues} is {@code false}, it is inferred that provided parameter
+     * {@code listener} is a lite listener as described by {@code fLite} parameter of
+     * {@link #addMapListener(MapListener, Filter, boolean)}.
      */
     public ContinuousQueryCache(NamedCache<K, V_BACK> cache, Filter filter,
                                    boolean fCacheValues, MapListener<? super K, ? super V_FRONT> listener,
@@ -321,7 +325,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      * @param filter         the {@link Filter} that defines the view
      * @param fCacheValues   pass {@code true} to cache both the keys and values of the
      *                       materialized view locally, or {@code false} to only cache
-     *                       the keys
+     *                       the keys. Override of {@code false} described in {@link #isCacheValues()}
      * @param listener       an optional {@link MapListener} that will receive all
      *                       events starting from the initialization of the
      *                       {@code ContinuousQueryCache}
@@ -330,6 +334,10 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      *                       before storing them locally; if specified, this
      *                       {@code ContinuousQueryCache} will become <em>read-only</em>
      * @param loader         an optional {@link ClassLoader}
+     *                            * <p>
+     * Note: When parameter {@code fCacheValues} is {@code false}, it is inferred that the provided parameter
+     * {@code listener} is a lite listener as described by {@code fLite} parameter of
+     * {@link #addMapListener(MapListener, Filter, boolean)}.
      *
      * @since 12.2.1.4
      */
@@ -365,6 +373,8 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         m_fReadOnly     = transformer != null;
         m_nState        = STATE_DISCONNECTED;
 
+        // initialize Observable listener on whether a standard (non-lite) listener passed at construction time
+        m_fListeners    = listener != null && fCacheValues;
         if (listener instanceof MapTriggerListener)
             {
             throw new IllegalArgumentException("ContinuousQueryCache does not support MapTriggerListeners");
@@ -458,13 +468,20 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
 
     /**
      * Determine if this {@code ContinuousQueryCache} caches values locally.
+     * <p>
+     * Note: if {@link #addMapListener(MapListener, Filter, boolean) addMapListener} adds
+     * a standard (non-lite) listener or a filter to this {@link ObservableMap},
+     * cache values are always maintained locally. The locally cached values are
+     * used to filter events and to supply the {@link MapEvent#getOldValue() old}
+     * and {@link MapEvent#getNewValue() new} values for the events that it raises.
+     * Additionally, a non-null {@link #getTransformer() transformer} infers caches values being stored locally.
      *
      * @return {@code true} if this object caches values locally, and {@code false} if it
      *         relies on the underlying {@link NamedCache}
      */
     public boolean isCacheValues()
         {
-        return m_fCacheValues || isObserved();
+        return m_fCacheValues || isObserved() || getTransformer() != null;
         }
 
     /**
@@ -478,7 +495,7 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
      * <p>
      *
      * @param fCacheValues  pass {@code true} to enable local caching, or {@code false}
-     *                      to disable it
+     *                      to disable it. Override of {@code false} described in {@link #isCacheValues()}.
      */
     public synchronized void setCacheValues(boolean fCacheValues)
         {
@@ -572,13 +589,13 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             m_mapLocal = instantiateInternalCache();
 
             MapListener mapListener = m_mapListener;
+            boolean     fLite       = !isCacheValues();
             if (mapListener != null)
                 {
                 // the initial listener has to hear the initial events
                 ensureEventQueue();
                 ensureListenerSupport().addListener(
-                        instantiateEventRouter(mapListener, false), (Filter) null, false);
-                m_fListeners = true;
+                        instantiateEventRouter(mapListener, fLite), (Filter) null, fLite);
                 }
             }
         return m_mapLocal;
@@ -1678,8 +1695,8 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             changeState(STATE_CONFIGURING);
             m_ldtConnectionTimestamp = getSafeTimeMillis();
 
-            NamedCache cache     = getCache();
-            Filter     filter        = getFilter();
+            NamedCache cache        = getCache();
+            Filter     filter       = getFilter();
             boolean    fCacheValues = isCacheValues();
 
             // get the old filters and listeners
