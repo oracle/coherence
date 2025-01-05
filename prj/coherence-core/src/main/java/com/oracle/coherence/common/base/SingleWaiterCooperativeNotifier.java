@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.base;
 
 import com.oracle.coherence.common.collections.ConcurrentLinkedQueue;
+
+import com.tangosol.coherence.config.Config;
 
 import java.util.Queue;
 import java.util.concurrent.locks.LockSupport;
@@ -153,6 +155,6 @@ public class SingleWaiterCooperativeNotifier
     /**
      * The number of threads to awake upon a static flush call.
      */
-    private static final int FLUSH_AWAKE_COUNT = Integer.parseInt(
-            System.getProperty(SingleWaiterCooperativeNotifier.class.getName() + ".wakeOnFlush", "1"));
+    private static final int FLUSH_AWAKE_COUNT = Config.getInteger(
+            SingleWaiterCooperativeNotifier.class.getName() + ".wakeOnFlush", 1);
     }

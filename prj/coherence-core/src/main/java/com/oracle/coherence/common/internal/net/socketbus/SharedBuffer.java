@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -11,6 +11,9 @@ import com.oracle.coherence.common.base.Disposable;
 import com.oracle.coherence.common.base.Holder;
 
 import com.oracle.coherence.common.io.BufferSequence;
+
+import com.tangosol.coherence.config.Config;
+
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
 import java.nio.ByteBuffer;
@@ -314,6 +317,6 @@ public class SharedBuffer
     /**
      * True iff dispose locations should be tracked (for debugging)
      */
-    private static final boolean TRACK_DISPOSE = Boolean.getBoolean(
+    private static final boolean TRACK_DISPOSE = Config.getBoolean(
             BufferSequence.class.getName() + ".trackDispose");
     }

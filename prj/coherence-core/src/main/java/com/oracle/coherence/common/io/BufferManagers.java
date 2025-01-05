@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ import com.oracle.coherence.common.internal.io.CheckedBufferManager;
 import com.oracle.coherence.common.internal.io.SlabBufferManager;
 import com.oracle.coherence.common.internal.io.WrapperBufferManager;
 import com.oracle.coherence.common.util.MemorySize;
+
+import com.tangosol.coherence.config.Config;
 
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
@@ -109,11 +111,11 @@ public final class BufferManagers
         static
             {
             BufferManager mgr;
-            String        sHeap = System.getProperty(BufferManagers.class.getName()
-                                            + ".heap.pool", System.getProperty(BufferManagers.class.getName()
+            String        sHeap = Config.getProperty(BufferManagers.class.getName()
+                                            + ".heap.pool", Config.getProperty(BufferManagers.class.getName()
                                             + ".pool", Long.toString(DEFAULT_POOL_SIZE)));
-            int           cbBuf = (int) new MemorySize(System.getProperty(BufferManagers.class.getName() + ".heap.base",
-                                                        System.getProperty(BufferManagers.class.getName() + ".base",
+            int           cbBuf = (int) new MemorySize(Config.getProperty(BufferManagers.class.getName() + ".heap.base",
+                                                        Config.getProperty(BufferManagers.class.getName() + ".base",
                                                                 Long.toString(SegmentedBufferManager.DEFAULT_BUF_SIZE)))).getByteCount();
 
             if (sHeap.startsWith("-")) // negative implies infinite which maps
@@ -179,8 +181,8 @@ public final class BufferManagers
 
             mgr      = new NonDisposableBufferManager(mgr);
             LOGGER.log(Level.FINE, "initialized HeapBufferManager " + mgr);
-            INSTANCE = Boolean.valueOf(System.getProperty(BufferManagers.class.getName() + ".heap.checked",
-                            System.getProperty(BufferManagers.class.getName() + ".checked")))
+            INSTANCE = Config.getBoolean(BufferManagers.class.getName() + ".heap.checked",
+                                         Config.getBoolean(BufferManagers.class.getName() + ".checked"))
                             ? new CheckedBufferManager(mgr) : mgr;
             }
         }
@@ -198,12 +200,12 @@ public final class BufferManagers
         static
             {
             BufferManager mgr;
-            long          lcbPool = new MemorySize(System.getProperty(BufferManagers.class.getName() + ".direct.pool",
-                                                        System.getProperty(BufferManagers.class.getName() + ".pool",
-                                                                Long.toString(DEFAULT_POOL_SIZE)))).getByteCount(); // default is doced above
-            int           cbBuf   = (int) new MemorySize(System.getProperty(BufferManagers.class.getName() + ".direct.base",
-                                                        System.getProperty(BufferManagers.class.getName() + ".base",
-                                                                Long.toString(SegmentedBufferManager.DEFAULT_BUF_SIZE)))).getByteCount();
+            long          lcbPool = new MemorySize(Config.getProperty(BufferManagers.class.getName() + ".direct.pool",
+                                                                      Config.getProperty(BufferManagers.class.getName() + ".pool",
+                                                                                         Long.toString(DEFAULT_POOL_SIZE)))).getByteCount(); // default is doced above
+            int           cbBuf   = (int) new MemorySize(Config.getProperty(BufferManagers.class.getName() + ".direct.base",
+                                                                            Config.getProperty(BufferManagers.class.getName() + ".base",
+                                                                                               Long.toString(SegmentedBufferManager.DEFAULT_BUF_SIZE)))).getByteCount();
 
             if (lcbPool > 0L)
                 {
@@ -241,8 +243,8 @@ public final class BufferManagers
 
             mgr      = new NonDisposableBufferManager(mgr);
             LOGGER.log(Level.FINE, "initialized DirectBufferManager " + mgr);
-            INSTANCE = Boolean.valueOf(System.getProperty(BufferManagers.class.getName() + ".direct.checked",
-                    System.getProperty(BufferManagers.class.getName() + ".checked")))
+            INSTANCE = Config.getBoolean(BufferManagers.class.getName() + ".direct.checked",
+                                         Config.getBoolean(BufferManagers.class.getName() + ".checked"))
                             ? new CheckedBufferManager(mgr) : mgr;
             }
         }
@@ -303,6 +305,6 @@ public final class BufferManagers
      *
      * There is a performance impact to enabling this, it effectively negates the benefits of zcopy
      */
-    public static final boolean ZERO_ON_RELEASE = Boolean.getBoolean(
+    public static final boolean ZERO_ON_RELEASE = Config.getBoolean(
             BufferManagers.class.getName() + ".zeroed");
     }

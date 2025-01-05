@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.util;
 
+
+import com.tangosol.coherence.config.Config;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +45,7 @@ public class HeapDump
         String sClass   = HeapDump.class.getName();
         String sPropBug = sClass + "." + sBugId;
 
-        if (Boolean.parseBoolean(System.getProperty(sPropBug, System.getProperty(sClass, "false"))))
+        if (Config.getBoolean(sPropBug, Config.getBoolean(sClass, false)))
             {
             String sFileName;
             try
@@ -51,7 +53,7 @@ public class HeapDump
                 String sDirName;
                 try
                     {
-                    sDirName = System.getProperty(sClass + ".dir", System.getProperty("java.io.tmpdir", "."));
+                    sDirName = Config.getProperty(sClass + ".dir", System.getProperty("java.io.tmpdir", "."));
                     }
                 catch (Throwable t)
                     {
@@ -59,8 +61,8 @@ public class HeapDump
                     }
 
                 File fileDir = new File(sDirName);
-                int  cLimit  = Integer.parseInt(System.getProperty(sPropBug + ".limit",
-                                                System.getProperty(sClass   + ".limit", "3")));
+                int  cLimit  = Config.getInteger(sPropBug + ".limit",
+                                                Config.getInteger(sClass   + ".limit", 3));
 
                 if (cLimit <= 0)
                     {
@@ -124,8 +126,8 @@ public class HeapDump
                 {
                 try
                     {
-                    sFileName = System.getProperty(HeapDump.class.getName() + ".dir",
-                                System.getProperty("java.io.tmpdir", "."));
+                    sFileName = Config.getProperty(HeapDump.class.getName() + ".dir",
+                                                   System.getProperty("java.io.tmpdir", "."));
                     }
                 catch (Throwable t)
                     {

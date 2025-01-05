@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.io;
 
@@ -12,6 +12,8 @@ import com.oracle.coherence.common.internal.util.HeapDump;
 import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferManagers;
 import com.oracle.coherence.common.util.MemorySize;
+
+import com.tangosol.coherence.config.Config;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -527,20 +529,19 @@ public class CheckedBufferManager
     /**
      * The interval at which to log warning messages.
      */
-    protected static final long BYTE_WARNING_INTERVAL = new MemorySize(System.getProperty(
+    protected static final long BYTE_WARNING_INTERVAL = new MemorySize(Config.getProperty(
             CheckedBufferManager.class.getName() + ".limit", String.valueOf(Runtime.getRuntime().maxMemory() / 10)))
             .getByteCount();
 
     /**
-     * The interval at which to log warning messages.
+     * When {@code true}, generate a heap dump when there is a warning.
      */
-    protected static final boolean DUMP_ON_WARNING = Boolean.getBoolean(CheckedBufferManager.class.getName() + ".dump");
+    protected static final boolean DUMP_ON_WARNING = Config.getBoolean(CheckedBufferManager.class.getName() + ".dump");
 
     /**
      * The ratio at which acquisitions are sampled.
      */
-    protected static final int SAMPLING_RATIO = Integer.parseInt(System.getProperty(
-            CheckedBufferManager.class.getName() + ".samplingRatio", "1"));
+    protected static final int SAMPLING_RATIO = Config.getInteger(CheckedBufferManager.class.getName() + ".samplingRatio", 1);
 
     // ----- data members -------------------------------------------
 

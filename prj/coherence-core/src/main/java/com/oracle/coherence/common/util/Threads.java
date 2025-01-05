@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
+
+import com.tangosol.coherence.config.Config;
 
 import java.lang.management.LockInfo;
 import java.lang.management.ManagementFactory;
@@ -273,7 +275,7 @@ public final class Threads
 
     static
         {
-        String sLock = System.getProperty(Threads.class.getName() + ".dumpLocks", LockAnalysis.OWNERSHIP.name());
+        String sLock = Config.getProperty(Threads.class.getName() + ".dumpLocks", LockAnalysis.OWNERSHIP.name());
         if ("true".equalsIgnoreCase(sLock))
             {
             DUMP_LOCKS = LockAnalysis.FULL;
