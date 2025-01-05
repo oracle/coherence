@@ -140,10 +140,10 @@ implements com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService</span></d
 <h2>Field Summary</h2>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl">Fields inherited from class&nbsp;com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl</h3>
-<code>INVALID_REQUEST_MESSAGE, MBEAN_NAME, MISSING_AGGREGATOR_MESSAGE, MISSING_EXTRACTOR_MESSAGE, MISSING_PROCESSOR_MESSAGE</code></div>
+<code>f_lock, INVALID_REQUEST_MESSAGE, m_fClosed, MBEAN_NAME, MISSING_AGGREGATOR_MESSAGE, MISSING_EXTRACTOR_MESSAGE, MISSING_PROCESSOR_MESSAGE</code></div>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl">Fields inherited from class&nbsp;com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl</h3>
-<code>DEFAULT_TRANSFER_THRESHOLD, f_cacheFactorySupplier, f_dependencies, f_executor, f_metrics, f_serializerProducer, INVALID_CACHE_NAME_MESSAGE, transferThreshold, VOID</code></div>
+<code>DEFAULT_TRANSFER_THRESHOLD, f_cacheFactorySupplier, f_dependencies, f_executor, f_listCloseable, f_metrics, f_serializerProducer, INVALID_CACHE_NAME_MESSAGE, transferThreshold, VOID</code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -484,10 +484,10 @@ implements com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService</span></d
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl">Methods inherited from class&nbsp;com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl</h3>
-<code>addIndex, aggregateWithFilter, aggregateWithFilter, aggregateWithKeys, aggregateWithKeys, castProcessor, clear, convertKeysToBinary, createHolderAsync, createRequestHolder, deserializeComparator, destroy, empty, ensureFilter, ensureValueExtractor, events, execute, execute, getAsyncCache, getFilter, partitionedPutAll, plainPutAll, removeIndex, toBoolValue</code></div>
+<code>addIndex, aggregateWithFilter, aggregateWithFilter, aggregateWithKeys, aggregateWithKeys, castProcessor, clear, close, convertKeysToBinary, createHolderAsync, createRequestHolder, deserializeComparator, destroy, empty, ensureFilter, ensureValueExtractor, events, execute, execute, getAsyncCache, getFilter, partitionedPutAll, plainPutAll, removeIndex, toBoolValue</code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl">Methods inherited from class&nbsp;com.oracle.coherence.grpc.proxy.common.BaseGrpcServiceImpl</h3>
-<code>createDefaultExecutor, getCache, getCCF, getDependencies, getExecutor, getMetrics, getPassThroughCache, getSerializer, getSerializer, getTransferThreshold</code></div>
+<code>addCloseable, createDefaultExecutor, getCache, getCCF, getDependencies, getExecutor, getMetrics, getPassThroughCache, getSerializer, getSerializer, getTransferThreshold, removeCloseable</code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-java.lang.Object">Methods inherited from class&nbsp;java.lang.<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></h3>
 <code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#clone()" title="class or interface in java.lang" class="external-link">clone</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#equals(java.lang.Object)" title="class or interface in java.lang" class="external-link">equals</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#finalize()" title="class or interface in java.lang" class="external-link">finalize</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#getClass()" title="class or interface in java.lang" class="external-link">getClass</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#hashCode()" title="class or interface in java.lang" class="external-link">hashCode</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notify()" title="class or interface in java.lang" class="external-link">notify</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#notifyAll()" title="class or interface in java.lang" class="external-link">notifyAll</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#toString()" title="class or interface in java.lang" class="external-link">toString</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait()" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long)" title="class or interface in java.lang" class="external-link">wait</a>, <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html#wait(long,int)" title="class or interface in java.lang" class="external-link">wait</a></code></div>
@@ -495,8 +495,11 @@ implements com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService</span></d
 <h3 id="methods-inherited-from-class-com.oracle.coherence.grpc.proxy.common.GrpcProxyService">Methods inherited from interface&nbsp;com.oracle.coherence.grpc.proxy.common.GrpcProxyService</h3>
 <code>getMetrics</code></div>
 <div class="inherited-list">
+<h3 id="methods-inherited-from-class-com.oracle.coherence.grpc.GrpcService">Methods inherited from interface&nbsp;com.oracle.coherence.grpc.GrpcService</h3>
+<code>addCloseable, getCCF, getDependencies, getSerializer, removeCloseable</code></div>
+<div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService">Methods inherited from interface&nbsp;com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService</h3>
-<code>clear, createRequestHolder, destroy, ensureFilter, events, getFilter</code></div>
+<code>clear, close, createRequestHolder, destroy, ensureFilter, events, getFilter</code></div>
 </section>
 </li>
 </ul>
