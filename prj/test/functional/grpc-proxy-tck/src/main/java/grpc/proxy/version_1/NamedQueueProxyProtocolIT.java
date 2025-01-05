@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -864,6 +864,9 @@ public class NamedQueueProxyProtocolIT
         NamedQueueResponse response = unpackAny(proxyResponse, ProxyResponse::getMessage, NamedQueueResponse.class);
         int                queueId  = response.getQueueId();
 
+        // wait for the completion message
+        observer.awaitCount(responseId + 1, 1, TimeUnit.MINUTES);
+
         assertThat(queueId, is(not(0)));
         return queueId;
         }
@@ -953,7 +956,9 @@ public class NamedQueueProxyProtocolIT
         catch (Throwable e)
             {
             throw Exceptions.ensureRuntimeException(e,
-                    "Failed to unpack proto message: " + e.getMessage() + "\nMessage:\n" + message);
+                    "Failed to unpack proto message: " + e.getMessage()
+                            + "\nMessage:\n" + message
+                            + "\nExpected:\n" + expected);
             }
         }
 
