@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -6510,9 +6510,9 @@ public class ClusterService
                         }
                     if (cbPacket > 1468)
                         {
-                        sb.append("It is possible that the packet size greater than ")
-                          .append(cbPacket).append(" is responsible; for example, some network ")
-                          .append("equipment cannot handle packets larger than 1472 bytes (IPv4) or 1468 bytes (IPv6). ")
+                        sb.append("It is possible that the packet size ")
+                                .append(cbPacket).append(" , which is greater than 1468, is responsible; for example, some network ")
+                                .append("equipment cannot handle packets larger than 1468 bytes (UDP) or 1448 bytes (TCP).")
                           .append("Use the 'ping' command with the <size> option to verify successful")
                           .append(" delivery of specifically sized packets.");
                         }
