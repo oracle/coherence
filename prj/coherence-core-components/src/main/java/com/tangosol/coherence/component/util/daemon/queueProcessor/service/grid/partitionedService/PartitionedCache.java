@@ -20617,20 +20617,17 @@ public class PartitionedCache
         
         /**
          * Raise an event (if necessary) signalling that the specified entry is
-        * being changed, and complete the specified continuation.
-        * 
-        * Called on a worker or service thread.
+         * being changed, and complete the specified continuation.
+         * <p>
+         * Called on a worker or service thread.
          */
         public void onEntryChanging(Storage.BinaryEntry binEntry, com.oracle.coherence.common.base.Continuation continuation)
             {
-            // import com.tangosol.net.events.partition.cache.EntryEvent$Type as com.tangosol.net.events.partition.cache.EntryEvent.Type;
-            // import com.tangosol.net.events.internal.StorageDispatcher as com.tangosol.net.events.internal.StorageDispatcher;
-            // import java.util.Collections;
-            
-            com.tangosol.net.events.partition.cache.EntryEvent.Type  eventType  = null;
-            com.tangosol.net.events.internal.StorageDispatcher dispatcher = getStorageDispatcher(binEntry.getStorage());
+            com.tangosol.net.events.partition.cache.EntryEvent.Type eventType  = null;
+            com.tangosol.net.events.internal.StorageDispatcher      dispatcher = getStorageDispatcher(binEntry.getStorage());
+
             if (dispatcher != null &&
-                ((binEntry.isValueRemoved() || ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
+                (binEntry.isValueRemoved() || ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue())
                     ? dispatcher.isSubscribed(eventType = com.tangosol.net.events.partition.cache.EntryEvent.Type.REMOVING)
                     : dispatcher.isSubscribed(com.tangosol.net.events.partition.cache.EntryEvent.Type.INSERTING) || dispatcher.isSubscribed(com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATING)))
                 {
@@ -38696,35 +38693,24 @@ public class PartitionedCache
         
         /**
          * Process the specified event that was observed from the backing-map.
-        * See //dev/main/doc/coherence-core/BMEHandling.txt
-        * 
-        * @param evtHolder    the holder for the observed BM event to be
-        * processed
-        * 
-        * @return true iff the event's entry status does not need to be added
-        * to the OOB set
+         * See //dev/main/doc/coherence-core/BMEHandling.txt
+         *
+         * @param evtHolder  the holder for the observed BM event to be
+         *                   processed
+         *
+         * @return true iff the event's entry status does not need to be added
+         * to the OOB set
          */
         protected boolean processEvent(com.tangosol.internal.util.BMEventFabric.EventHolder evtHolder)
             {
-            // import com.tangosol.internal.util.BMEventFabric;
-            // import com.tangosol.internal.util.BMEventFabric$EventHolder as com.tangosol.internal.util.BMEventFabric.EventHolder;
-            // import com.tangosol.internal.util.BMEventFabric$EventQueue as com.tangosol.internal.util.BMEventFabric.EventQueue;
-            // import com.tangosol.net.cache.CacheEvent;
-            // import com.tangosol.net.events.partition.TransactionEvent$Type as com.tangosol.net.events.partition.TransactionEvent.Type;
-            // import com.tangosol.net.events.partition.UnsolicitedCommitEvent$Type as com.tangosol.net.events.partition.UnsolicitedCommitEvent.Type;
-            // import com.tangosol.util.Base;
-            // import com.tangosol.util.Binary;
-            // import com.tangosol.util.ExternalizableHelper as com.tangosol.util.ExternalizableHelper;
-            // import com.tangosol.util.MapEvent as com.tangosol.util.MapEvent;
-            
-            PartitionedCache      service    = getService();
-            com.tangosol.util.MapEvent     event      = evtHolder.getEvent();
-            Storage.EntryStatus status     = (Storage.EntryStatus) evtHolder.getStatus();
-            Storage     storage    = status.getStorage();
-            Binary       binKey     = (Binary) status.getKey();
-            boolean      fOOBEvent  = false;
-            Storage.BinaryEntry entry      = null;
-            boolean      fSynthetic = false;
+            PartitionedCache           service    = getService();
+            com.tangosol.util.MapEvent event      = evtHolder.getEvent();
+            Storage.EntryStatus        status     = (Storage.EntryStatus) evtHolder.getStatus();
+            Storage                    storage    = status.getStorage();
+            Binary                     binKey     = status.getKey();
+            boolean                    fOOBEvent  = false;
+            Storage.BinaryEntry        entry      = null;
+            boolean                    fSynthetic = false;
             
             //  attempt to lock the entry (thus make the entry managed) prior to
             //  updating the index & partitioned key index
@@ -38738,11 +38724,11 @@ public class PartitionedCache
                    {
                    // the only scenario in which this is possible is an OOB event that landed
                    // on the fabric however was processed after the associated partition had
-                   // sucessfully transferred out to another member; do not process the event
+                   // successfully transferred out to another member; do not process the event
                    // and return control suggesting it is not OOB thus will not be published
                    return true;
                    }
-               // else this is a troubling case; process the com.tangosol.util.MapEvent updating anciliary
+               // else this is a troubling case; process the com.tangosol.util.MapEvent updating ancillary
                //      data structures
                }
             
@@ -38789,6 +38775,9 @@ public class PartitionedCache
                                 // no need to send events for updates that remove DECO_STORE
                                 fEvents  = false;
                                 fIncptrs = false;
+
+                                // COH-15096: don't generate the UEM events either
+                                status.setSuppressEvents(true);
                                 }
                     
                             // no need update user indices for decoration updates
