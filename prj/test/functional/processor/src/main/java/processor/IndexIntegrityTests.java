@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -998,11 +998,11 @@ public class IndexIntegrityTests
         {
         try
             {
-            PartitionSet parts = ((PartitionedCache) context.getCacheService()).getIndexPendingPartitions();
-            if (!parts.isEmpty())
+            Map partsMap = ((PartitionedCache) context.getCacheService()).getIndexPendingPartitions();
+            if (!partsMap.isEmpty())
                 {
                 Base.sleep(100);
-                if (!parts.isEmpty())
+                if (!partsMap.isEmpty())
                     {
                     throw new IndexNotReadyException("Index is not ready!");
                     }
