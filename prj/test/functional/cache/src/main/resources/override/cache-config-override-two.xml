@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@
   <caching-schemes>
     <distributed-scheme>
       <scheme-name>my-cache-scheme-two</scheme-name>
+      <service-name>MyCacheService2</service-name>
       <partitioned-quorum-policy-scheme>
         <write-quorum>1</write-quorum>
       </partitioned-quorum-policy-scheme>
