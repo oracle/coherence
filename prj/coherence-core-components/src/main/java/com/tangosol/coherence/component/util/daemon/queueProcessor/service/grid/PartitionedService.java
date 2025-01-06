@@ -29312,7 +29312,7 @@ public abstract class PartitionedService
                 PartitionSet parts   = GUIDHelper.getPartitions(getSnapshotStores(sSnapshot), cParts);
                 if (parts.cardinality() != cParts)
                     {
-                    throw new IllegalStateException("Missing the following partitions to recover snapsot '" +
+                    throw new IllegalStateException("Missing the following partitions to recover snapshot '" +
                         sSnapshot + "': " + parts.invert());
                     }
                 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9068,6 +9068,7 @@ public class Storage
         getStatsOptimizedQueryCount().set(0);
         getStatsQueryContentionCount().set(0L);
         getStatsClears().set(0L);
+        getStatsRemoves().set(0L);
 
         getStatsIndexingTotalMillis().set(0L);
 
