@@ -19058,7 +19058,6 @@ public abstract class PartitionedService
                 boolean fStores = input.readBoolean();
                 if (fStores)
                     {
-                    _trace("**MG** OwnershipResponse.read servicememberset: " + service.getServiceMemberSet(), 3);
                     boolean               fStoresCompat = service.isVersionCompatible(OwnershipResponse::isLazyOpenCompatible);
                     int                   cStores       = input.readInt();
                     PersistentStoreInfo[] aInfo         = new PersistentStoreInfo[cStores];
@@ -19172,7 +19171,6 @@ public abstract class PartitionedService
                         {
                         if (fStoresCompat)
                             {
-                            //_trace("**MG** write OwnershipResponse: " + ExternalizableHelper.getStreamFormat(aInfo[i]), 3);
                             ExternalizableHelper.writeObject(output, aInfo[i]);
                             }
                         else
