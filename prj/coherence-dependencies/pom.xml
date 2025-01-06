@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2025, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -261,7 +261,7 @@
     <mockito.version>3.12.4</mockito.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>6.0.4</oracle.bedrock.version>
-    <testcontainers.version>1.19.3</testcontainers.version>
+    <testcontainers.version>1.20.4</testcontainers.version>
 
     <!-- commercial test dependency versions -->
     <jol.version>0.17</jol.version>
