@@ -1,4 +1,4 @@
-# Copyright (c) 2020, 2023 Oracle and/or its affiliates. All rights reserved.
+# Copyright (c) 2020, 2025, Oracle and/or its affiliates. All rights reserved.
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 
@@ -8,7 +8,7 @@ engine:
     libraries:
       - "asciidoctor-diagram"
     attributes:
-      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206"
+      commercial-docs-base-url: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
       source-highlighter: "highlight.js"
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
@@ -16,7 +16,7 @@ engine:
       javadoc-root: "https://coherence.community/${revision}/api/java/"
       version-coherence-maven: "${revision}"
       version-coherence: "${project.version.official}"
-      version-commercial-docs: "14.1.1.2206"
+      version-commercial-docs: "14.1.2"
       version-helidon: "${helidon.version}"
       github-source-root: "github.com/oracle/coherence/tree/master/prj"
 assets:
@@ -61,7 +61,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "import_contacts"
-              href: "https://docs.oracle.com/en/middleware/standalone/coherence/14.1.1.2206/"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2"
             - title: "About"
               pathprefix: "/docs/about"
               glyph:
@@ -70,14 +70,6 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
-            - title: "Core Improvements"
-              pathprefix: "/core"
-              glyph:
-                type: "icon"
-                value: "fa-cubes"
-              items:
-                - includes:
-                    - "docs/core/*.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
@@ -127,26 +119,31 @@ backend:
                 type: "icon"
                 value: "library_books"
               href: "https://oracle.github.io/coherence/${revision}/api/java/index.html"
-            - title: "Coherence CE .NET Core API"
+            - title: "Coherence .NET Client API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://coherence.community/14.1.1.0/api/dotnet-core/index.html"
-            - title: "Coherence CE .NET API"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/net-reference/html"
+            - title: "Coherence C++ Client API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/14.1.1.0/api/dotnet/index.html"
-            - title: "Coherence CE C++ API"
+              href: "https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/cplus-reference/index.html"
+            - title: "Coherence Python Client API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/14.1.1.0/api/cpp/index.html"
-            - title: "Coherence CE JavaScript API"
+              href: "https://oracle.github.io/coherence-py-client/api_reference.html"
+            - title: "Coherence Go Client API"
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "https://oracle.github.io/coherence/20.06/api/js/index.html"
+              href: "https://pkg.go.dev/github.com/oracle/coherence-go-client/v2/coherence#pkg-index"
+            - title: "Coherence JavaScript Client API"
+              glyph:
+                type: "icon"
+                value: "library_books"
+              href: "https://oracle.github.io/coherence-js-client/"
         - title: "Additional Resources"
           items:
             - title: "Slack"
