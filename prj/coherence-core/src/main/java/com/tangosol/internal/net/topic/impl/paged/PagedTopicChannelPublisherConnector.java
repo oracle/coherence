@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import com.tangosol.internal.util.DaemonPool;
 
 import com.tangosol.net.PagedTopicService;
 
+import com.tangosol.net.TopicService;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.net.topic.Publisher;
@@ -40,6 +41,7 @@ import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.CompletionStage;
 import java.util.function.BiConsumer;
 
 /**
@@ -50,7 +52,6 @@ import java.util.function.BiConsumer;
  *
  * @author Jonathan Knight  2024.11.26
  */
-@SuppressWarnings("TypeParameterExplicitlyExtendsObject")
 public class PagedTopicChannelPublisherConnector<V>
         implements PublisherChannelConnector<V>
     {
@@ -175,7 +176,7 @@ public class PagedTopicChannelPublisherConnector<V>
         }
 
     @Override
-    public CompletableFuture<? extends Object> initialize()
+    public CompletionStage<?> initialize()
         {
         return ensurePageId();
         }
@@ -204,7 +205,7 @@ public class PagedTopicChannelPublisherConnector<V>
         }
 
     @Override
-    public CompletableFuture<? extends Object> prepareOfferRetry(Object oCookie)
+    public CompletionStage<?> prepareOfferRetry(Object oCookie)
         {
         Long lPageId = (Long) oCookie;
         return moveToNextPage(lPageId);
@@ -214,6 +215,12 @@ public class PagedTopicChannelPublisherConnector<V>
     public TopicDependencies getTopicDependencies()
         {
         return m_caches.getDependencies();
+        }
+
+    @Override
+    public TopicService getTopicService()
+        {
+        return m_caches.getService();
         }
 
     /**

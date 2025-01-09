@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,7 +18,7 @@ import com.tangosol.util.ConverterCollections;
 import java.util.List;
 import java.util.Map;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.function.BiConsumer;
@@ -195,7 +195,7 @@ public class ConverterPublisherConnector<F, T>
             }
 
         @Override
-        public CompletableFuture<?> initialize()
+        public CompletionStage<?> initialize()
             {
             return f_channelConnector.initialize();
             }
@@ -209,7 +209,7 @@ public class ConverterPublisherConnector<F, T>
             }
 
         @Override
-        public CompletableFuture<?> prepareOfferRetry(Object oCookie)
+        public CompletionStage<?> prepareOfferRetry(Object oCookie)
             {
             return f_channelConnector.prepareOfferRetry(oCookie);
             }
@@ -218,6 +218,12 @@ public class ConverterPublisherConnector<F, T>
         public TopicDependencies getTopicDependencies()
             {
             return f_channelConnector.getTopicDependencies();
+            }
+
+        @Override
+        public TopicService getTopicService()
+            {
+            return f_channelConnector.getTopicService();
             }
 
         // ----- data members -----------------------------------------------
