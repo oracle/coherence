@@ -1,4 +1,4 @@
-# Copyright 2020, 2023, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -61,8 +61,8 @@ jobs:
       run: |
         echo "Building and Running - Examples"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -DskipTests clean install
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -Dproject.official -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -Dproject.official -DskipTests clean install
         mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -Pexamples -nsu clean install
 
     # Upload build artifacts for diagnosing failures

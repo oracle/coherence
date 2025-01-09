@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -16,7 +16,7 @@
 ====
 The documentation on this site covers new features and improvements that are currently only available in the open source https://github.com/oracle/coherence[Coherence Community Edition] (CE).
 
-For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the https://docs.oracle.com/en/middleware/standalone/coherence/{version-commercial-docs}/index.html[Official Documentation].
+For complete documentation covering all the features that are available both in the latest commercial editions (Enterprise and Grid Edition) and the Community Edition, please refer to the https://docs.oracle.com/en/middleware/fusion-middleware/coherence/{version-commercial-docs}/index.html[Official Documentation].
 ====
 
 Coherence is scalable, fault-tolerant, cloud-ready, distributed platform for building grid-based applications and reliably storing data.
@@ -75,7 +75,7 @@ Oracle Coherence commercial edition product documentation.
 
 [CARD]
 .API Docs
-[icon=library_books,link=../api/java/index.html,link-type=url]
+[icon=library_books,link=docs/about/05_api.adoc]
 --
 Browse the Coherence CE API Docs.
 --

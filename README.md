@@ -66,7 +66,7 @@ the natural place to consume this dependency is from Maven:
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.10</version>
+        <version>24.09</version>
     </dependency>
 </dependencies>
 ```
@@ -119,7 +119,7 @@ to execute processing logic for the appropriate entries with exclusive access.
 associating data (thus being on the same partition) and manipulating other entries
 on the same partition, potentially across different maps.
 * **Non-blocking / async NamedMap API**
-* **C++ and .NET clients** - Access the same NamedMap API from either C++ or .NET.
+* **Polyglot clients** - Access the same NamedMap API from [C++](https://github.com/oracle/coherence-cpp-extend-client), [Go](https://github.com/oracle/coherence-go-client), Java, [JavaScript](https://github.com/oracle/coherence-js-client), [.NET](https://github.com/oracle/coherence-dotnet-extend-client), or [Python](https://github.com/oracle/coherence-py-client)
 * **Portable Object Format** - Optimized serialization format, with the ability to
 navigate the serialized form for optimized queries, aggregations, or data processing.
 * **Integration with Databases** - Database and third party data integration with
@@ -127,6 +127,13 @@ CacheStores, including both synchronous or asynchronous writes.
 * **CohQL** - Ansi-style query language with a console for adhoc queries.
 * **Topics** - Distributed topics implementation that offers pub/sub messaging with
 the storage capacity, the cluster, and parallelizable subscribers.
+* **Repository API** - a framework implementing the Repository pattern from Domain-Driven Design,
+abstracting persistent storage implementation from application code, with advanced features like
+support for pagination, projections, streaming, and updating in-place
+* **Microservices integration** - broad and close integration with Helidon, Micronaut, and Spring for
+developing microservices applications using Coherence as a data source or cache
+* **coherence-concurrent** - Coherence-backed implementations of types from the `java.util.concurrent`
+package enabling distributed process coordination through the grid
 
 Coherence also provides a number of non-functional features:
 
@@ -151,7 +158,7 @@ JMX server that provides a view of all members of the cluster.
 * **Management over REST** - All JMX data and operations can be performed over REST,
 including cluster wide thread dumps and heapdumps.
 * **Non-cluster Access** - Provides access to the cluster from the outside via proxies,
-for distant (high latency) clients and for non-java languages such as C++ and .NET.
+for distant (high latency) clients and for non-Java languages such as [C++](https://github.com/oracle/coherence-cpp-extend-client), [Go](https://github.com/oracle/coherence-go-client), [JavaScript](https://github.com/oracle/coherence-js-client), [.NET](https://github.com/oracle/coherence-dotnet-extend-client), and [Python](https://github.com/oracle/coherence-py-client).
 * **Kubernetes friendly** - Enables seamless and safe deployment of applications to k8s with
 our own [operator](https://github.com/oracle/coherence-operator).
 
@@ -184,13 +191,14 @@ For **Windows**, see [here](https://oracle.github.io/coherence-cli/docs/latest/#
 
 #### <a name="create"></a>Create and start a Cluster
 
-Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default of Coherence CE 22.06.10.
+Use the following command to create a 3 node Coherence cluster called `my-cluster`, scoped to your local machine using the default values.
 
 ```shell
+$ cohctl create cluster my-cluster -v 24.09
 $ cohctl create cluster my-cluster
 
 Cluster name:         my-cluster
-Cluster version:      22.06.10
+Cluster version:      24.09
 Cluster port:         7574
 Management port:      30000
 Replica count:        3
@@ -203,8 +211,8 @@ Dependency Tool:      mvn
 Are you sure you want to create the cluster with the above details? (y/n) y
 
 Checking 3 Maven dependencies...
-- com.oracle.coherence.ce:coherence:22.06.10
-- com.oracle.coherence.ce:coherence-json:22.06.10
+- com.oracle.coherence.ce:coherence:24.09
+- com.oracle.coherence.ce:coherence-json:24.09
 - org.jline:jline:3.26.3
 Starting 3 cluster members for cluster my-cluster
 Starting cluster member storage-0...
@@ -322,7 +330,7 @@ inserts and retrieves data from the Coherence server.
     <dependency>
         <groupId>com.oracle.coherence.ce</groupId>
         <artifactId>coherence</artifactId>
-        <version>22.06.10</version>
+        <version>24.09</version>
     </dependency>
 ```
 3. Copy and paste the following source to a file named src/main/java/HelloCoherence.java:

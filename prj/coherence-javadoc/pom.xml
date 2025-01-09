@@ -480,7 +480,12 @@
                     <resource>
                       <directory>../coherence-java-client/src/main/java</directory>
                     </resource>
-                  <resource>
+
+                    <resource>
+                      <directory>../coherence-jpa/src/main/java</directory>
+                    </resource>
+
+                    <resource>
                       <directory>../coherence-discovery/src/main/java</directory>
                     </resource>
                   </resources>
@@ -539,7 +544,7 @@
 
                     <include>com/oracle/coherence/mp/**/*.java</include>
 
-                    <include>com/oracle/coherence/grpc/**/*.java</include>
+                    <include>com/oracle/coherence/grpc/proxy/*.java</include>
 
                     <include>com/oracle/coherence/caffeine/**/*.java</include>
 
@@ -554,7 +559,7 @@
                     <include>com/tangosol/coherence/config/xml/preprocessor/*.java</include>
                     <include>com/tangosol/coherence/config/xml/processor/*.java</include>
 
-<include>com/tangosol/discovery/*.java</include>
+                    <include>com/tangosol/discovery/*.java</include>
                     <include>com/oracle/coherence/concurrent/atomic/*.java</include>
                     <include>com/oracle/coherence/concurrent/cdi/*.java</include>
                     <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
@@ -583,9 +588,6 @@
                     <include>com/tangosol/coherence/dsltools/precedence/*.java</include>
                     <include>com/tangosol/coherence/dsltools/termlanguage/*.java</include>
                     <include>com/tangosol/coherence/dsltools/termtrees/*.java</include>
-
-                    <include>com/tangosol/coherence/federation/*.java</include>
-                    <include>com/tangosol/coherence/federation/events/*.java</include>
 
                     <include>com/tangosol/coherence/jcache/*.java</include>
                     <include>com/tangosol/coherence/jcache/common/*.java</include>
@@ -626,7 +628,6 @@
 
                     <include>com/tangosol/io/*.java</include>
                     <include>com/tangosol/io/bdb/*.java</include>
-                    <include>com/tangosol/io/journal/*.java</include>
                     <include>com/tangosol/io/nio/*.java</include>
                     <include>com/tangosol/io/pof/*.java</include>
                     <include>com/tangosol/io/pof/annotation/*.java</include>

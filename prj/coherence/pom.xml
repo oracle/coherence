@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -64,9 +64,19 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-components</artifactId>
+      <version>${project.version}</version>
+      <classifier>sources</classifier>
+      <!-- A slight hack - test scope so that this dependency does not appear in the flattened pom -->
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>opentracing</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>opentelemetry</artifactId>
