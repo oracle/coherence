@@ -703,7 +703,7 @@ public class CQCTests
         }
 
     /**
-     * Test case for https://jira.oraclecorp.com/jira/browse/COH-27085.
+     * Test case for COH-27085.
      * CQC clients deadlock between ObservableHashMap and
      * ContinuousQueryCache.ensureSynchronized
      */
