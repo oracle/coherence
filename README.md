@@ -1,5 +1,5 @@
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -101,8 +101,8 @@ Coherence Maps provide a number of features:
 
 * Fundamental **key-based access**: get/put getAll/putAll.
 * Client-side and storage-side events:
-  * **MapListeners** to asynchronously notify clients of changes to data.
-  * **EventInterceptors** (either sync or async) to be notified storage level events, including
+    * **MapListeners** to asynchronously notify clients of changes to data.
+    * **EventInterceptors** (either sync or async) to be notified storage level events, including
 mutations, partition transfer, failover, and so on.
 * **NearCaches** - Locally cached data based on previous requests with local content
 invalidated upon changes in the storage tier.
@@ -130,10 +130,13 @@ the storage capacity, the cluster, and parallelizable subscribers.
 * **Repository API** - a framework implementing the Repository pattern from Domain-Driven Design,
 abstracting persistent storage implementation from application code, with advanced features like
 support for pagination, projections, streaming, and updating in-place
-* **Microservices integration** - broad and close integration with Helidon, Micronaut, and Spring for
-developing microservices applications using Coherence as a data source or cache
-* **coherence-concurrent** - Coherence-backed implementations of types from the `java.util.concurrent`
-package enabling distributed process coordination through the grid
+* **coherence-concurrent** - Coherence-backed implementations of types from the `java.util.concurrent` package enabling distributed process coordination through the grid
+    * **Atomics** - for implementing e.g. atomic counters shared between cluster, with an optional asynchronous API
+    * **Executors** - for submitting tasks to be executed in the cluster
+    * **Locks** - for implementing lock-based concurrency control across multiple cluster members
+    * **Queues** - for implementing blocking queue / dequeue behavior across multiple cluster members
+    * **Semaphores** - for implementing synchronization of execution across multiple cluster members
+* **Microservices integration** - broad and close integration with [Helidon](https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2/integrate/index.html), [Micronaut](https://micronaut-projects.github.io/micronaut-coherence/latest/guide/), and [Spring](https://spring.coherence.community/4.3.0/#/about/01_overview) for developing microservices applications using Coherence as a data source or cache
 
 Coherence also provides a number of non-functional features:
 
