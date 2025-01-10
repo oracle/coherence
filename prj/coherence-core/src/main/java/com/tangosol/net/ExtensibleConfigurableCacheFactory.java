@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -62,6 +62,8 @@ import com.tangosol.config.expression.SystemEnvironmentParameterResolver;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.config.xml.DocumentProcessor;
+
+import com.tangosol.internal.net.topic.DefaultTopicBackingMapManager;
 
 import com.tangosol.io.BinaryStore;
 import com.tangosol.io.ClassLoaderAware;
@@ -462,7 +464,6 @@ public class ExtensibleConfigurableCacheFactory
 
             // find the scheme for the collection
             ServiceScheme serviceScheme = f_cacheConfig.findSchemeBySchemeName(mapping.getSchemeName());
-
             if (serviceScheme == null)
                 {
                 String sMsg = String.format("ensureCollection cannot find service scheme %s for mapping %s",
@@ -471,7 +472,7 @@ public class ExtensibleConfigurableCacheFactory
                 throw new IllegalArgumentException(sMsg);
                 }
 
-            // there are instances of sibling caches for different
+            // there are instances of sibling collections for different
             // class loaders; check for and clear invalid references
             Collection<Integer> colHashCode = store.clearInactiveRefs(sName);
 
@@ -776,6 +777,10 @@ public class ExtensibleConfigurableCacheFactory
                         registerBackingMapManager(mgr);
                         cacheService.setBackingMapManager(mgr);
                         }
+                    }
+                else if (service instanceof TopicService)
+                    {
+                    ((TopicService) service).setTopicBackingMapManager(new DefaultTopicBackingMapManager(this));
                     }
 
                 startService(service);

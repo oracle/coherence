@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,8 +15,11 @@ import com.tangosol.coherence.component.net.ServiceInfo;
 import com.tangosol.coherence.component.net.extend.protocol.CacheServiceProtocol;
 import com.tangosol.coherence.component.net.extend.protocol.InvocationServiceProtocol;
 import com.tangosol.coherence.component.net.extend.protocol.NamedCacheProtocol;
+import com.tangosol.coherence.component.net.extend.protocol.NamedTopicProtocol;
+import com.tangosol.coherence.component.net.extend.protocol.TopicServiceProtocol;
 import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServiceProxy;
 import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.InvocationServiceProxy;
+import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.TopicServiceProxy;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
@@ -39,6 +42,7 @@ import com.tangosol.net.NamedCollection;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.Session;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.management.Registry;
 import com.tangosol.net.messaging.Connection;
 import com.tangosol.net.messaging.ConnectionAcceptor;
@@ -46,6 +50,7 @@ import com.tangosol.net.messaging.ConnectionEvent;
 import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.net.proxy.ProxyServiceLoadBalancer;
 import com.tangosol.net.proxy.RemoteMember;
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
 import com.tangosol.util.LiteMap;
@@ -119,7 +124,15 @@ public class ProxyService
      * Adapter.
      */
     private com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServiceProxy __m_CacheServiceProxy;
-    
+
+    /**
+     * Property TopicServiceProxy
+     *
+     * The cluster side portion (Proxy) of the client-to-cluster CacheService
+     * Adapter.
+     */
+    private TopicServiceProxy __m_TopicServiceProxy;
+
     /**
      * Property InvocationServiceProxy
      *
@@ -618,6 +631,16 @@ public class ProxyService
         return __m_CacheServiceProxy;
         }
     
+    /**
+     * Getter for property TopicServiceProxy.<p>
+     * The cluster side portion (Proxy) of the client-to-cluster TopicServiceProxy
+     * Adapter.
+     */
+    public TopicServiceProxy getTopicServiceProxy()
+        {
+        return __m_TopicServiceProxy;
+        }
+
     // From interface: com.tangosol.net.Session
     public com.tangosol.net.events.InterceptorRegistry getInterceptorRegistry()
         {
@@ -1206,10 +1229,18 @@ public class ProxyService
         return __m_ServiceLoadTimeMillis;
         }
     
-    // From interface: com.tangosol.net.Session
-    public com.tangosol.net.topic.NamedTopic getTopic(String Param_1, com.tangosol.net.NamedCollection.Option[] Param_2)
+    @Override
+    public <V> NamedTopic<V> getTopic(String sName, NamedTopic.Option... options)
         {
-        return null;
+        TopicService service = getTopicServiceProxy().getTopicService();
+        if (service instanceof Session)
+            {
+            return ((Session) service).getTopic(sName, options);
+            }
+        else
+            {
+            return service.ensureTopic(sName, Base.ensureClassLoader(null));
+            }
         }
 
     @Override
@@ -1227,6 +1258,18 @@ public class ProxyService
                 service.releaseCache((NamedCache) col);
                 }
             }
+        else if (col instanceof NamedTopic<?>)
+            {
+            TopicService service = getTopicServiceProxy().getTopicService();
+            if (service instanceof Session)
+                {
+                ((Session) service).close(col);
+                }
+            else
+                {
+                service.releaseTopic((NamedTopic) col);
+                }
+            }
         }
 
     @Override
@@ -1242,6 +1285,18 @@ public class ProxyService
             else
                 {
                 service.destroyCache((NamedCache) col);
+                }
+            }
+        else if (col instanceof NamedTopic<?>)
+            {
+            TopicService service = getTopicServiceProxy().getTopicService();
+            if (service instanceof Session)
+                {
+                ((Session) service).destroy(col);
+                }
+            else
+                {
+                service.destroyTopic((NamedTopic<?>) col);
                 }
             }
         }
@@ -1392,14 +1447,22 @@ public class ProxyService
             {
             throw new IllegalStateException("missing required OperationalContext");
             }
-        
+
+        ConfigurableCacheFactory ccf = getResourceRegistry().getResource(ConfigurableCacheFactory.class, "ConfigurableCacheFactory");
+
         // create, set and configure the proxies
         CacheServiceProxy cacheServiceProxy = new CacheServiceProxy();
         setCacheServiceProxy(cacheServiceProxy);
         cacheServiceProxy.setDependencies(proxyDeps.getCacheServiceProxyDependencies());
         cacheServiceProxy.setContextClassLoader(getContextClassLoader());
-        cacheServiceProxy.setCacheFactory((ConfigurableCacheFactory) getResourceRegistry().getResource(ConfigurableCacheFactory.class, "ConfigurableCacheFactory"));
+        cacheServiceProxy.setCacheFactory(ccf);
         
+        TopicServiceProxy topicServiceProxy = new TopicServiceProxy();
+        setTopicServiceProxy(topicServiceProxy);
+        topicServiceProxy.setDependencies(proxyDeps.getTopicServiceProxyDependencies());
+        topicServiceProxy.setContextClassLoader(getContextClassLoader());
+        topicServiceProxy.setCacheFactory(ccf);
+
         InvocationServiceProxy invocationServiceProxy = new InvocationServiceProxy();
         setInvocationServiceProxy(invocationServiceProxy);
         invocationServiceProxy.setDependencies(proxyDeps
@@ -1435,6 +1498,7 @@ public class ProxyService
                     pool.setTaskTimeout(proxyDeps.getTaskTimeoutMillis());
                     pool.setThreadPriority(proxyDeps.getWorkerThreadPriority());
                     cacheServiceProxy.setDaemonPool(pool);
+                    topicServiceProxy.setDaemonPool(pool);
                     invocationServiceProxy.setDaemonPool(pool);
                     }
                 }
@@ -1442,13 +1506,19 @@ public class ProxyService
         
         // register all Protocols with the Acceptor
         acceptor.registerProtocol(CacheServiceProtocol.getInstance());
+        acceptor.registerProtocol(TopicServiceProtocol.getInstance());
         acceptor.registerProtocol(InvocationServiceProtocol.getInstance());
         acceptor.registerProtocol(NamedCacheProtocol.getInstance());
-        
+        acceptor.registerProtocol(NamedTopicProtocol.getInstance());
+
         // register all Receivers with the Acceptor
         if (getCacheServiceProxy().isEnabled())
             {
             acceptor.registerReceiver(getCacheServiceProxy());
+            }
+        if (getTopicServiceProxy().isEnabled())
+            {
+            acceptor.registerReceiver(getTopicServiceProxy());
             }
         if (getInvocationServiceProxy().isEnabled())
             {
@@ -1460,15 +1530,18 @@ public class ProxyService
         if (acceptor instanceof HttpAcceptor)
             {
             cacheServiceProxy.setPassThroughEnabled(false);
+            topicServiceProxy.setPassThroughEnabled(false);
             ((HttpAcceptor) acceptor).setSession(this);
             }
         else if (acceptor instanceof MemcachedAcceptor)
             {
             cacheServiceProxy.setPassThroughEnabled(false);
+            topicServiceProxy.setPassThroughEnabled(false);
             }
         else if (acceptor instanceof GrpcAcceptor)
             {
             cacheServiceProxy.setPassThroughEnabled(false);
+            topicServiceProxy.setPassThroughEnabled(false);
             }
         
         // Configure the load balancer
@@ -1917,11 +1990,13 @@ public class ProxyService
             {
             Acceptor acceptorImpl = (Acceptor) acceptor;
             getCacheServiceProxy().setSerializer(acceptorImpl.ensureSerializer());
+            getTopicServiceProxy().setSerializer(acceptorImpl.ensureSerializer());
             getInvocationServiceProxy().setSerializer(acceptorImpl.ensureSerializer());
             }
         else
             {
             getCacheServiceProxy().setSerializer(ensureSerializer());
+            getTopicServiceProxy().setSerializer(ensureSerializer());
             getInvocationServiceProxy().setSerializer(ensureSerializer());
             }
         
@@ -2192,7 +2267,18 @@ public class ProxyService
         _assert(getCacheServiceProxy() == null);
         __m_CacheServiceProxy = (proxy);
         }
-    
+
+    /**
+     * Setter for property TopicServiceProxy.<p>
+     * The cluster side portion (Proxy) of the client-to-cluster TopicServiceProxy
+     * Adapter.
+     */
+    protected void setTopicServiceProxy(TopicServiceProxy proxy)
+        {
+        _assert(__m_TopicServiceProxy == null);
+        __m_TopicServiceProxy = proxy;
+        }
+
     // From interface: com.tangosol.net.ProxyService
     // Declared at the super level
     /**
@@ -2212,10 +2298,16 @@ public class ProxyService
             acceptor.setContextClassLoader(loader);
             }
         
-        CacheServiceProxy proxy = getCacheServiceProxy();
-        if (proxy != null)
+        CacheServiceProxy cacheProxy = getCacheServiceProxy();
+        if (cacheProxy != null)
             {
-            proxy.setContextClassLoader(loader);
+            cacheProxy.setContextClassLoader(loader);
+            }
+
+        TopicServiceProxy topicProxy = getTopicServiceProxy();
+        if (topicProxy != null)
+            {
+            topicProxy.setContextClassLoader(loader);
             }
         }
     

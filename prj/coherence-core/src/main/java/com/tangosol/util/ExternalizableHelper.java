@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,6 +56,7 @@ import com.tangosol.io.pof.RawTime;
 
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.NamedCollection;
 import com.tangosol.net.cache.CacheMap;
 
 import com.tangosol.run.xml.SimpleParser;
@@ -4446,8 +4447,22 @@ public abstract class ExternalizableHelper
     public static void reportIncompatibleSerializers(NamedCache cache,
             String sService, Serializer serializer)
         {
-        Logger.warn("The serializer used by cache \"" + cache.getCacheName() + "\" ("
-             + cache.getCacheService().getSerializer() + ") is incompatible with the"
+        reportIncompatibleSerializers(cache, "cache", sService, serializer);
+        }
+
+    /**
+     * Log the message explaining the serializer incompatibility between the
+     * specified cache and a service.
+     *
+     * @param collection  the NamedCollection reference
+     * @param sService    the service name
+     * @param serializer  the serializer used by the service
+     */
+    public static void reportIncompatibleSerializers(NamedCollection collection, String sType,
+                                                     String sService, Serializer serializer)
+        {
+        Logger.warn("The serializer used by " + sType + " \"" + collection.getName() + "\" ("
+             + collection.getService().getSerializer() + ") is incompatible with the"
              + " serializer configured for service \""
              + sService + "\" (" + serializer
              + "); therefore, cached keys and values will be"

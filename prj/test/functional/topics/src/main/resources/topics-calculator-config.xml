@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -92,5 +92,33 @@
         </instance>
       </element-calculator>
     </paged-topic-scheme>
+
+      <proxy-scheme>
+        <service-name>PofProxy</service-name>
+        <acceptor-config>
+          <tcp-acceptor>
+            <local-address>
+              <address system-property="coherence.extend.address"/>
+              <port system-property="coherence.extend.port"/>
+            </local-address>
+          </tcp-acceptor>
+          <serializer>pof</serializer>
+        </acceptor-config>
+        <autostart system-property="coherence.proxy.enabled">true</autostart>
+      </proxy-scheme>
+
+      <proxy-scheme>
+        <service-name>JavaProxy</service-name>
+        <acceptor-config>
+          <tcp-acceptor>
+            <local-address>
+              <address system-property="coherence.extend.address"/>
+              <port system-property="coherence.extend.port"/>
+            </local-address>
+          </tcp-acceptor>
+          <serializer>java</serializer>
+        </acceptor-config>
+        <autostart system-property="coherence.proxy.enabled">true</autostart>
+      </proxy-scheme>
   </caching-schemes>
 </cache-config>

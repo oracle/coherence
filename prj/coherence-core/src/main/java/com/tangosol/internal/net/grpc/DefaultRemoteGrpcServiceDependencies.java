@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -277,6 +277,26 @@ public abstract class DefaultRemoteGrpcServiceDependencies
         m_fRequireHeartbeatAck = fRequireHeartbeatAck;
         }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDeferKeyAssociationCheck()
+        {
+        return m_fDeferKeyAsssocationCheck;
+        }
+
+    /**
+     * Set the flag to defer the KeyAssociation check.
+     *
+     * @param fDefer  the KeyAssociation check defer flag
+     */
+    @Injectable("defer-key-association-check")
+    public void setDeferKeyAssociationCheck(boolean fDefer)
+        {
+        m_fDeferKeyAsssocationCheck = fDefer;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     protected DefaultDaemonPoolDependencies ensureDaemonPoolDependencies()
@@ -331,4 +351,9 @@ public abstract class DefaultRemoteGrpcServiceDependencies
      * The flag to indicate whether heart beat messages require an ack from the server.
      */
     private boolean m_fRequireHeartbeatAck = false;
+
+    /**
+     * The flag to indicate if the KeyAssociation check is deferred.
+     */
+    private boolean m_fDeferKeyAsssocationCheck;
     }

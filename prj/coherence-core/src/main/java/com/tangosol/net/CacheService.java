@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -188,7 +188,7 @@ public interface CacheService
     *
     * @see Cluster#ensureService(String, String)
     */
-    public static final String TYPE_PAGED_TOPIC = "PagedTopic";
+    public static final String TYPE_PAGED_TOPIC = TopicService.TYPE_PAGED_TOPIC;
 
     /**
     * LocalCache service type constant.

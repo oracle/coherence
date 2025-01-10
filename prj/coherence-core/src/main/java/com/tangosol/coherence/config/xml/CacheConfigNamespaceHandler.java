@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.tangosol.coherence.config.builder.storemanager.BdbStoreManagerBuilder
 import com.tangosol.coherence.config.builder.storemanager.CustomStoreManagerBuilder;
 import com.tangosol.coherence.config.builder.storemanager.NioFileManagerBuilder;
 
+import com.tangosol.coherence.config.scheme.BaseGrpcTopicScheme;
 import com.tangosol.coherence.config.scheme.CacheStoreScheme;
 
 import com.tangosol.coherence.config.scheme.CaffeineScheme;
@@ -35,6 +36,7 @@ import com.tangosol.coherence.config.scheme.ReadWriteBackingMapScheme;
 import com.tangosol.coherence.config.scheme.RemoteCacheScheme;
 import com.tangosol.coherence.config.scheme.BaseGrpcCacheScheme;
 import com.tangosol.coherence.config.scheme.RemoteInvocationScheme;
+import com.tangosol.coherence.config.scheme.RemoteTopicScheme;
 import com.tangosol.coherence.config.scheme.ReplicatedScheme;
 import com.tangosol.coherence.config.scheme.TransactionalScheme;
 import com.tangosol.coherence.config.scheme.ViewScheme;
@@ -139,6 +141,7 @@ import com.tangosol.net.InvocationService;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.SocketOptions;
 
+import com.tangosol.net.TopicService;
 import com.tangosol.net.messaging.Codec;
 
 import com.tangosol.net.partition.KeyAssociator;
@@ -196,10 +199,13 @@ public class CacheConfigNamespaceHandler
         odp.addDefaultsDefinition("remote-cache-scheme", CacheFactory.getServiceConfig(CacheService.TYPE_REMOTE));
         odp.addDefaultsDefinition("remote-grpc-cache-scheme",
                                   CacheFactory.getServiceConfig(CacheService.TYPE_REMOTE_GRPC));
+        odp.addDefaultsDefinition("remote-grpc-topic-scheme",
+                                  CacheFactory.getServiceConfig(TopicService.TYPE_REMOTE_GRPC));
         odp.addDefaultsDefinition("remote-invocation-scheme",
                                   CacheFactory.getServiceConfig(InvocationService.TYPE_REMOTE));
 
-        odp.addDefaultsDefinition("paged-topic-scheme", CacheFactory.getServiceConfig(CacheService.TYPE_DISTRIBUTED));
+        odp.addDefaultsDefinition("paged-topic-scheme", CacheFactory.getServiceConfig(TopicService.TYPE_PAGED_TOPIC));
+        odp.addDefaultsDefinition("remote-topic-scheme", CacheFactory.getServiceConfig(TopicService.TYPE_REMOTE));
 
         dep.addElementPreprocessor(odp);
 
@@ -350,6 +356,10 @@ public class CacheConfigNamespaceHandler
                           new ServiceBuilderProcessor<>(BaseGrpcCacheScheme.class));
         registerProcessor("remote-invocation-scheme",
                           new ServiceBuilderProcessor<>(RemoteInvocationScheme.class));
+        registerProcessor("remote-topic-scheme",
+                          new ServiceBuilderProcessor<>(RemoteTopicScheme.class));
+        registerProcessor("remote-grpc-topic-scheme",
+                          new ServiceBuilderProcessor<>(BaseGrpcTopicScheme.class));
         registerProcessor("replicated-scheme", new ServiceBuilderProcessor<>(ReplicatedScheme.class));
         registerProcessor("request-timeout", new MillisProcessor());
         registerProcessor("standard-lease-milliseconds", new MillisProcessor());
@@ -358,7 +368,7 @@ public class CacheConfigNamespaceHandler
         registerProcessor("task-timeout", new MillisProcessor());
         registerProcessor("cache", new CacheMappingProcessor());
         registerProcessor("topic-mapping", new TopicMappingProcessor("topic-name", NamedTopicScheme.class));
-        registerProcessor("topic-scheme", new PagedTopicSchemeProcessor());
+        registerProcessor("paged-topic-scheme", new PagedTopicSchemeProcessor());
         registerProcessor("transactional-scheme",
                           new ServiceBuilderProcessor<>(TransactionalScheme.class));
         registerProcessor("transfer-threshold", new MemorySizeProcessor());

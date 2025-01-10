@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -61,7 +61,7 @@ class path, or module path, of the JVM.
   <topic-scheme-mapping>
     <topic-mapping>
       <topic-name>*</topic-name>
-      <scheme-name>topic-server</scheme-name>
+      <scheme-name>topic-${coherence.client direct}</scheme-name>
     </topic-mapping>
   </topic-scheme-mapping>
 
@@ -226,9 +226,76 @@ class path, or module path, of the JVM.
       <autostart>true</autostart>
     </distributed-scheme>
 
+    <!-- remote topic scheme for accessing the proxy from extend clients -->
+    <remote-topic-scheme>
+      <scheme-name>topic-remote</scheme-name>
+      <service-name>RemoteTopic</service-name>
+      <cluster-name system-property="coherence.extend.cluster"/>
+      <proxy-service-name system-property="coherence.extend.proxy.service">Proxy</proxy-service-name>
+    </remote-topic-scheme>
+
+    <!-- remote topic scheme for accessing the proxy from extend clients -->
+    <remote-topic-scheme>
+      <scheme-name>topic-remote-fixed</scheme-name>
+      <service-name>RemoteTopic</service-name>
+      <cluster-name system-property="coherence.extend.cluster"/>
+      <initiator-config>
+        <tcp-initiator>
+          <remote-addresses>
+            <socket-address>
+              <address system-property="coherence.extend.address"/>
+              <port system-property="coherence.extend.port"/>
+            </socket-address>
+          </remote-addresses>
+        </tcp-initiator>
+      </initiator-config>
+    </remote-topic-scheme>
+
+    <!--
+    A remote topic scheme for accessing a gRPC proxy.
+    The NameService will be used to look up the host
+    names and ports for the gRPC proxies.
+    -->
+    <remote-grpc-topic-scheme>
+      <scheme-name>topic-grpc</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <service-name>RemoteGrpcTopic</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <name-service-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </name-service-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-topic-scheme>
+
+    <!--
+    A remote topic scheme for accessing a gRPC proxy.
+    The specified address(es) will be used to connect
+    directly to a gRPC proxy.
+    -->
+    <remote-grpc-topic-scheme>
+      <scheme-name>topic-grpc-fixed</scheme-name>
+      <remote-scope-name system-property="coherence.grpc.remote.scope">${coherence.scope}</remote-scope-name>
+      <service-name>RemoteGrpcTopic</service-name>
+      <cluster-name system-property="coherence.grpc.remote.cluster"/>
+      <grpc-channel system-property="coherence.grpc.channel">
+        <remote-addresses>
+          <socket-address>
+            <address system-property="coherence.grpc.address"/>
+            <port system-property="coherence.grpc.port"/>
+          </socket-address>
+        </remote-addresses>
+        <socket-provider system-property="coherence.grpc.socketprovider"/>
+      </grpc-channel>
+    </remote-grpc-topic-scheme>
+
     <!-- partitioned topic scheme for servers -->
     <paged-topic-scheme>
-      <scheme-name>topic-server</scheme-name>
+      <scheme-name>topic-direct</scheme-name>
       <service-name>${coherence.service.name Partitioned}Topic</service-name>
       <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
       <partition-count system-property="coherence.distributed.partitions">${coherence.distributed.partitioncount 257}</partition-count>

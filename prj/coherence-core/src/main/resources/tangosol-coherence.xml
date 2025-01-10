@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -782,6 +782,48 @@ to find specific notes on changes suggested for production use.
       <service id="14">
         <service-type>RemoteGrpcCache</service-type>
         <service-component>RemoteGrpcCache</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>serializer</param-name>
+            <param-value/>
+          </init-param>
+          <init-param id="2">
+            <param-name>grpc-channel/socket-provider</param-name>
+            <param-value system-property="coherence.grpc.socketprovider"/>
+          </init-param>
+          <init-param id="3">
+            <param-name>thread-count</param-name>
+            <param-value system-property="coherence.grpc.threads"/>
+          </init-param>
+          <init-param id="4">
+            <param-name>thread-count-max</param-name>
+            <param-value system-property="coherence.grpc.threads.max"/>
+          </init-param>
+          <init-param id="5">
+            <param-name>thread-count-min</param-name>
+            <param-value system-property="coherence.grpc.threads.min"/>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="15">
+        <service-type>RemoteTopic</service-type>
+        <service-component>RemoteTopic</service-component>
+        <init-params>
+          <init-param id="1">
+            <param-name>initiator-config</param-name>
+            <param-value/>
+          </init-param>
+          <init-param id="2">
+            <param-name>serializer</param-name>
+            <param-value/>
+          </init-param>
+        </init-params>
+      </service>
+
+      <service id="16">
+        <service-type>RemoteGrpcTopic</service-type>
+        <service-component>RemoteGrpcTopic</service-component>
         <init-params>
           <init-param id="1">
             <param-name>serializer</param-name>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -18,31 +18,48 @@
 
   <topic-scheme-mapping>
     <topic-mapping>
+      <topic-name>java-customer-*</topic-name>
+      <scheme-name>java-scheme</scheme-name>
+      <value-type>topics.data.Customer</value-type>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>pof-customer-*</topic-name>
+      <scheme-name>pof-scheme</scheme-name>
+      <value-type>topics.data.Customer</value-type>
+    </topic-mapping>
+
+    <topic-mapping>
       <topic-name>pof*</topic-name>
       <scheme-name>pof-scheme</scheme-name>
       <value-type>String</value-type>
     </topic-mapping>
+
     <topic-mapping>
       <topic-name>java*</topic-name>
       <scheme-name>java-scheme</scheme-name>
       <value-type>String</value-type>
     </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>elastic*</topic-name>
+      <scheme-name>pof-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>ram*</topic-name>
+      <scheme-name>pof-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
+    </topic-mapping>
   </topic-scheme-mapping>
 
-  <caching-scheme-mapping>
+  <caching-schemes>
     <remote-topic-scheme>
       <scheme-name>pof-scheme</scheme-name>
       <service-name>PofRemote</service-name>
       <proxy-service-name>PofProxy</proxy-service-name>
       <initiator-config>
-        <tcp-initiator>
-          <name-service-addresses>
-            <socket-address>
-              <address system-property="coherence.localhost">127.0.0.1</address>
-              <port system-property="coherence.clusterport">9999</port>
-            </socket-address>
-          </name-service-addresses>
-        </tcp-initiator>
         <serializer>pof</serializer>
       </initiator-config>
     </remote-topic-scheme>
@@ -52,14 +69,6 @@
       <service-name>JavaRemote</service-name>
       <proxy-service-name>JavaProxy</proxy-service-name>
       <initiator-config>
-        <tcp-initiator>
-          <name-service-addresses>
-            <socket-address>
-              <address system-property="coherence.localhost">127.0.0.1</address>
-              <port system-property="coherence.clusterport">9999</port>
-            </socket-address>
-          </name-service-addresses>
-        </tcp-initiator>
         <serializer>java</serializer>
       </initiator-config>
     </remote-topic-scheme>
@@ -69,16 +78,16 @@
       <service-name>RemoteCache</service-name>
       <proxy-service-name>PofProxy</proxy-service-name>
       <initiator-config>
-          <tcp-initiator>
-            <name-service-addresses>
-              <socket-address>
-                <address system-property="coherence.localhost">127.0.0.1</address>
-                <port system-property="coherence.clusterport">9999</port>
-              </socket-address>
-            </name-service-addresses>
-          </tcp-initiator>
           <serializer>pof</serializer>
       </initiator-config>
     </remote-cache-scheme>
-  </caching-scheme-mapping>
+
+    <remote-invocation-scheme>
+      <service-name>RemoteInvocation</service-name>
+      <proxy-service-name>JavaProxy</proxy-service-name>
+      <initiator-config>
+        <serializer>java</serializer>
+      </initiator-config>
+    </remote-invocation-scheme>
+  </caching-schemes>
 </cache-config>

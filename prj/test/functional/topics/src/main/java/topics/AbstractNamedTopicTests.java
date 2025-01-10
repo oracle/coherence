@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -157,8 +157,6 @@ import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-
 import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
 
 import static com.tangosol.internal.net.topic.NamedTopicSubscriber.withIdentifyingName;
@@ -167,6 +165,8 @@ import static com.tangosol.net.topic.Subscriber.inGroup;
 import static com.tangosol.net.topic.Subscriber.withConverter;
 import static com.tangosol.net.topic.Subscriber.withFilter;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.containsStringIgnoringCase;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -1563,7 +1563,7 @@ public abstract class AbstractNamedTopicTests
                     topic.createSubscriber(inGroup(sGroup + "durableSubscriber"), completeOnEmpty(),
                             withFilter(Filters.lessEqual(Customer::getId, 12))));
 
-            assertThat(exception.getMessage(), startsWith("Cannot change the Filter in existing Subscriber group"));
+            assertThat(exception.getMessage(), containsStringIgnoringCase("Cannot change the Filter in existing Subscriber group"));
             }
         }
 
@@ -1630,7 +1630,7 @@ public abstract class AbstractNamedTopicTests
                 }
             catch (Exception e)
                 {
-                assertThat(e.getMessage(), startsWith("Cannot change the ValueExtractor in existing Subscriber group"));
+                assertThat(e.getMessage(), containsString("Cannot change the ValueExtractor in existing Subscriber group"));
                 }
             }
         }
@@ -1954,8 +1954,8 @@ public abstract class AbstractNamedTopicTests
                 CacheService service          = (CacheService) t.getService();
                 NamedCache   cacheSubscribers = service.ensureCache(PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName), null);
 
-                Eventually.assertThat(cacheSubscribers.getCacheName() + " should be empty",
-                        invoking(cacheSubscribers).isEmpty(), is(true));
+                Eventually.assertDeferred(cacheSubscribers.getCacheName() + " should be empty",
+                        cacheSubscribers::isEmpty, is(true));
                 return null;
                 });
 

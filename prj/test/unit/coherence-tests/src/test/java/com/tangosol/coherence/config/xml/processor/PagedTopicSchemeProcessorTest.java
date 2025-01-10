@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,13 +59,13 @@ public class PagedTopicSchemeProcessorTest
             throws ConfigurationException
         {
         int    nPageSize = 33;
-        String sXml      = "<topic-scheme>"
+        String sXml      = "<paged-topic-scheme>"
                             + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                             + "<service-name>pof-topic-service</service-name>"
                             + "<storage>flashjournal</storage>"
                             + "<page-size system-property=\"coherence.page.size\">" + nPageSize + "</page-size>"
                             + "<expiry-delay>{expiry-delay 0}</expiry-delay>"
-                            + "</topic-scheme>";
+                            + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -86,13 +86,13 @@ public class PagedTopicSchemeProcessorTest
     public void testTopicSchemeProcessingSystemPropertyOverride()
         {
         long    nPageSize = 37;
-        String  sXml      = "<topic-scheme>"
+        String  sXml      = "<paged-topic-scheme>"
                             + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                             + "<service-name>pof-topic-service</service-name>"
                             + "<storage system-property=\"test.topicscheme.storage\">flashjournal</storage>"
                             + "<page-size system-property=\"coherence.page.size\">" + 20 + "</page-size>"
                             + "<expiry-delay>{expiry-delay 0}</expiry-delay>"
-                            + "</topic-scheme>";
+                            + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = null;
 
@@ -148,10 +148,10 @@ public class PagedTopicSchemeProcessorTest
     @SuppressWarnings("rawtypes")
     public void testDefaultsTopicSchemeProcessing()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -188,11 +188,11 @@ public class PagedTopicSchemeProcessorTest
     @Test
     public void testSetChannelCount()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
                         + "<channel-count>19</channel-count>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -210,11 +210,11 @@ public class PagedTopicSchemeProcessorTest
     @Test
     public void testSetPageSizeAsUnits()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
                         + "<page-size>1000</page-size>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -233,12 +233,12 @@ public class PagedTopicSchemeProcessorTest
     @Test
     public void testSetPageSizeAsUnitsWithFixedCalculator()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
                         + "<page-size>1000</page-size>"
                         + "<element-calculator>FIXED</element-calculator>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -257,11 +257,11 @@ public class PagedTopicSchemeProcessorTest
     @Test
     public void testSetPageSizeAsMemorySize()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
                         + "<page-size>5M</page-size>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 
@@ -281,12 +281,12 @@ public class PagedTopicSchemeProcessorTest
     @Test
     public void shouldNotAllowFixedCalculatorWithMemoryPageSize()
         {
-        String sXml = "<topic-scheme>"
+        String sXml = "<paged-topic-scheme>"
                         + "<scheme-name>common-pof-topic-scheme</scheme-name>"
                         + "<service-name>pof-topic-service</service-name>"
                         + "<page-size>5M</page-size>"
                         + "<element-calculator>FIXED</element-calculator>"
-                        + "</topic-scheme>";
+                        + "</paged-topic-scheme>";
 
         PagedTopicScheme scheme = testPagedTopicSchemeProcessing(sXml);
 

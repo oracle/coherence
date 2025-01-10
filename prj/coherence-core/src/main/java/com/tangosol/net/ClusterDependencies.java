@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,10 +8,12 @@ package com.tangosol.net;
 
 
 import com.tangosol.coherence.config.builder.ActionPolicyBuilder;
+import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperStreamFactory;
 
@@ -698,7 +700,7 @@ public interface ClusterDependencies
     /**
      * A provider of nw service instances.
      */
-    public interface ServiceProvider
+    public interface ServiceProvider<S extends Service>
         {
         /**
          * Create a new instance of a service.
@@ -710,10 +712,40 @@ public interface ClusterDependencies
          */
         Service createService(String sName, Cluster cluster);
 
-        ServiceProvider NULL_IMPLEMENTATION = new ServiceProvider()
+        /**
+         * Create a new instance of a topic service.
+         *
+         * @param resolver  the {@link ParameterResolver}
+         * @param deps      the {@link MapBuilder.Dependencies}
+         *
+         * @return the new service instance
+         */
+        S ensureConfiguredService(ParameterResolver resolver, MapBuilder.Dependencies deps);
+
+        /**
+         * Return a null-implementation of a {@link ServiceProvider}.
+         *
+         * @return a null-implementation of a {@link ServiceProvider}
+         */
+        @SuppressWarnings("unchecked")
+        static <S extends Service> ServiceProvider<S> nullImplementation()
+            {
+            return (ServiceProvider<S>) NULL_IMPLEMENTATION;
+            }
+
+        /**
+         * A null-implementation of a {@link ServiceProvider}.
+         */
+        ServiceProvider<Service> NULL_IMPLEMENTATION = new ServiceProvider<>()
             {
             @Override
             public Service createService(String sName, Cluster cluster)
+                {
+                return null;
+                }
+
+            @Override
+            public Service ensureConfiguredService(ParameterResolver resolver, MapBuilder.Dependencies deps)
                 {
                 return null;
                 }

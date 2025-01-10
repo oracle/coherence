@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
 
@@ -13,8 +13,9 @@ import com.tangosol.config.annotation.Injectable;
 
 import com.tangosol.internal.net.service.extend.proxy.CacheServiceProxyDependencies;
 import com.tangosol.internal.net.service.extend.proxy.InvocationServiceProxyDependencies;
-import com.tangosol.internal.net.service.peer.acceptor.AcceptorDependencies;
+import com.tangosol.internal.net.service.extend.proxy.TopicServiceProxyDependencies;
 
+import com.tangosol.internal.net.service.peer.acceptor.AcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
 
 import com.tangosol.util.Base;
@@ -58,6 +59,7 @@ public class DefaultProxyServiceDependencies
             m_acceptorDependencies               = deps.getAcceptorDependencies();
             m_bldrLoadBalancer                   = deps.getLoadBalancerBuilder();
             m_cacheServiceProxyDependencies      = deps.getCacheServiceProxyDependencies();
+            m_topicServiceProxyDependencies      = deps.getTopicServiceProxyDependencies();
             m_invocationServiceProxyDependencies = deps.getInvocationServiceProxyDependencies();
             }
         }
@@ -77,8 +79,8 @@ public class DefaultProxyServiceDependencies
     // ----- ProxyServiceDependencies interface -----------------------------
 
     /**
- * {@inheritDoc}
- */
+     * {@inheritDoc}
+     */
     @Override
     public AcceptorDependencies getAcceptorDependencies()
         {
@@ -114,6 +116,26 @@ public class DefaultProxyServiceDependencies
     public void setCacheServiceProxyDependencies(CacheServiceProxyDependencies deps)
         {
         m_cacheServiceProxyDependencies = deps;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public TopicServiceProxyDependencies getTopicServiceProxyDependencies()
+        {
+        return m_topicServiceProxyDependencies;
+        }
+
+    /**
+     * Set the TopicServiceProxyDependencies.
+     *
+     * @param deps  the TopicServiceProxyDependencies
+     */
+    @Injectable("proxy-config/topic-service-proxy")
+    public void setTopicServiceProxyDependencies(TopicServiceProxyDependencies deps)
+        {
+        m_topicServiceProxyDependencies = deps;
         }
 
     /**
@@ -181,6 +203,7 @@ public class DefaultProxyServiceDependencies
                 + "{AcceptorDependencies=" + getAcceptorDependencies()
                 + ", ActionPolicyBuilder=" + getActionPolicyBuilder()
                 + ", CacheServiceProxyDependencies=" + getCacheServiceProxyDependencies()
+                + ", TopicServiceProxyDependencies=" + getTopicServiceProxyDependencies()
                 + ", InvocationServiceProxyDependencies=" + getInvocationServiceProxyDependencies()
                 + ", LoadBalancerBuilder=" + getLoadBalancerBuilder() + "}";
         }
@@ -196,6 +219,12 @@ public class DefaultProxyServiceDependencies
      * The CacheServiceProxyDependencies.
      */
     private CacheServiceProxyDependencies m_cacheServiceProxyDependencies;
+
+    /**
+     * The TopicServiceProxyDependencies.
+     */
+    private TopicServiceProxyDependencies m_topicServiceProxyDependencies;
+
 
     /**
      * The InvocationServiceProxyDependencies.

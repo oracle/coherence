@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteInvocationService;
+import com.tangosol.coherence.component.net.extend.remoteService.RemoteTopicService;
 import com.tangosol.coherence.component.net.management.Gateway;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.tangosol.coherence.component.util.safeService.SafeInvocationService;
@@ -24,6 +25,7 @@ import com.tangosol.coherence.component.util.safeService.SafeProxyService;
 import com.tangosol.coherence.component.util.safeService.safeCacheService.SafeDistributedCacheService;
 import com.tangosol.coherence.component.util.safeService.safeCacheService.safeDistributedCacheService.SafePagedTopicService;
 import com.oracle.coherence.common.base.Timeout;
+import com.tangosol.coherence.component.util.safeService.safeTopicService.SafeSimpleTopicService;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.config.expression.SystemPropertyParameterResolver;
@@ -41,6 +43,7 @@ import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.ProxyService;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.Service;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.internal.ClusterJoinException;
 import com.tangosol.net.management.Registry;
 import com.tangosol.net.security.DoAsAction;
@@ -466,12 +469,14 @@ public class SafeCluster
         {
         // import Component.Net.Extend.RemoteService.RemoteCacheService;
         // import Component.Net.Extend.RemoteService.RemoteInvocationService;
+        // import Component.Net.Extend.RemoteService.RemoteTopicService;
         // import Component.Util.LocalCache;
         // import com.tangosol.coherence.config.Config;
         // import com.tangosol.net.CacheService;
         // import com.tangosol.net.ClusterDependencies$ServiceProvider as com.tangosol.net.ClusterDependencies.ServiceProvider;
         // import com.tangosol.net.InvocationService;
         // import com.tangosol.net.Service;
+        // import com.tangosol.net.TopicService;
         // import com.tangosol.util.Base;
         // import java.lang.ref.WeakReference;
         // import java.util.Set;
@@ -488,6 +493,13 @@ public class SafeCluster
         else if (sType.equals(CacheService.TYPE_REMOTE))
             {
             RemoteCacheService service = new RemoteCacheService();
+            service.setServiceName(sName);
+            service.setCluster(this);
+            serviceLocal = service;
+            }
+        else if (sType.equals(TopicService.TYPE_REMOTE))
+            {
+            RemoteTopicService service = new RemoteTopicService();
             service.setServiceName(sName);
             service.setCluster(this);
             serviceLocal = service;
@@ -1137,21 +1149,23 @@ public class SafeCluster
         // import Component.Util.SafeService.SafeCacheService.SafeDistributedCacheService.SafePagedTopicService;
         // import Component.Util.SafeService.SafeInvocationService;
         // import Component.Util.SafeService.SafeProxyService;
+        // import Component.Util.SafeService.SafeTopicService;
         // import com.tangosol.net.CacheService;
         // import com.tangosol.net.DistributedCacheService;
         // import com.tangosol.net.InvocationService;
         // import com.tangosol.net.PagedTopicService;
         // import com.tangosol.net.ProxyService;
-        
+        // import com.tangosol.net.TopicService;
+
         SafeService serviceSafe = service instanceof CacheService ?
                 (
-                service instanceof PagedTopicService      ? new SafePagedTopicService()
-        
-             : service instanceof DistributedCacheService ? new SafeDistributedCacheService()
-                                                             : new SafeCacheService()
+                service instanceof PagedTopicService ? new SafePagedTopicService()
+                    : service instanceof DistributedCacheService ? new SafeDistributedCacheService()
+                    : new SafeCacheService()
                 )
              : service instanceof InvocationService ? new SafeInvocationService()
              : service instanceof ProxyService      ? new SafeProxyService()
+             : service instanceof TopicService      ? new SafeSimpleTopicService()
                                                     : new SafeService();
         
         serviceSafe.setInternalService(service);
@@ -1183,10 +1197,13 @@ public class SafeCluster
         {
         // import com.tangosol.net.CacheService;
         // import com.tangosol.net.InvocationService;
-        
+        // import com.tangosol.net.TopicService;
+
         return sType.equals(CacheService.TYPE_LOCAL)  ||
                sType.equals(CacheService.TYPE_REMOTE) ||
                sType.equals(CacheService.TYPE_REMOTE_GRPC) ||
+               sType.equals(TopicService.TYPE_REMOTE) ||
+               sType.equals(TopicService.TYPE_REMOTE_GRPC) ||
                sType.equals(InvocationService.TYPE_REMOTE);
         }
     

@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service;
-
-import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 
 import com.tangosol.io.ConfigurableSerializerFactory;
 import com.tangosol.io.SerializerFactory;
@@ -15,6 +13,8 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.DefaultConfigurableCacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.OperationalContext;
+
+import com.tangosol.net.TopicService;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -162,7 +162,7 @@ public class LegacyXmlServiceHelper
                     sServiceName = InvocationService.TYPE_REMOTE;
                     break;
                 case DefaultConfigurableCacheFactory.SCHEME_PAGED_TOPIC:
-                    sServiceName = CacheService.TYPE_PAGED_TOPIC;
+                    sServiceName = TopicService.TYPE_PAGED_TOPIC;
                     break;
                 }
             }

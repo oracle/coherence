@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -302,6 +302,8 @@
                     <xsd:element ref="remote-cache-scheme" />
                     <xsd:element ref="remote-grpc-cache-scheme" />
                     <xsd:element ref="remote-invocation-scheme" />
+                    <xsd:element ref="remote-topic-scheme" />
+                    <xsd:element ref="remote-grpc-topic-scheme" />
                     <xsd:element ref="proxy-scheme" />
                 </xsd:choice>
                 <xsd:any namespace="##other" processContents="lax"
@@ -863,7 +865,7 @@
   <xsd:element name="remote-grpc-cache-scheme">
       <xsd:annotation>
           <xsd:documentation>
-              The grpc-cache-scheme element contains the
+              The remote-grpc-cache-scheme element contains the
               configuration info necessary to use a clustered
               cache from outside the cluster, connecting using gRPC.
 
@@ -910,13 +912,73 @@
               Setting this value to $DEFAULT$ will use the default (empty) scope on the proxy server,
                 this is useful where the parent scope-name is configured for this configuration as
                 the remote-scope-name cannot be set to an empty value in XML.
-
               Used in: remote-grpc-cache-scheme
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="proxy-scheme">
+  <xsd:element name="remote-topic-scheme">
+    <xsd:annotation>
+      <xsd:documentation>
+        The remote-topic-scheme element contains the
+        configuration info necessary to use a clustered
+        topic from outside the cluster.
+
+        Used in: caching-schemes
+      </xsd:documentation>
+    </xsd:annotation>
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="scheme-name" minOccurs="0"/>
+        <xsd:element ref="scheme-ref" minOccurs="0"/>
+        <xsd:element ref="scope-name" minOccurs="0"/>
+        <xsd:element ref="service-name" minOccurs="0"/>
+        <xsd:element ref="cluster-name" minOccurs="0"/>
+        <xsd:element ref="proxy-service-name" minOccurs="0"/>
+        <xsd:element ref="initiator-config" minOccurs="0"/>
+        <xsd:element ref="listener" minOccurs="0"/>
+        <xsd:any namespace="##other" processContents="lax"
+                 minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+      <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="remote-grpc-topic-scheme">
+      <xsd:annotation>
+          <xsd:documentation>
+              The grpc-cache-scheme element contains the
+              configuration info necessary to use a clustered
+              topic from outside the cluster, connecting using gRPC.
+
+              Used in: caching-schemes
+          </xsd:documentation>
+      </xsd:annotation>
+      <xsd:complexType>
+          <xsd:sequence>
+              <xsd:element ref="scheme-name" minOccurs="0" />
+              <xsd:element ref="scheme-ref" minOccurs="0" />
+              <xsd:element ref="scope-name" minOccurs="0" />
+              <xsd:element name="remote-scope-name" type="coherence-string-type" minOccurs="0" />
+              <xsd:element ref="service-name" minOccurs="0" />
+              <xsd:element ref="cluster-name" minOccurs="0" />
+              <xsd:element ref="proxy-service-name" minOccurs="0" />
+              <xsd:element ref="grpc-channel" minOccurs="0" />
+              <xsd:element ref="serializer" minOccurs="0" />
+              <xsd:element name="enable-tracing" type="coherence-boolean-type" minOccurs="0" />
+              <xsd:element ref="thread-count" minOccurs="0" />
+              <xsd:element ref="thread-count-max" minOccurs="0" />
+              <xsd:element ref="thread-count-min" minOccurs="0" />
+              <xsd:element ref="worker-priority" minOccurs="0" />
+              <xsd:element ref="listener" minOccurs="0" />
+              <xsd:any namespace="##other" processContents="lax"
+                  minOccurs="0" maxOccurs="unbounded" />
+          </xsd:sequence>
+          <xsd:anyAttribute namespace="##other" processContents="lax" />
+      </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="proxy-scheme">
         <xsd:annotation>
             <xsd:documentation>
                 The proxy-scheme element contains the configuration

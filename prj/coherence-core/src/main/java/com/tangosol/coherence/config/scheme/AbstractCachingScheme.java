@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -62,7 +62,7 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         if (!(service instanceof CacheService))
             {
             throw new IllegalArgumentException("Error: ensureCache is using service "
-                                               + service.getInfo().getServiceName() + "that is not a CacheService ");
+                                               + service.getInfo().getServiceName() + " that is not a CacheService ");
             }
 
         NamedCache cache = ((CacheService) service).ensureCache(dependencies.getCacheName(),
