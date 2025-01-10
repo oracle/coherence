@@ -64,7 +64,7 @@ public abstract class AbstractCESClusterPerTests
 
     @Override
     @Test
-    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
+    @Ignore("COH-23971")
     public void shouldFailOverLongRunningTest()
         {
         Utils.assertWithFailureAction(super::shouldFailOverLongRunningTest, this::dumpExecutorCacheStates);
@@ -72,7 +72,7 @@ public abstract class AbstractCESClusterPerTests
 
     @Override
     @Test
-    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
+    @Ignore("COH-23971")
     public void shouldCallRunnableAfterFailOverLongRunning()
         {
         Utils.assertWithFailureAction(super::shouldCallRunnableAfterFailOverLongRunning, this::dumpExecutorCacheStates);
@@ -206,7 +206,7 @@ public abstract class AbstractCESClusterPerTests
 
     @Override
     @Test
-    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23971")
+    @Ignore("COH-23971")
     public void shouldRunMultipleTasks()
         {
         Utils.assertWithFailureAction(super::shouldRunMultipleTasks, this::dumpExecutorCacheStates);
