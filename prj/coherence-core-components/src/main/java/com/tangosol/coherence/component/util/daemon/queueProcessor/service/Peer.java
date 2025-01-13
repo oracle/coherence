@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1808,8 +1808,8 @@ public abstract class Peer
         message.run();
         }
     
-    /**
-     * Called when an exception occurs during Message decoding. This method is
+   /**
+    * Called when an exception occurs during Message decoding. This method is
     * called on the service thread.
     * 
     * @param e  the Throwable thrown during decoding
@@ -1819,13 +1819,13 @@ public abstract class Peer
     * configured WrapperStreamFactory objects
     * 
     * @see #onNotify
-     */
+    */
     protected void onMessageDecodeException(Throwable e, com.tangosol.io.ReadBuffer.BufferInput in, com.tangosol.coherence.component.net.extend.Connection connection, boolean fFilter)
         {
         // import Component.Net.Extend.Channel;
         // import Component.Net.Extend.Connection;
         // import java.io.IOException;
-        
+
         // resolve the Channel
         Channel channel;
         try
@@ -1837,7 +1837,7 @@ public abstract class Peer
                 }
             channel = (Channel) connection.getChannel(in.readPackedInt());
             }
-        catch (IOException ee)
+        catch (IOException ioe)
             {
             channel = null;
             }
@@ -1849,13 +1849,14 @@ public abstract class Peer
         
         if (channel != null)
            {
-           sb.append(" This service is configured with a serializer: ")
+           sb.append(String.format(" This service is using serializer \"%s\": ", channel.getSerializer().getName()))
              .append(channel.getSerializer())
-             .append(", which may be incompatible with the serializer configured by the connecting client.");
+             .append(", which is different or incompatible with the serializer being used by the connecting client.")
+             .append(String.format(" Please ensure connecting client is using the same serializer as the one configured for this service"));
            }
-        
+
         _trace(e, sb.toString());
-        
+
         // close the Channel or Connection
         if (channel == null || !channel.isOpen() || channel.getId() == 0)
             {
@@ -1866,7 +1867,7 @@ public abstract class Peer
             channel.close(true, e);
             }
         }
-    
+
     /**
      * Called when an exception occurs during Message encoding. This method is
     * called on both client and service threads.
