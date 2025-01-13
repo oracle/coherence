@@ -103,7 +103,7 @@ import java.util.stream.Collectors;
  *
  * @author Jonathan Knight  2024.11.26
  */
-@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed", "SameParameterValue"})
+@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed", "SameParameterValue", "SimplifyStreamApiCallChains"})
 public class NamedTopicSubscriber<V>
     implements Subscriber<V>, SubscriberConnector.ConnectedSubscriber<V>, SubscriberStatistics, AutoCloseable
     {
@@ -414,7 +414,7 @@ public class NamedTopicSubscriber<V>
                 .map(e -> commitInternal(e.getKey(), e.getValue(), mapResult))
                 .toArray(CompletableFuture[]::new);
 
-        return CompletableFuture.allOf(aFuture).handle((_void, err) -> mapResult);
+        return CompletableFuture.allOf(aFuture).thenApply(_void -> mapResult);
         }
 
     /**
@@ -1379,16 +1379,13 @@ public class NamedTopicSubscriber<V>
             {
             TopicChannel channel = m_aChannel[nChannel];
             return f_connector.commit(this, nChannel, position)
-                    .handle((result, err) ->
+                    .thenApply(result ->
                         {
-                        if (err == null)
+                        if (mapResult != null)
                             {
-                            if (mapResult != null)
-                                {
-                                mapResult.put(nChannel, result);
-                                }
-                            channel.committed(position);
+                            mapResult.put(nChannel, result);
                             }
+                        channel.committed(position);
                         return result;
                         });
             }

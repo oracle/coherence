@@ -308,10 +308,6 @@ public class SafePublisherConnector<V>
             {
             PublisherChannelConnector<V> connector = m_channelConnector;
             TopicService                 service   = getTopicService();
-            if (!service.isRunning())
-                {
-                System.out.println();
-                }
             if (!service.isRunning() || connector == null || !connector.isActive())
                 {
                 f_lock.lock();
