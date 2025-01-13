@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -57,7 +57,7 @@ public class DefaultPagedTopicDependencies
         }
 
     /**
-     * Returns the number of channels in the topic, or {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
+     * Returns the number of channels in the topic, or {@link NamedTopic#DEFAULT_CHANNEL_COUNT}
      * to indicate that the topic uses the default number of channels.
      *
      * @return the number of channels in the topic
@@ -66,7 +66,7 @@ public class DefaultPagedTopicDependencies
     public int getConfiguredChannelCount()
         {
         int cChannel = m_cChannel;
-        if (cChannel == PagedTopic.DEFAULT_CHANNEL_COUNT)
+        if (cChannel == NamedTopic.DEFAULT_CHANNEL_COUNT)
             {
             cChannel = m_cChannel = computeChannelCount(m_cPartition);
             }
@@ -105,7 +105,7 @@ public class DefaultPagedTopicDependencies
      * @param nChannel  the number of channels in the topic
      *
      * @throws IllegalArgumentException if the channel count parameter is not a positive integer
-     *                                  or zero (the {@link PagedTopic#DEFAULT_CHANNEL_COUNT} value).
+     *                                  or zero (the {@link NamedTopic#DEFAULT_CHANNEL_COUNT} value).
      */
     public void setChannelCount(int nChannel)
         {
@@ -444,7 +444,7 @@ public class DefaultPagedTopicDependencies
      * The number of milliseconds within which a subscriber must issue a heartbeat or
      * be forcefully considered closed.
      */
-    private long m_cSubscriberTimeoutMillis = PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
+    private long m_cSubscriberTimeoutMillis = NamedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
 
     /**
      * A flag that when {@code true}, indicates that the topic allows positions to be committed in channels
@@ -463,15 +463,15 @@ public class DefaultPagedTopicDependencies
     /**
      * The maximum amount of time that publishers and subscribers will attempt to reconnect.
      */
-    private long m_cReconnectTimeoutMillis = PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
+    private long m_cReconnectTimeoutMillis = NamedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
 
     /**
      * The amount of time that publishers and subscribers will wait between attempts to reconnect.
      */
-    private long m_cReconnectRetryMillis = PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS.as(Duration.Magnitude.MILLI);
+    private long m_cReconnectRetryMillis = NamedTopic.DEFAULT_RECONNECT_RETRY_SECONDS.as(Duration.Magnitude.MILLI);
 
     /**
      * The amount of time that publishers and subscribers will wait before attempting to reconnect.
      */
-    private long m_cReconnectWaitMillis = PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS.as(Duration.Magnitude.MILLI);
+    private long m_cReconnectWaitMillis = NamedTopic.DEFAULT_RECONNECT_WAIT_SECONDS.as(Duration.Magnitude.MILLI);
     }

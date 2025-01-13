@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -224,7 +224,7 @@ public class SchemeSelectionTopicTests
     @Test
     public void testDistributedRewindableTopicTest()
         {
-        final String             COLLECTION_NAME = "topic-retain-dist-backing-local1";
+        final String             COLLECTION_NAME = "topic-retain-dist-backing-local11";
 
         NamedTopic<String> topic = validateNamedTopic(COLLECTION_NAME, CacheService.TYPE_PAGED_TOPIC);
 

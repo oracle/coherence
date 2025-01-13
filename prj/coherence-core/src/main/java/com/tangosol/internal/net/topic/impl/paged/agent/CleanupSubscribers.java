@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,8 +9,8 @@ package com.tangosol.internal.net.topic.impl.paged.agent;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 
 import com.tangosol.io.pof.PofReader;
@@ -87,7 +87,7 @@ public class CleanupSubscribers
      * @param service  the cache service to clean-up
      * @param parts    the optional specific partitions to clean-up
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "resource"})
     public void execute(DistributedCacheService service, PartitionSet parts)
         {
         if (!service.isRunning())
@@ -157,7 +157,7 @@ public class CleanupSubscribers
 
                             for (SubscriberInfo.Key key : mapResult.keySet())
                                 {
-                                int nMember = PagedTopicSubscriber.memberIdFromId(key.getSubscriberId());
+                                int nMember = SubscriberId.memberIdFromId(key.getSubscriberId());
 
                                 mapRemoved.computeIfAbsent(nMember, k-> new HashMap<>())
                                           .computeIfAbsent(key.getGroupId(), k -> new ArrayList<>())
@@ -171,7 +171,7 @@ public class CleanupSubscribers
                                             .entrySet().stream()
                                             .map(e -> "[Group='" + e.getKey().getGroupName()
                                                     + "' Subscribers="
-                                                    + PagedTopicSubscriber.idToString(e.getValue())
+                                                    + SubscriberId.idToString(e.getValue())
                                                     + "]")
                                             .collect(Collectors.joining(", "));
 
@@ -282,7 +282,7 @@ public class CleanupSubscribers
             long           nId     = entry.getKey().getSubscriberId();
             SubscriberInfo info    = entry.getValue();
             UUID           uuid    = info.getOwningUid();
-            int            nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            int            nMember = SubscriberId.memberIdFromId(nId);
             Member         member  = mapMember.get(nMember);
             boolean        fRemove = false;
 

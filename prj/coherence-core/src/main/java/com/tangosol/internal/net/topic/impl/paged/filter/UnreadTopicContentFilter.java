@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.filter;
 
@@ -145,15 +145,39 @@ public class UnreadTopicContentFilter
             extends EntryExtractor
         {
         @Override
-        public Object extractFromEntry(Map.Entry entry)
+        public ContentKey extractFromEntry(Map.Entry entry)
             {
             return ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
             }
 
         @Override
-        public Object extractOriginalFromEntry(MapTrigger.Entry entry)
+        public ContentKey extractOriginalFromEntry(MapTrigger.Entry entry)
             {
             return ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
+            }
+        }
+
+    // ----- inner class: ContentKeyChannelExtractor ------------------------
+
+    /**
+     * An {@link EntryExtractor} that can extract the key from a paged topic contents cache.
+     */
+    @SuppressWarnings("rawtypes")
+    public static class ContentKeyChannelExtractor
+            extends EntryExtractor
+        {
+        @Override
+        public Integer extractFromEntry(Map.Entry entry)
+            {
+            ContentKey key = ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
+            return key.getChannel();
+            }
+
+        @Override
+        public Integer extractOriginalFromEntry(MapTrigger.Entry entry)
+            {
+            ContentKey key = ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
+            return key.getChannel();
             }
         }
 

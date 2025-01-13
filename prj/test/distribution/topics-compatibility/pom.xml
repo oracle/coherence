@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
+  ~ Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -20,16 +20,65 @@
 
   <artifactId>topics-compatibility</artifactId>
   <name>Coherence Topics Backward Compatibility Tests</name>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>topics-14.1.1.2206.3</module>
-  </modules>
 
   <properties>
-    <coherence.compatibility.version>${project.version}</coherence.compatibility.version>
-    <test.extend.jdk>${JAVA_HOME}</test.extend.jdk>
+    <!--
+    This is the earlier version to verify topics is compatible with.
+    This must be the same major version as the version in this build (The value in ${revision}).
+    Typically, this will be patch zero of the ${revision} version.
+    For 22.06 though this is patch 8 as earlier versions are not compatible.
+    -->
+    <coherence.compatibility.version>22.06.8</coherence.compatibility.version>
+    <test.extend.jdk>${env.JAVA_HOME}</test.extend.jdk>
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${coherence.compatibility.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>${coherence.group.id}</groupId>
+          <artifactId>coherence-bedrock-testing-support</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>junit</groupId>
+          <artifactId>junit</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
+      <version>${coherence.compatibility.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-params</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>io.reactivex.rxjava3</groupId>
+      <artifactId>rxjava</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
   <build>
     <plugins>
@@ -49,7 +98,7 @@
             <goals>
               <goal>copy</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>validate</phase>
             <configuration>
               <artifactItems>
                 <artifactItem>
@@ -67,12 +116,17 @@
             <goals>
               <goal>copy</goal>
             </goals>
-            <phase>process-resources</phase>
+            <phase>validate</phase>
             <configuration>
               <artifactItems>
                 <artifactItem>
                   <groupId>${coherence.group.id}</groupId>
                   <artifactId>coherence</artifactId>
+                  <version>${coherence.compatibility.version}</version>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>${coherence.group.id}</groupId>
+                  <artifactId>coherence-bedrock-testing-support</artifactId>
                   <version>${coherence.compatibility.version}</version>
                 </artifactItem>
               </artifactItems>
@@ -97,11 +151,23 @@
           </execution>
         </executions>
         <configuration>
-          <forkMode>always</forkMode>
+          <reuseForks>false</reuseForks>
           <jvm>${test.extend.jdk}/bin/java</jvm>
-          <systemProperties>
+          <systemPropertyVariables>
+            <coherence.compatibility.version>${coherence.compatibility.version}</coherence.compatibility.version>
             <server.java.home>${env.JAVA_HOME}</server.java.home>
-          </systemProperties>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <systemPropertyVariables>
+            <coherence.compatibility.version>${coherence.compatibility.version}</coherence.compatibility.version>
+            <server.java.home>${env.JAVA_HOME}</server.java.home>
+          </systemPropertyVariables>
         </configuration>
       </plugin>
 
@@ -119,6 +185,35 @@
   </build>
 
   <profiles>
+    <profile>
+      <id>test-jdk23</id>
+        <activation>
+          <jdk>[23,)</jdk>
+        </activation>
+      <properties>
+        <maven.test.skip>true</maven.test.skip>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>security-manager</id>
       <activation>

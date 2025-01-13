@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,11 +29,10 @@ import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.config.xml.DocumentProcessor;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
-
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.net.topic.BinaryElementCalculator;
 import com.tangosol.net.topic.FixedElementCalculator;
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlDocumentReference;
 
 import com.tangosol.util.SimpleResourceRegistry;
@@ -167,9 +166,9 @@ public class PagedTopicSchemeProcessorTest
 
         assertThat(pageSize, is(notNullValue()));
         assertThat(pageSize.isMemorySize(), is(true));
-        assertThat(pageSize.getUnitCount(), is(PagedTopic.DEFAULT_PAGE_CAPACITY_BYTES));
+        assertThat(pageSize.getUnitCount(), is(NamedTopic.DEFAULT_PAGE_CAPACITY_BYTES));
 
-        assertThat(cChannel, is(PagedTopic.DEFAULT_CHANNEL_COUNT));
+        assertThat(cChannel, is(NamedTopic.DEFAULT_CHANNEL_COUNT));
         assertThat(scheme.getExpiryDelay(nullResolver).get(), is(0L));
         assertThat(scheme.getStorageScheme().getClass().getSimpleName(), is(LocalScheme.class.getSimpleName()));
 

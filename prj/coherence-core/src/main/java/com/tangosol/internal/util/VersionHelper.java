@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -398,6 +398,11 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
+     * The encoded CE 25.03 versions.
+     */
+    public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
+
+    /**
      * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
@@ -406,14 +411,16 @@ public class VersionHelper
     /**
      * The encoded 14.1.1.2206.0, 6 and 7 versions.
      */
-    public static final int VERSION_14_1_1_2206   = encodeVersion(14, 1, 1, 2206, 0);
-    public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
-    public static final int VERSION_14_1_1_2206_7 = encodeVersion(14, 1, 1, 2206, 7);
+    public static final int VERSION_14_1_1_2206    = encodeVersion(14, 1, 1, 2206, 0);
+    public static final int VERSION_14_1_1_2206_6  = encodeVersion(14, 1, 1, 2206, 6);
+    public static final int VERSION_14_1_1_2206_7  = encodeVersion(14, 1, 1, 2206, 7);
+    public static final int VERSION_14_1_1_2206_12 = encodeVersion(14, 1, 1, 2206, 12);
 
     /**
      * The encoded 14.1.2.0.0 version.
      */
     public static final int VERSION_14_1_2_0 = encodeVersion(14, 1, 2, 0, 0);
+    public static final int VERSION_14_1_2_2 = encodeVersion(14, 1, 2, 0, 2);
 
     /**
      * The encoded 14.1.1.0.0, 16 and 17 versions.

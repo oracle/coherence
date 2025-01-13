@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
-
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -25,7 +23,9 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collection;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * An identifier for a topic subscriber.
@@ -36,6 +36,13 @@ import java.util.Objects;
 public class SubscriberId
         implements Subscriber.Id, Comparable<SubscriberId>, PortableObject, ExternalizableLite
     {
+    // This is here because the PagedTopic.SubscriberIdRequest.read() method is reading an array
+    // of SubscriberId using ExternalizableHelper.readObject() which appears to then read the array
+    // using Java serialization instead of ExternalizableLite. This then broke rolling upgrades
+    // where the serial version UID changed in newer versions.
+    // Hard coding it here fixes that, but we need to be careful.
+    private static final long serialVersionUID = 7441694604715154661L;
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -54,8 +61,8 @@ public class SubscriberId
      */
     public SubscriberId(long nId, UUID uuid)
         {
-        m_nNotificationId = PagedTopicSubscriber.notificationIdFromId(nId);
-        m_nMemberId       = PagedTopicSubscriber.memberIdFromId(nId);
+        m_nNotificationId = SubscriberId.notificationIdFromId(nId);
+        m_nMemberId       = SubscriberId.memberIdFromId(nId);
         m_uuid            = uuid;
         m_nId             = nId;
         }
@@ -72,7 +79,7 @@ public class SubscriberId
         m_nNotificationId = nNotificationId;
         m_nMemberId       = nMemberId;
         m_uuid            = uuid;
-        m_nId             = PagedTopicSubscriber.createId(m_nNotificationId, m_nMemberId);
+        m_nId             = SubscriberId.createId(m_nNotificationId, m_nMemberId);
         }
 
     // ----- accessors ------------------------------------------------------
@@ -189,6 +196,95 @@ public class SubscriberId
     // ----- helper methods -------------------------------------------------
 
     /**
+     * Create a subscriber identifier.
+     *
+     * @param nNotificationId  the notification identifier
+     * @param nMemberId        the cluster member id
+     *
+     * @return a subscriber identifier
+     */
+    public static long createId(long nNotificationId, long nMemberId)
+        {
+        return (nMemberId << 32) | (nNotificationId & 0xFFFFFFFFL);
+        }
+
+    /**
+     * Parse a cluster member id from a subscriber identifier.
+     *
+     * @param nId  the subscriber identifier
+     *
+     * @return the cluster member id from the subscriber id
+     */
+    public static int memberIdFromId(long nId)
+        {
+        return (int) (nId >> 32);
+        }
+
+    /**
+     * Return a string representation of a subscriber identifier.
+     *
+     * @param nId  the subscriber identifier
+     *
+     * @return a string representation of the subscriber identifier
+     */
+    public static String idToString(long nId)
+        {
+        return nId + "/" + memberIdFromId(nId);
+        }
+
+    /**
+     * Return a string representation of a subscriber identifier.
+     *
+     * @param id  the subscriber identifier
+     *
+     * @return a string representation of the subscriber identifier
+     */
+    public static String idToString(SubscriberId id)
+        {
+        return id.getId() + "/" + id.getMemberId();
+        }
+
+    /**
+     * Return a string representation of a collection of subscriber identifiers.
+     *
+     * @param setId  the collection of subscriber identifiers
+     *
+     * @return a string representation of the collection of subscriber identifiers
+     */
+    public static String idToString(Collection<Long> setId)
+        {
+        return setId.stream()
+                .map(SubscriberId::idToString)
+                .collect(Collectors.joining(","));
+        }
+
+    /**
+     * Return a string representation of a collection of subscriber identifiers.
+     *
+     * @param setId  the collection of subscriber identifiers
+     *
+     * @return a string representation of the collection of subscriber identifiers
+     */
+    public static String subscriberIdToString(Collection<SubscriberId> setId)
+        {
+        return setId.stream()
+                .map(SubscriberId::idToString)
+                .collect(Collectors.joining(","));
+        }
+
+    /**
+     * Parse a subscriber notification identifier from a subscriber identifier.
+     *
+     * @param nId  the subscriber identifier
+     *
+     * @return te notification identifier parsed from the subscriber identifier
+     */
+    public static int notificationIdFromId(long nId)
+        {
+        return (int) (nId & 0xFFFFFFFFL);
+        }
+
+    /**
      * A main method that takes one or more subscriber identifiers and parses
      * them to display the corresponding member id and notification id.
      *
@@ -199,8 +295,7 @@ public class SubscriberId
         for (String s : args)
             {
             long nId = Long.parseLong(s);
-            System.out.println(PagedTopicSubscriber.notificationIdFromId(nId)
-                                       + " " + PagedTopicSubscriber.memberIdFromId(nId));
+            System.out.println(SubscriberId.notificationIdFromId(nId) + " " + SubscriberId.memberIdFromId(nId));
             }
         }
 

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.topics;
@@ -10,6 +10,7 @@ package com.oracle.coherence.guides.topics;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.Element;
@@ -124,6 +125,7 @@ public class ChatApplication implements Runnable {
      * @param userId      user id for the chat
      * @param inputStream the {@link InputStream} to use for input
      */
+    @SuppressWarnings("unchecked")
     public ChatApplication(String userId, InputStream inputStream) {
         this.userId = userId;
         this.inputStream = inputStream;
@@ -135,20 +137,22 @@ public class ChatApplication implements Runnable {
             coherence = Coherence.getInstance();
         }
         Session session = coherence.getSession();
+        NamedTopic<ChatMessage> publicTopic = session.getTopic("public-messages");
+        NamedTopic<ChatMessage> privateTopic = session.getTopic("private-messages");
         // end::sessionCreate[]
 
         // tag::public[]
         // create a publisher to publish public messages
-        publisherPublic = session.createPublisher("public-messages");  // <1>
+        publisherPublic = publicTopic.createPublisher();  // <1>
         // create a subscriber to receive public messages
-        subscriberPublic = session.createSubscriber("public-messages");  // <2>
+        subscriberPublic = publicTopic.createSubscriber();  // <2>
         // end::public[]
 
         // tag::private[]
         // create a publisher to publish private messages
-        publisherPrivate = session.createPublisher("private-messages");  // <1>
+        publisherPrivate = privateTopic.createPublisher();  // <1>
         // create a subscriber to receive private messages
-        subscriberPrivate = session.createSubscriber("private-messages", inGroup(userId));  // <2>
+        subscriberPrivate = privateTopic.createSubscriber(inGroup(userId));  // <2>
         // end::private[]
     }
 

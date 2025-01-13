@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
 
 import com.tangosol.net.CacheService;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Service;
+import com.tangosol.net.TopicService;
 import com.tangosol.net.security.Security;
 
 import com.tangosol.util.ConcurrentMap;
@@ -101,6 +102,10 @@ public class ScopedServiceReferenceStore
      */
     public static boolean isRemoteServiceType(String sType)
         {
-        return sType.equals(CacheService.TYPE_REMOTE) || sType.equals(InvocationService.TYPE_REMOTE);
+        return sType.equals(CacheService.TYPE_REMOTE)
+                || sType.equals(CacheService.TYPE_REMOTE_GRPC)
+                || sType.equals(TopicService.TYPE_REMOTE)
+                || sType.equals(TopicService.TYPE_REMOTE_GRPC)
+                || sType.equals(InvocationService.TYPE_REMOTE);
         }
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.util;
 
@@ -47,7 +47,7 @@ public class Options<T>
      * @param clsType the {@link Class} of the base type of the options
      *                in the collection
      */
-    Options(Class<T> clsType)
+    protected Options(Class<T> clsType)
         {
         m_mapOptions = new LinkedHashMap<>();
         m_clsType    = clsType;
@@ -62,7 +62,7 @@ public class Options<T>
      *                  in the collection
      * @param aOptions  the array of options to add to the collection
      */
-    private Options(Class<T> clsType, T[] aOptions)
+    protected Options(Class<T> clsType, T[] aOptions)
         {
         m_mapOptions = new LinkedHashMap<>();
         m_clsType    = clsType;

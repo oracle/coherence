@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,9 +21,9 @@ import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicPartition;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 import com.tangosol.net.Coherence;
@@ -61,7 +61,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-import static com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber.withIdentifyingName;
+import static com.tangosol.internal.net.topic.NamedTopicSubscriber.withIdentifyingName;
 import static com.tangosol.net.topic.Subscriber.ChannelOwnershipListeners.withListener;
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
@@ -73,7 +73,7 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.fail;
 
-@SuppressWarnings({"unchecked", "resource"})
+@SuppressWarnings({"unchecked"})
 public class TopicSubscriberManagementTests
     {
     @BeforeClass
@@ -134,9 +134,9 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -171,9 +171,9 @@ public class TopicSubscriberManagementTests
 
         System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - creating publisher and subscribers");
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service,false);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             System.err.println(">>>>> In shouldDisconnectSingleSubscriberByKey - awaiting subscriber channel allocation");
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
@@ -272,9 +272,9 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -359,9 +359,9 @@ public class TopicSubscriberManagementTests
         OwnershipListener  listenerThree = new OwnershipListener("three");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -448,9 +448,9 @@ public class TopicSubscriberManagementTests
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne), withIdentifyingName("one"));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo), withIdentifyingName("two"));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree), withIdentifyingName("three")))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne), withIdentifyingName("one"));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo), withIdentifyingName("two"));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree), withIdentifyingName("three")))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -590,9 +590,9 @@ public class TopicSubscriberManagementTests
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -661,9 +661,9 @@ public class TopicSubscriberManagementTests
         Logger.info(">>>> In " + f_testName.getMethodName() + ": creating subscribers");
 
         try (PagedTopicCaches             caches          = new PagedTopicCaches(topic.getName(), service);
-             PagedTopicSubscriber<String> subscriberOne   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-             PagedTopicSubscriber<String> subscriberTwo   = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
-             PagedTopicSubscriber<String> subscriberThree = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
+             NamedTopicSubscriber<String> subscriberOne   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+             NamedTopicSubscriber<String> subscriberTwo   = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerTwo));
+             NamedTopicSubscriber<String> subscriberThree = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerThree)))
             {
             Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
             Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -727,8 +727,8 @@ public class TopicSubscriberManagementTests
             Eventually.assertDeferred(() -> member.invoke(new IsCoherenceRunning()), is(true));
 
             try (PagedTopicCaches             caches        = new PagedTopicCaches(topic.getName(), service);
-                 PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
-                 PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerTwo)))
+                 NamedTopicSubscriber<String> subscriberOne = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupOne), withListener(listenerOne));
+                 NamedTopicSubscriber<String> subscriberTwo = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupTwo), withListener(listenerTwo)))
                 {
                 Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(greaterThan(0)));
                 Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(greaterThan(0)));
@@ -770,7 +770,7 @@ public class TopicSubscriberManagementTests
             {
             Session                 session    = Coherence.getInstance().getSession();
             NamedTopic<?>           topic      = session.getTopic(f_sTopic);
-            PagedTopicSubscriber<?> subscriber = (PagedTopicSubscriber<?>) topic.createSubscriber(inGroup(f_sGroup));
+            NamedTopicSubscriber<?> subscriber = (NamedTopicSubscriber<?>) topic.createSubscriber(inGroup(f_sGroup));
             long                    nId        = subscriber.getId();
             s_mapSubscriber.put(nId, subscriber);
 
@@ -781,7 +781,7 @@ public class TopicSubscriberManagementTests
 
         // ----- constants --------------------------------------------------
 
-        public static final Map<Long, PagedTopicSubscriber<?>> s_mapSubscriber = new HashMap<>();
+        public static final Map<Long, NamedTopicSubscriber<?>> s_mapSubscriber = new HashMap<>();
 
         // ----- data members ---------------------------------------------------
 
@@ -806,7 +806,7 @@ public class TopicSubscriberManagementTests
         @Override
         public Boolean call()
             {
-            PagedTopicSubscriber<?> subscriber = CreateSubscriber.s_mapSubscriber.get(f_nId);
+            NamedTopicSubscriber<?> subscriber = CreateSubscriber.s_mapSubscriber.get(f_nId);
             return subscriber.isDisconnected();
             }
 
@@ -928,22 +928,22 @@ public class TopicSubscriberManagementTests
     // ----- inner class: SubscriberStateListener ---------------------------
 
     public static class SubscriberStateListener
-            implements PagedTopicSubscriber.StateListener
+            implements NamedTopicSubscriber.StateListener
         {
         @Override
-        public void onStateChange(PagedTopicSubscriber<?> subscriber, int nNewState, int nPrevState)
+        public void onStateChange(NamedTopicSubscriber<?> subscriber, int nNewState, int nPrevState)
             {
             f_lock.lock();
             try
                 {
-                Logger.info("Subscriber state changed: from " + PagedTopicSubscriber.getStateName(nPrevState)
-                                    + " to " + PagedTopicSubscriber.getStateName(nNewState) + " " + subscriber);
+                Logger.info("Subscriber state changed: from " + NamedTopicSubscriber.getStateName(nPrevState)
+                                    + " to " + NamedTopicSubscriber.getStateName(nNewState) + " " + subscriber);
                 m_listState.add(nNewState);
-                if (nNewState == PagedTopicSubscriber.STATE_CONNECTED)
+                if (nNewState == NamedTopicSubscriber.STATE_CONNECTED)
                     {
                     m_stateConnectedLatch.countDown();
                     }
-                else if (nNewState == PagedTopicSubscriber.STATE_DISCONNECTED)
+                else if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED)
                     {
                     m_stateDisconnectedLatch.countDown();
                     }

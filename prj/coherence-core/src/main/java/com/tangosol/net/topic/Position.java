@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.topic;
+
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 
 import java.io.Serializable;
 
@@ -28,4 +30,7 @@ import java.io.Serializable;
 public interface Position
         extends Serializable, Comparable<Position>
     {
+    boolean isEmpty();
+
+    Position EMPTY_POSITION = PagedPosition.NULL_POSITION;
     }

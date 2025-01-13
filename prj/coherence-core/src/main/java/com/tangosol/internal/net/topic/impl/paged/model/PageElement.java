@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -302,6 +302,22 @@ public class PageElement<V>
             return ExternalizableHelper.decorate(binValue, ExternalizableHelper.DECO_RSVD_1, m_binMetadata).toBinary();
             }
         return null;
+        }
+
+    /**
+     * Convert a binary element to a new binary element using
+     * a converter and maintaining the metadata.
+     *
+     * @param converter the converter to use
+     *
+     * @return a new binary element
+     */
+    public Binary convert(Converter<Binary, Binary> converter)
+        {
+        ensureMetadata();
+        Binary binaryValue = getBinaryValue();
+        Binary binary      = converter.convert(binaryValue);
+        return ExternalizableHelper.decorate(binary, ExternalizableHelper.DECO_RSVD_1, m_binMetadata).toBinary();
         }
 
     private void ensureMetadata()

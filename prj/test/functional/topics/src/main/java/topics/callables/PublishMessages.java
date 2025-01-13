@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,21 +9,14 @@ package topics.callables;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisher;
-import com.tangosol.internal.net.topic.impl.paged.model.Page;
-import com.tangosol.net.CacheService;
+import com.tangosol.internal.net.topic.NamedTopicPublisher;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * Publishes messages to a topic.
@@ -91,7 +84,7 @@ public class PublishMessages
         if (m_nChannelCount > 0)
             {
             Logger.info("Creating publisher for topic " + topic.getName() + " with channel count " + m_nChannelCount);
-            return topic.createPublisher(orderBy, PagedTopicPublisher.ChannelCount.of(m_nChannelCount));
+            return topic.createPublisher(orderBy, NamedTopicPublisher.ChannelCount.of(m_nChannelCount));
             }
         return topic.createPublisher(orderBy);
         }
