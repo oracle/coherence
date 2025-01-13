@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -103,7 +103,7 @@ import java.util.stream.Collectors;
  *
  * @author Jonathan Knight  2024.11.26
  */
-@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed", "SameParameterValue"})
+@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed", "SameParameterValue", "SimplifyStreamApiCallChains"})
 public class NamedTopicSubscriber<V>
     implements Subscriber<V>, SubscriberConnector.ConnectedSubscriber<V>, SubscriberStatistics, AutoCloseable
     {
@@ -414,7 +414,7 @@ public class NamedTopicSubscriber<V>
                 .map(e -> commitInternal(e.getKey(), e.getValue(), mapResult))
                 .toArray(CompletableFuture[]::new);
 
-        return CompletableFuture.allOf(aFuture).handle((_void, err) -> mapResult);
+        return CompletableFuture.allOf(aFuture).thenApply(_void -> mapResult);
         }
 
     /**
@@ -1379,16 +1379,13 @@ public class NamedTopicSubscriber<V>
             {
             TopicChannel channel = m_aChannel[nChannel];
             return f_connector.commit(this, nChannel, position)
-                    .handle((result, err) ->
+                    .thenApply(result ->
                         {
-                        if (err == null)
+                        if (mapResult != null)
                             {
-                            if (mapResult != null)
-                                {
-                                mapResult.put(nChannel, result);
-                                }
-                            channel.committed(position);
+                            mapResult.put(nChannel, result);
                             }
+                        channel.committed(position);
                         return result;
                         });
             }
@@ -1458,7 +1455,7 @@ public class NamedTopicSubscriber<V>
 
         List<Integer> listUnallocated = mapPosition.keySet().stream()
                 .filter(c -> !isOwner(c))
-                .toList();
+                .collect(Collectors.toList());
 
         if (!listUnallocated.isEmpty())
             {
@@ -1501,7 +1498,7 @@ public class NamedTopicSubscriber<V>
 
         List<Integer> listUnallocated = mapInstant.keySet().stream()
                 .filter(c -> !isOwner(c))
-                .toList();
+                .collect(Collectors.toList());
 
         if (!listUnallocated.isEmpty())
             {
@@ -1538,7 +1535,7 @@ public class NamedTopicSubscriber<V>
             List<Integer> listUnallocated = Arrays.stream(anChannel)
                     .filter(c -> !isOwner(c))
                     .boxed()
-                    .toList();
+                    .collect(Collectors.toList());
 
             if (!listUnallocated.isEmpty())
                 {
