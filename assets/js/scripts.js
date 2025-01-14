@@ -1049,22 +1049,6 @@ function _toggle() {
 	}
 
 	
-	function showMap(initWhat) {
-		var script 		= document.createElement('script');
-		script.type 	= 'text/javascript';
-		script.src 		= '//maps.google.com/maps/api/js?key=AIzaSyCqCn84CgZN6o1Xc3P4dM657HIxkX3jzPY&callback='+initWhat;
-		document.body.appendChild(script);
-	}
-
-	
-	// INIT CONTACT, ONLY IF #gmap EXISRS
-	if(jQuery("#gmap").length > 0) {
-		showMap('contactMap');
-	}
-
-
-
-
 /**	18. Newsletter Subscribe
 *************************************************** **/
 	function _newsletterSubscribe() {
