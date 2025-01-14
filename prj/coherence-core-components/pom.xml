@@ -23,6 +23,10 @@
 
   <packaging>jar</packaging>
 
+  <properties>
+    <skip.sources>false</skip.sources>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
