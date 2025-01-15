@@ -40,6 +40,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.TopicService;
 import com.tangosol.net.topic.NamedTopic;
@@ -183,17 +184,15 @@ public abstract class AbstractTopicsStorageRecoveryTests
     @SuppressWarnings("unchecked")
     public void shouldRecoverAfterCleanStorageRestart() throws Exception
         {
-        NamedTopic<Message> topic   = ensureTopic("test");
-        String              sGroup  = "group-one";
-        TopicService        service = topic.getTopicService();
-//        Cluster             cluster = service.getCluster();
+        NamedTopic<Message> topic  = ensureTopic("test");
+        String              sGroup = "group-one";
 
         // create a subscriber group so that published messages are not lost before the subscriber subscribes
         topic.ensureSubscriberGroup(sGroup);
 
         String sServiceName = s_storageCluster.getAny().invoke(new GetTopicServiceName(topic.getName()));
 
-        try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(), NamedTopicPublisher.ChannelCount.of(10)))
+        try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(), Publisher.OnFailure.Continue, NamedTopicPublisher.ChannelCount.of(10)))
             {
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
@@ -211,7 +210,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 {
                 try
                     {
-                    for (int i = 0; i < 100 && fPublish.get(); i++)
+                    for (int i = 0; i < 101 && fPublish.get(); i++)
                         {
                         Message message = new Message(i, "Message-" + i);
                         publisher.publish(message)
@@ -237,7 +236,8 @@ public abstract class AbstractTopicsStorageRecoveryTests
                     }
                 catch (Throwable t)
                     {
-                    Logger.err("Error in publish loop", t);
+                    Logger.err("Error in publish loop");
+                    Logger.err(t);
                     }
                 fPublished.set(true);
                 };
@@ -252,60 +252,89 @@ public abstract class AbstractTopicsStorageRecoveryTests
             // start the subscriber runnable
             Runnable runSubscriber = () ->
                 {
-                int cSubscriber = 20;
-                for (int i = 0; i <= cSubscriber && fSubscribe.get(); i++)
+                try
                     {
-                    String sName = "sub-" + i;
-
-                    if (i == cSubscriber)
+                    int cSubscriber = 20;
+                    for (int i = 0; i <= cSubscriber && fSubscribe.get(); i++)
                         {
-                        System.err.println("Waiting to for publisher to complete before creating subscriber " + sName);
-                        Eventually.assertDeferred(fPublished::get, is(true));
-                        }
+                        String sName = "sub-" + i;
 
-                    boolean fPublisherFinished = fPublished.get();
-                    Subscriber.Option<Message, Message> optComplete = fPublisherFinished
-                            ? completeOnEmpty() : Subscriber.Option.nullOption();
-
-                    System.err.println("Creating subscriber " + sName + " fPublisherFinished=" + fPublisherFinished + " published=" + cPublished.get() + " received=" + cReceived.get());
-                    try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup),
-                            optComplete, withIdentifyingName(sName)))
-                        {
-                        System.err.println("Created subscriber " + sName + " " + subscriber);
-                        for (int j = 0; j < 5; j++)
+                        if (i == cSubscriber)
                             {
-                            CompletableFuture<Subscriber.Element<Message>> future = null;
-                            try
+                            Logger.info("Waiting to for publisher to complete before creating subscriber " + sName);
+                            Eventually.assertDeferred(fPublished::get, is(true));
+                            }
+
+                        boolean fPublisherFinished = fPublished.get();
+                        Subscriber.Option<Message, Message> optComplete = fPublisherFinished
+                                ? completeOnEmpty() : Subscriber.Option.nullOption();
+
+                        Logger.info("Creating subscriber " + sName + " fPublisherFinished=" + fPublisherFinished + " published=" + cPublished.get() + " received=" + cReceived.get());
+                        try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup),
+                                optComplete, withIdentifyingName(sName)))
+                            {
+                            Logger.info("Created subscriber " + sName + " " + subscriber);
+                            for (int j = 0; j < 5; j++)
                                 {
-                                future = subscriber.receive();
-                                Subscriber.Element<Message> element = future.get(1, TimeUnit.MINUTES);
-                                if (element != null)
+                                CompletableFuture<Subscriber.Element<Message>> future = null;
+                                try
                                     {
-                                    mapReceived.put(element.getValue(), element);
-                                    element.commit();
-                                    cReceived.incrementAndGet();
-                                    if (i >= 5)
+                                    future = subscriber.receive();
+                                    Subscriber.Element<Message> element = future.get(10, TimeUnit.SECONDS);
+                                    if (element != null)
                                         {
-                                        fSubscribed.set(true);
+                                        mapReceived.put(element.getValue(), element);
+                                        element.commit();
+                                        cReceived.incrementAndGet();
+                                        if (i >= 5)
+                                            {
+                                            fSubscribed.set(true);
+                                            }
+                                        }
+                                    }
+                                catch (Throwable t)
+                                    {
+                                    if (future != null && !future.isDone())
+                                        {
+                                        if (!future.cancel(true))
+                                            {
+                                            // the future has actually completed
+                                            if (future.isDone() && !future.isCompletedExceptionally())
+                                                {
+                                                Subscriber.Element<Message> element = future.get();
+                                                if (element != null)
+                                                    {
+                                                    mapReceived.put(element.getValue(), element);
+                                                    element.commit();
+                                                    cReceived.incrementAndGet();
+                                                    if (i >= 5)
+                                                        {
+                                                        fSubscribed.set(true);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    if (!(t instanceof TimeoutException))
+                                        {
+                                        t.printStackTrace();
                                         }
                                     }
                                 }
-                            catch (Throwable t)
-                                {
-                                if (future != null && !future.isDone())
-                                    {
-                                    future.cancel(true);
-                                    }
-                                if (!(t instanceof TimeoutException))
-                                    {
-                                    t.printStackTrace();
-                                    }
-                                }
+                            Logger.info("Closing subscriber " + sName + " " + subscriber);
                             }
-                        System.err.println("Closing subscriber " + sName + " " + subscriber);
+                        catch (Throwable t)
+                            {
+                            Logger.info("Exiting subscriber " + sName + " " + t);
+                            }
+                        Logger.info("Closed subscriber " + sName);
                         }
-                    System.err.println("Closed subscriber " + sName);
                     }
+                catch (Throwable t)
+                    {
+                    Logger.info("Exiting subscriber thread with error " + t);
+                    }
+                Logger.info("Exiting subscriber thread.");
                 };
 
             // start the subscriber thread
@@ -320,42 +349,29 @@ public abstract class AbstractTopicsStorageRecoveryTests
             assertThat(member, is(notNullValue()));
 
             // Suspend the services - we do this via the storage member like the Operator would
-            Logger.info(" Suspending service " + sServiceName + " published=" + cPublished.get());
+            Logger.info(">>>>  Suspending service " + sServiceName + " published=" + cPublished.get());
             Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
             assertThat(fSuspended, is(true));
-            Logger.info("Suspended service " + sServiceName + " published=" + cPublished.get());
+            Logger.info(">>>> Suspended service " + sServiceName + " published=" + cPublished.get());
 
             // shutdown the storage members
-            Logger.info("Stopping storage. published=" + cPublished.get());
-            s_storageCluster.close();
-
-//            // we should eventually have a single cluster member (which is this test JVM)
-//            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
-//            Logger.info("Stopped storage. published=" + cPublished.get());
-
-            // restart the storage cluster
-            Logger.info("Restarting storage. published=" + cPublished.get());
-            s_storageCluster = startCluster("restarted");
-
-//            // we should eventually have three cluster members
-//            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
-//            Logger.info("Restarted storage. published=" + cPublished.get());
+            restartCluster();
 
             IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
             for (CoherenceClusterMember m : s_storageCluster)
                 {
                 Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
                 }
-            Logger.info("Restarted service " + sServiceName + " on all members");
+            Logger.info(">>>> Restarted service " + sServiceName + " on all members");
 
             // The cache service should still be suspended so resume it via a storage member like the operator would
-            Logger.info("Resuming service " + sServiceName + " published=" + cPublished.get());
+            Logger.info(">>>> Resuming service " + sServiceName + " published=" + cPublished.get());
             member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
             Boolean fResumed = member.invoke(new ResumeService(sServiceName));
             assertThat(fResumed, is(true));
-            Logger.info("Resumed service " + sServiceName + " published=" + cPublished.get());
-            Logger.info("Awake. published=" + cPublished.get());
+            Logger.info(">>>> Resumed service " + sServiceName + " published=" + cPublished.get());
+            Logger.info(">>>> Awake. published=" + cPublished.get());
 
             // wait for the publisher and subscriber to finish
             threadPublish.join(600000);
@@ -363,7 +379,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
             // we should have received at least as many as published (could be more if a commit did not succeed
             // during fail-over and the messages was re-received, but that is ok)
             int count = mapReceived.size();
-            Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get() + " map=" + count);
+            Logger.info(">>>> Test complete: published=" + cPublished.get() + " received=" + cReceived.get() + " map=" + count);
             if (count != cPublished.get())
                 {
                 TreeSet<Message> setKey = new TreeSet<>(mapPublished.keySet());
@@ -373,157 +389,6 @@ public abstract class AbstractTopicsStorageRecoveryTests
                     }
                 }
             assertThat(count, is(cPublished.get()));
-            }
-        }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    @Ignore("skipped until a solution to non-clean shutdown with active persistence is discovered")
-    public void shouldRecoverAfterStorageRestart() throws Exception
-        {
-        NamedTopic<Message> topic   = ensureTopic("test-two");
-        String              sGroup  = "group-one";
-        TopicService        service = topic.getTopicService();
-        Cluster             cluster = service.getCluster();
-
-        // create a subscriber group so that published messages are not lost before the subscriber subscribes
-        topic.ensureSubscriberGroup(sGroup);
-
-        String sServiceName = s_storageCluster.getAny().invoke(new GetTopicServiceName(topic.getName()));
-
-        try (Publisher<Message> publisher = topic.createPublisher())
-            {
-            AtomicBoolean fPublish    = new AtomicBoolean(true);
-            AtomicBoolean fSubscribe  = new AtomicBoolean(true);
-            AtomicBoolean fPublishing = new AtomicBoolean(false);
-            AtomicBoolean fSubscribed = new AtomicBoolean(false);
-            AtomicInteger cPublished  = new AtomicInteger(0);
-            AtomicInteger cReceived   = new AtomicInteger(0);
-            AtomicBoolean fSawStop    = new AtomicBoolean(false);
-
-            // A runnable to do the publishing
-            Runnable runPublisher = () ->
-                {
-                try
-                    {
-                    for (int i = 0; i < 50 && fPublish.get(); i++)
-                        {
-                        publisher.publish(new Message(i, "Message-" + i))
-                                .handle((v, err) ->
-                                        {
-                                        if (err != null)
-                                            {
-                                            err.printStackTrace();
-                                            }
-                                        cPublished.incrementAndGet();
-                                        return null;
-                                        });
-                        if (i > 5)
-                            {
-                            fPublishing.set(true);
-                            }
-                        pause();
-                        }
-                    }
-                catch (Throwable t)
-                    {
-                    Logger.err("Error in publish loop", t);
-                    }
-                };
-
-            // start the publisher thread
-            Thread threadPublish = new Thread(runPublisher, "Test-Publisher");
-            threadPublish.start();
-
-            // wait until a few messages have been published
-            Eventually.assertDeferred(fPublishing::get, is(true));
-
-            // start the subscriber runnable
-            Runnable runSubscriber = () ->
-                {
-                try (Subscriber<Message> subscriber = topic.createSubscriber(inGroup(sGroup)))
-                    {
-                    while (fSubscribe.get())
-                        {
-                        try
-                            {
-                            Subscriber.Element<Message> element = subscriber.receive().get(30, TimeUnit.SECONDS);
-                            Message                     message = element.getValue();
-                            if (message.m_id < 0)
-                                {
-                                fSubscribe.set(false);
-                                fSawStop.set(true);
-                                break;
-                                }
-                            element.commit();
-                            int c = cReceived.incrementAndGet();
-                            if (c >= 5)
-                                {
-                                fSubscribed.set(true);
-                                }
-                            }
-                        catch (Throwable t)
-                            {
-                            t.printStackTrace();
-                            if (!subscriber.isActive())
-                                {
-                                break;
-                                }
-                            }
-                        }
-                    }
-                };
-
-            // start the subscriber thread
-            Thread threadSubscribe = new Thread(runSubscriber, "Test-Subscriber");
-            threadSubscribe.start();
-
-            // wait until we have received some messages
-            Eventually.assertDeferred(fSubscribed::get, is(true));
-
-            // Get one of the storage members
-            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-
-            // shutdown the storage members
-            Logger.info("Stopping storage. published=" + cPublished.get());
-            s_storageCluster.close();
-
-            // we should eventually have a single cluster member (which is this test JVM)
-            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
-            Logger.info("Stopped storage. published=" + cPublished.get());
-
-            // restart the storage cluster
-            Logger.info("Restarting storage. published=" + cPublished.get());
-            s_storageCluster = startCluster("restarted");
-
-            // we should eventually have three cluster members
-            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
-            Logger.info("Restarted storage. published=" + cPublished.get());
-
-            IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
-            for (CoherenceClusterMember m : s_storageCluster)
-                {
-                Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
-                }
-            Logger.info("Restarted service " + sServiceName + " on all members");
-
-            // wait for the publisher and subscriber to finish
-            threadPublish.join(600000);
-
-            // should eventually have received all the messages
-            Eventually.assertDeferred(cReceived::get, is(greaterThanOrEqualTo(cPublished.get())));
-
-            publisher.publish(new Message(-1, "stop")).get();
-
-            // stop the subscriber
-            fSubscribe.set(false);
-            threadSubscribe.join(120000);
-
-            // we should have received at least as many as published (could be more if a commit did not succeed
-            // during fail-over and the messages was re-received, but that is ok)
-            Logger.info("Test complete: published=" + cPublished.get() + " received=" + cReceived.get());
-            assertThat(fSawStop.get(), is(true));
             }
         }
 
@@ -552,54 +417,44 @@ public abstract class AbstractTopicsStorageRecoveryTests
             CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
 
+            // wait some time to ensure the subscribers are waiting on empty topics
+            Thread.sleep(10000);
+            
             // Suspend the services - we do this via the storage member like the Operator would
-            Logger.info(" Suspending service " + sServiceName);
+            Logger.info(">>>>  Suspending service " + sServiceName);
             Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
             assertThat(fSuspended, is(true));
-            Logger.info("Suspended service " + sServiceName);
+            Logger.info(">>>> Suspended service " + sServiceName);
 
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
             assertThat(futureTwo.isDone(), is(false));
 
             // shutdown the storage members
-            Logger.info("Stopping storage.");
-            s_storageCluster.close();
-
-            // we should eventually have a single cluster member (which is this test JVM)
-            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
-            Logger.info("Stopped storage.");
-
-            // futures should not be completed
-            assertThat(futureOne.isDone(), is(false));
-            assertThat(futureTwo.isDone(), is(false));
-
-            // restart the storage cluster
-            Logger.info("Restarting storage.");
-            s_storageCluster = startCluster("restarted");
+            restartCluster();
 
             // we should eventually have three cluster members
             Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
-            Logger.info("Restarted storage.");
+            Logger.info(">>>> Restarted storage.");
 
             IsServiceRunning isRunning = new IsServiceRunning(sServiceName);
             for (CoherenceClusterMember m : s_storageCluster)
                 {
                 Eventually.assertDeferred(() -> m.invoke(isRunning), is(true));
                 }
-            Logger.info("Restarted service " + sServiceName + " on all members");
+            Logger.info(">>>> Restarted service " + sServiceName + " on all members");
 
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
             assertThat(futureTwo.isDone(), is(false));
 
             // The topics cache service should still be suspended so resume it via a storage member like the operator would
-            Logger.info("Resuming service " + sServiceName);
+            Logger.info(">>>> Resuming service " + sServiceName);
             member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
             Boolean fResumed = member.invoke(new ResumeService(sServiceName));
             assertThat(fResumed, is(true));
-            Logger.info("Resumed service " + sServiceName);
+            Logger.info(">>>> Resumed service " + sServiceName);
 
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
@@ -613,102 +468,12 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 {
                 // publish to every channel to ensure the subscriber receive a message
                 cChannel = publisher.getChannelCount();
-                Logger.info("Publishing " + cChannel + " messages");
+                Logger.info(">>>> Publishing " + cChannel + " messages");
                 for (int i = 0; i < cChannel; i++)
                     {
                     Message message = new Message(i, "Message-" + i);
                     publisher.publish(message).get(1, TimeUnit.MINUTES);
-                    Logger.info("Published " + message);
-                    }
-                }
-
-            Eventually.assertDeferred(futureOne::isDone, is(true));
-            Eventually.assertDeferred(futureTwo::isDone, is(true));
-            Eventually.assertDeferred(futureThree::isDone, is(true));
-
-            assertThat(futureOne.isCompletedExceptionally(), is(false));
-            assertThat(futureTwo.isCompletedExceptionally(), is(false));
-            assertThat(futureThree.isCompletedExceptionally(), is(false));
-
-            List<Integer> listChannel = new ArrayList<>();
-            Arrays.stream(subscriberOne.getChannels()).forEach(listChannel::add);
-            Arrays.stream(subscriberTwo.getChannels()).forEach(listChannel::add);
-            Arrays.stream(subscriberThree.getChannels()).forEach(listChannel::add);
-            assertThat(listChannel.size(), is(cChannel));
-            assertThat(listChannel.stream().distinct().count(), is((long) cChannel));
-            }
-        }
-
-    @Test
-    @Ignore("skipped until a solution to non-clean shutdown with active persistence is discovered")
-    @SuppressWarnings("unchecked")
-    public void shouldRecoverWaitingSubscriberAfterStorageRestart() throws Exception
-        {
-        NamedTopic<Message> topic   = ensureTopic("test-four");
-        String              sGroup  = "group-one";
-        TopicService        service = topic.getTopicService();
-        Cluster             cluster = service.getCluster();
-
-        // create a subscriber group so that published messages are not lost before the subscriber subscribes
-        topic.ensureSubscriberGroup(sGroup);
-
-        try (Subscriber<Message> subscriberOne   = topic.createSubscriber(inGroup(sGroup));
-             Subscriber<Message> subscriberTwo   = topic.createSubscriber(inGroup(sGroup));
-             Subscriber<Message> subscriberThree = topic.createSubscriber(inGroup(sGroup)))
-            {
-            // topic is empty, futures will not complete yet...
-            CompletableFuture<Subscriber.Element<Message>> futureOne = subscriberOne.receive();
-            CompletableFuture<Subscriber.Element<Message>> futureTwo = subscriberTwo.receive();
-
-            // Get one of the storage members
-            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-
-            // shutdown the storage members
-            Logger.info("Stopping storage.");
-            s_storageCluster.close();
-
-            // we should eventually have a single cluster member (which is this test JVM)
-            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(1));
-            Logger.info("Stopped storage.");
-
-            // futures should not be completed
-            assertThat(futureOne.isDone(), is(false));
-            assertThat(futureTwo.isDone(), is(false));
-
-            // restart the storage cluster
-            Logger.info("Restarting storage.");
-            s_storageCluster = startCluster("restarted");
-
-            // we should eventually have three cluster members
-            Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(3));
-            Logger.info("Restarted storage.");
-
-            IsCoherenceRunning isRunning = new IsCoherenceRunning();
-            for (CoherenceClusterMember m : s_storageCluster)
-                {
-                Eventually.assertDeferred("Failed restarting member " + m.getId(), () -> m.invoke(isRunning), is(true));
-                }
-            Logger.info("Restarted Coherence on all members");
-
-            // futures should not be completed
-            assertThat(futureOne.isDone(), is(false));
-            assertThat(futureTwo.isDone(), is(false));
-
-            // subscriber from third subscriber
-            CompletableFuture<Subscriber.Element<Message>> futureThree = subscriberThree.receive();
-
-            int cChannel;
-            try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin()))
-                {
-                // publish to every channel to ensure the subscriber receive a message
-                cChannel = publisher.getChannelCount();
-                Logger.info("Publishing " + cChannel + " messages");
-                for (int i = 0; i < cChannel; i++)
-                    {
-                    Message message = new Message(i, "Message-" + i);
-                    publisher.publish(message).get(1, TimeUnit.MINUTES);
-                    Logger.info("Published " + message);
+                    Logger.info(">>>> Published " + message);
                     }
                 }
 
@@ -730,6 +495,15 @@ public abstract class AbstractTopicsStorageRecoveryTests
         }
 
     // ----- helper methods -------------------------------------------------
+
+    protected void restartCluster()
+        {
+        Logger.info(">>>> Stopping storage.");
+        s_storageCluster.close();
+        Logger.info(">>>> Restarting storage.");
+        s_storageCluster = startCluster("restarted");
+        Logger.info(">>>> Restarted storage.");
+        }
 
     private void pause()
         {
@@ -766,7 +540,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
         OptionsByType           options     = OptionsByType.of()
                                                 .addAll(CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
                                                         LocalStorage.enabled(),
-                                                        StabilityPredicate.none(),
+                                                        StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()),
                                                         Logging.atMax(),
                                                         JMXManagementMode.ALL,
                                                         DisplayName.of(sMethodName + '-' + suffix),
@@ -882,7 +656,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
 
-    private static CoherenceCluster s_storageCluster;
+    protected static CoherenceCluster s_storageCluster;
 
     /**
      * A JUnit rule that will cause the test to fail if it runs too long.
