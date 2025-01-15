@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.tangosol.net.topic;
 import com.oracle.coherence.common.base.Exceptions;
 
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
@@ -849,6 +851,13 @@ public interface Subscriber<V>
      * @return  the number of remaining messages, or zero if this subscriber does not own the channel
      */
     int getRemainingMessages(int nChannel);
+
+    /**
+     * Return the identifier for this subscriber.
+     *
+     * @return the identifier for this subscriber
+     */
+    SubscriberId getSubscriberId();
 
     // ----- option methods -------------------------------------------------
 

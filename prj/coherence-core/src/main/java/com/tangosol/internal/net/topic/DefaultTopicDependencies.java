@@ -1,0 +1,446 @@
+/*
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+package com.tangosol.internal.net.topic;
+
+import com.oracle.coherence.common.util.Duration;
+
+import com.tangosol.internal.util.Primes;
+
+import com.tangosol.net.cache.LocalCache;
+
+import com.tangosol.net.topic.BinaryElementCalculator;
+import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.TopicDependencies;
+
+/**
+ * A default implementation of {@link TopicDependencies}.
+ *
+ * @author Jonathan Knight  2024.11.26
+ */
+public class DefaultTopicDependencies
+        implements TopicDependencies
+    {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Create a {@link DefaultTopicDependencies}.
+     */
+    public DefaultTopicDependencies()
+        {
+        this(0);
+        }
+
+    /**
+     * Create a {@link DefaultTopicDependencies}.
+     *
+     * @param cPartition  the partition count of the underlying service
+     */
+    public DefaultTopicDependencies(int cPartition)
+        {
+        this(cPartition, null);
+        }
+
+    /**
+     * A copy constructor to create a {@link DefaultTopicDependencies}
+     * from another {@link TopicDependencies} instance.
+     *
+     * @param deps  the {@link TopicDependencies} to copy
+     */
+    public DefaultTopicDependencies(TopicDependencies deps)
+        {
+        this(0, deps);
+        }
+
+    /**
+     * A copy constructor to create a {@link DefaultTopicDependencies}
+     * from another {@link TopicDependencies} instance.
+     *
+     * @param cPartition  the partition count of the underlying service
+     * @param deps  the {@link TopicDependencies} to copy
+     */
+    protected DefaultTopicDependencies(int cPartition, TopicDependencies deps)
+        {
+        m_cPartition = cPartition;
+        if (deps != null)
+            {
+            setAllowUnownedCommits(deps.isAllowUnownedCommits());
+            setChannelCount(deps.getConfiguredChannelCount());
+            setElementCalculator(deps.getElementCalculator());
+            setElementExpiryMillis(deps.getElementExpiryMillis());
+            setMaxBatchSizeBytes(deps.getMaxBatchSizeBytes());
+            setReconnectRetryMillis(deps.getReconnectRetryMillis());
+            setReconnectTimeoutMillis(deps.getReconnectTimeoutMillis());
+            setReconnectWaitMillis(deps.getReconnectWaitMillis());
+            setRetainConsumed(deps.isRetainConsumed());
+            setSubscriberTimeoutMillis(deps.getSubscriberTimeoutMillis());
+            }
+        }
+
+    /**
+     * Returns the number of channels in the topic, or {@link NamedTopic#DEFAULT_CHANNEL_COUNT}
+     * to indicate that the topic uses the default number of channels.
+     *
+     * @return the number of channels in the topic
+     */
+    @Override
+    public int getConfiguredChannelCount()
+        {
+        int cChannel = m_cChannel;
+        if (cChannel == NamedTopic.DEFAULT_CHANNEL_COUNT)
+            {
+            cChannel = m_cChannel = computeChannelCount(m_cPartition);
+            }
+        return cChannel;
+        }
+
+    /**
+     * Compute the channel count based on the supplied partition count.
+     *
+     * @param cPartitions the partition count
+     *
+     * @return the channel count based on the supplied partition count
+     */
+    public static int computeChannelCount(int cPartitions)
+        {
+        return Math.min(cPartitions, Primes.next((int) Math.sqrt(cPartitions)));
+        }
+
+    /**
+     * Set the number of channels in the topic.
+     * <p>
+     * Valid channel counts are positive integers where zero represents the default channel count.
+     * Setting the channel count small reduces the capacity for concurrency, for example, publishers
+     * would have more contention as they would all publish to a much smaller number of channels; and
+     * subscribers in a group read from a channel, so only having one channel means a group could have
+     * no more than one subscriber (although there could be any number of groups).
+     * Setting the value too large would have an impact on memory and storage use due to the number of
+     * data structures that are duplicated on a per-channel basis. This is similar to the pros and cons
+     * of different partition counts in Coherence itself.
+     * <p>
+     * Ideally, for better distribution, the channel count should be a prime. The default channel count
+     * is based on the partition count configured for the underlying cache service and will be the next
+     * largest prime above the square root of the partition count. For the Coherence default partition
+     * count of 257, this gives a default channel count of 17.
+     *
+     * @param nChannel  the number of channels in the topic
+     *
+     * @throws IllegalArgumentException if the channel count parameter is not a positive integer
+     *                                  or zero (the {@link NamedTopic#DEFAULT_CHANNEL_COUNT} value).
+     */
+    public void setChannelCount(int nChannel)
+        {
+        if (nChannel >= 0)
+            {
+            m_cChannel = nChannel;
+            }
+        else
+            {
+            throw new IllegalArgumentException("Invalid channel count, valid values are positive non-zero integers");
+            }
+        }
+
+    /**
+     * Obtain the expiry delay to apply to elements in ths topic.
+     *
+     * @return  the expiry delay to apply to elements in ths topic
+     */
+    @Override
+    public long getElementExpiryMillis()
+        {
+        return m_cMillisExpiry;
+        }
+
+    /**
+     * Set the expiry delay to apply to elements in ths topic.
+     *
+     * @param cMillisExpiry  the expiry delay to apply to elements in ths topic
+     */
+    public void setElementExpiryMillis(long cMillisExpiry)
+        {
+        m_cMillisExpiry = cMillisExpiry;
+        }
+
+    /**
+     * Return the maximum size of a batch.
+     *
+     * @return the max batch size
+     */
+    @Override
+    public long getMaxBatchSizeBytes()
+        {
+        return m_cbMaxBatch;
+        }
+
+    /**
+     * Specify the maximum size of a batch.
+     *
+     * @param cb  the max batch size
+     */
+    public void setMaxBatchSizeBytes(long cb)
+        {
+        m_cbMaxBatch = cb;
+        }
+
+    @Override
+    public boolean isRetainConsumed()
+        {
+        return m_fRetainConsumed;
+        }
+
+    /**
+     * Set the flag indicating whether the topic retains consumed messages.
+     *
+     * @param fRetainElements  {@code true} to retain consumed messages
+     */
+    public void setRetainConsumed(boolean fRetainElements)
+        {
+        m_fRetainConsumed = fRetainElements;
+        }
+
+    /**
+     * Returns number of milliseconds within which a subscriber must issue a heartbeat or
+     * be forcefully considered closed.
+     *
+     * @return number of milliseconds within which a subscriber must issue a heartbeat
+     */
+    @Override
+    public long getSubscriberTimeoutMillis()
+        {
+        return m_cSubscriberTimeoutMillis;
+        }
+
+    /**
+     * Set the number of milliseconds within which a subscriber must issue a heartbeat or
+     * be forcefully considered closed.
+     * <p>
+     * An timeout time of less than zero will never time out.
+     * <p>
+     * The minimum allowed timeout time is one second.
+     *
+     * @param cMillis  the number of milliseconds within which a subscriber must issue a heartbeat
+     */
+    public void setSubscriberTimeoutMillis(long cMillis)
+        {
+        m_cSubscriberTimeoutMillis = cMillis <= 0 ? LocalCache.EXPIRY_NEVER : Math.max(1000L, cMillis);
+        }
+
+    /**
+     * Returns the timeout that a subscriber will use when waiting for its first allocation of channels.
+     *
+     * @return the timeout that a subscriber will use when waiting for its first allocation of channels
+     */
+    @Override
+    public long getNotificationTimeout()
+        {
+        if (m_cSubscriberTimeoutMillis == LocalCache.EXPIRY_NEVER)
+            {
+            return LocalCache.EXPIRY_NEVER;
+            }
+        else
+            {
+            return m_cSubscriberTimeoutMillis / 2;
+            }
+        }
+
+    /**
+     * Returns {@code true} if the topic allows commits of a position in a channel to be
+     * made by subscribers that do not own the channel.
+     *
+     * @return {@code true} if the topic allows commits of a position in a channel to be
+     *         made by subscribers that do not own the channel
+     */
+    @Override
+    public boolean isAllowUnownedCommits()
+        {
+        return m_fAllowUnownedCommits;
+        }
+
+    /**
+     * Returns {@code true} if the topic only allows commits of a position in a channel to be
+     * made by subscribers that own the channel.
+     *
+     * @return {@code true} if the topic only allows commits of a position in a channel to be
+     *         made by subscribers that own the channel
+     */
+    @Override
+    public boolean isOnlyOwnedCommits()
+        {
+        return !m_fAllowUnownedCommits;
+        }
+
+    /**
+     * Set the flag indicating whether the topic allows commits of a position in a channel to be
+     * made by subscribers that do not own the channel.
+     * <p>
+     * Setting this flag to {@code true} would typically be to allow for subscribers that have just
+     * had a channel allocation revoked due to subscriber redistribution to still commit the
+     * positions of elements they have just processed. This is on the understanding that the
+     * subscriber that the channels have been reallocated to could have also processed the message
+     * and be about to (or already have) committed.
+     * <p>
+     * The default value is {@code false} to disallow commits of unowned channels as this assumes
+     * that a revoked channel has been reallocated to a different subscriber and that subscriber
+     * will then read from the last commit and reprocess and commit any uncommitted messages.
+     *
+     * @param f  {@code true} if the topic should allow commits of a position in a channel to be
+     *           made by subscribers that do not own the channel, or {@code false} to disallow
+     *           commits to be made by subscribes that do now own the channel
+     */
+    public void setAllowUnownedCommits(boolean f)
+        {
+        m_fAllowUnownedCommits = f;
+        }
+
+    @Override
+    public NamedTopic.ElementCalculator getElementCalculator()
+        {
+        return m_calculator;
+        }
+
+    /**
+     * Set the calculator used to calculate element sizes.
+     *
+     * @param calculator  the calculator used to calculate element sizes
+     */
+    public void setElementCalculator(NamedTopic.ElementCalculator calculator)
+        {
+        m_calculator = calculator == null ? BinaryElementCalculator.INSTANCE : calculator;
+        }
+
+    @Override
+    public long getReconnectTimeoutMillis()
+        {
+        return m_cReconnectTimeoutMillis;
+        }
+
+    /**
+     * Set the maximum amount of time publishers and subscribers will
+     * attempt to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 attempt to reconnect after being disconnected
+     */
+    public void setReconnectTimeoutMillis(long cMillis)
+        {
+        m_cReconnectTimeoutMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
+        }
+
+    @Override
+    public long getReconnectRetryMillis()
+        {
+        return m_cReconnectRetryMillis;
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait between
+     * attempts to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 wait between attempts to reconnect after being disconnected
+     */
+    public void setReconnectRetryMillis(long cMillis)
+        {
+        m_cReconnectRetryMillis = cMillis <= 0 ? 0 : Math.max(1000L, cMillis);
+        }
+
+    @Override
+    public long getReconnectWaitMillis()
+        {
+        return m_cReconnectWaitMillis;
+        }
+
+    /**
+     * Set the amount of time publishers and subscribers will wait before
+     * attempting to reconnect after being disconnected.
+     *
+     * @param cMillis  the maximum amount of time publishers and subscribers will
+     *                 wait before attempting to reconnect after being disconnected
+     */
+    public void setReconnectWaitMillis(long cMillis)
+        {
+        m_cReconnectWaitMillis = cMillis <= 0 ? 1000L : Math.max(1000L, cMillis);
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public String toString()
+        {
+        return "TopicScheme Configuration: Expiry=" + m_cMillisExpiry + "ms, " +
+                "MaxBatch=" + m_cbMaxBatch + "b, " +
+                "RetainConsumed=" + m_fRetainConsumed + ", " +
+                "ElementCalculator=" + m_calculator.getName() + ", " +
+                "SubscriberTimeout=" + m_cSubscriberTimeoutMillis + "ms " +
+                "ReconnectWait=" + m_cReconnectWaitMillis + "ms " +
+                "ReconnectTimeout=" + m_cReconnectTimeoutMillis + "ms " +
+                "ReconnectRetry=" + m_cReconnectRetryMillis + "ms " +
+                "AllowUnownedCommits=" + m_fAllowUnownedCommits;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The partition count on the underlying cache service.
+     */
+    protected final int m_cPartition;
+
+    /**
+     * The number of channels in this topic.
+     */
+    protected int m_cChannel;
+
+    /**
+     * The expiry time for elements offered to the topic
+     */
+    protected long m_cMillisExpiry = LocalCache.DEFAULT_EXPIRE;
+
+    /**
+     * The target maximum batch size.
+     */
+    protected long m_cbMaxBatch;
+
+    /**
+     * Flag indicating whether this topic retains elements after they have been
+     * read by subscribers.
+     */
+    protected boolean m_fRetainConsumed;
+
+    /**
+     * The number of milliseconds within which a subscriber must issue a heartbeat or
+     * be forcefully considered closed.
+     */
+    protected long m_cSubscriberTimeoutMillis = NamedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
+
+    /**
+     * A flag that when {@code true}, indicates that the topic allows positions to be committed in channels
+     * that are not owned by the subscriber performing the commit.
+     * <p>
+     * This would typically be set to {@code true} to allow subscribers that have just lost ownership of a
+     * channel to still commit what they have processed.
+     */
+    protected boolean m_fAllowUnownedCommits;
+
+    /**
+     * The unit calculator used to calculate topic element sizes.
+     */
+    protected NamedTopic.ElementCalculator m_calculator = BinaryElementCalculator.INSTANCE;
+
+    /**
+     * The maximum amount of time that publishers and subscribers will attempt to reconnect.
+     */
+    protected long m_cReconnectTimeoutMillis = NamedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS.as(Duration.Magnitude.MILLI);
+
+    /**
+     * The amount of time that publishers and subscribers will wait between attempts to reconnect.
+     */
+    protected long m_cReconnectRetryMillis = NamedTopic.DEFAULT_RECONNECT_RETRY_SECONDS.as(Duration.Magnitude.MILLI);
+
+    /**
+     * The amount of time that publishers and subscribers will wait before attempting to reconnect.
+     */
+    protected long m_cReconnectWaitMillis = NamedTopic.DEFAULT_RECONNECT_WAIT_SECONDS.as(Duration.Magnitude.MILLI);
+    }

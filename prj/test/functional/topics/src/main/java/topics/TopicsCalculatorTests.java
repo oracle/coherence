@@ -1,18 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Session;
@@ -23,6 +19,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
+import com.tangosol.net.topic.TopicBackingMapManager;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
@@ -44,11 +41,11 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class TopicsCalculatorTests
     {
     @BeforeClass
-    public static void setup()
+    public static void setup() throws Exception
         {
         System.setProperty("coherence.cacheconfig", "topics-calculator-config.xml");
         Coherence coherence = Coherence.clusterMember();
-        coherence.start().join();
+        coherence.start().get(5, TimeUnit.MINUTES);
         s_session = coherence.getSession();
         }
 
@@ -276,11 +273,12 @@ public class TopicsCalculatorTests
 
     // ----- helper methods -------------------------------------------------
 
+    @SuppressWarnings("rawtypes")
     private PagedTopicDependencies getDependencies(NamedTopic<?> topic)
         {
-        PagedTopicService service = (PagedTopicService) topic.getService();
-        PagedTopicBackingMapManager manager = service.getTopicBackingMapManager();
-        return manager.getTopicDependencies(topic.getName());
+        PagedTopicService      service = (PagedTopicService) topic.getService();
+        TopicBackingMapManager manager = service.getTopicBackingMapManager();
+        return (PagedTopicDependencies) manager.getTopicDependencies(topic.getName());
         }
 
     // ----- inner class: CustomCalculator ----------------------------------

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,8 +18,10 @@ import com.tangosol.coherence.config.scheme.LocalScheme;
 
 import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
@@ -163,7 +165,7 @@ public class LocalNamedTopicTests
         {
         return Arrays.asList(new Object[][]
             {
-            {"pof"}, {"java"}
+            {"java"}, {"pof"}
             });
         }
 
@@ -434,8 +436,8 @@ public class LocalNamedTopicTests
         // Create two subscribers in different groups.
         // We will receive messages from one and then seek the other to the same place
         String sGroupPrefix = ensureGroupName();
-        try (PagedTopicSubscriber<String> subscriberOne = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-one"), Subscriber.CompleteOnEmpty.enabled());
-             PagedTopicSubscriber<String> subscriberTwo = (PagedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-two")))
+        try (NamedTopicSubscriber<String> subscriberOne = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-one"), Subscriber.CompleteOnEmpty.enabled());
+             NamedTopicSubscriber<String> subscriberTwo = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "-two")))
             {
             // move subscriber two on by receiving pages
             // (we'll then seek subscriber one to the same place)
@@ -621,6 +623,12 @@ public class LocalNamedTopicTests
 
     // ----- helper methods -------------------------------------------------
 
+    protected PagedTopicDependencies getDependencies(NamedTopic<?> topic)
+        {
+        CacheService                service      = (CacheService) topic.getService();
+        PagedTopicBackingMapManager mgr          = (PagedTopicBackingMapManager) service.getBackingMapManager();
+        return mgr.getTopicDependencies(topic.getName());
+        }
 
     @Override
     protected Session getSession()

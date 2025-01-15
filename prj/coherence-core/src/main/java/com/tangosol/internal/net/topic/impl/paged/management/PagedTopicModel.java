@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ import com.tangosol.internal.net.management.model.ModelOperation;
 import com.tangosol.internal.net.management.model.SimpleModelAttribute;
 
 import com.tangosol.internal.net.management.model.SimpleModelOperation;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
@@ -20,6 +19,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
 import com.tangosol.net.PagedTopicService;
+import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
 
@@ -29,7 +29,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * An MBean model for a {@link PagedTopic}
+ * An MBean model for a {@link NamedTopic}
  *
  * @author Jonathan Knight 2022.09.10
  * @since 22.06.4
@@ -267,7 +267,7 @@ public class PagedTopicModel
     
     private PagedTopicDependencies getDependencies()
         {
-        return f_service.getTopicBackingMapManager().getTopicDependencies(f_sTopicName);
+        return (PagedTopicDependencies) f_service.getTopicBackingMapManager().getTopicDependencies(f_sTopicName);
         }
 
     private PagedTopicStatistics getStatistics()

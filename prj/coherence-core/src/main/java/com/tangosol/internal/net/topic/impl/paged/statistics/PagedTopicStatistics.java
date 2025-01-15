@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * A class holding statistics for a {@link com.tangosol.internal.net.topic.impl.paged.PagedTopic}.
+ * A class holding statistics for a paged topic.
  *
  * @author Jonathan Knight 2022.09.10
  * @since 23.03

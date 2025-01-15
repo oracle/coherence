@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,16 +10,16 @@ import com.oracle.coherence.common.net.InetAddresses;
 
 import com.oracle.coherence.common.util.Duration;
 import com.oracle.coherence.common.util.MemorySize;
-
 import com.oracle.coherence.common.util.Options;
+
 import com.tangosol.coherence.config.builder.ElementCalculatorBuilder;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
 import com.tangosol.coherence.config.builder.UnitCalculatorBuilder;
 
 import com.tangosol.coherence.config.unit.Seconds;
-
 import com.tangosol.coherence.config.unit.Units;
+
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
@@ -33,14 +33,12 @@ import com.tangosol.config.injection.SimpleInjector;
 import com.tangosol.internal.net.service.grid.DefaultPagedTopicServiceDependencies;
 import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
 import com.tangosol.internal.net.topic.impl.paged.DefaultPagedTopicDependencies;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopic;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberInterceptor;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
@@ -94,7 +92,7 @@ public class PagedTopicScheme
     @Override
     public String getServiceType()
         {
-        return CacheService.TYPE_PAGED_TOPIC;
+        return TopicService.TYPE_PAGED_TOPIC;
         }
 
     // ----- BackingMapManagerBuilder interface -----------------------------
@@ -181,12 +179,12 @@ public class PagedTopicScheme
         }
 
     /**
-     * Returns the number of channels in the topic, or the {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
+     * Returns the number of channels in the topic, or the {@link NamedTopic#DEFAULT_CHANNEL_COUNT}
      * value to indicate the topic uses the default channel count.
      *
      * @param resolver  the ParameterResolver
      *
-     * @return the number of channels in the topic, or the {@link PagedTopic#DEFAULT_CHANNEL_COUNT}
+     * @return the number of channels in the topic, or the {@link NamedTopic#DEFAULT_CHANNEL_COUNT}
      *         value to indicate the topic uses the default channel count
      */
     public int getChannelCount(ParameterResolver resolver)
@@ -407,7 +405,7 @@ public class PagedTopicScheme
     public void setSubscriberTimeout(Expression<Seconds> expr)
         {
         m_exprSubscriberTimeout = expr == null
-                ? new LiteralExpression<>(PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS)
+                ? new LiteralExpression<>(NamedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS)
                 : expr;
         }
 
@@ -453,7 +451,7 @@ public class PagedTopicScheme
         builderTimeout.setOrder(Interceptor.Order.HIGH);
         builderTimeout.setName("$SubscriberExpiry$" + getServiceName());
         builderTimeout.setRegistrationBehavior(RegistrationBehavior.REPLACE);
-        builderTimeout.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriber.TimeoutInterceptor());
+        builderTimeout.setCustomBuilder((resolver, loader, listParameters) -> new PagedTopicSubscriberInterceptor());
 
         list.add(builderTimeout);
 
@@ -485,7 +483,7 @@ public class PagedTopicScheme
     public void setReconnectTimeoutMillis(Expression<Seconds> expr)
         {
         m_exprReconnectTimeout = expr == null
-                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS)
+                ? new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS)
                 : expr;
         }
 
@@ -514,7 +512,7 @@ public class PagedTopicScheme
     public void setReconnectRetryMillis(Expression<Seconds> expr)
         {
         m_exprReconnectRetry = expr == null
-                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS)
+                ? new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_RETRY_SECONDS)
                 : expr;
         }
 
@@ -543,7 +541,7 @@ public class PagedTopicScheme
     public void setReconnectWaitMillis(Expression<Seconds> expr)
         {
         m_exprReconnectWait = expr == null
-                ? new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS)
+                ? new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_WAIT_SECONDS)
                 : expr;
         }
 
@@ -661,7 +659,7 @@ public class PagedTopicScheme
         if (cbPage <= 0)
             {
             // if page size not set use the calculators page size
-            cbPage      = PagedTopic.DEFAULT_PAGE_CAPACITY_BYTES;
+            cbPage      = NamedTopic.DEFAULT_PAGE_CAPACITY_BYTES;
             fBinarySize = true;
             }
         else if (cbPage > Integer.MAX_VALUE)
@@ -736,12 +734,12 @@ public class PagedTopicScheme
     /**
      * The number of channels in the topic.
      */
-    private Expression<Integer> m_exprChannelCount = new LiteralExpression<>(PagedTopic.DEFAULT_CHANNEL_COUNT);
+    private Expression<Integer> m_exprChannelCount = new LiteralExpression<>(NamedTopic.DEFAULT_CHANNEL_COUNT);
 
     /**
      * The page capacity
      */
-    private Expression<Units> m_exprPageSize = new LiteralExpression<>(new Units(new MemorySize(PagedTopic.DEFAULT_PAGE_CAPACITY_BYTES)));
+    private Expression<Units> m_exprPageSize = new LiteralExpression<>(new Units(new MemorySize(NamedTopic.DEFAULT_PAGE_CAPACITY_BYTES)));
 
     /**
      * The high-units
@@ -777,7 +775,7 @@ public class PagedTopicScheme
     /**
      * The subscriber timeout value.
      */
-    private Expression<Seconds> m_exprSubscriberTimeout = new LiteralExpression<>(PagedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS);
+    private Expression<Seconds> m_exprSubscriberTimeout = new LiteralExpression<>(NamedTopic.DEFAULT_SUBSCRIBER_TIMEOUT_SECONDS);
 
     /**
      * The allow-unowned commits flag.
@@ -792,15 +790,15 @@ public class PagedTopicScheme
     /**
      * The reconnection timeout value.
      */
-    private Expression<Seconds> m_exprReconnectTimeout = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS);
+    private Expression<Seconds> m_exprReconnectTimeout = new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_TIMEOUT_SECONDS);
 
     /**
      * The reconnection retry value.
      */
-    private Expression<Seconds> m_exprReconnectRetry = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_RETRY_SECONDS);
+    private Expression<Seconds> m_exprReconnectRetry = new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_RETRY_SECONDS);
 
     /**
      * The reconnection wait value.
      */
-    private Expression<Seconds> m_exprReconnectWait = new LiteralExpression<>(PagedTopic.DEFAULT_RECONNECT_WAIT_SECONDS);
+    private Expression<Seconds> m_exprReconnectWait = new LiteralExpression<>(NamedTopic.DEFAULT_RECONNECT_WAIT_SECONDS);
     }

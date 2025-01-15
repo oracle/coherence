@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.Member;
@@ -81,7 +80,7 @@ public class SubscriptionTest
         int          cChannel     = 17;
         int          nMember      = 1;
         Member       member       = mockMember(nMember);
-        long         nId          = PagedTopicSubscriber.createId(19L, nMember);
+        long         nId          = SubscriberId.createId(19L, nMember);
         SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
         Subscription subscription = new Subscription();
         subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
@@ -101,11 +100,11 @@ public class SubscriptionTest
         Member       member1       = mockMember(nMember1);
         int          nMember2      = 2;
         Member       member2       = mockMember(nMember2);
-        long         nId1          = PagedTopicSubscriber.createId(19L, nMember1);
+        long         nId1          = SubscriberId.createId(19L, nMember1);
         SubscriberId subscriberId1 = new SubscriberId(nId1, member1.getUuid());
-        long         nId2          = PagedTopicSubscriber.createId(76L, nMember2);
+        long         nId2          = SubscriberId.createId(76L, nMember2);
         SubscriberId subscriberId2 = new SubscriberId(nId2, member2.getUuid());
-        long         nId3          = PagedTopicSubscriber.createId(66L, nMember1);
+        long         nId3          = SubscriberId.createId(66L, nMember1);
         SubscriberId subscriberId3 = new SubscriberId(nId3, member1.getUuid());
         Subscription subscription  = new Subscription();
         Set<Member>  setMember     = new HashSet<>(List.of(member1, member2));
@@ -125,9 +124,9 @@ public class SubscriptionTest
         int          cChannel      = 17;
         int          nMember       = 1;
         Member       member        = mockMember(nMember);
-        long         nId1          = PagedTopicSubscriber.createId(19L, nMember);
+        long         nId1          = SubscriberId.createId(19L, nMember);
         SubscriberId subscriberId1 = new SubscriberId(nId1, member.getUuid());
-        long         nId2          = PagedTopicSubscriber.createId(66L, nMember);
+        long         nId2          = SubscriberId.createId(66L, nMember);
         SubscriberId subscriberId2 = new SubscriberId(nId2, member.getUuid());
         Subscription subscription  = new Subscription();
 
@@ -154,7 +153,7 @@ public class SubscriptionTest
 
         for (long id = 1; id <= cChannel; id++)
             {
-            long         nId           = PagedTopicSubscriber.createId(id, nMember);
+            long         nId           = SubscriberId.createId(id, nMember);
             SubscriberId subscriberId  = new SubscriberId(nId, member.getUuid());
             subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
             setSubscriber.add(subscriberId);
@@ -178,7 +177,7 @@ public class SubscriptionTest
 
         for (long id = 1; id <= cChannel * 2; id++)
             {
-            long         nId           = PagedTopicSubscriber.createId(id, nMember);
+            long         nId           = SubscriberId.createId(id, nMember);
             SubscriberId subscriberId  = new SubscriberId(nId, member.getUuid());
             subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
             setSubscriber.add(subscriberId);
@@ -219,7 +218,7 @@ public class SubscriptionTest
             // Allocate a new subscriber identifier to each subscription in turn
             for (Subscription subscription : list)
                 {
-                long         nId          = PagedTopicSubscriber.createId(s, nMember);
+                long         nId          = SubscriberId.createId(s, nMember);
                 SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
                 subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
                 }
@@ -266,7 +265,7 @@ public class SubscriptionTest
             for (long s : listSubscriber)
                 {
                 // Allocate a new subscriber identifier to each subscription in turn
-                long         nId          = PagedTopicSubscriber.createId(s, nMember);
+                long         nId          = SubscriberId.createId(s, nMember);
                 SubscriberId subscriberId = new SubscriberId(nId, member.getUuid());
                 subscription.addSubscriber(subscriberId, cChannel, Collections.singleton(member));
                 }

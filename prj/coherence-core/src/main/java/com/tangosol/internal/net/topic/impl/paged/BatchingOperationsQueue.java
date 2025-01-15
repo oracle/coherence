@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -463,7 +463,7 @@ public class BatchingOperationsQueue<V, R>
      * Reset the operations trigger so that a new batch operation
      * will be triggered on another add;
      */
-    protected void resetTrigger()
+    public void resetTrigger()
         {
         getTrigger().set(TRIGGER_OPEN);
         }
@@ -471,7 +471,7 @@ public class BatchingOperationsQueue<V, R>
     /**
      * Pause the queue.
      */
-    protected void pause()
+    public void pause()
         {
         getTrigger().set(TRIGGER_WAIT);
         }
@@ -485,7 +485,7 @@ public class BatchingOperationsQueue<V, R>
      * If a batch of operations is not already in progress then
      * trigger a new batch of operations.
      */
-    protected void triggerOperations()
+    public void triggerOperations()
         {
         triggerOperations(Math.max(f_cbInitialBatch, 1));
         }
@@ -612,7 +612,7 @@ public class BatchingOperationsQueue<V, R>
      *
      * @return  the {@link Deque} containing the current batch of {@link Element}s
      */
-    protected Deque<Element> getCurrentBatch()
+    public Deque<Element> getCurrentBatch()
         {
         return f_queueCurrentBatch;
         }
@@ -992,7 +992,7 @@ public class BatchingOperationsQueue<V, R>
 
     // ----- inner class: SubscriberClosedException -------------------------------
 
-    protected static class OperationCancelledException
+    public static class OperationCancelledException
             extends CancellationException
         {
         public OperationCancelledException()
@@ -1211,7 +1211,7 @@ public class BatchingOperationsQueue<V, R>
     private final Executor f_executor;
 
     /**
-     * A flag indicating whether this {@link PagedTopicPublisher} is active.
+     * A flag indicating whether this queue is active.
      */
     private boolean m_fActive = true;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,8 +56,8 @@ public class SubscriberGroupId
      */
     public SubscriberGroupId(String sName)
         {
-        m_sGroupId  = Objects.requireNonNull(sName, "Subscriber group name cannot be null");
-        m_ldtMember = 0; // durable subscribers aren't tied to the life of a member
+        // durable subscribers aren't tied to the life of a member so have a zero timestamp
+        this(sName, 0);
         }
 
     /**
@@ -69,8 +69,19 @@ public class SubscriberGroupId
      */
     public SubscriberGroupId(Member member)
         {
-        m_sGroupId  = String.valueOf(s_counter.incrementAndGet());
-        m_ldtMember = member.getTimestamp();
+        this(String.valueOf(s_counter.incrementAndGet()), member.getTimestamp());
+        }
+
+    /**
+     * Private constructor.
+     *
+     * @param sGroupId   the group name
+     * @param ldtMember  the associated member timestamp
+     */
+    private SubscriberGroupId(String sGroupId, long ldtMember)
+        {
+        m_sGroupId  = Objects.requireNonNull(sGroupId, "Subscriber group name cannot be null");
+        m_ldtMember = ldtMember;
         }
 
     // ----- accessor methods -----------------------------------------------
@@ -113,6 +124,16 @@ public class SubscriberGroupId
     public boolean isDurable()
         {
         return !isAnonymous();
+        }
+
+    /**
+     * Return the group member id.
+     *
+     * @return the group member id
+     */
+    public long getMemberId()
+        {
+        return m_ldtMember;
         }
 
     // ----- Comparable methods ---------------------------------------------
@@ -222,6 +243,22 @@ public class SubscriberGroupId
         return new SubscriberGroupId(CacheFactory.getCluster().getLocalMember());
         }
 
+    /**
+     * Create an unsafe {@link SubscriberGroupId}.
+     * <p>
+     * This method is used internally to create {@link SubscriberId}
+     * from non-POF and non-Java deserialized messages.
+     *
+     * @param sGroupId   the unique part of this {@link SubscriberGroupId}
+     * @param ldtMember  the associated member timestamp
+     *
+     * @return a {@link SubscriberGroupId}
+     */
+    public static SubscriberGroupId unsafe(String sGroupId, long ldtMember)
+        {
+        return new SubscriberGroupId(sGroupId, ldtMember);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -231,7 +268,7 @@ public class SubscriberGroupId
 
     /**
      * The associated member timestamp for anonymous groups, when the member dies the subscriber will be automatically removed.
-     *
+     * <p>
      * Note: this leverages the fact that coherence will never assign two members of the same cluster the same timestamp
      */
     private long m_ldtMember;

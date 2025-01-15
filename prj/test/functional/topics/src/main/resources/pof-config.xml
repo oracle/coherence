@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -28,5 +28,29 @@
       <class-name>topics.data.OrderableMessage</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>5004</type-id>
+      <class-name>topics.TopicAssertions$AssertPublishedOrderInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>5005</type-id>
+      <class-name>topics.AbstractNamedTopicTests$CallableInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>5006</type-id>
+      <class-name>topics.data.CustomerExternalizableLiteAndPof</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>5007</type-id>
+      <class-name>topics.data.AddressExternalizableLiteAndPof</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>5008</type-id>
+      <class-name>topics.AbstractTopicsStorageRecoveryTests$Message</class-name>
+    </user-type>
   </user-type-list>
 </pof-config>

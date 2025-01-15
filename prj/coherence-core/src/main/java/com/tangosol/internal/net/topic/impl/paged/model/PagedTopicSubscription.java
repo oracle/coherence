@@ -1,22 +1,31 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.SafeClock;
 
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
 
+import com.tangosol.internal.net.topic.TopicSubscription;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
+import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 
+import com.tangosol.io.pof.EvolvablePortableObject;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
 
@@ -24,10 +33,12 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -47,7 +58,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 @SuppressWarnings("PatternVariableCanBeUsed")
 public class PagedTopicSubscription
-        implements ExternalizableLite
+        extends AbstractEvolvable
+        implements TopicSubscription, ExternalizableLite, EvolvablePortableObject
     {
     /**
      * Default constructor for serialization.
@@ -405,20 +417,31 @@ public class PagedTopicSubscription
     @SuppressWarnings("unchecked")
     public SortedSet<Integer> getOwnedChannels(SubscriberId id)
         {
+        if (id == null)
+            {
+            return NO_CHANNELS;
+            }
+
         Object oValue;
         f_lock.lock();
         try
             {
-            oValue = id == null ? NO_CHANNELS : m_mapSubscriberChannels.getOrDefault(id, NO_CHANNELS);
+            oValue = m_mapSubscriberChannels.get(id);
             }
         finally
             {
             f_lock.unlock();
             }
 
-        if (oValue instanceof Integer)
+        if (oValue == null)
             {
-            return new ImmutableArrayList(Collections.singleton(oValue));
+            return NO_CHANNELS;
+            }
+        else if (oValue instanceof Integer)
+            {
+            TreeSet<Integer> set = new TreeSet<>();
+            set.add((Integer) oValue);
+            return Collections.unmodifiableSortedSet(set);
             }
         return Collections.unmodifiableSortedSet((SortedSet<Integer>) oValue);
         }
@@ -566,6 +589,60 @@ public class PagedTopicSubscription
         return setDeparted;
         }
 
+    // ----- EvolvablePortableObject methods --------------------------------
+
+    @Override
+    public int getImplVersion()
+        {
+        return EVOLVABLE_VERSION;
+        }
+
+    @Override
+    public void readExternal(PofReader in) throws IOException
+        {
+        f_lock.lock();
+        try
+            {
+            m_key                = in.readObject(0);
+            m_nSubscriptionId    = in.readLong(1);
+            m_filter             = in.readObject(2);
+            m_extractor          = in.readObject(3);
+            m_aChannelAllocation = in.readLongArray(4);
+            m_mapSubscriber.clear();
+            m_mapSubscriber.putAll(in.readMap(5, new HashMap<>()));
+            m_mapSubscriberChannels.clear();
+            m_mapSubscriberChannels.putAll(in.readMap(6, new HashMap<>()));
+            m_mapSubscriberTimestamp.clear();
+            m_mapSubscriberTimestamp.putAll(in.readMap(7, new HashMap<>()));
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+        }
+
+    @Override
+    public void writeExternal(PofWriter out) throws IOException
+        {
+        f_lock.lock();
+        try
+            {
+            out.writeObject(0, m_key);
+            out.writeLong(1, m_nSubscriptionId);
+            out.writeObject(2, m_filter);
+            out.writeObject(3, m_extractor);
+            out.writeLongArray(4, m_aChannelAllocation);
+            out.writeMap(5, m_mapSubscriber);
+            out.writeMap(6, m_mapSubscriberChannels);
+            out.writeMap(7, m_mapSubscriberTimestamp);
+            }
+        finally
+            {
+            f_lock.unlock();
+            }
+
+        }
+
     // ----- ExternalizableLite methods -------------------------------------
 
     @Override
@@ -630,13 +707,84 @@ public class PagedTopicSubscription
                 '}';
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Called to notify the topic that a subscriber has closed or timed-out.
+     *
+     * @param cache              the subscription cache
+     * @param subscriberGroupId  the subscriber group identifier
+     * @param subscriberId       the subscriber identifier
+     * @param lSubscriptionId    the unique identifier of the subscription
+     */
+    public static void notifyClosed(NamedCache<Subscription.Key, Subscription> cache,
+                             SubscriberGroupId subscriberGroupId, long lSubscriptionId, SubscriberId subscriberId)
+        {
+        PagedTopicService service = (PagedTopicService) cache.getCacheService();
+
+        if (lSubscriptionId == 0)
+            {
+            String sTopicName = PagedTopicCaches.Names.getTopicName(cache.getCacheName());
+            lSubscriptionId = service.getSubscriptionId(sTopicName, subscriberGroupId);
+            }
+
+        PagedTopicSubscription subscription = service.getSubscription(lSubscriptionId);
+        if (subscription != null && subscription.hasSubscriber(subscriberId))
+            {
+            service.destroySubscription(lSubscriptionId, subscriberId);
+            }
+
+        if (!cache.isActive())
+            {
+            // cache is already inactive, so we do not need to do anything
+            return;
+            }
+
+        try
+            {
+            int                    cParts       = service.getPartitionCount();
+            List<Subscription.Key> listSubParts = new ArrayList<>(cParts);
+
+            for (int i = 0; i < cParts; ++i)
+                {
+                // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
+                listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
+                }
+
+            if (cache.isActive())
+                {
+                try
+                    {
+                    cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
+                    }
+                catch (Exception e)
+                    {
+                    // ignored -
+                    }
+                }
+            }
+        catch (Throwable t)
+            {
+            // this could have been caused by the cache becoming inactive during clean-up, if so ignore the error
+            if (cache.isActive())
+                {
+                // cache is still active, so log the error
+                String sId = SubscriberId.NullSubscriber.equals(subscriberId) ? "<ALL>"
+                        : SubscriberId.idToString(subscriberId.getId());
+                Logger.fine("Caught exception closing subscription for subscriber "
+                    + sId + " in group " + subscriberGroupId.getGroupName(), t);
+                }
+            }
+        }
+
     // ----- inner class: Key -----------------------------------------------
 
     /**
      * The topic config map key to represent a subscription.
      */
     public static class Key
-            implements ExternalizableLite
+            extends AbstractEvolvable
+            implements ExternalizableLite, EvolvablePortableObject
         {
         /**
          * Default constructor for serialization.
@@ -648,8 +796,8 @@ public class PagedTopicSubscription
         /**
          * Create a {@link Key}.
          *
-         * @param sTopicName  the topic name
-         * @param groupId     the {@link SubscriberGroupId subscriber group id}
+         * @param sTopicName the topic name
+         * @param groupId    the {@link SubscriberGroupId subscriber group id}
          */
         public Key(String sTopicName, SubscriberGroupId groupId)
             {
@@ -685,6 +833,26 @@ public class PagedTopicSubscription
         public String getGroupName()
             {
             return m_groupId.getGroupName();
+            }
+
+        @Override
+        public int getImplVersion()
+            {
+            return KEY_EVOLVABLE_VERSION;
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_sTopicName = in.readString(0);
+            m_groupId    = in.readObject(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeString(0, m_sTopicName);
+            out.writeObject(1, m_groupId);
             }
 
         @Override
@@ -735,6 +903,8 @@ public class PagedTopicSubscription
 
         // ----- data members -----------------------------------------------
 
+        public static final int KEY_EVOLVABLE_VERSION = 0;
+
         /**
          * The topic name.
          */
@@ -770,6 +940,8 @@ public class PagedTopicSubscription
 
     // ----- constants ------------------------------------------------------
 
+    public static final int EVOLVABLE_VERSION = 0;
+
     /**
      * A singleton empty long array.
      */
@@ -778,8 +950,7 @@ public class PagedTopicSubscription
     /**
      * A singleton empty channel allocation array.
      */
-    @SuppressWarnings("unchecked")
-    public static final SortedSet<Integer> NO_CHANNELS = new ImmutableArrayList(Collections.emptyList());
+    public static final SortedSet<Integer> NO_CHANNELS = Collections.unmodifiableSortedSet(new TreeSet<>());
 
     /**
      * The clock to use to add timestamps to subscriptions.

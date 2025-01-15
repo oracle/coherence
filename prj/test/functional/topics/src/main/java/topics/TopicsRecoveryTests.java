@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,10 +30,10 @@ import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -72,6 +72,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -328,7 +329,7 @@ public class TopicsRecoveryTests
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
                 try (Publisher<Message> publisher = topic.createPublisher();
-                     Subscriber<Message> subscriber = topic.createSubscriber())
+                     NamedTopicSubscriber<Message> subscriber = (NamedTopicSubscriber<Message>) topic.createSubscriber())
                     {
                     System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal; i++)
@@ -361,9 +362,21 @@ public class TopicsRecoveryTests
                         assertThat(element, is(notNullValue()));
                         }
 
+                    // A latch to catch the subscriber disconnect
+                    CountDownLatch latch = new CountDownLatch(1);
+                    subscriber.addStateListener((subscriber1, nNewState, nPrevState) ->
+                        {
+                        if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED)
+                            {
+                            latch.countDown();
+                            }
+                        });
+
                     restartService(topic);
 
-                    assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
+                    // The subscriber should have disconnected at least once, it may already be reconnected
+                    // so we cannot just check its state
+                    assertThat(latch.await(5, TimeUnit.MINUTES), is(true));
 
                     System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)
@@ -452,7 +465,7 @@ public class TopicsRecoveryTests
 
                     restartService(topic);
 
-                    assertThat(((PagedTopicSubscriber<Message>) subscriber).getState(), is(PagedTopicSubscriber.STATE_DISCONNECTED));
+                    assertThat(((NamedTopicSubscriber<Message>) subscriber).getState(), is(NamedTopicSubscriber.STATE_DISCONNECTED));
 
                     System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)
@@ -642,8 +655,10 @@ public class TopicsRecoveryTests
 
     private void restartService(NamedTopic<?> topic)
         {
-        Service service = topic.getService();
-        System.err.println("Stopping topics cache service " + service.getInfo().getServiceName());
+        Service service     = topic.getService();
+        String  serviceName = service.getInfo().getServiceName();
+
+        System.err.println("Stopping topics cache service " + serviceName);
 
         Service serviceFinal = service instanceof SafeCacheService
                 ? ((SafeCacheService) service).getRunningCacheService()
@@ -651,9 +666,9 @@ public class TopicsRecoveryTests
 
         serviceFinal.stop();
         // wait for DCS to restart the service
-        Eventually.assertDeferred(service::isRunning, is(true));
+        Eventually.assertDeferred("Failed to restart service " + service, service::isRunning, is(true));
 
-        System.err.println("Restarted topics cache service " + service.getInfo().getServiceName());
+        System.err.println("Restarted topics cache service " + serviceName);
         }
 
     // ----- inner class: Message -------------------------------------------

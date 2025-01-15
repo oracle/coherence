@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,13 +23,15 @@ import com.tangosol.coherence.component.net.Message;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.internal.net.topic.NamedTopicView;
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicConnector;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
@@ -45,14 +47,18 @@ import com.tangosol.net.RequestPolicyException;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.ServiceDependencies;
 import com.tangosol.net.cache.LocalCache;
+import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.internal.ServiceDispatcher;
+import com.tangosol.net.events.internal.TopicDispatcher;
 import com.tangosol.net.events.partition.TransferEvent;
+import com.tangosol.net.events.topics.TopicLifecycleEvent;
 import com.tangosol.net.internal.ScopedTopicReferenceStore;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.TopicBackingMapManager;
 import com.tangosol.net.topic.TopicException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
@@ -129,7 +135,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 1002  SubscriberConfirmRequest
  * 1003  ChannelCountConfirmRequest
  */
-@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "resource"})
 public class PagedTopic
         extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache
         implements com.tangosol.net.PagedTopicService
@@ -457,7 +463,7 @@ public class PagedTopic
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.Continuations("Continuations", this, true), "Continuations");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.DaemonPool("DaemonPool", this, true), "DaemonPool");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.EventDispatcher("EventDispatcher", this, true), "EventDispatcher");
-        _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.EventsHelper("EventsHelper", this, true), "EventsHelper");
+        _addChild(new EventsHelper("EventsHelper", this, true), "EventsHelper");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.Guard("Guard", this, true), "Guard");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.LazyLookup("LazyLookup", this, true), "LazyLookup");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.MemberConfigListener("MemberConfigListener", this, true), "MemberConfigListener");
@@ -466,7 +472,7 @@ public class PagedTopic
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ReceiveQueue("ReceiveQueue", this, true), "ReceiveQueue");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.RequestCoordinator("RequestCoordinator", this, true), "RequestCoordinator");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ResourceCoordinator("ResourceCoordinator", this, true), "ResourceCoordinator");
-        _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ServiceConfig("ServiceConfig", this, true), "ServiceConfig");
+        _addChild(new PagedTopic.ServiceConfig("ServiceConfig", this, true), "ServiceConfig");
         _addChild(new PagedTopic.TopicConfig("TopicConfig", this, true), "TopicConfig");
         _addChild(new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.TransferControl("TransferControl", this, true), "TransferControl");
         
@@ -568,7 +574,6 @@ public class PagedTopic
 
             fConfirmed = mapBinary != null && mapBinary.confirmSubscriber(lSubscription, subscriberId);
             }
-        
         return fConfirmed;
         }
 
@@ -852,8 +857,22 @@ public class PagedTopic
                 }
             }
         }
-    
-    // Declared at the super level
+
+    @Override
+    public com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap ensureBinaryMap(String sCacheName, long lCacheId)
+        {
+        BinaryMap binaryMap = (BinaryMap) super.ensureBinaryMap(sCacheName, lCacheId);
+
+        if (PagedTopicCaches.Names.CONTENT.isA(sCacheName))
+            {
+            String          sTopicName = PagedTopicCaches.Names.getTopicName(sCacheName);
+            TopicDispatcher dispatcher = new TopicDispatcher(sTopicName, this);
+            binaryMap.setTopicDispatcher(dispatcher);
+            }
+        return binaryMap;
+        }
+
+// Declared at the super level
     /**
      * Either ensure $Storage is created or a $BinaryMap and dispatch relevant
     * events.
@@ -883,13 +902,32 @@ public class PagedTopic
             {
             // we need to also ensure the BinaryMap for Content as we
             // need to use if for topic confirmation calls later
-            ensureBinaryMap(sName, lCacheId);
-        
+            BinaryMap binaryMap = (BinaryMap) ensureBinaryMap(sName, lCacheId);
             if (isOwnershipEnabled())
                 {
                 String sTopicName = PagedTopicCaches.Names.getTopicName(sName);
                 MBeanHelper.registerPagedTopicMBean(this, sTopicName);
                 }
+
+            TopicDispatcher dispatcher = binaryMap.getTopicDispatcher();
+            getEventsHelper().getEventDispatcherRegistry().registerEventDispatcher(dispatcher);
+            onTopicLifecycle(dispatcher, TopicLifecycleEvent.Type.CREATED);
+            }
+        }
+
+    @Override
+    public EventsHelper getEventsHelper()
+        {
+        return (EventsHelper) super.getEventsHelper();
+        }
+
+    protected void onTopicLifecycle(TopicDispatcher dispatcher, TopicLifecycleEvent.Type eventType)
+        {
+        if (dispatcher != null && dispatcher.isSubscribed(eventType))
+            {
+            getContinuations()
+                    .wrapAsTask(dispatcher.getCacheLifecycleEventContinuation(eventType, null))
+                    .proceed(Boolean.TRUE);
             }
         }
 
@@ -1140,12 +1178,8 @@ public class PagedTopic
             }
         }
     
-    protected com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription ensureSubscriptionInternal(String sTopicName, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId groupId, long lSubscriptionId, com.tangosol.util.Filter filter, com.tangosol.util.ValueExtractor extractor)
+    protected PagedTopicSubscription ensureSubscriptionInternal(String sTopicName, SubscriberGroupId groupId, long lSubscriptionId, Filter filter, ValueExtractor extractor)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.util.LongArray;
-        // import java.util.concurrent.locks.ReentrantLock;
-        
         PagedTopicSubscription subscription;
         
         if (lSubscriptionId == 0)
@@ -1194,22 +1228,14 @@ public class PagedTopic
         }
     
     // From interface: com.tangosol.net.PagedTopicService
-    public com.tangosol.net.topic.NamedTopic ensureTopic(String sName, ClassLoader loader)
+    public NamedTopicView ensureTopic(String sName, ClassLoader loader)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopic as com.tangosol.internal.net.topic.impl.paged.PagedTopic;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
-        // import com.tangosol.net.internal.ScopedTopicReferenceStore;
-        // import com.tangosol.net.management.MBeanHelper;
-        // import com.tangosol.net.topic.NamedTopic;
-        // import java.util.concurrent.locks.ReentrantLock;
-        
         if (!isRunning())
             {
             throw new IllegalStateException("Service is not running: " + this);
             }
         
-        if (sName == null || sName.length() == 0)
+        if (sName == null || sName.isEmpty())
             {
             sName = "Default";
             }
@@ -1222,21 +1248,34 @@ public class PagedTopic
         
         // the implementation is optimized for topics that already
         // exist and already have the requested class-loader view
-        NamedTopic                topic = null;
+        NamedTopicView            topic = null;
         ScopedTopicReferenceStore store = getScopedTopicStore();
         
-        topic = (NamedTopic) store.get(sName, loader);
+        topic = (NamedTopicView) store.get(sName, loader);
         if (topic != null)
             {
-            return topic;
+            if (topic.isActive())
+                {
+                return topic;
+                }
             }
-        
+
         ReentrantLock lock = getTopicStoreLock();
         lock.lock();
         try
             {
+            topic = (NamedTopicView) store.get(sName, loader);
+            if (topic != null)
+                {
+                if (topic.isActive())
+                    {
+                    return topic;
+                    }
+                store.releaseTopic(topic, loader);
+                }
+
             PagedTopicCaches topicCaches = new PagedTopicCaches(sName, this);
-            com.tangosol.internal.net.topic.impl.paged.PagedTopic      pagedTopic  = new com.tangosol.internal.net.topic.impl.paged.PagedTopic(topicCaches);
+            NamedTopicView   pagedTopic  = new NamedTopicView(new PagedTopicConnector(topicCaches));
             
             store.put(pagedTopic, loader);
             topic = pagedTopic;
@@ -1286,12 +1325,16 @@ public class PagedTopic
         return __m_ChannelAllocationStrategy;
         }
     
-    // From interface: com.tangosol.net.PagedTopicService
+    @Override
     public int getChannelCount(String sName)
         {
-        int cChannelMap    = getChannelCountFromConfigMap(sName);
-        int cChannelConfig = getConfiguredChannelCount(sName);
-        return Math.max(cChannelMap, cChannelConfig);
+        int cChannelMap = getChannelCountFromConfigMap(sName);
+        if (isLocalStorageEnabled() || cChannelMap == 0)
+            {
+            int cChannelConfig = getConfiguredChannelCount(sName);
+            return Math.max(cChannelMap, cChannelConfig);
+            }
+        return cChannelMap;
         }
 
     /**
@@ -1360,7 +1403,7 @@ public class PagedTopic
         
         MemberSet setMember = super.getConfigMapUpdateMembers(map);
         
-        if (map.getMapType() == CONFIG_MAP_TOPIC && setMember.size() != 0)
+        if (map.getMapType() == CONFIG_MAP_TOPIC && !setMember.isEmpty())
             {
             // return only compatible members if map is topic config
             for (Iterator it = setMember.iterator(); it.hasNext(); )
@@ -1375,28 +1418,23 @@ public class PagedTopic
         return setMember;
         }
     
-    // Accessor for the property "ScopedTopicStore"
     /**
      * Getter for property ScopedTopicStore.<p>
      */
-    public com.tangosol.net.internal.ScopedTopicReferenceStore getScopedTopicStore()
+    public ScopedTopicReferenceStore getScopedTopicStore()
         {
         return __m_ScopedTopicStore;
         }
-    
-    // From interface: com.tangosol.net.PagedTopicService
-    public java.util.Set getSubscriberGroups(String sTopicName)
+
+    @Override
+    public Set<SubscriberGroupId> getSubscriberGroups(String sTopicName)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
-        
         return PagedTopicConfigMap.getSubscriberGroups(getTopicConfigMap(), sTopicName);
         }
-    
-    // From interface: com.tangosol.net.PagedTopicService
-    public java.util.Set getSubscribers(String sTopicName, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId groupId)
+
+    @Override
+    public Set<SubscriberId> getSubscribers(String sTopicName, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId groupId)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
-        
         return PagedTopicConfigMap.getSubscribers(getTopicConfigMap(), sTopicName, groupId);
         }
 
@@ -1412,20 +1450,15 @@ public class PagedTopic
         return PagedTopicConfigMap.getSubscriptionCount(getTopicConfigMap(), sTopicName);
         }
 
-    // From interface: com.tangosol.net.PagedTopicService
+    @Override
     public com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription getSubscription(long lSubscriptionId)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
-        // import com.tangosol.util.LongArray;
-        
         LongArray aSubscription = getSubscriptionArray();
         return (PagedTopicSubscription) aSubscription.get(lSubscriptionId);
         }
     
     public com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription getSubscription(String sTopicName, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId groupId)
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
-        
         if (groupId == null)
             {
             return null;
@@ -1476,9 +1509,12 @@ public class PagedTopic
     // From interface: com.tangosol.net.PagedTopicService
     public com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager getTopicBackingMapManager()
         {
-        // import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
-        
         return (PagedTopicBackingMapManager) getBackingMapManager();
+        }
+
+    @Override
+    public void setTopicBackingMapManager(TopicBackingMapManager manager)
+        {
         }
     
     // Accessor for the property "TopicConfigMap"
@@ -1862,7 +1898,7 @@ public class PagedTopic
                 // cache is still active, so log the error
                 String sId = SubscriberId.NullSubscriber.equals(subscriberId)
                         ? "<ALL>"
-                        : PagedTopicSubscriber.idToString(subscriberId.getId());
+                        : SubscriberId.idToString(subscriberId.getId());
 
                 Logger.fine("Caught exception closing subscription for subscriber "
                     + sId + " in group " + subscriberGroupId.getGroupName(), t);
@@ -2188,7 +2224,7 @@ public class PagedTopic
                                     {
                                     subscription.updateChannelAllocations(getChannelAllocationStrategy());
                                     PagedTopicConfigMap.updateSubscription(configMap, subscription);
-                                    Logger.finest("Removed subscribers from " + Arrays.toString(aSubscriberId)
+                                    Logger.finest("Removed subscribers " + Arrays.toString(aSubscriberId)
                                             + " from subscription " + subscription.getKey());
                                     }
                                 }
@@ -2376,6 +2412,27 @@ public class PagedTopic
             }
         }
 
+    // ----- inner class EventsHelper ---------------------------------------
+
+    public static class EventsHelper
+            extends PartitionedCache.EventsHelper
+        {
+        public EventsHelper()
+            {
+            }
+
+        public EventsHelper(String sName, Component compParent, boolean fInit)
+            {
+            super(sName, compParent, fInit);
+            }
+
+        @Override
+        protected EventDispatcherRegistry getEventDispatcherRegistry()
+            {
+            return super.getEventDispatcherRegistry();
+            }
+        }
+
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$BinaryMap
     
     /**
@@ -2385,9 +2442,11 @@ public class PagedTopic
     public static class BinaryMap
             extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.BinaryMap
         {
+        private TopicDispatcher __m_dispatcher;
+
         // ---- Fields declarations ----
         private static com.tangosol.util.ListMap __mapChildren;
-        
+
         // Static initializer
         static
             {
@@ -2425,7 +2484,7 @@ public class PagedTopic
                 }
             }
         
-        // Main initializer
+        @Override
         public void __init()
             {
             // private initialization
@@ -2455,7 +2514,6 @@ public class PagedTopic
         // Private initializer
         protected void __initPrivate()
             {
-            
             super.__initPrivate();
             }
         
@@ -2519,7 +2577,7 @@ public class PagedTopic
             {
             // import com.tangosol.net.RequestPolicyException;
             // import com.tangosol.net.partition.PartitionSet;
-            
+
             PagedTopic.SubscriberConfirmRequest msg = (PagedTopic.SubscriberConfirmRequest) getService()
                     .instantiateMessage("SubscriberConfirmRequest");
             
@@ -2573,6 +2631,16 @@ public class PagedTopic
                 // We return true and have to assume the count is correct across the cluster
                 return true;
                 }
+            }
+
+        public TopicDispatcher getTopicDispatcher()
+            {
+            return __m_dispatcher;
+            }
+
+        public void setTopicDispatcher(TopicDispatcher dispatcher)
+            {
+            __m_dispatcher = dispatcher;
             }
         }
 
@@ -5106,25 +5174,26 @@ public class PagedTopic
                 
                 if (msgResponse != null)
                     {
-                    PagedTopic service       = (PagedTopic) getService();
-                    Long    lSubscriberId = (Long) getResult();
+                    PagedTopic service = (PagedTopic) getService();
+                    Object     oResult = getResult();
                 
-                    if (lSubscriberId == null)
+                    if (oResult instanceof Long)
+                        {
+                        long lSubscriberId = (Long) oResult;
+                        msgResponse.setValue(lSubscriberId);
+                        service.post(msgResponse);
+                        }
+                    else
                         {
                         // the senior died; repeat the request
-                
+
                         if (!service.isExiting() && service.getServiceState() < PagedTopic.SERVICE_STOPPING)
                             {
                             PagedTopic.SubscriberIdRequest msg = (PagedTopic.SubscriberIdRequest) msgRequest.cloneMessage();
                             msg.addToMember(service.getServiceOldestMember());
-                
+
                             service.post(msg);
                             }
-                        }
-                    else
-                        {
-                        msgResponse.setValue(lSubscriberId);
-                        service.post(msgResponse);
                         }
                     }
                 }
@@ -5141,6 +5210,186 @@ public class PagedTopic
                 setResult(response.getValue());
                 
                 super.onResponse(msg);
+                }
+            }
+        }
+
+    /**
+     * ServiceConfig provides a service-wide configuration map.  All updates to
+     * a service config are published service-wide by the configuration
+     * coordinator.
+     * The Service-wide config map for service-related shared state.
+     */
+    public static class ServiceConfig
+            extends    PartitionedCache.ServiceConfig
+        {
+        public ServiceConfig()
+            {
+            this(null, null, true);
+            }
+
+        public ServiceConfig(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        @Override
+        public void __init()
+            {
+            // private initialization
+            __initPrivate();
+            // state initialization: public and protected properties
+            try
+                {
+                // identified pendingPolls required thread-safe data structure and
+                // verified that pendingConfigUpdates only accessed on single service thread, see details in COH-30132.
+                setPendingConfigUpdates(new java.util.LinkedList());
+                setPendingPolls(new ConcurrentHashMap<>());
+                }
+            catch (java.lang.Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            // containment initialization: children
+            _addChild(new ConfigListener("ConfigListener", this, true), "ConfigListener");
+            _addChild(new ServiceConfig.Map("Map", this, true), "Map");
+
+            // signal the end of the initialization
+            set_Constructed(true);
+            }
+
+        @Override
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new ServiceConfig();
+            }
+
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            return ServiceConfig.class;
+            }
+
+        /**
+         * This is an auto-generated method that returns the global [design
+         * time] parent component.
+         *
+         * Note: the class generator will ignore any custom implementation for
+         * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        /**
+         * ConfigListener is used to receive config map updates for this
+         * ServiceConfig.
+         */
+        public static class ConfigListener
+                extends    PartitionedCache.ServiceConfig.ConfigListener
+            {
+            public ConfigListener()
+                {
+                this(null, null, true);
+                }
+
+            public ConfigListener(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+                {
+                super(sName, compParent, false);
+                if (fInit)
+                    {
+                    __init();
+                    }
+                }
+
+            @Override
+            public void __init()
+                {
+                // private initialization
+                __initPrivate();
+                // signal the end of the initialization
+                set_Constructed(true);
+                }
+
+            @Override
+            protected void __initPrivate()
+                {
+                super.__initPrivate();
+                }
+
+            /**
+             * Getter for property _Instance.<p>
+            * Auto generated
+             */
+            public static com.tangosol.coherence.Component get_Instance()
+                {
+                return new ConfigListener();
+                }
+
+            /**
+             * Getter for property _CLASS.<p>
+             * Property with auto-generated accessor that returns the Class
+             * object for a given component.
+             */
+            public static Class get_CLASS()
+                {
+                return ConfigListener.class;
+                }
+
+            /**
+             * This is an auto-generated method that returns the global [design
+             * time] parent component.
+             * <p>
+             * Note: the class generator will ignore any custom implementation
+             * for this behavior.
+             */
+            private com.tangosol.coherence.Component get_Module()
+                {
+                return this.get_Parent().get_Parent();
+                }
+
+            @Override
+            public void entryDeleted(com.tangosol.util.MapEvent evt)
+                {
+                TopicDispatcher dispatcher = null;
+                Object          oKey       = evt.getKey();
+                PagedTopic      service    = (PagedTopic) get_Module();
+
+                if (oKey instanceof String)
+                    {
+                    String sCacheName = (String) oKey;
+                    if (PagedTopicCaches.Names.CONTENT.isA(sCacheName))
+                        {
+                        BinaryMap binaryMap = (BinaryMap) service.getReferencesBinaryMap().get(oKey);
+                        if (binaryMap != null)
+                            {
+                            dispatcher = binaryMap.getTopicDispatcher();
+                            service.onTopicLifecycle(dispatcher, TopicLifecycleEvent.Type.DESTROYED);
+                            service.getEventsHelper().getEventDispatcherRegistry().unregisterEventDispatcher(dispatcher);
+                            }
+                        }
+                    }
+                super.entryDeleted(evt);
                 }
             }
         }

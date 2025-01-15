@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,12 @@ public class PagedPosition
         {
         m_nPage   = nPage;
         m_nOffset = nOffset;
+        }
+
+    @Override
+    public boolean isEmpty()
+        {
+        return m_nPage == Page.EMPTY;
         }
 
     // ----- accessors ------------------------------------------------------

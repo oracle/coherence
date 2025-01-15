@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -49,6 +49,16 @@ public class NotificationKey
         }
 
     // ----- accessors ------------------------------------------------------
+
+    /**
+     * Obtain this key's notification identifier.
+     *
+     * @return this key's notification identifier
+     */
+    public int getId()
+        {
+        return m_nId;
+        }
 
     @Override
     public int getPartitionId()

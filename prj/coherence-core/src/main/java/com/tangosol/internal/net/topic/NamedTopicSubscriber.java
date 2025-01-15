@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.tangosol.internal.net.topic.impl.paged;
+package com.tangosol.internal.net.topic;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
-
 import com.oracle.coherence.common.base.TimeHelper;
+
 import com.oracle.coherence.common.util.Options;
-import com.oracle.coherence.common.util.SafeClock;
 import com.oracle.coherence.common.util.Sentry;
 
 import com.tangosol.coherence.config.Config;
@@ -20,76 +19,38 @@ import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.net.metrics.Meter;
 
-import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.DestroySubscriptionProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber;
-import com.tangosol.internal.net.topic.impl.paged.agent.HeadAdvancer;
-import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor;
-import com.tangosol.internal.net.topic.impl.paged.agent.SubscriberHeartbeatProcessor;
-
-import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
-import com.tangosol.internal.net.topic.impl.paged.model.Page;
+import com.tangosol.internal.net.topic.impl.paged.BatchingOperationsQueue;
 import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
-import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
-import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
-import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.FlowControl;
-import com.tangosol.net.Member;
-import com.tangosol.net.NamedCache;
-import com.tangosol.net.PagedTopicService;
-import com.tangosol.net.PartitionedService;
-
-import com.tangosol.net.events.EventDispatcher;
-import com.tangosol.net.events.EventDispatcherAwareInterceptor;
-
-import com.tangosol.net.events.partition.cache.EntryEvent;
-import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
+import com.tangosol.net.Service;
 
 import com.tangosol.net.management.MBeanHelper;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
+import com.tangosol.net.topic.TopicDependencies;
 import com.tangosol.net.topic.TopicException;
 
-import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.Filters;
 import com.tangosol.util.Gate;
-import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
-import com.tangosol.util.MapEvent;
-import com.tangosol.util.MapListener;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
-import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
-
-import com.tangosol.util.aggregator.ComparableMin;
-import com.tangosol.util.aggregator.GroupAggregator;
-import com.tangosol.util.aggregator.LongMin;
-
-import com.tangosol.util.extractor.ReflectionExtractor;
-
-import com.tangosol.util.filter.InKeySetFilter;
-
-import com.tangosol.util.listener.SimpleMapListener;
 
 import java.io.PrintStream;
 
@@ -109,129 +70,103 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
-
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import java.util.stream.Collectors;
 
 /**
  * A subscriber of values from a paged topic.
+ * <p>
+ * This class provides the functionality of a {@link Subscriber} and
+ * uses a {@link SubscriberConnector} to provides a connection to
+ * clustered topic resources.
  *
- * @author jk/mf 2015.06.15
- * @since Coherence 14.1.1
+ * @author Jonathan Knight  2024.11.26
  */
-@SuppressWarnings({"rawtypes"})
-public class PagedTopicSubscriber<V>
-    implements Subscriber<V>, AutoCloseable
+@SuppressWarnings({"rawtypes", "PatternVariableCanBeUsed", "SameParameterValue"})
+public class NamedTopicSubscriber<V>
+    implements Subscriber<V>, SubscriberConnector.ConnectedSubscriber<V>, SubscriberStatistics, AutoCloseable
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Create a {@link PagedTopicSubscriber}.
+     * Create a {@link NamedTopicSubscriber}.
      *
-     * @param topic    the underlying {@link PagedTopic} that this subscriber is subscribed to
-     * @param caches   the {@link PagedTopicCaches} managing the underlying topic data
-     * @param options  the {@link Option}s controlling this {@link PagedTopicSubscriber}
+     * @param topic      the underlying {@link NamedTopic} that this subscriber is subscribed to
+     * @param connector  the connector to connect to server side resources
+     * @param options    the {@link Option}s controlling this {@link NamedTopicSubscriber}
      *
      * @throws NullPointerException if the {@code topic} or {@code caches} parameters are {@code null}
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public <T> PagedTopicSubscriber(NamedTopic<?> topic, PagedTopicCaches caches, Option<? super T, V>... options)
+    @SuppressWarnings("unchecked")
+    public <T> NamedTopicSubscriber(NamedTopic<?> topic, SubscriberConnector<V> connector, Option<? super T, V>[] options)
         {
-        f_topic  = Objects.requireNonNull(topic);
-        m_caches = Objects.requireNonNull(caches, "The TopicCaches parameter cannot be null");
+        OptionSet<T, V> optionSet = NamedTopicSubscriber.optionsFrom(options);
 
-        Options<Subscriber.Option> optionsMap = Options.from(Subscriber.Option.class, options);
-        Name                       nameOption = optionsMap.get(Name.class, null);
-        String                     sName      = nameOption == null ? null : nameOption.getName();
+        f_topic           = Objects.requireNonNull(topic);
+        f_connector       = connector;
+        f_sTopicName      = topic.getName();
+        f_gate            = new ThreadGateLite<>();
+        f_gateState       = new ThreadGateLite<>();
+        f_converter       = new SerializerValueConverter<>(topic.getService().getSerializer());
+        f_subscriberId    = connector.getSubscriberId();
+        f_nNotificationId = f_subscriberId.getNotificationId();
 
-        f_fAnonymous                 = sName == null;
-        m_listenerGroupDeactivation  = new GroupDeactivationListener();
-        f_serializer                 = m_caches.getSerializer();
-        f_listenerNotification       = new SimpleMapListener<>().addDeleteHandler(this::onChannelPopulatedNotification);
-        f_gate                       = new ThreadGateLite<>();
-        f_gateState                  = new ThreadGateLite<>();
+        long nId = f_subscriberId.getId();
 
-        ChannelOwnershipListeners<T> listeners = optionsMap.get(ChannelOwnershipListeners.class, ChannelOwnershipListeners.none());
-        m_aChannelOwnershipListener = listeners.getListeners().toArray(new ChannelOwnershipListener[0]);
+        f_subscriberGroupId         = connector.getSubscriberGroupId();
+        f_fAnonymous                = f_subscriberGroupId.isAnonymous();
+        f_fCompleteOnEmpty          = optionSet.isCompleteOnEmpty();
+        f_key                       = new SubscriberInfo.Key(f_subscriberGroupId, nId);
+        f_filter                    = optionSet.getFilter().orElse(null);
+        f_extractor                 = optionSet.getExtractor().orElse(null);
+        m_aChannelOwnershipListener = optionSet.getChannelListeners();
 
-        CacheService cacheService = m_caches.getService();
-        Cluster      cluster      = cacheService.getCluster();
-        Member       member       = cluster.getLocalMember();
+        WithIdentifyingName withIdentifyingName = optionSet.get(WithIdentifyingName.class);
+        f_sIdentifyingName = withIdentifyingName == null ? null : withIdentifyingName.getName();
 
-        boolean            fWarn  = false;
-        WithNotificationId withId = optionsMap.get(WithNotificationId.class);
-        if (withId == null)
-            {
-            f_nNotificationId = System.identityHashCode(this);
-            }
-        else
-            {
-            f_nNotificationId = withId.getId();
-            fWarn = true;
-            }
-
-        f_fCompleteOnEmpty          = optionsMap.contains(CompleteOnEmpty.class);
-        f_filterNotification        = new InKeySetFilter<>(/*filter*/ null, m_caches.getPartitionNotifierSet(f_nNotificationId));
-        f_id                        = new SubscriberId(f_nNotificationId, member.getId(), member.getUuid());
-        f_subscriberGroupId         = f_fAnonymous ? SubscriberGroupId.anonymous() : SubscriberGroupId.withName(sName);
-        f_key                       = new SubscriberInfo.Key(f_subscriberGroupId, f_id.getId());
-        f_heartbeatProcessor        = new SubscriberHeartbeatProcessor();
-        m_listenerChannelAllocation = new ChannelListener(f_id, new PagedTopicSubscription.Key(f_topic.getName(), f_subscriberGroupId));
-
-        Filtered filtered = optionsMap.get(Filtered.class);
-        f_filter = filtered == null ? null : filtered.getFilter();
-
-        Convert convert = optionsMap.get(Convert.class);
-        f_extractor = convert == null ? null : convert.getExtractor();
-
-        f_taskReconnect = new ReconnectTask(this);
-
-        f_daemon         = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":" + f_id.getId());
-        f_executor       = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":Receive:" + f_id.getId());
-        f_daemonChannels = new TaskDaemon("PagedTopic:Subscriber:" + m_caches.getTopicName() + ":Channels:" + f_id.getId());
+        f_taskReconnect    = new ReconnectTask(this);
+        f_daemon           = new TaskDaemon("Topic:Subscriber:" + f_sTopicName + ":" + nId);
+        f_executor         = new TaskDaemon("Topic:Subscriber:" + f_sTopicName + ":Receive:" + nId);
+        f_daemonChannels   = new TaskDaemon("Topic:Subscriber:" + f_sTopicName + ":Channels:" + nId);
         f_executorChannels = f_daemonChannels::executeTask;
+
         f_daemon.start();
         f_daemonChannels.start();
 
-        long cBacklog = cluster.getDependencies().getPublisherCloggedCount();
+        Service service  = topic.getService();
+        Cluster cluster  = service.getCluster();
+        long    cBacklog = cluster.getDependencies().getPublisherCloggedCount();
         f_backlog            = new DebouncedFlowControl((cBacklog * 2) / 3, cBacklog);
         f_queueReceiveOrders = new BatchingOperationsQueue<>(this::trigger, 1,
                                         f_backlog, v -> 1, BatchingOperationsQueue.Executor.fromTaskDaemon(f_daemon));
 
-        int cChannel = m_caches.getChannelCount();
+        f_connector.addListener(new Listener());
+        f_connector.postConstruct(this);
 
-        m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId);
-
-        WithIdentifyingName withIdentifyingName = optionsMap.get(WithIdentifyingName.class);
-        f_sIdentifyingName = withIdentifyingName == null ? null : withIdentifyingName.getName();
-
-        registerChannelAllocationListener();
-        registerDeactivationListener();
+        int cChannel = f_topic.getChannelCount();
+        initializeChannels(cChannel);
         registerMBean();
-
-        if (fWarn)
-            {
-            Logger.warn("Subscriber " + f_id + " is being created with a custom notification id " + f_nNotificationId);
-            }
-
         ensureConnected();
 
         // Note: post construction this implementation must be fully async
@@ -239,14 +174,21 @@ public class PagedTopicSubscriber<V>
 
     // ----- PagedTopicSubscriber methods -----------------------------------
 
+    @Override
+    public String getTypeName()
+        {
+        return f_connector.getTypeName();
+        }
+
     /**
      * Returns the subscriber's identifier.
      *
      * @return the subscriber's identifier
      */
+    @Override
     public long getId()
         {
-        return f_id.getId();
+        return getSubscriberId().getId();
         }
 
     /**
@@ -254,9 +196,10 @@ public class PagedTopicSubscriber<V>
      *
      * @return the subscriber's unique identifier
      */
+    @Override
     public SubscriberId getSubscriberId()
         {
-        return f_id;
+        return f_subscriberId;
         }
 
     /**
@@ -266,9 +209,20 @@ public class PagedTopicSubscriber<V>
      * @return the unique identifier of the subscribe group,
      *         or zero if the subscriber is anonymous
      */
+    @Override
     public long getSubscriptionId()
         {
-        return m_subscriptionId;
+        return f_connector.getSubscriptionId();
+        }
+
+    /**
+     * Return the timestamp of the last time the subscriber connected.
+     *
+     * @return the timestamp of the last time the subscriber connected
+     */
+    public long getConnectionTimestamp()
+        {
+        return f_connector.getConnectionTimestamp();
         }
 
     /**
@@ -276,96 +230,57 @@ public class PagedTopicSubscriber<V>
      *
      * @return the subscriber's unique identifying name
      */
+    @Override
     public String getIdentifyingName()
         {
         return f_sIdentifyingName;
         }
 
-    /**
-     * Returns the subscriber's notification identifier.
-     *
-     * @return the subscriber's notification identifier
-     */
+    @Override
     public int getNotificationId()
         {
         return f_nNotificationId;
         }
 
-    /**
-     * Returns this subscriber's key.
-     *
-     * @return  this subscriber's key
-     */
+    @Override
     public SubscriberInfo.Key getKey()
         {
         return f_key;
         }
 
-    /**
-     * Returns {@code true} if this is an anonymous subscriber,
-     * or {@code false} if this subscriber is in a group.
-     *
-     * @return {@code true} if this is an anonymous subscriber,
-     *         or {@code false} if this subscriber is in a group
-     */
+    @Override
     public boolean isAnonymous()
         {
         return f_fAnonymous;
         }
 
+    @Override
     public long getBacklog()
         {
         return f_backlog.getBacklog();
         }
 
+    @Override
     public long getMaxBacklog()
         {
         return f_backlog.getExcessiveLimit();
         }
 
+    @Override
     public Filter<V> getFilter()
         {
         return f_filter;
         }
 
+    @Override
     public ValueExtractor<V, ?> getConverter()
         {
         return f_extractor;
         }
 
-    public Serializer getSerializer()
-        {
-        return f_serializer;
-        }
-
     public boolean isCompleteOnEmpty()
         {
         return f_fCompleteOnEmpty;
-        }
-
-    /**
-     * Print the state of this subscriber's channels.
-     *
-     * @param out  the {@link PrintStream} to print to
-     */
-    public void printChannels(PrintStream out)
-        {
-        Gate<?> gate = f_gate;
-        // Wait to enter the gate
-        gate.enter(-1);
-        try
-            {
-            out.println("Owned: " + Arrays.toString(m_aChannelOwned));
-            for (int c = 0; c < m_aChannel.length; c++)
-                {
-                out.printf("%d: %s current=%b\n", c, m_aChannel[c], (c == m_nChannel));
-                }
-            }
-        finally
-            {
-            // and finally exit from the gate
-            gate.exit();
-            }
         }
 
     /**
@@ -426,7 +341,9 @@ public class PagedTopicSubscriber<V>
     public CompletableFuture<List<Element<V>>> receive(int cBatch)
         {
         ensureActive();
-        CompletableFuture<List<Element<V>>> future = (CompletableFuture<List<Element<V>>>) f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
+        CompletableFuture<List<Element<V>>> future = (CompletableFuture<List<Element<V>>>)
+                f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
+
         f_cReceiveRequests.add(1L);
         future.handle((e, error) ->
             {
@@ -454,17 +371,8 @@ public class PagedTopicSubscriber<V>
                     .filter(e -> e.getPosition().equals(position))
                     .findFirst();
 
-            if (optional.isPresent())
-                {
-                return Optional.of(optional.get().getElement());
-                }
-
-            PagedPosition pagedPosition = (PagedPosition) position;
-            ContentKey    key           = new ContentKey(nChannel, pagedPosition.getPage(), pagedPosition.getOffset());
-            Binary        binary        = m_caches.Data.get(key.toBinary(m_caches.getPartitionCount()));
-            return binary == null
-                    ? Optional.empty()
-                    : Optional.of(PageElement.fromBinary(binary, m_caches.getSerializer()));
+            return optional.map(committableElement -> (Element<V>) committableElement.getElement())
+                    .or(() -> Optional.ofNullable(f_connector.peek(nChannel, position)));
             }
         return Optional.empty();
         }
@@ -475,14 +383,7 @@ public class PagedTopicSubscriber<V>
         ensureActive();
         try
             {
-            if (position instanceof PagedPosition)
-                {
-                return commitInternal(nChannel, (PagedPosition) position, null);
-                }
-            else
-                {
-                throw new IllegalArgumentException("Invalid position type");
-                }
+            return commitInternal(nChannel, position, null);
             }
         catch (Throwable t)
             {
@@ -499,20 +400,13 @@ public class PagedTopicSubscriber<V>
         ensureActive();
 
         Map<Integer, CommitResult>  mapResult = new HashMap<>();
-        Map<Integer, PagedPosition> mapCommit = new HashMap<>();
+        Map<Integer, Position>      mapCommit = new HashMap<>();
 
         for (Map.Entry<Integer, Position> entry : mapPositions.entrySet())
             {
             Integer  nChannel = entry.getKey();
             Position position = entry.getValue();
-            if (position instanceof PagedPosition)
-                {
-                mapCommit.put(nChannel, (PagedPosition) position);
-                }
-            else
-                {
-                mapResult.put(nChannel, new CommitResult(nChannel, position, CommitResultStatus.Rejected));
-                }
+            mapCommit.put(nChannel, position);
             }
 
         CompletableFuture<CommitResult>[] aFuture = mapCommit.entrySet()
@@ -523,14 +417,85 @@ public class PagedTopicSubscriber<V>
         return CompletableFuture.allOf(aFuture).handle((_void, err) -> mapResult);
         }
 
+    /**
+     * Returns {@code true} if the specified {@link Position} has been committed in the specified
+     * channel.
+     * <p>
+     * If the channel parameter is not a channel owned by this subscriber then even if the result
+     * returned is {@code false}, the position could since have been committed by the owning subscriber.
+     *
+     * @param nChannel  the channel
+     * @param position  the position within the channel to check
+     *
+     * @return {@code true} if the specified {@link Position} has been committed in the
+     *         specified channel, or {@code false} if the position is not committed or
+     *         this subscriber
+     */
+    public boolean isCommitted(int nChannel, Position position)
+        {
+        ensureActive();
+        return f_connector.isCommitted(f_subscriberGroupId, nChannel, position);
+        }
+
     @Override
     public int[] getChannels()
         {
-        return getChannelSet().stream()
-                .mapToInt(i -> i)
-                .toArray();
+        // Only have channels when connected
+        if (m_nState == STATE_CONNECTED)
+            {
+            Gate<?> gate = f_gate;
+            gate.enter(-1);
+            try
+                {
+                if (m_nState == STATE_CONNECTED)
+                    {
+                    return Arrays.stream(m_aChannel)
+                            .filter(TopicChannel::isOwned)
+                            .mapToInt(Channel::getId)
+                            .toArray();
+                    }
+                }
+            finally
+                {
+                gate.exit();
+                }
+            }
+        return NO_CHANNELS;
         }
 
+    /**
+     * Update the specified channel under the channel lock.
+     *
+     * @param nChannel  the channel to update
+     * @param fn        the function to apply to update the channel
+     */
+    @Override
+    public void updateChannel(int nChannel, Consumer<TopicChannel> fn)
+        {
+        applyToChannel(nChannel, channel ->
+            {
+            fn.accept(channel);
+            return null;
+            });
+        }
+
+    /**
+     * Update the specified channel under the channel lock.
+     *
+     * @param nChannel  the channel to update
+     * @param fn        the function to apply to update the channel
+     * @param <R>       the type of the result
+     *
+     * @return the result of invoking the function
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public <R> R applyToChannel(int nChannel, Function<TopicChannel, R> fn)
+        {
+//        try(Sentry<?> ignored = f_gate.close())
+//            {
+            return fn.apply(m_aChannel[nChannel]);
+//            }
+        }
 
     /**
      * Returns the current set of channels that this {@link Subscriber} owns.
@@ -556,8 +521,8 @@ public class PagedTopicSubscriber<V>
                 if (m_nState == STATE_CONNECTED)
                     {
                     return Arrays.stream(m_aChannel)
-                            .filter(PagedTopicChannel::isOwned)
-                            .map(c -> c.subscriberPartitionSync.getChannelId())
+                            .filter(TopicChannel::isOwned)
+                            .map(Channel::getId)
                             .collect(Collectors.toSet());
                     }
                 }
@@ -574,7 +539,11 @@ public class PagedTopicSubscriber<V>
         {
         if (m_nState == STATE_CONNECTED)
             {
-            return nChannel >= 0 && m_aChannel[nChannel].isOwned();
+            if (m_aChannel == null)
+                {
+                return false;
+                }
+            return nChannel >= 0 && nChannel < m_aChannel.length && m_aChannel[nChannel].isOwned();
             }
         return false;
         }
@@ -582,7 +551,8 @@ public class PagedTopicSubscriber<V>
     @Override
     public int getChannelCount()
         {
-        return  m_aChannel == null ? m_caches.getChannelCount() : m_aChannel.length;
+        TopicChannel[] aChannel = m_aChannel;
+        return  aChannel == null ? f_topic.getChannelCount() : aChannel.length;
         }
 
     @Override
@@ -642,7 +612,7 @@ public class PagedTopicSubscriber<V>
         {
         ensureActive();
         CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
-                f_queueReceiveOrders.addFirst(new SeekRequest(Collections.singletonMap(nChannel, position)));
+                f_queueReceiveOrders.addFirst(SeekRequest.position(Collections.singletonMap(nChannel, position)));
 
         Map<Integer, Position> map = future.join();
         return map.get(nChannel);
@@ -654,7 +624,7 @@ public class PagedTopicSubscriber<V>
         {
         ensureActive();
         CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
-                f_queueReceiveOrders.addFirst(new SeekRequest(mapPosition));
+                f_queueReceiveOrders.addFirst(SeekRequest.position(mapPosition));
 
         return future.join();
         }
@@ -665,9 +635,19 @@ public class PagedTopicSubscriber<V>
         {
         ensureActive();
         CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
-                f_queueReceiveOrders.addFirst(new SeekRequest(timestamp, nChannel));
+                f_queueReceiveOrders.addFirst(SeekRequest.instant(Map.of(nChannel, timestamp)));
 
         return future.join().get(nChannel);
+        }
+
+    @SuppressWarnings("unchecked")
+    public Map<Integer, Position> seekToTimestamps(Map<Integer, Instant> map)
+        {
+        ensureActive();
+        CompletableFuture<Map<Integer, Position>> future = (CompletableFuture<Map<Integer, Position>>)
+                f_queueReceiveOrders.addFirst(SeekRequest.instant(map));
+
+        return future.join();
         }
 
     @Override
@@ -676,7 +656,7 @@ public class PagedTopicSubscriber<V>
         {
         ensureActiveAnOwnedChannels(anChannel);
         return ((CompletableFuture<Map<Integer, Position>>)
-                f_queueReceiveOrders.addFirst(new SeekRequest(SeekType.Head, anChannel))).join();
+                f_queueReceiveOrders.addFirst(SeekRequest.head(anChannel))).join();
         }
 
     @Override
@@ -685,14 +665,14 @@ public class PagedTopicSubscriber<V>
         {
         ensureActiveAnOwnedChannels(anChannel);
         return ((CompletableFuture<Map<Integer, Position>>)
-                f_queueReceiveOrders.addFirst(new SeekRequest(SeekType.Tail, anChannel))).join();
+                f_queueReceiveOrders.addFirst(SeekRequest.tail(anChannel))).join();
         }
 
     @Override
     public int getRemainingMessages()
         {
         int[] anChannel = getChannels();
-        return m_caches.getRemainingMessages(f_subscriberGroupId, anChannel);
+        return f_connector.getRemainingMessages(f_subscriberGroupId, anChannel);
         }
 
     @Override
@@ -700,7 +680,7 @@ public class PagedTopicSubscriber<V>
         {
         if (isOwner(nChannel))
             {
-            return m_caches.getRemainingMessages(f_subscriberGroupId, nChannel);
+            return f_connector.getRemainingMessages(f_subscriberGroupId, new int[]{nChannel});
             }
         return 0;
         }
@@ -741,19 +721,19 @@ public class PagedTopicSubscriber<V>
         m_cWaitsLast          = cWaitNow;
         m_cNotifyLast         = cNotifyNow;
 
-        PagedTopicChannel[] aChannel = m_aChannel;
-        long   cChannelsPolled = Arrays.stream(aChannel).filter(PagedTopicChannel::isPolled).count();
-        String sChannelsPolled = Arrays.toString(Arrays.stream(aChannel).filter(PagedTopicChannel::isPolled).mapToInt(PagedTopicChannel::getId).toArray());
-        long   cChannelsHit    = Arrays.stream(aChannel).filter(PagedTopicChannel::isHit).count();
-        String sChannelsHit    = Arrays.toString(Arrays.stream(aChannel).filter(PagedTopicChannel::isHit).mapToInt(PagedTopicChannel::getId).toArray());
+        TopicChannel[] aChannel        = m_aChannel;
+        long           cChannelsPolled = Arrays.stream(aChannel).filter(TopicChannel::isPolled).count();
+        String         sChannelsPolled = Arrays.toString(Arrays.stream(aChannel).filter(TopicChannel::isPolled).mapToInt(TopicChannel::getId).toArray());
+        long           cChannelsHit    = Arrays.stream(aChannel).filter(TopicChannel::isHit).count();
+        String         sChannelsHit    = Arrays.toString(Arrays.stream(aChannel).filter(TopicChannel::isHit).mapToInt(TopicChannel::getId).toArray());
 
-        String sState = getStateName();
-        String sName  = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
+        String  sState     = getStateName();
+        String  sName      = f_sIdentifyingName == null ? "" : ", name=" + f_sIdentifyingName;
 
-        return getClass().getSimpleName() + "(" + "topic=" + m_caches.getTopicName() + sName +
-            ", id=" + f_id +
+        return getClass().getSimpleName() + "(" + "topic=" + f_sTopicName + sName +
+            ", id=" + f_subscriberId +
             ", group=" + f_subscriberGroupId +
-            ", subscriptionId=" + m_subscriptionId +
+            ", subscriptionId=" + f_connector.getSubscriptionId() +
             ", durable=" + !f_fAnonymous +
             ", state=" + sState +
             ", prefetched=" + m_queueValuesPrefetched.size() +
@@ -776,39 +756,30 @@ public class PagedTopicSubscriber<V>
 
     // ----- helper methods -------------------------------------------------
 
-    private PagedTopicChannel[] initializeChannels(PagedTopicCaches caches, int cChannel,
-            SubscriberGroupId subscriberGroupId)
+    protected TopicChannel[] initializeChannels(int cChannel)
         {
-        return initializeChannels(caches, cChannel, subscriberGroupId, null);
-        }
-
-    private PagedTopicChannel[] initializeChannels(PagedTopicCaches caches, int cChannel,
-            SubscriberGroupId subscriberGroupId, PagedTopicChannel[] existing)
-        {
-        if (existing != null && existing.length >= cChannel)
-            {
-            return existing;
-            }
-
         // must alter channels under a lock
         try (Sentry<?> ignored = f_gate.close())
             {
-            PagedTopicChannel[] aChannel = new PagedTopicChannel[cChannel];
-            int                 cPart    = caches.getPartitionCount();
+            TopicChannel[] aExisting = m_aChannel;
+            if (aExisting != null && aExisting.length >= cChannel)
+                {
+                return aExisting;
+                }
 
+            TopicChannel[] aChannel = new TopicChannel[cChannel];
             for (int nChannel = 0; nChannel < cChannel; nChannel++)
                 {
-                if (existing != null && nChannel < existing.length)
+                if (aExisting != null && nChannel < aExisting.length)
                     {
-                    aChannel[nChannel] = existing[nChannel];
+                    aChannel[nChannel] = aExisting[nChannel];
                     }
                 else
                     {
-                    aChannel[nChannel] = new PagedTopicChannel();
-                    aChannel[nChannel].subscriberPartitionSync = Subscription.createSyncKey(subscriberGroupId, nChannel, cPart);
+                    aChannel[nChannel] = f_connector.createChannel(this, nChannel);
                     }
                 }
-
+            m_aChannel = aChannel;
             return aChannel;
             }
         }
@@ -820,9 +791,11 @@ public class PagedTopicSubscriber<V>
      *
      * @return the specified channel
      */
+    @Override
     public Channel getChannel(int nChannel)
         {
-        return nChannel < m_aChannel.length ? m_aChannel[nChannel] : new Channel.EmptyChannel(nChannel);
+        TopicChannel[] aChannel = m_aChannel;
+        return nChannel >= 0 && nChannel < aChannel.length ? aChannel[nChannel] : new Channel.EmptyChannel(nChannel);
         }
 
     /**
@@ -830,6 +803,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of cancelled receive requests
      */
+    @Override
     public long getCancelled()
         {
         return f_cCancelled.longValue();
@@ -850,6 +824,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of completed receive requests
      */
+    @Override
     public long getReceived()
         {
         return m_cReceived.getCount();
@@ -860,6 +835,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the mean rate of completed receive requests
      */
+    @Override
     public double getReceivedMeanRate()
         {
         return m_cReceived.getMeanRate();
@@ -870,6 +846,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the one-minute rate of completed receive requests
      */
+    @Override
     public double getReceivedOneMinuteRate()
         {
         return m_cReceived.getOneMinuteRate();
@@ -880,6 +857,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the five-minute rate of completed receive requests
      */
+    @Override
     public double getReceivedFiveMinuteRate()
         {
         return m_cReceived.getFiveMinuteRate();
@@ -890,6 +868,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the fifteen-minute rate of completed receive requests
      */
+    @Override
     public double getReceivedFifteenMinuteRate()
         {
         return m_cReceived.getFifteenMinuteRate();
@@ -898,11 +877,12 @@ public class PagedTopicSubscriber<V>
     /**
      * Return the number of receive requests completed empty.
      * <p>
-     * This wil only apply to subscribers using the {@link com.tangosol.net.topic.Subscriber.CompleteOnEmpty}
+     * This wil only apply to subscribers using the {@link CompleteOnEmpty}
      * option.
      *
      * @return the number of receive requests completed empty
      */
+    @Override
     public long getReceivedEmpty()
         {
         return m_cReceivedEmpty.getCount();
@@ -913,6 +893,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of exceptionally completed receive requests
      */
+    @Override
     public long getReceivedError()
         {
         return m_cReceivedError.getCount();
@@ -923,6 +904,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of disconnections
      */
+    @Override
     public long getDisconnectCount()
         {
         return m_cDisconnect.getCount();
@@ -946,6 +928,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of polls of the topic for messages
      */
+    @Override
     public long getPolls()
         {
         return m_cPolls;
@@ -956,6 +939,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of message elements received
      */
+    @Override
     public long getElementsPolled()
         {
         return m_cValues;
@@ -966,6 +950,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of times the subscriber has waited on empty channels
      */
+    @Override
     public long getWaitCount()
         {
         return m_cWait;
@@ -986,43 +971,21 @@ public class PagedTopicSubscriber<V>
      *
      * @return the number of notification received that a channel has been populated
      */
+    @Override
     public long getNotify()
         {
         return m_cNotify;
         }
 
     /**
-     * Returns {@code true} if the specified {@link Position} has been committed in the specified
-     * channel.
-     * <p>
-     * If the channel parameter is not a channel owned by this subscriber then even if the result
-     * returned is {@code false}, the position could since have been committed by the owning subscriber.
-     *
-     * @param nChannel  the channel
-     * @param position  the position within the channel to check
-     *
-     * @return {@code true} if the specified {@link Position} has been committed in the
-     *         specified channel, or {@code false} if the position is not committed or
-     *         this subscriber
-     */
-    public boolean isCommitted(int nChannel, Position position)
-        {
-        ensureActive();
-        return m_caches.isCommitted(f_subscriberGroupId, nChannel, position);
-        }
-
-    /**
      * Initialise the subscriber.
-     *
-     * @throws InterruptedException if the wait for channel allocation is interrupted
-     * @throws ExecutionException if the wait for channel allocation fails
      */
-    protected void initialise() throws InterruptedException, ExecutionException, TimeoutException
+    public TopicChannel[] initialise()
         {
         ensureActive();
         if (m_nState == STATE_CONNECTED)
             {
-            return;
+            return m_aChannel;
             }
 
         // We must do initialisation under the gate lock
@@ -1038,126 +1001,67 @@ public class PagedTopicSubscriber<V>
                     break;
                     }
 
-                int nPrevState = setState(STATE_CONNECTING);
+                int     nPrevState    = setState(STATE_CONNECTING);
+                boolean fDisconnected = nPrevState == STATE_DISCONNECTED;
 
                 if (fReconnect)
                     {
                     Logger.finest("Reconnecting subscriber " + this);
                     }
 
-                m_caches.ensureConnected();
-
-                if (!f_fAnonymous)
+                try
                     {
-                    PagedTopicService service = m_caches.getService();
-                    if (m_subscriptionId == 0)
+                    Position[]     alHead   = f_connector.initialize(this, m_fForceReconnect, fReconnect, fDisconnected);
+                    TopicChannel[] aChannel = m_aChannel;
+
+                    int cChannel = alHead.length;
+                    if (cChannel > aChannel.length)
                         {
-                        // this is the first time, so we get the unique id of the subscriber group
-                        m_subscriptionId = service.ensureSubscription(f_topic.getName(), f_subscriberGroupId, f_id,
-                                                                      f_filter, f_extractor);
+                        // this subscriber has fewer channels than the server so needs to be resized
+                        aChannel = initializeChannels(cChannel);
+                        }
+
+                    for (int nChannel = 0; nChannel < cChannel; ++nChannel)
+                        {
+                        TopicChannel channel = aChannel[nChannel];
+                        channel.setHead(alHead[nChannel]);
+                        channel.setPopulated(); // even if we could infer emptiness here it is unsafe unless we've registered for events
+                        }
+
+                    cChannel = aChannel.length;
+
+                    if (f_fAnonymous)
+                        {
+                        // anonymous so we own all channels
+                        SortedSet<Integer> setChannel = new TreeSet<>();
+                        for (int i = 0; i < cChannel; i++)
+                            {
+                            setChannel.add(i);
+                            }
+                        updateChannelOwnership(setChannel, false);
                         }
                     else
                         {
-                        // this is a reconnect request, ensure the group still exists
-                        // ensure this subscriber is subscribed
-                        service.ensureSubscription(f_topic.getName(), m_subscriptionId, f_id, m_fForceReconnect);
-                        if (service.isSubscriptionDestroyed(m_subscriptionId))
-                            {
-                            close();
-                            throw new IllegalStateException("The subscriber group \"" + f_subscriberGroupId + "\" (id="
-                                                                    + m_subscriptionId + ") this subscriber was previously subscribed to has been destroyed");
-                            }
+                        SortedSet<Integer> setChannel = f_connector.getOwnedChannels(this);
+                        updateChannelOwnership(setChannel, false);
                         }
-                    PagedTopicSubscription subscription = service.getSubscription(m_subscriptionId);
-                    if (subscription != null)
+
+                    heartbeat();
+                    f_connector.onInitialized(this);
+                    if (casState(STATE_CONNECTING, STATE_CONNECTED))
                         {
-                        m_connectionTimestamp = subscription.getSubscriberTimestamp(f_id);
+                        switchChannel();
                         }
-                    else
-                        {
-                        // the subscription may be null during rolling upgrade where the senior is an older version
-                        m_connectionTimestamp = SafeClock.INSTANCE.getSafeTimeMillis();
-                        }
-
-                    // heartbeat immediately to update the subscriber's timestamp in the Subscriber cache
-                    heartbeat(false);
                     }
-
-                boolean fDisconnected = nPrevState == STATE_DISCONNECTED;
-                long[]  alHead        = m_caches.initializeSubscription(f_subscriberGroupId, f_id, m_subscriptionId,
-                                                                        f_filter, f_extractor, fReconnect, false, fDisconnected);
-                int     cChannel      = alHead.length;
-
-                if (cChannel > m_aChannel.length)
+                catch (Throwable t)
                     {
-                    // this subscriber has fewer channels than the server so needs to be resized
-                    PagedTopicChannel[] aChannel = m_aChannel;
-                    m_aChannel = initializeChannels(m_caches, cChannel, f_subscriberGroupId, aChannel);
-                    }
-
-                for (int nChannel = 0; nChannel < cChannel; ++nChannel)
-                    {
-                    PagedTopicChannel channel = m_aChannel[nChannel];
-                    channel.m_lHead  = alHead[nChannel];
-                    channel.m_nNext  = PagedPosition.NULL_OFFSET; // unknown page position to start
-                    channel.setPopulated(); // even if we could infer emptiness here it is unsafe unless we've registered for events
-                    }
-
-                if (f_fAnonymous)
-                    {
-                    // anonymous so we own all channels
-                    SortedSet<Integer> listChannel = new TreeSet<>();
-                    for (int i = 0; i < cChannel; i++)
-                        {
-                        listChannel.add(i);
-                        }
-                    updateChannelOwnership(listChannel, false);
-                    }
-                else
-                    {
-                    PagedTopicSubscription pagedTopicSubscription = m_caches.getService().getSubscription(m_subscriptionId);
-                    SortedSet<Integer>     setChannel;
-                    if (pagedTopicSubscription != null)
-                        {
-                        // we have a PagedTopicSubscription so get the channels from it
-                        setChannel = pagedTopicSubscription.getOwnedChannels(f_id);
-                        }
-                    else
-                        {
-                        CompletableFuture<Subscription> future = m_caches.Subscriptions.async().get(m_aChannel[0].subscriberPartitionSync);
-                        try
-                            {
-                            // we use a timout here because a never ending get can cause a deadlock during fail-over scenarios
-                            Subscription subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
-                            setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel)).boxed().collect(Collectors.toCollection(TreeSet::new));
-                            }
-                        catch (TimeoutException e)
-                            {
-                            future.cancel(true);
-                            if (future.isDone() && !future.isCompletedExceptionally())
-                                {
-                                // the future must have completed between the get timeout and the cancel call
-                                Subscription subscription = future.get(INIT_TIMEOUT_SECS, TimeUnit.SECONDS);
-                                setChannel = Arrays.stream(subscription.getChannels(f_id, cChannel)).boxed().collect(Collectors.toCollection(TreeSet::new));
-                                }
-                            else
-                                {
-                                throw e;
-                                }
-                            }
-                        }
-                    updateChannelOwnership(setChannel, false);
-                    }
-
-                heartbeat();
-                registerNotificationListener();
-                if (casState(STATE_CONNECTING, STATE_CONNECTED))
-                    {
-                    switchChannel();
+                    // something failed, so assume we are now disconnected
+                    setState(STATE_DISCONNECTED);
+                    throw Exceptions.ensureRuntimeException(t);
                     }
                 }
-
             m_cSubscribe.mark();
+            return m_aChannel;
             }
         }
 
@@ -1193,34 +1097,25 @@ public class PagedTopicSubscriber<V>
             if (!queueRequest.isBatchComplete() && nChannel >= 0)
                 {
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
-                PagedTopicChannel channel  = m_aChannel[nChannel];
-                long              lVersion = channel.getVersion();
-                long              lHead    = channel.m_lHead == PagedTopicChannel.HEAD_UNKNOWN
-                                                    ? getSubscriptionHead(channel) : channel.m_lHead;
+                TopicChannel channel  = m_aChannel[nChannel];
+                long         lVersion = channel.getVersion();
 
-                int nPart = ((PartitionedService) m_caches.Subscriptions.getCacheService())
-                                    .getKeyPartitioningStrategy()
-                                    .getKeyPartition(new Page.Key(nChannel, lHead));
-
-                InvocableMapHelper.invokeAsync(m_caches.Subscriptions,
-                                               new Subscription.Key(nPart, nChannel, f_subscriberGroupId), m_caches.getUnitOfOrder(nPart),
-                                               new PollProcessor(lHead, Integer.MAX_VALUE, f_nNotificationId, f_id),
-                                               f_executor,
-                                               (result, e) -> onReceiveResult(channel, lVersion, lHead, result, e))
-                                  .handleAsync((r, e) ->
-                                      {
-                                      if (e != null)
-                                          {
-                                          Logger.err(e);
-                                          return null;
-                                          }
-                                      if (!m_queueValuesPrefetched.isEmpty())
-                                          {
-                                          complete(queueRequest);
-                                          }
-                                      trigger(cBatch);
-                                      return null;
-                                      }, f_daemon::executeTask);
+                f_connector.receive(this, nChannel, channel.getHead(), lVersion, (lVersion1, result, e1, continuation) ->
+                        onReceiveResult(channel, lVersion1, result, e1, continuation))
+                            .handleAsync((r, e) ->
+                                {
+                                if (e != null)
+                                    {
+                                    Logger.err(e);
+                                    return null;
+                                    }
+                                if (!m_queueValuesPrefetched.isEmpty())
+                                    {
+                                    complete(queueRequest);
+                                    }
+                                trigger(cBatch);
+                                return null;
+                                }, f_daemon::executeTask);
                 }
             else
                 {
@@ -1268,26 +1163,20 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Returns the initial head page.
+     * Asynchronously receive a message from the topic.
      *
-     * @return the initial head page
+     * @param nChannel  the channel to receive from
+     * @param handler   the response handler
+     *
+     * @return a {@link CompletableFuture} that will complete with the completion of the receive operation
      */
-    private long getSubscriptionHead(PagedTopicChannel channel)
+    public CompletableFuture<ReceiveResult> receive(int nChannel, SubscriberConnector.ReceiveHandler handler)
         {
-        Subscription subscription = m_caches.Subscriptions.get(channel.subscriberPartitionSync);
-        if (subscription == null)
-            {
-            try
-                {
-                initialise();
-                }
-            catch (Throwable e)
-                {
-                throw Exceptions.ensureRuntimeException(e);
-                }
-            return m_aChannel[channel.getId()].m_lHead;
-            }
-        return subscription.getSubscriptionHead();
+        ensureConnected();
+        TopicChannel channel  = m_aChannel[nChannel];
+        Position     head     = channel.getHead();
+        long         lVersion = channel.getVersion();
+        return f_connector.receive(this, nChannel, head, lVersion, handler);
         }
 
     /**
@@ -1307,8 +1196,7 @@ public class PagedTopicSubscriber<V>
      * @param queueRequest  the queue of requests to complete
      */
     @SuppressWarnings("unchecked")
-    protected void complete(BatchingOperationsQueue<Request, ?> queueRequest,
-                            LinkedList<Request> queueBatch)
+    protected void complete(BatchingOperationsQueue<Request, ?> queueRequest, LinkedList<Request> queueBatch)
         {
         ConcurrentLinkedDeque<CommittableElement> queuePrefetched = m_queueValuesPrefetched;
 
@@ -1427,6 +1315,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the size of the prefetch queue
      */
+    @Override
     public int getReceiveQueueSize()
         {
         return f_queueReceiveOrders.size();
@@ -1467,10 +1356,11 @@ public class PagedTopicSubscriber<V>
     private void onReceiveComplete(Element<?> element)
         {
         int c = element.getChannel();
-        if (m_aChannel[c].isOwned())
+        TopicChannel channel = m_aChannel[c];
+        if (channel != null && channel.isOwned())
             {
-            m_aChannel[c].m_lastReceived = (PagedPosition) element.getPosition();
-            m_aChannel[c].m_cReceived.mark();
+            channel.m_lastReceived = element.getPosition();
+            channel.m_cReceived.mark();
             }
         }
 
@@ -1483,46 +1373,24 @@ public class PagedTopicSubscriber<V>
      *
      * @return a {@link CompletableFuture} that completes when the commit request has completed
      */
-    private CompletableFuture<CommitResult> commitInternal(int nChannel, PagedPosition position, Map<Integer, CommitResult>  mapResult)
+    private CompletableFuture<CommitResult> commitInternal(int nChannel, Position position, Map<Integer, CommitResult> mapResult)
         {
         try
             {
-            long lPage = position.getPage();
-            int  cPart = m_caches.getPartitionCount();
-            int  nPart = ((PartitionedService) m_caches.Subscriptions.getCacheService())
-                                .getKeyPartitioningStrategy().getKeyPartition(new Page.Key(nChannel, lPage));
-
-            scheduleHeadIncrement(m_aChannel[nChannel], lPage - 1).join();
-
-            Set<Subscription.Key> setKeys = m_aChannel[nChannel].ensureSubscriptionKeys(cPart, f_subscriberGroupId);
-
-            // We must execute against all Subscription keys for the channel and subscriber group
-            CompletableFuture<Map<Subscription.Key, CommitResult>> future
-                    = CompletableFuture.supplyAsync(() -> m_caches.Subscriptions.invokeAll(setKeys, new CommitProcessor(position, f_id)), Daemons.commonPool());
-
-            return future.handle((map, err) ->
+            TopicChannel channel = m_aChannel[nChannel];
+            return f_connector.commit(this, nChannel, position)
+                    .handle((result, err) ->
+                        {
+                        if (err == null)
                             {
-                            CommitResult result;
-                            if (err == null)
-                                {
-                                // we are only interested in the result for the actual committed position
-                                Subscription.Key key = new Subscription.Key(nPart, nChannel, f_subscriberGroupId);
-                                result = map.get(key);
-                                }
-                            else
-                                {
-                                Logger.err("Commit failure", err);
-                                result = new CommitResult(nChannel, position, CommitResultStatus.Rejected, err);
-                                }
-
                             if (mapResult != null)
                                 {
                                 mapResult.put(nChannel, result);
                                 }
-
-                            m_aChannel[nChannel].committed(position);
-                            return result;
-                            });
+                            channel.committed(position);
+                            }
+                        return result;
+                        });
             }
         catch (Throwable thrown)
             {
@@ -1532,50 +1400,21 @@ public class PagedTopicSubscriber<V>
             }
         }
 
-    private Position seekChannel(int nChannel, PagedPosition pagedPosition)
+    @Override
+    public Position updateSeekedChannel(int nChannel, SeekResult result)
         {
-        SeekProcessor.Result result       = seekInternal(nChannel, pagedPosition);
-        Position             seekPosition = updateSeekedChannel(nChannel, result);
-        return seekPosition == null ? PagedPosition.NULL_POSITION : seekPosition;
-        }
-
-    private Position updateSeekedChannel(int nChannel, SeekProcessor.Result result)
-        {
-        PagedPosition positionHead = result.getHead();
-        PagedPosition seekPosition = result.getSeekPosition();
-
+        Position positionHead = result.getHead();
+        Position seekPosition = result.getSeekPosition();
         if (positionHead != null)
             {
-            m_aChannel[nChannel].m_lHead = positionHead.getPage();
-            m_aChannel[nChannel].m_nNext = positionHead.getOffset();
+            try (Sentry<?> ignored = f_gate.close())
+                {
+                TopicChannel channel = m_aChannel[nChannel];
+                channel.setHead(positionHead);
+                }
             }
-
         m_queueValuesPrefetched.removeIf(e -> e.getChannel() == nChannel);
         return seekPosition;
-        }
-
-    /**
-     * Move the head of the specified channel to a new position.
-     *
-     * @param nChannel   the channel to commit
-     * @param position   the position within the channel to commit
-     */
-    private SeekProcessor.Result seekInternal(int nChannel, PagedPosition position)
-        {
-        // We must execute against all Subscription keys for the same channel and subscriber group
-        Set<Subscription.Key> setKeys = m_aChannel[nChannel]
-                .ensureSubscriptionKeys(m_caches.getPartitionCount(), f_subscriberGroupId);
-
-        Map<Subscription.Key, SeekProcessor.Result> mapResult
-                = m_caches.Subscriptions.invokeAll(setKeys, new SeekProcessor(position, f_id));
-
-        // the new head is the lowest non-null returned position
-        return mapResult.values()
-                .stream()
-                .filter(Objects::nonNull)
-                .sorted()
-                .findFirst()
-                .orElse(null);
         }
 
     private Map<Integer, Position> seekInternal(SeekRequest request)
@@ -1583,42 +1422,31 @@ public class PagedTopicSubscriber<V>
         SeekType type      = request.getType();
         int[]    anChannel = request.getChannels();
 
-        if (anChannel == null || anChannel.length == 0)
-            {
-            return new HashMap<>();
-            }
-
         ensureActiveAnOwnedChannels(anChannel);
 
+        //noinspection EnhancedSwitchMigration
         switch (type)
             {
             case Head:
-                ValueExtractor<Page, Integer> extractorChannel = new ReflectionExtractor<>("getChannelId", new Object[0], ReflectionExtractor.KEY);
-                ValueExtractor<Page, Long>    extractorPage    = new ReflectionExtractor<>("getPageId", new Object[0], ReflectionExtractor.KEY);
-                Map<Integer, Long>            mapHeads         = m_caches.Pages.aggregate(GroupAggregator.createInstance(extractorChannel, new LongMin<>(extractorPage)));
-
-                Map<Integer, Position> mapSeek = new HashMap<>();
-                for (int nChannel : anChannel)
+                if (anChannel == null || anChannel.length == 0)
                     {
-                    mapSeek.put(nChannel, new PagedPosition(mapHeads.get(nChannel), -1));
+                    return new HashMap<>();
                     }
-
+                Map<Integer, Position> mapSeek = f_connector.getTopicHeads(anChannel);
                 return seekInternal(mapSeek);
             case Tail:
-                Map<Integer, Position> mapTails = m_caches.getTails();
+                if (anChannel == null || anChannel.length == 0)
+                    {
+                    return new HashMap<>();
+                    }
+                Map<Integer, Position> mapTails = f_connector.getTopicTails();
                 return seekInternal(filterForChannel(mapTails, anChannel));
             case Position:
-                return seekInternal(request.getPositions());
+                Map<Integer, Position> positions = request.getPositions();
+                return positions.isEmpty() ? Collections.emptyMap() : seekInternal(positions);
             case Instant:
-                Map<Integer, Position> mapPosition = new HashMap<>();
-                Instant                instant     = request.getInstant();
-
-                for (int nChannel : request.getChannels())
-                    {
-                    Position position = seekInternal(nChannel, instant);
-                    mapPosition.put(nChannel, position);
-                    }
-                return mapPosition;
+                Map<Integer, Instant> instants = request.getInstants();
+                return instants.isEmpty() ? Collections.emptyMap() : seekInternalToTimestamps(instants);
             default:
                 throw new IllegalArgumentException("Invalid SeekType " + type);
             }
@@ -1630,7 +1458,7 @@ public class PagedTopicSubscriber<V>
 
         List<Integer> listUnallocated = mapPosition.keySet().stream()
                 .filter(c -> !isOwner(c))
-                .collect(Collectors.toList());
+                .toList();
 
         if (!listUnallocated.isEmpty())
             {
@@ -1642,30 +1470,23 @@ public class PagedTopicSubscriber<V>
             // pause receives while we seek
             f_queueReceiveOrders.pause();
 
-            Map<Integer, PagedPosition> mapSeek = new HashMap<>();
+            Map<Integer, Position> mapSeek = new HashMap<>();
             for (Map.Entry<Integer, Position> entry : mapPosition.entrySet())
                 {
                 Integer  nChannel = entry.getKey();
                 Position position = entry.getValue();
-                if (position instanceof PagedPosition)
-                    {
-                    mapSeek.put(nChannel, (PagedPosition) position);
-                    }
-                else
-                    {
-                    throw new IllegalArgumentException("Invalid position type for channel " + nChannel);
-                    }
+                mapSeek.put(nChannel, position);
                 }
 
-            Map<Integer, Position> mapResult    = new HashMap<>();
-            for (Map.Entry<Integer, PagedPosition> entry : mapSeek.entrySet())
+            Map<Integer, SeekResult> mapResult = f_connector.seekToPosition(this, mapSeek);
+            Map<Integer, Position>   mapSeeked = new HashMap<>();
+            for (Map.Entry<Integer, SeekResult> entry : mapResult.entrySet())
                 {
-                int                  nChannel     = entry.getKey();
-                SeekProcessor.Result result       = seekInternal(nChannel, entry.getValue());
-                Position             seekPosition = updateSeekedChannel(nChannel, result);
-                mapResult.put(nChannel, seekPosition);
+                int        nChannel     = entry.getKey();
+                Position   seekPosition = updateSeekedChannel(nChannel, entry.getValue());
+                mapSeeked.put(nChannel, seekPosition);
                 }
-            return mapResult;
+            return mapSeeked;
             }
         finally
             {
@@ -1674,54 +1495,32 @@ public class PagedTopicSubscriber<V>
             }
         }
 
-    private Position seekInternal(int nChannel, Instant timestamp)
+    private Map<Integer, Position> seekInternalToTimestamps(Map<Integer, Instant> mapInstant)
         {
-        if (!isOwner(nChannel))
-            {
-            throw new IllegalStateException("Subscriber is not allocated channel " + nChannel);
-            }
+        ensureActive();
 
-        Objects.requireNonNull(timestamp);
+        List<Integer> listUnallocated = mapInstant.keySet().stream()
+                .filter(c -> !isOwner(c))
+                .toList();
+
+        if (!listUnallocated.isEmpty())
+            {
+            throw new IllegalStateException("Subscriber is not allocated channels " + listUnallocated);
+            }
 
         try
             {
             // pause receives while we seek
             f_queueReceiveOrders.pause();
-
-            ValueExtractor<Object, Integer>  extractorChannel   = Page.ElementExtractor.chained(Element::getChannel);
-            ValueExtractor<Object, Instant>  extractorTimestamp = Page.ElementExtractor.chained(Element::getTimestamp);
-            ValueExtractor<Object, Position> extractorPosition  = Page.ElementExtractor.chained(Element::getPosition);
-
-            Binary bin = m_caches.Data.aggregate(
-                    Filters.equal(extractorChannel, nChannel).and(Filters.greater(extractorTimestamp, timestamp)),
-                    new ComparableMin<>(extractorPosition));
-
-            @SuppressWarnings("unchecked")
-            PagedPosition position = (PagedPosition) m_caches.getService().getBackingMapManager()
-                    .getContext().getValueFromInternalConverter().convert(bin);
-
-            if (position == null)
+            Map<Integer, SeekResult> mapResult = f_connector.seekToTimestamp(this, mapInstant);
+            Map<Integer, Position>   mapSeeked = new HashMap<>();
+            for (Map.Entry<Integer, SeekResult> entry : mapResult.entrySet())
                 {
-                // nothing found greater than the timestamp so either the topic is empty
-                // or all elements are earlier, in either case seek to the tail
-                return seekToTail(nChannel).get(nChannel);
+                int        nChannel     = entry.getKey();
+                Position   seekPosition = updateSeekedChannel(nChannel, entry.getValue());
+                mapSeeked.put(nChannel, seekPosition);
                 }
-
-            PagedPosition positionSeek;
-            int           nOffset = position.getOffset();
-
-            if (nOffset == 0)
-                {
-                // The position found is the head of a page, so we actually want to seek to the previous element
-                // We don;t know the tail of that page, so we can use Integer.MAX_VALUE
-                positionSeek = new PagedPosition(position.getPage() - 1, Integer.MAX_VALUE);
-                }
-            else
-                {
-                // we are not at the head of a page so seek to the page and previous offset
-                positionSeek = new PagedPosition(position.getPage(), nOffset - 1);
-                }
-            return seekChannel(nChannel, positionSeek);
+            return mapSeeked;
             }
         finally
             {
@@ -1739,7 +1538,7 @@ public class PagedTopicSubscriber<V>
             List<Integer> listUnallocated = Arrays.stream(anChannel)
                     .filter(c -> !isOwner(c))
                     .boxed()
-                    .collect(Collectors.toList());
+                    .toList();
 
             if (!listUnallocated.isEmpty())
                 {
@@ -1771,7 +1570,8 @@ public class PagedTopicSubscriber<V>
 
         for (int nChannel : anChannel)
             {
-            mapHeads.put(nChannel, m_aChannel[nChannel].getHead());
+            TopicChannel channel = m_aChannel[nChannel];
+            mapHeads.put(nChannel, channel.getHead());
             }
 
         for (CommittableElement element : m_queueValuesPrefetched)
@@ -1779,11 +1579,11 @@ public class PagedTopicSubscriber<V>
             int nChannel = element.getChannel();
             if (mapHeads.containsKey(nChannel))
                 {
-                Position      positionCurrent = mapHeads.get(nChannel);
-                PagedPosition position        = (PagedPosition) element.getPosition();
+                Position positionCurrent = mapHeads.get(nChannel);
+                Position position        = element.getPosition();
 
                 if (nChannel != CommittableElement.EMPTY && position != null
-                        && position.getPage() != Page.EMPTY
+                        && !position.isEmpty()
                         && (positionCurrent == null || positionCurrent.compareTo(position) > 0))
                     {
                     mapHeads.put(nChannel, position);
@@ -1796,12 +1596,13 @@ public class PagedTopicSubscriber<V>
 
     private Map<Integer, Position> getTailsInternal()
         {
-        Map<Integer, Position> map       = m_caches.getTails();
+        Map<Integer, Position> map       = f_connector.getTopicTails();
         Map<Integer, Position> mapTails  = new HashMap<>();
         int[]                  anChannel = getChannels();
         for (int nChannel : anChannel)
             {
-            mapTails.put(nChannel, map.getOrDefault(nChannel, m_aChannel[nChannel].getHead()));
+            TopicChannel channel = m_aChannel[nChannel];
+            mapTails.put(nChannel, map.getOrDefault(nChannel, channel.getHead()));
             }
         return mapTails;
         }
@@ -1809,12 +1610,12 @@ public class PagedTopicSubscriber<V>
     private Map<Integer, Position> getLastCommittedInternal()
         {
         ensureActive();
-        Map<Integer, Position> mapCommit  = m_caches.getLastCommitted(f_subscriberGroupId);
+        Map<Integer, Position> mapCommit  = f_connector.getLastCommittedInGroup(f_subscriberGroupId);
         int[]                  anChannels = m_aChannelOwned;
         Map<Integer, Position> mapResult  = new HashMap<>();
         for (int nChannel : anChannels)
             {
-            mapResult.put(nChannel, mapCommit.getOrDefault(nChannel, PagedPosition.NULL_POSITION));
+            mapResult.put(nChannel, mapCommit.getOrDefault(nChannel, Position.EMPTY_POSITION));
             }
         return mapResult;
         }
@@ -1837,6 +1638,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the state of the subscriber
      */
+    @Override
     public int getState()
         {
         return m_nState;
@@ -1847,6 +1649,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return the state of the subscriber
      */
+    @Override
     public String getStateName()
         {
         return getStateName(m_nState);
@@ -1952,10 +1755,12 @@ public class PagedTopicSubscriber<V>
     /**
      * Ensure that the subscriber is connected.
      */
+    @Override
     public void connect()
         {
         ensureActive();
-        ensureConnected();;
+        ensureConnected();
+        ;
         }
 
     /**
@@ -1970,7 +1775,7 @@ public class PagedTopicSubscriber<V>
             }
 
         try {
-            if (m_caches.getService().isSuspended())
+            if (f_topic.getService().isSuspended())
                 {
                 Logger.finest("Skipping reconnect task, service is suspended for subscriber " + this);
                 }
@@ -2004,11 +1809,11 @@ public class PagedTopicSubscriber<V>
             try (Sentry<?> ignored = f_gate.close())
                 {
                 ensureActive();
-                PagedTopicDependencies dependencies = m_caches.getDependencies();
-                long                    retry        = dependencies.getReconnectRetryMillis();
-                long                    now          = System.currentTimeMillis();
-                long                    timeout      = now + dependencies.getReconnectTimeoutMillis();
-                Throwable               error        = null;
+                TopicDependencies dependencies = f_connector.getTopicDependencies();
+                long              retry        = dependencies.getReconnectRetryMillis();
+                long              now          = System.currentTimeMillis();
+                long              timeout      = now + dependencies.getReconnectTimeoutMillis();
+                Throwable         error        = null;
 
                 if (m_nState != STATE_CONNECTED)
                     {
@@ -2020,12 +1825,12 @@ public class PagedTopicSubscriber<V>
                             }
                         try
                             {
-                            if (m_caches.getService().isSuspended())
+                            if (f_topic.getService().isSuspended())
                                 {
                                 Logger.finer("Skipping ensureConnected, service is suspended " + this);
                                 break;
                                 }
-                            m_caches.ensureConnected();
+                            f_connector.ensureConnected();
                             initialise();
                             error = null;
                             break;
@@ -2083,6 +1888,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return {@code true} if this subscriber is connected to the topic
      */
+    @Override
     public boolean isConnected()
         {
         return m_nState == STATE_CONNECTED;
@@ -2093,6 +1899,7 @@ public class PagedTopicSubscriber<V>
      * <p>
      * This will cause the subscriber to re-initialize itself on re-connection.
      */
+    @Override
     public void disconnect()
         {
         disconnectInternal(false);
@@ -2105,9 +1912,9 @@ public class PagedTopicSubscriber<V>
      *
      * @param fForceReconnect  force the subscriber to reconnect
      */
-    private void disconnectInternal(boolean fForceReconnect)
+    public void disconnectInternal(boolean fForceReconnect)
         {
-        long nTimestamp = m_connectionTimestamp;
+        long nTimestamp = f_connector.getConnectionTimestamp();
         if (isActive())
             {
             // We will loop around until we successfully set the state to be disconnected
@@ -2120,7 +1927,7 @@ public class PagedTopicSubscriber<V>
                     // we disconnect under a lock
                     try (Sentry<?> ignored = f_gate.close())
                         {
-                        if (m_connectionTimestamp != nTimestamp)
+                        if (f_connector.getConnectionTimestamp() != nTimestamp)
                             {
                             // reconnected since this disconnect was originally called, so just return
                             return;
@@ -2130,17 +1937,11 @@ public class PagedTopicSubscriber<V>
                             {
                             m_fForceReconnect = fForceReconnect;
                             m_cDisconnect.mark();
-                            if (!f_fAnonymous)
-                                {
-                                // reset the channel allocation for non-anonymous subscribers, channels
-                                // will be reallocated when (or if) reconnection occurs
-                                m_listenerChannelAllocation.reset();
-                                }
                             // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
                             m_queueValuesPrefetched.clear();
 
-                            PagedTopicDependencies  dependencies = m_caches.getDependencies();
-                            long                    cWaitMillis  = dependencies.getReconnectWaitMillis();
+                            TopicDependencies  dependencies = f_connector.getTopicDependencies();
+                            long               cWaitMillis  = dependencies.getReconnectWaitMillis();
                             Logger.finest("Disconnected Subscriber " + this);
                             f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
                             }
@@ -2162,6 +1963,7 @@ public class PagedTopicSubscriber<V>
      *
      * @return this subscriber's group identifier
      */
+    @Override
     public SubscriberGroupId getSubscriberGroupId()
         {
         return f_subscriberGroupId;
@@ -2170,21 +1972,12 @@ public class PagedTopicSubscriber<V>
     /**
      * Notification that one or more channels that were empty now have content.
      *
-     * @param nChannel  the non-empty channels
+     * @param nChannel the non-empty channels
      */
+    @Override
     public void notifyChannel(int nChannel)
         {
         onChannelPopulatedNotification(new int[]{nChannel});
-        }
-
-    /**
-     * Asynchronously handle a channel populated notification event.
-     *
-     * @param evt  the channel populated notification event
-     */
-    private void onChannelPopulatedNotification(MapEvent<?, ?> evt)
-        {
-        CompletableFuture.runAsync(() -> onChannelPopulatedNotification((int[]) evt.getOldValue()), f_executorChannels);
         }
 
     /**
@@ -2192,7 +1985,7 @@ public class PagedTopicSubscriber<V>
      *
      * @param anChannel  the non-empty channels
      */
-    protected void onChannelPopulatedNotification(int[] anChannel)
+    public void onChannelPopulatedNotification(int[] anChannel)
         {
         if (anChannel == null || anChannel.length == 0)
             {
@@ -2205,7 +1998,8 @@ public class PagedTopicSubscriber<V>
         // Channel operations are done under a lock
         try (Sentry<?> ignored = f_gate.close())
             {
-            if (m_aChannel == null || !isActive())
+            TopicChannel[] aChannel = m_aChannel;
+            if (aChannel == null || !isActive())
                 {
                 // not initialised yet or no longer active
                 return;
@@ -2214,10 +2008,10 @@ public class PagedTopicSubscriber<V>
             ++m_cNotify;
 
             int nChannelCurrent  = m_nChannel;
-            fWasEmpty = nChannelCurrent < 0 || m_aChannel[nChannelCurrent].isEmpty();
+            fWasEmpty = nChannelCurrent < 0 || aChannel[nChannelCurrent].isEmpty();
             for (int nChannel : anChannel)
                 {
-                m_aChannel[nChannel].onChannelPopulatedNotification();
+                aChannel[nChannel].onChannelPopulatedNotification();
                 }
             }
 
@@ -2254,13 +2048,14 @@ public class PagedTopicSubscriber<V>
             gate.enter(-1);
             try
                 {
-                if (m_aChannel == null || !isActive() || !isConnected())
+                TopicChannel[] aChannel = m_aChannel;
+                if (aChannel == null || !isActive() || !isConnected())
                     {
                     // not initialised yet or no longer active
                     return;
                     }
 
-                m_aChannel[nChannel].setEmpty(lVersion);
+                aChannel[nChannel].setEmpty(lVersion);
                 }
             finally
                 {
@@ -2271,93 +2066,11 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Compare-and-increment the remote head pointer.
-     *
-     * @param lHeadAssumed  the assumed old value, increment will only occur if the actual head matches this value
-     *
-     * @return a {@link CompletableFuture} that completes with the new head
-     */
-    protected CompletableFuture<Long> scheduleHeadIncrement(PagedTopicChannel channel, long lHeadAssumed)
-        {
-        if (isActive())
-            {
-            // update the globally visible head page
-            return InvocableMapHelper.invokeAsync(m_caches.Subscriptions, channel.subscriberPartitionSync,
-                                                  m_caches.getUnitOfOrder(channel.subscriberPartitionSync.getPartitionId()),
-                                                  new HeadAdvancer(lHeadAssumed + 1), f_executor,
-                                                  (lPriorHeadRemote, e2) ->
-                {
-                if (lPriorHeadRemote < lHeadAssumed + 1)
-                    {
-                    // our CAS succeeded, we'd already updated our local head before attempting it,
-                    // but we do get to clear any contention since the former winner's CAS will fail
-                    channel.m_fContended = false;
-                    // we'll allow the channel to be removed from the contended channel list naturally during
-                    // the next nextChannel call
-                    }
-                else
-                    {
-                    // our CAS failed; i.e. the remote head was already at or beyond where we tried to set it.
-                    // comparing against the prior value allows us to know if we won or lost the CAS which
-                    // we can use to coordinate contention such that only the losers backoff
-
-                    if (lHeadAssumed != Page.NULL_PAGE)
-                        {
-                        // we thought we knew what page we were on, but we were wrong, thus someone
-                        // else had incremented it, this is a collision.  Backoff and allow them
-                        // temporary exclusive access, they'll do the same for the channels we
-                        // increment
-                        if (!channel.m_fContended)
-                            {
-                            channel.m_fContended = true;
-                            }
-                        }
-                    // else; we knew we were contended, don't doubly backoff
-
-                    if (lPriorHeadRemote > channel.m_lHead)
-                        {
-                        // only update if we haven't locally moved ahead; yes it is possible that we lost the
-                        // CAS but have already advanced our head simply through brute force polling
-                        channel.m_lHead = lPriorHeadRemote;
-                        channel.m_nNext = -1; // unknown page position
-                        }
-                    }
-                });
-            }
-        return CompletableFuture.completedFuture(-1L);
-        }
-
-    /**
      * If this is not an anonymous subscriber send a heartbeat to the server.
      */
     public void heartbeat()
         {
-        heartbeat(true);
-        }
-
-    /**
-     * If this is not an anonymous subscriber send a heartbeat to the server.
-     *
-     * @param fAsync  {@code true} to invoke the heartbeat processor asynchronously
-     */
-    private void heartbeat(boolean fAsync)
-        {
-        if (!f_fAnonymous)
-            {
-            // we're not anonymous so send a poll heartbeat
-            UUID uuid = m_caches.getService().getCluster().getLocalMember().getUuid();
-            f_heartbeatProcessor.setUuid(uuid);
-            f_heartbeatProcessor.setSubscription(m_subscriptionId);
-            f_heartbeatProcessor.setlConnectionTimestamp(m_connectionTimestamp);
-            if (fAsync)
-                {
-                m_caches.Subscribers.async().invoke(f_key, f_heartbeatProcessor);
-                }
-            else
-                {
-                m_caches.Subscribers.invoke(f_key, f_heartbeatProcessor);
-                }
-            }
+        f_connector.heartbeat(this, true);
         }
 
     private void updateChannelOwnership(SortedSet<Integer> setChannel, boolean fLost)
@@ -2367,7 +2080,12 @@ public class PagedTopicSubscriber<V>
             return;
             }
 
-        int[] aChannel    = setChannel.stream().mapToInt(i -> i).toArray();
+        if (setChannel == null)
+            {
+            setChannel = Collections.emptySortedSet();
+            }
+
+        int[] anOwned     = setChannel.stream().mapToInt(i -> i).toArray();
         int   nMaxChannel = setChannel.stream().mapToInt(i -> i).max().orElse(getChannelCount() - 1);
 
         // channel ownership change must be done under a lock
@@ -2378,7 +2096,7 @@ public class PagedTopicSubscriber<V>
                 return;
                 }
 
-            PagedTopicChannel[] aExistingChannel = m_aChannel;
+            TopicChannel[] aExistingChannel = m_aChannel;
             if (nMaxChannel >= aExistingChannel.length)
                 {
                 // This subscriber has fewer channels than the server so needs to be resized
@@ -2386,12 +2104,12 @@ public class PagedTopicSubscriber<V>
                 // the new channel count if this has happened due to a rolling upgrade
                 // from an earlier buggy topics version
                 Logger.finer(() -> String.format("Disconnecting subscriber %d on topic %s due to increase in channel count from %d to %d",
-                        f_id.getId(), f_topic.getName(), aExistingChannel.length, nMaxChannel));
+                        f_subscriberId.getId(), f_topic.getName(), aExistingChannel.length, nMaxChannel));
                 disconnectInternal(true);
                 return;
                 }
 
-            if (!Arrays.equals(m_aChannelOwned, aChannel))
+            if (!Arrays.equals(m_aChannelOwned, anOwned))
                 {
                 Set<Integer> setRevoked = new HashSet<>();
                 Set<Integer> setAdded   = new HashSet<>(setChannel);
@@ -2409,19 +2127,20 @@ public class PagedTopicSubscriber<V>
                 Set<Integer> setAssigned = Set.copyOf(setChannel);
 
                 Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s added=%s revoked=%s",
-                                            f_id.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));
+                        f_subscriberId.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));
 
-                m_aChannelOwned = aChannel;
+                m_aChannelOwned = anOwned;
 
                 if (!f_fAnonymous)
                     {
                     // reset revoked channel heads - we'll re-sync if they are reallocated
+                    TopicChannel[] aChannel = m_aChannel;
 
                     // if we're initializing and not anonymous, we do not own any channels,
                     // we'll update with the allocated ownership
                     if (m_nState == STATE_INITIAL)
                         {
-                        for (PagedTopicChannel channel : m_aChannel)
+                        for (TopicChannel channel : aChannel)
                             {
                             channel.setUnowned();
                             channel.setPopulated();
@@ -2429,7 +2148,7 @@ public class PagedTopicSubscriber<V>
                         }
 
                     // clear all channel flags
-                    for (PagedTopicChannel channel : m_aChannel)
+                    for (TopicChannel channel : aChannel)
                         {
                         channel.m_fContended = false;
                         channel.setUnowned();
@@ -2438,20 +2157,20 @@ public class PagedTopicSubscriber<V>
                     // reset channel flags for channels we now own
                     for (int c : m_aChannelOwned)
                         {
-                        PagedTopicChannel channel = m_aChannel[c];
+                        TopicChannel channel = aChannel[c];
                         channel.m_fContended = false;
                         channel.setOwned();
                         channel.setPopulated();
                         }
                     for (int c : setAdded)
                         {
-                        PagedTopicChannel channel = m_aChannel[c];
+                        TopicChannel channel = aChannel[c];
                         channel.clearPolled();
                         channel.clearHit();
                         }
                     for (int c : setRevoked)
                         {
-                        PagedTopicChannel channel = m_aChannel[c];
+                        TopicChannel channel = aChannel[c];
                         channel.clearPolled();
                         channel.clearHit();
                         }
@@ -2509,12 +2228,21 @@ public class PagedTopicSubscriber<V>
      */
     protected int ensureOwnedChannel()
         {
-        if (m_nChannel >= 0 && m_aChannel[m_nChannel].isOwned())
+        if (m_nChannel >= 0 && isChannelOwned(m_nChannel))
             {
             return m_nChannel;
             }
         switchChannel();
         return m_nChannel;
+        }
+
+    public boolean isChannelOwned(int nChannel)
+        {
+        if (m_aChannel == null)
+            {
+            return false;
+            }
+        return nChannel >= 0 && nChannel < m_aChannel.length && m_aChannel[nChannel].isOwned();
         }
 
     /**
@@ -2525,7 +2253,8 @@ public class PagedTopicSubscriber<V>
      */
     protected boolean switchChannel()
         {
-        if (m_aChannel == null || !isActive() || !isConnected())
+        TopicChannel[] aChannel = m_aChannel;
+        if (aChannel == null || !isActive() || !isConnected())
             {
             // disconnected or no longer active
             return false;
@@ -2538,7 +2267,8 @@ public class PagedTopicSubscriber<V>
         gate.enter(-1);
         try
             {
-            if (m_aChannel == null || !isActive() || !isConnected())
+            aChannel = m_aChannel;
+            if (aChannel == null || !isActive() || !isConnected())
                 {
                 // disconnected or no longer active
                 return false;
@@ -2554,7 +2284,7 @@ public class PagedTopicSubscriber<V>
                 {
                 int nChannel = m_aChannelOwned[0];
                 // only one allocated channel
-                if (m_aChannel[nChannel].isEmpty())
+                if (aChannel[nChannel].isEmpty())
                     {
                     // our single channel is empty
                     m_nChannel = -1;
@@ -2594,17 +2324,17 @@ public class PagedTopicSubscriber<V>
 
             // now ensure the channel is not empty
             int cTried = 0;
-            while (nChannel != nChannelStart && cTried < m_aChannel.length && (!m_aChannel[nChannel].isOwned() || m_aChannel[nChannel].isEmpty()))
+            while (nChannel != nChannelStart && cTried < aChannel.length && (!aChannel[nChannel].isOwned() || aChannel[nChannel].isEmpty()))
                 {
                 cTried++;
                 nChannel++;
-                if (nChannel == m_aChannel.length)
+                if (nChannel == aChannel.length)
                     {
                     nChannel = 0;
                     }
                 }
 
-            if (m_aChannel[nChannel].isOwned() && !m_aChannel[nChannel].isEmpty())
+            if (aChannel[nChannel].isOwned() && !aChannel[nChannel].isEmpty())
                 {
                 m_nChannel = nChannel;
                 return true;
@@ -2622,14 +2352,14 @@ public class PagedTopicSubscriber<V>
     /**
      * Handle the result of an async receive.
      *
-     * @param channel  the associated channel
-     * @param lPageId  the page the poll targeted
-     * @param result   the result
-     * @param e        and exception
+     * @param channel   the associated channel
+     * @param lVersion  the version of the channel prior to the call to receive
+     * @param result    the receive result
+     * @param e         and exception
      */
-    protected void onReceiveResult(PagedTopicChannel channel, long lVersion, long lPageId, PollProcessor.Result result, Throwable e)
+    protected void onReceiveResult(TopicChannel channel, long lVersion, ReceiveResult result, Throwable e, SubscriberConnector.Continuation continuation)
         {
-        int nChannel = channel.subscriberPartitionSync.getChannelId();
+        int nChannel = channel.getId();
 
         f_receiveLock.lock();
         try
@@ -2637,90 +2367,88 @@ public class PagedTopicSubscriber<V>
             // check that there is no error, and we still own the channel
             if (e == null )
                 {
-                Queue<Binary> queueValues = result.getElements();
-                int           cReceived   = queueValues.size();
-                int           cRemaining  = result.getRemainingElementCount();
-                int           nNext       = result.getNextIndex();
-
-                channel.setPolled();
-                ++m_cPolls;
-
-                if (cReceived == 0)
+                int                  cRemaining = 0;
+                ReceiveResult.Status status     = null;
+                try
                     {
-                    ++m_cMisses;
-                    }
-                else if (!queueValues.isEmpty())
-                    {
-                    channel.setHit();
-                    m_cValues += cReceived;
-                    channel.adjustPolls(cReceived);
+                    Queue<Binary>        queueValues = result.getElements();
+                    int                  cReceived   = queueValues.size();
+                    cRemaining = result.getRemainingElementCount();
+                    status     = result.getStatus();
 
-                    // add the received elements to the pre-fetch queue
-                    queueValues.stream()
-                            .map(bin -> new CommittableElement(bin, nChannel))
-                            .forEach(m_queueValuesPrefetched::add);
+                    channel.setPolled();
+                    ++m_cPolls;
 
-                    if (!m_queueValuesPrefetched.isEmpty())
+                    if (cReceived == 0)
                         {
-                        long nTime = System.currentTimeMillis();
-                        channel.setFirstPolled((PagedPosition) m_queueValuesPrefetched.getFirst().getPosition(), nTime);
-                        channel.setLastPolled((PagedPosition) m_queueValuesPrefetched.getLast().getPosition(), nTime);
+                        ++m_cMisses;
                         }
-                    }
-
-                channel.m_nNext = nNext;
-
-                if (cRemaining == PollProcessor.Result.EXHAUSTED)
-                    {
-                    // we know the page is exhausted, so the new head is at least one higher
-                    if (lPageId >= channel.m_lHead && lPageId != Page.NULL_PAGE)
+                    else if (!queueValues.isEmpty())
                         {
-                        channel.m_lHead = lPageId + 1;
-                        channel.m_nNext = 0;
-                        }
+                        channel.setHit();
+                        m_cValues += cReceived;
+                        channel.adjustPolls(cReceived);
 
-                    // we're actually on the EMPTY_PAGE, so we'll concurrently increment the durable
-                    // head pointer and then update our pointer accordingly
-                    if (lPageId == Page.NULL_PAGE)
-                        {
-                        scheduleHeadIncrement(channel, lPageId);
-                        }
+                        // add the received elements to the pre-fetch queue
+                        queueValues.stream()
+                                .map(bin -> new CommittableElement(bin, nChannel))
+                                .forEach(m_queueValuesPrefetched::add);
 
-                    // switch to a new channel since we've exhausted this page
-                    switchChannel();
-                    }
-                else if (cRemaining == 0 || cRemaining == PollProcessor.Result.NOT_ALLOCATED_CHANNEL)
-                    {
-                    // we received nothing or polled a channel we do not own
-                    if (cRemaining == 0)
-                        {
-                        // we received nothing, mark the channel as empty
-                        onChannelEmpty(nChannel, lVersion);
-                        }
-
-                    // attempt to switch to a non-empty channel
-                    if (!switchChannel())
-                        {
-                        // we've run out of channels to poll from
-                        if (f_fCompleteOnEmpty)
+                        if (!m_queueValuesPrefetched.isEmpty())
                             {
-                            // add an empty element, which signals to the completion method that we're done
-                            m_queueValuesPrefetched.add(getEmptyElement());
-                            }
-                        else
-                            {
-                            // wait for non-empty;
-                            // Note: automatically registered for notification as part of returning an empty result set
-                            ++m_cWait;
+                            long nTime = System.currentTimeMillis();
+                            channel.setFirstPolled(m_queueValuesPrefetched.getFirst().getPosition(), nTime);
+                            channel.setLastPolled(m_queueValuesPrefetched.getLast().getPosition(), nTime);
                             }
                         }
+
+                    if (continuation != null)
+                        {
+                        continuation.onContinue();
+                        }
+
+                    if (status == ReceiveResult.Status.Exhausted)
+                        {
+                        // switch to a new channel since we've exhausted this one
+                        switchChannel();
+                        }
+                    else if (cRemaining == 0 || status == ReceiveResult.Status.NotAllocatedChannel)
+                        {
+                        // we received nothing or polled a channel we do not own
+                        if (cRemaining == 0)
+                            {
+                            // we received nothing, mark the channel as empty
+                            onChannelEmpty(nChannel, lVersion);
+                            }
+
+                        // attempt to switch to a non-empty channel
+                        if (!switchChannel())
+                            {
+                            // we've run out of channels to poll from
+                            if (f_fCompleteOnEmpty)
+                                {
+                                // add an empty element, which signals to the completion method that we're done
+                                m_queueValuesPrefetched.add(getEmptyElement());
+                                }
+                            else
+                                {
+                                // wait for non-empty;
+                                // Note: automatically registered for notification as part of returning an empty result set
+                                ++m_cWait;
+                                }
+                            }
+                        }
+                    else if (status == ReceiveResult.Status.UnknownSubscriber)
+                        {
+                        // The subscriber was unknown, possibly due to a persistence snapshot recovery or the topic being
+                        // destroyed whilst the poll was in progress.
+                        // Disconnect and let reconnection sort us out
+                        disconnectInternal(true);
+                        }
                     }
-                else if (cRemaining == PollProcessor.Result.UNKNOWN_SUBSCRIBER)
+                catch (Exception ex)
                     {
-                    // The subscriber was unknown, possibly due to a persistence snapshot recovery or the topic being
-                    // destroyed whilst the poll was in progress.
-                    // Disconnect and let reconnection sort us out
-                    disconnectInternal(true);
+                    f_queueReceiveOrders.handleError((err, bin) -> ex, BatchingOperationsQueue.OnErrorAction.CompleteWithException);
                     }
                 }
             else // remove failed; this is fairly catastrophic
@@ -2737,49 +2465,13 @@ public class PagedTopicSubscriber<V>
         }
 
     /**
-     * Destroy a subscriber group.
-     *
-     * @param caches   the associated caches
-     * @param groupId  the group to destroy
-     */
-    public static void destroy(PagedTopicCaches caches, SubscriberGroupId groupId, long lSubscriptionId)
-        {
-        PagedTopicService service = caches.getService();
-        if (lSubscriptionId == 0 && !groupId.isAnonymous())
-            {
-            lSubscriptionId = service.getSubscriptionId(caches.getTopicName(), groupId);
-            }
-
-        service.destroySubscription(lSubscriptionId);
-
-        if (caches.isActive() && caches.Subscriptions.isActive())
-            {
-            int                   cParts      = service.getPartitionCount();
-            Set<Subscription.Key> setSubParts = new HashSet<>(cParts);
-
-            for (int i = 0; i < cParts; ++i)
-                {
-                // channel 0 will propagate the operation to all other channels
-                setSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, groupId));
-                }
-
-
-            DestroySubscriptionProcessor processor = new DestroySubscriptionProcessor(lSubscriptionId);
-            InvocableMapHelper.invokeAllAsync(caches.Subscriptions, setSubParts,
-                                              (key) -> caches.getUnitOfOrder(key.getPartitionId()),
-                                              processor)
-                    .join();
-            }
-        }
-
-    /**
      * Close and clean-up this subscriber.
      *
      * @param fDestroyed  {@code true} if this call is in response to the caches
      *                    being destroyed/released and hence just clean up local
      *                    state
      */
-    private void closeInternal(boolean fDestroyed)
+    public void closeInternal(boolean fDestroyed)
         {
         if (m_nState != STATE_CLOSED)
             {
@@ -2811,31 +2503,7 @@ public class PagedTopicSubscriber<V>
                     {
                     // ignore
                     }
-                if (!fDestroyed)
-                    {
-                    // caches have not been destroyed, so we're just closing this subscriber
-                    unregisterDeactivationListener();
-                    unregisterChannelAllocationListener();
-                    unregisterNotificationListener();
-                    notifyClosed(m_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_id);
-                    removeSubscriberEntry();
-                    }
-                else
-                    {
-                    notifyClosed(m_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_id);
-                    }
-
-                if (!fDestroyed && f_subscriberGroupId.getMemberTimestamp() != 0)
-                    {
-                    // this subscriber is anonymous and thus non-durable and must be destroyed upon close
-                    // Note: if close isn't the cluster will eventually destroy this subscriber once it
-                    // identifies the associated member has left the cluster.
-                    // If an application creates a lot of subscribers and does not close them when finished
-                    // then this will cause heap consumption to rise.
-                    // There used to be a To-Do comment here about cleaning up in a finalizer, but as
-                    // finalizers in the JVM are not reliable that is probably not such a good idea.
-                    destroy(m_caches, f_subscriberGroupId, m_subscriptionId);
-                    }
+                f_connector.closeSubscription(this, fDestroyed);
                 }
             finally
                 {
@@ -2855,6 +2523,8 @@ public class PagedTopicSubscriber<V>
                 });
                 f_daemon.stop(true);
                 f_daemonChannels.stop(false);
+                f_executor.stop(true);
+                f_connector.close();
                 }
             }
         }
@@ -2881,17 +2551,16 @@ public class PagedTopicSubscriber<V>
      */
     private CompletableFuture<Void> flushInternal(FlushMode mode)
         {
-        String sTopicName   = m_caches.getTopicName();
         String sDescription = null;
         switch (mode)
             {
             case FLUSH_DESTROY:
-                sDescription = "Topic " + sTopicName + " was destroyed";
+                sDescription = "Topic " + f_sTopicName + " was destroyed";
 
             case FLUSH_CLOSE_EXCEPTIONALLY:
                 String sReason = sDescription != null
                         ? sDescription
-                        : "Force Close of Subscriber " + f_id + " for topic " + sTopicName;
+                        : "Force Close of Subscriber " + f_subscriberId + " for topic " + f_sTopicName;
 
                 BiFunction<Throwable, Request, Throwable> fn  = (err, bin) -> new TopicException(sReason, err);
                 Arrays.stream(m_aChannel)
@@ -2903,197 +2572,6 @@ public class PagedTopicSubscriber<V>
             case FLUSH:
             default:
                 return f_queueReceiveOrders.flush();
-            }
-        }
-
-    /**
-     * Called to notify the topic that a subscriber has closed or timed-out.
-     *
-     * @param cache              the subscription cache
-     * @param subscriberGroupId  the subscriber group identifier
-     * @param subscriberId       the subscriber identifier
-     * @param lSubscriptionId    the unique identifier of the subscription
-     */
-    static void notifyClosed(NamedCache<Subscription.Key, Subscription> cache,
-            SubscriberGroupId subscriberGroupId, long lSubscriptionId, SubscriberId subscriberId)
-        {
-        PagedTopicService service = (PagedTopicService) cache.getCacheService();
-
-        if (lSubscriptionId == 0)
-            {
-            String sTopicName = PagedTopicCaches.Names.getTopicName(cache.getCacheName());
-            lSubscriptionId = service.getSubscriptionId(sTopicName, subscriberGroupId);
-            }
-
-        PagedTopicSubscription subscription = service.getSubscription(lSubscriptionId);
-        if (subscription != null && subscription.hasSubscriber(subscriberId))
-            {
-            service.destroySubscription(lSubscriptionId, subscriberId);
-            }
-
-        if (!cache.isActive())
-            {
-            // cache is already inactive, so we do not need to do anything
-            return;
-            }
-
-        try
-            {
-            int                    cParts       = service.getPartitionCount();
-            List<Subscription.Key> listSubParts = new ArrayList<>(cParts);
-
-            for (int i = 0; i < cParts; ++i)
-                {
-                // Note: we unsubscribe against channel 0 in each partition, and it will in turn update all channels
-                listSubParts.add(new Subscription.Key(i, /*nChannel*/ 0, subscriberGroupId));
-                }
-
-            if (cache.isActive())
-                {
-                try
-                    {
-                    cache.invokeAll(listSubParts, new CloseSubscriptionProcessor(subscriberId));
-                    }
-                catch (Exception e)
-                    {
-                    // ignored -
-                    }
-                }
-            }
-        catch (Throwable t)
-            {
-            // this could have been caused by the cache becoming inactive during clean-up, if so ignore the error
-            if (cache.isActive())
-                {
-                // cache is still active, so log the error
-                String sId = SubscriberId.NullSubscriber.equals(subscriberId) ? "<ALL>" : idToString(subscriberId.getId());
-                Logger.fine("Caught exception closing subscription for subscriber "
-                    + sId + " in group " + subscriberGroupId.getGroupName(), t);
-                }
-            }
-        }
-
-    /**
-     * Called to remove the entry for this subscriber from the subscriber info cache.
-     */
-    protected void removeSubscriberEntry()
-        {
-        NamedCache<SubscriberInfo.Key, SubscriberInfo> cache = m_caches.Subscribers;
-        if (!cache.isActive())
-            {
-            // cache is already inactive so we cannot do anything
-            return;
-            }
-
-        try
-            {
-            cache.invoke(f_key, EvictSubscriber.INSTANCE);
-            }
-        catch (Throwable t)
-            {
-            Logger.err(t);
-            }
-        }
-
-    /**
-     * Instantiate and register a MapListener with the topic subscriptions cache that
-     * will listen for changes in channel allocations.
-     */
-    protected void registerChannelAllocationListener()
-        {
-        try
-            {
-            m_caches.f_topicService.addSubscriptionListener(m_listenerChannelAllocation);
-            }
-        catch (RuntimeException e)
-            {
-            Logger.err(e);
-            }
-        }
-
-    /**
-     * Unregister the channel allocation listener.
-     */
-    protected void unregisterChannelAllocationListener()
-        {
-        try
-            {
-            m_caches.f_topicService.removeSubscriptionListener(m_listenerChannelAllocation);
-            }
-        catch (RuntimeException e)
-            {
-            Logger.err(e);
-            }
-        }
-
-    @SuppressWarnings("unchecked")
-    protected void registerNotificationListener()
-        {
-        // register a subscriber listener in each partition, we must be completely setup before doing this
-        // as the callbacks assume we're fully initialized
-        if (m_caches.Notifications.isActive())
-            {
-            m_caches.Notifications.addMapListener(f_listenerNotification, f_filterNotification, /*fLite*/ false);
-            }
-        }
-
-    @SuppressWarnings("unchecked")
-    protected void unregisterNotificationListener()
-        {
-        // un-register the subscriber listener in each partition
-        if (m_caches.Notifications.isActive())
-            {
-            m_caches.Notifications.removeMapListener(f_listenerNotification, f_filterNotification);
-            }
-        }
-
-    /**
-     * Instantiate and register a DeactivationListener with the topic subscriptions cache.
-     */
-    @SuppressWarnings("unchecked")
-    protected void registerDeactivationListener()
-        {
-        try
-            {
-            if (!f_fAnonymous)
-                {
-                GroupDeactivationListener listenerGroup = m_listenerGroupDeactivation;
-
-                // only need to register this listener for non-anonymous subscribers
-                if (listenerGroup != null)
-                    {
-                    m_caches.Subscriptions.addMapListener(listenerGroup, m_aChannel[0].subscriberPartitionSync, true);
-                    }
-                }
-
-            m_caches.addListener(f_listenerDeactivation);
-            }
-        catch (RuntimeException e)
-            {
-            // intentionally empty
-            }
-        }
-
-    /**
-     * Unregister cache deactivation listener.
-     */
-    @SuppressWarnings("unchecked")
-    protected void unregisterDeactivationListener()
-        {
-        try
-            {
-            GroupDeactivationListener listenerGroup = m_listenerGroupDeactivation;
-
-            if (listenerGroup != null && m_caches.Subscriptions.isActive())
-                {
-                m_caches.Subscriptions.removeMapListener(listenerGroup, m_aChannel[0].subscriberPartitionSync);
-                }
-
-            m_caches.removeListener(f_listenerDeactivation);
-            }
-        catch (RuntimeException e)
-            {
-            // intentionally empty
             }
         }
 
@@ -3122,24 +2600,16 @@ public class PagedTopicSubscriber<V>
         {
         if (m_elementEmpty == null)
             {
-            Binary binValue   = ExternalizableHelper.toBinary(null, f_serializer);
+            Binary binValue   = f_converter.toBinary(null);
             Binary binElement = PageElement.toBinary(-1, 0L, 0, 0L, binValue);
             m_elementEmpty = new CommittableElement(binElement, CommittableElement.EMPTY);
             }
         return m_elementEmpty;
         }
 
-    /**
-     * Create a subscriber identifier.
-     *
-     * @param nNotificationId  the notification identifier
-     * @param nMemberId        the cluster member id
-     *
-     * @return a subscriber identifier
-     */
-    public static long createId(long nNotificationId, long nMemberId)
+    public void onChannelAllocation(SortedSet<Integer> setChannel, boolean fLost)
         {
-        return (nMemberId << 32) | (nNotificationId & 0xFFFFFFFFL);
+        f_daemonChannels.executeTask(() -> updateChannelOwnership(setChannel, fLost));
         }
 
     /**
@@ -3188,7 +2658,7 @@ public class PagedTopicSubscriber<V>
     public static String idToString(Collection<Long> setId)
         {
         return setId.stream()
-                .map(PagedTopicSubscriber::idToString)
+                .map(NamedTopicSubscriber::idToString)
                 .collect(Collectors.joining(","));
         }
 
@@ -3202,7 +2672,7 @@ public class PagedTopicSubscriber<V>
     public static String subscriberIdToString(Collection<SubscriberId> setId)
         {
         return setId.stream()
-                .map(PagedTopicSubscriber::idToString)
+                .map(NamedTopicSubscriber::idToString)
                 .collect(Collectors.joining(","));
         }
 
@@ -3244,10 +2714,45 @@ public class PagedTopicSubscriber<V>
         return (WithNotificationId<Object, Object>) () -> nId;
         }
 
-    // ----- inner class: WithIdentifier ------------------------------------
+    @Override
+    public Executor getExecutor()
+        {
+        return f_executor;
+        }
+
+    @Override
+    public SubscriberConnector<V> getConnector()
+        {
+        return f_connector;
+        }
+
+    public Position getChannelHead(int nChannel)
+        {
+        if (nChannel >= 0 && nChannel < m_aChannel.length)
+            {
+            TopicChannel channel = m_aChannel[nChannel];
+            return channel.getHead();
+            }
+        return Position.EMPTY_POSITION;
+        }
+
+    @Override
+    public void setChannelHeadIfHigher(int nChannel, Position head)
+        {
+        TopicChannel channel = m_aChannel[nChannel];
+        channel.setHeadIfHigher(head);
+        }
+
+    @Override
+    public Element<V> createElement(Binary binary, int nChannel)
+        {
+        return new CommittableElement(binary, nChannel);
+        }
+
+// ----- inner class: WithIdentifier ------------------------------------
 
     /**
-     * An {@link Option} that provides a human-readable name to a {@link PagedTopicSubscriber}.
+     * An {@link Option} that provides a human-readable name to a {@link NamedTopicSubscriber}.
      * <p/>
      * This can be useful in testing to make it easier to identify specific subscribers
      * in a log message.
@@ -3271,7 +2776,7 @@ public class PagedTopicSubscriber<V>
     // ----- inner class: WithIdentifier ------------------------------------
 
     /**
-     * An {@link Option} that provides a notification id to a {@link PagedTopicSubscriber}.
+     * An {@link Option} that provides a notification id to a {@link NamedTopicSubscriber}.
      * <p/>
      * This can be useful in testing to make it easier to control subscribes and channel allocations,
      * it should not be used in production systems.
@@ -3280,6 +2785,130 @@ public class PagedTopicSubscriber<V>
             extends Option<V, U>
         {
         int getId();
+        }
+
+    // ----- inner class: WithIdentifier ------------------------------------
+
+    /**
+     * An {@link Option} that provides a {@link SubscriberId} to a {@link NamedTopicSubscriber}.
+     */
+    public interface WithSubscriberId<V, U>
+            extends Option<V, U>
+        {
+        /**
+         * Return the {@link SubscriberId} to use
+         *
+         * @param nNotificationId  the notification id
+         *
+         * @return the {@link SubscriberId} to use
+         */
+        SubscriberId getId(int nNotificationId);
+        }
+
+    // ----- inner class OptionSet ------------------------------------------
+
+    /**
+     * A holder of subscriber options.
+     *
+     * @param <V>  the type of value in the underlying topic
+     * @param <U>  the type of value the subscriber receives
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static class OptionSet<V, U>
+            extends Options<Option<V, U>>
+        {
+        /**
+         * Create an option set.
+         *
+         * @param clsType   the type of the options
+         * @param aOptions  the array of options
+         */
+        private OptionSet(Class<Option<V, U>> clsType, Option<V, U>[] aOptions)
+            {
+            super(clsType, aOptions);
+            }
+
+        /**
+         * Return the subscriber group name.
+         *
+         * @return the subscriber group name
+         */
+        public Optional<String> getSubscriberGroupName()
+            {
+            Subscriber.Name nameOption = get(Subscriber.Name.class, null);
+            if (nameOption == null)
+                {
+                return Optional.empty();
+                }
+            String sName = nameOption.getName();
+            return sName == null || sName.isBlank() ? Optional.empty() : Optional.of(sName);
+            }
+
+        /**
+         * Return the subscriber group identifier.
+         *
+         * @return the subscriber group identifier
+         */
+        public SubscriberGroupId getSubscriberGroupId()
+            {
+            return getSubscriberGroupName().map(SubscriberGroupId::withName)
+                    .orElse(SubscriberGroupId.anonymous());
+            }
+
+        /**
+         * Return the optional {@link Filter} for the subscriber group
+         *
+         * @return the optional {@link Filter} for the subscriber group
+         */
+        public Optional<Filter<U>> getFilter()
+            {
+            Subscriber.Filtered filtered = get(Subscriber.Filtered.class);
+            return filtered == null ? Optional.empty() : Optional.ofNullable(filtered.getFilter());
+            }
+
+        /**
+         * Return the optional {@link ValueExtractor} for the subscriber group
+         *
+         * @return the optional {@link ValueExtractor} for the subscriber group
+         */
+        public Optional<ValueExtractor<U, ?>> getExtractor()
+            {
+            Subscriber.Convert convert = get(Subscriber.Convert.class);
+            return convert == null ? Optional.empty() : Optional.ofNullable(convert.getExtractor());
+            }
+
+        /**
+         * Return {@code true} if the subscriber should complete receive requests when empty.
+         *
+         * @return {@code true} if the subscriber should complete receive requests when empty
+         */
+        public boolean isCompleteOnEmpty()
+            {
+            return contains(Subscriber.CompleteOnEmpty.class);
+            }
+
+        /**
+         * Return an array of {@link ChannelOwnershipListener} instances.
+         *
+         * @return an array of {@link ChannelOwnershipListener} instances
+         */
+        public ChannelOwnershipListener[] getChannelListeners()
+            {
+            ChannelOwnershipListeners<V> listeners = get(ChannelOwnershipListeners.class);
+            if (listeners == null)
+                {
+                return new ChannelOwnershipListener[0];
+                }
+            List<ChannelOwnershipListener> list = listeners.getListeners();
+            return list.toArray(ChannelOwnershipListener[]::new);
+            }
+        }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <V, U> OptionSet<V, U> optionsFrom(Option<? super V, U>[] options)
+        {
+        Class<?> clsType = Option.class;
+        return new OptionSet(clsType, options);
         }
 
     // ----- inner class: CommittableElement --------------------------------
@@ -3300,7 +2929,7 @@ public class PagedTopicSubscriber<V>
          */
         protected CommittableElement(Binary binValue, int nChannel)
             {
-            m_element  = PageElement.fromBinary(binValue, f_serializer);
+            m_element  = PageElement.fromBinary(binValue, f_converter::fromBinary);
             f_nChannel = nChannel;
             }
 
@@ -3353,7 +2982,7 @@ public class PagedTopicSubscriber<V>
             {
             try
                 {
-                return PagedTopicSubscriber.this.commitAsync(getChannel(), getPosition());
+                return NamedTopicSubscriber.this.commitAsync(getChannel(), getPosition());
                 }
             catch (Throwable e)
                 {
@@ -3406,17 +3035,11 @@ public class PagedTopicSubscriber<V>
      * Channel is a data structure which represents the state of a channel as known
      * by this subscriber.
      */
-    public static class PagedTopicChannel
+    public static abstract class TopicChannel
             implements Channel
         {
         @Override
-        public int getId()
-            {
-            return subscriberPartitionSync.getChannelId();
-            }
-
-        @Override
-        public PagedPosition getLastCommit()
+        public Position getLastCommit()
             {
             return m_lastCommit;
             }
@@ -3427,14 +3050,14 @@ public class PagedTopicSubscriber<V>
             return m_cCommited;
             }
 
-        public void committed(PagedPosition position)
+        public void committed(Position position)
             {
             m_lastCommit = position;
             m_cCommited++;
             }
 
         @Override
-        public PagedPosition getLastReceived()
+        public Position getLastReceived()
             {
             return m_lastReceived;
             }
@@ -3450,7 +3073,7 @@ public class PagedTopicSubscriber<V>
          *
          * @param position  the last received position
          */
-        public void received(PagedPosition position)
+        public void received(Position position)
             {
             m_lastReceived = position;
             m_cReceived.mark();
@@ -3478,12 +3101,18 @@ public class PagedTopicSubscriber<V>
             return m_firstPolled;
             }
 
+        @Override
+        public Position getHead()
+            {
+            return m_head;
+            }
+
         /**
          * Set the first polled position.
          *
          * @param position  the first polled position
          */
-        public void setFirstPolled(PagedPosition position, long nTimestamp)
+        public void setFirstPolled(Position position, long nTimestamp)
             {
             if (m_firstPolled == null)
                 {
@@ -3509,7 +3138,7 @@ public class PagedTopicSubscriber<V>
          *
          * @param position  the last polled position
          */
-        public void setLastPolled(PagedPosition position, long nTimestamp)
+        public void setLastPolled(Position position, long nTimestamp)
             {
             m_lastPolled          = position;
             m_lastPolledTimestamp = nTimestamp;
@@ -3537,16 +3166,6 @@ public class PagedTopicSubscriber<V>
         public int getOwnedCode()
             {
             return isOwned() ? 1 : 0;
-            }
-
-        @Override
-        public PagedPosition getHead()
-            {
-            if (m_lHead == Page.EMPTY)
-                {
-                return PagedPosition.NULL_POSITION;
-                }
-            return new PagedPosition(m_lHead, m_nNext);
             }
 
         @Override
@@ -3606,7 +3225,7 @@ public class PagedTopicSubscriber<V>
                 }
             }
 
-        protected long getVersion()
+        public long getVersion()
             {
             m_lock.lock();
             try
@@ -3629,6 +3248,35 @@ public class PagedTopicSubscriber<V>
             m_fOwned = false;
             }
 
+        public void setHead(Position position)
+            {
+            m_head = position;
+            int nChannel = getId();
+            }
+
+        /**
+         * Update the head position if the specified head is
+         * higher than the current head.
+         *
+         * @param position  the head position to set.
+         */
+        public void setHeadIfHigher(Position position)
+            {
+            m_lock.lock();
+            try
+                {
+                if (m_head == null || m_head.compareTo(position) < 0)
+                    {
+                    m_head = position;
+                    int nChannel = getId();
+                    }
+                }
+            finally
+                {
+                m_lock.unlock();
+                }
+            }
+
         /**
          * Called to notify the channel that a populated notification was received.
          */
@@ -3641,7 +3289,7 @@ public class PagedTopicSubscriber<V>
         /**
          * Set this channel as populated and bump the version up by one.
          */
-        protected void setPopulated()
+        public void setPopulated()
             {
             m_lock.lock();
             try
@@ -3713,51 +3361,6 @@ public class PagedTopicSubscriber<V>
             return m_fHit;
             }
 
-        /**
-         * Return the {@link Subscription.Key} to use to execute cluster wide subscription operations
-         * for this channel.
-         *
-         * @param nPart              the number of partitions
-         * @param subscriberGroupId  the subscriber group identifier
-         *
-         * @return the {@link Subscription.Key} to use to execute cluster wide subscription operations
-         *         for this channel
-         */
-        protected Set<Subscription.Key> ensureSubscriptionKeys(int nPart, SubscriberGroupId subscriberGroupId)
-            {
-            if (m_setSubscriptionKeys == null)
-                {
-                int                   nChannel = subscriberPartitionSync.getChannelId();
-                Set<Subscription.Key> setKeys  = new HashSet<>();
-                for (int p = 0; p < nPart; p++)
-                    {
-                    setKeys.add(new Subscription.Key(p, nChannel, subscriberGroupId));
-                    }
-                m_setSubscriptionKeys = setKeys;
-                }
-            return m_setSubscriptionKeys;
-            }
-
-        // ----- Object methods ---------------------------------------------
-
-        public String toString()
-            {
-            return "Channel=" + subscriberPartitionSync.getChannelId() +
-                    ", owned=" + m_fOwned +
-                    ", empty=" + m_fEmpty +
-                    ", version=" + m_lVersion.get() +
-                    ", head=" + m_lHead +
-                    ", next=" + m_nNext +
-                    ", polls=" + m_cPolls +
-                    ", received=" + m_cReceived.getCount() +
-                    ", committed=" + m_cCommited +
-                    ", first=" + m_firstPolled +
-                    ", firstTimestamp=" + m_firstPolledTimestamp +
-                    ", last=" + m_lastPolled +
-                    ", lastTimestamp=" + m_lastPolledTimestamp +
-                    ", contended=" + m_fContended;
-            }
-
         // ----- constants --------------------------------------------------
 
         /**
@@ -3768,116 +3371,98 @@ public class PagedTopicSubscriber<V>
         // ----- data members -----------------------------------------------
 
         /**
-         * The current head page for this subscriber, this value may safely be behind (but not ahead) of the actual head.
-         * <p>
-         * This field is volatile as it is possible it gets concurrently updated by multiple threads if the futures get
-         * completed on IO threads. We don't go with a full blow AtomicLong as either value is suitable and worst case
-         * we update to an older value and this would be harmless and just get corrected on the next attempt.
-         */
-        volatile long m_lHead = HEAD_UNKNOWN;
-
-        /**
          * The current version of this channel.
          * <p>
          * This is used for CAS operations on the empty flag.
          */
-        AtomicLong m_lVersion = new AtomicLong();
+        protected AtomicLong m_lVersion = new AtomicLong();
 
         /**
          * The number of channel populated notifications received.
          */
-        AtomicLong m_cNotify = new AtomicLong();
-
-        /**
-         * The index of the next item in the page, or -1 for unknown
-         */
-        int m_nNext = -1;
+        protected AtomicLong m_cNotify = new AtomicLong();
 
         /**
          * True if the channel has been found to be empty.  Once identified as empty we don't need to poll form it again
          * until we receive an event indicating that it has seen a new insertion.
          */
-        volatile boolean m_fEmpty;
-
-        /**
-         * The key which holds the channels head for this group.
-         */
-        Subscription.Key subscriberPartitionSync;
+        protected volatile boolean m_fEmpty;
 
         /**
          * True if contention has been detected on this channel.
          */
-        boolean m_fContended;
+        protected boolean m_fContended;
 
         /**
          * True if this subscriber owns this channel.
          */
-        volatile boolean m_fOwned = true;
+        protected volatile boolean m_fOwned = true;
 
         /**
-         * The set of subscription keys.
+         * The head position.
          */
-        Set<Subscription.Key> m_setSubscriptionKeys;
+        protected volatile Position m_head;
 
         /**
          * The position of the last element used to complete a "receive"
          * request {@link CompletableFuture}.
          */
-        PagedPosition m_lastReceived;
+        protected Position m_lastReceived;
 
         /**
          * The number of elements polled by this subscriber.
          */
-        long m_cPolls;
+        protected long m_cPolls;
 
         /**
          * The first position received by this subscriber.
          */
-        PagedPosition m_firstPolled;
+        protected Position m_firstPolled;
 
         /**
          * The timestamp when the first element was received by this subscriber.
          */
-        long m_firstPolledTimestamp;
+        protected long m_firstPolledTimestamp;
 
         /**
          * The last position received by this subscriber.
          */
-        PagedPosition m_lastPolled;
+        protected Position m_lastPolled;
 
         /**
          * The timestamp when the last element was received by this subscriber.
          */
-        long m_lastPolledTimestamp;
+        protected long m_lastPolledTimestamp;
 
         /**
          * The last position successfully committed by this subscriber.
          */
-        PagedPosition m_lastCommit;
-        /*
+        protected Position m_lastCommit;
+
+        /**
          * The number of completed commit requests.
          */
-        long m_cCommited;
+        protected long m_cCommited;
 
         /**
          * The counter of completed receives for the channel.
          */
-        Meter m_cReceived = new Meter();
+        protected Meter m_cReceived = new Meter();
 
         /**
          * A flag indicating this channel has been polled since ownership was last assigned.
          */
-        boolean m_fPolled;
+        protected boolean m_fPolled;
 
         /**
          * A flag indicating a message has been received from this channel since ownership was last assigned.
          */
-        boolean m_fHit;
+        protected boolean m_fHit;
 
         /**
          * The lock to control state updates.
          */
-        private final Lock m_lock = new ReentrantLock();
+        protected final Lock m_lock = new ReentrantLock();
         }
 
     // ----- inner class: FlushMode ----------------------------------------
@@ -3918,7 +3503,7 @@ public class PagedTopicSubscriber<V>
     protected static abstract class FunctionalRequest
             implements Request
         {
-        protected abstract void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue);
+        protected abstract void execute(NamedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue);
 
         protected void onRequestComplete(Object o)
             {
@@ -3997,39 +3582,47 @@ public class PagedTopicSubscriber<V>
     /**
      * A request to move the subscriber to a new position.
      */
-    protected static class SeekRequest
+    public static class SeekRequest
             extends FunctionalRequest
         {
         /**
-         * Create a {@link SeekRequest}.
+         * Create a {@link SeekRequest} to seek to the head.
          *
-         * @param type       the type of the request
          * @param anChannel  the channels to reposition
          */
-        public SeekRequest(SeekType type, int... anChannel)
+        public static SeekRequest head(int... anChannel)
             {
-            this(type, null, null, anChannel);
+            return new SeekRequest(SeekType.Head, null, null, anChannel);
+            }
+
+        /**
+         * Create a {@link SeekRequest} to seek to the tail.
+         *
+         * @param anChannel  the channels to reposition
+         */
+        public static SeekRequest tail(int... anChannel)
+            {
+            return new SeekRequest(SeekType.Tail, null, null, anChannel);
             }
 
         /**
          * Create a {@link SeekRequest}.
          *
-         * @param mapPosition  a map of {@link Position} keyed by channel to move to
+         * @param map  a map of {@link Position} keyed by channel to move to
          */
-        public SeekRequest(Map<Integer, Position> mapPosition)
+        public static SeekRequest position(Map<Integer, Position> map)
             {
-            this(SeekType.Position, mapPosition, null);
+            return new SeekRequest(SeekType.Position, map, null);
             }
 
         /**
          * Create a {@link SeekRequest}.
          *
-         * @param instant    the {@link Instant} to use to reposition the subscriber
-         * @param anChannel  the channels to reposition
+         * @param map  the map of channel to {@link Instant} to use to reposition the subscriber
          */
-        public SeekRequest(Instant instant, int... anChannel)
+        public static SeekRequest instant(Map<Integer, Instant> map)
             {
-            this(SeekType.Instant, null, instant, anChannel);
+            return new SeekRequest(SeekType.Instant, null, map);
             }
 
         /**
@@ -4037,10 +3630,9 @@ public class PagedTopicSubscriber<V>
          *
          * @param type         the type of the request
          * @param mapPosition  a map of {@link Position} keyed by channel to move to
-         * @param instant      the {@link Instant} to use to reposition the subscriber
          * @param anChannel    the channels to reposition
          */
-        private SeekRequest(SeekType type, Map<Integer, Position> mapPosition, Instant instant, int... anChannel)
+        private SeekRequest(SeekType type, Map<Integer, Position> mapPosition, Map<Integer, Instant> mapInstant, int... anChannel)
             {
             switch (type)
                 {
@@ -4052,7 +3644,7 @@ public class PagedTopicSubscriber<V>
                     anChannel = mapPosition.keySet().stream().mapToInt(Integer::intValue).toArray();
                     break;
                 case Instant:
-                    if (instant == null)
+                    if (mapInstant == null)
                         {
                         throw new IllegalArgumentException("Seek request of type " + type + " require an instant");
                         }
@@ -4061,12 +3653,12 @@ public class PagedTopicSubscriber<V>
 
             m_type        = type;
             m_mapPosition = mapPosition;
-            m_instant     = instant;
+            m_mapInstant  = mapInstant;
             m_anChannel   = anChannel;
             }
 
         @Override
-        protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
+        protected void execute(NamedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
             {
             Map<Integer, Position> map = subscriber.seekInternal(this);
             queueBatch.completeElement(map, this::onRequestComplete);
@@ -4093,13 +3685,13 @@ public class PagedTopicSubscriber<V>
             }
 
         /**
-         * Return the {@link Instant} to use to reposition the subscriber.
+         * Return the map of channel to {@link Instant} to use to reposition the subscriber.
          *
-         * @return the {@link Instant} to use to reposition the subscriber
+         * @return the map of channel to {@link Instant} to use to reposition the subscriber
          */
-        public Instant getInstant()
+        public Map<Integer, Instant> getInstants()
             {
-            return m_instant;
+            return m_mapInstant;
             }
 
         /**
@@ -4125,9 +3717,9 @@ public class PagedTopicSubscriber<V>
         protected final Map<Integer, Position> m_mapPosition;
 
         /**
-         * The {@link Instant} to use to reposition the subscriber.
+         * The map of channels to {@link Instant} to use to reposition the subscriber.
          */
-        protected final Instant m_instant;
+        protected final Map<Integer, Instant> m_mapInstant;
 
         /**
          * The channels to reposition.
@@ -4140,7 +3732,7 @@ public class PagedTopicSubscriber<V>
     /**
      * An enum representing type of {@link SeekRequest}
      */
-    protected enum SeekType
+    public enum SeekType
         {
         /**
          * Seek to the head of the channel.
@@ -4179,9 +3771,10 @@ public class PagedTopicSubscriber<V>
             }
 
         @Override
-        protected void execute(PagedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue)
+        protected void execute(NamedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queue)
             {
             Map<Integer, Position> map;
+            //noinspection EnhancedSwitchMigration
             switch (f_type)
                 {
                 case Head:
@@ -4228,289 +3821,59 @@ public class PagedTopicSubscriber<V>
         Committed,
         }
 
-    // ----- inner class: DeactivationListener ------------------------------
+    // ----- inner class: Listener ------------------------------------------
 
-    /**
-     * A {@link PagedTopicCaches.Listener} to detect the subscribed topic deactivation.
-     */
-    protected class DeactivationListener
-        implements PagedTopicCaches.Listener
+    private class Listener
+            implements SubscriberConnector.SubscriberListener
         {
         @Override
-        public void onConnect()
+        public void onEvent(SubscriberConnector.SubscriberEvent evt)
             {
-            }
-
-        @Override
-        public void onDisconnect()
-            {
-            disconnectInternal(false);
-            }
-
-        @Override
-        public void onDestroy()
-            {
-            Logger.finest("Detected destroy of topic "
-                                + m_caches.getTopicName() + ", closing subscriber "
-                                + PagedTopicSubscriber.this);
-            CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-            }
-
-        @Override
-        public void onRelease()
-            {
-            Logger.finest("Detected release of topic "
-                                + m_caches.getTopicName() + ", closing subscriber "
-                                + PagedTopicSubscriber.this);
-            CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-            }
-        }
-
-    // ----- inner class: GroupDeactivationListener -------------------------
-
-    /**
-     * A {@link AbstractMapListener} to detect the removal of the subscriber group
-     * that the subscriber is subscribed to.
-     */
-    protected class GroupDeactivationListener
-        extends AbstractMapListener
-        {
-        @Override
-        @SuppressWarnings("rawtypes")
-        public void entryDeleted(MapEvent evt)
-            {
-            if (isActive())
+            switch (evt.getType())
                 {
-                // destroy subscriber group
-                Logger.finest("Detected removal of subscriber group "
-                                    + f_subscriberGroupId.getGroupName() + ", closing subscriber "
-                                    + PagedTopicSubscriber.this);
-                CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-                }
-            }
-        }
-
-    // ----- inner class: ChannelListener -----------------------------------
-
-    /**
-     * A {@link MapListener} that tracks changes to the channels owned by this subscriber.
-     */
-    protected class ChannelListener
-            implements PagedTopicSubscription.Listener
-        {
-        public ChannelListener(SubscriberId id, PagedTopicSubscription.Key key)
-            {
-            f_id    = id;
-            f_key   = key;
-            m_latch = new CountDownLatch(1);
-            }
-
-        // ----- PagedTopicSubscription.Listener methods --------------------
-
-        @Override
-        public void onUpdate(PagedTopicSubscription subscription)
-            {
-            if (Objects.equals(subscription.getKey(), f_key))
-                {
-                f_daemonChannels.executeTask(() -> onChannelAllocation(subscription));
-                }
-            }
-
-        @Override
-        public void onDelete(PagedTopicSubscription subscription)
-            {
-            if (Objects.equals(subscription.getKey(), f_key))
-                {
-                f_daemonChannels.executeTask(() -> updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true));
-                }
-            }
-
-        // ----- Object methods ---------------------------------------------
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public boolean equals(Object o)
-            {
-            if (this == o)
-                {
-                return true;
-                }
-            if (o == null || getClass() != o.getClass())
-                {
-                return false;
-                }
-            ChannelListener that = (ChannelListener) o;
-            return Objects.equals(f_id, that.f_id) && Objects.equals(f_key, that.f_key);
-            }
-
-        @Override
-        public int hashCode()
-            {
-            return Objects.hash(f_id, f_key);
-            }
-
-        // ----- helper methods ---------------------------------------------
-
-        /**
-         * Reset this listener.
-         */
-        public void reset()
-            {
-            if (m_latch.getCount() == 0)
-                {
-                // effectively revokes all channels
-                updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
-                m_latch = new CountDownLatch(1);
-                }
-            }
-
-        private void onChannelAllocation(PagedTopicSubscription subscription)
-            {
-            if (!isActive())
-                {
-                return;
-                }
-
-            SortedSet<Integer> setChannel = null;
-            if (subscription.hasSubscriber(f_id))
-                {
-                setChannel = subscription.getOwnedChannels(f_id);
-                }
-
-            if (setChannel != null && setChannel.isEmpty())
-                {
-                updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
-                }
-            else
-                {
-                if (setChannel != null)
-                    {
-                    updateChannelOwnership(setChannel, false);
-                    m_latch.countDown();
-                    }
-                else if (isActive() && !f_fAnonymous && isConnected())
-                    {
-                    Logger.finest("Disconnecting Subscriber (null channel set) " + PagedTopicSubscriber.this);
-                    updateChannelOwnership(PagedTopicSubscription.NO_CHANNELS, true);
+                case GroupDestroyed:
+                    if (isActive())
+                        {
+                        Logger.finest("Detected removal of subscriber group "
+                                            + f_subscriberGroupId.getGroupName()
+                                            + ", closing subscriber "
+                                            + this);
+                        CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
+                        }
+                    break;
+                case ChannelAllocation:
+                    onChannelAllocation(evt.getAllocatedChannels(), false);
+                    break;
+                case ChannelsLost:
+                    onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
+                    break;
+                case Unsubscribed:
+                    onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
                     disconnectInternal(false);
-                    }
+                    break;
+                case ChannelPopulated:
+                    // must use the channel executor
+                    CompletableFuture.runAsync(() -> onChannelPopulatedNotification(evt.getPopulatedChannels()), f_executorChannels);
+                    break;
+                case Destroyed:
+                    Logger.finest("Detected destroy of topic "
+                                        + f_sTopicName + ", closing subscriber "
+                                        + this);
+                    CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
+                    break;
+                case Released:
+                    Logger.finest("Detected release of topic "
+                                        + f_sTopicName + ", closing subscriber "
+                                        + this);
+                    CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
+                    break;
+                case Disconnected:
+                    disconnectInternal(false);
+                    break;
+                default:
+                    throw new IllegalStateException("Unexpected event type: " + evt.getType());
                 }
             }
-
-        // ----- data members -----------------------------------------------
-
-        /**
-         * A latch that is triggered when channel ownership is initialized.
-         */
-        private CountDownLatch m_latch;
-
-        /**
-         * The subscriber identifier.
-         */
-        private final SubscriberId f_id;
-
-        /**
-         * The subscription key to listen for changes to.
-         */
-        private final PagedTopicSubscription.Key f_key;
-        }
-
-    // ----- inner class: TimeoutInterceptor --------------------------------
-
-    /**
-     * A server side interceptor used to detect removal of {@link SubscriberInfo} entries
-     * from the subscriber {@link PagedTopicCaches#Subscribers} when a subscriber is closed
-     * or is evicted due to timeout.
-     */
-    public static class TimeoutInterceptor
-            implements EventDispatcherAwareInterceptor<EntryEvent<SubscriberInfo.Key, SubscriberInfo>>
-        {
-        public TimeoutInterceptor()
-            {
-            f_executor = Executors.newSingleThreadScheduledExecutor(runnable ->
-                {
-                String sName = "PagedTopic:SubscriberTimeoutInterceptor:" + f_instance.incrementAndGet();
-                return Base.makeThread(null, runnable, sName);
-                });
-            }
-
-        @Override
-        public void introduceEventDispatcher(String sIdentifier, EventDispatcher dispatcher)
-            {
-            if (dispatcher instanceof PartitionedCacheDispatcher)
-                {
-                String sCacheName = ((PartitionedCacheDispatcher) dispatcher).getCacheName();
-                if (PagedTopicCaches.Names.SUBSCRIBERS.equals(PagedTopicCaches.Names.fromCacheName(sCacheName)))
-                    {
-                    dispatcher.addEventInterceptor(sIdentifier, this, Collections.singleton(EntryEvent.Type.REMOVED), true);
-                    }
-                }
-            }
-
-        @Override
-        public void onEvent(EntryEvent<SubscriberInfo.Key, SubscriberInfo> event)
-            {
-            if (event.getType() == EntryEvent.Type.REMOVED)
-                {
-                SubscriberInfo.Key key            = event.getKey();
-                long               nId            = key.getSubscriberId();
-                SubscriberGroupId  groupId        = key.getGroupId();
-
-                Logger.finest(String.format(
-                        "Cleaning up subscriber %d in group '%s' owned by member %d",
-                        key.getSubscriberId(), groupId.getGroupName(), memberIdFromId(nId)));
-
-                // we MUST process the event on another thread so as not to block the event dispatcher thread.
-                f_executor.execute(() -> processSubscriberRemoval(event));
-                }
-            }
-
-        @SuppressWarnings({"unchecked"})
-        private void processSubscriberRemoval(EntryEvent<SubscriberInfo.Key, SubscriberInfo> event)
-            {
-            SubscriberInfo.Key key            = event.getKey();
-            SubscriberInfo     info           = event.getOriginalValue();
-            long               nId            = key.getSubscriberId();
-            SubscriberGroupId  groupId        = key.getGroupId();
-            String             sTopicName     = PagedTopicCaches.Names.getTopicName(event.getCacheName());
-            String             sSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopicName);
-            PagedTopicService  topicService   = (PagedTopicService) event.getService();
-            int                nMember        = memberIdFromId(nId);
-            long               lTimestamp     = info.getConnectionTimestamp();
-
-            if (event.getEntry().isSynthetic())
-                {
-                Logger.finest(String.format(
-                        "Subscriber expired after %d ms - groupId='%s', memberId=%d, notificationId=%d, last heartbeat at %s",
-                        info.getTimeoutMillis(), groupId.getGroupName(), nMember, notificationIdFromId(nId), info.getLastHeartbeat()));
-                }
-            else
-                {
-                boolean fManual = ((Set<Member>) topicService.getInfo().getServiceMembers()).stream().anyMatch(m -> m.getId() == nMember);
-                String  sReason = fManual ? "manual removal of subscriber(s)" : "departure of member " + nMember;
-                Logger.finest(String.format(
-                        "Subscriber %d in group '%s' removed due to %s",
-                        nId, groupId.getGroupName(), sReason));
-                }
-
-            SubscriberId           subscriberId    = new SubscriberId(nId, info.getOwningUid());
-            long                   lSubscriptionId = topicService.getSubscriptionId(sTopicName, groupId);
-            PagedTopicSubscription subscription    = topicService.getSubscription(lSubscriptionId);
-
-            // This is an async event, the subscriber may have already reconnected with a newer timestamp
-            if (subscription == null || subscription.getSubscriberTimestamp(subscriberId) <= lTimestamp)
-                {
-                notifyClosed(topicService.ensureCache(sSubscriptions, null), groupId, lSubscriptionId, subscriberId);
-                }
-            }
-
-        // ----- constants --------------------------------------------------
-
-        private static final AtomicInteger f_instance = new AtomicInteger();
-
-        // ----- data members -----------------------------------------------
-
-        private final Executor f_executor;
         }
 
     // ----- inner class: ReconnectTask -------------------------------------
@@ -4527,7 +3890,7 @@ public class PagedTopicSubscriber<V>
          *
          * @param subscriber  the subscriber to reconnect
          */
-        protected ReconnectTask(PagedTopicSubscriber<?> subscriber)
+        protected ReconnectTask(NamedTopicSubscriber<?> subscriber)
             {
             m_subscriber = subscriber;
             }
@@ -4554,7 +3917,7 @@ public class PagedTopicSubscriber<V>
         /**
          * The subscriber to reconnect.
          */
-        private final PagedTopicSubscriber<?> m_subscriber;
+        private final NamedTopicSubscriber<?> m_subscriber;
 
         /**
          * The number of time the task has executed.
@@ -4574,11 +3937,75 @@ public class PagedTopicSubscriber<V>
         /**
          * The state of the specified subscriber changed.
          *
-         * @param subscriber  the {@link PagedTopicSubscriber}
+         * @param subscriber  the {@link NamedTopicSubscriber}
          * @param nNewState   the new state of the subscriber
          * @param nPrevState  the previous state of the subscriber
          */
-        void onStateChange(PagedTopicSubscriber<?> subscriber, int nNewState, int nPrevState);
+        void onStateChange(NamedTopicSubscriber<?> subscriber, int nNewState, int nPrevState);
+        }
+
+    // ----- inner class ValueConverter -------------------------------------
+
+    /**
+     * A converter to serialize and deserialize values.
+     *
+     * @param <V>  the type of values to convert
+     */
+    public interface ValueConverter<V>
+        {
+        Binary toBinary(V value);
+
+        V fromBinary(Binary binary);
+        }
+
+    // ----- inner class SerializerValueConverter ---------------------------
+
+    /**
+     * A converter to serialize and deserialize values.
+     *
+     * @param <V>  the type of values to convert
+     */
+    public static class SerializerValueConverter<V>
+            implements ValueConverter<V>
+        {
+        public SerializerValueConverter(Serializer serializer)
+            {
+            f_serializer = serializer;
+            }
+
+        @Override
+        public Binary toBinary(V value)
+            {
+            return ExternalizableHelper.toBinary(value, f_serializer);
+            }
+
+        @Override
+        public V fromBinary(Binary binary)
+            {
+            return ExternalizableHelper.fromBinary(binary, f_serializer);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private final Serializer f_serializer;
+        }
+
+    // ----- inner class WithValueConverter ---------------------------------
+
+    public static class WithValueConverter<V, U>
+            implements Option<V, U>
+        {
+        public WithValueConverter(ValueConverter<U> converter)
+            {
+            f_converter = Objects.requireNonNull(converter);
+            }
+
+        public ValueConverter<U> getConverter()
+            {
+            return f_converter;
+            }
+
+        private final ValueConverter<U> f_converter;
         }
 
     // ----- constants ------------------------------------------------------
@@ -4628,109 +4055,68 @@ public class PagedTopicSubscriber<V>
      */
     public static final long INIT_TIMEOUT_SECS = TimeUnit.MILLISECONDS.toSeconds(Base.parseTime(Config.getProperty("coherence.topic.subscriber.init.timeout", "30s"), Base.UNIT_S));
 
+    /**
+     * A constant empty int array.
+     */
+    private static final int[] NO_CHANNELS = new int[0];
+
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The connector to connect to server side topic resources.
+     */
+    private final SubscriberConnector<V> f_connector;
 
     /**
      * The underlying {@link NamedTopic} being subscribed to.
      */
-    private final NamedTopic<?> f_topic;
+    protected final NamedTopic<?> f_topic;
 
     /**
-     * The {@link PagedTopicCaches} instance managing the caches for the topic
-     * being consumed.
+     * The name of the topic.
      */
-    protected final PagedTopicCaches m_caches;
+    protected final String f_sTopicName;
 
     /**
-     * Flag indicating whether this subscriber is part of a group or is anonymous.
+     * The converter to use to convert binary values.
      */
-    protected final boolean f_fAnonymous;
+    protected final ValueConverter<V> f_converter;
 
-    /**
-     * This subscriber's identifier.
-     */
-    protected final SubscriberId f_id;
+//    /**
+//     * The unique identifier for this {@link NamedTopicSubscriber}'s subscriber group.
+//     */
+//    protected long m_subscriptionId;
 
-    /**
-     * The {@link SubscriberInfo.Key} to use to send heartbeats.
-     */
-    protected final SubscriberInfo.Key f_key;
-
-    /**
-     * The entry processor to use to heartbeat the server.
-     */
-    protected final SubscriberHeartbeatProcessor f_heartbeatProcessor;
-
-    /**
-     * The optional {@link Filter} to use to filter messages.
-     */
-    protected final Filter<V>   f_filter;
-
-    /**
-     * The optional function to use to transform the payload of the message on the server.
-     */
-    protected final ValueExtractor<V, ?> f_extractor;
-
-    /**
-     * The cache's serializer.
-     */
-    protected final Serializer f_serializer;
-
-    /**
-     * The identifier for this {@link PagedTopicSubscriber}.
-     */
-    protected final SubscriberGroupId f_subscriberGroupId;
-
-    /**
-     * The unique identifier for this {@link PagedTopicSubscriber}'s subscriber group.
-     */
-    protected long m_subscriptionId;
-
-    /**
-     * The subscriber's connection timestamp.
-     */
-    protected volatile long m_connectionTimestamp;
-
-    /**
-     * This subscriber's notification id.
-     */
-    protected final int f_nNotificationId;
-
-    /**
-     * The filter used to register the notification listener.
-     */
-    protected final Filter<Object> f_filterNotification;
-
-    /**
-     * True if configured to complete when empty
-     */
-    protected final boolean f_fCompleteOnEmpty;
+//    /**
+//     * The subscriber's connection timestamp.
+//     */
+//    protected volatile long m_connectionTimestamp;
 
     /**
      * The {@link Gate} controlling access to the channel operations.
      */
-    private final Gate<?> f_gate;
+    protected final Gate<?> f_gate;
 
     /**
      * The {@link Gate} controlling access to the subscriber state.
      */
-    private final Gate<?> f_gateState;
+    protected final Gate<?> f_gateState;
 
     /**
      * The lock to control receive processing.
      */
-    private final Lock f_receiveLock = new ReentrantLock();
+    protected final Lock f_receiveLock = new ReentrantLock();
 
     /**
      * The state of the subscriber.
      */
-    private volatile int m_nState = STATE_INITIAL;
+    protected volatile int m_nState = STATE_INITIAL;
 
     /**
      * A flag to indicate that the reconnect logic should force a reconnect
      * request even if the subscriber is in the config map.
      */
-    private volatile boolean m_fForceReconnect;
+    protected volatile boolean m_fForceReconnect;
 
     /**
      * Optional queue of prefetched values which can be used to fulfil future receive requests.
@@ -4748,11 +4134,6 @@ public class PagedTopicSubscriber<V>
     protected final DebouncedFlowControl f_backlog;
 
     /**
-     * The state for the channels.
-     */
-    protected volatile PagedTopicChannel[] m_aChannel;
-
-    /**
      * The owned channels.
      */
     protected volatile int[] m_aChannelOwned;
@@ -4768,9 +4149,9 @@ public class PagedTopicSubscriber<V>
     protected final TaskDaemon f_daemon;
 
     /**
-     * The {@link Executor} to execute async operations (this will wrap {@link #f_daemon}).
+     * The {@link TaskDaemon} to execute async operations (this will wrap {@link #f_daemon}).
      */
-    private final Executor f_executor;
+    protected final TaskDaemon f_executor;
 
     /**
      * The daemon used to execute subscriber channel allocation changes.
@@ -4780,18 +4161,7 @@ public class PagedTopicSubscriber<V>
     /**
      * The {@link Executor} to execute channel operations (this will wrap {@link #f_daemonChannels}).
      */
-    private final Executor f_executorChannels;
-
-    /**
-     * The listener that receives notifications for non-empty channels.
-     */
-    @SuppressWarnings("rawtypes")
-    private final SimpleMapListener f_listenerNotification;
-
-    /**
-     * The listener that will update channel allocations.
-     */
-    protected final ChannelListener m_listenerChannelAllocation;
+    protected final Executor f_executorChannels;
 
     /**
      * The array of {@link ChannelOwnershipListener listeners} to be notified when channel allocations change.
@@ -4847,16 +4217,6 @@ public class PagedTopicSubscriber<V>
      * The last value of m_cNotify used within {@link #toString} stats.
      */
     protected long m_cNotifyLast;
-
-    /**
-     * The deactivation listener.
-     */
-    protected final DeactivationListener f_listenerDeactivation = new DeactivationListener();
-
-    /**
-     * The NamedCache deactivation listener.
-     */
-    protected final GroupDeactivationListener m_listenerGroupDeactivation;
 
     /**
      * A {@link List} of actions to run when this publisher closes.
@@ -4917,4 +4277,49 @@ public class PagedTopicSubscriber<V>
      * The count of receive futures that have been cancelled.
      */
     private final LongAdder f_cCancelled = new LongAdder();
+
+    /**
+     * The identifier for the subscriber.
+     */
+    protected final SubscriberId f_subscriberId;
+
+    /**
+     * This subscriber's notification id.
+     */
+    protected final int f_nNotificationId;
+
+    /**
+     * Flag indicating whether this subscriber is part of a group or is anonymous.
+     */
+    protected final boolean f_fAnonymous;
+
+    /**
+     * The identifier for this {@link NamedTopicSubscriber}.
+     */
+    protected final SubscriberGroupId f_subscriberGroupId;
+
+    /**
+     * The {@link SubscriberInfo.Key} to use to send heartbeats.
+     */
+    protected final SubscriberInfo.Key f_key;
+
+    /**
+     * The optional {@link Filter} to use to filter messages.
+     */
+    protected final Filter<V> f_filter;
+
+    /**
+     * The optional function to use to transform the payload of the message on the server.
+     */
+    protected final ValueExtractor<V, ?> f_extractor;
+
+    /**
+     * True if configured to complete when empty
+     */
+    protected final boolean f_fCompleteOnEmpty;
+
+    /**
+     * The array of channels.
+     */
+    protected TopicChannel[] m_aChannel;
     }

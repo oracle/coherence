@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -31,6 +31,7 @@ import com.tangosol.util.extractor.EntryExtractor;
 
 import java.io.IOException;
 
+import java.io.Serializable;
 import java.util.Map;
 
 /**
@@ -46,7 +47,7 @@ import java.util.Map;
  */
 public class Page
         extends AbstractEvolvable
-        implements EvolvablePortableObject
+        implements EvolvablePortableObject, Serializable // serializable for testing
     {
     // ----- constructors ---------------------------------------------------
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
@@ -42,7 +42,7 @@ public class CreateSubscriber
             Session                 session      = Coherence.getInstance().getSession();
             NamedTopic<?>           topic        = session.getTopic(f_sTopicName);
             System.err.println("***** Creating subscriber for topic " + f_sTopicName + " in group " + f_sGroupName);
-            PagedTopicSubscriber<?> subscriber   = (PagedTopicSubscriber<?>) topic.createSubscriber(inGroup(f_sGroupName));
+            NamedTopicSubscriber<?> subscriber = (NamedTopicSubscriber<?>) topic.createSubscriber(inGroup(f_sGroupName));
             System.err.println("***** Created subscriber for topic " + f_sTopicName + " in group " + f_sGroupName);
             SubscriberId            subscriberId = subscriber.getSubscriberId();
             f_mapSubscriber.put(subscriberId, subscriber);

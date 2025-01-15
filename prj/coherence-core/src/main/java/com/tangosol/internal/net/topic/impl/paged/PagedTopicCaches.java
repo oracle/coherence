@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,9 +11,9 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
-import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.internal.net.topic.NamedTopicDeactivationListener;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber;
@@ -22,12 +22,14 @@ import com.tangosol.internal.net.topic.impl.paged.model.NotificationKey;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
+import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
 
@@ -38,13 +40,13 @@ import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.NamedMap;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.cache.TypeAssertion;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 
-import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Aggregators;
@@ -154,7 +156,7 @@ public class PagedTopicCaches
         f_sCacheServiceName = cacheService.getInfo().getServiceName();
         f_cPartition        = cacheService.getPartitionCount();
         f_functionCache     = functionCache;
-        f_dependencies      = cacheService.getTopicBackingMapManager().getTopicDependencies(sName);
+        f_dependencies      = (PagedTopicDependencies) cacheService.getTopicBackingMapManager().getTopicDependencies(sName);
 
         initializeCaches(registerListeners);
 
@@ -177,6 +179,19 @@ public class PagedTopicCaches
     public void close()
         {
         release();
+        }
+
+    /**
+     * Asserts that there are storage enabled members in the cluster for the specified topic.
+     *
+     * @throws IllegalStateException if there are no storage enabled members.
+     */
+    public void assertStorage()
+        {
+        if (f_topicService.getOwnershipEnabledMembers().isEmpty())
+            {
+            throw new IllegalStateException("No storage-enabled nodes exist for topic " + f_sTopicName);
+            }
         }
 
     /**
@@ -214,7 +229,7 @@ public class PagedTopicCaches
      */
     public boolean isDestroyed()
         {
-        return Pages.isDestroyed();
+        return m_state == State.Destroyed || Pages.isDestroyed();
         }
 
     /**
@@ -225,15 +240,15 @@ public class PagedTopicCaches
      */
     public boolean isReleased()
         {
-        return Pages.isReleased();
+        return m_state == State.Released || Pages.isReleased();
         }
 
-    public void addListener(Listener listener)
+    public void addListener(NamedTopicDeactivationListener listener)
         {
         m_mapListener.put(listener, Boolean.TRUE);
         }
 
-    public void removeListener(Listener listener)
+    public void removeListener(NamedTopicDeactivationListener listener)
         {
         m_mapListener.remove(listener);
         }
@@ -249,8 +264,8 @@ public class PagedTopicCaches
                     {
                     m_state = State.Active;
                     f_setCaches.forEach(NamedCache::size);
-                    Set<Listener> setListener = m_mapListener.keySet();
-                    for (Listener listener : setListener)
+                    Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+                    for (NamedTopicDeactivationListener listener : setListener)
                         {
                         try
                             {
@@ -588,7 +603,7 @@ public class PagedTopicCaches
         for (Map.Entry<Long, Set<Integer>> entry : getChannelAllocations(sGroup).entrySet())
             {
             long nId     = entry.getKey();
-            int  nMember = PagedTopicSubscriber.memberIdFromId(nId);
+            int  nMember = SubscriberId.memberIdFromId(nId);
             out.println("SubscriberId=" + nId + " channels=" + entry.getValue() + " " + mapMember.get(nMember));
             }
         }
@@ -692,7 +707,7 @@ public class PagedTopicCaches
         for (SubscriberGroupId id : getSubscriberGroupsIds(false))
             {
             long lSubscription = f_topicService.getSubscriptionId(f_sTopicName, id);
-            PagedTopicSubscriber.notifyClosed(Subscriptions, id, lSubscription, SubscriberId.NullSubscriber);
+            PagedTopicSubscription.notifyClosed(Subscriptions, id, lSubscription, SubscriberId.NullSubscriber);
             }
 
         Subscribers.clear();
@@ -707,6 +722,7 @@ public class PagedTopicCaches
      */
     public void ensureSubscriberGroup(String sName, Filter<?> filter, ValueExtractor<?, ?> extractor)
         {
+        assertStorage();
         SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName(sName);
         initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, 0L, filter, extractor, false, true, false);
         }
@@ -948,12 +964,27 @@ public class PagedTopicCaches
     @SuppressWarnings("unchecked")
     public int getRemainingMessages(SubscriberGroupId id, int... anChannel)
         {
-        if (Subscriptions.containsKey(new Subscription.Key(0, 0, id)))
+        boolean fHasSubscription = Subscriptions.containsKey(new Subscription.Key(0, 0, id));
+        if (fHasSubscription || anChannel.length > 0)
             {
-            Map<Integer, Position> mapHeads = getLastCommitted(id);
             Map<Integer, Position> mapTails = getTails();
+            Map<Integer, Position> mapHeads;
+            if (fHasSubscription)
+                {
+                mapHeads = getLastCommitted(id);
+                }
+            else
+                {
+                mapHeads = getHeads();
+                for (Map.Entry<Integer, Position> entry : mapHeads.entrySet())
+                    {
+                    PagedPosition position = (PagedPosition) entry.getValue();
+                    entry.setValue(new PagedPosition(position.getPage(), 0));
+                    }
+                }
 
-            for (int i = 0; i < getChannelCount(); i++)
+            int cChannel = getChannelCount();
+            for (int i = 0; i < cChannel; i++)
                 {
                 mapHeads.putIfAbsent(i, new PagedPosition(-1L, -1));
                 }
@@ -966,9 +997,10 @@ public class PagedTopicCaches
                 }
 
             InvocableMap.EntryAggregator counter = new Count();
-            Binary bin = (Binary) Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), counter);
-            return ((Number) f_topicService.getBackingMapManager().getContext()
-                    .getValueFromInternalConverter().convert(bin)).intValue();
+            Binary bin   = (Binary) Data.aggregate(new UnreadTopicContentFilter(mapHeads, mapTails), counter);
+            int    count = ((Number) f_topicService.getBackingMapManager().getContext()
+                                    .getValueFromInternalConverter().convert(bin)).intValue();
+            return fHasSubscription ? count : count + anChannel.length;
             }
         // subscriber group does not exist, return the total number of messages
         return Data.size();
@@ -1051,11 +1083,14 @@ public class PagedTopicCaches
     private void removeListeners()
         {
         DeactivationListener listener = m_deactivationListener;
-        if (Pages.isActive())
+        if (!Pages.isDestroyed())
             {
             Pages.removeMapListener(listener);
             }
-        f_topicService.removeMemberListener(listener);
+        if (f_topicService.isRunning())
+            {
+            f_topicService.removeMemberListener(listener);
+            }
         }
 
     /**
@@ -1069,8 +1104,8 @@ public class PagedTopicCaches
             {
             m_state = fDestroy ? State.Destroyed : State.Released;
 
-            Set<Listener> setListener = m_mapListener.keySet();
-            for (Listener listener : setListener)
+            Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+            for (NamedTopicDeactivationListener listener : setListener)
                 {
                 try
                     {
@@ -1114,6 +1149,7 @@ public class PagedTopicCaches
         if (cache.isActive() && !cache.isReleased())
             {
             f_topicService.releaseCache(cache);
+//            cache.release();
             }
         }
 
@@ -1122,6 +1158,7 @@ public class PagedTopicCaches
         if (cache.isActive() && !cache.isDestroyed())
             {
             f_topicService.destroyCache(cache);
+//            cache.destroy();
             }
         }
 
@@ -1134,8 +1171,8 @@ public class PagedTopicCaches
                 if (m_state == State.Active)
                     {
                     m_state = State.Disconnected;
-                    Set<Listener> setListener = m_mapListener.keySet();
-                    for (Listener listener : setListener)
+                    Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+                    for (NamedTopicDeactivationListener listener : setListener)
                         {
                         try
                             {
@@ -1472,14 +1509,26 @@ public class PagedTopicCaches
         @SuppressWarnings("rawtypes")
         public void entryDeleted(MapEvent evt)
             {
-            // destroy/disconnect event
-            NamedCache cache      = (NamedCache) evt.getMap();
-            boolean    fReleased  = cache.isReleased();
-            boolean    fDestroyed = cache.isDestroyed();
-
-            if (fReleased || fDestroyed)
+            if (f_topicService.isRunning())
                 {
-                PagedTopicCaches.this.releaseOrDestroy(fDestroyed);
+                // destroy event
+                m_state = State.Destroyed;
+                //removeListeners();
+                Daemons.commonPool().execute(() ->
+                    {
+                    Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+                    for (NamedTopicDeactivationListener listener : setListener)
+                        {
+                        try
+                            {
+                            listener.onDestroy();
+                            }
+                        catch (Throwable t)
+                            {
+                            Logger.err(t);
+                            }
+                        }
+                    });
                 }
             }
 
@@ -1533,26 +1582,8 @@ public class PagedTopicCaches
      * to be notified of disconnection events.
      */
     public interface Listener
+            extends NamedTopicDeactivationListener
         {
-        /**
-         * The caches have been disconnected.
-         */
-        void onDisconnect();
-
-        /**
-         * The caches have been connected.
-         */
-        void onConnect();
-
-        /**
-         * The caches have been destroyed.
-         */
-        void onDestroy();
-
-        /**
-         * The caches have been released.
-         */
-        void onRelease();
         }
 
     // ----- inner enum: State ----------------------------------------------
@@ -1639,7 +1670,7 @@ public class PagedTopicCaches
     /**
      * The {@link Listener} instances to be notified of connection and disconnection events.
      */
-    private final Map<Listener, Object> m_mapListener = new ConcurrentHashMap<>();
+    private final Map<NamedTopicDeactivationListener, Object> m_mapListener = new ConcurrentHashMap<>();
 
     /**
      * The {@link PagedTopicDependencies dependencies} for the topic.

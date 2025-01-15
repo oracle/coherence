@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -49,6 +49,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -5573,5 +5574,59 @@ public abstract class ConverterCollections
          * The Converter to use to convert from type T to type F.
          */
         protected final Converter<T, F> f_convDown;
+        }
+
+    // ----- inner class; ConverterQueue ------------------------------------
+
+    public static class ConverterQueue<F, T>
+            extends ConverterCollection<F, T>
+            implements Queue<T>
+        {
+        public ConverterQueue(Queue<F> queue, Converter<F, T> convUp, Converter<T, F> convDown)
+            {
+            super(queue, convUp, convDown);
+            m_queue = queue;
+            }
+
+        @Override
+        public boolean offer(T t)
+            {
+            return m_queue.offer(m_convDown.convert(t));
+            }
+
+        @Override
+        public T remove()
+            {
+            F value = m_queue.remove();
+            return value == null ? null : m_convUp.convert(value);
+            }
+
+        @Override
+        public T poll()
+            {
+            F value = m_queue.poll();
+            return value == null ? null : m_convUp.convert(value);
+            }
+
+        @Override
+        public T element()
+            {
+            F value = m_queue.element();
+            return value == null ? null : m_convUp.convert(value);
+            }
+
+        @Override
+        public T peek()
+            {
+            F value = m_queue.peek();
+            return value == null ? null : m_convUp.convert(value);
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        /**
+         * The underlying queue.
+         */
+        private final Queue<F> m_queue;
         }
     }

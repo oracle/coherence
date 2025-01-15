@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,8 +9,15 @@ package topics;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+import com.tangosol.net.AbstractInvocable;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.topic.NamedTopic;
@@ -20,6 +27,9 @@ import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.NullImplementation;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -30,11 +40,12 @@ import java.util.TreeMap;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author jk 2016.01.21
  */
+@SuppressWarnings({"unchecked", "resource"})
 public class TopicAssertions
     {
     public static class PositionComparator
@@ -59,6 +70,7 @@ public class TopicAssertions
 
         public static final PositionComparator INSTANCE = new PositionComparator();
         }
+
 
     public static void assertPublishedOrder(NamedTopic<String> topic, int cElements, String... asPrefix)
         {
@@ -85,11 +97,11 @@ public class TopicAssertions
             int  nElement = position.getElement();
 
 
-            // Pull all of the elements from the cache in order
+            // Pull all the elements from the cache in order
             for (int i=0; i<cTotalElements; i++)
                 {
                 ContentKey positionTest = new ContentKey(nChan, lPage, nElement++);
-                String   sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(cacheService.getPartitionCount())));
+                String     sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(257)));
 
                 // If the value is null then try the next page
                 if (sValue == null)
@@ -98,7 +110,7 @@ public class TopicAssertions
                     nElement = 0;
 
                     positionTest = new ContentKey(nChan, lPage, nElement++);
-                    sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(cacheService.getPartitionCount())));
+                    sValue       = convValue.apply(cacheElements.get(positionTest.toBinary(257)));
                     }
 
                 // Assert there was a value
@@ -123,5 +135,72 @@ public class TopicAssertions
                 list.add(sValue);
                 }
             }
+        }
+
+    // ----- inner class: AssertPublishedOrderInvocable ---------------------
+
+    public static class AssertPublishedOrderInvocable
+            extends AbstractInvocable
+            implements ExternalizableLite, PortableObject
+        {
+        public AssertPublishedOrderInvocable()
+            {
+            }
+
+        public AssertPublishedOrderInvocable(String sTopicName, int cElements, String[] asPrefix)
+            {
+            m_sTopicName = sTopicName;
+            m_cElements  = cElements;
+            m_asPrefix   = asPrefix;
+            }
+
+        @Override
+        public void run()
+            {
+            ConfigurableCacheFactory ccf   = CacheFactory.getConfigurableCacheFactory();
+            NamedTopic<String>       topic = ccf.ensureTopic(m_sTopicName);
+            TopicAssertions.assertPublishedOrder(topic, m_cElements, m_asPrefix);
+            setResult(true);
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_sTopicName = in.readString(0);
+            m_cElements  = in.readInt(1);
+            m_asPrefix   = in.readArray(2, String[]::new);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeString(0, m_sTopicName);
+            out.writeInt(1, m_cElements);
+            out.writeObjectArray(2, m_asPrefix);
+            }
+
+        @Override
+        public void readExternal(DataInput in) throws IOException
+            {
+            m_sTopicName = ExternalizableHelper.readSafeUTF(in);
+            m_cElements  = in.readInt();
+            m_asPrefix   = ExternalizableHelper.readStringArray(in);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out) throws IOException
+            {
+            ExternalizableHelper.writeSafeUTF(out, m_sTopicName);
+            out.writeInt(m_cElements);
+            ExternalizableHelper.writeStringArray(out, m_asPrefix);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private String m_sTopicName;
+
+        private int m_cElements;
+
+        private String[] m_asPrefix;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -66,5 +66,5 @@ public class AddressExternalizableLite
 
     // ----- data members ---------------------------------------------------
 
-    static private Random random = new Random(5);
+    protected static Random random = new Random(5);
     }

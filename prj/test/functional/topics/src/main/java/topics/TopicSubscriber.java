@@ -1,17 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.Subscriber.Element;
-
-import com.tangosol.util.Base;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +65,7 @@ public class TopicSubscriber
                         if (m_fVerifyOrder)
                             {
 //                            Logger.finest("subscriber id: " + m_subscriber.hashCode() + " consumed message order for " + element.getValue() + " expecting " + m_sPrefix + m_nConsumed + " position=" + element.getPosition());
-                            assertThat("subscriber verifying published order", element.getValue(), is(m_sPrefix + m_nConsumed));
+                            assertThat("subscriber verifying published order: " + m_subscriber, element.getValue(), is(m_sPrefix + m_nConsumed));
                             }
                         m_nConsumed++;
                         }
@@ -83,8 +81,7 @@ public class TopicSubscriber
                     }
                 catch (Exception e)
                     {
-                    e.printStackTrace();
-                    throw Base.ensureRuntimeException(e);
+                    throw Exceptions.ensureRuntimeException(e);
                     }
                 }
             }

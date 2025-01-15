@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,7 @@ package topics.bug_35945522;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
-import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.Subscriber;
@@ -37,7 +37,7 @@ public class SubscriberMain
                 {
                 int cChannel = subscriber.getChannelCount();
                 s_subscriber    = subscriber;
-                s_nSubscriberId = ((PagedTopicSubscriber<String>) subscriber).getSubscriberId().getId();
+                s_nSubscriberId = ((NamedTopicSubscriber<String>) subscriber).getSubscriberId().getId();
                 Logger.info("Created subscriber: " + s_subscriber);
 
                 while (true)
@@ -49,7 +49,7 @@ public class SubscriberMain
                         Logger.info("Called receive: " + future + " subscriber " + subscriber);
                         for (int i = 0; i < cChannel; i++)
                             {
-                            Logger.info("**** Channel (" + i + ") " + ((PagedTopicSubscriber<String>) subscriber).getChannel(i));
+                            Logger.info("**** Channel (" + i + ") " + ((NamedTopicSubscriber<String>) subscriber).getChannel(i));
                             }
                         Element<String> element = future.get(cWaitSeconds, TimeUnit.SECONDS);
                         Logger.info("Received message: " + element);
