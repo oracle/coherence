@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.tangosol.internal.net.topic.impl.paged;
 
+import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
@@ -260,6 +261,25 @@ public class PagedTopicSubscriberConnector<V>
             // There used to be a To-Do comment here about cleaning up in a finalizer, but as
             // finalizers in the JVM are not reliable that is probably not such a good idea.
             destroy(f_caches, f_subscriberGroupId, m_subscriptionId);
+            }
+
+        // We need to ensure that the subscription has really gone.
+        // During a fail-over situation the subscriber may still exist in the configmap
+        // so we  need to repeat the closure notification
+        TopicSubscription subscription = getSubscription(subscriber, m_subscriptionId);
+        while (subscription != null && subscription.getSubscriberTimestamp(f_subscriberId) != Long.MAX_VALUE)
+            {
+            try
+                {
+                Blocking.sleep(100);
+                }
+            catch (InterruptedException e)
+                {
+                break;
+                }
+            Logger.fine("Repeating subscriber closed notification for topic subscriber: " + subscriber);
+            PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
+            subscription = getSubscription(subscriber, m_subscriptionId);
             }
         }
 
