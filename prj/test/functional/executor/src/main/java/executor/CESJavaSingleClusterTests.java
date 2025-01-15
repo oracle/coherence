@@ -25,7 +25,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
-import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+import com.tangosol.discovery.NSLookup;
+
 import com.tangosol.net.Coherence;
 
 import executor.common.CoherenceClusterResource;
@@ -33,20 +34,22 @@ import executor.common.LogOutput;
 import executor.common.SingleClusterForAllTests;
 import executor.common.Utils;
 
+import java.net.InetSocketAddress;
+import java.net.URL;
+
 import metrics.AbstractMetricsFunctionalTest;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.hamcrest.CoreMatchers;
-
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+
 import org.junit.experimental.categories.Category;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
-import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.CoreMatchers.is;
+
 import static org.junit.Assert.fail;
 
 
@@ -97,18 +100,35 @@ public class CESJavaSingleClusterTests
     public void shouldUseDefaultExecutor()
         {
         Utils.assertWithFailureAction(super::shouldUseDefaultExecutor, this::dumpExecutorCacheStates);
+        Utils.assertWithFailureAction(this::validateMetrics, this::dumpExecutorCacheStates);
+        }
 
+    // ----- helper methods -------------------------------------------------
+
+    protected void validateMetrics()
+        {
+        Eventually.assertDeferred(this::getCompletedMetricsAggregate, is(23L));
+        }
+
+    protected long getCompletedMetricsAggregate()
+        {
         AbstractMetricsFunctionalTest metricsHelper = new AbstractMetricsFunctionalTest();
         Map<String, String>           tags          = new LinkedHashMap<>();
+        long                          clInvoked      = 0;
 
         try
             {
-            Eventually.assertThat(invoking(metricsHelper).getCacheMetric(s_metrics_port, "Coherence.Executor.TasksCompletedCount", tags), CoreMatchers.is(greaterThan(4L)));
+            for (URL url : NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", 7778)))
+                {
+                clInvoked += metricsHelper.getCacheMetric(url.getPort(), TASK_COMP_COUNT_METRIC, tags);
+                }
             }
         catch (Exception e)
             {
             fail("Get Executor metrics failed with exception: " + e);
             }
+
+        return clInvoked;
         }
 
     // ----- constants ------------------------------------------------------
@@ -117,7 +137,9 @@ public class CESJavaSingleClusterTests
 
     protected static final String METRICS_ENABLED_PROPERTY = "coherence.metrics.http.enabled";
 
-    protected static int s_metrics_port = MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT;
+    protected static final String METRICS_PORT_PROPERTY = "coherence.metrics.http.port";
+
+    protected static final String TASK_COMP_COUNT_METRIC = "Coherence.Executor.TasksCompletedCount";
 
     // ----- data members ---------------------------------------------------
 
@@ -136,6 +158,7 @@ public class CESJavaSingleClusterTests
                           ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, EXTEND_HOST),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, EXTEND_PORT),
+                          SystemProperty.of(METRICS_PORT_PROPERTY, "0"),
                           JmxFeature.enabled(),
                           StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
@@ -144,14 +167,15 @@ public class CESJavaSingleClusterTests
                              RoleName.of(STORAGE_ENABLED_MEMBER_ROLE),
                              LocalStorage.enabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(METRICS_ENABLED_PROPERTY, true),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(STORAGE_DISABLED_MEMBER_COUNT,
                              DisplayName.of("ComputeServer"),
                              LogOutput.to(CESJavaSingleClusterTests.class.getSimpleName(), "ComputeServer"),
                              RoleName.of(STORAGE_DISABLED_MEMBER_ROLE),
                              LocalStorage.disabled(),
-                             SystemProperty.of(METRICS_ENABLED_PROPERTY, true),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, false),
+                             SystemProperty.of(METRICS_ENABLED_PROPERTY, true),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true))
                     .include(PROXY_MEMBER_COUNT,
                              DisplayName.of("ProxyServer"),
@@ -159,6 +183,7 @@ public class CESJavaSingleClusterTests
                              RoleName.of(PROXY_MEMBER_ROLE),
                              LocalStorage.disabled(),
                              SystemProperty.of(EXTEND_ENABLED_PROPERTY, true),
+                             SystemProperty.of(METRICS_ENABLED_PROPERTY, true),
                              SystemProperty.of(EXECUTOR_LOGGING_PROPERTY, true));
     }
 
