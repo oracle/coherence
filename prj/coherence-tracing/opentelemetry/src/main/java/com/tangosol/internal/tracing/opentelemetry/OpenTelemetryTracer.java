@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -72,11 +72,10 @@ public class OpenTelemetryTracer
     @Override
     public SpanContext extract(Map<String, String> carrier)
         {
-        LiteMap<String, String> extractTarget = new LiteMap<>();
-        TextMapPropagator       propagator    = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
+        TextMapPropagator propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
 
         return new OpenTelemetrySpanContext(io.opentelemetry.api.trace.Span.fromContext(
-                propagator.extract(Context.current(), extractTarget, new MapGetter()))
+                        propagator.extract(Context.current(), carrier, new MapGetter()))
                                                     .getSpanContext());
         }
 
