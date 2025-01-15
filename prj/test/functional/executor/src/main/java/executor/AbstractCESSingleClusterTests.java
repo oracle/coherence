@@ -348,7 +348,7 @@ public abstract class AbstractCESSingleClusterTests
 
     @Override
     @Test
-    @Ignore("https://jira.oraclecorp.com/jira/browse/COH-23998")
+    @Ignore("COH-23998")
     public void shouldRetainTask()
         {
         Utils.assertWithFailureAction(super::shouldRetainTask, this::dumpExecutorCacheStates);
