@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -97,6 +97,25 @@ public abstract class Exceptions
                 return t;
                 }
             }
+        }
+
+    /**
+     * Return the root cause of an exception.
+     *
+     * @param t  the exception to find the root cause in
+     *
+     * @return  the root cause of the exception
+     */
+    public static Throwable getRootCause(Throwable t)
+        {
+        Throwable rootCause = t;
+        Throwable cause     = t.getCause();
+        while (cause != null)
+            {
+            rootCause = cause;
+            cause      = cause.getCause();
+            }
+        return rootCause;
         }
 
     /**
