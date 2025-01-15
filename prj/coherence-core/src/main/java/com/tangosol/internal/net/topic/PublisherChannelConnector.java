@@ -7,13 +7,14 @@
 
 package com.tangosol.internal.net.topic;
 
+import com.tangosol.net.TopicService;
 import com.tangosol.net.topic.TopicDependencies;
 
 import com.tangosol.util.Binary;
 
 import java.util.List;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import java.util.function.BiConsumer;
 
@@ -64,7 +65,7 @@ public interface PublisherChannelConnector<V>
      * @return an opaque cookie to pass to the {@link #offer(Object, List, int, BiConsumer)} method.
      */
     @SuppressWarnings("TypeParameterExplicitlyExtendsObject")
-    CompletableFuture<? extends Object> initialize();
+    CompletionStage<? extends Object> initialize();
 
     /**
      * Publish a value to the underlying topic.
@@ -79,12 +80,11 @@ public interface PublisherChannelConnector<V>
     /**
      * Perform any set-up required to retry an offer.
      *
-     * @param oCookie  the cookie used by the connector.
-     *
-     * @return a {@link CompletableFuture} that completes when the set-up is completed
+     * @param oCookie the cookie used by the connector.
+     * @return a {@link CompletionStage} that completes when the set-up is completed
      */
     @SuppressWarnings("TypeParameterExplicitlyExtendsObject")
-    CompletableFuture<? extends Object> prepareOfferRetry(Object oCookie);
+    CompletionStage<? extends Object> prepareOfferRetry(Object oCookie);
 
     /**
      * Return the dependencies for the topic.
@@ -92,4 +92,11 @@ public interface PublisherChannelConnector<V>
      * @return the dependencies for the topic
      */
     TopicDependencies getTopicDependencies();
+
+    /**
+     * Return the underlying topic service.
+     *
+     * @return the underlying topic service
+     */
+    TopicService getTopicService();
     }

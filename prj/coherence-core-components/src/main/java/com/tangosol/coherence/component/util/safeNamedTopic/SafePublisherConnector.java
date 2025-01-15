@@ -7,6 +7,7 @@
 
 package com.tangosol.coherence.component.util.safeNamedTopic;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.util.SafeNamedTopic;
 
 import com.tangosol.internal.net.topic.NamedTopicPublisher;
@@ -25,7 +26,7 @@ import com.tangosol.util.Listeners;
 import java.util.Arrays;
 import java.util.List;
 
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -160,12 +161,24 @@ public class SafePublisherConnector<V>
     protected PublisherConnector<V> ensureRunningConnector()
         {
         PublisherConnector<V> connector = m_connector;
-        if (connector == null || !connector.isActive())
+        TopicService          service   = getTopicService();
+        if (!service.isRunning() || connector == null || !connector.isActive())
             {
             f_lock.lock();
             try
                 {
                 connector = m_connector;
+
+                if (connector != null)
+                    {
+                    service = getTopicService();
+                    if (!service.isRunning())
+                        {
+                        Logger.info("Restarting Publisher connector, topic=" + getTopicName());
+                        connector = null;
+                        }
+                    }
+                
                 if (connector == null || !connector.isActive())
                     {
                     if (isReleased() || isDestroyed())
@@ -260,7 +273,7 @@ public class SafePublisherConnector<V>
             }
 
         @Override
-        public CompletableFuture<?> initialize()
+        public CompletionStage<?> initialize()
             {
             return ensureRunningChannelConnector().initialize();
             }
@@ -272,7 +285,7 @@ public class SafePublisherConnector<V>
             }
 
         @Override
-        public CompletableFuture<?> prepareOfferRetry(Object oCookie)
+        public CompletionStage<?> prepareOfferRetry(Object oCookie)
             {
             return ensureRunningChannelConnector().prepareOfferRetry(oCookie);
             }
@@ -283,17 +296,38 @@ public class SafePublisherConnector<V>
             return SafePublisherConnector.this.getTopicDependencies();
             }
 
+        @Override
+        public TopicService getTopicService()
+            {
+            return f_safeTopic.getTopicService();
+            }
+
         // ----- helper methods ---------------------------------------------
 
         protected PublisherChannelConnector<V> ensureRunningChannelConnector()
             {
             PublisherChannelConnector<V> connector = m_channelConnector;
-            if (connector == null || !connector.isActive())
+            TopicService                 service   = getTopicService();
+            if (!service.isRunning())
+                {
+                System.out.println();
+                }
+            if (!service.isRunning() || connector == null || !connector.isActive())
                 {
                 f_lock.lock();
                 try
                     {
                     connector = m_channelConnector;
+                    if (connector != null)
+                        {
+                        service = getTopicService();
+                        if (!service.isRunning())
+                            {
+                            Logger.info("Restarting Publisher channel connector, topic=" + getTopicName() + ", channel=" + f_nChannel);
+                            connector = null;
+                            }
+                        }
+
                     if (connector == null || !connector.isActive())
                         {
                         connector = m_channelConnector = ensureRunningConnector().createChannelConnector(f_nChannel);

@@ -36,6 +36,8 @@ import java.util.Objects;
 
 import java.util.concurrent.CompletableFuture;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 
@@ -115,52 +117,67 @@ public class NamedTopicPublisherChannel<V>
      */
     private void ensureConnected()
         {
-        TopicDependencies dependencies = m_connector.getTopicDependencies();
-        long              retry        = dependencies.getReconnectRetryMillis();
-        long              now          = System.currentTimeMillis();
-        long              timeout      = now + dependencies.getReconnectTimeoutMillis();
-        Throwable         error        = null;
-
-        while (now < timeout)
+        if (m_state != State.Active || m_connector == null)
             {
-            if (m_state != State.Active || m_connector == null)
-                {
-                // we're closed
-                return;
-                }
-
-            try
-                {
-                m_connector.ensureConnected();
-                break;
-                }
-            catch (Throwable thrown)
-                {
-                error = thrown;
-                if (error instanceof TopicException)
-                    {
-                    break;
-                    }
-                }
-            now = System.currentTimeMillis();
-            if (now < timeout)
-                {
-                Logger.finer("Failed to reconnect publisher, will retry in "
-                        + retry + " millis " + this + " due to " + error.getMessage());
-                try
-                    {
-                    Thread.sleep(retry);
-                    }
-                catch (InterruptedException e)
-                    {
-                    // ignored
-                    }
-                }
+            // we're closed
+            return;
             }
 
-        if (error != null)
+        f_lock.lock();
+        try
             {
-            throw Exceptions.ensureRuntimeException(error);
+            TopicDependencies dependencies = m_connector.getTopicDependencies();
+            long              retry        = dependencies.getReconnectRetryMillis();
+            long              now          = System.currentTimeMillis();
+            long              timeout      = now + dependencies.getReconnectTimeoutMillis();
+            Throwable         error        = null;
+
+            while (now < timeout)
+                {
+                if (m_state != State.Active || m_connector == null)
+                    {
+                    // we're closed
+                    return;
+                    }
+
+                try
+                    {
+                    m_connector.ensureConnected();
+                    error = null;
+                    break;
+                    }
+                catch (Throwable thrown)
+                    {
+                    error = thrown;
+                    if (error instanceof TopicException)
+                        {
+                        break;
+                        }
+                    }
+                now = System.currentTimeMillis();
+                if (now < timeout)
+                    {
+                    Logger.finer("Failed to reconnect publisher, will retry in "
+                            + retry + " millis " + this + " due to " + error.getMessage());
+                    try
+                        {
+                        Thread.sleep(retry);
+                        }
+                    catch (InterruptedException e)
+                        {
+                        // ignored
+                        }
+                    }
+                }
+
+            if (error != null)
+                {
+                throw Exceptions.ensureRuntimeException(error);
+                }
+            }
+        finally
+            {
+            f_lock.unlock();
             }
         }
 
@@ -598,10 +615,12 @@ public class NamedTopicPublisherChannel<V>
 
     // ----- data members ---------------------------------------------------
 
+    private final Lock f_lock = new ReentrantLock();
+
     /**
      * The publisher connector to use to connect to back end resources.
      */
-    private PublisherChannelConnector<V> m_connector;
+    private       PublisherChannelConnector<V> m_connector;
 
     /**
      * The identifier of the parent publisher.
