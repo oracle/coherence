@@ -237,7 +237,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 catch (Throwable t)
                     {
                     Logger.err("Error in publish loop");
-                    t.printStackTrace();
+                    Logger.err(t);
                     }
                 fPublished.set(true);
                 };
@@ -296,7 +296,24 @@ public abstract class AbstractTopicsStorageRecoveryTests
                                     {
                                     if (future != null && !future.isDone())
                                         {
-                                        future.cancel(true);
+                                        if (!future.cancel(true))
+                                            {
+                                            // the future has actually completed
+                                            if (future.isDone() && !future.isCompletedExceptionally())
+                                                {
+                                                Subscriber.Element<Message> element = future.get();
+                                                if (element != null)
+                                                    {
+                                                    mapReceived.put(element.getValue(), element);
+                                                    element.commit();
+                                                    cReceived.incrementAndGet();
+                                                    if (i >= 5)
+                                                        {
+                                                        fSubscribed.set(true);
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     if (!(t instanceof TimeoutException))
                                         {
