@@ -918,75 +918,80 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.FailOnFull.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.FailOnFull</a></code></div>
+<div class="col-first even-row-color"><code>class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/NamedTopicEvent.html" class="type-name-link" title="class in com.tangosol.net.topic">NamedTopicEvent</a></code></div>
 <div class="col-last even-row-color">
+<div class="block">An event related to a <a href="../../../net/topic/NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
+</div>
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.FailOnFull.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.FailOnFull</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The FailOnFull option indicates that the <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> returned
  from the <a href="../../../net/topic/Publisher.html#publish(V)"><code>Publisher.publish(V)</code></a> operation should complete exceptionally
  upon identifying that the topic is or has become full.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderBy.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderBy</a>&lt;V&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderBy.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderBy</a>&lt;V&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">The OrderBy option specifies the ordering of async operations with respect
  to one another.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderById.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderById</a>&lt;V&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderById.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderById</a>&lt;V&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block"><a href="../../../net/topic/Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option ensures ordering of <a href="../../../net/topic/Publisher.html#publish(V)"><code>sent values</code></a> across
  all threads which share the same <a href="../../../net/topic/Publisher.OrderById.html#getOrderId(V)"><code>orderId</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderByNone.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByNone</a>&lt;V&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderByNone.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByNone</a>&lt;V&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block"><a href="../../../net/topic/Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option enforces no specific ordering between <a href="../../../net/topic/Publisher.html#publish(V)"><code>sent values</code></a> allowing
  for the greatest level of parallelism.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderByRoundRobin.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByRoundRobin</a>&lt;V&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderByRoundRobin.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByRoundRobin</a>&lt;V&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block"><a href="../../../net/topic/Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which computes the unit-of-order such that each message is sent
  to the next channel in a round-robin order.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderByThread.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByThread</a>&lt;V&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderByThread.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByThread</a>&lt;V&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block"><a href="../../../net/topic/Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which ensures that a sequence of <a href="../../../net/topic/Publisher.html#publish(V)"><code>sent values</code></a> issued by a single
  thread will complete in order.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Publisher.OrderByValue.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByValue</a>&lt;V&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Publisher.OrderByValue.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByValue</a>&lt;V&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block"><a href="../../../net/topic/Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which computes the unit-of-order based on applying <a href="../../../net/topic/Publisher.OrderByValue.html#%3Cinit%3E(java.util.function.ToIntFunction)"><code>constructor's</code></a> <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/ToIntFunction.html" title="class or interface in java.util.function" class="external-link"><code>orderIdFunction parameter</code></a> on <a href="../../../net/topic/Publisher.html#publish(V)"><code>sent value</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Subscriber.CommitResult.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.CommitResult</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Subscriber.CommitResult.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.CommitResult</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The result of a commit request.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Subscriber.CompleteOnEmpty.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.CompleteOnEmpty</a>&lt;V&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Subscriber.CompleteOnEmpty.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.CompleteOnEmpty</a>&lt;V&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">The CompleteOnEmpty option indicates that the <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> returned
  from the <a href="../../../net/topic/Subscriber.html#receive()"><code>Subscriber.receive()</code></a> operation should complete with a <tt>null</tt> <a href="../../../net/topic/Subscriber.Element.html" title="interface in com.tangosol.net.topic"><code>Subscriber.Element</code></a>
  upon identifying that the topic is or has become empty.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Subscriber.Convert.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Convert</a>&lt;V,<wbr>U&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Subscriber.Convert.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Convert</a>&lt;V,<wbr>U&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">The Convert option specifies a <a href="../../../util/ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> that will convert topic values that
  a subscriber is interested in receiving prior to sending them to the subscriber.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="../../../net/topic/Subscriber.Filtered.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Filtered</a>&lt;V&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="../../../net/topic/Subscriber.Filtered.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Filtered</a>&lt;V&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">The Filtered option specifies a filter that will determine which topic values a
  subscriber is interested in receiving.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="../../../net/topic/Subscriber.Name.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Name</a>&lt;V&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../../../net/topic/Subscriber.Name.html" class="type-name-link" title="class in com.tangosol.net.topic">Subscriber.Name</a>&lt;V&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block">The Name option is used to specify a subscriber group name.</div>
 </div>
 </div>

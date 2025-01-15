@@ -304,9 +304,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Return the MBean name for a subscriber group.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getSubscriberMBeanName(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)" class="member-name-link">getSubscriberMBeanName</a><wbr>(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&nbsp;subscriber)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getSubscriberMBeanName(com.tangosol.internal.net.topic.SubscriberStatistics)" class="member-name-link">getSubscriberMBeanName</a><wbr>(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Return the MBean name for a <code>PagedTopicSubscriber</code>.</div>
+<div class="block">Return the MBean name for a <code>SubscriberStatistics</code>.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#getSubscriberMBeanPattern(com.tangosol.net.topic.NamedTopic,boolean)" class="member-name-link">getSubscriberMBeanPattern</a><wbr>(<a href="../topic/NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&lt;?&gt;&nbsp;topic,
@@ -413,9 +413,9 @@ loadScripts(document, 'script');</script>
 <div class="block">Register the specified PagedTopic subscriber group with the cluster registry.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#registerSubscriberMBean(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)" class="member-name-link">registerSubscriberMBean</a><wbr>(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&lt;?&gt;&nbsp;subscriber)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#registerSubscriberMBean(com.tangosol.internal.net.topic.SubscriberStatistics)" class="member-name-link">registerSubscriberMBean</a><wbr>(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
-<div class="block">Register the specified PagedTopic subscriber with the cluster registry.</div>
+<div class="block">Register the specified <code>SubscriberStatistics</code> with the cluster registry.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#registerViewMBean(com.tangosol.net.cache.ContinuousQueryCache)" class="member-name-link">registerViewMBean</a><wbr>(<a href="../cache/ContinuousQueryCache.html" title="class in com.tangosol.net.cache">ContinuousQueryCache</a>&nbsp;cache)</code></div>
@@ -528,10 +528,10 @@ loadScripts(document, 'script');</script>
  from the cluster registry.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unregisterSubscriberMBean(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)" class="member-name-link">unregisterSubscriberMBean</a><wbr>(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&lt;?&gt;&nbsp;subscriber)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unregisterSubscriberMBean(com.tangosol.internal.net.topic.SubscriberStatistics)" class="member-name-link">unregisterSubscriberMBean</a><wbr>(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Unregister all managed objects related to the given topic subscriber
- from the cluster registry.</div>
+ statistics from the cluster registry.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#unregisterViewMBean(com.tangosol.net.Cluster,java.lang.String,java.lang.String)" class="member-name-link">unregisterViewMBean</a><wbr>(<a href="../Cluster.html" title="interface in com.tangosol.net">Cluster</a>&nbsp;cluster,
@@ -1032,22 +1032,22 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="registerSubscriberMBean(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)">
+<section class="detail" id="registerSubscriberMBean(com.tangosol.internal.net.topic.SubscriberStatistics)">
 <h3>registerSubscriberMBean</h3>
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">registerSubscriberMBean</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&lt;?&gt;&nbsp;subscriber)</span></div>
-<div class="block">Register the specified PagedTopic subscriber with the cluster registry.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">registerSubscriberMBean</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</span></div>
+<div class="block">Register the specified <code>SubscriberStatistics</code> with the cluster registry.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>subscriber</code> - the topic subscriber</dd>
+<dd><code>subscriber</code> - the topic subscriber statistics</dd>
 </dl>
 </section>
 </li>
 <li>
-<section class="detail" id="unregisterSubscriberMBean(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)">
+<section class="detail" id="unregisterSubscriberMBean(com.tangosol.internal.net.topic.SubscriberStatistics)">
 <h3>unregisterSubscriberMBean</h3>
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">unregisterSubscriberMBean</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&lt;?&gt;&nbsp;subscriber)</span></div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">unregisterSubscriberMBean</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</span></div>
 <div class="block">Unregister all managed objects related to the given topic subscriber
- from the cluster registry.</div>
+ statistics from the cluster registry.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>subscriber</code> - the topic subscriber</dd>
@@ -1055,15 +1055,15 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="getSubscriberMBeanName(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber)">
+<section class="detail" id="getSubscriberMBeanName(com.tangosol.internal.net.topic.SubscriberStatistics)">
 <h3>getSubscriberMBeanName</h3>
-<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getSubscriberMBeanName</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriber&nbsp;subscriber)</span></div>
-<div class="block">Return the MBean name for a <code>PagedTopicSubscriber</code>.</div>
+<div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a></span>&nbsp;<span class="element-name">getSubscriberMBeanName</span><wbr><span class="parameters">(com.tangosol.internal.net.topic.SubscriberStatistics&nbsp;subscriber)</span></div>
+<div class="block">Return the MBean name for a <code>SubscriberStatistics</code>.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
-<dd><code>subscriber</code> - the <code>PagedTopicSubscriber</code></dd>
+<dd><code>subscriber</code> - the <code>SubscriberStatistics</code></dd>
 <dt>Returns:</dt>
-<dd>the MBean name for a <code>PagedTopicSubscriber</code></dd>
+<dd>the MBean name for a <code>SubscriberStatistics</code></dd>
 </dl>
 </section>
 </li>

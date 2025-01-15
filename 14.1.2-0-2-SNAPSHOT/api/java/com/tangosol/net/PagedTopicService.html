@@ -120,6 +120,9 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-com.tangosol.net.CacheService">Fields inherited from interface&nbsp;com.tangosol.net.<a href="CacheService.html" title="interface in com.tangosol.net">CacheService</a></h3>
 <code><a href="CacheService.html#TYPE_DISTRIBUTED">TYPE_DISTRIBUTED</a>, <a href="CacheService.html#TYPE_FEDERATED">TYPE_FEDERATED</a>, <a href="CacheService.html#TYPE_LOCAL">TYPE_LOCAL</a>, <a href="CacheService.html#TYPE_OPTIMISTIC">TYPE_OPTIMISTIC</a>, <a href="CacheService.html#TYPE_PAGED_TOPIC">TYPE_PAGED_TOPIC</a>, <a href="CacheService.html#TYPE_REMOTE">TYPE_REMOTE</a>, <a href="CacheService.html#TYPE_REMOTE_GRPC">TYPE_REMOTE_GRPC</a>, <a href="CacheService.html#TYPE_REPLICATED">TYPE_REPLICATED</a></code></div>
+<div class="inherited-list">
+<h3 id="fields-inherited-from-class-com.tangosol.net.TopicService">Fields inherited from interface&nbsp;com.tangosol.net.<a href="TopicService.html" title="interface in com.tangosol.net">TopicService</a></h3>
+<code><a href="TopicService.html#TYPE_PAGED_TOPIC">TYPE_PAGED_TOPIC</a>, <a href="TopicService.html#TYPE_REMOTE">TYPE_REMOTE</a>, <a href="TopicService.html#TYPE_REMOTE_GRPC">TYPE_REMOTE_GRPC</a></code></div>
 </section>
 </li>
 <!-- ========== METHOD SUMMARY =========== -->
@@ -127,7 +130,7 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
@@ -139,65 +142,39 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <div class="block">Add a listener that will be notified when changes are made to topic subscriptions.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscriberGroup(java.lang.String,java.lang.String)" class="member-name-link">destroySubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscription(long)" class="member-name-link">destroySubscription</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Destroy an existing subscriber group.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscription(long)" class="member-name-link">destroySubscription</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Remove an existing subscriber group.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscription(long,com.tangosol.net.topic.Subscriber.Id)" class="member-name-link">destroySubscription</a><wbr>(long&nbsp;lSubscriptionId,
- <a href="topic/Subscriber.Id.html" title="interface in com.tangosol.net.topic">Subscriber.Id</a>&nbsp;subscriberId)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Remove an existing subscriber from a subscriber group.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default long</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#ensureSubscriberGroup(java.lang.String,java.lang.String)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Ensure the specified subscriber group is created in a subscription.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default long</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#ensureSubscriberGroup(java.lang.String,java.lang.String,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName,
- <a href="../util/Filter.html" title="interface in com.tangosol.util">Filter</a>&lt;?&gt;&nbsp;filter,
- <a href="../util/ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;&nbsp;extractor)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
-<div class="block">Ensure the specified subscriber group is created in a subscription.</div>
-</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,long,com.tangosol.net.topic.Subscriber.Id)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- long&nbsp;lSubscription,
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscription(long,com.tangosol.net.topic.Subscriber.Id)" class="member-name-link">destroySubscription</a><wbr>(long&nbsp;lSubscriptionId,
  <a href="topic/Subscriber.Id.html" title="interface in com.tangosol.net.topic">Subscriber.Id</a>&nbsp;subscriberId)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Ensure the specified subscriber is subscribed to a subscription.</div>
+<div class="block">Remove an existing subscriber from a subscriber group.</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,long,com.tangosol.net.topic.Subscriber.Id,boolean)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,long,com.tangosol.net.topic.Subscriber.Id)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
+ long&nbsp;lSubscription,
+ <a href="topic/Subscriber.Id.html" title="interface in com.tangosol.net.topic">Subscriber.Id</a>&nbsp;subscriberId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Ensure the specified subscriber is subscribed to a subscription.</div>
+</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,long,com.tangosol.net.topic.Subscriber.Id,boolean)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
  long&nbsp;lSubscription,
  <a href="topic/Subscriber.Id.html" title="interface in com.tangosol.net.topic">Subscriber.Id</a>&nbsp;subscriberId,
  boolean&nbsp;fForceReconnect)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Ensure the specified subscriber is subscribed to a subscription.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId,com.tangosol.net.topic.Subscriber.Id,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscription(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId,com.tangosol.net.topic.Subscriber.Id,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">ensureSubscription</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
  com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId&nbsp;groupId,
  <a href="topic/Subscriber.Id.html" title="interface in com.tangosol.net.topic">Subscriber.Id</a>&nbsp;subscriberId,
  <a href="../util/Filter.html" title="interface in com.tangosol.util">Filter</a>&lt;?&gt;&nbsp;filter,
  <a href="../util/ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Ensure the specified subscriber is created in a subscription.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriberGroups(java.lang.String)" class="member-name-link">getSubscriberGroups</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Returns the <code>subscriber groups</code> for a topic
- known to this service.</div>
+<div class="block">Ensure the specified subscriber is created in a subscription.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;com.tangosol.internal.net.topic.impl.paged.model.SubscriberId&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscribers(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId)" class="member-name-link">getSubscribers</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
@@ -223,34 +200,29 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the subscription id for a subscriber group.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicBackingMapManager()" class="member-name-link">getTopicBackingMapManager</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicStatistics(java.lang.String)" class="member-name-link">getTopicStatistics</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Return the <a href="topic/TopicBackingMapManager.html" title="class in com.tangosol.net.topic"><code>TopicBackingMapManager</code></a> for this service.</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTopicStatistics(java.lang.String)" class="member-name-link">getTopicStatistics</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the <code>PagedTopicStatistics</code> for a topic.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscribers(java.lang.String)" class="member-name-link">hasSubscribers</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscribers(java.lang.String)" class="member-name-link">hasSubscribers</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns <code>true</code> if the specified topic has subscribers or subscriber groups.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscription(long)" class="member-name-link">hasSubscription</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#hasSubscription(long)" class="member-name-link">hasSubscription</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Determine whether a subscriber group exists.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isSubscriptionDestroyed(long)" class="member-name-link">isSubscriptionDestroyed</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isSubscriptionDestroyed(long)" class="member-name-link">isSubscriptionDestroyed</a><wbr>(long&nbsp;lSubscriptionId)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Determine whether a subscriber group has been destroyed.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#removeSubscriptionListener(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Listener)" class="member-name-link">removeSubscriptionListener</a><wbr>(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Listener&nbsp;listener)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#removeSubscriptionListener(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Listener)" class="member-name-link">removeSubscriptionListener</a><wbr>(com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription.Listener&nbsp;listener)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Remove a listener that was being notified when changes are made to topic subscriptions.</div>
 </div>
 </div>
@@ -279,7 +251,7 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <code><a href="../util/Service.html#addServiceListener(com.tangosol.util.ServiceListener)">addServiceListener</a>, <a href="../util/Service.html#removeServiceListener(com.tangosol.util.ServiceListener)">removeServiceListener</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-com.tangosol.net.TopicService">Methods inherited from interface&nbsp;com.tangosol.net.<a href="TopicService.html" title="interface in com.tangosol.net">TopicService</a></h3>
-<code><a href="TopicService.html#destroyTopic(com.tangosol.net.topic.NamedTopic)">destroyTopic</a>, <a href="TopicService.html#ensureChannelCount(java.lang.String,int)">ensureChannelCount</a>, <a href="TopicService.html#ensureChannelCount(java.lang.String,int,int)">ensureChannelCount</a>, <a href="TopicService.html#ensureTopic(java.lang.String,java.lang.ClassLoader)">ensureTopic</a>, <a href="TopicService.html#getChannelCount(java.lang.String)">getChannelCount</a>, <a href="TopicService.html#getTopicNames()">getTopicNames</a>, <a href="TopicService.html#releaseTopic(com.tangosol.net.topic.NamedTopic)">releaseTopic</a></code></div>
+<code><a href="TopicService.html#destroyTopic(com.tangosol.net.topic.NamedTopic)">destroyTopic</a>, <a href="TopicService.html#ensureChannelCount(java.lang.String,int)">ensureChannelCount</a>, <a href="TopicService.html#ensureChannelCount(java.lang.String,int,int)">ensureChannelCount</a>, <a href="TopicService.html#ensureTopic(java.lang.String,java.lang.ClassLoader)">ensureTopic</a>, <a href="TopicService.html#getChannelCount(java.lang.String)">getChannelCount</a>, <a href="TopicService.html#getSubscriberGroups(java.lang.String)">getSubscriberGroups</a>, <a href="TopicService.html#getTopicBackingMapManager()">getTopicBackingMapManager</a>, <a href="TopicService.html#getTopicNames()">getTopicNames</a>, <a href="TopicService.html#releaseTopic(com.tangosol.net.topic.NamedTopic)">releaseTopic</a>, <a href="TopicService.html#setTopicBackingMapManager(com.tangosol.net.topic.TopicBackingMapManager)">setTopicBackingMapManager</a></code></div>
 </section>
 </li>
 </ul>
@@ -291,70 +263,6 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <section class="method-details" id="method-detail">
 <h2>Method Details</h2>
 <ul class="member-list">
-<li>
-<section class="detail" id="getTopicBackingMapManager()">
-<h3>getTopicBackingMapManager</h3>
-<div class="member-signature"><span class="return-type">com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager</span>&nbsp;<span class="element-name">getTopicBackingMapManager</span>()</div>
-<div class="block">Return the <a href="topic/TopicBackingMapManager.html" title="class in com.tangosol.net.topic"><code>TopicBackingMapManager</code></a> for this service.</div>
-<dl class="notes">
-<dt>Specified by:</dt>
-<dd><code><a href="TopicService.html#getTopicBackingMapManager()">getTopicBackingMapManager</a></code>&nbsp;in interface&nbsp;<code><a href="TopicService.html" title="interface in com.tangosol.net">TopicService</a></code></dd>
-<dt>Returns:</dt>
-<dd>the <a href="topic/TopicBackingMapManager.html" title="class in com.tangosol.net.topic"><code>TopicBackingMapManager</code></a> for this service</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="ensureSubscriberGroup(java.lang.String,java.lang.String)">
-<h3>ensureSubscriberGroup</h3>
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">ensureSubscriberGroup</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName)</span></div>
-<div class="block">Ensure the specified subscriber group is created in a subscription.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>sTopicName</code> - the name of the topic</dd>
-<dd><code>sGroupName</code> - the name of the subscriber group</dd>
-<dt>Returns:</dt>
-<dd>the unique identifier of the subscriber group or <code>-1</code> if
-          the cluster is not version compatible and cannot create
-          subscriptions</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="ensureSubscriberGroup(java.lang.String,java.lang.String,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)">
-<h3>ensureSubscriberGroup</h3>
-<div class="member-signature"><span class="modifiers">default</span>&nbsp;<span class="return-type">long</span>&nbsp;<span class="element-name">ensureSubscriberGroup</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName,
- <a href="../util/Filter.html" title="interface in com.tangosol.util">Filter</a>&lt;?&gt;&nbsp;filter,
- <a href="../util/ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;&nbsp;extractor)</span></div>
-<div class="block">Ensure the specified subscriber group is created in a subscription.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>sTopicName</code> - the name of the topic</dd>
-<dd><code>sGroupName</code> - the name of the subscriber group</dd>
-<dd><code>filter</code> - the <a href="../util/Filter.html" title="interface in com.tangosol.util"><code>Filter</code></a> to use to filter messages sent to subscribers</dd>
-<dd><code>extractor</code> - the <a href="../util/ValueExtractor.html" title="interface in com.tangosol.util"><code>ValueExtractor</code></a> to use to convert messages sent to subscribers</dd>
-<dt>Returns:</dt>
-<dd>the unique identifier of the subscriber group or <code>-1</code> if
-          the cluster is not version compatible and cannot create
-          subscriptions</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="destroySubscriberGroup(java.lang.String,java.lang.String)">
-<h3>destroySubscriberGroup</h3>
-<div class="member-signature"><span class="return-type">void</span>&nbsp;<span class="element-name">destroySubscriberGroup</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName,
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroupName)</span></div>
-<div class="block">Destroy an existing subscriber group.</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>sTopicName</code> - the name of the topic</dd>
-<dd><code>sGroupName</code> - the name of the subscriber group</dd>
-</dl>
-</section>
-</li>
 <li>
 <section class="detail" id="ensureSubscription(java.lang.String,com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId,com.tangosol.net.topic.Subscriber.Id,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)">
 <h3>ensureSubscription</h3>
@@ -501,19 +409,6 @@ extends <a href="TopicService.html" title="interface in com.tangosol.net">TopicS
 <dt>Returns:</dt>
 <dd>the <code>PagedTopicStatistics</code> for the topic or <code>null</code>
          if no statistics exist for the topic</dd>
-</dl>
-</section>
-</li>
-<li>
-<section class="detail" id="getSubscriberGroups(java.lang.String)">
-<h3>getSubscriberGroups</h3>
-<div class="member-signature"><span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a>&lt;com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId&gt;</span>&nbsp;<span class="element-name">getSubscriberGroups</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sTopicName)</span></div>
-<div class="block">Returns the <code>subscriber groups</code> for a topic
- known to this service.</div>
-<dl class="notes">
-<dt>Returns:</dt>
-<dd>the <code>subscriber groups</code> for a topic
-         known to this service</dd>
 </dl>
 </section>
 </li>

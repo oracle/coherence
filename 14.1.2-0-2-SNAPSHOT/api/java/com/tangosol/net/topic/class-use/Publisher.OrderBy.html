@@ -121,38 +121,43 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#id(int)" class="member-name-link">id</a><wbr>(int&nbsp;nOrderId)</code></div>
+<div class="col-first even-row-color"><code><a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Publisher.OptionSet.</span><code><a href="../Publisher.OptionSet.html#getOrderBy()" class="member-name-link">getOrderBy</a>()</code></div>
 <div class="col-last even-row-color">
+<div class="block">Return the <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option.</div>
+</div>
+<div class="col-first odd-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#id(int)" class="member-name-link">id</a><wbr>(int&nbsp;nOrderId)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return an OrderBy that will ensure ordering of <a href="../Publisher.html#publish(V)"><code>sent values</code></a> across
  all threads which share the same id.</div>
 </div>
-<div class="col-first odd-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#none()" class="member-name-link">none</a>()</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#none()" class="member-name-link">none</a>()</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return an OrderBy that will enforce no specific ordering between
  <a href="../Publisher.html#publish(V)"><code>sent values</code></a> allowing for the greatest level of parallelism.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#roundRobin()" class="member-name-link">roundRobin</a>()</code></div>
-<div class="col-last even-row-color">
-<div class="block">Return an OrderBy which will compute the unit-of-order such that each message
- is published to the next channel in a round robin order.</div>
-</div>
-<div class="col-first odd-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#thread()" class="member-name-link">thread</a>()</code></div>
+<div class="col-first odd-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#roundRobin()" class="member-name-link">roundRobin</a>()</code></div>
 <div class="col-last odd-row-color">
+<div class="block">Return an OrderBy which will compute the unit-of-order such that each message
+ is published to the next channel in a round-robin order.</div>
+</div>
+<div class="col-first even-row-color"><code>static <a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#thread()" class="member-name-link">thread</a>()</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return an OrderBy that will ensure that all <a href="../Publisher.html#publish(V)"><code>values sent</code></a> from
  the same thread are stored sequentially.</div>
 </div>
-<div class="col-first even-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
-<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#value(com.tangosol.util.function.Remote.ToIntFunction)" class="member-name-link">value</a><wbr>(<a href="../../../util/function/Remote.ToIntFunction.html" title="interface in com.tangosol.util.function">Remote.ToIntFunction</a>&lt;? super V&gt;&nbsp;supplierOrderId)</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#value(com.tangosol.util.function.Remote.ToIntFunction)" class="member-name-link">value</a><wbr>(<a href="../../../util/function/Remote.ToIntFunction.html" title="interface in com.tangosol.util.function">Remote.ToIntFunction</a>&lt;? super V&gt;&nbsp;supplierOrderId)</code></div>
+<div class="col-last odd-row-color">
 <div class="block">Return an OrderBy which will compute the unit-of-order based on the <a href="../Publisher.html#publish(V)"><code>sent value</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#value(java.util.function.ToIntFunction)" class="member-name-link">value</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/ToIntFunction.html" title="class or interface in java.util.function" class="external-link">ToIntFunction</a>&lt;? super V&gt;&nbsp;supplierOrderId)</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static &lt;V&gt;&nbsp;<a href="../Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;V&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">Publisher.OrderBy.</span><code><a href="../Publisher.OrderBy.html#value(java.util.function.ToIntFunction)" class="member-name-link">value</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/ToIntFunction.html" title="class or interface in java.util.function" class="external-link">ToIntFunction</a>&lt;? super V&gt;&nbsp;supplierOrderId)</code></div>
+<div class="col-last even-row-color">
 <div class="block">Return an OrderBy which will compute the unit-of-order based on the <a href="../Publisher.html#publish(V)"><code>sent value</code></a>.</div>
 </div>
 </div>

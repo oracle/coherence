@@ -389,7 +389,9 @@ if (coherence == null) {
     Coherence.clusterMember().start().join();
     coherence = Coherence.getInstance();
 }
-Session session = coherence.getSession();</markup>
+Session session = coherence.getSession();
+NamedTopic&lt;ChatMessage&gt; publicTopic = session.getTopic("public-messages");
+NamedTopic&lt;ChatMessage&gt; privateTopic = session.getTopic("private-messages");</markup>
 
 </li>
 <li>
@@ -398,9 +400,9 @@ Create the <strong>public</strong> Topic, Subscribers and Publishers
 lang="java"
 
 >// create a publisher to publish public messages
-publisherPublic = session.createPublisher("public-messages");  <span class="conum" data-value="1" />
+publisherPublic = publicTopic.createPublisher();  <span class="conum" data-value="1" />
 // create a subscriber to receive public messages
-subscriberPublic = session.createSubscriber("public-messages");  <span class="conum" data-value="2" /></markup>
+subscriberPublic = publicTopic.createSubscriber();  <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
 <li data-value="1">Creates a publisher to publish messages to the topic</li>
@@ -413,9 +415,9 @@ Create the <strong>private</strong> Topic, Subscribers and Publishers
 lang="java"
 
 >// create a publisher to publish private messages
-publisherPrivate = session.createPublisher("private-messages");  <span class="conum" data-value="1" />
+publisherPrivate = privateTopic.createPublisher();  <span class="conum" data-value="1" />
 // create a subscriber to receive private messages
-subscriberPrivate = session.createSubscriber("private-messages", inGroup(userId));  <span class="conum" data-value="2" /></markup>
+subscriberPrivate = privateTopic.createSubscriber(inGroup(userId));  <span class="conum" data-value="2" /></markup>
 
 <ul class="colist">
 <li data-value="1">Creates a publisher to publish messages to the topic</li>

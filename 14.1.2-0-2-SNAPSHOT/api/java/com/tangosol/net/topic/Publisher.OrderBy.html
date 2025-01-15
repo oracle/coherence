@@ -175,7 +175,7 @@ implements <a href="Publisher.Option.html" title="interface in com.tangosol.net.
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#roundRobin()" class="member-name-link">roundRobin</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4">
 <div class="block">Return an OrderBy which will compute the unit-of-order such that each message
- is published to the next channel in a round robin order.</div>
+ is published to the next channel in a round-robin order.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code>static <a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a>&gt;</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab1 method-summary-table-tab4"><code><a href="#thread()" class="member-name-link">thread</a>()</code></div>
@@ -276,7 +276,7 @@ implements <a href="Publisher.Option.html" title="interface in com.tangosol.net.
  <p>
  This option effectively publishes all messages to a single channel, the exact channel
  used is the specified <code>nOrderId</code> modulo the number of channels in the topic.
- Therefore a channel number can be used as the <code>nOrderId</code> parameter to ensure
+ Therefore, a channel number can be used as the <code>nOrderId</code> parameter to ensure
  publishing to a specific channel.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
@@ -295,7 +295,7 @@ implements <a href="Publisher.Option.html" title="interface in com.tangosol.net.
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>supplierOrderId</code> - the function that should be used to determine
-                         order id from the sent value.</dd>
+                         order id from the published value.</dd>
 <dt>Returns:</dt>
 <dd>the order which will use specified function to provide
          unit-of-order for each async operation</dd>
@@ -310,7 +310,7 @@ implements <a href="Publisher.Option.html" title="interface in com.tangosol.net.
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>supplierOrderId</code> - the function that should be used to determine
-                         order id from the sent value.</dd>
+                         order id from the published value.</dd>
 <dt>Returns:</dt>
 <dd>the order which will use specified function to provide
          unit-of-order for each async operation</dd>
@@ -322,11 +322,11 @@ implements <a href="Publisher.Option.html" title="interface in com.tangosol.net.
 <h3>roundRobin</h3>
 <div class="member-signature"><span class="modifiers">public static</span>&nbsp;<span class="type-parameters">&lt;V&gt;</span>&nbsp;<span class="return-type"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic">Publisher.OrderBy</a>&lt;V&gt;</span>&nbsp;<span class="element-name">roundRobin</span>()</div>
 <div class="block">Return an OrderBy which will compute the unit-of-order such that each message
- is published to the next channel in a round robin order.</div>
+ is published to the next channel in a round-robin order.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>an OrderBy which will compute the unit-of-order such that each message
-         is published to the next channel in a round robin order.</dd>
+         is published to the next channel in a round-robin order.</dd>
 </dl>
 </section>
 </li>

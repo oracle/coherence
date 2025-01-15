@@ -216,79 +216,89 @@ extends <a href="../NamedCollection.html" title="interface in com.tangosol.net">
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Publisher.html" title="interface in com.tangosol.net.topic">Publisher</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createPublisher()" class="member-name-link">createPublisher</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#addListener(com.tangosol.net.topic.NamedTopicListener)" class="member-name-link">addListener</a><wbr>(<a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic">NamedTopicListener</a>&nbsp;listener)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Add a <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a> that will receive events related to this topic.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Publisher.html" title="interface in com.tangosol.net.topic">Publisher</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createPublisher()" class="member-name-link">createPublisher</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> that can publish values into this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Publisher.html" title="interface in com.tangosol.net.topic">Publisher</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#createPublisher(com.tangosol.net.topic.Publisher.Option...)" class="member-name-link">createPublisher</a><wbr>(<a href="Publisher.Option.html" title="interface in com.tangosol.net.topic">Publisher.Option</a>&lt;? super <a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;...&nbsp;options)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="Publisher.html" title="interface in com.tangosol.net.topic">Publisher</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#createPublisher(com.tangosol.net.topic.Publisher.Option...)" class="member-name-link">createPublisher</a><wbr>(<a href="Publisher.Option.html" title="interface in com.tangosol.net.topic">Publisher.Option</a>&lt;? super <a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;...&nbsp;options)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Create a <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> that can publish values into this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Subscriber.html" title="interface in com.tangosol.net.topic">Subscriber</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSubscriber()" class="member-name-link">createSubscriber</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="Subscriber.html" title="interface in com.tangosol.net.topic">Subscriber</a><wbr>&lt;<a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#createSubscriber()" class="member-name-link">createSubscriber</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Create a direct <a href="Subscriber.html" title="interface in com.tangosol.net.topic"><code>Subscriber</code></a> to the topic that receives all values from this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;U&gt;&nbsp;<a href="Subscriber.html" title="interface in com.tangosol.net.topic">Subscriber</a><wbr>&lt;U&gt;</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#createSubscriber(com.tangosol.net.topic.Subscriber.Option...)" class="member-name-link">createSubscriber</a><wbr>(<a href="Subscriber.Option.html" title="interface in com.tangosol.net.topic">Subscriber.Option</a>&lt;? super <a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>,<wbr>U&gt;...&nbsp;options)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>&lt;U&gt;&nbsp;<a href="Subscriber.html" title="interface in com.tangosol.net.topic">Subscriber</a><wbr>&lt;U&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#createSubscriber(com.tangosol.net.topic.Subscriber.Option...)" class="member-name-link">createSubscriber</a><wbr>(<a href="Subscriber.Option.html" title="interface in com.tangosol.net.topic">Subscriber.Option</a>&lt;? super <a href="NamedTopic.html" title="type parameter in NamedTopic">V</a>,<wbr>U&gt;...&nbsp;options)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Create a <a href="Subscriber.html" title="interface in com.tangosol.net.topic"><code>Subscriber</code></a> that can receive values from this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscriberGroup(java.lang.String)" class="member-name-link">destroySubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroup)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#destroySubscriberGroup(java.lang.String)" class="member-name-link">destroySubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroup)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Destroy the <a href="Subscriber.Name.html" title="class in com.tangosol.net.topic"><code>named</code></a> subscriber group for the associated topic.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#ensureSubscriberGroup(java.lang.String)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sName)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#ensureSubscriberGroup(java.lang.String)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sName)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Ensure that the specified subscriber group exists for this topic.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscriberGroup(java.lang.String,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroup,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#ensureSubscriberGroup(java.lang.String,com.tangosol.util.Filter,com.tangosol.util.ValueExtractor)" class="member-name-link">ensureSubscriberGroup</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sGroup,
  <a href="../../util/Filter.html" title="interface in com.tangosol.util">Filter</a>&lt;?&gt;&nbsp;filter,
  <a href="../../util/ValueExtractor.html" title="interface in com.tangosol.util">ValueExtractor</a>&lt;?,<wbr>?&gt;&nbsp;extractor)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Ensure that the specified subscriber group exists for this topic.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getChannelCount()" class="member-name-link">getChannelCount</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getChannelCount()" class="member-name-link">getChannelCount</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the number of channels that this topic has.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default int</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getRemainingMessages(java.lang.String)" class="member-name-link">getRemainingMessages</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sSubscriberGroup)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default int</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getRemainingMessages(java.lang.String)" class="member-name-link">getRemainingMessages</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sSubscriberGroup)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Returns the number of remaining messages to be read from the topic for the specific subscriber group.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getRemainingMessages(java.lang.String,int...)" class="member-name-link">getRemainingMessages</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sSubscriberGroup,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getRemainingMessages(java.lang.String,int...)" class="member-name-link">getRemainingMessages</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;sSubscriberGroup,
  int...&nbsp;anChannel)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the number of remaining messages to be read from the topic for the specific subscriber group,
  and optionally for one or more specific channels.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriberGroups()" class="member-name-link">getSubscriberGroups</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/Set.html" title="class or interface in java.util" class="external-link">Set</a><wbr>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getSubscriberGroups()" class="member-name-link">getSubscriberGroups</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the set of <a href="Subscriber.Name.html" title="class in com.tangosol.net.topic"><code>named</code></a> subscriber group(s) and statically configured subscriber-group(s).</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../TopicService.html" title="interface in com.tangosol.net">TopicService</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getTopicService()" class="member-name-link">getTopicService</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default <a href="../TopicService.html" title="interface in com.tangosol.net">TopicService</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#getTopicService()" class="member-name-link">getTopicService</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Return the <a href="../TopicService.html" title="interface in com.tangosol.net"><code>TopicService</code></a> managing this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isDestroyed()" class="member-name-link">isDestroyed</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isDestroyed()" class="member-name-link">isDestroyed</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Specifies whether this NamedTopic has been destroyed.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isReleased()" class="member-name-link">isReleased</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code>default boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5"><code><a href="#isReleased()" class="member-name-link">isReleased</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab5">
 <div class="block">Specifies whether this NamedTopic has been released.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#removeListener(com.tangosol.net.topic.NamedTopicListener)" class="member-name-link">removeListener</a><wbr>(<a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic">NamedTopicListener</a>&nbsp;listener)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Remove a previously added <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a>.</div>
 </div>
 </div>
 </div>
@@ -565,6 +575,28 @@ extends <a href="../NamedCollection.html" title="interface in com.tangosol.net">
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>the <a href="../TopicService.html" title="interface in com.tangosol.net"><code>TopicService</code></a> managing this <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a></dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="addListener(com.tangosol.net.topic.NamedTopicListener)">
+<h3>addListener</h3>
+<div class="member-signature"><span class="return-type">void</span>&nbsp;<span class="element-name">addListener</span><wbr><span class="parameters">(<a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic">NamedTopicListener</a>&nbsp;listener)</span></div>
+<div class="block">Add a <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a> that will receive events related to this topic.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>listener</code> - the <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a> that will receive events related to this topic</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="removeListener(com.tangosol.net.topic.NamedTopicListener)">
+<h3>removeListener</h3>
+<div class="member-signature"><span class="return-type">void</span>&nbsp;<span class="element-name">removeListener</span><wbr><span class="parameters">(<a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic">NamedTopicListener</a>&nbsp;listener)</span></div>
+<div class="block">Remove a previously added <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a>.</div>
+<dl class="notes">
+<dt>Parameters:</dt>
+<dd><code>listener</code> - the <a href="NamedTopicListener.html" title="interface in com.tangosol.net.topic"><code>NamedTopicListener</code></a> to remove</dd>
 </dl>
 </section>
 </li>

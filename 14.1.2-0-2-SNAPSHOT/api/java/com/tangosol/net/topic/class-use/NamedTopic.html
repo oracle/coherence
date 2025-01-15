@@ -231,7 +231,7 @@ loadScripts(document, 'script');</script>
 <div class="block">Release and destroy this instance of <a href="../NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a>.</div>
 </div>
 <div class="col-first odd-row-color"><code>void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">TopicService.</span><code><a href="../../TopicService.html#destroyTopic(com.tangosol.net.topic.NamedTopic)" class="member-name-link">destroyTopic</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&nbsp;topic)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">TopicService.</span><code><a href="../../TopicService.html#destroyTopic(com.tangosol.net.topic.NamedTopic)" class="member-name-link">destroyTopic</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&lt;?&gt;&nbsp;topic)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Release and destroy the specified topic.</div>
 </div>
@@ -253,7 +253,7 @@ loadScripts(document, 'script');</script>
 <div class="block">Release a <a href="../NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a> and its associated resources.</div>
 </div>
 <div class="col-first odd-row-color"><code>void</code></div>
-<div class="col-second odd-row-color"><span class="type-name-label">TopicService.</span><code><a href="../../TopicService.html#releaseTopic(com.tangosol.net.topic.NamedTopic)" class="member-name-link">releaseTopic</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&nbsp;topic)</code></div>
+<div class="col-second odd-row-color"><span class="type-name-label">TopicService.</span><code><a href="../../TopicService.html#releaseTopic(com.tangosol.net.topic.NamedTopic)" class="member-name-link">releaseTopic</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&lt;?&gt;&nbsp;topic)</code></div>
 <div class="col-last odd-row-color">
 <div class="block">Release local resources associated with the specified instance of the
  topic.</div>
@@ -317,6 +317,32 @@ loadScripts(document, 'script');</script>
 <div class="block">Returns the underlying <a href="../NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a> that this <a href="../Subscriber.html" title="interface in com.tangosol.net.topic"><code>Subscriber</code></a>
  is subscribed to, which could be of a different generic type to this
  <a href="../Subscriber.html" title="interface in com.tangosol.net.topic"><code>Subscriber</code></a> if the subscriber is using a transformer.</div>
+</div>
+<div class="col-first even-row-color"><code><a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a><wbr>&lt;?&gt;</code></div>
+<div class="col-second even-row-color"><span class="type-name-label">NamedTopicEvent.</span><code><a href="../NamedTopicEvent.html#getSource()" class="member-name-link">getSource</a>()</code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+</div>
+<div class="caption"><span>Methods in <a href="../package-summary.html">com.tangosol.net.topic</a> with parameters of type <a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Method</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code><a href="../NamedTopicEvent.html" title="class in com.tangosol.net.topic">NamedTopicEvent</a></code></div>
+<div class="col-second even-row-color"><span class="type-name-label">NamedTopicEvent.</span><code><a href="../NamedTopicEvent.html#replaceSource(com.tangosol.net.topic.NamedTopic)" class="member-name-link">replaceSource</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&lt;?&gt;&nbsp;source)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Create a new <a href="../NamedTopicEvent.html" title="class in com.tangosol.net.topic"><code>NamedTopicEvent</code></a> the same as this event, but with a different source.</div>
+</div>
+</div>
+<div class="caption"><span>Constructors in <a href="../package-summary.html">com.tangosol.net.topic</a> with parameters of type <a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a></span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier</div>
+<div class="table-header col-second">Constructor</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="../NamedTopicEvent.html#%3Cinit%3E(com.tangosol.net.topic.NamedTopic,com.tangosol.net.topic.NamedTopicEvent.Type)" class="member-name-link">NamedTopicEvent</a><wbr>(<a href="../NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a>&lt;?&gt;&nbsp;source,
+ <a href="../NamedTopicEvent.Type.html" title="enum class in com.tangosol.net.topic">NamedTopicEvent.Type</a>&nbsp;type)</code></div>
+<div class="col-last even-row-color">
+<div class="block">Create an event.</div>
 </div>
 </div>
 </section>

@@ -168,50 +168,55 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <div class="block">A marker interface to indicate that a class is a valid <a href="Publisher.Option.html" title="interface in com.tangosol.net.topic"><code>Publisher.Option</code></a>
  for a <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a>.</div>
 </div>
-<div class="col-first odd-row-color"><code>static interface&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="Publisher.Orderable.html" class="type-name-link" title="interface in com.tangosol.net.topic">Publisher.Orderable</a></code></div>
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Publisher.OptionSet.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OptionSet</a>&lt;<a href="Publisher.OptionSet.html" title="type parameter in Publisher.OptionSet">V</a>&gt;</code></div>
 <div class="col-last odd-row-color">
+<div class="block">A holder of publisher options.</div>
+</div>
+<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="Publisher.Orderable.html" class="type-name-link" title="interface in com.tangosol.net.topic">Publisher.Orderable</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">Orderable represents a value published by <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> that has a natural
  ordering.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="Publisher.OrderBy.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderBy</a>&lt;<a href="Publisher.OrderBy.html" title="type parameter in Publisher.OrderBy">V</a>&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Publisher.OrderBy.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderBy</a>&lt;<a href="Publisher.OrderBy.html" title="type parameter in Publisher.OrderBy">V</a>&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block">The OrderBy option specifies the ordering of async operations with respect
  to one another.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="Publisher.OrderById.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderById</a>&lt;<a href="Publisher.OrderById.html" title="type parameter in Publisher.OrderById">V</a>&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="Publisher.OrderById.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderById</a>&lt;<a href="Publisher.OrderById.html" title="type parameter in Publisher.OrderById">V</a>&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option ensures ordering of <a href="#publish(V)"><code>sent values</code></a> across
  all threads which share the same <a href="Publisher.OrderById.html#getOrderId(V)"><code>orderId</code></a>.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="Publisher.OrderByNone.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByNone</a>&lt;<a href="Publisher.OrderByNone.html" title="type parameter in Publisher.OrderByNone">V</a>&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Publisher.OrderByNone.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByNone</a>&lt;<a href="Publisher.OrderByNone.html" title="type parameter in Publisher.OrderByNone">V</a>&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option enforces no specific ordering between <a href="#publish(V)"><code>sent values</code></a> allowing
  for the greatest level of parallelism.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="Publisher.OrderByRoundRobin.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByRoundRobin</a>&lt;<a href="Publisher.OrderByRoundRobin.html" title="type parameter in Publisher.OrderByRoundRobin">V</a>&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="Publisher.OrderByRoundRobin.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByRoundRobin</a>&lt;<a href="Publisher.OrderByRoundRobin.html" title="type parameter in Publisher.OrderByRoundRobin">V</a>&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which computes the unit-of-order such that each message is sent
  to the next channel in a round-robin order.</div>
 </div>
-<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="Publisher.OrderByThread.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByThread</a>&lt;<a href="Publisher.OrderByThread.html" title="type parameter in Publisher.OrderByThread">V</a>&gt;</code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Publisher.OrderByThread.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByThread</a>&lt;<a href="Publisher.OrderByThread.html" title="type parameter in Publisher.OrderByThread">V</a>&gt;</code></div>
+<div class="col-last odd-row-color">
 <div class="block"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which ensures that a sequence of <a href="#publish(V)"><code>sent values</code></a> issued by a single
  thread will complete in order.</div>
 </div>
-<div class="col-first odd-row-color"><code>static class&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="Publisher.OrderByValue.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByValue</a>&lt;<a href="Publisher.OrderByValue.html" title="type parameter in Publisher.OrderByValue">V</a>&gt;</code></div>
-<div class="col-last odd-row-color">
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="Publisher.OrderByValue.html" class="type-name-link" title="class in com.tangosol.net.topic">Publisher.OrderByValue</a>&lt;<a href="Publisher.OrderByValue.html" title="type parameter in Publisher.OrderByValue">V</a>&gt;</code></div>
+<div class="col-last even-row-color">
 <div class="block"><a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option which computes the unit-of-order based on applying <a href="Publisher.OrderByValue.html#%3Cinit%3E(java.util.function.ToIntFunction)"><code>constructor's</code></a> <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/function/ToIntFunction.html" title="class or interface in java.util.function" class="external-link"><code>orderIdFunction parameter</code></a> on <a href="#publish(V)"><code>sent value</code></a>.</div>
 </div>
-<div class="col-first even-row-color"><code>static interface&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="Publisher.Status.html" class="type-name-link" title="interface in com.tangosol.net.topic">Publisher.Status</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code>static interface&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Publisher.Status.html" class="type-name-link" title="interface in com.tangosol.net.topic">Publisher.Status</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The status for a successfully published element.</div>
 </div>
 </div>
@@ -239,7 +244,7 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <section class="method-summary" id="method-summary">
 <h2>Method Summary</h2>
 <div id="method-summary-table">
-<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button><button id="method-summary-table-tab6" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab6', 3)" class="table-tab">Deprecated Methods</button></div>
+<div class="table-tabs" role="tablist" aria-orientation="horizontal"><button id="method-summary-table-tab0" role="tab" aria-selected="true" aria-controls="method-summary-table.tabpanel" tabindex="0" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table', 3)" class="active-table-tab">All Methods</button><button id="method-summary-table-tab1" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab1', 3)" class="table-tab">Static Methods</button><button id="method-summary-table-tab2" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab2', 3)" class="table-tab">Instance Methods</button><button id="method-summary-table-tab3" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab3', 3)" class="table-tab">Abstract Methods</button><button id="method-summary-table-tab5" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab5', 3)" class="table-tab">Default Methods</button><button id="method-summary-table-tab6" role="tab" aria-selected="false" aria-controls="method-summary-table.tabpanel" tabindex="-1" onkeydown="switchTab(event)" onclick="show('method-summary-table', 'method-summary-table-tab6', 3)" class="table-tab">Deprecated Methods</button></div>
 <div id="method-summary-table.tabpanel" role="tabpanel">
 <div class="summary-table three-column-summary" aria-labelledby="method-summary-table-tab0">
 <div class="table-header col-first">Modifier and Type</div>
@@ -254,7 +259,7 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#flush()" class="member-name-link">flush</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Obtain a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> that will be complete when
- all of the currently outstanding publish operations complete.</div>
+ all the currently outstanding publish operations complete.</div>
 </div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>int</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getChannelCount()" class="member-name-link">getChannelCount</a>()</code></div>
@@ -266,21 +271,29 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Return the <a href="../FlowControl.html" title="interface in com.tangosol.net"><code>FlowControl</code></a> object governing this publisher.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a><wbr>&lt;<a href="Publisher.html" title="type parameter in Publisher">V</a>&gt;</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getNamedTopic()" class="member-name-link">getNamedTopic</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>long</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getId()" class="member-name-link">getId</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Returns the identifier for this publisher.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="NamedTopic.html" title="interface in com.tangosol.net.topic">NamedTopic</a><wbr>&lt;<a href="Publisher.html" title="type parameter in Publisher">V</a>&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getNamedTopic()" class="member-name-link">getNamedTopic</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Returns the underlying <a href="NamedTopic.html" title="interface in com.tangosol.net.topic"><code>NamedTopic</code></a> that this <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> publishes to.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
-<div class="block">Specifies whether or not the <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> is active.</div>
-</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#onClose(java.lang.Runnable)" class="member-name-link">onClose</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;action)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#isActive()" class="member-name-link">isActive</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+<div class="block">Specifies whether the <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> is active.</div>
+</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#onClose(java.lang.Runnable)" class="member-name-link">onClose</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Runnable.html" title="class or interface in java.lang" class="external-link">Runnable</a>&nbsp;action)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Add an action to be executed when this <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> is closed.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab1"><code>static &lt;V&gt;&nbsp;<a href="Publisher.OptionSet.html" title="class in com.tangosol.net.topic">Publisher.OptionSet</a><wbr>&lt;V&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab1"><code><a href="#optionsFrom(com.tangosol.net.topic.Publisher.Option%5B%5D)" class="member-name-link">optionsFrom</a><wbr>(<a href="Publisher.Option.html" title="interface in com.tangosol.net.topic">Publisher.Option</a>&lt;? super V&gt;[]&nbsp;options)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab1">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link">CompletableFuture</a><wbr>&lt;<a href="Publisher.Status.html" title="interface in com.tangosol.net.topic">Publisher.Status</a>&gt;</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#publish(V)" class="member-name-link">publish</a><wbr>(<a href="Publisher.html" title="type parameter in Publisher">V</a>&nbsp;value)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
@@ -340,9 +353,9 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 </div>
 <div class="block">Asynchronously publish the specified value to the topic.
  <p>
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html#cancel(boolean)" title="class or interface in java.util.concurrent" class="external-link"><code>Cancellation</code></a> of the returned future is best
- effort and is not guaranteed to stop the corresponding publication of the value, for example
- example the request may already be on the wire and being processed on a storage member.</div>
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html#cancel(boolean)" title="class or interface in java.util.concurrent" class="external-link"><code>Cancellation</code></a> of the returned future is best-effort
+ and is not guaranteed to stop the corresponding publication of the value, for example
+ the request may already be on the wire and being processed on a storage member.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>value</code> - the value to add to the topic</dd>
@@ -361,11 +374,11 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <div class="member-signature"><span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link">CompletableFuture</a>&lt;<a href="Publisher.Status.html" title="interface in com.tangosol.net.topic">Publisher.Status</a>&gt;</span>&nbsp;<span class="element-name">publish</span><wbr><span class="parameters">(<a href="Publisher.html" title="type parameter in Publisher">V</a>&nbsp;value)</span></div>
 <div class="block">Asynchronously publish the specified value to the topic.
  <p>
- <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html#cancel(boolean)" title="class or interface in java.util.concurrent" class="external-link"><code>Cancellation</code></a> of the returned future is best
- effort and is not guaranteed to stop the corresponding publication of the value, for example
- example the request may already be on the wire and being processed on a storage member.
+ <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html#cancel(boolean)" title="class or interface in java.util.concurrent" class="external-link"><code>Cancellation</code></a> of the returned future is best-effort
+ and is not guaranteed to stop the corresponding publication of the value, for example
+ the request may already be on the wire and being processed on a storage member.
  <p>
- Published messages will be recieved by subscribers in order determined by the <a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option used to
+ Published messages will be received by subscribers in order determined by the <a href="Publisher.OrderBy.html" title="class in com.tangosol.net.topic"><code>Publisher.OrderBy</code></a> option used to
  create this <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a>.
  Message ordering can also be controlled by publishing values that implement the <a href="Publisher.Orderable.html" title="interface in com.tangosol.net.topic"><code>Publisher.Orderable</code></a> interface,
  in which case the order identifier provided by the <a href="Publisher.Orderable.html" title="interface in com.tangosol.net.topic"><code>Publisher.Orderable</code></a> value will override any ordering
@@ -399,14 +412,14 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <h3>flush</h3>
 <div class="member-signature"><span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link">CompletableFuture</a>&lt;<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Void.html" title="class or interface in java.lang" class="external-link">Void</a>&gt;</span>&nbsp;<span class="element-name">flush</span>()</div>
 <div class="block">Obtain a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> that will be complete when
- all of the currently outstanding publish operations complete.
+ all the currently outstanding publish operations complete.
  <p>
  The returned <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> will always complete
  normally, even if the outstanding operations complete exceptionally.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>a <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/concurrent/CompletableFuture.html" title="class or interface in java.util.concurrent" class="external-link"><code>CompletableFuture</code></a> that will be completed when
-         all of the currently outstanding publish operations are complete</dd>
+         all the currently outstanding publish operations are complete</dd>
 </dl>
 </section>
 </li>
@@ -462,11 +475,28 @@ extends <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/ja
 <section class="detail" id="isActive()">
 <h3>isActive</h3>
 <div class="member-signature"><span class="return-type">boolean</span>&nbsp;<span class="element-name">isActive</span>()</div>
-<div class="block">Specifies whether or not the <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> is active.</div>
+<div class="block">Specifies whether the <a href="Publisher.html" title="interface in com.tangosol.net.topic"><code>Publisher</code></a> is active.</div>
 <dl class="notes">
 <dt>Returns:</dt>
 <dd>true if the NamedCache is active; false otherwise</dd>
 </dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getId()">
+<h3>getId</h3>
+<div class="member-signature"><span class="return-type">long</span>&nbsp;<span class="element-name">getId</span>()</div>
+<div class="block">Returns the identifier for this publisher.</div>
+<dl class="notes">
+<dt>Returns:</dt>
+<dd>the identifier for this publisher</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="optionsFrom(com.tangosol.net.topic.Publisher.Option[])">
+<h3>optionsFrom</h3>
+<div class="member-signature"><span class="modifiers">static</span>&nbsp;<span class="type-parameters">&lt;V&gt;</span>&nbsp;<span class="return-type"><a href="Publisher.OptionSet.html" title="class in com.tangosol.net.topic">Publisher.OptionSet</a>&lt;V&gt;</span>&nbsp;<span class="element-name">optionsFrom</span><wbr><span class="parameters">(<a href="Publisher.Option.html" title="interface in com.tangosol.net.topic">Publisher.Option</a>&lt;? super V&gt;[]&nbsp;options)</span></div>
 </section>
 </li>
 </ul>
