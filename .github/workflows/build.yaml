@@ -1,4 +1,5 @@
-# Copyright 2020 Oracle Corporation and/or its affiliates.  All rights reserved.
+# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
+#
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
 
@@ -6,25 +7,22 @@
 # Coherence CE GitHub Actions CI build.
 # ---------------------------------------------------------------------------
 
-name: CI Build
+name: Parallel CI Build
 
 on:
-  workflow_dispatch:
-  push:
-    branches-ignore:
-    - gh-pages
-    - p4-integ*
-    - last-p4-*
-  pull_request:
-    types:
-      - opened
-      - committed
-    branches:
-    - '*'
+  workflow_call:
+    inputs:
+      runner:
+        default: ubuntu-latest
+        required: true
+        type: string
+
+env:
+  MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
       matrix:
@@ -45,7 +43,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up JDK
       uses: actions/setup-java@v1
@@ -56,7 +54,7 @@ jobs:
       run: mvn -version
 
     - name: Cache Maven packages
-      uses: actions/cache@v1
+      uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -87,15 +85,33 @@ jobs:
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: test-output
+        name: test-output-${{ matrix.stage }}
         path: prj/**/target/test-output/**/*
+        if-no-files-found: ignore
 
     - name: Build Artifacts test reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: failure()
       with:
-        name: test-reports
+        name: failsafe-surefire-test-reports-${{ matrix.stage }}
         path: prj/**/target/*-reports/**/*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts core dumps
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: core-dumps-${{ matrix.stage }}
+        path: prj/**/core.*
+        if-no-files-found: ignore
+
+    - name: Build Artifacts compiler replays
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: compiler-replay-logs-${{ matrix.stage }}
+        path: prj/**/replay_pid*.log
+        if-no-files-found: ignore
