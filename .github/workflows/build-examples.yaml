@@ -7,28 +7,28 @@
 # Coherence CE GitHub Actions Examples - Build.
 # ---------------------------------------------------------------------------
 
-name: Examples - Build
+name: Examples Build
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore:
-    - gh-pages
-    - p4-integ*
-    - last-p4-*
-  pull_request:
-    types:
-      - opened
-      - committed
-    branches:
-    - '*'
+    inputs:
+      runner:
+        default: ubuntu-latest
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      runner:
+        default: ubuntu-latest
+        required: true
+        type: string
 
 env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     strategy:
       fail-fast: false
     steps:
@@ -53,7 +53,7 @@ jobs:
 
       # Build and Test examples
     - name: build-test-examples
-      timeout-minutes: 300
+      timeout-minutes: 180
       shell: bash
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
@@ -61,8 +61,8 @@ jobs:
       run: |
         echo "Building and Running - Examples"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -Dproject.official -DskipTests clean install
-        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -Dproject.official -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -P-modules -DskipTests clean install
+        mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -Pmodules,-coherence -nsu -DskipTests clean install
         mvn --file prj/pom.xml --batch-mode -U -e -s .github/maven/settings.xml -Pexamples -nsu clean install
 
     # Upload build artifacts for diagnosing failures
