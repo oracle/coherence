@@ -2283,7 +2283,8 @@ public abstract class PartitionedService
         int nLockType = ctrlPartition.getLockType();
         if (nLockType == PartitionedService.PartitionControl.LOCK_BACKUP_XFER_OUT ||
             nLockType == PartitionedService.PartitionControl.LOCK_NONE ||
-            nLockType == PartitionedService.PartitionControl.LOCK_PERSISTENCE)
+            nLockType == PartitionedService.PartitionControl.LOCK_PERSISTENCE ||
+            nLockType == PartitionedService.PartitionControl.LOCK_PERSISTENCE_SNAPSHOT)
             {
             ctrlPartition.enter(-1L);
             return true;
@@ -20860,12 +20861,19 @@ public abstract class PartitionedService
          *
          * Lock is pending.
          */
-        public static final int LOCK_PENDING = 8;
-        
+        public static final int LOCK_PENDING = 16;
+
+        /**
+         * Property LOCK_PERSISTENCE_SNAPSHOT
+         *
+         * Lock for partition persistence snapshot.
+         */
+        public static final int LOCK_PERSISTENCE_SNAPSHOT = 8;
+
         /**
          * Property LOCK_PERSISTENCE
          *
-         * Lock for partition persistence snapshot.
+         * Lock for partition persistence recovery.
          */
         public static final int LOCK_PERSISTENCE = 4;
         
@@ -21026,7 +21034,7 @@ public abstract class PartitionedService
          * 
          * 0x0F (bits 1-3)
          */
-        public static final int STATE_MASK_LOCK = 15;
+        public static final int STATE_MASK_LOCK = 31;
         
         /**
          * Property STATE_MASK_PIN
@@ -27366,7 +27374,7 @@ public abstract class PartitionedService
                 PartitionedService.PartitionControl ctrlPart = service.getPartitionControl(iPart);
                 long              cMillis  = service.getDistributionContendMillis();
                 boolean           fLocked  = ctrlPart != null && // a once owned partition may no longer be owned
-                                             ctrlPart.lock(cMillis, PartitionedService.PartitionControl.LOCK_PERSISTENCE);
+                                             ctrlPart.lock(cMillis, PartitionedService.PartitionControl.LOCK_PERSISTENCE_SNAPSHOT);
                 
                 AtomicInteger atomicTasks = ctrlPart.getPersistenceTasks();
                 if (fLocked && atomicTasks.get() > 0)
@@ -27706,7 +27714,7 @@ public abstract class PartitionedService
                     else
                         {
                         PersistentStore storeFrom = service.getPartitionControl(iPart).getPersistentStore();
-                
+
                         store = mgrSnapshot.open(sGUID = storeFrom.getId(), storeFrom);
                 
                         removeTransientCaches(store);
