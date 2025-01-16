@@ -15,8 +15,6 @@ on:
     - gh-pages
     - p4-integ*
     - last-p4-*
-    branches:
-    - '*'
 
 jobs:
   build:
