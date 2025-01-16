@@ -50,6 +50,10 @@ import org.junit.experimental.categories.Category;
 
 import static org.hamcrest.CoreMatchers.is;
 
+import static org.hamcrest.Matchers.both;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.lessThanOrEqualTo;
+
 import static org.junit.Assert.fail;
 
 
@@ -107,7 +111,10 @@ public class CESJavaSingleClusterTests
 
     protected void validateMetrics()
         {
-        Eventually.assertDeferred(this::getCompletedMetricsAggregate, is(23L));
+        // range check as some tasks may be cancelled, which is fine
+        // given the api calls
+        Eventually.assertDeferred(this::getCompletedMetricsAggregate,
+                                  is(both(greaterThan(20L)).and(lessThanOrEqualTo(23L))));
         }
 
     protected long getCompletedMetricsAggregate()
