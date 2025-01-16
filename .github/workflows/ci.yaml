@@ -1,0 +1,51 @@
+# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# http://oss.oracle.com/licenses/upl.
+
+# ---------------------------------------------------------------------------
+# Coherence CE GitHub Actions CI build.
+# ---------------------------------------------------------------------------
+
+name: CI Pipeline
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+    - gh-pages
+    - p4-integ*
+    - last-p4-*
+
+jobs:
+  build:
+    name: Parallel Build - Linux
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+    with:
+      runner: ubuntu-latest
+
+#  windows:
+#    name: Parallel Build - Windows
+#    uses: ./.github/workflows/ci.yaml
+#    secrets: inherit
+#    with:
+#      runner: windows-latest
+
+  examples:
+    name: Examples Build
+    uses: ./.github/workflows/build-examples.yaml
+    secrets: inherit
+    with:
+      runner: ubuntu-latest
+
+  deploy:
+    if: github.repository == 'oracle/coherence' && (github.ref_name == 'main' || startsWith(github.ref_name, 'v1') || startsWith(github.ref_name, 'v2') || startsWith(github.ref_name, 'v3'))
+    name: Deploy Snapshot
+    uses: ./.github/workflows/deploy-snapshots.yaml
+    with:
+      runner: ubuntu-latest
+    secrets: inherit
+    needs:
+      - build
+      - examples

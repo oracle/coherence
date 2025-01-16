@@ -1,7 +1,7 @@
-# Copyright 2020, 2024, Oracle Corporation and/or its affiliates.
+# Copyright 2025, Oracle Corporation and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# https://oss.oracle.com/licenses/upl.
+# http://oss.oracle.com/licenses/upl.
 
 # This workflow will build a Java project with Maven and deploy snapshot
 # artifacts to Maven Central
@@ -13,12 +13,12 @@
 name: Deploy to Maven Central
 
 on:
-  workflow_run:
-    workflows: ["CI Build"]
-    # Only add branches that build with Java 21
-    branches: [ v14.1.2.0 ]
-    types:
-    - completed
+  workflow_call:
+    inputs:
+      runner:
+        default: ubuntu-latest
+        required: true
+        type: string
 
 env:
   GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
@@ -28,14 +28,10 @@ env:
 
 jobs:
   build:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
 
     steps:
     - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
     - name: Set up JDK
       uses: oracle-actions/setup-java@v1
@@ -54,11 +50,7 @@ jobs:
       env:
         MAVEN_USER: ${{ secrets.MavenUser }}
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
-        GIT_COMMIT: ${{github.event.workflow_run.head_commit.id}}
-        HEAD_BRANCH: ${{github.event.workflow_run.head_branch}}
       run: |
-        echo "Checking out branch ${HEAD_BRANCH} commit ${GIT_COMMIT}"
-        git checkout "${GIT_COMMIT}"
         git config --local user.name "${GIT_USER}"
         git config --local user.email "${GIT_EMAIL}"
         sh tools/bin/github-deploy-snapshots.sh
