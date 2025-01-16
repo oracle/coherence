@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -274,7 +274,7 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             return new PersistentStoreInfo[0];
             }
 
-        List<PersistentStoreInfo> listInfo = new ArrayList<PersistentStoreInfo>();
+        List<PersistentStoreInfo> listInfo = new ArrayList<>();
 
         for (File fileEnv : aFiles)
             {
@@ -1375,7 +1375,12 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             lockRead();
             try
                 {
-                validateExtentId(lExtentId);
+                if (!validateExtentId(lExtentId))
+                    {
+                    // ignore normal cases such as concurrent cache deletes, abnormal ones
+                    // are handled using an exception.
+                    return;
+                    }
 
                 if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
                     {
@@ -1435,7 +1440,12 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             lockRead();
             try
                 {
-                validateExtentId(lExtentId);
+                if (!validateExtentId(lExtentId))
+                    {
+                    // ignore normal cases such as concurrent cache deletes, abnormal ones
+                    // are handled using an exception.
+                    return;
+                    }
 
                 if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
                     {
@@ -2048,15 +2058,24 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
          *
          * @param lExtentId  the extent identifier
          */
-        protected void validateExtentId(long lExtentId)
+        protected boolean validateExtentId(long lExtentId)
             {
             Long LId = Long.valueOf(lExtentId);
 
             // validate that the given extent identifier is known
             if (!f_setExtentIds.contains(LId))
                 {
-                throw new IllegalArgumentException("unknown extent identifier: " + lExtentId + " for store: " + getId());
+                if (f_setDeletedIds.contains(LId))
+                    {
+                    Logger.warn("extent identifier " + LId + " has been concurrently deleted for store: " + getId());
+                    return false;
+                    }
+                else
+                    {
+                    throw new IllegalArgumentException("unknown extent identifier: " + lExtentId + " for store: " + getId());
+                    }
                 }
+            return true;
             }
 
         /**
