@@ -10,22 +10,7 @@
 name: Parallel CI Build
 
 on:
-  workflow_dispatch:
-    inputs:
-      runner:
-        default: ubuntu-latest
-        required: true
-        type: string
   workflow_call:
-    inputs:
-      runner:
-        default: ubuntu-latest
-        required: true
-        type: string
-  pull_request:
-    types:
-      - opened
-      - committed
     inputs:
       runner:
         default: ubuntu-latest

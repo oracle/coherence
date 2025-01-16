@@ -7,11 +7,13 @@
 # Coherence CE GitHub Actions CI build.
 # ---------------------------------------------------------------------------
 
-name: CI Pipeline
+name: Pull Request Build
 
 on:
-  workflow_dispatch:
-  push:
+  pull_request:
+    types:
+      - opened
+      - committed
     branches-ignore:
     - gh-pages
     - p4-integ*
@@ -25,27 +27,9 @@ jobs:
     with:
       runner: ubuntu-latest
 
-#  windows:
-#    name: Parallel Build - Windows
-#    uses: ./.github/workflows/ci.yaml
-#    secrets: inherit
-#    with:
-#      runner: windows-latest
-
   examples:
     name: Examples Build
     uses: ./.github/workflows/build-examples.yaml
     secrets: inherit
     with:
       runner: ubuntu-latest
-
-  deploy:
-    if: github.repository == 'oracle/coherence' && (github.ref_name == 'main' || startsWith(github.ref_name, 'v1') || startsWith(github.ref_name, 'v2') || startsWith(github.ref_name, 'v3'))
-    name: Deploy Snapshot
-    uses: ./.github/workflows/deploy-snapshots.yaml
-    with:
-      runner: ubuntu-latest
-    secrets: inherit
-    needs:
-      - build
-      - examples
