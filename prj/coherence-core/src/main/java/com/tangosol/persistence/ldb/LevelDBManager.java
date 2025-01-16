@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
 package com.tangosol.persistence.ldb;
 
 import com.oracle.coherence.persistence.FatalAccessException;
@@ -194,13 +201,13 @@ public class LevelDBManager
          * {@inheritDoc}
          */
         @Override
-        protected void validateExtentId(long lExtentId)
+        protected boolean validateExtentId(long lExtentId)
             {
             if (lExtentId == METADATA_EXTENT)
                 {
                 throw new IllegalArgumentException("reserved extent identifier");
                 }
-            super.validateExtentId(lExtentId);
+            return super.validateExtentId(lExtentId);
             }
 
         /**

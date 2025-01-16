@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.persistence;
 
@@ -1248,7 +1248,12 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             lockRead();
             try
                 {
-                validateExtentId(lExtentId);
+                if (!validateExtentId(lExtentId))
+                    {
+                    // ignore normal cases such as concurrent cache deletes, abnormal ones
+                    // are handled using an exception.
+                    return;
+                    }
 
                 if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
                     {
@@ -1308,7 +1313,12 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             lockRead();
             try
                 {
-                validateExtentId(lExtentId);
+                if (!validateExtentId(lExtentId))
+                    {
+                    // ignore normal cases such as concurrent cache deletes, abnormal ones
+                    // are handled using an exception.
+                    return;
+                    }
 
                 if (oToken instanceof AbstractPersistenceManager.AbstractPersistentStore.BatchTask)
                     {
@@ -1904,15 +1914,24 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
          *
          * @param lExtentId  the extent identifier
          */
-        protected void validateExtentId(long lExtentId)
+        protected boolean validateExtentId(long lExtentId)
             {
             Long LId = Long.valueOf(lExtentId);
 
             // validate that the given extent identifier is known
             if (!f_setExtentIds.contains(LId))
                 {
-                throw new IllegalArgumentException("unknown extent identifier: " + lExtentId);
+                if (f_setDeletedIds.contains(LId))
+                    {
+                    CacheFactory.log("extent identifier " + LId + " has been concurrently deleted for store: " + getId(), CacheFactory.LOG_WARN);
+                    return false;
+                    }
+                else
+                    {
+                    throw new IllegalArgumentException("unknown extent identifier: " + lExtentId + " for store: " + getId());
+                    }
                 }
+            return true;
             }
 
         /**
