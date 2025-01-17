@@ -7,7 +7,7 @@ set -e
 # http://oss.oracle.com/licenses/upl.
 #
 
-REVISION_POM=prj/coherence-bom/pom.xml
+REVISION_POM=prj/pom.xml
 CURRENT_VERSION=$(grep -E "<revision>" ${REVISION_POM} | sed 's/.*<revision>\(.*\)<\/revision>/\1/')
 
 if [ "${CURRENT_VERSION}" = "" ]; then
