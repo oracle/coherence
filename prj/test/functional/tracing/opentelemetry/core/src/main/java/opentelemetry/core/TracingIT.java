@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,7 +26,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
 
-import io.opentelemetry.api.events.GlobalEventEmitterProvider;
+import io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider;
 
 import io.opentelemetry.api.trace.Tracer;
 
@@ -254,7 +254,7 @@ public class TracingIT
             {
             propsTest.forEach((key, value) -> System.clearProperty(key.toString()));
             GlobalOpenTelemetry.resetForTest();
-            GlobalEventEmitterProvider.resetForTest();
+            GlobalEventLoggerProvider.resetForTest();
             }
         }
 
