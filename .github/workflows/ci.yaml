@@ -40,7 +40,7 @@ jobs:
       runner: ubuntu-latest
 
   deploy:
-    if: github.repository == 'oracle/coherence' && (github.ref_name == 'main' || startsWith(github.ref_name, 'v1') || startsWith(github.ref_name, 'v2') || startsWith(github.ref_name, 'v3'))
+    if: GitHub.run_attempt == 1 && github.repository == 'oracle/coherence' && (github.ref_name == 'main' || startsWith(github.ref_name, 'v1') || startsWith(github.ref_name, 'v2') || startsWith(github.ref_name, 'v3'))
     name: Deploy Snapshot
     uses: ./.github/workflows/deploy-snapshots.yaml
     with:

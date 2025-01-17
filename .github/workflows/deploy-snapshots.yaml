@@ -28,6 +28,7 @@ env:
 
 jobs:
   build:
+    if: github.run_attempt == 1
     runs-on: ${{ inputs.runner }}
 
     steps:
