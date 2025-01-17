@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,7 +54,7 @@ public class OpenTelemetryShimLoader
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Ensures the expected OpenTracing classes are available and are compatible with
+     * Ensures the expected OpenTelemetry classes are available and are compatible with
      * Coherence's tracing implementation.
      *
      * @return {@code true} if the classpath looks good, otherwise {@code false}
@@ -117,9 +117,10 @@ public class OpenTelemetryShimLoader
      * in order to enable tracing.
      */
     protected static final Map<String, String> EXPECTED_CLASSES = Map.of(
-            "io.opentelemetry.api.OpenTelemetry",    "opentelemetry-api",
-            "io.opentelemetry.context.Context",      "opentelemetry-context",
-            "io.opentelemetry.sdk.OpenTelemetrySdk", "opentracing-util");
+            "io.opentelemetry.api.OpenTelemetry",                                 "opentelemetry-api",
+            "io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider",    "opentelemetry-api-incubator",
+            "io.opentelemetry.context.Context",                                   "opentelemetry-context",
+            "io.opentelemetry.sdk.OpenTelemetrySdk",                              "opentelemetry-sdk");
 
     /**
      * A flag that allows the explicit disabling of OpenTelemetry.

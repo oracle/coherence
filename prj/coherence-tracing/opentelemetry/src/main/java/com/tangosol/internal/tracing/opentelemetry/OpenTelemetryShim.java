@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@ import com.tangosol.util.Base;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 
-import io.opentelemetry.api.events.GlobalEventEmitterProvider;
+import io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider;
 
 import io.opentelemetry.api.trace.TracerProvider;
 
@@ -87,7 +87,7 @@ public class OpenTelemetryShim
                 if (INTERNAL_NOOP.equals(underlying))
                     {
                     GlobalOpenTelemetry.resetForTest();
-                    GlobalEventEmitterProvider.resetForTest();
+                    GlobalEventLoggerProvider.resetForTest();
                     }
 
                 GlobalOpenTelemetry.get(); // initialize OT
@@ -120,7 +120,7 @@ public class OpenTelemetryShim
                             }
 
                         GlobalOpenTelemetry.resetForTest();
-                        GlobalEventEmitterProvider.resetForTest();
+                        GlobalEventLoggerProvider.resetForTest();
                         GlobalOpenTelemetry.set(INTERNAL_NOOP);
                         }
                     }
