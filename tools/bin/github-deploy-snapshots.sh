@@ -22,7 +22,7 @@ if [ $? != 0 ] ; then
 fi
 
 echo "Building version ${CURRENT_VERSION}"
-mvn -B clean install -Dproject.official=true -Pdocs --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
+mvn -B clean install -Dproject.official=true --file prj/pom.xml -DskipTests -s .github/maven/settings.xml
 
 echo "Deploying version ${CURRENT_VERSION}"
 mvn -B deploy --file prj/pom.xml -DskipTests -s .github/maven/settings.xml -P-examples
