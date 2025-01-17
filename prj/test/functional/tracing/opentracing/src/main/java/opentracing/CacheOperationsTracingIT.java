@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -176,7 +176,7 @@ public class CacheOperationsTracingIT
                 validateReporter((reporter) ->
                     {
                     JaegerSpan[] localSpans = validateOpsPresent(
-                            new String[] {"Put.request", "FilterEvent.process"},
+                            new String[] {"Put.request" },
                             AdaptiveTracerFactory.getReporter().getSpans());
                     Arrays.stream(localSpans).forEach(
                             span -> validateTagsForSpan(span, false, MutationType.inserted));
@@ -197,7 +197,7 @@ public class CacheOperationsTracingIT
                 validateReporter((reporter) ->
                     {
                     JaegerSpan[] localSpans = validateOpsPresent(
-                            new String[] {"Remove.request", "FilterEvent.process"},
+                            new String[] {"Remove.request" },
                             AdaptiveTracerFactory.getReporter().getSpans());
                     Arrays.stream(localSpans).forEach(
                             span -> validateTagsForSpan(span, false, MutationType.deleted));

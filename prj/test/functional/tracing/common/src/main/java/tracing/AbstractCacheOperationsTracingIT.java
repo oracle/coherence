@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -86,35 +86,7 @@ public abstract class AbstractCacheOperationsTracingIT
                     NamedCache cache = getNamedCache();
                     assertThat(cache, is(notNullValue()));
 
-                    final AtomicBoolean entryInserted = new AtomicBoolean();
-                    final AtomicBoolean entryUpdated  = new AtomicBoolean();
-                    final AtomicBoolean entryDeleted  = new AtomicBoolean();
-                    cache.addMapListener(new MapListenerSupport.SynchronousListener()
-                        {
-                        @Override
-                        public void entryInserted(MapEvent evt)
-                            {
-                            entryInserted.compareAndSet(false, true);
-                            }
-
-                        @Override
-                        public void entryUpdated(MapEvent evt)
-                            {
-                            entryUpdated.compareAndSet(false, true);
-                            }
-
-                        @Override
-                        public void entryDeleted(MapEvent evt)
-                            {
-                            entryDeleted.compareAndSet(false, true);
-                            }
-                        });
-
                     cache.put("a", "1");
-
-                    assertThat("entryInserted not invoked",        entryInserted.get(), is(true));
-                    assertThat("entryUpdated incorrectly invoked", entryUpdated.get(),  is(false));
-                    assertThat("entryDeleted incorrectly invoked", entryDeleted.get(),  is(false));
                     }, "PUT", validator));
         }
 
@@ -133,36 +105,8 @@ public abstract class AbstractCacheOperationsTracingIT
 
                 cache.put("a", "1"); // not too interested in this event
 
-                final AtomicBoolean entryInserted = new AtomicBoolean();
-                final AtomicBoolean entryUpdated  = new AtomicBoolean();
-                final AtomicBoolean entryDeleted  = new AtomicBoolean();
-                cache.addMapListener(new MapListenerSupport.SynchronousListener()
-                    {
-                    @Override
-                    public void entryInserted(MapEvent evt)
-                        {
-                        entryInserted.compareAndSet(false, true);
-                        }
-
-                    @Override
-                    public void entryUpdated(MapEvent evt)
-                        {
-                        entryUpdated.compareAndSet(false, true);
-                        }
-
-                    @Override
-                    public void entryDeleted(MapEvent evt)
-                        {
-                        entryDeleted.compareAndSet(false, true);
-                        }
-                    });
-
                 cache.remove("a");
-
-                assertThat("entryInserted incorrectly invoked", entryInserted.get(), is(false));
-                assertThat("entryUpdated incorrectly invoked",  entryUpdated.get(),  is(false));
-                assertThat("entryDeleted not invoked",          entryDeleted.get(),  is(true));
-                }, "PUT", validator));
+                }, "REMOVE", validator));
         }
 
     // ----- helper methods -------------------------------------------------

@@ -64,7 +64,8 @@ public class OpenTelemetryTracer
         LiteMap<String, String> injectTarget = new LiteMap<>();
         TextMapPropagator       propagator   = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
 
-        propagator.inject(Context.current(), injectTarget, new MapSetter());
+        propagator.inject(Context.current().with(
+                io.opentelemetry.api.trace.Span.wrap(spanContext.underlying())), injectTarget, new MapSetter());
 
         return injectTarget;
         }
