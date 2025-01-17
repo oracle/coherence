@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22003,6 +22003,8 @@ public class PartitionedCache
                 {
                 setAllowBackupRead(input.readBoolean());
                 }
+
+            readTracing(input);
             }
         
         // Declared at the super level
@@ -22048,6 +22050,8 @@ public class PartitionedCache
             super.write(output);
             
             output.writeBoolean(isAllowBackupRead());
+
+            writeTracing(output);
             }
 
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$GetRequest$Poll
