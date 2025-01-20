@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc;
 
 import com.tangosol.application.Context;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
 
@@ -61,6 +62,13 @@ public interface GrpcService
      * @see GrpcService#addCloseable(Closeable)
      */
     void removeCloseable(Closeable closeable);
+
+    /**
+     * Return the parent {@link GrpcAcceptor}.
+     *
+     * @return  the parent {@link GrpcAcceptor}
+     */
+    GrpcAcceptor getGrpcAcceptor();
 
     /**
      * The dependencies for this service.

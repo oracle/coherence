@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,9 +19,6 @@ import io.grpc.ServerServiceDefinition;
 
 import io.grpc.stub.StreamObserver;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -62,9 +59,8 @@ public class ProxyServiceGrpcImpl
     @Override
     public StreamObserver<ProxyRequest> subChannel(StreamObserver<ProxyResponse> observer)
         {
-        ProxyServiceChannel         channel = new ProxyServiceChannel(this, observer);
+        ProxyServiceChannel channel = new ProxyServiceChannel(this, observer);
         GrpcDependencies.ServerType type    = getDependencies().getServerType();
-        f_channels.add(channel);
         if (type == GrpcDependencies.ServerType.Asynchronous)
             {
             return channel.async(f_executor);
@@ -107,11 +103,6 @@ public class ProxyServiceGrpcImpl
             extends BaseGrpcServiceImpl.DefaultDependencies
             implements Dependencies
         {
-        public DefaultDependencies(GrpcDependencies.ServerType serverType)
-            {
-            super(serverType);
-            }
-
         public DefaultDependencies(GrpcServiceDependencies deps)
             {
             super(deps);
@@ -129,9 +120,4 @@ public class ProxyServiceGrpcImpl
      * The name to use for the management MBean.
      */
     public static final String MBEAN_NAME = "type=GrpcProxy";
-
-    /**
-     *
-     */
-    private final ConcurrentLinkedQueue<ProxyServiceChannel> f_channels = new ConcurrentLinkedQueue<>();
     }

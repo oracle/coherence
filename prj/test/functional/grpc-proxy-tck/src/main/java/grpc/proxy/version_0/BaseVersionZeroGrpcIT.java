@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,8 +13,14 @@ import com.oracle.coherence.grpc.messages.cache.v0.MapEventResponse;
 import com.oracle.coherence.grpc.messages.cache.v0.MapListenerResponse;
 
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.io.Serializer;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Service;
 import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.ObservableMap;
 import grpc.proxy.BaseGrpcIT;
@@ -44,6 +50,15 @@ public class BaseVersionZeroGrpcIT
         GrpcAcceptorController                controller = GrpcAcceptorController.discoverController();
         NamedCacheService.DefaultDependencies deps       = new NamedCacheService.DefaultDependencies(controller.getServerType());
 
+        Service grpcService = CacheFactory.getCluster().getService(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME);
+        if (grpcService instanceof SafeService)
+            {
+            grpcService = ((SafeService) grpcService).getService();
+            }
+        ProxyService proxyService = (ProxyService) grpcService;
+        GrpcAcceptor acceptor     = (GrpcAcceptor) proxyService.getAcceptor();
+
+        deps.setAcceptor(acceptor);
         deps.setConfigurableCacheFactorySupplier(this::ensureCCF);
         Optional<TestNamedCacheServiceProvider> optional = TestNamedCacheServiceProvider.getProvider();
         assertThat("Cannot find a TestNamedCacheServiceProvider instance, are you running this test from the TCK module instead of from one of the specific Netty or Helidon test modules",

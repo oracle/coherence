@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -297,7 +297,19 @@ public class Connection
         {
         return this;
         }
-    
+
+    /**
+     * Create a new instance of a {@link Channel}.
+     *
+     * @return a new instance of a {@link Channel}
+     */
+    protected Channel createChannel()
+        {
+        Channel channel = new Channel();
+        channel.setConnection(this);
+        return channel;
+        }
+
     // From interface: com.tangosol.net.messaging.Connection
     public com.tangosol.net.messaging.Channel acceptChannel(java.net.URI uri, ClassLoader loader, com.tangosol.net.messaging.Channel.Receiver receiver, javax.security.auth.Subject subject)
         {
@@ -440,9 +452,8 @@ public class Connection
             throw new IllegalArgumentException("serializer cannot be null");
             }
         
-        Channel channel = new Channel();
+        Channel channel = createChannel();
         channel.setId(nId);
-        channel.setConnection(this);
         channel.setMessageFactory(factory);
         channel.setReceiver(receiver);
         channel.setSerializer(serializer);
@@ -684,9 +695,8 @@ public class Connection
         int nId = generateChannelId();
         
         // create a new Channel
-        Channel channel = new Channel();
+        Channel channel = createChannel();
         channel.setId(nId);
-        channel.setConnection(this);
         channel.setReceiver(receiver);
         channel.setMessageFactory(factory);
         channel.setSerializer(serializer);
@@ -1170,8 +1180,7 @@ public class Connection
         // import com.tangosol.util.ThreadGate;
         
         // create and register "Channel0"
-        Channel channel0 = new Channel();
-        channel0.setConnection(this);
+        Channel channel0 = createChannel();
         registerChannel(channel0);
         
         setThreadGate(new ThreadGate());
@@ -1306,8 +1315,7 @@ public class Connection
         
         int nId = generateChannelId();
         
-        Channel channel = new Channel();
-        channel.setConnection(this);
+        Channel channel = createChannel();
         channel.setId(nId);
         channel.setMessageFactory(factory);
         channel.setReceiver(receiver);
@@ -1345,9 +1353,8 @@ public class Connection
             throw new IllegalArgumentException("serializer cannot be null");
             }
         
-        Channel channel = new Channel();
+        Channel channel = createChannel();
         channel.setId(nId);
-        channel.setConnection(this);
         channel.setMessageFactory(factory);
         channel.setReceiver(receiver);
         channel.setSerializer(serializer);

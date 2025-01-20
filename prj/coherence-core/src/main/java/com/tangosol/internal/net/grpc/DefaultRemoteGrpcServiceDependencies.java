@@ -59,6 +59,17 @@ public abstract class DefaultRemoteGrpcServiceDependencies
             }
         }
 
+    @Override
+    public long getRequestTimeoutMillis()
+        {
+        long cMillis = super.getRequestTimeoutMillis();
+        if (cMillis == 0)
+            {
+            cMillis = 30000;
+            }
+        return cMillis;
+        }
+
     /**
      * Set the {@link GrpcChannelDependencies}.
      *
@@ -235,7 +246,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Override
     public long getDeadline()
         {
-        return super.getRequestTimeoutMillis();
+        return getRequestTimeoutMillis();
         }
 
 

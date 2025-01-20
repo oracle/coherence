@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,10 +10,18 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor;
 
+import com.tangosol.coherence.component.net.extend.Channel;
+import com.tangosol.coherence.component.net.extend.Connection;
+
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.net.grpc.GrpcAcceptorController;
-import com.tangosol.net.grpc.GrpcDependencies;
+
+import javax.security.auth.Subject;
+
+import java.net.URI;
 
 /**
  * Base definition of a ConnectionAcceptor component.
@@ -197,12 +205,10 @@ public class GrpcAcceptor
     // Declared at the super level
     public synchronized void configure(com.tangosol.run.xml.XmlElement xml)
         {
-        // import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
-        // import com.tangosol.internal.net.service.peer.acceptor.LegacyXmlGrpcAcceptorHelper as com.tangosol.internal.net.service.peer.acceptor.LegacyXmlGrpcAcceptorHelper;
-        
+        DefaultGrpcAcceptorDependencies dependencies = new DefaultGrpcAcceptorDependencies();
+
         setDependencies(com.tangosol.internal.net.service.peer.acceptor.LegacyXmlGrpcAcceptorHelper.fromXml(xml,
-            new DefaultGrpcAcceptorDependencies(), getOperationalContext(),
-            getContextClassLoader()));
+            dependencies, getOperationalContext(), getContextClassLoader()));
         
         setServiceConfig(xml);
         }
@@ -258,19 +264,31 @@ public class GrpcAcceptor
         }
     
     // Declared at the super level
+
     /**
      * Factory method: create a new Connection.
-    * 
-    * Implementations must configure the Connection with a reference to this
-    * ConnectionManager (see Connection#setConnectionManager).
-    * 
-    * @return a new Connection object that has yet to be opened
+     * <p>
+     * Implementations must configure the Connection with a reference to this
+     * ConnectionManager (see Connection#setConnectionManager).
+     *
+     * @return a new Connection object that has yet to be opened
      */
+    @Override
     protected com.tangosol.coherence.component.net.extend.Connection instantiateConnection()
         {
-        throw new UnsupportedOperationException();
+        GrpcConnection connection = createConnection();
+        connection.setConnectionManager(this);
+//        connection.setMessageFactoryMap(getProtocolMap());
+        return connection;
         }
-    
+
+    public GrpcConnection openConnection()
+        {
+        GrpcConnection connection = (GrpcConnection) instantiateConnection();
+        connection.open();
+        return connection;
+        }
+
     // Declared at the super level
     /**
      * This event occurs when dependencies are injected into the component. 
@@ -302,15 +320,12 @@ public class GrpcAcceptor
      */
     protected void onServiceStarting()
         {
-        // import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
-        // import com.tangosol.net.grpc.GrpcAcceptorController;
-        // import com.tangosol.net.grpc.GrpcDependencies;
-        
         GrpcAcceptorController controller = getController();
         _assert(controller != null);
         
         GrpcAcceptorDependencies grpcDeps = (GrpcAcceptorDependencies) getDependencies();
-        
+
+        controller.setAcceptor(this);
         controller.setDependencies(grpcDeps);
         
         getParentService().getResourceRegistry()
@@ -390,4 +405,252 @@ public class GrpcAcceptor
         {
         __m_ListenPort = nPort;
         }
+
+    public GrpcConnection getConnection()
+        {
+        return (GrpcConnection) super.get_Connection();
+        }
+
+    @Override
+    protected GrpcConnection createConnection()
+        {
+        return new GrpcConnection();
+        }
+
+    @Override
+    public com.tangosol.net.messaging.Channel acceptChannel(Connection connection, URI uri, ClassLoader loader, Channel.Receiver receiver, Subject subject)
+        {
+        Object oToken = generateIdentityToken(subject);
+        int    nId    = Integer.parseInt(uri.getSchemeSpecificPart());
+        connection.acceptChannelRequest
+            (
+            nId,
+            assertIdentityToken(oToken),
+            getAccessAdapter()
+            );
+        return (com.tangosol.net.messaging.Channel) connection.getChannelArray().get(nId);
+        }
+
+    public void registerGrpcProtocol(com.tangosol.net.messaging.Protocol protocol)
+        {
+        if (protocol == null)
+            {
+            throw new IllegalArgumentException("protocol cannot be null");
+            }
+
+        String sName = protocol.getName();
+        if (sName == null)
+            {
+            throw new IllegalArgumentException("missing protocol name: " + protocol);
+            }
+
+        getProtocolMap().put(sName, protocol);
+        GrpcConnection connection = getConnection();
+        if (connection != null)
+            {
+            connection.getMessageFactoryMap().put(sName, protocol.getMessageFactory(protocol.getCurrentVersion()));
+            }
+        }
+
+//    // ----- inner class: GrpcConnection ------------------------------------
+//
+//    /**
+//     * A gRPC specific {@link Connection}.
+//     *
+//     * @param <Resp>  the type of the response message sent down
+//     *                the channel to the client
+//     */
+//    public static class GrpcConnection<Resp extends Message>
+//            extends Connection
+//        {
+//        public GrpcConnection()
+//            {
+//            }
+//
+//        @Override
+//        protected GrpcChannel<Resp> createChannel()
+//            {
+//            GrpcChannel<Resp> channel = new GrpcChannel<>();
+//            channel.setConnection(this);
+//            return channel;
+//            }
+//
+//        @Override
+//        public void setMessageFactoryMap(Map map)
+//            {
+//            // we must ensure the map is writeable
+//            super.setMessageFactoryMap(new HashMap(map));
+//            }
+//
+//        /**
+//         * Add a {@link Protocol.MessageFactory}.
+//         *
+//         * @param clz      they protocol class
+//         * @param factory  the factory to add
+//         * @param <P>      the type of the protocol
+//         */
+//        @SuppressWarnings("unchecked")
+//        public  <P extends  com.tangosol.coherence.component.net.extend.Protocol>
+//        void addMessageFactory(Class<P> clz, Protocol.MessageFactory factory)
+//            {
+//            Map map = getMessageFactoryMap();
+//            if (map == null)
+//                {
+//                map = new HashMap();
+//                setMessageFactoryMap(map);
+//                }
+//            map.put(clz.getSimpleName(), factory);
+//            }
+//
+//        public StreamObserver<Resp> getStreamObserver()
+//            {
+//            return m_observer;
+//            }
+//
+//        public void setStreamObserver(StreamObserver<Resp> observer)
+//            {
+//            m_observer = observer;
+//            }
+//
+//        // ----- data members ---------------------------------------------------
+//
+//        private StreamObserver<Resp> m_observer;
+//        }
+//
+//    // ----- inner class: GrpcChannel ---------------------------------------
+//
+//    /**
+//     * An implementation of a {@link Channel} used by gRPC proxies.
+//     *
+//     * @param <Resp>  the type of the response message sent down
+//     *                the channel to the client
+//     */
+//    public static class GrpcChannel<Resp extends Message>
+//            extends Channel
+//        {
+//        public GrpcChannel()
+//            {
+//            }
+//
+//        @Override
+//        public GrpcConnection getConnection()
+//            {
+//            return (GrpcConnection) super.getConnection();
+//            }
+//
+//        @Override
+//        public void setConnection(com.tangosol.net.messaging.Connection connection)
+//            {
+//            super.setConnection(connection);
+//            }
+//
+//        public StreamObserver<Resp> getStreamObserver()
+//            {
+//            return m_observer;
+//            }
+//
+//        public void setStreamObserver(StreamObserver<Resp> observer)
+//            {
+//            m_observer = observer;
+//            }
+//
+//        /**
+//         * Accept requests on the specified sub-channel.
+//         *
+//         * @param nChannelId  the channel identifier
+//         */
+//        public void acceptChannelRequest(int nChannelId)
+//            {
+//            Connection connection = getConnection();
+//            connection.acceptChannelRequest(nChannelId, null, null);
+//            }
+//
+//        /**
+//         * Add a {@link com.tangosol.coherence.component.net.extend.MessageFactory}.
+//         *
+//         * @param clz      they protocol class
+//         * @param factory  the factory to add
+//         * @param <P>      the type of the protocol
+//         */
+//        @SuppressWarnings("unchecked")
+//        protected <P extends Protocol> void addMessageFactory(Class<P> clz, MessageFactory factory)
+//            {
+//            getConnection().getMessageFactoryMap().put(clz.getSimpleName(), factory);
+//            }
+//
+//        /**
+//         * Obtain a sub-channel.
+//         *
+//         * @param nChannelId  the channel identifier
+//         *
+//         * @return the sub-channel or an empty {@link Optional} if there
+//         *         is no sub-channel with the specified identifier
+//         */
+//        public GrpcChannel getSubChannel(int nChannelId)
+//            {
+//            return (GrpcChannel) getConnection().getChannel(nChannelId);
+//            }
+//
+//        /**
+//         * Obtain the receiver for a sub-channel.
+//         *
+//         * @param nChannelId  the channel identifier
+//         * @param <R>         the type of the receiver to return
+//         *
+//         * @return the receiver for a sub-channel
+//         */
+//        @SuppressWarnings("unchecked")
+//        public <R extends Channel.Receiver> R getChannelReceiver(int nChannelId)
+//            {
+//            Channel channel = getSubChannel(nChannelId);
+//            return channel == null ? null : (R) channel.getReceiver();
+//            }
+//
+//        @Override
+//        public void post(com.tangosol.net.messaging.Message message)
+//            {
+//            if (message instanceof GrpcResponse)
+//                {
+//                GrpcResponse         response = (GrpcResponse) message;
+//                StreamObserver<Resp> observer = (StreamObserver<Resp>) response.getStreamObserver();
+//                if (response.isFailure())
+//                    {
+//                    Throwable error = (Throwable) response.getResult();
+//                    observer.onError(error);
+//                    }
+//                else
+//                    {
+//                    GrpcMessageFactory<?, Resp> factory       = (GrpcMessageFactory) getMessageFactory();
+//                    Resp                         protoResponse = factory.createResponse(response);
+//                    observer.onNext(protoResponse);
+//                    if (response.completeStream())
+//                        {
+//                        observer.onCompleted();
+//                        }
+//                    }
+//                }
+//            else
+//                {
+//                int nId = getId();
+//                if (nId != 0)
+//                    {
+//                    GrpcMessageFactory<?, Resp> factory      = (GrpcMessageFactory) getMessageFactory();
+//                    Resp                        protoMessage = factory.toProtoMessage(message, nId);
+//                    if (protoMessage != null)
+//                        {
+//                        m_observer.onNext(protoMessage);
+//                        }
+//                    }
+//                else
+//                    {
+//                    super.post(message);
+//                    }
+//                }
+//            }
+//
+//        // ----- data members ---------------------------------------------------
+//
+//        private StreamObserver<Resp> m_observer;
+//        }
+//
     }

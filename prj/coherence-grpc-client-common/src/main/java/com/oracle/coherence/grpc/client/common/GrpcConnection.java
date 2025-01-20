@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,8 @@ import com.tangosol.util.UUID;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 
+import java.util.EventListener;
+import java.util.EventObject;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -142,10 +144,83 @@ public interface GrpcConnection
      */
     long getHeartbeatsAcked();
 
+    /**
+     * Add a {@link ConnectionListener}.
+     *
+     * @param listener  the {@link ConnectionListener} to add
+     */
+    void addConnectionListener(ConnectionListener listener);
+
+    /**
+     * Remove a {@link ConnectionListener}.
+     *
+     * @param listener  the {@link ConnectionListener} to remove
+     */
+    void removeConnectionListener(ConnectionListener listener);
+
     // ----- inner class: Listener ------------------------------------------
 
     record Listener<T extends Message>(StreamObserver<T> observer, Predicate<T> predicate)
         {
+        }
+
+    // ----- inner class: ConnectionListener --------------------------------
+
+    /**
+     * A listener to receive events when a {@link GrpcConnection} is
+     * connected or disconnected.
+     */
+    interface ConnectionListener
+            extends EventListener
+        {
+        /**
+         * The callback method that is called when a {@link GrpcConnection}
+         * is connected or disconnected.
+         *
+         * @param event  the {@link ConnectionEvent}
+         */
+        default void onConnectionEvent(ConnectionEvent event)
+            {
+            }
+        }
+
+    // ----- inner class: ConnectionEvent -----------------------------------
+
+    /**
+     * An event object.
+     */
+    class ConnectionEvent
+            extends EventObject
+        {
+        public ConnectionEvent(GrpcConnection source, Type type)
+            {
+            super(source);
+            f_type = type;
+            }
+
+        // ----- accessors --------------------------------------------------
+
+        /**
+         * Return the type of the event.
+         *
+         * @return the type of the event
+         */
+        public Type getType()
+            {
+            return f_type;
+            }
+
+
+        // ----- inner enum Type --------------------------------------------
+
+        public enum Type
+            {
+            Connected, Disconnected;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private final Type f_type;
         }
 
     // ----- inner interface: DefaultDependencies ---------------------------

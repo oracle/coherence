@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package com.oracle.coherence.grpc.client.common.v0;
 
 import com.google.protobuf.Message;
+import com.oracle.coherence.grpc.client.common.BaseGrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 import com.tangosol.util.UUID;
 import io.grpc.Channel;
@@ -19,6 +20,7 @@ import java.util.concurrent.CompletableFuture;
  * The legacy version zero implementation of a {@link GrpcConnection}.
  */
 public class GrpcConnectionV0
+        extends BaseGrpcConnection
         implements GrpcConnection
     {
     /**
@@ -124,6 +126,11 @@ public class GrpcConnectionV0
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The version of this service.
+     */
+    public static final int SERVICE_VERSION = 0;
 
     /**
      * The underlying gRPC {@link Channel}.

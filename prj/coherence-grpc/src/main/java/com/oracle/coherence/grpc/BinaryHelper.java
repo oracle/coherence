@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,9 +24,12 @@ import com.tangosol.net.cache.KeyAssociation;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.util.Binary;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.ExternalizableHelper;
 
+import java.util.List;
 import java.util.Objects;
+
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -283,6 +286,31 @@ public final class BinaryHelper
 
         return UnsafeByteOperations.unsafeWrap(ExternalizableHelper.decorateBinary(bin,
                 binDeco.calculateNaturalPartition(0)).toByteBuffer());
+        }
+
+    /**
+     * Return a list of {@link ByteString} from a list of {@link Binary} values.
+     *
+     * @param list  the list of {@link Binary} values
+     *
+     * @return a list of {@link ByteString} from the list of {@link Binary} values
+     */
+    public static List<ByteString> toListOfByteString(List<Binary> list)
+        {
+        return ConverterCollections.getList(list, BinaryHelper::toByteString, BinaryHelper::toBinary);
+        }
+
+
+    /**
+     * Return a list of {@link Binary} from a list of {@link ByteString} values.
+     *
+     * @param list  the list of {@link ByteString} values
+     *
+     * @return a list of {@link Binary} from the list of {@link ByteString} values
+     */
+    public static List<Binary> toListOfBinary(List<ByteString> list)
+        {
+        return ConverterCollections.getList(list, BinaryHelper::toBinary, BinaryHelper::toByteString);
         }
 
     // ----- constants ------------------------------------------------------

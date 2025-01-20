@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,30 +14,43 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Int32Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
+
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.GrpcService;
-
 import com.oracle.coherence.grpc.GrpcServiceProtocol;
 import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
+
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
-import com.tangosol.coherence.component.net.extend.Connection;
+
 import com.tangosol.coherence.component.net.extend.message.Request;
-import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServiceProxy;
+
+import com.tangosol.coherence.component.net.extend.proxy.GrpcExtendProxy;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+
+import com.tangosol.net.messaging.Protocol;
 import com.tangosol.net.messaging.Response;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.UUID;
+
 import io.grpc.stub.StreamObserver;
 
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import java.util.function.Supplier;
 
 /**
  * A base class for server side gRPC protocol implementations.
@@ -51,7 +64,8 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
         return m_serializer;
         }
 
-    public void init(GrpcService service, InitRequest request, int nVersion, UUID clientUUID, StreamObserver<Resp> observer)
+    @Override
+    public void init(GrpcService service, InitRequest request, int nVersion, UUID clientUUID, StreamObserver<Resp> observer, GrpcConnection<Resp> connection)
         {
         f_lock.lock();
         try
@@ -65,16 +79,14 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
             m_context       = service.getDependencies().getContext().orElse(null);
             m_ccf           = eccf;
             m_serializer    = service.getSerializer(sFormat, m_ccf.getConfigClassLoader());
-            m_connection    = new Connection();
             m_eventObserver = observer;
 
-            m_connection.setId(clientUUID);
-
-            m_proxy = new CacheServiceProxy();
-            m_proxy.setCacheFactory(m_ccf);
-            m_proxy.setSerializer(m_serializer);
-
-            initInternal(service, request, nVersion, clientUUID);
+            m_serviceProxy = initInternal(service, request, nVersion, clientUUID);
+            if (m_serviceProxy != null)
+                {
+                URI uri = connection.createChannel(m_serviceProxy.getProtocol(), null, m_serviceProxy);
+                connection.acceptChannel(uri, null, m_serviceProxy, null);
+                }
             }
         finally
             {
@@ -82,7 +94,8 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
             }
         }
 
-    protected abstract void initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID);
+    protected abstract GrpcExtendProxy<Resp> initInternal(GrpcService service, InitRequest request,
+            int nVersion, UUID clientUUID);
     
     @Override
     public void onRequest(Req request, StreamObserver<Resp> observer)
@@ -311,6 +324,14 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
         observer.onCompleted();
         }
 
+    /**
+     * Create a response message.
+     *
+     * @param id   the response identifier
+     * @param any  the message to wrap
+     *
+     * @return  the response message
+     */
     protected abstract Resp response(int id, Any any);
 
     /**
@@ -327,6 +348,33 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
         try
             {
             Any any = getMessage(request);
+            return any.unpack(type);
+            }
+        catch (InvalidProtocolBufferException e)
+            {
+            throw Exceptions.ensureRuntimeException(e, "Could not unpack message field of type " + type.getName());
+            }
+        }
+
+    /**
+     * Unpack the message field from a request.
+     *
+     * @param request       the request to get the message from
+     * @param type          the expected type of the message
+     * @param defaultValue  the default value to return if the request has no message field
+     * @param <T>           the expected type of the message
+     *
+     * @return the unpacked message
+     */
+    protected <T extends Message> T unpackOrDefault(Req request, Class<T> type, Supplier<T> defaultValue)
+        {
+        try
+            {
+            Any any = getMessage(request);
+            if (any == null)
+                {
+                return defaultValue.get();
+                }
             return any.unpack(type);
             }
         catch (InvalidProtocolBufferException e)
@@ -410,24 +458,14 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
     protected ExtensibleConfigurableCacheFactory m_ccf;
 
     /**
-     * The {@link CacheServiceProxy}.
-     */
-    protected CacheServiceProxy m_proxy;
-
-    /**
      * The client's serializer.
      */
     protected Serializer m_serializer;
 
     /**
-     * The {@link Connection} to use to send responses.
-     */
-    protected Connection m_connection;
-
-    /**
      * A bit-set containing destroyed cache identifiers.
      */
-    protected final Set<Integer> m_destroyedIds = new HashSet<>();
+    protected final Set<Number> m_destroyedIds = new HashSet<>();
 
     /**
      * A {@link StreamObserver} for processing event messages.
@@ -438,4 +476,9 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
      * The optional container {@link Context} for this protocol.
      */
     private Context m_context;
+
+    /**
+     * The {@link GrpcExtendProxy}.
+     */
+    protected GrpcExtendProxy<Resp> m_serviceProxy;
     }
