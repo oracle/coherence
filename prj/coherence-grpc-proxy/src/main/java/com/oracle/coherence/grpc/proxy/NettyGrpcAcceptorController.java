@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -71,13 +71,13 @@ public class NettyGrpcAcceptorController
         }
 
     @Override
-    protected GrpcServiceDependencies createServiceDeps()
+    protected GrpcServiceDependencies createServiceDeps(GrpcServiceDependencies defaultDeps)
         {
         GrpcAcceptorDependencies deps    = getDependencies();
         Context                  context = deps.getContext();
 
         GrpcServiceDependencies.DefaultDependencies serviceDeps
-                = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
+                = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous, defaultDeps);
 
         serviceDeps.setContext(context);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,13 @@
 package com.oracle.coherence.grpc;
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
+
+import com.tangosol.io.Serializer;
+
+import com.tangosol.net.RequestIncompleteException;
+
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusException;
@@ -15,10 +22,15 @@ import io.grpc.StatusRuntimeException;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+
 import java.net.SocketException;
+
 import java.nio.charset.StandardCharsets;
+
 import java.util.Base64;
 import java.util.Optional;
+
+import java.util.function.BiFunction;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
@@ -123,6 +135,93 @@ public final class ErrorsHelper
         Metadata trailers = e.getTrailers();
         String s = trailers == null ? null : trailers.get(ErrorsHelper.KEY_ERROR);
         return s == null ? Optional.empty() : Optional.of(new String(s_decoder.decode(s)));
+        }
+
+    /**
+     * Create a {@link RequestIncompleteException} from an {@link ErrorMessage}.
+     *
+     * @param error       the {@link ErrorMessage}
+     * @param serializer  the {@link Serializer} to deserialize the stack trace
+     *
+     * @return the {@link RequestIncompleteException} created from the {@link ErrorMessage}
+     */
+    public static RequestIncompleteException createException(ErrorMessage error, Serializer serializer)
+        {
+        return createException(error, serializer, RequestIncompleteException::new);
+        }
+
+    /**
+     * Create an exception from an {@link ErrorMessage}.
+     *
+     * @param error       the {@link ErrorMessage}
+     * @param serializer  the {@link Serializer} to deserialize the stack trace
+     * @param factory     the factory function to create the resulting exception
+     * @param <E>         the type of exception to return
+     *
+     * @return the exception created from the {@link ErrorMessage}
+     */
+    public static <E extends Exception> E createException(ErrorMessage error, Serializer serializer, BiFunction<String, Throwable, E> factory)
+        {
+        if (error == null)
+            {
+            return null;
+            }
+        Throwable cause = null;
+        if (error.hasError())
+            {
+            cause = BinaryHelper.fromByteString(error.getError(), serializer);
+            }
+        return factory.apply(error.getMessage(), cause);
+        }
+
+    /**
+     * Create an {@link ErrorMessage} from a {@link Throwable}.
+     *
+     * @param error       the error to create the message from
+     * @param serializer  the serializer to use to serialize the stack trace
+     *
+     * @return  the error message
+     */
+    public static ErrorMessage createErrorMessage(Throwable error, Serializer serializer)
+        {
+        String sMsg = error.getMessage();
+        if (sMsg == null || sMsg.isEmpty())
+            {
+            sMsg = error.getClass().getSimpleName();
+            }
+
+        ErrorMessage.Builder builder = ErrorMessage.newBuilder()
+                .setMessage(sMsg);
+
+        if (serializer != null)
+            {
+            try
+                {
+                if (error instanceof StatusRuntimeException)
+                    {
+                    Throwable cause = error.getCause();
+                    if (cause != null)
+                        {
+                        error = cause;
+                        }
+                    }
+                if (error instanceof StatusException)
+                    {
+                    Throwable cause = error.getCause();
+                    if (cause != null)
+                        {
+                        error = cause;
+                        }
+                    }
+                builder.setError(BinaryHelper.toByteString(error, serializer));
+                }
+            catch (Throwable t)
+                {
+                Logger.err(t);
+                }
+            }
+
+        return builder.build();
         }
 
     // ----- helper methods -------------------------------------------------

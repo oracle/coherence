@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,4 +58,20 @@ message BinaryKeyAndValue {
     bytes key = 1;
     // The serialized binary value.
     bytes value = 2;
+}
+
+// A message that contains a collection of string values.
+message CollectionOfStringValues {
+    // The string values
+    repeated string values = 1;
+}
+
+// A collection of in32 values
+message CollectionOfInt32 {
+    repeated int32 values = 1;
+}
+
+// A collection of in32 values
+message CollectionOfInt64 {
+    repeated int64 values = 1;
 }

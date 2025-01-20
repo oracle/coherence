@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy.common.cache;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.BytesValue;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.NamedCacheProtocol;
@@ -33,16 +34,21 @@ import com.oracle.coherence.grpc.messages.common.v1.CollectionOfBytesValues;
 import com.oracle.coherence.grpc.messages.common.v1.OptionalValue;
 
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
-import com.oracle.coherence.grpc.proxy.common.BaseProxyProtocol;
-import com.tangosol.coherence.component.net.extend.Channel;
-import com.tangosol.coherence.component.net.extend.Connection;
 
+import com.oracle.coherence.grpc.proxy.common.BaseCacheServiceProxyProtocol;
+
+import com.tangosol.coherence.component.net.extend.Channel;
+
+import com.tangosol.coherence.component.net.extend.Connection;
 import com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory;
+import com.tangosol.coherence.component.net.extend.proxy.GrpcExtendProxy;
 import com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy;
 import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServiceProxy;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcChannel;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
@@ -74,6 +80,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.InKeySetFilter;
 import io.grpc.stub.StreamObserver;
 
+import java.net.SocketException;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -89,7 +96,7 @@ import java.util.stream.LongStream;
  * The server side {@link NamedCacheProtocol} implementation.
  */
 public class NamedCacheProxyProtocol
-        extends BaseProxyProtocol<NamedCacheRequest, NamedCacheResponse>
+        extends BaseCacheServiceProxyProtocol<NamedCacheRequest, NamedCacheResponse>
         implements NamedCacheProtocol<NamedCacheRequest, NamedCacheResponse>
     {
     @Override
@@ -121,6 +128,7 @@ public class NamedCacheProxyProtocol
                 {
                 com.tangosol.net.messaging.Channel channel = proxy.getChannel();
                 proxy.unregisterChannel(channel);
+                proxy.removeMapListener(new CacheListener(proxy.getCacheId()));
                 }
             m_aProxy.clear();
             }
@@ -132,8 +140,10 @@ public class NamedCacheProxyProtocol
         }
 
     @Override
-    protected void initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID)
+    protected GrpcExtendProxy<NamedCacheResponse> initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID)
         {
+        super.initInternal(service, request, nVersion, clientUUID);
+        return m_proxy;
         }
 
     @Override
@@ -957,7 +967,7 @@ public class NamedCacheProxyProtocol
     /**
      * A stub of an Extend {@link Channel} used to handle event messages.
      */
-    protected class ChannelStub
+    public class ChannelStub
             extends Channel
         {
         /**
@@ -1152,8 +1162,35 @@ public class NamedCacheProxyProtocol
                     .setCacheId(m_cacheId)
                     .setType(type)
                     .build();
-            m_eventObserver.onNext(event);
+            try
+                {
+                m_eventObserver.onNext(event);
+                }
+            catch (Exception e)
+                {
+                Throwable cause = Exceptions.getRootCause(e);
+                if (!(cause instanceof SocketException))
+                    {
+                    throw Exceptions.ensureRuntimeException(e);
+                    }
+                }
             }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (o == null || getClass() != o.getClass()) return false;
+            CacheListener that = (CacheListener) o;
+            return m_cacheId == that.m_cacheId;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hashCode(m_cacheId);
+            }
+
+        // ----- data members -----------------------------------------------
 
         /**
          * The cache identifier.

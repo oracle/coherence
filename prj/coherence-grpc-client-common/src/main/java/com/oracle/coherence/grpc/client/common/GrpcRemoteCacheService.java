@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,11 @@ import com.google.protobuf.Message;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.NamedCacheProtocol;
+
+import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
+
 import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
+
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
@@ -235,8 +239,8 @@ public class GrpcRemoteCacheService
 
         AsyncNamedCacheClient.Dependencies dependencies = createCacheDependencies(sCacheName, channel, dispatcher);
 
-        GrpcConnection connection = connect(NamedCacheProtocol.PROTOCOL_NAME,
-                NamedCacheProtocol.VERSION, NamedCacheProtocol.SUPPORTED_VERSION);
+        GrpcConnection connection = connect(NamedCacheProtocol.PROTOCOL_NAME, NamedCacheProtocol.VERSION,
+                NamedCacheProtocol.SUPPORTED_VERSION, GrpcConnectionV0.SERVICE_VERSION);
 
         NamedCacheClientChannel     protocol = NamedCacheClientChannel.createProtocol(dependencies, connection);
         AsyncNamedCacheClient<K, V> client   = new AsyncNamedCacheClient<>(dependencies, protocol);

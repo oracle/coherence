@@ -33,15 +33,4 @@ public class DefaultRemoteGrpcTopicServiceDependencies
         {
         super(deps);
         }
-
-    @Override
-    public long getRequestTimeoutMillis()
-        {
-        long cMillis = super.getRequestTimeoutMillis();
-        if (cMillis == 0)
-            {
-            cMillis = 30000;
-            }
-        return cMillis;
-        }
     }

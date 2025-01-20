@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,8 +24,9 @@ import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponse
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueType;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.QueueOfferResult;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
-import com.oracle.coherence.grpc.proxy.common.BaseProxyProtocol;
+import com.oracle.coherence.grpc.proxy.common.BaseCacheServiceProxyProtocol;
 
+import com.tangosol.coherence.component.net.extend.proxy.GrpcExtendProxy;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.queue.BinaryNamedMapDeque;
@@ -61,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @SuppressWarnings({"resource", "EnhancedSwitchMigration"})
 public class NamedQueueProxyProtocol
-        extends BaseProxyProtocol<NamedQueueRequest, NamedQueueResponse>
+        extends BaseCacheServiceProxyProtocol<NamedQueueRequest, NamedQueueResponse>
         implements NamedQueueProtocol<NamedQueueRequest, NamedQueueResponse>
     {
     @Override
@@ -77,8 +78,10 @@ public class NamedQueueProxyProtocol
         }
 
     @Override
-    protected void initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID)
+    protected GrpcExtendProxy<NamedQueueResponse> initInternal(GrpcService service, InitRequest request, int nVersion,
+            UUID clientUUID)
         {
+        super.initInternal(service, request, nVersion, clientUUID);
         String sScope = request.getScope();
         m_fConcurrentSession = Coherence.SYSTEM_SCOPE.equals(sScope);
         if (m_fConcurrentSession)
@@ -90,6 +93,7 @@ public class NamedQueueProxyProtocol
             ExtensibleConfigurableCacheFactory eccf = (ExtensibleConfigurableCacheFactory) service.getCCF(sScope);
             m_session = new ConfigurableCacheFactorySession(eccf, eccf.getConfigClassLoader(), sScope);
             }
+        return null;
         }
 
     @Override

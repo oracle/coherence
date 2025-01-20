@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,8 @@ message ProxyRequest {
         // A periodic heartbeat message sent by the client
         coherence.common.v1.HeartbeatMessage heartbeat = 5;
     }
+    // An ad-hoc set of additional data.
+    map<string, google.protobuf.Any> context = 6;
 }
 
 // A response from a Coherence gRPC proxy.
@@ -57,6 +59,8 @@ message ProxyResponse {
         // A periodic heart beat sent by the server
         coherence.common.v1.HeartbeatMessage heartbeat = 8;
     }
+  // An ad-hoc set of additional data.
+  map<string, google.protobuf.Any> context = 9;
 }
 
 // Initialize a connection.

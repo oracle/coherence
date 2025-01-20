@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -87,8 +87,8 @@ public class GrpcRemoteCacheServiceConfigIT
         GrpcRemoteCacheService             grpcService  = (GrpcRemoteCacheService) service;
         RemoteGrpcCacheServiceDependencies dependencies = grpcService.getDependencies();
         // assert default values
-        assertThat(dependencies.getRequestTimeoutMillis(), is(0L));
-        assertThat(dependencies.getDeadline(), is(0L));
+        assertThat(dependencies.getRequestTimeoutMillis(), is(30000L));
+        assertThat(dependencies.getDeadline(), is(30000L));
         assertThat(dependencies.getHeartbeatInterval(), is(0L));
         }
 

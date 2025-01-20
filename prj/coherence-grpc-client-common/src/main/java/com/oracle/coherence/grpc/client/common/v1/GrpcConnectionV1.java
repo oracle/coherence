@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,9 +11,12 @@ import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 
+import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Predicate;
 
+import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.grpc.BinaryHelper;
@@ -21,6 +24,7 @@ import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.LockingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
+import com.oracle.coherence.grpc.client.common.BaseGrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
@@ -46,9 +50,12 @@ import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
 
 import io.grpc.Channel;
+import io.grpc.Status;
+import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
+import java.net.ConnectException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -69,6 +76,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * The version 1 {@link GrpcConnection} implementation.
  */
 public class GrpcConnectionV1
+        extends BaseGrpcConnection
         implements GrpcConnection, StreamObserver<ProxyResponse>
     {
     /**
@@ -83,12 +91,12 @@ public class GrpcConnectionV1
         {
         RemoteGrpcServiceDependencies serviceDependencies = dependencies.getServiceDependencies();
 
-        f_responseType      = Objects.requireNonNull(type);
-        m_serializer        = dependencies.getSerializer();
-        m_dependencies      = dependencies;
-        f_sScope            = Objects.requireNonNullElse(serviceDependencies.getRemoteScopeName(), Coherence.DEFAULT_SCOPE);
-        m_channel           = dependencies.getChannel();
-        m_sProtocol         = dependencies.getProtocolName();
+        f_responseType       = Objects.requireNonNull(type);
+        m_serializer         = dependencies.getSerializer();
+        m_dependencies       = dependencies;
+        f_sScope             = Objects.requireNonNullElse(serviceDependencies.getRemoteScopeName(), Coherence.DEFAULT_SCOPE);
+        m_channel            = dependencies.getChannel();
+        m_sProtocol          = dependencies.getProtocolName();
         f_requestTimeout     = serviceDependencies.getRequestTimeoutMillis();
         f_nHeartbeatInterval = serviceDependencies.getHeartbeatInterval();
         f_fHeartbeatAck      = serviceDependencies.isRequireHeartbeatAck();
@@ -103,6 +111,7 @@ public class GrpcConnectionV1
             throw new IllegalStateException("Already initialized");
             }
         ensureConnected();
+        dispatchConnected();
         }
 
     @Override
@@ -114,6 +123,7 @@ public class GrpcConnectionV1
     @Override
     public void close()
         {
+        m_fActive = false;
         closeInternal(null);
         }
 
@@ -144,6 +154,7 @@ public class GrpcConnectionV1
                         m_mapFuture.values().forEach(f -> f.onError(new RequestIncompleteException("channel closed")));
                         m_mapFuture.clear();
                         }
+                    dispatchDisconnected();
                     m_listeners.clear();
                     m_observer     = null;
                     m_initResponse = null;
@@ -278,7 +289,14 @@ public class GrpcConnectionV1
                                         {
                                         cause = BinaryHelper.fromByteString(error.getError(), m_serializer);
                                         }
-                                    handler.onError(new RequestIncompleteException(error.getMessage(), cause));
+                                    try
+                                        {
+                                        throw new RequestIncompleteException(error.getMessage(), cause);
+                                        }
+                                    catch(Throwable t)
+                                        {
+                                        handler.onError(t);
+                                        }
                                     break;
                                 case COMPLETE:
                                     handler.onCompleted();
@@ -324,7 +342,21 @@ public class GrpcConnectionV1
                 }
             else
                 {
-                Logger.err("onError called after close() has been called", t);
+                Status.Code code = null;
+
+                if (t instanceof StatusRuntimeException sre)
+                    {
+                    code = sre.getStatus().getCode();
+                    }
+                else if (t instanceof StatusException se)
+                    {
+                    code = se.getStatus().getCode();
+                    }
+
+                if (code != Status.Code.UNAVAILABLE)
+                    {
+                    Logger.err("onError called after close() has been called", t);
+                    }
                 }
             }
         finally
@@ -459,7 +491,8 @@ public class GrpcConnectionV1
                 }
 
             m_mapFuture.put(nId, observer);
-            sender.onNext(builder.build());
+            ProxyRequest request = builder.build();
+            sender.onNext(request);
             }
         catch (Exception e)
             {
@@ -469,7 +502,7 @@ public class GrpcConnectionV1
 
     protected void assertActive()
         {
-        if (m_closed)
+        if (!m_fActive)
             {
             throw new IllegalStateException("This connection has been closed");
             }
@@ -482,17 +515,16 @@ public class GrpcConnectionV1
         if (observer == null)
             {
             f_lock.lock();
-            observer = m_observer;
-            if (observer == null)
+            try(Timeout ignored = Timeout.after(f_requestTimeout))
                 {
-                InitRequest request;
-                try
+                observer = m_observer;
+                while (observer == null)
                     {
                     ProxyServiceGrpc.ProxyServiceStub stub = createStub(m_channel);
                     observer = LockingStreamObserver.ensureLockingObserver(
                             SafeStreamObserver.ensureSafeObserver(stub.subChannel(this)));
 
-                    request = InitRequest.newBuilder()
+                    InitRequest request = InitRequest.newBuilder()
                             .setScope(f_sScope)
                             .setFormat(m_serializer.getName())
                             .setProtocol(m_sProtocol)
@@ -501,10 +533,32 @@ public class GrpcConnectionV1
                             .build();
 
                     ResponseHandler<ProxyResponse> handler = new ResponseHandler<>();
+                    long                           nMillis = f_requestTimeout <= 0
+                            ? GrpcDependencies.DEFAULT_DEADLINE_MILLIS
+                            : f_requestTimeout;
                     m_connectFuture = handler.getFuture();
-                    poll(request, handler, observer);
-                    long nMillis = f_requestTimeout <= 0 ? GrpcDependencies.DEFAULT_DEADLINE_MILLIS : f_requestTimeout;
-                    awaitFuture(m_connectFuture, nMillis);
+                    try
+                        {
+                        poll(request, handler, observer);
+                        awaitFuture(m_connectFuture, nMillis);
+                        }
+                    catch (Exception e)
+                        {
+                        Throwable rootCause = Exceptions.getRootCause(e);
+                        if (rootCause instanceof ConnectException)
+                            {
+                            try
+                                {
+                                Blocking.sleep(1000);
+                                }
+                            catch (InterruptedException _ignored)
+                                {
+                                // ignored
+                                }
+                            continue;
+                            }
+                        throw Exceptions.ensureRuntimeException(e);
+                        }
                     m_connectFuture = null;
                     m_observer = observer;
 
@@ -513,10 +567,14 @@ public class GrpcConnectionV1
                         Daemons.commonPool().schedule(new HeartbeatTask(f_fHeartbeatAck), f_nHeartbeatInterval);
                         }
                     }
-                finally
-                    {
-                    f_lock.unlock();
-                    }
+                }
+            catch (InterruptedException e)
+                {
+                throw Exceptions.ensureRuntimeException(e, "Timed out reconnecting");
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
         return observer;
@@ -666,6 +724,11 @@ public class GrpcConnectionV1
     // ----- data members ---------------------------------------------------
 
     /**
+     * The version of this service.
+     */
+    public static final int SERVICE_VERSION = 1;
+
+    /**
      * A lock to control thread safety.
      */
     private final Lock f_lock = new ReentrantLock();
@@ -676,6 +739,9 @@ public class GrpcConnectionV1
      */
     private final Lock f_observerLock = new ReentrantLock();
 
+    /**
+     * The type of response message.
+     */
     private final Class<? extends Message> f_responseType;
 
     /**
@@ -731,6 +797,11 @@ public class GrpcConnectionV1
      * This client's {@link UUID}.
      */
     private UUID m_uuid;
+
+    /**
+     * A flag to indicate that this connection is active.
+     */
+    private volatile boolean m_fActive = true;
 
     /**
      * A flag to indicate that this connection is closed.

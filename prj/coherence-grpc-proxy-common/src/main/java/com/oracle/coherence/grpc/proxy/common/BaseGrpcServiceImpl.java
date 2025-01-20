@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.coherence.config.scheme.ServiceScheme;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
@@ -83,6 +84,7 @@ public class BaseGrpcServiceImpl
         f_executor             = dependencies.getExecutor().orElseGet(() -> createDefaultExecutor(sPoolName));
         f_cacheFactorySupplier = dependencies.getCacheFactorySupplier().orElse(ConfigurableCacheFactorySuppliers.DEFAULT);
         f_serializerProducer   = dependencies.getNamedSerializerFactory().orElse(NamedSerializerFactory.DEFAULT);
+        f_acceptor             = dependencies.getAcceptor().orElseThrow(() -> new IllegalStateException("No GrpcAcceptor found in dependencies"));
         f_storeSerializer      = new ScopedReferenceStore<>(Serializer.class, s -> true, Serializer::getName, s -> null);
 
         dependencies.getTransferThreshold().ifPresent(this::setTransferThreshold);
@@ -116,6 +118,12 @@ public class BaseGrpcServiceImpl
     public GrpcProxyMetrics getMetrics()
         {
         return f_metrics;
+        }
+
+    @Override
+    public GrpcAcceptor getGrpcAcceptor()
+        {
+        return f_acceptor;
         }
 
     /**
@@ -444,7 +452,7 @@ public class BaseGrpcServiceImpl
         {
         public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
-            super(serverType);
+            super(serverType, null);
             }
 
         public DefaultDependencies(GrpcServiceDependencies deps)
@@ -541,4 +549,9 @@ public class BaseGrpcServiceImpl
      * A list of things to close when this service is stopped.
      */
     protected ConcurrentLinkedQueue<Closeable> f_listCloseable = new ConcurrentLinkedQueue<>();
+
+    /**
+     * The parent {@link GrpcAcceptor}.
+     */
+    private final GrpcAcceptor f_acceptor;
     }

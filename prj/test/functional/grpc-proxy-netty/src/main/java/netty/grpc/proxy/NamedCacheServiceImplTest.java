@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -39,6 +39,7 @@ import com.oracle.coherence.grpc.messages.cache.v0.ValuesRequest;
 import com.oracle.coherence.grpc.proxy.common.v0.BaseNamedCacheServiceImpl;
 import com.oracle.coherence.grpc.proxy.common.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;
@@ -49,6 +50,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
@@ -145,6 +147,9 @@ class NamedCacheServiceImplTest
     @BeforeAll
     static void setup()
         {
+        // For some strange reason this is needed to ensure the correct
+        // license is instantiated so we can call new GrpcAcceptor()
+        CacheFactory.getCluster();
         s_bytes1 = BinaryHelper.toByteString("one",   SERIALIZER);
         s_bytes2 = BinaryHelper.toByteString("two",   SERIALIZER);
         s_bytes3 = BinaryHelper.toByteString("three", SERIALIZER);
@@ -184,7 +189,8 @@ class NamedCacheServiceImplTest
         m_dependencies.setSerializerFactory(s_serializerProducer);
         m_dependencies.setRegistry(registry);
         m_dependencies.setExecutor(ForkJoinPool.commonPool());
-        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier); 
+        m_dependencies.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        m_dependencies.setAcceptor(new GrpcAcceptor());
         }
 
     // ----- test methods ---------------------------------------------------

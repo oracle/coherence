@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,8 +11,10 @@ import com.google.protobuf.Message;
 
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.UUID;
 
 import io.grpc.stub.StreamObserver;
@@ -80,13 +82,15 @@ public interface GrpcServiceProtocol<Req extends Message, Resp extends Message>
     /**
      * Initialise this protocol.
      *
-     * @param service     the parent {@link GrpcService}
-     * @param request     the init request to use to initialise the protocol
-     * @param nVersion    the actual version of the protocol to use
-     * @param clientUUID  the client {@link UUID}
-     * @param observer    the {@link StreamObserver} to send non-request related responses (e.g. events)
+     * @param service      the parent {@link GrpcService}
+     * @param request      the init request to use to initialise the protocol
+     * @param nVersion     the actual version of the protocol to use
+     * @param clientUUID   the client {@link UUID}
+     * @param observer     the {@link StreamObserver} to send non-request related responses (e.g. events)
+     * @param connection   the {@link GrpcConnection}
      */
-    void init(GrpcService service, InitRequest request, int nVersion, UUID clientUUID, StreamObserver<Resp> observer);
+    void init(GrpcService service, InitRequest request, int nVersion, UUID clientUUID,
+              StreamObserver<Resp> observer, GrpcConnection<Resp> connection);
 
     /**
      * Handle a request.
@@ -110,6 +114,24 @@ public interface GrpcServiceProtocol<Req extends Message, Resp extends Message>
         {
         ErrorsHelper.logIfNotCancelled(t);
         close();
+        }
+
+    /**
+     * Return the Extend messaging protocol that corresponds to this gRPC protocol.
+     *
+     * @return the Extend messaging protocol that corresponds to this gRPC protocol
+     */
+    Protocol[] getExtendProtocols();
+
+    /**
+     * Return the observer identifier for a request.
+     *
+     * @param nId      the request identifier
+     * @param request  the request
+     */
+    default long getObserverId(long nId, Resp request)
+        {
+        return nId;
         }
 
     // ----- constants ------------------------------------------------------
