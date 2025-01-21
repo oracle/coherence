@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,16 +19,21 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.concurrent.runnable.ThreadDump;
 import com.oracle.bedrock.runtime.java.options.ClassName;
+import com.oracle.bedrock.runtime.java.options.Freeform;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import topics.NamedTopicTests;
 
+import java.io.File;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
@@ -150,17 +155,21 @@ public class Bug35945522Tests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(NamedTopicTests.class);
 
+    public static final File s_fileOutDir = MavenProjectFileUtils.ensureTestOutputFolder(NamedTopicTests.class, "heap-dumps");
+
     @ClassRule
     public static CoherenceClusterResource cluster =
             new CoherenceClusterResource()
                     .with(ClusterName.of("Bug35945522Tests"),
                             HeapSize.of(64, HeapSize.Units.MB, 512, HeapSize.Units.MB),
+                            new Freeform("-XX:+HeapDumpOnOutOfMemoryError"),
+                            new Freeform("-XX:HeapDumpPath=" + s_fileOutDir.getAbsolutePath()),
+                            new Freeform("-XX:+ExitOnOutOfMemoryError"),
                             Logging.atMax(),
                             LocalHost.only(),
                             WellKnownAddress.loopback(),
                             IPv4Preferred.yes(),
                             s_testLogs,
-                            LaunchLogging.disabled(),
                             StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(3,
                              CoherenceClusterMember.class,
