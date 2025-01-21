@@ -295,7 +295,7 @@
     <dependency>
       <groupId>io.opentelemetry.instrumentation</groupId>
       <artifactId>opentelemetry-grpc-1.6</artifactId>
-      <version>${opentelemetry.version}-alpha</version>
+      <version>${opentelemetry.grpc.version}</version>
       <optional>true</optional>
       <scope>provided</scope>
     </dependency>

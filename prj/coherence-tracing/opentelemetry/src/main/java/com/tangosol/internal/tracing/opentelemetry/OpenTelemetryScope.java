@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -62,7 +62,7 @@ public class OpenTelemetryScope
     // ----- data members ---------------------------------------------------
 
     /**
-     * The underlying {@code OpenTracing} {@link io.opentelemetry.context.Scope}.
+     * The underlying {@code OpenTelemetry} {@link io.opentelemetry.context.Scope}.
      */
     protected final io.opentelemetry.context.Scope f_scope;
 

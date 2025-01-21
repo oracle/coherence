@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@ import com.tangosol.internal.tracing.SpanContext;
 import java.util.Objects;
 
 /**
- * {@link SpanContext} adapter for {@code OpenTracing}.
+ * {@link SpanContext} adapter for {@code OpenTelemetry}.
  *
  * @author rl 8.25.2023
  * @since  24.03
@@ -22,7 +22,7 @@ public class OpenTelemetrySpanContext
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Construct a new {@code OpenTracingSpanContext}.
+     * Construct a new {@code OpenTelemetrySpanContext}.
      *
      * @param spanContext  the {@link io.opentelemetry.api.trace.SpanContext} delegate
      *
@@ -104,7 +104,7 @@ public class OpenTelemetrySpanContext
     // ----- data members ---------------------------------------------------
 
     /**
-     * The underlying {@code OpenTracing} {@link io.opentelemetry.api.trace.SpanContext}.
+     * The underlying {@code OpenTelemetry} {@link io.opentelemetry.api.trace.SpanContext}.
      */
     protected final io.opentelemetry.api.trace.SpanContext f_spanContext;
 
