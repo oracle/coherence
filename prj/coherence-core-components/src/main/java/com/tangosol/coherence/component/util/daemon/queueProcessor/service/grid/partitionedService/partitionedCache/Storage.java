@@ -6591,6 +6591,7 @@ public class Storage
                         // state is changing; try again.
                         break;
 
+                    case PartitionedCache.PartitionControl.LOCK_PERSISTENCE_SNAPSHOT:
                     case PartitionedCache.PartitionControl.LOCK_PERSISTENCE:
                     case PartitionedCache.PartitionControl.LOCK_PRIMARY_XFER_IN:
                     case PartitionedCache.PartitionControl.LOCK_BACKUP_XFER_OUT:
