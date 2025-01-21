@@ -22015,6 +22015,8 @@ public class PartitionedCache
                 {
                 setAllowBackupRead(input.readBoolean());
                 }
+
+            readTracing(input);
             }
         
         // Declared at the super level
@@ -22060,6 +22062,8 @@ public class PartitionedCache
             super.write(output);
             
             output.writeBoolean(isAllowBackupRead());
+
+            writeTracing(output);
             }
 
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$GetRequest$Poll

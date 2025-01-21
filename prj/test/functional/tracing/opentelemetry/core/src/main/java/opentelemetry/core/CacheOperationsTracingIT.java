@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package opentelemetry.core;
 
+import com.google.protobuf.ByteString;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.coherence.common.base.Blocking;
@@ -178,7 +179,12 @@ public class CacheOperationsTracingIT
                 // validate server spans
                 listExpected = TestingUtils.getSpans(listAllSpans, new String[] {"Get.dispatch", "Get.process"}, 2);
                 assertThat(listExpected.size(), is(2));
-                listExpected.forEach(span -> validateTagsForSpan(span, false, TestingUtils.MutationType.none));
+                Span spanParent = listExpected.get(0);
+                listExpected.forEach(span ->
+                        {
+                        validateSpanAssociation(spanParent, span);
+                        validateTagsForSpan(span, false, TestingUtils.MutationType.none);
+                        });
                 });
         }
 
@@ -190,15 +196,19 @@ public class CacheOperationsTracingIT
                 List<Span> listAllSpans = TestingUtils.waitForAllSpans(m_collectorServer);
 
                 // validate client spans
-                List<Span> listExpected = TestingUtils.getSpans(listAllSpans,
-                        new String[] { "Put.request", "FilterEvent.process" }, 1);
-                assertThat(listExpected.size(), is(2));
+                List<Span> listExpected = TestingUtils.getSpans(listAllSpans, new String[] { "Put.request"}, 1);
+                assertThat(listExpected.size(), is(1));
                 listExpected.forEach(span -> validateTagsForSpan(span, false, TestingUtils.MutationType.inserted));
 
                 // validate server spans
                 listExpected = TestingUtils.getSpans(listAllSpans, new String[] {"Put.dispatch", "Put.process"}, 2);
                 assertThat(listExpected.size(), is(2));
-                listExpected.forEach(span -> validateTagsForSpan(span, false, TestingUtils.MutationType.inserted));
+                Span spanParent = listExpected.get(0);
+                listExpected.forEach(span ->
+                    {
+                    validateSpanAssociation(spanParent, span);
+                    validateTagsForSpan(span, false, TestingUtils.MutationType.inserted);
+                    });
                 });
         }
 
@@ -210,19 +220,31 @@ public class CacheOperationsTracingIT
                 List<Span> listAllSpans = TestingUtils.waitForAllSpans(m_collectorServer);
 
                 // validate client spans
-                List<Span> listExpected = TestingUtils.getSpans(listAllSpans,
-                                                   new String[] { "Remove.request", "FilterEvent.process" }, 1);
-                assertThat(listExpected.size(), is(2));
+                List<Span> listExpected = TestingUtils.getSpans(listAllSpans, new String[] { "Remove.request" }, 1);
+                assertThat(listExpected.size(), is(1));
                 listExpected.forEach(span -> validateTagsForSpan(span, false, TestingUtils.MutationType.deleted));
 
                 // validate server spans
                 listExpected = TestingUtils.getSpans(listAllSpans, new String[] {"Remove.dispatch", "Remove.process"}, 2);
                 assertThat(listExpected.size(), is(2));
-                listExpected.forEach(span -> validateTagsForSpan(span, false, TestingUtils.MutationType.deleted));
+                Span spanParent = listExpected.get(0);
+                listExpected.forEach(span ->
+                    {
+                    validateSpanAssociation(spanParent, span);
+                    validateTagsForSpan(span, false, TestingUtils.MutationType.deleted);
+                    });
                 });
         }
 
     // ----- helper methods -------------------------------------------------
+
+    /**
+     * Verify the trace-id for the starting span, is the same for inner spans.
+     */
+    protected static void validateSpanAssociation(Span spanParent, Span spanAssociated)
+        {
+        assertThat("Trace IDs between parent and associated spans do not match", spanAssociated.getTraceId(), is(spanParent.getTraceId()));
+        }
 
     /**
      * Verify the tags contained within the provided {@link Span span} contains the expected keys and or keys/values.
