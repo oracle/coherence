@@ -655,10 +655,12 @@ public class TopicsRecoveryTests
 
     private void restartService(NamedTopic<?> topic)
         {
-        Service service     = topic.getService();
-        String  serviceName = service.getInfo().getServiceName();
+        PagedTopicService service     = (PagedTopicService) topic.getService();
+        int               cMember     = service.getInfo().getServiceMembers().size();
+        String            serviceName = service.getInfo().getServiceName();
 
-        System.err.println("Stopping topics cache service " + serviceName);
+
+        System.err.println("Stopping topics service " + serviceName);
 
         Service serviceFinal = service instanceof SafeCacheService
                 ? ((SafeCacheService) service).getRunningCacheService()
@@ -667,8 +669,10 @@ public class TopicsRecoveryTests
         serviceFinal.stop();
         // wait for DCS to restart the service
         Eventually.assertDeferred("Failed to restart service " + service, service::isRunning, is(true));
+        Eventually.assertDeferred("Failed to restart service waiting for membership count" + service,
+                () -> service.getInfo().getServiceMembers().size(), is(cMember));
 
-        System.err.println("Restarted topics cache service " + serviceName);
+        System.err.println("Restarted topics service " + serviceName);
         }
 
     // ----- inner class: Message -------------------------------------------
