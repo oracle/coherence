@@ -9,10 +9,9 @@ package com.oracle.coherence.grpc.proxy.common;
 
 import com.google.protobuf.Any;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 
-import com.oracle.coherence.common.base.Logger;
-import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.GrpcServiceProtocol;
@@ -27,18 +26,19 @@ import com.oracle.coherence.grpc.messages.proxy.v1.InitResponse;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 
+import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
 
 import io.grpc.Status;
 
-import io.grpc.StatusException;
-import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
@@ -47,6 +47,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
@@ -117,9 +119,20 @@ public class ProxyServiceChannel
                     break;
                 case MESSAGE:
                     assertInit();
+                    Message message;
                     try
                         {
-                        Message                 message  = request.getMessage().unpack(m_clzRequest);
+                        Any any = request.getMessage();
+                        try
+                            {
+                            message = any.unpack(m_clzRequest);
+                            }
+                        catch (InvalidProtocolBufferException e)
+                            {
+                            String sMsg = String.format("Failed to unpack protobuf message of type %s expected type %s uri=%s",
+                                    request.getClass().getSimpleName(), m_clzRequest, any.getTypeUrl());
+                            throw new IllegalArgumentException(sMsg, e);
+                            }
                         StreamObserver<Message> observer = new ForwardingStreamObserver<>(nId);
                         m_protocol.onRequest(message, SafeStreamObserver.ensureSafeObserver(observer));
                         }
@@ -142,6 +155,10 @@ public class ProxyServiceChannel
                 {
                 m_protocol.onError(t);
                 }
+            if (m_connection != null)
+                {
+                m_connection.close();
+                }
             }
         }
 
@@ -157,6 +174,10 @@ public class ProxyServiceChannel
             {
             ErrorsHelper.logIfNotCancelled(t);
             }
+        if (m_connection != null)
+            {
+            m_connection.close();
+            }
         }
 
     @Override
@@ -167,6 +188,10 @@ public class ProxyServiceChannel
             m_protocol.close();
             }
         f_service.removeCloseable(this);
+        if (m_connection != null)
+            {
+            m_connection.close();
+            }
         }
 
     /**
@@ -183,6 +208,11 @@ public class ProxyServiceChannel
     public void close() throws IOException
         {
         onCompleted();
+        }
+
+    public GrpcConnection getConnection()
+        {
+        return m_connection;
         }
 
     // ----- helper methods ---------------------------------------------
@@ -222,11 +252,31 @@ public class ProxyServiceChannel
                             .withDescription("Failed to load proxy protocol " + sProtocol)
                             .asRuntimeException());
 
+            GrpcAcceptor acceptor = f_service.getGrpcAcceptor();
+
+            m_connection = acceptor.openConnection();
+            m_connection.setStreamObserver(new ForwardingStreamObserver(0));
+
+            Protocol[]   extendProtocols = m_protocol.getExtendProtocols();
+            Map          mapFactory      = new HashMap();
+            if (extendProtocols != null)
+                {
+                for (Protocol extendProtocol : extendProtocols)
+                    {
+                    acceptor.registerGrpcProtocol(extendProtocol);
+                    mapFactory.put(extendProtocol.getName(), extendProtocol.getMessageFactory(extendProtocol.getCurrentVersion()));
+                    }
+                }
+
+            m_connection.setMessageFactoryMap(mapFactory);
+
             int nVersion = getSupportedVersion(request);
             m_clzRequest = m_protocol.getRequestType();
             m_clientUUID = createClientUUID();
 
-            m_protocol.init(f_service, request, nVersion, m_clientUUID, new ForwardingStreamObserver<>(0));
+            long                     nIdObserver = m_protocol.getObserverId(nId, request);
+            ForwardingStreamObserver observer    = new ForwardingStreamObserver(nIdObserver);
+            m_protocol.init(f_service, request, nVersion, m_clientUUID, observer, m_connection);
 
             Member       member   = f_memberSupplier.get();
             InitResponse response = InitResponse.newBuilder()
@@ -331,47 +381,11 @@ public class ProxyServiceChannel
      */
     protected void sendError(long nId, Throwable thrown)
         {
-        String sMsg = thrown.getMessage();
-        if (sMsg == null || sMsg.isEmpty())
-            {
-            sMsg = thrown.getClass().getSimpleName();
-            }
-
-        ErrorMessage.Builder builder = ErrorMessage.newBuilder()
-                .setMessage(sMsg);
-
-        Serializer serializer = m_protocol.getSerializer();
-        if (serializer != null)
-            {
-            try
-                {
-                if (thrown instanceof StatusRuntimeException)
-                    {
-                    Throwable cause = thrown.getCause();
-                    if (cause != null)
-                        {
-                        thrown = cause;
-                        }
-                    }
-                if (thrown instanceof StatusException)
-                    {
-                    Throwable cause = thrown.getCause();
-                    if (cause != null)
-                        {
-                        thrown = cause;
-                        }
-                    }
-                builder.setError(BinaryHelper.toByteString(thrown, serializer));
-                }
-            catch (Throwable t)
-                {
-                Logger.err(t);
-                }
-            }
-
+        Serializer   serializer = m_protocol.getSerializer();
+        ErrorMessage message    = ErrorsHelper.createErrorMessage(thrown, serializer);
         f_observer.onNext(ProxyResponse.newBuilder()
                 .setId(nId)
-                .setError(builder.build())
+                .setError(message)
                 .build());
         }
 
@@ -549,4 +563,6 @@ public class ProxyServiceChannel
      * The type of the requests.
      */
     private Class<? extends Message> m_clzRequest;
+
+    private GrpcConnection m_connection;
     }

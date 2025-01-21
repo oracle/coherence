@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
 import com.tangosol.internal.util.DaemonPool;
+
+import com.tangosol.net.messaging.ConnectionAcceptor;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,6 +49,15 @@ public interface GrpcAcceptorController
      * @param pool  the {@link DaemonPool} to be used
      */
     void setDaemonPool(DaemonPool pool);
+
+    /**
+     * Set the owning gRPC acceptor.
+     *
+     * @param acceptor  the gRPC acceptor
+     *
+     * @throws ClassCastException if the acceptor is the wrong type
+     */
+    void setAcceptor(ConnectionAcceptor acceptor);
 
     /**
      * Start the gRPC server.
@@ -211,6 +222,11 @@ public interface GrpcAcceptorController
         public GrpcDependencies.ServerType getServerType()
             {
             return GrpcDependencies.ServerType.Asynchronous;
+            }
+
+        @Override
+        public void setAcceptor(ConnectionAcceptor acceptor)
+            {
             }
 
         /**

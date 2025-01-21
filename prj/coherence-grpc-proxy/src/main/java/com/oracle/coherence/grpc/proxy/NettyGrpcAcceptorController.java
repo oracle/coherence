@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,18 +7,27 @@
 package com.oracle.coherence.grpc.proxy;
 
 import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.grpc.internal.GrpcTracingInterceptors;
+
 import com.oracle.coherence.grpc.proxy.common.BaseGrpcAcceptorController;
 import com.oracle.coherence.grpc.proxy.common.DaemonPoolExecutor;
 import com.oracle.coherence.grpc.proxy.common.GrpcServiceDependencies;
+
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
+
 import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
+
 import com.tangosol.internal.util.DaemonPool;
+
 import com.tangosol.net.Coherence;
+
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import io.grpc.BindableService;
 import io.grpc.Grpc;
 import io.grpc.Server;
@@ -26,12 +35,17 @@ import io.grpc.ServerBuilder;
 import io.grpc.ServerCredentials;
 import io.grpc.ServerInterceptor;
 import io.grpc.ServerServiceDefinition;
+
 import io.grpc.inprocess.InProcessServerBuilder;
+
 import java.io.IOException;
+
 import java.net.SocketAddress;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
+
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -57,13 +71,13 @@ public class NettyGrpcAcceptorController
         }
 
     @Override
-    protected GrpcServiceDependencies createServiceDeps()
+    protected GrpcServiceDependencies createServiceDeps(GrpcServiceDependencies defaultDeps)
         {
         GrpcAcceptorDependencies deps    = getDependencies();
         Context                  context = deps.getContext();
 
         GrpcServiceDependencies.DefaultDependencies serviceDeps
-                = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
+                = new GrpcServiceDependencies.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous, defaultDeps);
 
         serviceDeps.setContext(context);
 

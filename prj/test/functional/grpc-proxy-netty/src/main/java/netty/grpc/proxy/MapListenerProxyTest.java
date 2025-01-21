@@ -23,6 +23,7 @@ import com.oracle.coherence.grpc.proxy.common.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.common.v0.MapListenerProxy;
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
@@ -32,6 +33,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -100,7 +102,7 @@ import static org.mockito.Mockito.when;
  * @author Jonathan Knight  2019.12.03
  * @since 20.06
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked", "rawtypes", "resource"})
 class MapListenerProxyTest
     {
     // ----- test lifecycle -------------------------------------------------
@@ -108,6 +110,10 @@ class MapListenerProxyTest
     @BeforeAll
     static void setup()
         {
+        // For some strange reason this is needed to ensure the correct
+        // license is instantiated so we can call new GrpcAcceptor()
+        CacheFactory.getCluster();
+
         s_binary1    = ExternalizableHelper.toBinary(ONE, SERIALIZER);
         s_binaryKey1 = s_binary1;
         s_bytesKey1  = BinaryHelper.toByteString(s_binaryKey1);
@@ -153,6 +159,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
 
@@ -179,6 +186,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -210,6 +218,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -247,6 +256,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -278,6 +288,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -317,6 +328,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -350,6 +362,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -404,6 +417,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -446,6 +460,8 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         MapTrigger                 trigger = new MapTriggerStub();
@@ -482,6 +498,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         MapTrigger                 trigger = new MapTriggerStub();
@@ -527,6 +544,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -559,6 +577,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -590,6 +609,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -630,6 +650,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -663,6 +684,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -691,6 +713,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -733,6 +756,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         MapTrigger                 trigger = new MapTriggerStub();
@@ -769,6 +793,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         MapTrigger                 trigger = new MapTriggerStub();
@@ -814,6 +839,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -834,6 +860,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -858,6 +885,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -890,6 +918,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -922,6 +951,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -950,6 +980,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -977,6 +1008,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -1008,6 +1040,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -1040,6 +1073,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -1080,6 +1114,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -1120,6 +1155,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
@@ -1160,6 +1196,7 @@ class MapListenerProxyTest
         NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies(GrpcDependencies.ServerType.Asynchronous);
         deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
         deps.setSerializerFactory(s_serializerProducer);
+        deps.setAcceptor(new GrpcAcceptor());
 
         NamedCacheService service = s_serviceProvider.getService(deps);
         TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();

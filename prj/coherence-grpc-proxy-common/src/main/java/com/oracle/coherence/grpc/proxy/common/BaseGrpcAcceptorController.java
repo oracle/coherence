@@ -10,12 +10,14 @@ package com.oracle.coherence.grpc.proxy.common;
 import com.oracle.coherence.common.base.Exceptions;
 
 import com.oracle.coherence.common.base.Logger;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import com.tangosol.net.messaging.ConnectionAcceptor;
 import io.grpc.BindableService;
 import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
@@ -57,8 +59,11 @@ public abstract class BaseGrpcAcceptorController
 
             m_healthStatusManager = new HealthStatusManager();
 
+            GrpcServiceDependencies.DefaultDependencies defaultDeps = new GrpcServiceDependencies.DefaultDependencies();
+            defaultDeps.setAcceptor(m_acceptor);
+
             GrpcAcceptorDependencies      dependencies = getDependencies();
-            GrpcServiceDependencies       serviceDeps  = createServiceDeps();
+            GrpcServiceDependencies       serviceDeps  = createServiceDeps(defaultDeps);
             List<ServerServiceDefinition> listService  = ensureServices(serviceDeps);
             List<String>                  listName     = listService.stream().map(s -> s.getServiceDescriptor().getName()).toList();
             List<BindableService>         listBindable = new ArrayList<>();
@@ -82,7 +87,7 @@ public abstract class BaseGrpcAcceptorController
             }
         }
 
-    protected abstract GrpcServiceDependencies createServiceDeps();
+    protected abstract GrpcServiceDependencies createServiceDeps(GrpcServiceDependencies defaultDeps);
 
     protected abstract void startInternal(List<ServerServiceDefinition> listService, List<BindableService> listBindable) throws IOException;
 
@@ -156,6 +161,12 @@ public abstract class BaseGrpcAcceptorController
         return m_dependencies.getLocalAddress();
         }
 
+    @Override
+    public void setAcceptor(ConnectionAcceptor acceptor)
+        {
+        m_acceptor = (GrpcAcceptor) acceptor;
+        }
+
     /**
      * Return the list of services this controller is serving.
      *
@@ -167,6 +178,14 @@ public abstract class BaseGrpcAcceptorController
         }
 
     protected List<ServerServiceDefinition> ensureServices(GrpcServiceDependencies serviceDeps)
+        {
+        List<BindableGrpcProxyService> list = loadServices(serviceDeps);
+        return list.stream()
+                .map(this::applyInterceptors)
+                .toList();
+        }
+
+    private List<BindableGrpcProxyService> loadServices(GrpcServiceDependencies serviceDeps)
         {
         List<BindableGrpcProxyService> list = m_listServices;
         if (list == null)
@@ -185,12 +204,27 @@ public abstract class BaseGrpcAcceptorController
                 f_lock.unlock();
                 }
             }
-
-        return list.stream()
-                .map(this::applyInterceptors)
-                .toList();
+        return list;
         }
 
+    /**
+     * Return the {@link ProxyServiceGrpcImpl}.
+     *
+     * @return the {@link ProxyServiceGrpcImpl}
+     */
+    public ProxyServiceGrpcImpl getProxyService()
+        {
+        List<BindableGrpcProxyService> list = m_listServices;
+        if (list == null)
+            {
+            throw new IllegalStateException("gRPC services not yet initialized");
+            }
+        return list.stream()
+                .filter(s -> s instanceof ProxyServiceGrpcImpl)
+                .map(ProxyServiceGrpcImpl.class::cast)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("ProxyServiceGrpcImpl not found"));
+        }
 
     // ----- helper methods -------------------------------------------------
 
@@ -222,6 +256,11 @@ public abstract class BaseGrpcAcceptorController
      * Whether the server is running.
      */
     private volatile boolean m_fRunning;
+
+    /**
+     * The {@link GrpcAcceptor}.
+     */
+    private GrpcAcceptor m_acceptor;
 
     /**
      * The lock to synchronize starting and stopping the controller.

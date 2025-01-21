@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,6 @@ package com.tangosol.internal.net.grpc;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
-import com.tangosol.internal.net.service.extend.remote.DefaultRemoteCacheServiceDependencies;
 import com.tangosol.internal.net.service.extend.remote.DefaultRemoteServiceDependencies;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.DaemonPoolDependencies;
@@ -57,6 +56,17 @@ public abstract class DefaultRemoteGrpcServiceDependencies
             setSerializerFactory(deps.getSerializerFactory());
             setHeartbeatInterval(deps.getHeartbeatInterval());
             }
+        }
+
+    @Override
+    public long getRequestTimeoutMillis()
+        {
+        long cMillis = super.getRequestTimeoutMillis();
+        if (cMillis == 0)
+            {
+            cMillis = 30000;
+            }
+        return cMillis;
         }
 
     /**
@@ -235,7 +245,7 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     @Override
     public long getDeadline()
         {
-        return super.getRequestTimeoutMillis();
+        return getRequestTimeoutMillis();
         }
 
 
@@ -275,6 +285,26 @@ public abstract class DefaultRemoteGrpcServiceDependencies
     public void setRequireHeartbeatAck(boolean fRequireHeartbeatAck)
         {
         m_fRequireHeartbeatAck = fRequireHeartbeatAck;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDeferKeyAssociationCheck()
+        {
+        return m_fDeferKeyAsssocationCheck;
+        }
+
+    /**
+     * Set the flag to defer the KeyAssociation check.
+     *
+     * @param fDefer  the KeyAssociation check defer flag
+     */
+    @Injectable("defer-key-association-check")
+    public void setDeferKeyAssociationCheck(boolean fDefer)
+        {
+        m_fDeferKeyAsssocationCheck = fDefer;
         }
 
     // ----- helper methods -------------------------------------------------
@@ -331,4 +361,9 @@ public abstract class DefaultRemoteGrpcServiceDependencies
      * The flag to indicate whether heart beat messages require an ack from the server.
      */
     private boolean m_fRequireHeartbeatAck = false;
+
+    /**
+     * The flag to indicate if the KeyAssociation check is deferred.
+     */
+    private boolean m_fDeferKeyAsssocationCheck;
     }

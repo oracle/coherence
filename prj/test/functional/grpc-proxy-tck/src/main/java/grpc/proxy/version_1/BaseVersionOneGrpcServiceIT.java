@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,23 +18,29 @@ import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
+import com.oracle.coherence.grpc.proxy.common.BaseGrpcAcceptorController;
 import com.oracle.coherence.grpc.proxy.common.ProxyServiceGrpcImpl;
 
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.io.Serializer;
-import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Service;
+import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.SimpleMapEntry;
 import grpc.proxy.BaseGrpcIT;
-import grpc.proxy.TestProxyServiceProvider;
 import io.grpc.stub.StreamObserver;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class BaseVersionOneGrpcServiceIT
@@ -109,15 +115,23 @@ public class BaseVersionOneGrpcServiceIT
      */
     protected ProxyServiceGrpcImpl newProxyService()
         {
-        GrpcAcceptorController            controller = GrpcAcceptorController.discoverController();
-        ProxyServiceGrpcImpl.Dependencies depsProxy  = new ProxyServiceGrpcImpl.DefaultDependencies(controller.getServerType());
-
-        Optional<TestProxyServiceProvider> optional = TestProxyServiceProvider.getProvider();
-
-        assertThat("Cannot find a TestProxyServiceProvider instance, are you running this test from the TCK module instead of from one of the specific Netty or Helidon test modules",
-                optional.isPresent(), is(true));
-
-        return optional.get().getProxyService(depsProxy);
+        try
+            {
+            Service grpcService = CacheFactory.getCluster().getService(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME);
+            if (grpcService instanceof SafeService)
+                {
+                grpcService = ((SafeService) grpcService).getService();
+                }
+            ProxyService               proxyService = (ProxyService) grpcService;
+            GrpcAcceptor               acceptor     = (GrpcAcceptor) proxyService.getAcceptor();
+            BaseGrpcAcceptorController controller   = (BaseGrpcAcceptorController) acceptor.getController();
+            return controller.getProxyService();
+            }
+        catch (Throwable t)
+            {
+            throw new IllegalStateException("Cannot find a TestProxyServiceProvider instance, are you running this " +
+                    "test from the TCK module instead of from one of the specific Netty or Helidon test modules");
+            }
         }
 
     public <T extends Message> T unpackResponse(ProxyResponse response, Class<T> type)
@@ -162,6 +176,22 @@ public class BaseVersionOneGrpcServiceIT
                 }
             }
         return listEvent;
+        }
+
+    protected <M extends Message, T extends Message> T unpackAny(M message, Function<M, Any> fn, Class<T> expected)
+        {
+        assertThat(message, is(notNullValue()));
+        try
+            {
+            return fn.apply(message).unpack(expected);
+            }
+        catch (Throwable e)
+            {
+            throw Exceptions.ensureRuntimeException(e,
+                    "Failed to unpack proto message: " + e.getMessage()
+                            + "\nMessage:\n" + message
+                            + "\nExpected:\n" + expected);
+            }
         }
 
     // ----- data members ---------------------------------------------------

@@ -946,23 +946,6 @@ public class NamedQueueProxyProtocolIT
         return cacheNames;
         }
 
-    protected <M extends Message, T extends Message> T unpackAny(M message, Function<M, Any> fn, Class<T> expected)
-        {
-        assertThat(message, is(notNullValue()));
-        try
-            {
-            return fn.apply(message).unpack(expected);
-            }
-        catch (Throwable e)
-            {
-            throw Exceptions.ensureRuntimeException(e,
-                    "Failed to unpack proto message: " + e.getMessage()
-                            + "\nMessage:\n" + message
-                            + "\nExpected:\n" + expected);
-            }
-        }
-
-
     // ----- data members ---------------------------------------------------
 
     public static final AtomicLong m_queueNameSuffix = new AtomicLong();

@@ -8,39 +8,54 @@ package com.oracle.coherence.grpc.proxy.common;
 
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
+
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.coherence.config.scheme.ServiceScheme;
+
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
+
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+
 import com.tangosol.net.cache.NearCache;
 import com.tangosol.net.grpc.GrpcDependencies;
+
 import com.tangosol.net.internal.ScopedReferenceStore;
+
 import com.tangosol.net.management.Registry;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.NullImplementation;
+
 import io.grpc.Status;
 
 import java.io.Closeable;
 import java.util.Objects;
 import java.util.Optional;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
+
 import java.util.stream.Collectors;
 
 /**
@@ -69,6 +84,7 @@ public class BaseGrpcServiceImpl
         f_executor             = dependencies.getExecutor().orElseGet(() -> createDefaultExecutor(sPoolName));
         f_cacheFactorySupplier = dependencies.getCacheFactorySupplier().orElse(ConfigurableCacheFactorySuppliers.DEFAULT);
         f_serializerProducer   = dependencies.getNamedSerializerFactory().orElse(NamedSerializerFactory.DEFAULT);
+        f_acceptor             = dependencies.getAcceptor().orElseThrow(() -> new IllegalStateException("No GrpcAcceptor found in dependencies"));
         f_storeSerializer      = new ScopedReferenceStore<>(Serializer.class, s -> true, Serializer::getName, s -> null);
 
         dependencies.getTransferThreshold().ifPresent(this::setTransferThreshold);
@@ -102,6 +118,12 @@ public class BaseGrpcServiceImpl
     public GrpcProxyMetrics getMetrics()
         {
         return f_metrics;
+        }
+
+    @Override
+    public GrpcAcceptor getGrpcAcceptor()
+        {
+        return f_acceptor;
         }
 
     /**
@@ -430,7 +452,7 @@ public class BaseGrpcServiceImpl
         {
         public DefaultDependencies(GrpcDependencies.ServerType serverType)
             {
-            super(serverType);
+            super(serverType, null);
             }
 
         public DefaultDependencies(GrpcServiceDependencies deps)
@@ -527,4 +549,9 @@ public class BaseGrpcServiceImpl
      * A list of things to close when this service is stopped.
      */
     protected ConcurrentLinkedQueue<Closeable> f_listCloseable = new ConcurrentLinkedQueue<>();
+
+    /**
+     * The parent {@link GrpcAcceptor}.
+     */
+    private final GrpcAcceptor f_acceptor;
     }

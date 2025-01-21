@@ -1780,7 +1780,7 @@ public abstract class Peer
         registerProtocol(protocol);
         
         // initialize the internal Connection and Channel
-        Connection connection = new Connection();
+        Connection connection = createConnection();
         connection.setConnectionManager(this);
         connection.setId(getProcessId());
         connection.setMessageFactoryMap(Collections.singletonMap(protocol.getName(),
@@ -1794,7 +1794,17 @@ public abstract class Peer
         
         super.onInit();
         }
-    
+
+    /**
+     * Create a new instance of a {@link Connection}.
+     *
+     * @return a new instance of a {@link Connection}
+     */
+    protected Connection createConnection()
+        {
+        return new Connection();
+        }
+
     // From interface: com.tangosol.net.messaging.Channel$Receiver
     /**
      * Called on the service thread.

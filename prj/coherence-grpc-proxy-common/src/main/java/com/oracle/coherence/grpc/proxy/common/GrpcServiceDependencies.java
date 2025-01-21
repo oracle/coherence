@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package com.oracle.coherence.grpc.proxy.common;
 
 import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.Context;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
@@ -78,6 +79,13 @@ public interface GrpcServiceDependencies
      */
     GrpcDependencies.ServerType getServerType();
 
+    /**
+     * Return the parent {@link GrpcAcceptor}.
+     *
+     * @return the parent {@link GrpcAcceptor}
+     */
+    Optional<GrpcAcceptor> getAcceptor();
+
     // ----- inner class: DefaultDependencies -------------------------------
 
     /**
@@ -88,12 +96,10 @@ public interface GrpcServiceDependencies
         {
         /**
          * Create a {@link DefaultDependencies}.
-         *
-         * @param serverType the type of the gRPC server
          */
-        public DefaultDependencies(GrpcDependencies.ServerType serverType)
+        public DefaultDependencies()
             {
-            m_serverType = serverType;
+            m_serverType = GrpcDependencies.ServerType.Asynchronous;
             }
 
         /**
@@ -103,13 +109,28 @@ public interface GrpcServiceDependencies
          */
         public DefaultDependencies(GrpcServiceDependencies deps)
             {
-            m_serverType = deps.getServerType();
-            deps.getExecutor().ifPresent(this::setExecutor);
-            deps.getRegistry().ifPresent(this::setRegistry);
-            deps.getNamedSerializerFactory().ifPresent(this::setSerializerFactory);
-            deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
-            deps.getContext().ifPresent(this::setContext);
-            deps.getDaemonPool().ifPresent(this::setDaemonPool);
+            this(deps.getServerType(), deps);
+            }
+
+        /**
+         * Create a {@link DefaultDependencies}.
+         *
+         * @param serverType  the type of the gRPC server
+         * @param deps        the dependencies to copy
+         */
+        public DefaultDependencies(GrpcDependencies.ServerType serverType, GrpcServiceDependencies deps)
+            {
+            m_serverType = serverType;
+            if (deps != null)
+                {
+                deps.getExecutor().ifPresent(this::setExecutor);
+                deps.getRegistry().ifPresent(this::setRegistry);
+                deps.getNamedSerializerFactory().ifPresent(this::setSerializerFactory);
+                deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
+                deps.getContext().ifPresent(this::setContext);
+                deps.getDaemonPool().ifPresent(this::setDaemonPool);
+                deps.getAcceptor().ifPresent(this::setAcceptor);
+                }
             }
 
         @Override
@@ -215,6 +236,22 @@ public interface GrpcServiceDependencies
             return m_serverType;
             }
 
+        @Override
+        public Optional<GrpcAcceptor> getAcceptor()
+            {
+            return Optional.ofNullable(m_acceptor);
+            }
+
+        /**
+         * Set the parent {@link GrpcAcceptor}.
+         *
+         * @param acceptor the parent {@link GrpcAcceptor}
+         */
+        public void setAcceptor(GrpcAcceptor acceptor)
+            {
+            m_acceptor = acceptor;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -250,6 +287,11 @@ public interface GrpcServiceDependencies
         /**
          * The type of gRPC server the service will be deployed into.
          */
-        private final GrpcDependencies.ServerType m_serverType;
+        private GrpcDependencies.ServerType m_serverType;
+
+        /**
+         * The parent {@link GrpcAcceptor}.
+         */
+        private GrpcAcceptor m_acceptor;
         }
     }

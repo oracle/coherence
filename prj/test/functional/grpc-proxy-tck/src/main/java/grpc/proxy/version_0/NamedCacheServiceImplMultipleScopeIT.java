@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,9 @@ import com.oracle.coherence.grpc.v0.Requests;
 import com.oracle.coherence.grpc.messages.cache.v0.OptionalValue;
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 
+import com.tangosol.coherence.component.util.SafeService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.net.CacheFactory;
@@ -23,6 +26,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
 
+import com.tangosol.net.Service;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
 
@@ -75,6 +79,16 @@ public class NamedCacheServiceImplMultipleScopeIT
         GrpcAcceptorController                controller = GrpcAcceptorController.discoverController();
         NamedCacheService.DefaultDependencies deps       = new NamedCacheService.DefaultDependencies(controller.getServerType());
         deps.setConfigurableCacheFactorySupplier(NamedCacheServiceImplMultipleScopeIT::ensureCCF);
+
+        Service grpcService = CacheFactory.getCluster().getService(GrpcDependencies.SCOPED_PROXY_SERVICE_NAME);
+        if (grpcService instanceof SafeService)
+            {
+            grpcService = ((SafeService) grpcService).getService();
+            }
+        ProxyService proxyService = (ProxyService) grpcService;
+        GrpcAcceptor acceptor     = (GrpcAcceptor) proxyService.getAcceptor();
+
+        deps.setAcceptor(acceptor);
 
         Optional<TestNamedCacheServiceProvider> optional = TestNamedCacheServiceProvider.getProvider();
         assertThat(optional.isPresent(), is(true));

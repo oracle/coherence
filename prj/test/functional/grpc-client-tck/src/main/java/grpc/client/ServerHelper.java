@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -164,7 +164,8 @@ public final class ServerHelper
                     = new GrpcConnection.DefaultDependencies(NamedCacheProtocol.PROTOCOL_NAME, serviceDeps,
                     m_channel, m_nProtocolVersion, m_nProtocolVersion, serializer);
 
-            connection = GrpcRemoteService.connect(connectionDeps, NamedCacheResponse.class);
+            connection = GrpcRemoteService.connect(connectionDeps, NamedCacheResponse.class,
+                    GrpcConnectionV0.SERVICE_VERSION);
             }
 
         NamedCacheClientChannel protocol = NamedCacheClientChannel.createProtocol(deps, connection);

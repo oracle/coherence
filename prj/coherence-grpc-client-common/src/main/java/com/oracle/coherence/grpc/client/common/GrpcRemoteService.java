@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.oracle.coherence.grpc.client.common;
 
 import com.google.protobuf.Message;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.SimpleDaemonPoolExecutor;
@@ -157,15 +158,34 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      * @param sProtocol    the name of the requested protocol
      * @param nVersion     the requested protocol version
      * @param nVersionMin  the minimum supported protocol version
+     * @param nMinService  the minimum service version
      *
      * @return a {@link GrpcConnection} corresponding to the version supported
      *         by the gRPC proxy service on the server
      */
-    protected GrpcConnection connect(String sProtocol, int nVersion, int nVersionMin)
+    protected GrpcConnection connect(String sProtocol, int nVersion, int nVersionMin, int nMinService)
+        {
+        return connect(sProtocol, nVersion, nVersionMin, getResponseType(), nMinService);
+        }
+
+    /**
+     * Create a {@link GrpcConnection}.
+     *
+     * @param sProtocol     the name of the requested protocol
+     * @param nVersion      the requested protocol version
+     * @param nVersionMin   the minimum supported protocol version
+     * @param nMinService   the minimum service version
+     * @param responseType  the type of the expected response message
+     *
+     * @return a {@link GrpcConnection} corresponding to the version supported
+     *         by the gRPC proxy service on the server
+     */
+    protected GrpcConnection connect(String sProtocol, int nVersion, int nVersionMin,
+            Class<? extends Message> responseType, int nMinService)
         {
         GrpcConnection.Dependencies deps = new GrpcConnection.DefaultDependencies(sProtocol, m_dependencies, m_channel,
                 nVersion, nVersionMin, m_serializer);
-        return GrpcRemoteService.connect(deps, getResponseType());
+        return GrpcRemoteService.connect(deps, responseType, nMinService);
         }
 
     /**
@@ -173,6 +193,7 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      *
      * @param dependencies  the connection dependencies
      * @param responseType  the type of the expected response message
+     * @param nMinService   the minimum required service version
      *
      * @return a {@link GrpcConnection} corresponding to the version supported
      *         by the gRPC proxy service on the server
@@ -180,7 +201,7 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      * @throws NullPointerException if the expected response type is {@code null}
      */
     public static GrpcConnection connect(GrpcConnection.Dependencies dependencies,
-            Class<? extends Message> responseType)
+            Class<? extends Message> responseType, int nMinService)
         {
         try
             {
@@ -191,6 +212,10 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
             }
         catch (Exception e)
             {
+            if (nMinService > GrpcConnectionV0.SERVICE_VERSION)
+                {
+                throw Exceptions.ensureRuntimeException(e);
+                }
             Logger.finer("Could not instantiate V1 gRPC connector. " + e.getMessage());
             // fall back to the version zero client
             return new GrpcConnectionV0(dependencies.getChannel());

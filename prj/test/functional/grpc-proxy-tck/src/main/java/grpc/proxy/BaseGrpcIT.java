@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -131,8 +131,9 @@ public abstract class BaseGrpcIT
                             .build());
                     });
 
-        Coherence.clusterMember(builder.build()).start().get(5, TimeUnit.MINUTES);
-        s_ccfDefault = CacheFactory.getCacheFactoryBuilder().getConfigurableCacheFactory(null);
+        Coherence coherence = Coherence.clusterMember(builder.build()).start().get(5, TimeUnit.MINUTES);
+        Session session = coherence.getSession();
+        s_ccfDefault = ((ConfigurableCacheFactorySession) session).getConfigurableCacheFactory();
         }
 
     @AfterAll
