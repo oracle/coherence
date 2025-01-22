@@ -48,8 +48,9 @@ import com.tangosol.coherence.component.net.extend.proxy.serviceProxy.CacheServi
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcChannel;
+
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.internal.util.processor.CacheProcessors;
@@ -128,7 +129,11 @@ public class NamedCacheProxyProtocol
                 {
                 com.tangosol.net.messaging.Channel channel = proxy.getChannel();
                 proxy.unregisterChannel(channel);
-                proxy.removeMapListener(new CacheListener(proxy.getCacheId()));
+                NamedCache<?, ?> cache = proxy.getNamedCache();
+                if (cache != null && cache.isActive())
+                    {
+                    proxy.removeMapListener(new CacheListener(proxy.getCacheId()));
+                    }
                 }
             m_aProxy.clear();
             }
