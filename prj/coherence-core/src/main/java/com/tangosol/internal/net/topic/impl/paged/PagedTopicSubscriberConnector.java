@@ -266,8 +266,10 @@ public class PagedTopicSubscriberConnector<V>
         // We need to ensure that the subscription has really gone.
         // During a fail-over situation the subscriber may still exist in the configmap
         // so we  need to repeat the closure notification
-        TopicSubscription subscription = getSubscription(subscriber, m_subscriptionId);
-        while (subscription != null && subscription.getSubscriberTimestamp(f_subscriberId) != Long.MAX_VALUE)
+        String            sTopic        = f_caches.getTopicName();
+        PagedTopicService service       = f_caches.getService();
+        Set<SubscriberId> setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
+        while (setSubscriber.contains(f_subscriberId))
             {
             try
                 {
@@ -279,7 +281,7 @@ public class PagedTopicSubscriberConnector<V>
                 }
             Logger.fine("Repeating subscriber closed notification for topic subscriber: " + subscriber);
             PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
-            subscription = getSubscription(subscriber, m_subscriptionId);
+            setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
             }
         }
 
