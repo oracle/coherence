@@ -1,12 +1,13 @@
 /*
  * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
- *
+ * 
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package override;
 
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -35,8 +36,6 @@ import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.run.xml.XmlHelper;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Enumeration;
@@ -50,8 +49,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
 
 /**
- * The {@link CacheConfigOverrideTests} class contains multiple tests for
- * overriding the cache configuration.
+ * The {@link CacheConfigOverrideTests} class contains multiple tests for overriding the cache configuration.
  */
 public class CacheConfigOverrideTests
         extends AbstractFunctionalTest
@@ -62,33 +60,34 @@ public class CacheConfigOverrideTests
     /**
      * Default constructor.
      */
-     public CacheConfigOverrideTests()
-         {
-         }
-
-    // ----- test lifecycle -------------------------------------------------
-
-    /**
-     * Initialize the test class.
-     */
-    @BeforeClass
-    public static void _startup()
+    public CacheConfigOverrideTests()
         {
-        // this test requires local storage to be enabled
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    public void setupTestProps()
+        {
         System.setProperty(WellKnownAddress.PROPERTY, LocalHost.loopback().getAddress());
+        System.setProperty(LocalHost.PROPERTY, LocalHost.loopback().getAddress());
+        System.setProperty("test.unicast.port", String.valueOf(getAvailablePorts().next()));
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
-        System.setProperty("coherence.distributed.localstorage", "true");
+
+        // this test requires local storage to be enabled
+        System.setProperty(LocalStorage.PROPERTY, "true");
 
         setupProps();
         }
 
-    /**
-     * Shutdown the test class.
-     */
-    @AfterClass
-    public static void _shutdown()
+    public void clearTestProps()
         {
-        // no-op since each test shutdowns the cluster in a finally block
+        System.clearProperty(WellKnownAddress.PROPERTY);
+        System.clearProperty(LocalHost.PROPERTY);
+        System.clearProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK);
+        System.clearProperty(LocalStorage.PROPERTY);
+        System.clearProperty("test.unicast.port");
+        System.clearProperty("coherence.cacheconfig");
+        System.clearProperty("coherence.cacheconfig.override");
         }
 
     // ----- test methods ---------------------------------------------------
@@ -96,12 +95,13 @@ public class CacheConfigOverrideTests
     @Test
     public void testCacheConfigOverride()
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCacheOverride = CacheFactory.getCache("my-cache-override");
             assertNotNull(myCacheOverride);
             Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
@@ -125,8 +125,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();            
             }
         }
 
@@ -134,30 +140,30 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideSingleScheme()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-two.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
-            System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-two.xml");
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCache = CacheFactory.getCache("my-cache-wildcard");
             assertNotNull(myCache);
             NamedCache myCacheTwo = CacheFactory.getCache("my-cache-two");
             assertNotNull(myCacheTwo);
 
-            Cluster cluster = CacheFactory.getCluster();
             assertTrue(cluster.isRunning());
             assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
 
             // Check for correct QuorumStatus for service "$SYS:MyCache" without write
-            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
-            String      objectName       = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
-            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            MBeanServer         serverJMX  = MBeanHelper.findMBeanServer();
+            String              objectName = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
+            Set<ObjectInstance> mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
             assertTrue(mbeanObj.size() == 1);
 
-            ObjectName  serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
-            String      quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
+            ObjectName serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
+            String     quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
             assertNotNull(quorumStatus);
             assertEquals(quorumStatus, "allowed-actions=distribution, restore, read, recover");
 
@@ -186,9 +192,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -196,14 +207,14 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideMultipeSchemes()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-prepend.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-prepend.xml");
-
-            AbstractFunctionalTest._startup();
-
             // Check for caching schemes with expected service
             NamedCache myCache = CacheFactory.getCache("my-cache-wildcard");
             assertNotNull(myCache);
@@ -220,13 +231,13 @@ public class CacheConfigOverrideTests
             assertEquals("$SYS:MyCacheService2", myCachePrepend.getService().getInfo().getServiceName());
 
             // Check for correct QuorumStatus for service "$SYS:MyCacheService" with write
-            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
-            String      objectName       = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
-            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            MBeanServer         serverJMX  = MBeanHelper.findMBeanServer();
+            String              objectName = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
+            Set<ObjectInstance> mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
             assertTrue(mbeanObj.size() == 1);
 
-            ObjectName  serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
-            String      quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
+            ObjectName serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
+            String     quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
             assertNotNull(quorumStatus);
             assertEquals(quorumStatus, "allowed-actions=distribution, restore, read, write, recover");
 
@@ -248,9 +259,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -258,14 +274,15 @@ public class CacheConfigOverrideTests
     public void testAddProxySchemeUsingCacheOverride()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-proxy.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE);
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-proxy.xml");
-
-            AbstractFunctionalTest._startup();
-            CacheFactory.getCluster().ensureService("override:ProxyService", "Proxy").start();
+            cluster.ensureService("override:ProxyService", "Proxy").start();
 
             // Check for caching schemes with expected service
             NamedCache myCache = CacheFactory.getCache("my-cache-wildcard");
@@ -281,16 +298,21 @@ public class CacheConfigOverrideTests
             assertTrue(cacheNames.hasMoreElements());
 
             // Check for Proxy Service
-            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
-            String      objectName       = "Coherence:type=Service,name=\"override:ProxyService\",*";
-            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            MBeanServer         serverJMX  = MBeanHelper.findMBeanServer();
+            String              objectName = "Coherence:type=Service,name=\"override:ProxyService\",*";
+            Set<ObjectInstance> mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
             assertTrue(mbeanObj.size() == 1);
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -298,14 +320,14 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideSysPropNoDefault()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NO_DEFAULT);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-ns.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NO_DEFAULT);
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-ns.xml");
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCacheOverride = CacheFactory.getCache("my-cache-override");
             assertNotNull(myCacheOverride);
             Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
@@ -314,21 +336,26 @@ public class CacheConfigOverrideTests
             assertEquals("$SYS:MyCacheService", myCacheOverride.getService().getInfo().getServiceName());
 
             // Check for correct QuorumStatus for service "$SYS:MyCacheService" with write
-            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
-            String      objectName       = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
-            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            MBeanServer         serverJMX  = MBeanHelper.findMBeanServer();
+            String              objectName = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
+            Set<ObjectInstance> mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
             assertTrue(mbeanObj.size() == 1);
 
-            ObjectName  serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
-            String      quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
+            ObjectName serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
+            String     quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
             assertNotNull(quorumStatus);
             assertEquals(quorumStatus, "allowed-actions=distribution, restore, read, write, recover");
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -336,14 +363,14 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideCustomeNSHandler()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NS_HANDLER);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-ns.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_NS_HANDLER);
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-ns.xml");
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCacheOverride = CacheFactory.getCache("my-cache-override");
             assertNotNull(myCacheOverride);
             Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
@@ -352,21 +379,26 @@ public class CacheConfigOverrideTests
             assertEquals("$SYS:MyCacheService", myCacheOverride.getService().getInfo().getServiceName());
 
             // Check for correct QuorumStatus for service "$SYS:MyCacheService" with write
-            MBeanServer serverJMX        = MBeanHelper.findMBeanServer();
-            String      objectName       = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
-            Set<ObjectInstance> mbeanObj = serverJMX.queryMBeans(new ObjectName(objectName), null);
+            MBeanServer         serverJMX  = MBeanHelper.findMBeanServer();
+            String              objectName = "Coherence:type=Service,name=\"$SYS:MyCacheService\",*";
+            Set<ObjectInstance> mbeanObj   = serverJMX.queryMBeans(new ObjectName(objectName), null);
             assertTrue(mbeanObj.size() == 1);
 
-            ObjectName  serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
-            String      quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
+            ObjectName serviceON    = new ObjectName(mbeanObj.iterator().next().getObjectName().toString());
+            String     quorumStatus = (String) serverJMX.getAttribute(serviceON, "QuorumStatus");
             assertNotNull(quorumStatus);
             assertEquals(quorumStatus, "allowed-actions=distribution, restore, read, write, recover");
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -374,17 +406,16 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideWithInterceptors()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-interceptors.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-interceptors.xml");
-
-            AbstractFunctionalTest._startup();
-
-            ExtensibleConfigurableCacheFactory.Dependencies deps =
-                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
-                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE, null, null));
-            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
+            ExtensibleConfigurableCacheFactory.Dependencies deps = ExtensibleConfigurableCacheFactory.DependenciesHelper
+                    .newInstance(XmlHelper.loadFileOrResource(FILE_CFG_CACHE, null, null));
+            ConfigurableCacheFactory                        ccf  = new ExtensibleConfigurableCacheFactory(deps);
 
             NamedCache myCacheOverride = ccf.ensureCache("my-cache-interceptor", null);
             assertNotNull(myCacheOverride);
@@ -403,8 +434,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -412,20 +449,20 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideInterceptorWithName()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-interceptor-with-name.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig.override",
-                    "override/cache-config-override-interceptor-with-name.xml");
-
-            Cluster cluster = AbstractFunctionalTest.startCluster();
             Eventually.assertDeferred(() -> cluster.isRunning(), is(true));
 
-            ExtensibleConfigurableCacheFactory.Dependencies deps =
-                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
-                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE_NO_DEFAULT, null, null));
+            ExtensibleConfigurableCacheFactory.Dependencies deps = ExtensibleConfigurableCacheFactory.DependenciesHelper
+                    .newInstance(XmlHelper.loadFileOrResource(FILE_CFG_CACHE_NO_DEFAULT, null, null));
 
-            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
-            NamedCache myCacheOverride = ccf.ensureCache("my-cache-interceptor", null);
+            ConfigurableCacheFactory ccf             = new ExtensibleConfigurableCacheFactory(deps);
+            NamedCache               myCacheOverride = ccf.ensureCache("my-cache-interceptor", null);
             assertNotNull(myCacheOverride);
 
             Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
@@ -456,8 +493,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig.override");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -465,17 +508,19 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideWithInterceptorsOnly()
             throws Exception
         {
+        setupTestProps();
+
+        Cluster cluster = startCluster();
+
         try
             {
-            Cluster cluster = AbstractFunctionalTest.startCluster();
             Eventually.assertDeferred(() -> cluster.isRunning(), is(true));
 
-            ExtensibleConfigurableCacheFactory.Dependencies deps =
-                    ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance(
-                            XmlHelper.loadFileOrResource(FILE_CFG_CACHE_INTERCEPTORS, null, null));
+            ExtensibleConfigurableCacheFactory.Dependencies deps = ExtensibleConfigurableCacheFactory.DependenciesHelper
+                    .newInstance(XmlHelper.loadFileOrResource(FILE_CFG_CACHE_INTERCEPTORS, null, null));
 
-            ConfigurableCacheFactory ccf = new ExtensibleConfigurableCacheFactory(deps);
-            InterceptorManager iManager = deps.getResourceRegistry().getResource(InterceptorManager.class);
+            ConfigurableCacheFactory ccf      = new ExtensibleConfigurableCacheFactory(deps);
+            InterceptorManager       iManager = deps.getResourceRegistry().getResource(InterceptorManager.class);
             assertNotNull(iManager);
 
             InterceptorRegistry iRegistry = deps.getResourceRegistry().getResource(InterceptorRegistry.class);
@@ -491,9 +536,9 @@ public class CacheConfigOverrideTests
             assertTrue(newInterceptor instanceof NewInterceptor);
 
             ccf.activate();
-            // assert that correct interceptor i.e OverrideInterceptor is already invoked by checking
-            // cache "my-cache-interceptor" which can only exist and active if OverrideInterceptor is
-            // fired when CCF is activated.
+            // assert that correct interceptor i.e OverrideInterceptor is already invoked by
+            // checking cache "my-cache-interceptor" which can only exist and active if
+            // OverrideInterceptor is fired when CCF is activated.
             assertTrue(ccf.isCacheActive("my-cache-interceptor", null));
 
             // Now assert the value in cache which is put when the interceptor was fired.
@@ -509,7 +554,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -517,12 +569,13 @@ public class CacheConfigOverrideTests
     public void testCacheConfigWithNoOverrideValue()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCacheOverride = CacheFactory.getCache("test-1");
             assertNotNull(myCacheOverride);
             Enumeration cacheNames = myCacheOverride.getCacheService().getCacheNames();
@@ -532,8 +585,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -541,13 +600,14 @@ public class CacheConfigOverrideTests
     public void testCacheConfigOverrideTopics()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TEST);
-            System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCachePrepend = CacheFactory.getCache("test-cache");
             assertNotNull(myCachePrepend);
             Enumeration cacheNames = myCachePrepend.getCacheService().getCacheNames();
@@ -561,8 +621,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -570,13 +636,14 @@ public class CacheConfigOverrideTests
     public void testCacheConfigWithExistingTopicsMappingAndOverride()
             throws Exception
         {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TOPICS);
+        System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
+
+        Cluster cluster = startCluster();
+
         try
             {
-            System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_TOPICS);
-            System.setProperty("coherence.cacheconfig.override", "override/cache-config-override-topics.xml");
-
-            AbstractFunctionalTest._startup();
-
             NamedCache myCachePrepend = CacheFactory.getCache("test-cache");
             assertNotNull(myCachePrepend);
             Enumeration cacheNames = myCachePrepend.getCacheService().getCacheNames();
@@ -590,8 +657,14 @@ public class CacheConfigOverrideTests
             }
         finally
             {
-            System.clearProperty("coherence.cacheconfig");
-            AbstractFunctionalTest._shutdown();
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
             }
         }
 
@@ -599,6 +672,7 @@ public class CacheConfigOverrideTests
     public void testConcurrentOverride()
             throws Exception
         {
+        setupTestProps();
         System.setProperty("coherence.concurrent.cacheconfig.override", "override/test-override.xml");
 
         try (Coherence coherence = Coherence.clusterMember().start().join())
@@ -625,6 +699,7 @@ public class CacheConfigOverrideTests
             }
         finally
             {
+            clearTestProps();
             System.clearProperty("coherence.concurrent.cacheconfig.override");
             }
         }
@@ -633,6 +708,7 @@ public class CacheConfigOverrideTests
     public void testConcurrentOverrideChangeBackingMap()
             throws Exception
         {
+        setupTestProps();
         System.setProperty("coherence.concurrent.cacheconfig.override", "override/concurrent-override.xml");
 
         try (Coherence coherence = Coherence.clusterMember().start().join())
@@ -659,6 +735,7 @@ public class CacheConfigOverrideTests
             }
         finally
             {
+            clearTestProps();
             System.clearProperty("coherence.concurrent.cacheconfig.override");
             }
         }
