@@ -19059,7 +19059,7 @@ public abstract class PartitionedService
                 boolean fStores = input.readBoolean();
                 if (fStores)
                     {
-                    boolean               fStoresCompat = service.isVersionCompatible(OwnershipResponse::isLazyOpenCompatible);
+                    boolean               fStoresCompat = service.isVersionCompatible(getFromMember(), OwnershipResponse::isLazyOpenCompatible);
                     int                   cStores       = input.readInt();
                     PersistentStoreInfo[] aInfo         = new PersistentStoreInfo[cStores];
                     for (int i = 0; i < cStores; i++)
@@ -19163,7 +19163,7 @@ public abstract class PartitionedService
                 output.writeBoolean(fStores);
                 if (fStores)
                     {
-                    boolean fStoresCompat = service.isVersionCompatible(OwnershipResponse::isLazyOpenCompatible);
+                    boolean fStoresCompat = service.isVersionCompatible(getToMemberSet(), OwnershipResponse::isLazyOpenCompatible);
                     // write the persistent store ids
                     int cStores = aInfo.length;
 

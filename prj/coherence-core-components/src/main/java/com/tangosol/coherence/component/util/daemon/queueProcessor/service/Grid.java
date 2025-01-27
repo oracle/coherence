@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2638,7 +2638,7 @@ public abstract class Grid
         }
     
     /**
-     * Check whether the specified members runs a version that precedes the
+     * Check whether the specified member runs a version that precedes the
     * specified one.
      */
     public boolean isVersionCompatible(com.tangosol.coherence.component.net.Member member, int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
@@ -2648,7 +2648,47 @@ public abstract class Grid
         return isVersionCompatible(member,
             ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch));
         }
-    
+
+    /**
+     * Check whether the specified member runs a version that satisfies the
+     * predicate.
+     */
+    public boolean isVersionCompatible(Member member, IntPredicate predicate)
+        {
+        return predicate.test(getClusterMemberSet().getServiceVersionInt(member.getId()));
+        }
+
+    /**
+     * Check whether the specified members run a version that satisfies the
+     * predicate.
+     */
+    public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
+        {
+        com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet setMaster = getClusterMemberSet();
+
+        switch (setMembers.size())
+            {
+            case 0: // no recipients
+                return true;
+
+            case 1: // common case
+                return predicate.test(setMaster.getServiceVersionInt(setMembers.getFirstId()));
+
+            default:
+                {
+                int[] anMember = setMembers.toIdArray();
+                for (int i = 0, c = anMember.length; i < c; i++)
+                    {
+                    if (!predicate.test(setMaster.getServiceVersionInt(anMember[i])))
+                        {
+                        return false;
+                        }
+                    }
+                return true;
+                }
+            }
+        }
+
     /**
      * Check whether any of the members in the specified MemberSet run a version
     * that precedes the specified one.
@@ -6833,7 +6873,7 @@ public abstract class Grid
          */
         public String getDescription()
             {
-            return "UpdateMap=" + getUpdateMap() + "; Remove=" + isRemove();
+            return "MapConfig=" + getConfigMap() + "\nUpdateMap=" + getUpdateMap() + "; Remove=" + isRemove();
             }
         
         // Accessor for the property "UpdateMap"
@@ -6905,11 +6945,11 @@ public abstract class Grid
                 }
             
             super.onReceived();
-            
+
             if (!service.isWelcomedBy(memberFrom))
                 {
                 // COH-5774: drop "early" updates.  We must have received a MemberWelcome first.
-                _trace("Ignoring premature ConfigSync from member " + memberFrom.getId(), 5);
+                _trace("Ignoring premature ConfigUpdate from member " + memberFrom.getId(), 5);
                 return;
                 }
             
