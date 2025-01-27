@@ -27375,7 +27375,7 @@ public abstract class PartitionedService
                 long              cMillis  = service.getDistributionContendMillis();
                 boolean           fLocked  = ctrlPart != null && // a once owned partition may no longer be owned
                                              ctrlPart.lock(cMillis, PartitionedService.PartitionControl.LOCK_PERSISTENCE_SNAPSHOT);
-                
+
                 AtomicInteger atomicTasks = ctrlPart.getPersistenceTasks();
                 if (fLocked && atomicTasks.get() > 0)
                     {
@@ -27383,7 +27383,8 @@ public abstract class PartitionedService
                         {
                         synchronized (atomicTasks)
                             {
-                            Blocking.wait(atomicTasks, cMillis);
+                            // prevent indefinite wait on service thread
+                            Blocking.wait(atomicTasks, cMillis == 0 ? 100L : cMillis);
                             }
                         }
                     catch (InterruptedException e)
