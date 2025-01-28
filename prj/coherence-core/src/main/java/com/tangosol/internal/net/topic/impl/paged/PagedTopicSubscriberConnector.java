@@ -237,51 +237,90 @@ public class PagedTopicSubscriberConnector<V>
     @Override
     public void closeSubscription(ConnectedSubscriber<V> subscriber, boolean fDestroyed)
         {
-        if (!fDestroyed)
+        State state = m_state;
+        if (m_state != State.Closing && state != State.Closed)
             {
-            // caches have not been destroyed, so we're just closing this subscriber
-            unregisterDeactivationListener();
-            unregisterChannelAllocationListener();
-            unregisterNotificationListener();
-            PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
-            removeSubscriberEntry(subscriber.getKey());
-            }
-        else
-            {
-            PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
-            }
-
-        if (!fDestroyed && f_subscriberGroupId.isAnonymous())
-            {
-            // this subscriber is anonymous and thus non-durable and must be destroyed upon close
-            // Note: if close isn't the cluster will eventually destroy this subscriber once it
-            // identifies the associated member has left the cluster.
-            // If an application creates a lot of subscribers and does not close them when finished
-            // then this will cause heap consumption to rise.
-            // There used to be a To-Do comment here about cleaning up in a finalizer, but as
-            // finalizers in the JVM are not reliable that is probably not such a good idea.
-            destroy(f_caches, f_subscriberGroupId, m_subscriptionId);
-            }
-
-        // We need to ensure that the subscription has really gone.
-        // During a fail-over situation the subscriber may still exist in the configmap
-        // so we  need to repeat the closure notification
-        String            sTopic        = f_caches.getTopicName();
-        PagedTopicService service       = f_caches.getService();
-        Set<SubscriberId> setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
-        while (setSubscriber.contains(f_subscriberId))
-            {
+            f_lockState.lock();
             try
                 {
-                Blocking.sleep(100);
+                if (m_state != State.Closed)
+                    {
+                    m_state = State.Closing;
+                    }
                 }
-            catch (InterruptedException e)
+            finally
                 {
-                break;
+                f_lockState.unlock();
                 }
-            Logger.fine("Repeating subscriber closed notification for topic subscriber: " + subscriber);
-            PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
-            setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
+            }
+
+        if (m_state == State.Closing)
+            {
+            Logger.finest("Closing subscription for topic subscriber: fDestroyed=" + fDestroyed + " subscriber=" + subscriber);
+            if (!fDestroyed)
+                {
+                // caches have not been destroyed, so we're just closing this subscriber
+                PagedTopicService service = f_caches.getService();
+                boolean           fActive = f_caches.isActive()
+                                                && service.isRunning()
+                                                && !service.getOwnershipEnabledMembers().isEmpty();
+                if (fActive)
+                    {
+                    unregisterDeactivationListener();
+                    unregisterChannelAllocationListener();
+                    unregisterNotificationListener();
+                    }
+                PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
+                if (fActive)
+                    {
+                    removeSubscriberEntry(subscriber.getKey());
+                    }
+                }
+            else
+                {
+                PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
+                }
+
+            if (!fDestroyed && f_subscriberGroupId.isAnonymous())
+                {
+                // this subscriber is anonymous and thus non-durable and must be destroyed upon close
+                // Note: if close isn't the cluster will eventually destroy this subscriber once it
+                // identifies the associated member has left the cluster.
+                // If an application creates a lot of subscribers and does not close them when finished
+                // then this will cause heap consumption to rise.
+                // There used to be a To-Do comment here about cleaning up in a finalizer, but as
+                // finalizers in the JVM are not reliable that is probably not such a good idea.
+                try
+                    {
+                    destroy(f_caches, f_subscriberGroupId, m_subscriptionId);
+                    }
+                catch (Exception e)
+                    {
+                    Logger.err(e);
+                    }
+                }
+
+            // We need to ensure that the subscription has really gone.
+            // During a fail-over situation the subscriber may still exist in the configmap
+            // so we  need to repeat the closure notification
+            String            sTopic        = f_caches.getTopicName();
+            PagedTopicService service       = f_caches.getService();
+            Set<SubscriberId> setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
+            while (setSubscriber.contains(f_subscriberId))
+                {
+                Logger.fine("Repeating subscriber closed notification for topic subscriber: " + subscriber);
+                try
+                    {
+                    Blocking.sleep(100);
+                    }
+                catch (InterruptedException e)
+                    {
+                    break;
+                    }
+                PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
+                setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
+                }
+            m_state = State.Closed;
             }
         }
 
@@ -328,6 +367,10 @@ public class PagedTopicSubscriberConnector<V>
     public void ensureConnected()
         {
         f_caches.ensureConnected();
+        if (f_caches.isActive() && (m_state == State.Initial || m_state == State.Disconnected))
+            {
+            m_state = State.Connected;
+            }
         }
 
     @Override
@@ -912,16 +955,34 @@ public class PagedTopicSubscriberConnector<V>
     @SuppressWarnings({"unchecked", "rawtypes"})
     protected void unregisterNotificationListener()
         {
-        // un-register the subscriber listener in each partition
-        SimpleMapListener listener = m_listenerNotification;
-        Filter<?>         filter   = m_filterNotification;
-        if (f_caches.Notifications.isActive() && listener != null)
+        try
             {
-            f_caches.Notifications.removeMapListener(listener, filter);
+            // un-register the subscriber listener in each partition
+            SimpleMapListener listener = m_listenerNotification;
+            Filter<?>         filter   = m_filterNotification;
+            if (f_caches.Notifications.isActive() && listener != null)
+                {
+                f_caches.Notifications.removeMapListener(listener, filter);
+                }
+            }
+        catch (Exception e)
+            {
+            // intentionally empty
             }
         }
 
-    // ----- inner class: SubscriptionListener --------------------------
+    // ----- inner enum: State ----------------------------------------------
+
+    public enum State
+        {
+        Initial,
+        Connected,
+        Disconnected,
+        Closing,
+        Closed,
+        }
+
+    // ----- inner class: SubscriptionListener ------------------------------
 
     protected class SubscriptionListener
             implements PagedTopicSubscription.Listener
@@ -998,27 +1059,75 @@ public class PagedTopicSubscriberConnector<V>
         @Override
         public void onConnect()
             {
+            f_lockState.lock();
+            try
+                {
+                if (m_state == State.Disconnected || m_state == State.Initial)
+                    {
+                    m_state = State.Connected;
+                    }
+                }
+            finally
+                {
+                f_lockState.unlock();
+                }
             }
 
         @Override
         public void onDisconnect()
             {
-            SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Disconnected);
-            event.dispatch(f_listeners);
+            f_lockState.lock();
+            try
+                {
+                if (m_state == State.Connected || m_state == State.Initial)
+                    {
+                    m_state = State.Disconnected;
+                    SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Disconnected);
+                    event.dispatch(f_listeners);
+                    }
+                }
+            finally
+                {
+                f_lockState.unlock();
+                }
             }
 
         @Override
         public void onDestroy()
             {
-            SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Destroyed);
-            event.dispatch(f_listeners);
+            f_lockState.lock();
+            try
+                {
+                if (m_state != State.Closed && m_state != State.Closing)
+                    {
+                    m_state = State.Closed;
+                    SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Destroyed);
+                    event.dispatch(f_listeners);
+                    }
+                }
+            finally
+                {
+                f_lockState.unlock();
+                }
             }
 
         @Override
         public void onRelease()
             {
-            SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Released);
-            event.dispatch(f_listeners);
+            f_lockState.lock();
+            try
+                {
+                if (m_state != State.Closed && m_state != State.Closing)
+                    {
+                    m_state = State.Closed;
+                    SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Released);
+                    event.dispatch(f_listeners);
+                    }
+                }
+            finally
+                {
+                f_lockState.unlock();
+                }
             }
         }
 
@@ -1106,8 +1215,10 @@ public class PagedTopicSubscriberConnector<V>
          */
         private final int m_nChannel;
         }
-    
+
     // ----- data members ---------------------------------------------------
+
+    private State m_state = State.Initial;
 
     /**
      * The {@link PagedTopicCaches} to use to invoke cache operations.

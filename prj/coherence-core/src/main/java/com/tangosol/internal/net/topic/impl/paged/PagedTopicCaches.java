@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,7 +29,6 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
 
-import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
 
@@ -40,7 +39,6 @@ import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 
-import com.tangosol.net.NamedMap;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.cache.TypeAssertion;
 
@@ -76,9 +74,12 @@ import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -1158,7 +1159,6 @@ public class PagedTopicCaches
         if (cache.isActive() && !cache.isDestroyed())
             {
             f_topicService.destroyCache(cache);
-//            cache.destroy();
             }
         }
 
@@ -1513,48 +1513,82 @@ public class PagedTopicCaches
                 {
                 // destroy event
                 m_state = State.Destroyed;
-                //removeListeners();
-                Daemons.commonPool().execute(() ->
+                Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+                for (NamedTopicDeactivationListener listener : setListener)
                     {
-                    Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
-                    for (NamedTopicDeactivationListener listener : setListener)
+                    try
                         {
-                        try
-                            {
-                            listener.onDestroy();
-                            }
-                        catch (Throwable t)
-                            {
-                            Logger.err(t);
-                            }
+                        listener.onDestroy();
                         }
-                    });
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
                 }
             }
 
         @Override
         public void memberLeft(MemberEvent evt)
             {
-            DistributedCacheService service = (DistributedCacheService) evt.getService();
-            if (evt.isLocal())
+            f_lock.lock();
+            try
                 {
-                Logger.fine("Detected local member disconnect in service " + PagedTopicCaches.this);
-                disconnected();
-                }
-            else
-                {
-                service.getOwnershipSenior();
-                if (service.getOwnershipEnabledMembers().isEmpty())
+                DistributedCacheService service = (DistributedCacheService) evt.getService();
+                if (evt.isLocal())
                     {
-                    Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
+                    Logger.fine("Detected local member disconnect in service " + PagedTopicCaches.this);
+                    m_fDisconnected = true;
                     disconnected();
                     }
+                else
+                    {
+                    service.getOwnershipSenior();
+                    if (service.getOwnershipEnabledMembers().isEmpty())
+                        {
+                        Logger.fine("Detected loss of all storage members in service " + PagedTopicCaches.this);
+                        m_fDisconnected = true;
+                        disconnected();
+                        }
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
                 }
             }
 
         @Override
         public void memberJoined(MemberEvent evt)
             {
+            f_lock.lock();
+            try
+                {
+                if (m_fDisconnected)
+                    {
+                    DistributedCacheService service = (DistributedCacheService) evt.getService();
+                    if (!service.getOwnershipEnabledMembers().isEmpty())
+                        {
+                        m_fDisconnected = false;
+                        }
+                    Set<NamedTopicDeactivationListener> setListener = m_mapListener.keySet();
+                    for (NamedTopicDeactivationListener listener : setListener)
+                        {
+                        try
+                            {
+                            listener.onConnect();
+                            }
+                        catch (Throwable t)
+                            {
+                            Logger.err(t);
+                            }
+                        }
+                    }
+                }
+            finally
+                {
+                f_lock.unlock();
+                }
             }
 
         @Override
@@ -1573,6 +1607,12 @@ public class PagedTopicCaches
             {
             return System.identityHashCode(this);
             }
+
+        // ----- data members -----------------------------------------------
+
+        private final Lock f_lock = new ReentrantLock();
+
+        private boolean m_fDisconnected = false;
         }
 
     // ----- inner interface: Listener --------------------------------------
