@@ -18,6 +18,7 @@ import com.tangosol.net.topic.NamedTopicEvent;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.Filter;
+import com.tangosol.util.SynchronousListener;
 import com.tangosol.util.ValueExtractor;
 
 import java.util.Objects;
@@ -224,8 +225,9 @@ public class PagedTopicConnector<V>
 
     // ----- inner class: TopicListener -------------------------------------
 
+    @SuppressWarnings("rawtypes")
     private class TopicListener
-            implements PagedTopicCaches.Listener
+            implements PagedTopicCaches.Listener, SynchronousListener
         {
         @Override
         public void onDestroy()
