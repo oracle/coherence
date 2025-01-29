@@ -1023,7 +1023,7 @@ public class PagedTopicSubscriberConnector<V>
                         }
                     else if (isActive() && f_fDurable)
                         {
-                        Logger.finest("Disconnecting Subscriber (null channel set) " + this);
+                        Logger.finest("Disconnecting Subscriber (null channel set) " + PagedTopicSubscriberConnector.this);
                         SubscriberEvent event = new SubscriberEvent(PagedTopicSubscriberConnector.this, SubscriberEvent.Type.Unsubscribed, PagedTopicSubscription.NO_CHANNELS);
                         event.dispatch(f_listeners);
                         }
