@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.common;
-
-import com.oracle.coherence.common.base.Logger;
-
-import com.tangosol.coherence.jcache.CoherenceBasedCachingProvider;
 
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
@@ -16,12 +12,9 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.application.LifecycleEvent;
 
-import java.security.AccessController;
+import com.tangosol.net.security.SecurityHelper;
+
 import java.security.PrivilegedAction;
-
-import javax.cache.Caching;
-
-import javax.cache.spi.CachingProvider;
 
 /**
  * Helpers for supporting Coherence JCache in Container Environment.
@@ -58,7 +51,7 @@ public class ContainerHelper
      */
     public static boolean isWLSContainer()
         {
-        String result = AccessController.doPrivileged(new PrivilegedAction<String>()
+        String result = SecurityHelper.doPrivileged(new PrivilegedAction<String>()
             {
             public String run()
                 {
