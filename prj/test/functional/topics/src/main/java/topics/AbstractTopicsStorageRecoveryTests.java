@@ -197,6 +197,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
             AtomicBoolean fSubscribed = new AtomicBoolean(false);
             AtomicInteger cPublished  = new AtomicInteger(0);
             AtomicInteger cReceived   = new AtomicInteger(0);
+            int           cPubMax     = 101;
 
             Map<Message, Subscriber.Element<Message>> mapReceived = new ConcurrentHashMap<>();
             Map<Message, Publisher.Status> mapPublished = new ConcurrentHashMap<>();
@@ -206,7 +207,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 {
                 try
                     {
-                    for (int i = 0; i < 101 && fPublish.get(); i++)
+                    for (int i = 0; i < cPubMax && fPublish.get(); i++)
                         {
                         Message message = new Message(i, "Message-" + i);
                         publisher.publish(message)
@@ -269,8 +270,9 @@ public abstract class AbstractTopicsStorageRecoveryTests
                         try (Subscriber<Message> subscriber =  topic.createSubscriber(inGroup(sGroup),
                                 optComplete, withIdentifyingName(sName)))
                             {
+                            int nMax = (i == cSubscriber ? cPubMax : 5);
                             Logger.info("Created subscriber " + sName + " " + subscriber);
-                            for (int j = 0; j < 5; j++)
+                            for (int j = 0; j < nMax; j++)
                                 {
                                 CompletableFuture<Subscriber.Element<Message>> future = null;
                                 try
@@ -425,7 +427,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
             // futures should not be completed
             assertThat(futureOne.isDone(), is(false));
             assertThat(futureTwo.isDone(), is(false));
-
+            
             // shutdown the storage members
             restartCluster();
 
