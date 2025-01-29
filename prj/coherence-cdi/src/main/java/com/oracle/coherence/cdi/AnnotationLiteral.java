@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
+
+import com.tangosol.net.security.SecurityHelper;
 
 import java.io.Serializable;
 
@@ -16,7 +18,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Arrays;
@@ -67,7 +68,7 @@ public abstract class AnnotationLiteral<T extends Annotation>
         {
         if (m_aMembers == null)
             {
-            m_aMembers = AccessController.doPrivileged((PrivilegedAction<Method[]>) annotationType()::getDeclaredMethods);
+            m_aMembers = SecurityHelper.doPrivileged((PrivilegedAction<Method[]>) annotationType()::getDeclaredMethods);
 
             if (m_aMembers.length > 0 && !annotationType().isAssignableFrom(this.getClass()))
                 {
@@ -280,7 +281,7 @@ public abstract class AnnotationLiteral<T extends Annotation>
 
     private static void setAccessible(final AccessibleObject ao)
         {
-        AccessController.doPrivileged((PrivilegedAction<Object>) () -> {
+        SecurityHelper.doPrivileged((PrivilegedAction<Object>) () -> {
         ao.setAccessible(true);
         return null;
         });

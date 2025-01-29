@@ -145,7 +145,6 @@ import com.tangosol.util.filter.LimitFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 import com.tangosol.util.processor.AbstractAsynchronousProcessor;
 import java.io.IOException;
-import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -24141,18 +24140,16 @@ public class PartitionedCache
                 {
                 // import com.tangosol.net.security.DoAsAction;
                 // import com.tangosol.util.Binary;
-                // import java.security.AccessController;
                 // import java.util.Map;
                 
                 PartitionedCache.InvocationContext ctx = (PartitionedCache.InvocationContext) get_Parent();
                 
                 Storage storage   = getStorage();
                 Map      mapStatus = (Map) ctx.getStorageStatusMap().get(storage);
-                
-                Map mapResource = System.getSecurityManager() == null
-                        ? storage.getBackingMapInternal()
-                        : (Map) AccessController.doPrivileged(new DoAsAction(storage.getBackingMapAction()));
-                
+
+                Map mapResource = SecurityHelper.doIfSecure(new DoAsAction(storage.getBackingMapAction()),
+                        storage::getBackingMapInternal);
+
                 Storage.EntryStatus status = mapStatus == null ? null : (Storage.EntryStatus) mapStatus.get((Binary) oKey);
                 
                 if (status == null)

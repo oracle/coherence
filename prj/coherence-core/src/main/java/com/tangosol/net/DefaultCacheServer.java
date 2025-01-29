@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.tangosol.internal.net.service.LegacyXmlServiceHelper;
 
 import com.tangosol.net.security.DoAsAction;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -28,7 +29,6 @@ import com.tangosol.util.ClassHelper;
 
 import java.io.File;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Collection;
@@ -105,7 +105,7 @@ public class DefaultCacheServer
     */
     public void startAndMonitor(final long cWaitMillis)
         {
-        AccessController.doPrivileged(
+        SecurityHelper.doPrivileged(
             (PrivilegedAction<Object>) () ->
                 {
                 initialStartServices(cWaitMillis);
@@ -132,7 +132,7 @@ public class DefaultCacheServer
             {
             try
                 {
-                AccessController.doPrivileged(new DoAsAction(
+                SecurityHelper.doPrivileged(new DoAsAction<>(
                     () -> {
                         initialStartServices(cWaitMillis);
                         return null;

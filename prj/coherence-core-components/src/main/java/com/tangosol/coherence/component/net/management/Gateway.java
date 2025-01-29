@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ package com.tangosol.coherence.component.net.management;
 
 import com.tangosol.coherence.component.application.console.Coherence;
 import com.tangosol.coherence.component.manageable.ModelAdapter;
-import com.tangosol.coherence.component.net.management.Connector;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.tangosol.coherence.component.net.management.model.localModel.CacheModel;
 import com.tangosol.coherence.component.net.management.model.localModel.ClusterModel;
@@ -45,6 +44,7 @@ import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.MBeanReference;
 import com.tangosol.net.management.Registry;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Filter;
@@ -812,14 +812,7 @@ public class Gateway
     // From interface: com.tangosol.net.management.MBeanServerProxy
     public Object execute(com.tangosol.util.function.Remote.Function function)
         {
-        // import com.tangosol.util.Base;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(EXECUTE_PERMISSION);
-            }
-        
+        SecurityHelper.checkPermission(EXECUTE_PERMISSION);
         return executeInternal(function, /*continuation*/ null);
         }
     

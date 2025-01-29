@@ -33,6 +33,8 @@ import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.LocalPermission;
 
+import com.tangosol.net.security.SecurityHelper;
+
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.Base;
@@ -40,8 +42,6 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.SimpleResourceRegistry;
 import com.tangosol.util.SynchronousListener;
-
-import java.security.AccessController;
 
 import java.util.concurrent.TimeUnit;
 
@@ -474,13 +474,7 @@ public class SafeService
     
     private void checkInternalAccess()
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
+        SecurityHelper.checkPermission(LocalPermission.INTERNAL_SERVICE);
         }
     
     protected void cleanup()
@@ -761,17 +755,7 @@ public class SafeService
      */
     public com.tangosol.util.Service getRunningService()
         {
-        // import com.tangosol.net.Service;
-        // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
-            return ensureRunningService();
-            }
-        
-        return (Service) AccessController.doPrivileged(
-            new DoAsAction(getEnsureServiceAction()));
+        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureServiceAction()), this::ensureRunningService);
         }
     
     // Accessor for the property "SafeCluster"
@@ -1149,16 +1133,8 @@ public class SafeService
      */
     public void setContextClassLoader(ClassLoader loader)
         {
-        // import com.tangosol.net.security.LocalPermission;
-        // import com.tangosol.net.Service;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null && loader != null)
-            {
-            security.checkPermission(
-                new LocalPermission("BackingMapManagerContext.setClassLoader"));
-            }
-        
+        SecurityHelper.checkPermission(() -> new LocalPermission("BackingMapManagerContext.setClassLoader"));
+
         __m_ContextClassLoader = (loader);
         
         Service service = getInternalService();
@@ -1363,9 +1339,8 @@ public class SafeService
     public void start()
         {
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        AccessController.doPrivileged(
+
+        SecurityHelper.doPrivileged(
             new DoAsAction((SafeService.StartAction) _newChild("StartAction")));
         }
     

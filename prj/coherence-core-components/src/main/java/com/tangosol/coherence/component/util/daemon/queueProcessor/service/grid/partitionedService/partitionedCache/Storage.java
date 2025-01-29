@@ -52,6 +52,7 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.partition.PartitionSplittingBackingMap;
 import com.tangosol.net.partition.ReadWriteSplittingBackingMap;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.component.EventDeathException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
@@ -99,7 +100,6 @@ import com.tangosol.util.filter.QueryRecorderFilter;
 import com.tangosol.util.filter.ScriptFilter;
 import com.tangosol.util.filter.WrapperQueryRecorderFilter;
 import java.io.File;
-import java.security.AccessController;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -3390,14 +3390,7 @@ public class Storage
      */
     public com.tangosol.util.ObservableMap getBackingMap()
         {
-        // import com.tangosol.net.security.LocalPermission;
-
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.BACKING_MAP);
-            }
-
+        SecurityHelper.checkPermission(LocalPermission.BACKING_MAP);
         return getBackingMapInternal();
         }
 
@@ -4285,7 +4278,6 @@ public class Storage
         {
         // import com.tangosol.net.security.DoAsAction;
         // import com.tangosol.util.Binary;
-        // import java.security.AccessController;
         // import java.util.Map;
 
         Map    map    = getBackingInternalCache();
@@ -12915,16 +12907,8 @@ public class Storage
 
         protected com.tangosol.util.ObservableMap getBackingMapInternal()
             {
-            // import com.tangosol.net.security.DoAsAction;
-            // import com.tangosol.util.ObservableMap;
-            // import java.security.AccessController;
-
-            if (System.getSecurityManager() == null)
-                {
-                return getStorage().getBackingMap();
-                }
-
-            return (ObservableMap) AccessController.doPrivileged(getStorage().getBackingMapAction());
+            Storage storage = getStorage();
+            return SecurityHelper.doIfSecure(storage.getBackingMapAction(), storage::getBackingMap);
             }
 
         // From interface: com.tangosol.util.BinaryEntry

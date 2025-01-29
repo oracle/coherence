@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.oracle.coherence.common.util.CommonMonitor;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.security.SecurityHelper;
 
 import java.io.CharArrayWriter;
 import java.io.DataInput;
@@ -41,7 +42,6 @@ import java.net.URL;
 
 import java.rmi.RemoteException;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Arrays;
@@ -730,7 +730,7 @@ public abstract class Base
      */
     private static ThreadFactory instantiateThreadFactory()
         {
-        String sFactory = AccessController.doPrivileged(
+        String sFactory = SecurityHelper.doPrivileged(
             (PrivilegedAction<String>) () -> Config.getProperty("coherence.threadfactory"));
 
         if (sFactory == null)

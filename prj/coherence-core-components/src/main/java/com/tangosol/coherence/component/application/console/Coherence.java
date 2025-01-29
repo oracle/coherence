@@ -10,7 +10,6 @@
 
 package com.tangosol.coherence.component.application.console;
 
-import com.oracle.coherence.common.util.Threads;
 import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -46,7 +45,6 @@ import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
-import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.InvocationService;
@@ -58,6 +56,7 @@ import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.partition.SimplePartitionKey;
 import com.tangosol.net.partition.VersionAwareMapListener;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.security.SimpleHandler;
 import com.tangosol.run.jca.SimpleValidator;
 import com.tangosol.run.xml.SimpleElement;
@@ -126,8 +125,6 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.security.AccessControlException;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.Signature;
 import java.security.cert.Certificate;
@@ -1705,7 +1702,6 @@ public class Coherence
         // import com.tangosol.net.cache.ContinuousQueryCache;
         // import com.tangosol.util.Filter;
         // import com.tangosol.util.NullImplementation;
-        // import java.security.AccessController;
 
         com.tangosol.net.ConfigurableCacheFactory factory = CacheFactory.getConfigurableCacheFactory();
 
@@ -1741,7 +1737,7 @@ public class Coherence
             else if (factory instanceof com.tangosol.net.ExtensibleConfigurableCacheFactory)
                 {
                 com.tangosol.net.ExtensibleConfigurableCacheFactory eccf = (com.tangosol.net.ExtensibleConfigurableCacheFactory) factory;
-                _trace((String) AccessController.doPrivileged(new ObjectFormatter().asPrivilegedAction(
+                _trace(SecurityHelper.doPrivileged(new ObjectFormatter().asPrivilegedAction(
                     "Cache Configuration: " + sName,
                     eccf.getCacheConfig().findSchemeByCacheName(sName),
                     eccf.getParameterResolver(sName, null, null, eccf.getContainerContext()))));
@@ -3538,11 +3534,6 @@ public class Coherence
                     {
                     break;
                     }
-                }
-            if (e instanceof AccessControlException)
-                {
-                _trace("Permission rejected: " +
-                    ((AccessControlException) e).getPermission(), 1);
                 }
             _trace(eOrig);
             return null;

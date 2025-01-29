@@ -66,6 +66,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
 import com.tangosol.net.management.MapJsonBodyHandler;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -3262,7 +3263,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testHealthChecks() 
         {
         // skipped in security manager tests
-        Assume.assumeThat(System.getSecurityManager(), is(nullValue()));
+        Assume.assumeThat(SecurityHelper.hasSecurityManager(), is(false));
         Assume.assumeThat(System.getProperties().containsKey("java.security.manager"), is(false));
 
         // ensure the cluster is ready before this test starts so that

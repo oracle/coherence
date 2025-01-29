@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
 import com.oracle.coherence.common.base.Disposable;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 
 import static com.tangosol.util.BuilderHelper.using;
 
@@ -164,12 +165,7 @@ public class SimpleResourceRegistry
     public <R> String registerResource(Class<R> clzResource, String sResourceName, Builder<? extends R> bldrResource,
                                        RegistrationBehavior behavior, ResourceLifecycleObserver<R> observer)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerResource"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Service.registerResource"));
 
         synchronized (clzResource)
             {
@@ -256,13 +252,7 @@ public class SimpleResourceRegistry
     @Override
     public <R> void unregisterResource(Class<R> clzResource, String sResourceName)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerResource"));
-            }
-
+        SecurityHelper.checkPermission(() -> new LocalPermission("Service.registerResource"));
         m_mapResource.remove(new RegistryKey(clzResource, sResourceName));
         }
 

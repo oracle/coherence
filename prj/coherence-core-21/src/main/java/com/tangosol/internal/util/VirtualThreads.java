@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,8 @@ package com.tangosol.internal.util;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Cluster;
+
+import com.tangosol.net.security.SecurityHelper;
 
 import java.util.function.Function;
 
@@ -50,7 +51,6 @@ public class VirtualThreads
      * @return {@code true} if the current runtime supports virtual threads;
      *         {@code false} otherwise
      */
-    @SuppressWarnings("removal")
     public static boolean isSupported()
         {
         // NOTE:  virtual threads will not be used if the security manager
@@ -65,7 +65,7 @@ public class VirtualThreads
         //              caller context; virtual threads have no permissions
         //              when executing code that performs a privileged
         //              action.
-        return System.getSecurityManager() == null;
+        return !SecurityHelper.hasSecurityManager();
         }
 
     /**

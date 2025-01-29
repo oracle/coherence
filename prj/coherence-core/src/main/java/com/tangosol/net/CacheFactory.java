@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.cache.TypeAssertion;
 
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -25,7 +26,6 @@ import com.tangosol.util.TransactionMap;
 
 import java.lang.reflect.Method;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
 
@@ -67,10 +67,8 @@ public abstract class CacheFactory
     */
     public static CacheFactoryBuilder getCacheFactoryBuilder()
         {
-        return System.getSecurityManager() == null
-                ? getCacheFactoryBuilderInternal()
-                : AccessController.doPrivileged((PrivilegedAction<CacheFactoryBuilder>)
-                    CacheFactory::getCacheFactoryBuilderInternal);
+        return SecurityHelper
+                .doIfSecure((PrivilegedAction<CacheFactoryBuilder>) CacheFactory::getCacheFactoryBuilderInternal);
         }
 
     /**
@@ -118,13 +116,8 @@ public abstract class CacheFactory
     */
     public static synchronized void setCacheFactoryBuilder(CacheFactoryBuilder cfb)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("CacheFactory.setCacheFactoryBuilder"));
-            }
-
+        SecurityHelper
+                .checkPermission(() -> new LocalPermission("CacheFactory.setCacheFactoryBuilder"));
         s_builder = cfb;
         checkConsistentCCFUsage();
         }
@@ -546,8 +539,8 @@ public abstract class CacheFactory
 
         try
             {
-            return AccessController.doPrivileged(
-                new PrivilegedExceptionAction<Cluster>()
+            return SecurityHelper
+                    .doPrivileged(new PrivilegedExceptionAction<Cluster>()
                     {
                     public Cluster run() throws Exception
                         {
@@ -611,7 +604,7 @@ public abstract class CacheFactory
             {
             try
                 {
-                AccessController.doPrivileged(new PrivilegedAction()
+                SecurityHelper.doPrivileged(new PrivilegedAction<>()
                     {
                     public Object run()
                         {
@@ -1018,7 +1011,7 @@ public abstract class CacheFactory
 
         try
             {
-            return AccessController.doPrivileged(
+            return SecurityHelper.doPrivileged(
                 new PrivilegedExceptionAction<XmlElement>()
                     {
                     public XmlElement run() throws Exception
@@ -1203,7 +1196,7 @@ public abstract class CacheFactory
         {
         final EntryPoints ep = new EntryPoints();
 
-        AccessController.doPrivileged(
+        SecurityHelper.doPrivileged(
             new PrivilegedAction<EntryPoints>()
                 {
                 public EntryPoints run()

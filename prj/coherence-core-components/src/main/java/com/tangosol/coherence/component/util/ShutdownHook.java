@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,8 +11,8 @@
 package com.tangosol.coherence.component.util;
 
 import com.tangosol.net.security.DoAsAction;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
-import java.security.AccessController;
 
 /**
  * Abstract runnable component used as a virtual-machine shutdown hook.
@@ -178,26 +178,16 @@ public abstract class ShutdownHook
         }
     
     /**
-     * Unegister itself from Java runtime.
+     * Unregister itself from Java runtime.
      */
     public void unregister()
         {
-        // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
-            unregisterInternal();
-            }
-        else
-            {
-            AccessController.doPrivileged(
-                new DoAsAction((ShutdownHook.UnregisterAction) _newChild("UnregisterAction")));
-            }
+        SecurityHelper.doIfSecure(new DoAsAction((ShutdownHook.UnregisterAction) _newChild("UnregisterAction")),
+                this::unregisterInternal);
         }
     
     /**
-     * Unegister itself from Java runtime.
+     * Unregister itself from Java runtime.
      */
     public void unregisterInternal()
         {

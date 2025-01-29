@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.config.xml.DocumentProcessor;
 import com.tangosol.config.xml.NamespaceHandler;
 import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
 import com.tangosol.net.SocketProviderFactory;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
@@ -32,11 +33,9 @@ import com.oracle.coherence.testing.net.EchoNIOServer;
 import com.oracle.coherence.testing.net.EchoServer;
 
 import java.io.IOException;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 
 /**
@@ -136,7 +135,7 @@ public abstract class BaseSocketProviderTests
 
         // establish a default ParameterResolver based on the System properties
         // COH-9952 wrap the code in privileged block for upper-stack products
-        ScopedParameterResolver resolver = AccessController.doPrivileged(new PrivilegedAction<ScopedParameterResolver>()
+        ScopedParameterResolver resolver = SecurityHelper.doPrivileged(new PrivilegedAction<ScopedParameterResolver>()
             {
             public ScopedParameterResolver run()
                 {

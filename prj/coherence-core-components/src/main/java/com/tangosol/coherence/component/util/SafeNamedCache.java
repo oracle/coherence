@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import com.tangosol.net.partition.VersionAwareMapListener;
 import com.tangosol.net.partition.VersionedPartitions;
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.AsynchronousAgent;
 import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
@@ -34,7 +35,6 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MapTriggerListener;
 import com.tangosol.util.ValueExtractor;
-import java.security.AccessController;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -752,13 +752,7 @@ public class SafeNamedCache
     
     private void checkInternalAccess()
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
+        SecurityHelper.checkPermission(LocalPermission.INTERNAL_SERVICE);
         }
     
     // From interface: com.tangosol.net.NamedCache
@@ -1160,17 +1154,7 @@ public class SafeNamedCache
      */
     protected com.tangosol.net.NamedCache getRunningNamedCache()
         {
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
-            return ensureRunningNamedCache();
-            }
-        
-        return (NamedCache) AccessController.doPrivileged(
-            new DoAsAction(getEnsureCacheAction()));
+        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureCacheAction()), this::ensureRunningNamedCache);
         }
     
     // Accessor for the property "SafeAsyncNamedCache"

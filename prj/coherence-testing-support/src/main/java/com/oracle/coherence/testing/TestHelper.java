@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,8 +14,8 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.DependenciesHelper;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.Service;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlElement;
 
@@ -24,7 +24,6 @@ import com.tangosol.util.Base;
 import java.io.File;
 import java.io.IOException;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.HashSet;
@@ -35,7 +34,6 @@ import javax.security.auth.Subject;
 import javax.security.auth.x500.X500Principal;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
 * A collection of test-related utilities.
@@ -203,7 +201,7 @@ public class TestHelper
     public static ConfigurableCacheFactory instantiateCacheFactory(
             final XmlElement xmlConfig, final ClassLoader loader)
         {
-        return AccessController.doPrivileged(new PrivilegedAction<ConfigurableCacheFactory>()
+        return SecurityHelper.doPrivileged(new PrivilegedAction<ConfigurableCacheFactory>()
             {
             public ConfigurableCacheFactory run()
                 {

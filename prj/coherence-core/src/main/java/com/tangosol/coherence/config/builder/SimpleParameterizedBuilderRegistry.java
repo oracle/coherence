@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.builder;
 
 import com.oracle.coherence.common.base.Disposable;
 
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 
 import com.tangosol.util.Base;
 
@@ -118,11 +119,7 @@ public class SimpleParameterizedBuilderRegistry
                                       ParameterizedBuilder<? extends T> builder)
             throws IllegalArgumentException
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(new LocalPermission("Service.registerResource"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Service.registerResource"));
 
         synchronized (clzInstance)
             {

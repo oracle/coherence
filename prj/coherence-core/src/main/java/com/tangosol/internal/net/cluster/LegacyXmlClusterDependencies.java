@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,7 @@ import com.tangosol.net.SocketOptions;
 
 import com.tangosol.net.internal.SubstitutionAddressProvider;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.persistence.ConfigurableSnapshotArchiverFactory;
 import com.tangosol.persistence.SnapshotArchiverFactory;
 
@@ -61,7 +62,6 @@ import com.tangosol.util.SimpleResourceRegistry;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.time.Duration;
@@ -110,7 +110,7 @@ public class LegacyXmlClusterDependencies
 
         // establish a default ParameterResolver based on the System properties
         // COH-9952 wrap the code in privileged block for upper-stack products
-        ScopedParameterResolver resolver = AccessController
+        ScopedParameterResolver resolver = SecurityHelper
                 .doPrivileged((PrivilegedAction<ScopedParameterResolver>) () ->
                                         new ScopedParameterResolver(new ChainedParameterResolver(
                                                 new SystemPropertyParameterResolver(),

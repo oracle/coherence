@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ package com.tangosol.coherence.component.util;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -362,15 +363,7 @@ public abstract class BackingMapManagerContext
      */
     public void setClassLoader(ClassLoader loader)
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("BackingMapManagerContext.setClassLoader"));
-            }
-        
+        SecurityHelper.checkPermission(() -> new LocalPermission("BackingMapManagerContext.setClassLoader"));
         __m_ClassLoader = (loader);
         }
     

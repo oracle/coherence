@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -11,7 +11,9 @@ package com.tangosol.util;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.net.CacheFactory;
+import com.tangosol.net.security.SecurityHelper;
+
+import java.security.CodeSource;
 
 
 /**
@@ -94,8 +96,10 @@ public class Unsafe
 
             }
 
-        if (Base.equals(clzCaller.getProtectionDomain().getCodeSource(),
-                        Unsafe.class.getProtectionDomain().getCodeSource()))
+        CodeSource srcUnsafe   = Unsafe.class.getProtectionDomain().getCodeSource();
+        CodeSource srcCaller   = clzCaller.getProtectionDomain().getCodeSource();
+        CodeSource srcSecurity = SecurityHelper.getCodeSource();
+        if (Base.equals(srcCaller, srcUnsafe) || Base.equals(srcCaller, srcSecurity))
             {
             return INSTANCE;
             }

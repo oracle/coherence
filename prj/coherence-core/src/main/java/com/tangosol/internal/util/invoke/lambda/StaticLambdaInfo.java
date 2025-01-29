@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.HashHelper;
@@ -34,7 +35,6 @@ import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
@@ -243,8 +243,7 @@ public class StaticLambdaInfo<T>
                     m_aoCapturedArgs);
 
             // inlined from private SerializedLambda.readResolve method to avoid requiring --add-opens java.base/java.lang.invoke=com.oracle.coherence JPMS.
-            @SuppressWarnings("removal")
-            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<>() {
+            Method deserialize = SecurityHelper.doPrivileged(new PrivilegedExceptionAction<>() {
                 @Override
                 public Method run() throws Exception
                     {
@@ -438,7 +437,7 @@ public class StaticLambdaInfo<T>
         // this code is inlined in #readResolve() to avoid having to loadClass twice.
         try
             {
-            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<Method>()
+            Method deserialize = SecurityHelper.doPrivileged(new PrivilegedExceptionAction<Method>()
                 {
                 public Method run() throws Exception
                     {

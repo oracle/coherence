@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,9 +27,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import java.lang.reflect.Method;
-
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import java.util.Set;
 
@@ -485,7 +482,7 @@ public class WrapperSelector
         //      is needed to call package private method AbstractSelectableChannel#removeKey(SelectionKey).
         //try
         //    {
-        //    metRemove = AccessController.doPrivileged(
+        //    metRemove = SecurityHelper.doPrivileged(
         //            (PrivilegedAction<Method>) () -> {
         //            try
         //                {

@@ -8,7 +8,8 @@ package com.oracle.coherence.common.util;
 
 import com.tangosol.coherence.config.Config;
 
-import java.security.AccessController;
+import com.tangosol.net.security.SecurityHelper;
+
 import java.security.PrivilegedAction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -222,7 +223,7 @@ public class SafeClock
 
     static
         {
-        DEFAULT_JITTER_THRESHOLD = Long.parseLong(AccessController.doPrivileged(
+        DEFAULT_JITTER_THRESHOLD = Long.parseLong(SecurityHelper.doPrivileged(
                 (PrivilegedAction<String>) () ->
                     {
                     // Note: we do not use Config.getProperty to avoid a com.tangosol

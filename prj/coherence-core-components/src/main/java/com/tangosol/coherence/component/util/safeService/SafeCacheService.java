@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,7 +15,6 @@ import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.security.SecurityHelper;
-import java.security.AccessController;
 
 /*
 * Integrates
@@ -258,8 +257,7 @@ public class SafeCacheService
         // import Component.Net.Security;
         // import Component.Util.SafeNamedCache;
         // import com.tangosol.net.CacheService;
-        // import java.security.AccessController;
-        
+
         Security.checkPermission(getSafeCluster(),
             getServiceName(), cache.getCacheName(), "destroy");
         
@@ -271,7 +269,7 @@ public class SafeCacheService
         action.setSafeNamedCache(cacheSafe);
         action.setCacheService((CacheService) getInternalService());
         
-        AccessController.doPrivileged(action);
+        SecurityHelper.doPrivileged(action);
         }
     
     // From interface: com.tangosol.net.CacheService
@@ -311,8 +309,7 @@ public class SafeCacheService
         {
         // import Component.Util.SafeNamedCache;
         // import com.tangosol.net.CacheService;
-        // import java.security.AccessController;
-        
+
         SafeNamedCache cacheSafe = (SafeNamedCache) cache;
         
         removeCacheReference(cacheSafe);
@@ -321,7 +318,7 @@ public class SafeCacheService
         action.setSafeNamedCache(cacheSafe);
         action.setCacheService((CacheService) getInternalService());
         
-        AccessController.doPrivileged(action);
+        SecurityHelper.doPrivileged(action);
         }
     
     protected void removeCacheReference(com.tangosol.coherence.component.util.SafeNamedCache cacheSafe)

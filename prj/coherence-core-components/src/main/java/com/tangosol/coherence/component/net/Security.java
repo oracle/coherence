@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,9 +22,9 @@ import com.tangosol.net.security.DefaultIdentityTransformer;
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.IdentityAsserter;
 import com.tangosol.net.security.IdentityTransformer;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -204,7 +204,6 @@ public abstract class Security
         // import com.tangosol.net.ClusterPermission;
         // import com.tangosol.net.security.Authorizer;
         // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
         // import javax.security.auth.Subject;
         
         Authorizer authorizer = getAuthorizer();
@@ -236,7 +235,7 @@ public abstract class Security
             action.setSubject(subject);
             action.setSecurity(security);
         
-            AccessController.doPrivileged(new DoAsAction(action));
+            SecurityHelper.doPrivileged(new DoAsAction(action));
             }
         }
     
@@ -383,11 +382,9 @@ public abstract class Security
      */
     public static Security getInstance()
         {
-        // import java.security.AccessController;
-        
         if (!isConfigured())
             {
-            AccessController.doPrivileged(new Security.ConfigAction());
+            SecurityHelper.doPrivileged(new Security.ConfigAction());
             }
         return __s_Instance;
         }
