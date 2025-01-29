@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,7 @@ import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
 import com.tangosol.net.cache.KeyAssociation;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.persistence.AbstractPersistenceManager;
 import com.tangosol.persistence.CachePersistenceHelper;
 import com.tangosol.persistence.SafePersistenceWrappers;
@@ -72,7 +73,6 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Date;
@@ -1582,7 +1582,7 @@ public class BerkeleyDBManager
     /**
      * Unsafe singleton.
      */
-    private static final Unsafe UNSAFE = AccessController.doPrivileged(
+    private static final Unsafe UNSAFE = SecurityHelper.doPrivileged(
         (PrivilegedAction<Unsafe>) Unsafe::getUnsafe);
 
     /**

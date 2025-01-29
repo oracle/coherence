@@ -101,6 +101,7 @@ import com.tangosol.net.partition.Ownership;
 
 import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.Security;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.security.StorageAccessAuthorizer;
 
 import com.tangosol.net.topic.NamedTopic;
@@ -127,7 +128,6 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Collection;
@@ -238,10 +238,9 @@ public class ExtensibleConfigurableCacheFactory
 
         Base.checkNotEmpty(sCacheName, "CacheName");
 
-        return System.getSecurityManager() == null
-                ? ensureCacheInternal(sCacheName, loader, options)
-                : AccessController.doPrivileged(new DoAsAction<>(
-                    () -> ensureCacheInternal(sCacheName, loader, options)));
+        return SecurityHelper.hasSecurityManager()
+            ? SecurityHelper.doPrivileged(new DoAsAction<>(() -> ensureCacheInternal(sCacheName, loader, options)))
+            : ensureCacheInternal(sCacheName, loader, options);
         }
 
     /**
@@ -407,7 +406,7 @@ public class ExtensibleConfigurableCacheFactory
         PrivilegedAction<NamedTopic> action =
             () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
 
-        return AccessController.doPrivileged(new DoAsAction<>(action));
+        return SecurityHelper.doPrivileged(new DoAsAction<>(action));
         }
 
     <C extends NamedCollection, M extends TypedResourceMapping, V>
@@ -1560,7 +1559,7 @@ public class ExtensibleConfigurableCacheFactory
 
             // establish a default ParameterResolver based on the System properties
             // COH-9952 wrap the code in privileged block for upstack products
-            ScopedParameterResolver resolverScoped = AccessController.
+            ScopedParameterResolver resolverScoped = SecurityHelper.
                 doPrivileged(new PrivilegedAction<ScopedParameterResolver>()
                 {
                 public ScopedParameterResolver run()

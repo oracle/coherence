@@ -357,6 +357,7 @@
         <!-- internal/shaded modules -->
         <module>coherence-core</module>
         <module>coherence-core-21</module>
+        <module>coherence-core-24</module>
         <module>coherence-core-components</module>
         <module>coherence-tracing</module>
 

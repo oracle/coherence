@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,7 @@ import com.tangosol.net.AddressProviderFactory;
 import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.SocketProviderFactory;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.persistence.SnapshotArchiverFactory;
 
 import com.tangosol.run.xml.XmlElement;
@@ -51,7 +52,6 @@ import java.net.InetSocketAddress;
 import java.net.SocketOptions;
 import java.net.UnknownHostException;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.Collection;
@@ -2248,7 +2248,7 @@ public class DefaultClusterDependencies
     protected String makeClusterName()
         {
         // Set default cluster name to the user name
-        String sName = AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("user.name"));
+        String sName = SecurityHelper.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("user.name"));
 
         if (sName != null)
             {

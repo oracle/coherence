@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.internal.net.ScopedUriScopeResolver;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
+
+import com.tangosol.net.security.SecurityHelper;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -28,7 +30,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.ArrayList;
@@ -277,9 +278,9 @@ public class ScopedCacheFactoryBuilder
                                                   final ClassLoader       loader,
                                                   final ParameterResolver resolver)
         {
-        return System.getSecurityManager() == null
+        return SecurityHelper.hasSecurityManager()
                 ? getFactoryInternal(sConfigURI, loader, resolver)
-                : AccessController.doPrivileged((PrivilegedAction<ConfigurableCacheFactory>)
+                : SecurityHelper.doPrivileged((PrivilegedAction<ConfigurableCacheFactory>)
                     () -> getFactoryInternal(sConfigURI, loader, resolver));
         }
 

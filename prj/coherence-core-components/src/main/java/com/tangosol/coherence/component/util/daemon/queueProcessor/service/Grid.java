@@ -59,7 +59,6 @@ import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.license.LicenseException;
 import com.tangosol.net.ActionPolicy;
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
@@ -70,6 +69,7 @@ import com.tangosol.net.management.NotificationManager;
 import com.tangosol.net.management.Registry;
 import com.tangosol.net.security.LocalPermission;
 import com.tangosol.net.security.PermissionInfo;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.component.EventDeathException;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.XmlElement;
@@ -775,14 +775,7 @@ public abstract class Grid
      */
     protected void checkShutdownPermission()
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Cluster.shutdown"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Cluster.shutdown"));
         }
     
     // Declared at the super level

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,8 @@ package com.oracle.coherence.common.util;
 
 import com.tangosol.coherence.config.Config;
 
-import java.security.AccessController;
+import com.tangosol.net.security.SecurityHelper;
+
 import java.security.PrivilegedAction;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -222,7 +223,7 @@ public class SafeClock
 
     static
         {
-        DEFAULT_JITTER_THRESHOLD = Long.parseLong(AccessController.doPrivileged(
+        DEFAULT_JITTER_THRESHOLD = Long.parseLong(SecurityHelper.doPrivileged(
                 (PrivilegedAction<String>) () ->
                     {
                     // Note: we do not use Config.getProperty to avoid a com.tangosol

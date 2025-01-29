@@ -37,6 +37,11 @@
       -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-core-24</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-core-21</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -326,6 +331,11 @@
 
   <build>
     <resources>
+      <!-- include the coherence-core-24 build output in MR JAR format -->
+      <resource>
+        <directory>../coherence-core-24/target/classes</directory>
+        <targetPath>META-INF/versions/24</targetPath>
+      </resource>
       <!-- include the coherence-core-21 build output in MR JAR format -->
       <resource>
         <directory>../coherence-core-21/target/classes</directory>
@@ -363,6 +373,7 @@
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
                   <include>${coherence.group.id}:coherence-core-21</include>
+                  <include>${coherence.group.id}:coherence-core-24</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:opentracing</include>
                   <include>${coherence.group.id}:opentelemetry</include>
@@ -383,6 +394,12 @@
                 </filter>
                 <filter>
                   <artifact>${coherence.group.id}:coherence-core-21</artifact>
+                  <excludes>
+                    <exclude>**/*</exclude>
+                  </excludes>
+                </filter>
+                <filter>
+                  <artifact>${coherence.group.id}:coherence-core-24</artifact>
                   <excludes>
                     <exclude>**/*</exclude>
                   </excludes>

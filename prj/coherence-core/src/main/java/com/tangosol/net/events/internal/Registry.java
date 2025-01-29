@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events.internal;
 
@@ -16,6 +16,7 @@ import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.NamedEventInterceptor;
 
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.RegistrationBehavior;
@@ -81,12 +82,7 @@ public class Registry
      */
     public synchronized void unregisterEventInterceptor(String sIdentifier)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerEventInterceptor"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Service.registerEventInterceptor"));
 
         EventInterceptor interceptor = m_mapInterceptors.remove(sIdentifier);
         if (interceptor != null)
@@ -189,12 +185,7 @@ public class Registry
      */
     protected void registerEventInterceptorInternal(NamedEventInterceptor<?> incptrNamed)
         {
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Service.registerEventInterceptor"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Service.registerEventInterceptor"));
 
         String               sIdentifier = incptrNamed.getRegisteredName();
         RegistrationBehavior behavior    = incptrNamed.getBehavior();

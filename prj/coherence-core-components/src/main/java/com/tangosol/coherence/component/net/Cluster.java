@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -82,6 +82,7 @@ import com.tangosol.net.internal.PacketIdentifier;
 import com.tangosol.net.internal.SubstitutionSocketAddressProvider;
 import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.net.security.LocalPermission;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -625,14 +626,7 @@ public class Cluster
      */
     protected void checkShutdownPermission()
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(
-                new LocalPermission("Cluster.shutdown"));
-            }
+        SecurityHelper.checkPermission(() -> new LocalPermission("Cluster.shutdown"));
         }
     
     // From interface: com.tangosol.net.Cluster

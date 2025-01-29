@@ -944,6 +944,10 @@
                       <artifactId>coherence-core-21</artifactId>
                     </exclusion>
                     <exclusion>
+                      <groupId>${coherence.group.id}</groupId>
+                      <artifactId>coherence-core-24</artifactId>
+                    </exclusion>
+                    <exclusion>
                       <groupId>com.google.code.findbugs</groupId>
                       <artifactId>jsr305</artifactId>
                     </exclusion>

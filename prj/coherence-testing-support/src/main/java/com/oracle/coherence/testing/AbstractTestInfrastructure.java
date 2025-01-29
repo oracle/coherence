@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,6 +59,7 @@ import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.DefaultConfigurableCacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.Service;
 
@@ -92,7 +93,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -180,14 +180,9 @@ public abstract class AbstractTestInfrastructure
     public void _beforeTest()
         {
         System.out.println(createMessageHeader() + " >>>> Starting test " + m_testName.getMethodName());
-        String sName = AccessController.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("user.name"));
-
-        if (sName == null)
-            {
-            System.out.println("System property user.name is null; set it to coh");
-            AccessController.doPrivileged((PrivilegedAction<String>) () -> System.setProperty("user.name", "coh"));
-            }
+        ensureUserProperty();
         }
+
 
     @After
     public void _afterTest()
@@ -224,6 +219,17 @@ public abstract class AbstractTestInfrastructure
 
 
     // ----- helpers --------------------------------------------------------
+
+    protected void ensureUserProperty()
+        {
+        String sName = SecurityHelper.doPrivileged((PrivilegedAction<String>) () -> System.getProperty("user.name"));
+
+        if (sName == null)
+            {
+            System.out.println("System property user.name is null; set it to coh");
+            SecurityHelper.doPrivileged((PrivilegedAction<String>) () -> System.setProperty("user.name", "coh"));
+            }
+        }
 
     /**
      * Initialize the system properties.

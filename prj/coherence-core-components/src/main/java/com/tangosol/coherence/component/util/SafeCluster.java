@@ -52,7 +52,6 @@ import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.SafeHashSet;
 import java.lang.ref.WeakReference;
-import java.security.AccessController;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -387,13 +386,7 @@ public class SafeCluster
     
     private void checkInternalAccess()
         {
-        // import com.tangosol.net.security.LocalPermission;
-        
-        SecurityManager security = System.getSecurityManager();
-        if (security != null)
-            {
-            security.checkPermission(LocalPermission.INTERNAL_SERVICE);
-            }
+        SecurityHelper.checkPermission(LocalPermission.INTERNAL_SERVICE);
         }
     
     protected void cleanup()
@@ -414,13 +407,12 @@ public class SafeCluster
     public void configure(com.tangosol.run.xml.XmlElement xmlConfig)
         {
         // import com.tangosol.net.ClusterDependencies;
-        // import java.security.AccessController;
-        
+
         SafeCluster.ParseDependenciesAction action =
             (SafeCluster.ParseDependenciesAction) _newChild("ParseDependenciesAction");
         action.setXmlConfig(xmlConfig);
         
-        setDependencies((ClusterDependencies) AccessController.doPrivileged(action));
+        setDependencies((ClusterDependencies) SecurityHelper.doPrivileged(action));
         }
     
     /**
@@ -724,8 +716,7 @@ public class SafeCluster
         // import com.tangosol.net.ProxyService;
         // import com.tangosol.net.security.DoAsAction;
         // import com.tangosol.net.Service;
-        // import java.security.AccessController;
-        
+
         String sCacheName = (InvocationService.TYPE_DEFAULT.equals(sType)
             || ProxyService.TYPE_DEFAULT.equals(sType)) ? null : "*";
         Security.checkPermission(getInternalCluster(), sName, sCacheName, "join");
@@ -733,10 +724,8 @@ public class SafeCluster
         SafeCluster.EnsureSafeServiceAction action = (SafeCluster.EnsureSafeServiceAction) _newChild("EnsureSafeServiceAction");
         action.setServiceName(sName);
         action.setServiceType(sType);
-        
-        return (Service) (System.getSecurityManager() == null
-                 ? action.run()
-                 : AccessController.doPrivileged(new DoAsAction(action)));
+
+        return (Service) SecurityHelper.doIfSecure(new DoAsAction(action), action::run);
         }
     
     // From interface: com.oracle.coherence.common.base.Lockable
@@ -965,17 +954,7 @@ public class SafeCluster
      */
     public com.tangosol.coherence.component.net.Cluster getRunningCluster()
         {
-        // import Component.Net.Cluster;
-        // import com.tangosol.net.security.DoAsAction;
-        // import java.security.AccessController;
-        
-        if (System.getSecurityManager() == null)
-            {
-            return ensureRunningCluster();
-            }
-        
-        return (Cluster) AccessController.doPrivileged(
-            new DoAsAction(getEnsureClusterAction()));
+        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureClusterAction()), this::ensureRunningCluster);
         }
     
     // Accessor for the property "ScopedServiceStore"

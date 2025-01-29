@@ -59,6 +59,7 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedCollection;
 import com.tangosol.net.cache.CacheMap;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlBean;
 import com.tangosol.run.xml.XmlDocument;
@@ -110,7 +111,6 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.sql.Date;
@@ -7579,7 +7579,7 @@ public abstract class ExternalizableHelper
 
         try
             {
-            XmlDocument xml = AccessController.doPrivileged(new PrivilegedAction<XmlDocument>()
+            XmlDocument xml = SecurityHelper.doPrivileged(new PrivilegedAction<XmlDocument>()
                 {
                 public XmlDocument run()
                     {
@@ -7624,7 +7624,7 @@ public abstract class ExternalizableHelper
 
             final XmlElement xmlFactory = xml.getSafeElement("object-stream-factory");
 
-            factory = AccessController.doPrivileged(new PrivilegedAction<ObjectStreamFactory>()
+            factory = SecurityHelper.doPrivileged(new PrivilegedAction<ObjectStreamFactory>()
                 {
                 public ObjectStreamFactory run()
                     {

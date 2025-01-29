@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,8 +21,6 @@ import com.tangosol.net.security.PermissionInfo;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
-import java.security.AccessControlException;
-import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.security.PrivilegedAction;
@@ -440,15 +438,12 @@ public class Standard
      */
     protected javax.security.auth.Subject loginSecure(javax.security.auth.callback.CallbackHandler handler, javax.security.auth.Subject subject)
         {
-        // import java.security.AccessController;
-        // import javax.security.auth.login.LoginContext;
-        
         Standard.CreateLoginCtxAction action = new Standard.CreateLoginCtxAction();
         action.setDependencies(getDependencies());
         action.setHandler(handler);
         action.setSubject(subject);
         
-        LoginContext lc = (LoginContext) AccessController.doPrivileged(action);
+        LoginContext lc = (LoginContext) SecurityHelper.doPrivileged(action);
         
         try
             {
@@ -741,11 +736,6 @@ public class Standard
             {
             permission = (ClusterPermission) getDependencies().getAccessController().decrypt(
                 info.getSignedPermission(), info.getSubject(), subject);
-            }
-        catch (GeneralSecurityException e)
-            {
-            throw new AccessControlException(
-                "Security configuration mismatch or break-in attempt", permission);
             }
         catch (Exception e) // ClassNotFoundException, IOException
             {

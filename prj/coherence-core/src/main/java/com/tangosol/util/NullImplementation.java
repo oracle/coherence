@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,7 @@ import com.tangosol.net.partition.DistributionManager;
 import com.tangosol.net.partition.PartitionAssignmentStrategy;
 import com.tangosol.net.partition.PartitionSet;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.util.processor.AbstractProcessor;
@@ -71,7 +72,6 @@ import java.net.InetSocketAddress;
 
 import java.nio.CharBuffer;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import java.util.AbstractMap;
@@ -3227,7 +3227,7 @@ public class NullImplementation
     * Singleton implementation: Since the NullImplementation contains no
     * information, only one ever has to exist.
     */
-    private static final NullImplementation LOADER = AccessController.doPrivileged(
+    private static final NullImplementation LOADER = SecurityHelper.doPrivileged(
         new PrivilegedAction<NullImplementation>()
             {
             public NullImplementation run()
