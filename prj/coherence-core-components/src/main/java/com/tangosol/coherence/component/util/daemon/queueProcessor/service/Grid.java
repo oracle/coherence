@@ -6946,7 +6946,7 @@ public abstract class Grid
             
             super.onReceived();
 
-            if (!service.isWelcomedBy(memberFrom))
+            if (!service.isWelcomedBy(memberFrom) || mapConfig.isEmpty())
                 {
                 // COH-5774: drop "early" updates.  We must have received a MemberWelcome first.
                 _trace("Ignoring premature ConfigUpdate from member " + memberFrom.getId(), 5);
