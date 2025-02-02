@@ -23,6 +23,7 @@ import com.tangosol.coherence.component.net.Message;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.PartialRequest;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.internal.net.topic.NamedTopicView;
 import com.tangosol.internal.net.topic.ChannelAllocationStrategy;
@@ -296,7 +297,7 @@ public class PagedTopic
         __mapChildren.put("ConfigRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigRequest.get_CLASS());
         __mapChildren.put("ConfigResponse", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigResponse.get_CLASS());
         __mapChildren.put("ConfigSync", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigSync.get_CLASS());
-        __mapChildren.put("ConfigUpdate", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ConfigUpdate.get_CLASS());
+        __mapChildren.put("ConfigUpdate", PagedTopic.ConfigUpdate.get_CLASS());
         __mapChildren.put("ContainsAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ContainsAllRequest.get_CLASS());
         __mapChildren.put("ContainsKeyRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ContainsKeyRequest.get_CLASS());
         __mapChildren.put("ContainsValueRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.ContainsValueRequest.get_CLASS());
@@ -2409,6 +2410,85 @@ public class PagedTopic
         finally
             {
             lock.unlock();
+            }
+        }
+
+    // ----- inner class ConfigUpdate override ------------------------------
+
+    public static class ConfigUpdate
+            extends    Grid.ConfigUpdate
+        {
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+         * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new PagedTopic.ConfigUpdate();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+         * Property with auto-generated accessor that returns the Class object
+         * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$ConfigUpdate");
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        // Declared at the super level
+        /**
+         * This is the event that is executed when a Message is received.
+         * <p>
+         * It is the main processing event of the Message called by the
+         * <code>Service.onMessage()</code> event. With regards to the use of
+         * Message components within clustered Services, Services are designed
+         * by dragging Message components into them as static children. These
+         * Messages are the components that a Service can send to other running
+         * instances of the same Service within a cluster. When the onReceived
+         * event is invoked by a Service, it means that the Message has been
+         * received; the code in the onReceived event is therefore the Message
+         * specific logic for processing a received Message. For example, when
+         * onReceived is invoked on a Message named FindData, the onReceived
+         * event should do the work to "find the data", because it is being
+         * invoked by the Service that received the "find the data" Message.
+         */
+        public void onReceived()
+            {
+            com.tangosol.coherence.component.util.ServiceConfig.Map mapConfig  = getConfigMap();
+            Member                                                  memberFrom = getFromMember();
+
+            super.onReceived();
+
+            // COH-31373: super will skip below for paged topic service, ensure it's done here.
+            if (getService().isWelcomedBy(memberFrom))
+                {
+                Map mapUpdate = getUpdateMap();
+                for (Iterator iter = mapUpdate.keySet().iterator(); iter.hasNext(); )
+                    {
+                    Object oKey = iter.next();
+                    if (mapConfig.isRequestPending(oKey))
+                        {
+                        // ignore the update
+                        _trace("Request is pending; ignoring the ConfigUpdate " + getDescription(), 5);
+                        iter.remove();
+                        }
+                    }
+
+                mapConfig.updateInternal(mapUpdate, isRemove());
+                }
             }
         }
 
