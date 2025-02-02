@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -918,6 +918,18 @@ public abstract class AbstractSocketBus
     protected Collection<Connection> getConnections()
         {
         return f_mapConnections.values();
+        }
+
+    /**
+     * Return the currently managed peer EndPoints.
+     *
+     * @return the currently managed peer EndPoints
+     *
+     * @since 12.2.1.4.25
+     */
+    public Set<EndPoint> getPeerEndPoints()
+        {
+        return f_mapConnections.keySet();
         }
 
     /**
