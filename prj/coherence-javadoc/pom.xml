@@ -536,6 +536,8 @@
 
                   <skip>false</skip>
                   <sourceFileIncludes>
+                    <include>com/oracle/coherence/ai/**/*.java</include>
+
                     <include>com/oracle/coherence/common/base/*.java</include>
                     <include>com/oracle/coherence/cdi/**/*.java</include>
                     <include>com/oracle/coherence/repository/**/*.java</include>
@@ -595,6 +597,8 @@
                     <include>com/tangosol/coherence/jcache/partitionedcache/*.java</include>
                     <include>com/tangosol/coherence/jcache/passthroughcache/*.java</include>
                     <include>com/tangosol/coherence/jcache/remotecache/*.java</include>
+
+                    <include>com/tangosol/coherence/protobuf/*.java</include>
 
                     <include>com/tangosol/coherence/rest/*.java</include>
                     <include>com/tangosol/coherence/rest/config/*.java</include>
