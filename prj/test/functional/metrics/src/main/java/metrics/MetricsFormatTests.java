@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,9 +20,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+
 import java.net.HttpURLConnection;
 import java.net.URI;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -128,6 +132,56 @@ public class MetricsFormatTests
                             fail("Unrecognised metrics format " + f_format);
                         }
                     }
+                }
+            }
+        }
+
+    /**
+     * Just extracts metrics into the file so their format can be verified by an external tool.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void shouldHaveCorrectFormat() throws Exception
+        {
+        LocalPlatform    platform = LocalPlatform.get();
+        Capture<Integer> port     = new Capture<>(platform.getAvailablePorts());
+
+        // start Coherence with metrics configured with the test format
+        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                    SystemProperty.of(f_sProperty, f_fPropertyValue),
+                    SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                    SystemProperty.of("coherence.metrics.http.port", port),
+                    IPv4Preferred.yes(),
+                    LocalHost.only()))
+            {
+            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+
+            String sURL = "http://127.0.0.1:" + port.get() + "/metrics";
+
+            HttpURLConnection con = (HttpURLConnection) URI.create(sURL).toURL().openConnection();
+            con.setRequestProperty("Accept", "text/plain");
+            con.setRequestMethod("GET");
+
+            int responseCode = con.getResponseCode();
+            assertThat(responseCode, is(200));
+
+            try (PrintWriter writer = new PrintWriter("target/" + f_sFormat + ".metrics.txt");
+                 InputStream in = con.getInputStream())
+                {
+                BufferedReader isr = new BufferedReader(new InputStreamReader(in));
+                String line;
+                int counter = 0;
+                while ((line = isr.readLine()) != null )
+                    {
+                    writer.print(line + "\n");
+                    // limit example size otherwise verification takes too much time to complete
+                    if (counter++ == 110)
+                        {
+                        break;
+                        }
+                    }
+                writer.print("# EOF");
                 }
             }
         }
