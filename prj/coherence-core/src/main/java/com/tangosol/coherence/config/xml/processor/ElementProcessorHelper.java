@@ -102,9 +102,6 @@ public class ElementProcessorHelper
                             }
                         else if (listChildren.size() == 2)
                             {
-                            // or there may be a scheme-name element and a foreign namespace
-                            qName = new QualifiedName(sPrefix, "scheme-name");
-
                             XmlElement elementOne = listChildren.get(0);
                             XmlElement elementTwo = listChildren.get(1);
 
