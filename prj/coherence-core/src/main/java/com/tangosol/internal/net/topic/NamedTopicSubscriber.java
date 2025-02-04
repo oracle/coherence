@@ -2474,10 +2474,15 @@ public class NamedTopicSubscriber<V>
      */
     public void closeInternal(boolean fDestroyed)
         {
-        if (m_nState != STATE_CLOSED)
+        if (m_nState != STATE_CLOSED && m_nState != STATE_CLOSING)
             {
             try (Sentry<?> ignored = f_gate.close())
                 {
+                if (m_nState == STATE_CLOSED || m_nState == STATE_CLOSING)
+                    {
+                    // some other thread got in here first
+                    return;
+                    }
                 setState(STATE_CLOSING); // accept no new requests, and cause all pending ops to complete ASAP (see onReceiveResult)
                 }
 
