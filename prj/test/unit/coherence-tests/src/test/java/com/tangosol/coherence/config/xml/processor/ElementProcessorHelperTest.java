@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -41,6 +41,18 @@ public class ElementProcessorHelperTest
             + "  <foo:custom/>"
             + "  <scheme-name>custom-scheme</scheme-name>"
             + "</class-scheme>";
+
+    public static final String XML_CACHE_STORE_CUSTOM_AND_FEDERATED_LOADING
+            = "<cachestore-scheme>"
+            + "  <federated-loading>true</federated-loading>"
+            + "  <spring:bean>${bean-name}</spring:bean>"
+            + "</cachestore-scheme>";
+
+    public static final String XML_CACHE_STORE_FEDERATED_LOADING_AND_CUSTOM
+            = "<cachestore-scheme>"
+              + "  <federated-loading>true</federated-loading>"
+              + "  <spring:bean>${bean-name}</spring:bean>"
+              + "</cachestore-scheme>";
 
     /**
      * Make sure that a class-scheme element that contains a custom namespace
@@ -93,6 +105,48 @@ public class ElementProcessorHelperTest
         {
         ProcessingContext    context  = mock(ProcessingContext.class);
         XmlElement           xml      = XmlHelper.loadXml(XML_CLASS_SCHEME_CUSTOM_AND_NAME);
+        ParameterizedBuilder builder  = mock(ParameterizedBuilder.class);
+
+        when(context.processElement(any(XmlElement.class))).thenReturn(builder);
+
+        ParameterizedBuilder<?> result = ElementProcessorHelper.processParameterizedBuilder(context, xml);
+
+        assertThat(result, is(sameInstance(builder)));
+        }
+
+    /**
+     * Make sure that a cachestore-scheme element that contains both
+     * a custom namespace element and a federated-loading element is
+     * processed correctly.
+     *
+     * @since 14.1.2.0.2
+     */
+    @Test
+    public void shouldProcessCacheStoreSchemeWithCustomElementAndFederatedLoading()
+        {
+        ProcessingContext       context  = mock(ProcessingContext.class);
+        XmlElement              xml      = XmlHelper.loadXml(XML_CACHE_STORE_CUSTOM_AND_FEDERATED_LOADING);
+        ParameterizedBuilder<?> builder  = mock(ParameterizedBuilder.class);
+
+        when(context.processElement(any(XmlElement.class))).thenReturn(builder);
+
+        ParameterizedBuilder<?> result = ElementProcessorHelper.processParameterizedBuilder(context, xml);
+
+        assertThat(result, is(sameInstance(builder)));
+        }
+
+    /**
+     * Make sure that a cachestore-scheme element that contains both
+     * a custom namespace element and a federated-loading element is
+     * processed correctly.
+     *
+     * @since 14.1.2.0.2
+     */
+    @Test
+    public void shouldProcessClassSchemeWithCustomElementAndFederatedLoadingReversedOrder() throws Exception
+        {
+        ProcessingContext    context  = mock(ProcessingContext.class);
+        XmlElement           xml      = XmlHelper.loadXml(XML_CACHE_STORE_FEDERATED_LOADING_AND_CUSTOM);
         ParameterizedBuilder builder  = mock(ParameterizedBuilder.class);
 
         when(context.processElement(any(XmlElement.class))).thenReturn(builder);
