@@ -551,6 +551,10 @@ public class NamedTopicSubscriber<V>
     @Override
     public int getChannelCount()
         {
+        if (m_nState != STATE_CONNECTED)
+            {
+            return f_topic.getChannelCount();
+            }
         TopicChannel[] aChannel = m_aChannel;
         return  aChannel == null ? f_topic.getChannelCount() : aChannel.length;
         }
