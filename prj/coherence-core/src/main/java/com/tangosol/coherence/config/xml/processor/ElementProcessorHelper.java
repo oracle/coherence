@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -123,14 +123,12 @@ public class ElementProcessorHelper
                                 XmlElement elementOne = listChildren.get(0);
                                 XmlElement elementTwo = listChildren.get(1);
 
-                                if (elementOne.getQualifiedName().equals(qName)
-                                        && !elementTwo.getQualifiedName().getPrefix().equals(sPrefix))
+                                if (!elementTwo.getQualifiedName().getPrefix().equals(sPrefix))
                                     {
                                     // first element is scheme-name and second element is a foreign namespace
                                     bldr = ensureBuilderOrNull(context.processElement(elementTwo));
                                     }
-                                else if (!elementOne.getQualifiedName().getPrefix().equals(sPrefix)
-                                        && elementTwo.getQualifiedName().equals(qName))
+                                else if (!elementOne.getQualifiedName().getPrefix().equals(sPrefix))
                                     {
                                     // second element is scheme-name and first element is a foreign namespace
                                     bldr = ensureBuilderOrNull(context.processElement(elementOne));
