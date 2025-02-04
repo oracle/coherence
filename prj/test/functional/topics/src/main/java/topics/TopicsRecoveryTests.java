@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.NonBlocking;
 
 import com.oracle.coherence.common.util.Threads;
@@ -112,6 +113,7 @@ public class TopicsRecoveryTests
     @Before
     public void setupTest() throws Exception
         {
+        System.err.println(">>>> Starting setup for test " + m_testName.getMethodName());
         m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
 
         System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
@@ -126,13 +128,16 @@ public class TopicsRecoveryTests
         s_coherence.start().get(5, TimeUnit.MINUTES);
         s_session = s_coherence.getSession();
         s_count.incrementAndGet();
+        System.err.println(">>>> Completed setup for test " + m_testName.getMethodName());
         }
 
     @After
     public void cleanupTest()
         {
+        System.err.println(">>>> Starting cleanup for test " + m_testName.getMethodName());
         Coherence.closeAll();
         CacheFactory.shutdown();
+        System.err.println(">>>> Completed cleanup for test " + m_testName.getMethodName());
         }
 
     @Test
@@ -173,22 +178,22 @@ public class TopicsRecoveryTests
                 try (Publisher<Message> publisher = topic.createPublisher())
                     {
                     int i = 0;
-                    System.err.println("Publishing " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Publishing " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
                     for (; i < cMsgTotal / 2; i++)
                         {
                         publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
                         }
-                    System.err.println("Flushing Publisher");
+                    Logger.info(">>>> Flushing Publisher");
                     publisher.flush().get(5, TimeUnit.MINUTES);
 
                     restartService(topic);
 
-                    System.err.println("Publishing remaining " + (cMsgTotal - i) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Publishing remaining " + (cMsgTotal - i) + " messages of " + cbMessage + " bytes");
                     for (; i < cMsgTotal; i++)
                         {
                         publisher.publish(new Message(i, sMsg)).get(30, TimeUnit.SECONDS);
                         }
-                    System.err.println("Flushing Publisher");
+                    Logger.info(">>>> Flushing Publisher");
                     publisher.flush().get(5, TimeUnit.MINUTES);
 
                     // assert that all the expected messages exist in the topic
@@ -208,8 +213,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -291,8 +296,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -331,15 +336,15 @@ public class TopicsRecoveryTests
                 try (Publisher<Message> publisher = topic.createPublisher();
                      NamedTopicSubscriber<Message> subscriber = (NamedTopicSubscriber<Message>) topic.createSubscriber())
                     {
-                    System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal; i++)
                         {
                         publisher.publish(new Message(i, sMsg));
                         }
-                    System.err.println("Flushing Publisher");
+                    Logger.info(">>>> Flushing Publisher");
                     publisher.flush().get(5, TimeUnit.MINUTES);
 
-                    System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
                     Subscriber.Element<Message> element = null;
                     int m = 0;
                     for ( ; m < cMsgTotal / 2; m++)
@@ -351,11 +356,11 @@ public class TopicsRecoveryTests
                         assertThat(message.m_id, is(m));
                         }
                     assertThat(element, is(notNullValue()));
-                    System.err.println("Subscriber committing element at " + element.getPosition());
+                    Logger.info(">>>> Subscriber committing element at " + element.getPosition());
                     assertThat(element.commit().isSuccess(), is(true));
 
                     // read some more and do not commit - restart should be from the commit
-                    System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal / 10; i++)
                         {
                         element = subscriber.receive().get(1, TimeUnit.MINUTES);
@@ -378,7 +383,7 @@ public class TopicsRecoveryTests
                     // so we cannot just check its state
                     assertThat(latch.await(5, TimeUnit.MINUTES), is(true));
 
-                    System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)
                         {
                         element = subscriber.receive().get(1, TimeUnit.MINUTES);
@@ -392,8 +397,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -432,15 +437,15 @@ public class TopicsRecoveryTests
                 try (Publisher<Message>  publisher  = topic.createPublisher();
                      Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
                     {
-                    System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal; i++)
                         {
                         publisher.publish(new Message(i, sMsg));
                         }
-                    System.err.println("Flushing Publisher");
+                    Logger.info(">>>> Flushing Publisher");
                     publisher.flush().get(5, TimeUnit.MINUTES);
 
-                    System.err.println("Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving " + (cMsgTotal / 2) + " messages of " + cbMessage + " bytes");
                     Subscriber.Element<Message> element = null;
                     int m = 0;
                     for ( ; m < cMsgTotal / 2; m++)
@@ -452,11 +457,11 @@ public class TopicsRecoveryTests
                         assertThat(message.m_id, is(m));
                         }
                     assertThat(element, is(notNullValue()));
-                    System.err.println("Subscriber committing element at " + element.getPosition() + " value=" + element.getValue());
+                    Logger.info(">>>> Subscriber committing element at " + element.getPosition() + " value=" + element.getValue());
                     assertThat(element.commit().isSuccess(), is(true));
 
                     // read some more and do not commit - restart should be from the commit
-                    System.err.println("Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving a further " + (cMsgTotal / 10) + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal / 10; i++)
                         {
                         element = subscriber.receive().get(1, TimeUnit.MINUTES);
@@ -467,7 +472,7 @@ public class TopicsRecoveryTests
 
                     assertThat(((NamedTopicSubscriber<Message>) subscriber).getState(), is(NamedTopicSubscriber.STATE_DISCONNECTED));
 
-                    System.err.println("Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
+                    Logger.info(">>>> Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)
                         {
                         element = subscriber.receive().get(1, TimeUnit.MINUTES);
@@ -481,8 +486,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -537,8 +542,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -570,7 +575,7 @@ public class TopicsRecoveryTests
                 // create a subscriber group to retain messages
                 topic.ensureSubscriberGroup("test");
 
-                System.err.println("Starting test");
+                Logger.info(">>>> Starting test");
                 try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.id(0), Publisher.OnFailure.Continue))
                     {
                     PublishTask task = new PublishTask(publisher, 5);
@@ -590,8 +595,8 @@ public class TopicsRecoveryTests
 
                     assertThat(publisher.isActive(), is(true));
 
-                    System.err.println("Publishing task published " + task.getPublishedCount() + " messages");
-                    System.err.println("Publishing final message");
+                    Logger.info(">>>> Publishing task published " + task.getPublishedCount() + " messages");
+                    Logger.info(">>>> Publishing final message");
 
                     Boolean fSuccess = publisher.publish(new Message(9999, "foo"))
                             .handle((s, err) ->
@@ -605,13 +610,13 @@ public class TopicsRecoveryTests
                                             err = cause;
                                             cause = err.getCause();
                                             }
-                                        System.err.println("Final publish failed " + err.getMessage());
+                                        Logger.info(">>>> Final publish failed " + err.getMessage());
                                         err.printStackTrace();
                                         return false;
                                         }
                                     else
                                         {
-                                        System.err.println("Final publish success " + s);
+                                        Logger.info(">>>> Final publish success " + s);
                                         return true;
                                         }
                                     })
@@ -625,8 +630,8 @@ public class TopicsRecoveryTests
             }
         catch (TimeoutException e)
             {
-            System.err.println("Test timed out: ");
-            System.err.println(Threads.getThreadDump(true));
+            Logger.info(">>>> Test timed out: ");
+            Logger.info(Threads.getThreadDump(true));
             fail("Test failed with exception: " + e.getMessage());
             }
         }
@@ -660,7 +665,7 @@ public class TopicsRecoveryTests
         String            serviceName = service.getInfo().getServiceName();
 
 
-        System.err.println("Stopping topics service " + serviceName);
+        Logger.info(">>>> Stopping topics service " + serviceName);
 
         Service serviceFinal = service instanceof SafeCacheService
                 ? ((SafeCacheService) service).getRunningCacheService()
@@ -672,7 +677,7 @@ public class TopicsRecoveryTests
         Eventually.assertDeferred("Failed to restart service waiting for membership count" + service,
                 () -> service.getInfo().getServiceMembers().size(), is(cMember));
 
-        System.err.println("Restarted topics service " + serviceName);
+        Logger.info(">>>> Restarted topics service " + serviceName);
         }
 
     // ----- inner class: Message -------------------------------------------
@@ -746,7 +751,7 @@ public class TopicsRecoveryTests
                 int                     nOnePercent  = cMsgTotal / 100;
                 String                  sValue       = Base.getRandomString(cbMessage, cbMessage, true);
 
-                System.err.println("Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
+                Logger.info(">>>> Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
 
                 for (int i = 0; i < cMsgTotal; i++)
                     {
@@ -761,16 +766,16 @@ public class TopicsRecoveryTests
                         }
                     }
                 
-                System.err.println("Flushing Publisher");
+                Logger.info(">>>> Flushing Publisher");
                 m_publisher.flush()
                         .handle((_void, err) -> null)
                         .get(5, TimeUnit.MINUTES); // ensure we publish everything within 5 minutes so the test does not hang with deadlocks if there are bugs anywhere
                 m_future.complete(cMsgTotal);
-                System.err.println("Publisher Completed");
+                Logger.info(">>>> Publisher Completed");
                 }
             catch (Throwable e)
                 {
-                System.err.println("Publisher failed " + e);
+                Logger.info(">>>> Publisher failed " + e);
                 e.printStackTrace();
                 m_future.completeExceptionally(e);
                 }
@@ -820,7 +825,7 @@ public class TopicsRecoveryTests
             {
             try
                 {
-                System.err.println("Subscriber receiving " + m_cMessage + " messages");
+                Logger.info(">>>> Subscriber receiving " + m_cMessage + " messages");
                 int          nLastId        = -1;
                 Set<Integer> setKeys        = new HashSet<>();
                 int          cTotalReceived = 0;
@@ -861,8 +866,7 @@ public class TopicsRecoveryTests
 
                 m_cReceivedDistinct = setKeys.size();
 
-                System.err.println();
-                System.err.println("Subscriber completed - received " + cTotalReceived + " messages, "
+                Logger.info(">>>> Subscriber completed - received " + cTotalReceived + " messages, "
                                            + (cTotalReceived - m_cReceivedDistinct) + " duplicates");
 
                 m_future.complete(m_cReceivedDistinct);
