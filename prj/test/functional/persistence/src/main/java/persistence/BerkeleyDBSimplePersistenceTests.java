@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -177,7 +177,8 @@ public class BerkeleyDBSimplePersistenceTests
                 .getConfigurableCacheFactory("client-cache-config.xml", null);
         setFactory(factory);
 
-        final String            sServer          = "testMultipleRestartsWithClientEnsureCache";
+        final String            sServer          = "testMultipleRestartsWithClientEnsureCache" +
+                                                   Character.toUpperCase(sMode.charAt(0)) + sMode.substring(1);
         final String            sPersistentCache = "simple-persistent";
         NamedCache              cache            = getNamedCache(sPersistentCache);
         DistributedCacheService service          = (DistributedCacheService) cache.getCacheService();
@@ -250,6 +251,8 @@ public class BerkeleyDBSimplePersistenceTests
             }
         finally
             {
+            getFactory().destroyCache(cache);
+            stopAllApplications();
             CacheFactory.shutdown();
 
             FileHelper.deleteDirSilent(fileActive);
