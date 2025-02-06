@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.metrics.internal;
 
@@ -41,7 +41,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(false, MetricsResource.Format.Legacy, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+        String expected = "vendor:coherence_cluster_size{cluster=\"testCluster\",node_id=\"1\",site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -55,7 +55,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(false, MetricsResource.Format.Microprofile, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "vendor_Coherence_ClusterSize{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+        String expected = "vendor_Coherence_ClusterSize{cluster=\"testCluster\",node_id=\"1\",site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -69,7 +69,7 @@ public class PrometheusFormatterTest
         new PrometheusFormatter(false, MetricsResource.Format.DotDelimited, Collections.singletonList(metric))
                 .writeMetrics(writer);
 
-        String expected = "coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+        String expected = "coherence_cluster_size{cluster=\"testCluster\",node_id=\"1\",site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
@@ -85,7 +85,7 @@ public class PrometheusFormatterTest
 
         String expected = "# TYPE vendor:coherence_cluster_size gauge\n"
                           + "# HELP vendor:coherence_cluster_size Cluster size\n"
-                          + "vendor:coherence_cluster_size{cluster=\"testCluster\", node_id=\"1\", site=\"testSite\"} 3\n";
+                          + "vendor:coherence_cluster_size{cluster=\"testCluster\",node_id=\"1\",site=\"testSite\"} 3\n";
 
         assertThat(writer.toString(), equalTo(expected));
         }
