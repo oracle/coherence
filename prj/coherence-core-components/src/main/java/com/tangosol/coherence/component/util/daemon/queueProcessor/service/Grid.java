@@ -2648,7 +2648,47 @@ public abstract class Grid
         return isVersionCompatible(member,
             ServiceMemberSet.encodeVersion(nMajor, nMinor, nMicro, nPatchSet, nPatch));
         }
-    
+
+    /**
+     * Check whether the specified member runs a version that satisfies the
+     * predicate.
+     */
+    public boolean isVersionCompatible(Member member, IntPredicate predicate)
+        {
+        return predicate.test(getClusterMemberSet().getServiceVersionInt(member.getId()));
+        }
+
+    /**
+     * Check whether the specified members run a version that satisfies the
+     * predicate.
+     */
+    public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
+        {
+        com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet setMaster = getClusterMemberSet();
+
+        switch (setMembers.size())
+            {
+            case 0: // no recipients
+                return true;
+
+            case 1: // common case
+                return predicate.test(setMaster.getServiceVersionInt(setMembers.getFirstId()));
+
+            default:
+            {
+            int[] anMember = setMembers.toIdArray();
+            for (int i = 0, c = anMember.length; i < c; i++)
+                {
+                if (!predicate.test(setMaster.getServiceVersionInt(anMember[i])))
+                    {
+                    return false;
+                    }
+                }
+            return true;
+            }
+            }
+        }
+
     /**
      * Check whether any of the members in the specified MemberSet run a version
     * that precedes the specified one.

@@ -9,6 +9,7 @@ package com.tangosol.persistence;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.persistence.FatalAccessException;
+import com.oracle.coherence.persistence.PersistenceEnvironment;
 import com.oracle.coherence.persistence.PersistenceException;
 import com.oracle.coherence.persistence.PersistentStore;
 
@@ -46,6 +47,7 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.partition.VersionAwareMapListener;
 
+import com.tangosol.persistence.bdb.BerkeleyDBEnvironment;
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
 
 import com.tangosol.util.Base;
@@ -64,9 +66,16 @@ import com.sleepycat.bind.tuple.TupleOutput;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -1509,6 +1518,145 @@ public class CachePersistenceHelper
             };
         }
 
+    public static void recordRecoveryStatus(PersistenceEnvironment env, String sSnapshot, boolean bRecoverySuccess, String sReason)
+        {
+        if (!(env instanceof BerkeleyDBEnvironment))
+            {
+            return;
+            }
+
+        File dirSnapshots = ((BerkeleyDBEnvironment) env).getPersistenceSnapshotDirectory();
+        Properties props = new Properties();
+        props.setProperty(RECOVERY_META_VERSION, "0");
+        props.setProperty(RECOVERY_META_STATUS_PROPERTY,
+                          bRecoverySuccess 
+                          ? RECOVERY_STATUS_SUCCESS 
+                          : String.format("%s: %s", RECOVERY_STATUS_FAILURE, sReason));
+        Writer writer = null;
+        try
+            {
+            File propsFile = dirSnapshots.toPath().resolve(sSnapshot).resolve(RECOVERY_META_FILENAME).toFile();
+            writer = new FileWriter(propsFile);
+            props.store(writer, RECOVERY_META_HEADER);
+            }
+        catch (IOException e)
+            {
+            Logger.fine(String.format("Cannot write properties file %s for snapshot '%s'", RECOVERY_META_FILENAME, sSnapshot));
+            }
+        finally
+            {
+            if (writer != null)
+                {
+                try
+                    {
+                    writer.close();
+                    }
+                catch (IOException ignored)
+                    {
+                    }
+                }
+            }
+        }
+
+    /**
+     * Return snapshot status.
+     *
+     * @param env    the {@link PersistenceEnvironment} to query
+     * @param sName  the snapshot name
+     *
+     * @return the snapshot status, or null if it is not possible
+     * to obtain the status.
+     */
+    public static String getSnapshotStatus(PersistenceEnvironment env, String sName)
+        {
+        if (!(env instanceof BerkeleyDBEnvironment))
+            {
+            return null;
+            }
+
+        File dirSnapshot = new File(((BerkeleyDBEnvironment) env).getPersistenceSnapshotDirectory(), sName);
+        if (!dirSnapshot.isDirectory() || !dirSnapshot.canRead() || !dirSnapshot.canExecute())
+            {
+            return SNAPSHOT_STATUS_NOT_FOUND;
+            }
+
+        try
+            {
+            getSnapshotPersistenceTools(dirSnapshot).validate();
+            }
+        catch (RuntimeException e)
+            {
+            Throwable cause = e.getCause();
+            return String.format("%s: %s", RECOVERY_STATUS_FAILURE, cause == null ? e.getMessage() : cause.getMessage());
+            }
+        return SNAPSHOT_STATUS_COMPLETED;
+        }
+
+    /**
+     * Return recovery status for the given snapshot.
+     *
+     * @param env    the {@link PersistenceEnvironment} to query
+     * @param sName  the snapshot name
+     *
+     * @return the snapshot recovery status, or null if it is not
+     * possible to obtain the status.
+     */
+    public static String getSnapshotRecoveryStatus(PersistenceEnvironment env, String sName)
+        {
+        if (!(env instanceof BerkeleyDBEnvironment))
+            {
+            return null;
+            }
+
+        File dirSnapshot = new File(((BerkeleyDBEnvironment) env).getPersistenceSnapshotDirectory(), sName);
+        if (!dirSnapshot.isDirectory() || !dirSnapshot.canRead() || !dirSnapshot.canExecute())
+            {
+            return SNAPSHOT_STATUS_NOT_FOUND;
+            }
+
+        try (Reader reader = new FileReader(new File(dirSnapshot, RECOVERY_META_FILENAME)))
+            {
+            Properties props = new Properties();
+            props.load(reader);
+            return props.getProperty(RECOVERY_META_STATUS_PROPERTY);
+            }
+        catch (FileNotFoundException e)
+            {
+            return SNAPSHOT_STATUS_NOT_FOUND;
+            }
+        catch (IOException | RuntimeException e)
+            {
+            return String.format("%s: %s", RECOVERY_STATUS_FAILURE, e.getMessage());
+            }
+        }
+
+    public static String[] getFailedSnapshots(PersistenceEnvironment env)
+        {
+        PersistenceEnvironment persistEnv = SafePersistenceWrappers.unwrap(env);
+        if (!(persistEnv instanceof BerkeleyDBEnvironment))
+            {
+            return null;
+            }
+
+        // respond with list of failed snapshots
+        File     dirSnapshots = ((BerkeleyDBEnvironment) persistEnv).getPersistenceSnapshotDirectory();
+        String[] asSnapshots  = persistEnv.listSnapshots();
+
+        List<String> asFailedSnapshots = new ArrayList<>();
+        for (String sName : asSnapshots)
+            {
+            File dirSnapshot = new File(dirSnapshots, sName);
+            try
+                {
+                getSnapshotPersistenceTools(dirSnapshot).validate();
+                }
+            catch (RuntimeException e)
+                {
+                asFailedSnapshots.add(sName);
+                }
+            }
+        return asFailedSnapshots.toArray(FAILED_SNAPSHOTS);
+        }
 
     // ----- inner interface: Visitor -------------------------------------
 
@@ -1749,4 +1897,49 @@ public class CachePersistenceHelper
      * The marker Binary to represent a "false" binary value.
      */
     private static final Binary BINARY_FALSE = new Binary(new byte[] { 0x0 });
+
+    /**
+     * Avoid allocating immutable array of strings.
+     */
+    private static final String[] FAILED_SNAPSHOTS = new String[0];
+
+    /**
+     * The status to represent completed snapshot.
+     */
+    static final String SNAPSHOT_STATUS_COMPLETED = "Completed";
+
+    /**
+     * The status to represent missing snapshot.
+     */
+    static final String SNAPSHOT_STATUS_NOT_FOUND = "Not found";
+
+    /**
+     * Snapshot recovery status metadata filename.
+     */
+    static final String RECOVERY_META_FILENAME = "recovery.properties";
+
+    /**
+     * Snapshot recovery status metadata property: implementation version.
+     */
+    static final String RECOVERY_META_VERSION = "implementation.version";
+
+    /**
+     * Snapshot recovery status metadata property: header.
+     */
+    static final String RECOVERY_META_HEADER = "Recovery status";
+
+    /**
+     * Snapshot recovery status metadata property: recovery status.
+     */
+    static final String RECOVERY_META_STATUS_PROPERTY = "recovery";
+
+    /**
+     * Snapshot recovery status: success.
+     */
+    static final String RECOVERY_STATUS_SUCCESS = "Succeeded";
+
+    /**
+     * Snapshot recovery status: failure.
+     */
+    static final String RECOVERY_STATUS_FAILURE = "Failed";
     }

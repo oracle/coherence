@@ -75,6 +75,8 @@ import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import java.math.BigDecimal;
 
+import java.nio.file.Paths;
+
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.Description;
 import org.hamcrest.MatcherAssert;
@@ -110,6 +112,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -177,6 +180,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.anyOf;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
@@ -243,6 +247,7 @@ public abstract class BaseManagementInfoResourceTests
         FileHelper.deleteDirSilent(m_dirActive);
         FileHelper.deleteDirSilent(m_dirArchive);
         FileHelper.deleteDirSilent(m_dirSnapshot);
+        FileHelper.deleteDirSilent(m_dirSnapshot2);
         }
 
     @Before
@@ -3193,10 +3198,109 @@ public abstract class BaseManagementInfoResourceTests
                 return null;
                 });
 
-            // now delete the 2 snapshots
+            // add some data
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
+                {
+                NamedCache cache = CacheFactory.getCache(sCacheName);
+                for (int i = 0; i < 10; i++)
+                    {
+                    cache.put(i, i);
+                    }
+                assertThat(cache.size(), greaterThan(00));
+                return null;
+                });
+
+            // create an damaged snapshot
+            createSnapshot("damaged");
+            ensureServiceStatusIdle();
+
+            // assert the snapshot exists
+            Eventually.assertDeferred(() -> assertSnapshotExists("damaged", SNAPSHOTS), is(true));
+            Thread.sleep(5000);
+
+            // assert the snapshot status
+            WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("status");
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            Map mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(mapResponse.get("status"), is("Completed"));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // recovery not attempted
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover").path("status"); 
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(mapResponse.get("status"), is("Not found"));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // recover snapshot
+            response = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover")
+                    .request().post(null);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // assert recovery status
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("recover").path("status");
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(mapResponse.get("status"), is("Succeeded"));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // assert failed snapshots
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+            assertThat((List<String>) mapResponse.get("items"), not(contains("damaged")));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // damage snapshot
+            List<File> subfolders = Arrays.stream(Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged").toFile()
+                                                          .listFiles(file -> file.isDirectory() && !file.getName().startsWith("."))).collect(Collectors.toList());
+            int i = 0;
+            for(File subfolder : subfolders)
+                {
+                if (i++ % 2 == 0)
+                    {
+                    File jdbFile = new File(subfolder,"00000000.jdb");
+                    if (jdbFile.exists())
+                        {
+                        try(RandomAccessFile writer = new RandomAccessFile(jdbFile, "rw"))
+                            {
+                            writer.seek(300);
+                            writer.writeBytes("                                     ");
+                            }
+                        }
+                    }
+                }
+
+            // assert failed snapshots
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // now delete the 3 snapshots
 
             deleteSnapshot("2-entries");
             deleteSnapshot("empty");
+            deleteSnapshot("damaged");
+            }
+        catch (InterruptedException | IOException e)
+            {
+            throw new RuntimeException(e);
             }
         finally
             {
@@ -4629,10 +4733,11 @@ public abstract class BaseManagementInfoResourceTests
         {
         try
             {
-            m_dirActive   = FileHelper.createTempDir();
-            m_dirSnapshot = FileHelper.createTempDir();
-            m_dirArchive  = FileHelper.createTempDir();
-            s_dirJFR      = FileHelper.createTempDir();
+            m_dirActive    = FileHelper.createTempDir();
+            m_dirSnapshot  = FileHelper.createTempDir();
+            m_dirSnapshot2 = FileHelper.createTempDir();
+            m_dirArchive   = FileHelper.createTempDir();
+            s_dirJFR       = FileHelper.createTempDir();
             }
         catch (IOException ioe)
             {
@@ -4704,6 +4809,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
+        propsServer2.add(SystemProperty.of("test.persistence.snapshot.dir", m_dirSnapshot2.getAbsolutePath()));
 
         builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
 
@@ -4898,6 +5004,11 @@ public abstract class BaseManagementInfoResourceTests
     protected static File m_dirSnapshot;
 
     /**
+     * Snapshot directory for a secondary node.
+     */
+    protected static File m_dirSnapshot2;
+
+    /**
      * Archive directory.
      */
     protected static File m_dirArchive;
@@ -4928,6 +5039,11 @@ public abstract class BaseManagementInfoResourceTests
      * The snapshots path.
      */
     protected static final String SNAPSHOTS = "snapshots";
+
+    /**
+     * The failed snapshots path.
+     */
+    protected static final String FAILED_SNAPSHOTS = "failedSnapshots";
 
     /**
      * The archives path.

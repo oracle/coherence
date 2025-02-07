@@ -403,13 +403,25 @@ public class VersionHelper
     public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
 
     /**
+     * The encoded CE 24.09 versions.
+     */
+    public static final int VERSION_24_09 = encodeVersion(24, 9, 0);
+
+    /**
+     * The encoded CE 24.03.0 and 1 versions.
+     */
+    public static final int VERSION_24_03 = encodeVersion(24, 3, 0);
+    public static final int VERSION_24_03_1 = encodeVersion(24, 3, 1);
+
+
+    /**
      * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
     public static final int VERSION_23_09_1 = encodeVersion(23, 9, 1);
 
     /**
-     * The encoded 14.1.1.2206.0, 6 and 7 versions.
+     * The encoded 14.1.1.2206.0, 6, 7 and 12 versions.
      */
     public static final int VERSION_14_1_1_2206    = encodeVersion(14, 1, 1, 2206, 0);
     public static final int VERSION_14_1_1_2206_6  = encodeVersion(14, 1, 1, 2206, 6);
@@ -417,24 +429,27 @@ public class VersionHelper
     public static final int VERSION_14_1_1_2206_12 = encodeVersion(14, 1, 1, 2206, 12);
 
     /**
-     * The encoded 14.1.2.0.0 version.
+     * The encoded 14.1.2.0.0 and 2 versions.
      */
-    public static final int VERSION_14_1_2_0 = encodeVersion(14, 1, 2, 0, 0);
-    public static final int VERSION_14_1_2_2 = encodeVersion(14, 1, 2, 0, 2);
+    public static final int VERSION_14_1_2_0   = encodeVersion(14, 1, 2, 0, 0);
+    public static final int VERSION_14_1_2_0_2 = encodeVersion(14, 1, 2, 0, 2);
+    public static final int VERSION_14_1_2_2   = encodeVersion(14, 1, 2, 0, 2);
 
     /**
-     * The encoded 14.1.1.0.0, 16 and 17 versions.
+     * The encoded 14.1.1.0.0, 16, 17 and 21 versions.
      */
     public static final int VERSION_14_1_1_0    = encodeVersion(14, 1, 1, 0, 0);
     public static final int VERSION_14_1_1_0_16 = encodeVersion(14, 1, 1, 0, 16);
     public static final int VERSION_14_1_1_0_17 = encodeVersion(14, 1, 1, 0, 17);
+    public static final int VERSION_14_1_1_0_21 = encodeVersion(14, 1, 1, 0, 21);
 
     /**
-     * The encoded 12.2.1.4.0, 20 and 21 versions.
+     * The encoded 12.2.1.4.0, 20, 21 and 25 versions.
      */
     public static final int VERSION_12_2_1_4    = encodeVersion(12, 2, 1, 4, 0);
     public static final int VERSION_12_2_1_4_20 = encodeVersion(12, 2, 1, 4, 20);
     public static final int VERSION_12_2_1_4_21 = encodeVersion(12, 2, 1, 4, 21);
+    public static final int VERSION_12_2_1_4_25 = encodeVersion(12, 2, 1, 4, 25);
 
     /**
      * The encoded 12.2.1.6.0, 6 and 7 versions.
