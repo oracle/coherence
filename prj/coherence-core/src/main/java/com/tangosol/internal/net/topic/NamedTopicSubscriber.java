@@ -63,6 +63,7 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -1204,19 +1205,30 @@ public class NamedTopicSubscriber<V>
         {
         ConcurrentLinkedDeque<CommittableElement> queuePrefetched = m_queueValuesPrefetched;
 
+        Gate<?> gate         = f_gate;
         Request firstRequest = queueBatch.peek();
-        while (firstRequest instanceof FunctionalRequest)
+        if (firstRequest instanceof FunctionalRequest)
             {
-            ((FunctionalRequest) queueBatch.poll()).execute(this, queueRequest);
-            firstRequest = queueBatch.peek();
+            try (Sentry<?> ignored = gate.close())
+                {
+                while (firstRequest instanceof FunctionalRequest)
+                    {
+                    Request request = queueBatch.poll();
+                    if (request instanceof FunctionalRequest)
+                        {
+                        ((FunctionalRequest) request).execute(this, queueRequest);
+                        }
+                    firstRequest = queueBatch.peek();
+                    }
+                }
             }
+
 
         int cValues  = 0;
         int cRequest = queueBatch.size();
 
         if (isActive() && !queuePrefetched.isEmpty())
             {
-            Gate<?> gate = f_gate;
             // Wait to enter the gate as we need to check channel ownership under a lock
             gate.enter(-1);
             try
@@ -1761,7 +1773,6 @@ public class NamedTopicSubscriber<V>
         {
         ensureActive();
         ensureConnected();
-        ;
         }
 
     /**
