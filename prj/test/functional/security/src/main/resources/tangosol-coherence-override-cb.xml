@@ -31,18 +31,19 @@
           <param-type>java.io.File</param-type>
           <param-value>permissions.xml</param-value>
         </init-param>
-        <init-param id="3">
-          <param-type>java.lang.Boolean</param-type>
-          <param-value>false</param-value>
-        </init-param>
-        <init-param id="4">
-          <param-type>java.lang.String</param-type>
-          <param-value>password</param-value>
-        </init-param>
       </init-params>
+      <password-provider>
+        <class-name>com.oracle.coherence.testing.util.FileBasedPasswordProvider</class-name>
+        <init-params>
+          <init-param>
+            <param-type>String</param-type>
+            <param-value>storepass.txt</param-value>
+          </init-param>
+        </init-params>
+      </password-provider>
     </access-controller>
     <callback-handler>
-      <class-name>com.tangosol.net.security.SimpleHandler</class-name>
+      <class-name>security.HandlerPasswordProvider</class-name>
       <init-params>
         <init-param id="1">
           <param-type>java.lang.String</param-type>
@@ -50,11 +51,11 @@
         </init-param>
         <init-param id="2">
           <param-type>java.lang.String</param-type>
-          <param-value>private</param-value>
+          <param-value>com.oracle.coherence.testing.util.FileBasedPasswordProvider</param-value>
         </init-param>
         <init-param id="3">
-          <param-type>java.lang.Boolean</param-type>
-          <param-value>false</param-value>
+          <param-type>java.lang.String</param-type>
+          <param-value>keypass.txt</param-value>
         </init-param>
       </init-params>
     </callback-handler>

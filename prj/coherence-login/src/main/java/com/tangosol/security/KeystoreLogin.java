@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.security;
 
+
+import com.oracle.coherence.common.base.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -155,19 +157,48 @@ public class KeystoreLogin
             }
 
         FileInputStream inStore = null;
+        KeyStore        store   = null;
         try
             {
-            KeyStore store = KeyStore.getInstance(m_sKeyStoreType);
+            store = KeyStore.getInstance(m_sKeyStoreType);
 
             inStore = new FileInputStream(fileKeyStore);
             store.load(inStore, achPwd);
 
             m_store = store;
             }
+        catch (IOException e)
+            {
+            if (achPwd == null)
+                {
+                // try getting the password from callback handler
+                PasswordCallback callbackPwd = new PasswordCallback("Password:", false);
+
+                try
+                    {
+                    callbackHandler.handle(new Callback[] {callbackPwd});
+
+                    achPwd = callbackPwd.getPassword();
+                    store.load(inStore, achPwd);
+
+                    m_store = store;
+                    }
+                catch (Exception e2)
+                    {
+                    throw new SecurityException("Failed to load keystore: " +
+                                               fileKeyStore.getAbsolutePath() + "; exception: " + e);
+                    }
+                }
+            else
+                {
+                throw new SecurityException("Failed to load keystore: " +
+                        fileKeyStore.getAbsolutePath() + "; exception: " + e);
+                }
+            }
         catch (Exception e)
             {
-            throw new RuntimeException("Failed to load keystore: " +
-                fileKeyStore.getAbsolutePath() + "; " + e);
+            throw new SecurityException("Failed to load keystore: " +
+                    fileKeyStore.getAbsolutePath() + "; exception: " + e);
             }
         finally
             {
@@ -332,6 +363,10 @@ public class KeystoreLogin
                 m_setPublicCreds.add(cert);
                 m_setPrivateCreds.add(keyPrivate);
                 }
+            }
+        else
+            {
+            Logger.warn("No certificate found for user: " + sName);
             }
         }
 
