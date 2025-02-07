@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.oracle.coherence.common.util.Sentry;
 import com.tangosol.internal.net.DebouncedFlowControl;
 
 import com.tangosol.internal.util.DaemonPool;
@@ -660,26 +661,30 @@ public class BatchingOperationsQueue<V, R>
         Element element = createElement(value);
         Gate<?> gate    = getGate();
 
-        // Wait to enter the gate
-        gate.enter(-1);
-        try
+        // Add the new element containing the value and the future to the offer queue
+        if (fFirst)
             {
-            assertActive();
-
-            // Add the new element containing the value and the future to the offer queue
-            if (fFirst)
+            // Wait to close the gate as we want to add to the beginning of the queue
+            try (Sentry<?> ignored = gate.close())
                 {
+                assertActive();
                 getPending().addFirst(element);
                 }
-            else
+            }
+        else
+            {
+            // Wait to enter the gate
+            gate.enter(-1);
+            try
                 {
+                assertActive();
                 getPending().add(element);
                 }
-            }
-        finally
-            {
-            // and finally exit from the gate
-            gate.exit();
+            finally
+                {
+                // and finally exit from the gate
+                gate.exit();
+                }
             }
 
         // This will cause the batch operation to be triggered if required.
