@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -94,6 +94,7 @@ import java.util.Map;
 
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -121,7 +122,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldFailIfCacheNotEnsured(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -145,7 +146,7 @@ public class NamedCacheProxyProtocolIT
         ValueExtractor extractor    = new UniversalExtractor("foo");
         ByteString     binExtractor = toByteString(extractor, serializer);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -177,7 +178,7 @@ public class NamedCacheProxyProtocolIT
         ValueExtractor extractor    = new UniversalExtractor("foo");
         ByteString     binExtractor = toByteString(extractor, serializer);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -209,7 +210,7 @@ public class NamedCacheProxyProtocolIT
         Comparator comparator    = new SafeComparator(new UniversalExtractor("bar"));
         ByteString binComparator = toByteString(comparator, serializer);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -254,7 +255,7 @@ public class NamedCacheProxyProtocolIT
         Filter<Person> filter   = Filters.equal("age", 25);
         int            expected = cache.aggregate(filter, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -298,7 +299,7 @@ public class NamedCacheProxyProtocolIT
         Filter<Person> filter    = Filters.equal("age", 100);
         int            cExpected = cache.aggregate(filter, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -342,7 +343,7 @@ public class NamedCacheProxyProtocolIT
 
         int nExpected = cache.aggregate(listKeys, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -391,7 +392,7 @@ public class NamedCacheProxyProtocolIT
 
         int nExpected = cache.aggregate(listKeys, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -435,7 +436,7 @@ public class NamedCacheProxyProtocolIT
 
         int nExpected = cache.aggregate(aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -477,7 +478,7 @@ public class NamedCacheProxyProtocolIT
         Filter<Person>      filter      = Filters.equal("age", 25);
         Map<String, String> mapExpected = cache.aggregate(filter, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -523,7 +524,7 @@ public class NamedCacheProxyProtocolIT
                 .collect(Collectors.toList());
         Map<String, String> nExpected          = cache.aggregate(listKeys, aggregator);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -558,7 +559,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -577,7 +578,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -598,7 +599,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -626,7 +627,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -653,7 +654,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -683,7 +684,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -708,7 +709,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -733,7 +734,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -759,7 +760,7 @@ public class NamedCacheProxyProtocolIT
         cache.put("key-11", "value-1");
         cache.put("key-22", "value-2");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -782,13 +783,13 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
         int cacheId = ensureCache(channel, observer, sCacheName);
 
-        ByteString  value   = toByteString("value-100", serializer);
+        ByteString value   = toByteString("value-100", serializer);
         BytesValue binValue = BytesValue.newBuilder().setValue(value).build();
 
         NamedCacheResponse response = sendCacheRequest(channel, observer, cacheId, NamedCacheRequestType.ContainsValue, binValue);
@@ -806,7 +807,7 @@ public class NamedCacheProxyProtocolIT
         String     sCacheName = "test-cache";
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -854,7 +855,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -889,7 +890,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -924,7 +925,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -959,7 +960,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1001,7 +1002,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1043,7 +1044,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1079,7 +1080,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("foo", "bar");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1853,7 +1854,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1879,7 +1880,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", null);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1904,7 +1905,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -1982,7 +1983,7 @@ public class NamedCacheProxyProtocolIT
                 .map(s -> toByteString(s, serializer))
                 .collect(Collectors.toList());
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2020,7 +2021,7 @@ public class NamedCacheProxyProtocolIT
         ValueExtractor<Person, String>                      extractor = new UniversalExtractor<>("lastName");
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2050,7 +2051,7 @@ public class NamedCacheProxyProtocolIT
         String                     sCacheName = "people";
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2084,7 +2085,7 @@ public class NamedCacheProxyProtocolIT
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
         Filter<Person>                                      filter    = Filters.equal("age", 25);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2126,7 +2127,7 @@ public class NamedCacheProxyProtocolIT
         ValueExtractor<Person, String>                      extractor = new UniversalExtractor<>("firstName");
         InvocableMap.EntryProcessor<String, Person, String> processor = new ExtractorProcessor<>(extractor);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2169,7 +2170,7 @@ public class NamedCacheProxyProtocolIT
         List<ByteString> listKeys = Arrays.asList(BinaryHelper.toByteString(person1.getLastName(), serializer),
                                                   BinaryHelper.toByteString(person2.getLastName(), serializer));
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2199,7 +2200,7 @@ public class NamedCacheProxyProtocolIT
         {
         String sCacheName = "people";
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2225,7 +2226,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2244,7 +2245,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2271,7 +2272,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2309,7 +2310,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2347,7 +2348,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2373,7 +2374,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2402,7 +2403,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2432,7 +2433,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", null);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2466,7 +2467,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2499,7 +2500,7 @@ public class NamedCacheProxyProtocolIT
         ByteString  key2    = toByteString("key-2", serializer);
         ByteString  value2  = toByteString("value-2", serializer);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2530,7 +2531,7 @@ public class NamedCacheProxyProtocolIT
         ByteString value2  = toByteString("value-2", serializer);
         long       cMillis = 50000L;
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2558,7 +2559,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2580,7 +2581,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2606,7 +2607,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2632,7 +2633,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", null);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2660,7 +2661,7 @@ public class NamedCacheProxyProtocolIT
         int count = 10;
         clearAndPopulate(cache, count);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2685,7 +2686,7 @@ public class NamedCacheProxyProtocolIT
         int cCount = 10;
         clearAndPopulate(cache, cCount);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2712,7 +2713,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2738,7 +2739,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-1");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2764,7 +2765,7 @@ public class NamedCacheProxyProtocolIT
         cache.clear();
         cache.put("key-1", "value-123");
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2797,7 +2798,7 @@ public class NamedCacheProxyProtocolIT
         // Add the index using the normal cache
         cache.addIndex(extractor, false, null);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2824,7 +2825,7 @@ public class NamedCacheProxyProtocolIT
         ValueExtractor extractor    = new UniversalExtractor("foo");
         ByteString     binExtractor = toByteString(extractor, serializer);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2851,7 +2852,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2877,7 +2878,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2905,7 +2906,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2937,7 +2938,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -2971,7 +2972,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3004,7 +3005,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3025,7 +3026,7 @@ public class NamedCacheProxyProtocolIT
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3077,7 +3078,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3117,7 +3118,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3158,7 +3159,7 @@ public class NamedCacheProxyProtocolIT
         cache.put(person2.getLastName(), person2);
         cache.put(person3.getLastName(), person3);
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3199,7 +3200,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3246,7 +3247,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3290,7 +3291,7 @@ public class NamedCacheProxyProtocolIT
             cache.put("key-" + i, i);
             }
 
-        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
 
         init(channel, observer, serializer, sScope);
@@ -3321,7 +3322,7 @@ public class NamedCacheProxyProtocolIT
     // ----- helper methods -------------------------------------------------
 
     protected <Resp extends Message> Resp sendCacheRequest(StreamObserver<ProxyRequest> channel,
-            TestStreamObserver<ProxyResponse> observer, int cacheId, NamedCacheRequestType type,
+            TestProxyResponseStreamObserver observer, int cacheId, NamedCacheRequestType type,
             Message message) throws Exception
         {
         NamedCacheRequest request = NamedCacheRequest.newBuilder()
@@ -3333,11 +3334,22 @@ public class NamedCacheProxyProtocolIT
         int count      = observer.valueCount();
         int responseId = count + 1;
 
-        channel.onNext(newRequest(request));
+        ProxyRequest proxyRequest = newRequest(request);
+        long         requestId    = proxyRequest.getId();
+
+        CompletableFuture<ProxyResponse> future = observer.addListener(r -> r.getId() == requestId);
+        channel.onNext(proxyRequest);
+
+        future.get(1, TimeUnit.MINUTES);
         observer.awaitCount(responseId, 1, TimeUnit.MINUTES);
+
         observer.assertNoErrors();
 
-        ProxyResponse proxyResponse = observer.valueAt(responseId - 1);
+        ProxyResponse[] aResponse = observer.values().stream()
+                .filter(r -> r.getId() == requestId)
+                .toArray(ProxyResponse[]::new);
+
+        ProxyResponse proxyResponse = aResponse[0];
         if (proxyResponse.getResponseCase() == ProxyResponse.ResponseCase.ERROR)
             {
             ErrorMessage error = proxyResponse.getError();
@@ -3368,8 +3380,7 @@ public class NamedCacheProxyProtocolIT
         }
 
     protected <Resp extends Message> List<Resp> sendStreamCacheRequest(StreamObserver<ProxyRequest> channel,
-            TestStreamObserver<ProxyResponse> observer, int cacheId, NamedCacheRequestType type,
-            Message message) throws Exception
+            TestProxyResponseStreamObserver observer, int cacheId, NamedCacheRequestType type, Message message) throws Exception
         {
         NamedCacheRequest request = NamedCacheRequest.newBuilder()
                 .setCacheId(cacheId)
