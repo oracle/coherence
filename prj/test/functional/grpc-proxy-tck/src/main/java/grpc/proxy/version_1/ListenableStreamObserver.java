@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,7 +8,6 @@
 package grpc.proxy.version_1;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.Message;
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.messages.cache.v1.MapEventMessage;
@@ -17,11 +16,9 @@ import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.cache.CacheEvent;
-import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.WrapperObservableMap;
-import grpc.proxy.TestStreamObserver;
 import io.reactivex.rxjava3.annotations.NonNull;
 
 import java.util.ArrayList;
@@ -33,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 public class ListenableStreamObserver
-        extends TestStreamObserver<ProxyResponse>
+        extends TestProxyResponseStreamObserver
     {
 
     @Override
