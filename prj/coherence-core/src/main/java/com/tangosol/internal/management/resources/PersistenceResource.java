@@ -38,6 +38,9 @@ public class PersistenceResource
         {
         router.addGet(sPathRoot, this::get);
         router.addGet(sPathRoot + "/snapshots", this::getSnapshots);
+        router.addGet(sPathRoot + "/snapshots/{" + SNAPSHOT_NAME + "}/status", this::getSnapshotStatus);
+        router.addGet(sPathRoot + "/snapshots/{" + SNAPSHOT_NAME + "}/recover/status", this::getSnapshotRecoveryStatus);
+        router.addGet(sPathRoot + "/failedSnapshots", this::getFailedSnapshots);
         router.addGet(sPathRoot + "/archives", this::getArchives);
         router.addGet(sPathRoot + "/archiveStores/{" + SNAPSHOT_NAME + "}", this::getArchiveStores);
 
@@ -78,6 +81,17 @@ public class PersistenceResource
         }
 
     /**
+     * Return list of failed snapshots for a service.
+     *
+     * @return the response object
+     */
+    public Response getFailedSnapshots(HttpRequest request)
+        {
+        return response(getResponseFromMBeanOperation(request, getQuery(request),
+                  "items", "listFailedSnapshots", null, null));
+        }
+
+    /**
      * Return list of archived snapshots of a service.
      *
      * @return the response object
@@ -101,6 +115,34 @@ public class PersistenceResource
 
         return response(getResponseFromMBeanOperation(request, getQuery(request),
                 "archiveStores", "listArchivedSnapshotStores", aoArguments, asSignature));
+        }
+
+    /**
+     * Return the status of the specific snapshot.
+     *
+     * @return the response object
+     */
+    public Response getSnapshotStatus(HttpRequest request)
+        {
+        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String[] asSignature   = {String.class.getName()};
+        Object[] aoArguments   = {sSnapshotName};
+        return response(getResponseFromMBeanOperation(request, getQuery(request),
+               "status" , "getSnapshotStatus", aoArguments, asSignature));
+        }
+
+    /**
+     * Return the recovery status of the specific snapshot.
+     *
+     * @return the response object
+     */
+    public Response getSnapshotRecoveryStatus(HttpRequest request)
+        {
+        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String[] asSignature   = {String.class.getName()};
+        Object[] aoArguments   = {sSnapshotName};
+        return response(getResponseFromMBeanOperation(request, getQuery(request),
+                "status" , "getSnapshotRecoveryStatus", aoArguments, asSignature));
         }
 
     // ----- Post API -------------------------------------------------------
