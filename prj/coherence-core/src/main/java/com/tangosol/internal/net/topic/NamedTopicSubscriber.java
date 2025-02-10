@@ -47,6 +47,8 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.Gate;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.ServiceEvent;
+import com.tangosol.util.ServiceListener;
 import com.tangosol.util.SparseArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.ThreadGateLite;
@@ -63,7 +65,6 @@ import java.util.Collections;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -342,7 +343,7 @@ public class NamedTopicSubscriber<V>
     public CompletableFuture<List<Element<V>>> receive(int cBatch)
         {
         ensureActive();
-        CompletableFuture<List<Element<V>>> future = (CompletableFuture<List<Element<V>>>)
+        CompletableFuture<List<Element<V>>> future = (CompletableFuture<List<Element<V>>>) 
                 f_queueReceiveOrders.add(new ReceiveRequest(true, cBatch));
 
         f_cReceiveRequests.add(1L);
@@ -492,10 +493,7 @@ public class NamedTopicSubscriber<V>
     @SuppressWarnings("UnusedReturnValue")
     public <R> R applyToChannel(int nChannel, Function<TopicChannel, R> fn)
         {
-//        try(Sentry<?> ignored = f_gate.close())
-//            {
-            return fn.apply(m_aChannel[nChannel]);
-//            }
+        return fn.apply(m_aChannel[nChannel]);
         }
 
     /**
@@ -771,7 +769,7 @@ public class NamedTopicSubscriber<V>
                 {
                 return aExisting;
                 }
-
+    
             TopicChannel[] aChannel = new TopicChannel[cChannel];
             for (int nChannel = 0; nChannel < cChannel; nChannel++)
                 {
@@ -985,12 +983,12 @@ public class NamedTopicSubscriber<V>
     /**
      * Initialise the subscriber.
      */
-    public TopicChannel[] initialise()
+    private void initialise()
         {
         ensureActive();
         if (m_nState == STATE_CONNECTED)
             {
-            return m_aChannel;
+            return;
             }
 
         // We must do initialisation under the gate lock
@@ -1066,7 +1064,6 @@ public class NamedTopicSubscriber<V>
                     }
                 }
             m_cSubscribe.mark();
-            return m_aChannel;
             }
         }
 
@@ -1077,7 +1074,14 @@ public class NamedTopicSubscriber<V>
      */
     private void trigger(int cBatch)
         {
-        receiveInternal(f_queueReceiveOrders, cBatch);
+        if (isConnected())
+            {
+            receiveInternal(f_queueReceiveOrders, cBatch);
+            }
+        else
+            {
+            f_queueReceiveOrders.resetTrigger();
+            }
         }
 
     /**
@@ -1209,6 +1213,7 @@ public class NamedTopicSubscriber<V>
         Request firstRequest = queueBatch.peek();
         if (firstRequest instanceof FunctionalRequest)
             {
+            queueRequest.pause();
             try (Sentry<?> ignored = gate.close())
                 {
                 while (firstRequest instanceof FunctionalRequest)
@@ -1221,8 +1226,11 @@ public class NamedTopicSubscriber<V>
                     firstRequest = queueBatch.peek();
                     }
                 }
+            finally
+                {
+                queueRequest.resume();
+                }
             }
-
 
         int cValues  = 0;
         int cRequest = queueBatch.size();
@@ -2521,6 +2529,7 @@ public class NamedTopicSubscriber<V>
                     // ignore
                     }
                 f_connector.closeSubscription(this, fDestroyed);
+                f_topic.getService().removeServiceListener(f_serviceStartListener);
                 }
             finally
                 {
@@ -3678,7 +3687,7 @@ public class NamedTopicSubscriber<V>
         protected void execute(NamedTopicSubscriber<?> subscriber, BatchingOperationsQueue<Request, ?> queueBatch)
             {
             Map<Integer, Position> map = subscriber.seekInternal(this);
-            queueBatch.completeElement(map, this::onRequestComplete);
+            queueBatch.completeElement(this, map, this::onRequestComplete);
             }
 
         /**
@@ -3846,50 +3855,84 @@ public class NamedTopicSubscriber<V>
         @Override
         public void onEvent(SubscriberConnector.SubscriberEvent evt)
             {
-            switch (evt.getType())
+            if (isActive())
                 {
-                case GroupDestroyed:
-                    if (isActive())
-                        {
-                        Logger.finest("Detected removal of subscriber group "
-                                            + f_subscriberGroupId.getGroupName()
-                                            + ", closing subscriber "
-                                            + this);
+                switch (evt.getType())
+                    {
+                    case GroupDestroyed:
+                        if (isActive())
+                            {
+                            Logger.finest("Detected removal of subscriber group "
+                                    + f_subscriberGroupId.getGroupName()
+                                    + ", closing subscriber "
+                                    + this);
+                            CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
+                            }
+                        break;
+                    case ChannelAllocation:
+                        onChannelAllocation(evt.getAllocatedChannels(), false);
+                        break;
+                    case ChannelsLost:
+                        onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
+                        break;
+                    case Unsubscribed:
+                        onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
+                        disconnectInternal(false);
+                        break;
+                    case ChannelPopulated:
+                        // must use the channel executor
+                        CompletableFuture.runAsync(() -> onChannelPopulatedNotification(evt.getPopulatedChannels()), f_executorChannels);
+                        break;
+                    case Destroyed:
+                        Logger.finest("Detected destroy of topic "
+                                + f_sTopicName + ", closing subscriber "
+                                + this);
                         CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-                        }
-                    break;
-                case ChannelAllocation:
-                    onChannelAllocation(evt.getAllocatedChannels(), false);
-                    break;
-                case ChannelsLost:
-                    onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
-                    break;
-                case Unsubscribed:
-                    onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
-                    disconnectInternal(false);
-                    break;
-                case ChannelPopulated:
-                    // must use the channel executor
-                    CompletableFuture.runAsync(() -> onChannelPopulatedNotification(evt.getPopulatedChannels()), f_executorChannels);
-                    break;
-                case Destroyed:
-                    Logger.finest("Detected destroy of topic "
-                                        + f_sTopicName + ", closing subscriber "
-                                        + this);
-                    CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-                    break;
-                case Released:
-                    Logger.finest("Detected release of topic "
-                                        + f_sTopicName + ", closing subscriber "
-                                        + this);
-                    CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
-                    break;
-                case Disconnected:
-                    disconnectInternal(false);
-                    break;
-                default:
-                    throw new IllegalStateException("Unexpected event type: " + evt.getType());
+                        break;
+                    case Released:
+                        Logger.finest("Detected release of topic "
+                                + f_sTopicName + ", closing subscriber "
+                                + this);
+                        CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
+                        break;
+                    case Disconnected:
+                        disconnectInternal(false);
+                        break;
+                    default:
+                        throw new IllegalStateException("Unexpected event type: " + evt.getType());
+                    }
                 }
+            }
+        }
+
+    // ----- inner class: ServiceListener -----------------------------------
+
+    private class ServiceStartListener
+            implements ServiceListener
+        {
+        @Override
+        public void serviceStarting(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStarted(ServiceEvent evt)
+            {
+            if (isActive())
+                {
+                ensureConnected();
+                f_queueReceiveOrders.triggerOperations();
+                }
+            }
+
+        @Override
+        public void serviceStopping(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStopped(ServiceEvent evt)
+            {
             }
         }
 
@@ -4304,7 +4347,7 @@ public class NamedTopicSubscriber<V>
      * This subscriber's notification id.
      */
     protected final int f_nNotificationId;
-
+    
     /**
      * Flag indicating whether this subscriber is part of a group or is anonymous.
      */
@@ -4339,4 +4382,9 @@ public class NamedTopicSubscriber<V>
      * The array of channels.
      */
     protected TopicChannel[] m_aChannel;
+
+    /**
+     * The service start listener.
+     */
+    private final ServiceStartListener f_serviceStartListener = new ServiceStartListener();
     }
