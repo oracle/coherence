@@ -537,6 +537,27 @@ public class BatchingOperationsQueue<V, R>
         return fCompleted;
         }
 
+    @SuppressWarnings("unchecked")
+    public void completeElement(V value, Object oValue, Consumer<R> onComplete)
+        {
+        Queue<Element>    queueCurrent = getCurrentBatch();
+        Iterator<Element> iterator     = queueCurrent.iterator();
+        while (iterator.hasNext())
+            {
+            Element element = iterator.next();
+            if (element != null && element.getValue().equals(value))
+                {
+                m_cbCurrentBatch -= f_backlogCalculator.applyAsLong(value);
+                if (!element.isDone())
+                    {
+                    element.completeSynchronous((R) oValue, onComplete);
+                    }
+                iterator.remove();
+                break;
+                }
+            }
+        }
+
     /**
      * Complete the first n {@link Element Elements} in the current batch.
      *
