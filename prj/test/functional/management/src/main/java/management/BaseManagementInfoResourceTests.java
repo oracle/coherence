@@ -3939,6 +3939,16 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
+
+    @Test
+    public void testUnsupportedMethod()
+        {
+        WebTarget target = getBaseTarget();
+        Response response = target.request().method("TRACE");
+
+        assertThat(response.getStatus(), is(Response.Status.METHOD_NOT_ALLOWED.getStatusCode()));
+        }
+
     // ----- utility methods----------------------------------------------------
 
     /**
