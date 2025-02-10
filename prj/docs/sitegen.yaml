@@ -70,6 +70,14 @@ backend:
               items:
                 - includes:
                     - "docs/about/*.adoc"
+            - title: "Core Improvements"
+              pathprefix: "/core"
+              glyph:
+                type: "icon"
+                value: "fa-cubes"
+              items:
+                - includes:
+                    - "docs/core/*.adoc"
             - title: "Container Images"
               pathprefix: "/coherence-docker"
               glyph:
