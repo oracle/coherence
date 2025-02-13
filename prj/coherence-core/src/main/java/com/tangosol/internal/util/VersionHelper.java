@@ -341,6 +341,11 @@ public class VersionHelper
             // FA 14.1.2.24.x maps to Coherence 14.1.2.0.x
             return 0;
             }
+        else if (nMajor == 12 && nMinor == 2 && nMicro == 1 && nPatchSet == 6)
+            {
+            // FA 12.2.1.6.x maps to Coherence 12.2.1.4.x
+            return 4;
+            }
         return nPatchSet;
         }
 
@@ -398,7 +403,7 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
-     * The encoded CE 25.03 versions.
+     * The encoded CE 25.03.0 version.
      */
     public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
 
@@ -412,7 +417,6 @@ public class VersionHelper
      */
     public static final int VERSION_24_03 = encodeVersion(24, 3, 0);
     public static final int VERSION_24_03_1 = encodeVersion(24, 3, 1);
-
 
     /**
      * The encoded CE 23.09.0 and 1 versions.
