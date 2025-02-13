@@ -78,6 +78,7 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.ObservableHashMap;
+import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.SafeSortedMap;
 import com.tangosol.util.WrapperException;
 import java.io.DataInputStream;
@@ -3467,6 +3468,8 @@ public abstract class Grid
             }
         
         _trace("Service " + getServiceName() + " has been " + (fResume ? "resumed" : "suspended"), 5);
+        int nId = fResume ? ServiceEvent.SERVICE_RESUMED : ServiceEvent.SERVICE_SUSPENDED;
+        dispatchServiceEvent(nId);
         }
     
     public void onPollClosed(com.tangosol.coherence.component.net.Poll poll)

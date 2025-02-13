@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -38,6 +38,7 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.ServiceEvent;
+import com.tangosol.util.ServiceListener;
 import com.tangosol.util.SimpleResourceRegistry;
 import com.tangosol.util.SynchronousListener;
 
@@ -1130,7 +1131,19 @@ public class SafeService
         {
         translateEvent(evt);
         }
-    
+
+    @Override
+    public void serviceSuspended(ServiceEvent evt)
+        {
+        translateEvent(evt);
+        }
+
+    @Override
+    public void serviceResumed(ServiceEvent evt)
+        {
+        translateEvent(evt);
+        }
+
     // Accessor for the property "Config"
     /**
      * Setter for property Config.<p>
