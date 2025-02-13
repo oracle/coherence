@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -341,6 +341,11 @@ public class VersionHelper
             // FA 14.1.2.24.x maps to Coherence 14.1.2.0.x
             return 0;
             }
+        else if (nMajor == 12 && nMinor == 2 && nMicro == 1 && nPatchSet == 6)
+            {
+            // FA 12.2.1.6.x maps to Coherence 12.2.1.4.x
+            return 4;
+            }
         return nPatchSet;
         }
 
@@ -398,7 +403,12 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
-     * The encoded CE 24.03.0 and 1 versions.
+     * The encoded CE 25.03.0 version.
+     */
+    public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
+
+    /**
+     * The encoded CE 24.09.0 and 1 versions.
      */
     public static final int VERSION_24_09 = encodeVersion(24, 9, 0);
 

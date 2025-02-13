@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,35 +137,45 @@ public class VersionHelperTest
     @Test
     public void shouldEncodeFusionAppsVersions()
         {
-        int nFAPatchZero  = VersionHelper.encodeVersion(14, 1, 2, 24, 0);
-        int nFAPatchOne   = VersionHelper.encodeVersion(14, 1, 2, 24, 1);
-        int nFAPatchTwo   = VersionHelper.encodeVersion(14, 1, 2, 24, 2);
-        int nCohPatchZero = VersionHelper.encodeVersion(14, 1, 2, 0, 0);
-        int nCohPatchOne  = VersionHelper.encodeVersion(14, 1, 2, 0, 1);
-        int nCohPatchTwo  = VersionHelper.encodeVersion(14, 1, 2, 0, 2);
+        int nFAPatchZero    = VersionHelper.encodeVersion(14, 1, 2, 24, 0);
+        int nFAPatchOne     = VersionHelper.encodeVersion(14, 1, 2, 24, 1);
+        int nFAPatchTwo     = VersionHelper.encodeVersion(14, 1, 2, 24, 2);
+        int nCohPatchZero   = VersionHelper.encodeVersion(14, 1, 2, 0, 0);
+        int nCohPatchOne    = VersionHelper.encodeVersion(14, 1, 2, 0, 1);
+        int nCohPatchTwo    = VersionHelper.encodeVersion(14, 1, 2, 0, 2);
+        int nFA12PatchZero  = VersionHelper.encodeVersion(12, 2, 1, 6, 0);
+        int nFA12PatchOne   = VersionHelper.encodeVersion(12, 2, 1, 6, 1);
+        int nCoh12PatchZero = VersionHelper.encodeVersion(12, 2, 1, 4, 0);
 
         assertThat(nFAPatchZero, is(nCohPatchZero));
         assertThat(nFAPatchOne, is(nCohPatchOne));
         assertThat(nFAPatchTwo, is(nCohPatchTwo));
         assertThat(nFAPatchOne, is(greaterThan(nFAPatchZero)));
         assertThat(nFAPatchTwo, is(greaterThan(nFAPatchOne)));
+        assertThat(nFA12PatchZero, is(nCoh12PatchZero));
+        assertThat(nFA12PatchOne, is(greaterThan(nFA12PatchZero)));
         }
 
     @Test
     public void shouldParseFusionAppsVersions()
         {
-        int nFAPatchZero  = VersionHelper.parseVersion("14.1.2.24.0");
-        int nFAPatchOne   = VersionHelper.parseVersion("14.1.2.24.1");
-        int nFAPatchTwo   = VersionHelper.parseVersion("14.1.2.24.2");
-        int nCohPatchZero = VersionHelper.parseVersion("14.1.2.0.0");
-        int nCohPatchOne  = VersionHelper.parseVersion("14.1.2.0.1");
-        int nCohPatchTwo  = VersionHelper.parseVersion("14.1.2.0.2");
+        int nFAPatchZero    = VersionHelper.parseVersion("14.1.2.24.0");
+        int nFAPatchOne     = VersionHelper.parseVersion("14.1.2.24.1");
+        int nFAPatchTwo     = VersionHelper.parseVersion("14.1.2.24.2");
+        int nCohPatchZero   = VersionHelper.parseVersion("14.1.2.0.0");
+        int nCohPatchOne    = VersionHelper.parseVersion("14.1.2.0.1");
+        int nCohPatchTwo    = VersionHelper.parseVersion("14.1.2.0.2");
+        int nFA12PatchZero  = VersionHelper.parseVersion("12.2.1.6.0");
+        int nFA12PatchOne   = VersionHelper.parseVersion("12.2.1.6.1");
+        int nCoh12PatchZero = VersionHelper.parseVersion("12.2.1.4.0");
 
         assertThat(nFAPatchZero, is(nCohPatchZero));
         assertThat(nFAPatchOne, is(nCohPatchOne));
         assertThat(nFAPatchTwo, is(nCohPatchTwo));
         assertThat(nFAPatchOne, is(greaterThan(nFAPatchZero)));
         assertThat(nFAPatchTwo, is(greaterThan(nFAPatchOne)));
+        assertThat(nFA12PatchZero, is(nCoh12PatchZero));
+        assertThat(nFA12PatchOne, is(greaterThan(nFA12PatchZero)));
         }
 
     }
