@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -49,4 +49,22 @@ public interface ServiceListener
     * @param evt  the ServiceEvent.SERVICE_STOPPED event
     */
     public void serviceStopped(ServiceEvent evt);
+
+    /**
+    * Invoked when a service has stopped.
+    *
+    * @param evt  the ServiceEvent.SERVICE_STOPPED event
+    */
+    default void serviceSuspended(ServiceEvent evt)
+        {
+        }
+
+    /**
+    * Invoked when a service has been resumed.
+    *
+    * @param evt  the ServiceEvent.SERVICE_STOPPED event
+    */
+    default void serviceResumed(ServiceEvent evt)
+        {
+        }
     }
