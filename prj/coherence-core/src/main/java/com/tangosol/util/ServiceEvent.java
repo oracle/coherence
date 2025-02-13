@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
+
+import com.oracle.coherence.common.base.Logger;
 
 import java.util.EventObject;
 import java.util.EventListener;
@@ -112,26 +114,41 @@ public class ServiceEvent
         {
         for (int i = aListeners.length; --i >= 0; )
             {
-            ServiceListener target = (ServiceListener) aListeners[i];
-
-            switch (getId())
+            try
                 {
-                case SERVICE_STARTING:
-                    target.serviceStarting(this);
-                    break;
+                ServiceListener target = (ServiceListener) aListeners[i];
 
-                case SERVICE_STARTED:
-                    target.serviceStarted(this);
-                    break;
+                switch (getId())
+                    {
+                    case SERVICE_STARTING:
+                        target.serviceStarting(this);
+                        break;
 
-                case SERVICE_STOPPING:
-                    target.serviceStopping(this);
-                    break;
+                    case SERVICE_STARTED:
+                        target.serviceStarted(this);
+                        break;
 
-                case SERVICE_STOPPED:
-                    target.serviceStopped(this);
-                    break;
-                 }
+                    case SERVICE_STOPPING:
+                        target.serviceStopping(this);
+                        break;
+
+                    case SERVICE_STOPPED:
+                        target.serviceStopped(this);
+                        break;
+
+                    case SERVICE_SUSPENDED:
+                        target.serviceSuspended(this);
+                        break;
+
+                    case SERVICE_RESUMED:
+                        target.serviceResumed(this);
+                        break;
+                     }
+                }
+            catch (Exception e)
+                {
+                Logger.err("Caught exception dispatching service event " + this, e);
+                }
             }
         }
 
@@ -159,10 +176,20 @@ public class ServiceEvent
     public static final int SERVICE_STOPPED  = 4;
 
     /**
+    * This event indicates that a service has been suspended.
+    */
+    public static final int SERVICE_SUSPENDED  = 5;
+
+    /**
+    * This event indicates that a service has been resumed.
+    */
+    public static final int SERVICE_RESUMED  = 6;
+
+    /**
     * Descriptions of the various event IDs.
     */
     private static final String[] DESCRIPTIONS =
-            {"<unknown>", "STARTING", "STARTED", "STOPPING", "STOPPED"};
+            {"<unknown>", "STARTING", "STARTED", "STOPPING", "STOPPED", "SUSPENDED", "RESUMED"};
 
 
     // ----- data members ---------------------------------------------------

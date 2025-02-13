@@ -434,8 +434,8 @@ public class TopicsRecoveryTests
                 Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
                 Eventually.assertDeferred(() -> isTopicServiceRunning(member), is(true));
 
-                try (Publisher<Message>  publisher  = topic.createPublisher();
-                     Subscriber<Message> subscriber = topic.createSubscriber(inGroup("test")))
+                try (Publisher<Message>            publisher  = topic.createPublisher();
+                     NamedTopicSubscriber<Message> subscriber = (NamedTopicSubscriber<Message>) topic.createSubscriber(inGroup("test")))
                     {
                     Logger.info(">>>> Publishing " + cMsgTotal + " messages of " + cbMessage + " bytes");
                     for (int i = 0; i < cMsgTotal; i++)
@@ -468,9 +468,21 @@ public class TopicsRecoveryTests
                         assertThat(element, is(notNullValue()));
                         }
 
+                    // A latch to catch the subscriber disconnect
+                    CountDownLatch latch = new CountDownLatch(1);
+                    subscriber.addStateListener((subscriber1, nNewState, nPrevState) ->
+                        {
+                        if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED)
+                            {
+                            latch.countDown();
+                            }
+                        });
+
                     restartService(topic);
 
-                    assertThat(((NamedTopicSubscriber<Message>) subscriber).getState(), is(NamedTopicSubscriber.STATE_DISCONNECTED));
+                    // The subscriber should have disconnected at least once, it may already be reconnected
+                    // so we cannot just check its state
+                    assertThat(latch.await(5, TimeUnit.MINUTES), is(true));
 
                     Logger.info(">>>> Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
                     for ( ; m < cMsgTotal; m++)

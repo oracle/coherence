@@ -163,6 +163,7 @@ public class NamedTopicSubscriber<V>
         f_queueReceiveOrders = new BatchingOperationsQueue<>(this::trigger, 1,
                                         f_backlog, v -> 1, BatchingOperationsQueue.Executor.fromTaskDaemon(f_daemon));
 
+        topic.getTopicService().addServiceListener(f_serviceStartListener);
         f_connector.addListener(new Listener());
         f_connector.postConstruct(this);
 
@@ -3911,18 +3912,34 @@ public class NamedTopicSubscriber<V>
             implements ServiceListener
         {
         @Override
-        public void serviceStarting(ServiceEvent evt)
+        public void serviceStarted(ServiceEvent evt)
             {
+            f_executor.execute(() ->
+                {
+                if (isActive())
+                    {
+                    ensureConnected();
+                    f_queueReceiveOrders.triggerOperations();
+                    }
+                });
             }
 
         @Override
-        public void serviceStarted(ServiceEvent evt)
+        public void serviceResumed(ServiceEvent evt)
             {
-            if (isActive())
+            f_executor.execute(() ->
                 {
-                ensureConnected();
-                f_queueReceiveOrders.triggerOperations();
-                }
+                if (isActive())
+                    {
+                    ensureConnected();
+                    f_queueReceiveOrders.triggerOperations();
+                    }
+                });
+            }
+
+        @Override
+        public void serviceStarting(ServiceEvent evt)
+            {
             }
 
         @Override
