@@ -86,6 +86,10 @@ public class VersionHelper
             {
             return encodeVersion(15, 0, 0, 0, 0);
             }
+        else if (nYear == 23)
+            {
+            return encodeVersion(14, 1, 2, 0, 0);
+            }
         return encodeVersion(14, 1, 1, 0, 0);
         }
 
@@ -144,7 +148,15 @@ public class VersionHelper
         final int INDEX_MONTH = 4; // 14.1.1.20.06.01
 
         String[] asVersions = sVersion.split("\\.");
-        int[]    an         = new int[5];
+
+        if (asVersions.length == 2 || asVersions.length == 3)
+            {
+            // this is a CE version...
+            int nYear  = Integer.parseInt(asVersions[0]);
+            int nMonth = Integer.parseInt(asVersions[1]);
+            int nPatch =  asVersions.length == 3 ? Integer.parseInt(asVersions[2]) : 0;
+            return encodeVersion(nYear, nMonth, nPatch);
+            }
 
         // handle feature pack which condenses YY && MM into a single string
             {
@@ -164,6 +176,8 @@ public class VersionHelper
                 asVersions[INDEX_MONTH] = sYear.substring(2);
                 }
             }
+
+        int[] an = new int[5];
 
         // process the version converting to 5 base 64 encoded integers
         for (int i = 0, c = Math.min(an.length, asVersions.length); i < c; i++)
@@ -329,6 +343,11 @@ public class VersionHelper
             // FA 14.1.2.24.x maps to Coherence 14.1.2.0.x
             return 0;
             }
+        else if (nMajor == 12 && nMinor == 2 && nMicro == 1 && nPatchSet == 6)
+            {
+            // FA 12.2.1.6.x maps to Coherence 12.2.1.4.x
+            return 4;
+            }
         return nPatchSet;
         }
 
@@ -386,23 +405,33 @@ public class VersionHelper
     // ----- constants ------------------------------------------------------
 
     /**
+     * The encoded CE 25.03.0 version.
+     */
+    public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
+
+    /**
+     * The encoded CE 24.09 versions.
+     */
+    public static final int VERSION_24_09 = encodeVersion(24, 9, 0);
+
+    /**
+     * The encoded CE 24.03.0 and 1 versions.
+     */
+    public static final int VERSION_24_03 = encodeVersion(24, 3, 0);
+    public static final int VERSION_24_03_1 = encodeVersion(24, 3, 1);
+
+    /**
      * The encoded CE 23.09.0 and 1 versions.
      */
     public static final int VERSION_23_09 = encodeVersion(23, 9, 0);
     public static final int VERSION_23_09_1 = encodeVersion(23, 9, 1);
 
     /**
-     * The encoded CE 25.03.0 version.
+     * The encoded 14.1.1.2206.0, 6, 7 and 12 versions.
      */
-    public static final int VERSION_25_03 = encodeVersion(25, 3, 0);
-
-    /**
-     * The encoded 14.1.1.2206.0, 6 and 7 versions.
-     * The encoded 14.1.1.2206.0, 6, 7, and 12 versions.
-     */
-    public static final int VERSION_14_1_1_2206   = encodeVersion(14, 1, 1, 2206, 0);
-    public static final int VERSION_14_1_1_2206_6 = encodeVersion(14, 1, 1, 2206, 6);
-    public static final int VERSION_14_1_1_2206_7 = encodeVersion(14, 1, 1, 2206, 7);
+    public static final int VERSION_14_1_1_2206    = encodeVersion(14, 1, 1, 2206, 0);
+    public static final int VERSION_14_1_1_2206_6  = encodeVersion(14, 1, 1, 2206, 6);
+    public static final int VERSION_14_1_1_2206_7  = encodeVersion(14, 1, 1, 2206, 7);
     public static final int VERSION_14_1_1_2206_12 = encodeVersion(14, 1, 1, 2206, 12);
 
     /**
