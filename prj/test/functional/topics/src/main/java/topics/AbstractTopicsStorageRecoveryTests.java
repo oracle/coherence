@@ -188,7 +188,9 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
         String sServiceName = s_storageCluster.getAny().invoke(new GetTopicServiceName(topic.getName()));
 
-        try (Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(), Publisher.OnFailure.Continue, NamedTopicPublisher.ChannelCount.of(10)))
+        Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(),
+                Publisher.OnFailure.Continue, NamedTopicPublisher.ChannelCount.of(10));
+        try
             {
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
@@ -389,6 +391,13 @@ public abstract class AbstractTopicsStorageRecoveryTests
                     }
                 }
             assertThat(count, greaterThanOrEqualTo(cPublished.get()));
+            }
+        finally
+            {
+            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
+            assertThat(member, is(notNullValue()));
+            member.submit(new ResumeService(sServiceName)).get(1, TimeUnit.MINUTES);
+            CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
             }
         }
 
