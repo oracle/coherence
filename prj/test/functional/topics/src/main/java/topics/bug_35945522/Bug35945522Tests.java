@@ -7,7 +7,6 @@
 package topics.bug_35945522;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
-import com.oracle.bedrock.options.LaunchLogging;
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -27,8 +26,6 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import topics.NamedTopicTests;
@@ -155,7 +152,7 @@ public class Bug35945522Tests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(NamedTopicTests.class);
 
-    public static final File s_fileOutDir = MavenProjectFileUtils.ensureTestOutputFolder(NamedTopicTests.class, "heap-dumps");
+    public static final File s_fileOutDir = MavenProjectFileUtils.ensureTestOutputFolder(Bug35945522Tests.class, "heap-dumps");
 
     @ClassRule
     public static CoherenceClusterResource cluster =
