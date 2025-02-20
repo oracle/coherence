@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -292,7 +292,7 @@ public class TestNonBlockingStore<K, V>
                         }
                     }
 
-                delay(getDurationStore());
+                delay(getDurationStore() + 200);
                 getStorageMap().put(oKey, oValue);
                 getProcessor().process(binEntry);
                 delay(200);
