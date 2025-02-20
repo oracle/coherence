@@ -1749,8 +1749,8 @@ public class ReadWriteBackingMapTests
                 mapInternal.evict();
                 }
 
-            assertEquals(testName, 1, store.getStorageMap().size());
-            assertEquals(testName, 0, mapInternal.size());
+            Eventually.assertDeferred(testName, () -> store.getStorageMap().size(), is(1));
+            Eventually.assertDeferred(testName, () -> mapInternal.size(), is(0));
 
             Map<Integer,Integer> mapData = mapOfIntegers(10);
 
@@ -1767,8 +1767,8 @@ public class ReadWriteBackingMapTests
                 mapInternal.evict();
                 }
 
-            assertEquals(testName, mapData.size(), store.getStorageMap().size());
-            assertEquals(testName, 0, mapInternal.size());
+            Eventually.assertDeferred(testName, () -> store.getStorageMap().size(), is(mapData.size()));
+            Eventually.assertDeferred(testName, () -> mapInternal.size(), is(0));
             }
         finally
             {
