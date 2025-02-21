@@ -37,6 +37,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.net.internal.QuorumInfo;
@@ -258,6 +259,37 @@ public class CachePersistenceHelper
 
         seal(store, service, null);
 
+        Logger.log(() ->
+                   {
+                   Set<Member>   setMember = info.getMembers();
+                   StringBuilder sb        = new StringBuilder("Wrote current membership to META extent for service " +
+                                                               service.getInfo().getServiceName() + " memberSet size=");
+                   if (setMember == null)
+                       {
+                       sb.append("0");
+                       }
+                   else
+                       {
+                       sb = sb.append(info.getMembers().size());
+                       sb.append(" members=[");
+
+                       boolean fFirst = true;
+                       for (Member member : info.getMembers())
+                           {
+                           if (fFirst)
+                               {
+                               fFirst = false;
+                               }
+                           else
+                               {
+                               sb.append(",");
+                               }
+                           sb.append(member.getId());
+                           }
+                       sb.append("]");
+                       }
+                   return sb.toString();
+                   }, Logger.FINER);
         return binInfo;
         }
 
