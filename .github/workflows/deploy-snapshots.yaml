@@ -55,3 +55,19 @@ jobs:
         git config --local user.name "${GIT_USER}"
         git config --local user.email "${GIT_EMAIL}"
         sh tools/bin/github-deploy-snapshots.sh
+
+    - name: Build Docs
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        cd prj
+        make docs
+
+    - name: Upload Docs
+      id: upload-docs
+    - uses: actions/upload-artifact@v4
+      with:
+        name: docs.zip
+        path: prj/docs/target/docs.zip
+        if-no-files-found: ignore
