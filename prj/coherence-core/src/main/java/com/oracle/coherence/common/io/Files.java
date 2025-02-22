@@ -134,6 +134,11 @@ public class Files
                             // solaris loopback filesystems, sDevice is the source mount; common for /export/home -> /home
                             fLocal = isLocal(new File(sDevice), fAssumeLocal);
                             }
+                        else if (sFs.equals("ocfs2"))
+                            {
+                            // assume that fs type ocfs2 is sharable remote block storage.
+                            return false;
+                            }
                         }
                     }
                 }
