@@ -1,14 +1,16 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
 
 import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.GridComponent;
 
@@ -686,18 +688,21 @@ public abstract class ConfigurableQuorumPolicy
                     if (partsMissing.isFull())
                         {
                         // everything is missing; must be the case (a) - allow
+                        Logger.log("\"recover\" allowed with missing last known ownership list due to either completely fresh deployment or on-demand persistence", Logger.FINER);
                         return null;
                         }
 
                     if (partsMissing.isEmpty())
                         {
                         // everything is recoverable; must be the case (c) - allow
+                        Logger.log("\"recover\" allowed with missing last known ownership list due to old persistence version (all partitions exist)", Logger.FINER);
                         return null;
                         }
 
                     if (!partsRecover.isFull() && !partsMissing.intersects(partsRecover))
                         {
                         // everything is recoverable; must be case (d) - allow
+                        Logger.log("\"recover\" allowed with missing last known ownership list due to global partition being transferred while experiencing partition loss", Logger.FINER);
                         return null;
                         }
 
