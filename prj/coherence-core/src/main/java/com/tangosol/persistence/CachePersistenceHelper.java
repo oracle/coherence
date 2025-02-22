@@ -35,6 +35,7 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.Member;
 import com.tangosol.net.PartitionedService;
 
 import com.tangosol.net.internal.QuorumInfo;
@@ -65,6 +66,7 @@ import java.io.Writer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.Properties;
 
 import static com.tangosol.util.ExternalizableHelper.toBinary;
@@ -233,7 +235,37 @@ public class CachePersistenceHelper
         writeQuorumRaw(store, binInfo);
 
         seal(store, service, null);
+        if (CacheFactory.isLogEnabled(Base.LOG_QUIET))
+            {
+            Set<Member>   setMember = info.getMembers();
+            StringBuilder sb        = new StringBuilder("Wrote current membership to META extent for service " +
+                                                        service.getInfo().getServiceName() + " memberSet size=");
+            if (setMember == null)
+                {
+                sb.append("0");
+                }
+            else
+                {
+                sb = sb.append(info.getMembers().size());
+                sb.append(" members=[");
 
+                boolean fFirst = true;
+                for (Member member : info.getMembers())
+                    {
+                    if (fFirst)
+                        {
+                        fFirst = false;
+                        }
+                    else
+                        {
+                        sb.append(",");
+                        }
+                    sb.append(member.getId());
+                    }
+                sb.append("]");
+                }
+            CacheFactory.log(sb.toString(), Base.LOG_QUIET);
+            }
         return binInfo;
         }
 
