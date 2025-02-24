@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -887,6 +887,19 @@ public interface Subscriber<V>
         }
 
     /**
+     * Manually decide the channels to subscribe to.
+     *
+     * @param anChannel  the channels to subscribe to
+     * @param <V>    the type of the elements being received from the topic
+     *
+     * @return a {@link SubscribeTo} option
+     */
+    static <V> SubscribeTo<V> subscribeTo(int... anChannel)
+        {
+        return anChannel == null ? SubscribeTo.auto() : new SubscribeTo<>(anChannel);
+        }
+
+    /**
      * Create a {@link ChannelOwnershipListeners} option with one or more
      * {@link ChannelOwnershipListener listeners}.
      *
@@ -1663,6 +1676,52 @@ public interface Subscriber<V>
          * The CompleteOnEmpty singleton.
          */
         protected static final CompleteOnEmpty<?> INSTANCE = new CompleteOnEmpty<>();
+        }
+
+    // ----- inner class: SubscribeTo ---------------------------------------
+
+    /**
+     * An option to allow a subscriber to manually decide which channels
+     * it will subscribe to.
+     * <p>
+     * Invalid channels will be ignored.
+     *
+     * @param <V>  the type of the elements being received from the topic
+     */
+    public static class SubscribeTo<V>
+            implements Option<V, V>
+        {
+        public SubscribeTo(int[] anChannel)
+            {
+            f_anChannel = anChannel == null ? new int[0] : anChannel;
+            }
+
+        /**
+         * Return the channels to subscribe to.
+         *
+         * @return the channels to subscribe to
+         */
+        public int[] getChannels()
+            {
+            return f_anChannel;
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        @SuppressWarnings("unchecked")
+        public static <V> SubscribeTo<V> auto()
+            {
+            return AUTO;
+            }
+
+        // ----- constants --------------------------------------------------
+
+        @SuppressWarnings("rawtypes")
+        public static final SubscribeTo AUTO = new SubscribeTo(new int[0]);
+
+        // ----- data members -----------------------------------------------
+
+        private final int[] f_anChannel;
         }
 
     // ----- inner class: ChannelOwnershipListeners -------------------------

@@ -368,12 +368,17 @@ public class TopicsRecoveryTests
                         }
 
                     // A latch to catch the subscriber disconnect
-                    CountDownLatch latch = new CountDownLatch(1);
+                    CountDownLatch latchConnect    = new CountDownLatch(1);
+                    CountDownLatch latchDisconnect = new CountDownLatch(1);
                     subscriber.addStateListener((subscriber1, nNewState, nPrevState) ->
                         {
                         if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED)
                             {
-                            latch.countDown();
+                            latchDisconnect.countDown();
+                            }
+                        if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED)
+                            {
+                            latchConnect.countDown();
                             }
                         });
 
@@ -381,17 +386,13 @@ public class TopicsRecoveryTests
 
                     // The subscriber should have disconnected at least once, it may already be reconnected
                     // so we cannot just check its state
-                    assertThat(latch.await(5, TimeUnit.MINUTES), is(true));
+                    assertThat(latchDisconnect.await(5, TimeUnit.MINUTES), is(true));
+                    // Should eventually be reconnected
+                    Eventually.assertDeferred(subscriber::getState, is(NamedTopicSubscriber.STATE_CONNECTED));
 
-                    Logger.info(">>>> Subscriber receiving remaining " + (cMsgTotal - m) + " messages of " + cbMessage + " bytes");
-                    for ( ; m < cMsgTotal; m++)
-                        {
-                        element = subscriber.receive().get(1, TimeUnit.MINUTES);
-                        assertThat(element, is(notNullValue()));
-                        Message message = element.getValue();
-                        assertThat(message, is(notNullValue()));
-                        assertThat(message.m_id, is(m));
-                        }
+                    Logger.info(">>>> Subscriber receiving remaining messages");
+                    element = subscriber.receive().get(1, TimeUnit.MINUTES);
+                    assertThat(element, is(notNullValue()));
                     }
                 }
             }

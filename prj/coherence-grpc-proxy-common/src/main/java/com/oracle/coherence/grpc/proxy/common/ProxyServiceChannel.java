@@ -12,10 +12,12 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.GrpcServiceProtocol;
 import com.oracle.coherence.grpc.LockingStreamObserver;
+import com.oracle.coherence.grpc.LoggingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
 import com.oracle.coherence.grpc.messages.common.v1.Complete;
@@ -87,9 +89,14 @@ public class ProxyServiceChannel
      */
     protected ProxyServiceChannel(GrpcService service, StreamObserver<ProxyResponse> observer, Supplier<Member> memberSupplier)
         {
-        f_service        = service;
-        f_observer       = SafeStreamObserver.ensureSafeObserver(LockingStreamObserver.ensureLockingObserver(observer));
         f_memberSupplier = Objects.requireNonNullElse(memberSupplier, () -> CacheFactory.getCluster().getLocalMember());
+        f_service        = service;
+
+        if (GrpcService.LOG_MESSAGES)
+            {
+            observer = new LoggingStreamObserver<>(observer, "ProxyServiceChannel");
+            }
+        f_observer = SafeStreamObserver.ensureSafeObserver(LockingStreamObserver.ensureLockingObserver(observer));
         service.addCloseable(this);
         }
 
@@ -98,6 +105,11 @@ public class ProxyServiceChannel
     @Override
     public void onNext(ProxyRequest request)
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "ProxyServiceChannel: onNext() called request=" + request);
+            }
+
         try
             {
             long                     nId         = request.getId();
@@ -165,6 +177,11 @@ public class ProxyServiceChannel
     @Override
     public void onError(Throwable t)
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "ProxyServiceChannel: onError() called error=" + t);
+            }
+
         f_observer.onError(t);
         if (m_protocol != null)
             {
@@ -183,6 +200,11 @@ public class ProxyServiceChannel
     @Override
     public void onCompleted()
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "ProxyServiceChannel: onCompleted() called");
+            }
+
         if (m_protocol != null)
             {
             m_protocol.close();
@@ -190,7 +212,7 @@ public class ProxyServiceChannel
         f_service.removeCloseable(this);
         if (m_connection != null)
             {
-            m_connection.close();
+            m_connection.close(true, null, false);
             }
         }
 
@@ -238,6 +260,11 @@ public class ProxyServiceChannel
     @SuppressWarnings("unchecked")
     protected void init(long nId, InitRequest request)
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "ProxyServiceChannel: init() called nId=" + nId + " request=" + request);
+            }
+
         f_lock.lock();
         try
             {

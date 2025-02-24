@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -59,11 +59,12 @@ public class EnsureSubscriptionProcessor
      * @param filter         the filter indicating which values are of interest
      * @param extractor      the optional converter function to convert values before they are
      *                       returned to subscribers
+     * @param anChannels     any manually assigned channels
      * @param subscriberId   the unique identifier of the subscriber
      * @param fReconnect     {@code true} if this is a subscriber reconnection
      */
     public EnsureSubscriptionProcessor(int nPhase, long[] alPage, Filter<?> filter, ValueExtractor<?, ?> extractor,
-                                       SubscriberId subscriberId, boolean fReconnect, boolean fCreateGroupOnly,
+                                       int[] anChannels, SubscriberId subscriberId, boolean fReconnect, boolean fCreateGroupOnly,
                                        long lSubscriptionId)
         {
         super(PagedTopicPartition::ensureTopic);
@@ -76,6 +77,7 @@ public class EnsureSubscriptionProcessor
         m_fReconnect       = fReconnect;
         m_fCreateGroupOnly = fCreateGroupOnly;
         m_lSubscriptionId  = lSubscriptionId;
+        m_anManualChannels = anChannels;
         }
 
     // ----- AbstractProcessor methods --------------------------------------
@@ -147,6 +149,16 @@ public class EnsureSubscriptionProcessor
         m_lSubscriptionId = lSubscriptionId;
         }
 
+    /**
+     * Return any manually assigned channels.
+     *
+     * @return any manually assigned channels
+     */
+    public int[] getManualChannels()
+        {
+        return m_anManualChannels;
+        }
+
     // ----- EvolvablePortableObject interface ------------------------------
 
     @Override
@@ -185,6 +197,11 @@ public class EnsureSubscriptionProcessor
             m_lSubscriptionId = in.readLong(8);
             }
 
+        if (nVersion >= 5)
+            {
+            m_anManualChannels = in.readIntArray(9);
+            }
+
         m_subscriberId = new SubscriberId(nSubscriberId, uuid);
         }
 
@@ -201,6 +218,7 @@ public class EnsureSubscriptionProcessor
         out.writeBoolean(6, m_fCreateGroupOnly);
         out.writeObject(7, m_subscriberId.getUID());
         out.writeLong(8, m_lSubscriptionId);
+        out.writeIntArray(9, m_anManualChannels);
         }
 
     // ----- inner class: Result --------------------------------------------
@@ -422,7 +440,7 @@ public class EnsureSubscriptionProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 4;
+    public static final int DATA_VERSION = 5;
 
     // ----- data members ---------------------------------------------------
 
@@ -465,4 +483,9 @@ public class EnsureSubscriptionProcessor
      * The unique id of the subscriber group.
      */
     private long m_lSubscriptionId;
+
+    /**
+     * The manually assigned channels.
+     */
+    private int[] m_anManualChannels;
     }

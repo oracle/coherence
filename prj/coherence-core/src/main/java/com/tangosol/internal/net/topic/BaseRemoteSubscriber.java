@@ -105,12 +105,12 @@ public abstract class BaseRemoteSubscriber<V>
 
     @Override
     public CompletableFuture<ReceiveResult> receive(ConnectedSubscriber<V> subscriber, int nChannel,
-            Position headPosition, long lVersion, ReceiveHandler handler)
+            Position headPosition, long lVersion, int cMaxElements, ReceiveHandler handler)
         {
         CompletableFuture<ReceiveResult> future = new CompletableFuture<>();
         try
             {
-            SimpleReceiveResult result = receiveInternal(nChannel, headPosition, lVersion);
+            SimpleReceiveResult result = receiveInternal(nChannel, headPosition, lVersion, cMaxElements);
             handler.onReceive(lVersion, result, null, null);
             subscriber.setChannelHeadIfHigher(nChannel, result.getHead());
             future.complete(result);
@@ -136,10 +136,11 @@ public abstract class BaseRemoteSubscriber<V>
      * @param nChannel      the channel identifier
      * @param headPosition  the heap position of the channel
      * @param lVersion      the channel version
+     * @param cMaxElements  the maximum number of elements to return
      *
      * @return the result of the receive request
      */
-    protected abstract SimpleReceiveResult receiveInternal(int nChannel, Position headPosition, long lVersion);
+    protected abstract SimpleReceiveResult receiveInternal(int nChannel, Position headPosition, long lVersion, int cMaxElements);
 
     @Override
     public CompletableFuture<CommitResult> commit(ConnectedSubscriber<V> subscriber, int nChannel, Position position)

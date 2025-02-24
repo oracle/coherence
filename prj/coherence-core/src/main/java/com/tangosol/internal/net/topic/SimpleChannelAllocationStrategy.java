@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,8 +12,11 @@ import com.tangosol.net.Member;
 
 import com.tangosol.util.UUID;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -64,57 +67,78 @@ public class SimpleChannelAllocationStrategy
         }
 
     @Override
-    public long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, int cChannel)
+    public long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, Map<SubscriberId, int[]> mapChannel, int cChannel)
         {
-        long[] alChannel = new long[cChannel];
+        long[]             alChannel      = new long[cChannel];
+        boolean[]          afAllocated    = new boolean[cChannel];
+        int                cAllocated     = 0;
+        List<SubscriberId> listSubscriber = new ArrayList<>();
 
-        int cSubscriber = mapSubscriber.size();
-        if (cSubscriber == 0)
+        // initialize all to zero
+        Arrays.fill(alChannel, 0L);
+        Arrays.fill(afAllocated, false);
+
+        // add subscriber to list in order
+        mapSubscriber.forEach((k, v) -> listSubscriber.add(v));
+
+        // do any manual allocations first
+        Iterator<SubscriberId> iterator = listSubscriber.iterator();
+        while (iterator.hasNext())
             {
-            // we have no subscribers
-            Arrays.fill(alChannel, 0L);
+            SubscriberId subscriberId = iterator.next();
+            int[]        anChannel    = mapChannel.get(subscriberId);
+            if (anChannel != null && anChannel.length != 0)
+                {
+                iterator.remove();
+                long id = subscriberId.getId();
+                for (int c : anChannel)
+                    {
+                    if (c >= 0 && c < cChannel)
+                        {
+                        alChannel[c]   = id;
+                        afAllocated[c] = true;
+                        cAllocated++;
+                        }
+                    }
+                }
             }
-        else if (cSubscriber == 1)
+
+        int cSubscriber  = listSubscriber.size();
+        int cUnallocated = cChannel - cAllocated;
+        if (cUnallocated <= 0 || cSubscriber == 0)
             {
-            // there is one subscriber so it gets everything
-            Arrays.fill(alChannel, mapSubscriber.values().iterator().next().getId());
+            // we manually allocated everything, or we have no subscribers left, so we're done
+            return alChannel;
             }
-        else if (cSubscriber >= cChannel)
+
+        if (cSubscriber == 1)
             {
-            // we have more subscribers than channels (or an equal number)
+            // there is one subscriber so it gets everything unallocated
+            SubscriberId subscriberId = listSubscriber.get(0);
+            long         id           = subscriberId.getId();
+            for (int c = 0; c < cChannel; c++)
+                {
+                if (!afAllocated[c])
+                    {
+                    alChannel[c] = id;
+                    }
+                }
+            }
+        else if (cSubscriber >= cUnallocated)
+            {
+            // we have more subscribers than unallocated channels (or an equal number)
             // so give one channel to each subscriber starting at the beginning
             // until we run out of channels
             int nChannel = 0;
-            for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
+            for (SubscriberId subscriberId : listSubscriber)
                 {
-                alChannel[nChannel++] = entry.getValue().getId();
-                if (nChannel >= cChannel)
+                while (nChannel < cChannel && afAllocated[nChannel])
                     {
-                    break;
+                    nChannel++;
                     }
-                }
-            }
-        else
-            {
-            // we have fewer subscribers than channels
-            int nChannel = 0;
-            int cAlloc   = cChannel / cSubscriber;  // channels per subscriber, rounded down
-
-            // allocate the required number of channels to the subscriber
-            for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-                {
-                for (int i = 0; i < cAlloc; i++)
+                if (nChannel < cChannel)
                     {
-                    alChannel[nChannel++] = entry.getValue().getId();
-                    }
-                }
-
-            // assign the remainder round-robin
-            if (nChannel < cChannel)
-                {
-                for (Map.Entry<Long, SubscriberId> entry : mapSubscriber.entrySet())
-                    {
-                    alChannel[nChannel++] = entry.getValue().getId();
+                    alChannel[nChannel++] = subscriberId.getId();
                     if (nChannel >= cChannel)
                         {
                         break;
@@ -122,7 +146,52 @@ public class SimpleChannelAllocationStrategy
                     }
                 }
             }
+        else
+            {
+            // we have fewer subscribers than unallocated channels
+            int nChannel = 0;
+            int cAlloc   = cUnallocated / cSubscriber;  // channels per subscriber, rounded down
 
+            // allocate the required number of channels to the subscriber
+            for (SubscriberId subscriberId : listSubscriber)
+                {
+                long nId = subscriberId.getId();
+                for (int i = 0; i < cAlloc; i++)
+                    {
+                    while (nChannel < cChannel && afAllocated[nChannel])
+                        {
+                        nChannel++;
+                        }
+                    if (nChannel < cChannel)
+                        {
+                        afAllocated[nChannel] = true;
+                        alChannel[nChannel++] = nId;
+                        cAllocated++;
+                        }
+                    }
+                }
+
+            // assign the remainder round-robin
+            if (cAllocated < cChannel)
+                {
+                for (SubscriberId subscriberId : listSubscriber)
+                    {
+                    long nId = subscriberId.getId();
+                    while (nChannel < cChannel && afAllocated[nChannel])
+                        {
+                        nChannel++;
+                        }
+                    if (nChannel < cChannel)
+                        {
+                        alChannel[nChannel++] = nId;
+                        if (nChannel >= cChannel)
+                            {
+                            break;
+                            }
+                        }
+                    }
+                }
+            }
         return alChannel;
         }
 

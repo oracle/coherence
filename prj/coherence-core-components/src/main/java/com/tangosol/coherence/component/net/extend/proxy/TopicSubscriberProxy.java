@@ -200,10 +200,14 @@ public class TopicSubscriberProxy
 
     protected void onDeactivation()
         {
-        TopicService service = m_topic.getTopicService();
-        if (service.isRunning())
+        NamedTopic topic = m_topic;
+        if (topic != null)
             {
-            closeChannel();
+            TopicService service = m_topic.getTopicService();
+            if (service.isRunning())
+                {
+                closeChannel();
+                }
             }
         }
 

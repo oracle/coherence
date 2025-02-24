@@ -108,6 +108,7 @@ import java.util.TreeSet;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -152,6 +153,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.ToIntFunction;
 
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectInstance;
@@ -162,6 +164,7 @@ import static com.oracle.bedrock.testsupport.deferred.Eventually.assertDeferred;
 import static com.tangosol.internal.net.topic.NamedTopicSubscriber.withIdentifyingName;
 import static com.tangosol.net.topic.Subscriber.completeOnEmpty;
 import static com.tangosol.net.topic.Subscriber.inGroup;
+import static com.tangosol.net.topic.Subscriber.subscribeTo;
 import static com.tangosol.net.topic.Subscriber.withConverter;
 import static com.tangosol.net.topic.Subscriber.withFilter;
 
@@ -758,7 +761,7 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<String> topic = ensureTopic();
 
-        try (Subscriber<String> subscriber = topic.createSubscriber();
+        try (NamedTopicSubscriber<String> subscriber = (NamedTopicSubscriber<String>) topic.createSubscriber();
              Publisher<String> publisher = topic.createPublisher())
             {
             for (int i = 0; i < 5; i++)
@@ -770,11 +773,29 @@ public abstract class AbstractNamedTopicTests
             assertThat(element, is(notNullValue()));
             assertThat(element.getValue(), is("Element-0"));
 
+            CountDownLatch latchDisconnect = new CountDownLatch(1);
+            CountDownLatch latchConnect    = new CountDownLatch(1);
+            subscriber.addStateListener((source, nNewState, nPrevState) ->
+                {
+                if (nNewState == NamedTopicSubscriber.STATE_DISCONNECTED && nPrevState != NamedTopicSubscriber.STATE_DISCONNECTED)
+                    {
+                    latchDisconnect.countDown();
+                    }
+                if (nNewState == NamedTopicSubscriber.STATE_CONNECTED && nPrevState != NamedTopicSubscriber.STATE_CONNECTED)
+                    {
+                    latchConnect.countDown();
+                    }
+                });
+
             // disconnect....
-            ((NamedTopicSubscriber<String>) subscriber).disconnect();
+            subscriber.disconnect();
+
+            assertThat(latchDisconnect.await(1, TimeUnit.MINUTES), is(true));
 
             // should reconnect at the element-1, which is effectively empty
             CompletableFuture<Element<String>> future = subscriber.receive();
+
+            assertThat(latchConnect.await(1, TimeUnit.MINUTES), is(true));
 
             // publish something
             publisher.publish("Element-Last").get(2, TimeUnit.MINUTES);
@@ -1286,6 +1307,123 @@ public abstract class AbstractNamedTopicTests
                 assertThat(caches.Pages.get(new Page.Key(nChannel, lPage)), is(nullValue()));
                 }
             }
+        }
+
+    @Test
+    public void shouldRemovePagesAfterAnonymousSubscribersAreClosed() throws Exception
+        {
+        NamedTopic<String> topic   = ensureTopic();
+        TopicService       service = topic.getTopicService();
+
+        if (service instanceof SafeService)
+            {
+            service = (TopicService) ((SafeService) service).getRunningService();
+            }
+
+        Assume.assumeTrue("Test skipped for non-paged topics", service instanceof PagedTopic);
+
+        String             sName      = topic.getName();
+        PagedTopicCaches   caches     = new PagedTopicCaches(sName, (PagedTopicService) service);
+        int                cbPageSize = getServerDependencies(topic.getName(), PagedTopicDependencies::getPageCapacity);
+        int                cMessage     = cbPageSize * caches.getPartitionCount() * 3;
+
+        Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
+            cbPageSize, lessThanOrEqualTo(100));
+
+        assertThat(caches.Subscriptions.size(), is(0));
+        assertThat(caches.Subscribers.size(), is(0));
+        assertThat(caches.Pages.size(), is(0));
+        assertThat(caches.Data.size(), is(0));
+
+        try (Subscriber<String> subscriberOne = topic.createSubscriber(completeOnEmpty());
+             Publisher<String> publisher = topic.createPublisher(OrderBy.id(0)))
+            {
+            for (int i = 0; i < cMessage; i++)
+                {
+                publisher.publish("element-" + i).get(2, TimeUnit.MINUTES);
+                }
+            publisher.flush().get(2, TimeUnit.MINUTES);
+
+            // read the first element with subscriber one
+            Element<String> elementOne  = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+            PagedPosition   positionOne = (PagedPosition) elementOne.getPosition();
+            int             nChannel    = elementOne.getChannel();
+            Page            page        = caches.Pages.get(new Page.Key(nChannel, positionOne.getPage()));
+            int             nTail       = page.getTail();
+
+            // read the tail of the first page
+            while (positionOne.getOffset() < nTail)
+                {
+                elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+                positionOne = (PagedPosition) elementOne.getPosition();
+                }
+
+            // close the publisher and subscriber
+            }
+
+        // Everything should be cleaned up
+        Eventually.assertDeferred(caches.Subscriptions::size, is(0));
+        Eventually.assertDeferred(caches.Subscribers::size, is(0));
+        Eventually.assertDeferred(caches.Pages::size, is(lessThanOrEqualTo(1)));
+        }
+
+    @Test
+    public void shouldRemovePagesAfterAnonymousSubscribersWithManualChannelsAreClosed() throws Exception
+        {
+        NamedTopic<String> topic   = ensureTopic();
+        TopicService       service = topic.getTopicService();
+
+        if (service instanceof SafeService)
+            {
+            service = (TopicService) ((SafeService) service).getRunningService();
+            }
+
+        Assume.assumeTrue("Test skipped for non-paged topics", service instanceof PagedTopic);
+
+        String             sName      = topic.getName();
+        PagedTopicCaches   caches     = new PagedTopicCaches(sName, (PagedTopicService) service);
+        int                cbPageSize = getServerDependencies(topic.getName(), PagedTopicDependencies::getPageCapacity);
+        int                cMessage     = cbPageSize * caches.getPartitionCount() * 3;
+
+        Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
+            cbPageSize, lessThanOrEqualTo(100));
+
+        assertThat(caches.Subscriptions.size(), is(0));
+        assertThat(caches.Subscribers.size(), is(0));
+        assertThat(caches.Pages.size(), is(0));
+        assertThat(caches.Data.size(), is(0));
+
+        try (Subscriber<String> subscriberOne = topic.createSubscriber(completeOnEmpty(), subscribeTo(1, 2, 3, 4));
+             Publisher<String> publisher = topic.createPublisher(OrderBy.roundRobin()))
+            {
+            for (int i = 0; i < cMessage; i++)
+                {
+                publisher.publish("element-" + i).get(2, TimeUnit.MINUTES);
+                }
+            publisher.flush().get(2, TimeUnit.MINUTES);
+
+            // read the first element with subscriber one
+            Element<String> elementOne  = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+            PagedPosition   positionOne = (PagedPosition) elementOne.getPosition();
+            int             nChannel    = elementOne.getChannel();
+            Page            page        = caches.Pages.get(new Page.Key(nChannel, positionOne.getPage()));
+            int             nTail       = page.getTail();
+
+            // read the tail of the first page
+            while (positionOne.getOffset() < nTail)
+                {
+                elementOne = subscriberOne.receive().get(2, TimeUnit.MINUTES);
+                positionOne = (PagedPosition) elementOne.getPosition();
+                }
+
+            // close the publisher and subscriber
+            }
+
+        // Everything should be cleaned up
+        Eventually.assertDeferred(caches.Subscriptions::size, is(0));
+        Eventually.assertDeferred(caches.Subscribers::size, is(0));
+        Eventually.assertDeferred(caches.Pages::size, is(lessThanOrEqualTo(1)));
+        Eventually.assertDeferred(caches.Data::size, is(0));
         }
 
     @Test
@@ -2335,17 +2473,29 @@ public abstract class AbstractNamedTopicTests
             Eventually.assertDeferred(() -> subscriber3.getChannels().length, is(cChannel));
 
             System.err.println("Subscriber 3 has channels " + subscriber3);
+            System.err.println("Received " + cReceived);
+            System.err.println("Messages " + cMessages);
 
             // read all messages left using subscriber 3
-            while (cReceived < cMessages)
+            try
                 {
-                element = subscriber3.receive().get(1, TimeUnit.MINUTES);
-                assertThat(element, is(notNullValue()));
-                listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
-                mapReceived.get(element.getChannel()).add(element.getValue());
-                assertThat("Duplicate " + element.getValue(), setPosition.add(new ChannelPosition(element)), is(true));
-                cReceived++;
+                while (cReceived < cMessages)
+                    {
+                    element = subscriber3.receive().get(1, TimeUnit.MINUTES);
+                    assertThat(element, is(notNullValue()));
+                    listLog.add("Received (3): " + element.getValue() + " from " + element.getPosition());
+                    mapReceived.get(element.getChannel()).add(element.getValue());
+                    assertThat("Duplicate " + element.getValue(), setPosition.add(new ChannelPosition(element)), is(true));
+                    cReceived++;
+                    }
                 }
+            catch (Throwable e)
+                {
+                System.err.println("Test failed: Received " + cReceived + " Messages " + cMessages);
+                System.err.println("Subscriber 3 " + subscriber3);
+                throw Exceptions.ensureRuntimeException(e);
+                }
+
 
             for (int i = 0; i < mapSent.size(); i++)
                 {
@@ -4542,8 +4692,182 @@ public abstract class AbstractNamedTopicTests
             }
         }
 
+    @Test
+    public void shouldManuallyAllocateChannelsForSubscriberGroup() throws Exception
+        {
+        NamedTopic<String> topic    = ensureTopic();
+        int                cChannel = topic.getChannelCount();
+        String             sGroup   = ensureGroupName();
+
+        assertThat(cChannel, is(17));
+
+        topic.ensureSubscriberGroup(sGroup);
+
+        try (Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin());
+             Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(0, 1, 5, 9)))
+            {
+            for (int i = 0; i < cChannel; i++)
+                {
+                publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(4));
+            assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+
+            // subscriber one should have received one message for each of its channels
+            verify(subscriberOne, cChannel, 1);
+
+            try (Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup), completeOnEmpty()))
+                {
+                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(13));
+                assertThat(subscriberTwo.getChannels(), is(new int[]{2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16}));
+                assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+
+                for (int i = 0; i < cChannel; i++)
+                    {
+                    publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                    }
+
+                // we have published another set of messages
+                // subscriber two should have received TWO messages for each of its channels
+                verify(subscriberTwo, cChannel, 2);
+                // subscriber one should have received one message for each of its channels
+                verify(subscriberOne, cChannel, 1);
+
+                try (Subscriber<String> subscriberThree = topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(3, 12, 13)))
+                    {
+                    Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(3));
+                    Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(10));
+                    assertThat(subscriberThree.getChannels(), is(new int[]{3, 12, 13}));
+                    assertThat(subscriberTwo.getChannels(), is(new int[]{2, 4, 6, 7, 8, 10, 11, 14, 15, 16}));
+                    assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+
+                    for (int i = 0; i < cChannel; i++)
+                        {
+                        publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                        }
+
+                    // we have published another set of messages
+                    // subscriber three should have received one message for each of its channels
+                    verify(subscriberThree, cChannel, 1);
+                    // subscriber two should have received one message for each of its channels
+                    verify(subscriberTwo, cChannel, 1);
+                    // subscriber one should have received one message for each of its channels
+                    verify(subscriberOne, cChannel, 1);
+                    }
+
+                // subscriber three closed
+                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(13));
+                assertThat(subscriberTwo.getChannels(), is(new int[]{2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16}));
+                assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+
+                for (int i = 0; i < cChannel; i++)
+                    {
+                    publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                    }
+
+                // we have published another set of messages
+                // subscriber two should have received one message for each of its channels
+                verify(subscriberTwo, cChannel, 1);
+                // subscriber one should have received one message for each of its channels
+                verify(subscriberOne, cChannel, 1);
+                }
+
+            // subscriber two closed
+            assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+
+            for (int i = 0; i < cChannel; i++)
+                {
+                publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            // we have published another set of messages
+            // subscriber one should have received one message for each of its channels
+            verify(subscriberOne, cChannel, 1);
+            }
+        }
+
+    @Test
+    public void shouldManuallyAllocateChannelsForAnonymousSubscribers() throws Exception
+        {
+        NamedTopic<String> topic    = ensureTopic();
+        int                cChannel = topic.getChannelCount();
+        String             sGroup   = ensureGroupName();
+
+        assertThat(cChannel, is(17));
+
+        topic.ensureSubscriberGroup(sGroup);
+
+        try (Publisher<String>  publisher       = topic.createPublisher(OrderBy.roundRobin());
+             Subscriber<String> subscriberOne   = topic.createSubscriber(subscribeTo(1, 2, 10, 12), completeOnEmpty());
+             Subscriber<String> subscriberTwo   = topic.createSubscriber(subscribeTo(1, 4, 9, 13, 12), completeOnEmpty());
+             Subscriber<String> subscriberThree = topic.createSubscriber(subscribeTo(1), completeOnEmpty()))
+            {
+            subscriberOne.getChannels();
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(4));
+            assertThat(subscriberOne.getChannels(), is(new int[]{1, 2, 10, 12}));
+
+            Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(5));
+            assertThat(subscriberTwo.getChannels(), is(new int[]{1, 4, 9, 12, 13}));
+
+            Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(1));
+            assertThat(subscriberThree.getChannels(), is(new int[]{1}));
+
+            for (int i = 0; i < cChannel; i++)
+                {
+                publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
+                }
+
+            verify(subscriberOne, cChannel, 1);
+            verify(subscriberTwo, cChannel, 1);
+            verify(subscriberThree, cChannel, 1);
+            }
+        }
+
     // ----- helper methods -------------------------------------------------
 
+    protected void verify(Subscriber<String> subscriber, int cChannel, int cMsgPerChannel) throws Exception
+        {
+        Subscriber.Element<String>[]     aElement  = new Subscriber.Element[cChannel];
+        int[]                            anChannel = subscriber.getChannels();
+        int[]                            anUnowned = new int[cChannel - anChannel.length];
+
+        int x = 0;
+        for (int i = 0; i < cChannel; i++)
+            {
+            int c = i;
+            if (IntStream.of(anChannel).filter(n -> n == c).findFirst().isEmpty())
+                {
+                anUnowned[x++] = c;
+                }
+            }
+
+        List<Subscriber.Element<String>> list      = receiveAll(subscriber);
+        assertThat(list.size(), is(anChannel.length * cMsgPerChannel));
+
+        list.forEach(e -> aElement[e.getChannel()] = e);
+        for (int j : anChannel)
+            {
+            assertThat(aElement[j], is(notNullValue()));
+            }
+        for (int j : anUnowned)
+            {
+            assertThat(aElement[j], is(nullValue()));
+            }
+        }
+
+    protected List<Subscriber.Element<String>> receiveAll(Subscriber<String> subscriber) throws Exception
+        {
+        List<Subscriber.Element<String>> list    = new ArrayList<>();
+        Element<String>                  element = subscriber.receive().get(1, TimeUnit.MINUTES);
+        while (element != null)
+            {
+            list.add(element);
+            element.commitAsync().get(1, TimeUnit.MINUTES);
+            element = subscriber.receive().get(1, TimeUnit.MINUTES);
+            }
+        return list;
+        }
 
     protected Customer createCustomer(String sName, int nId)
         {

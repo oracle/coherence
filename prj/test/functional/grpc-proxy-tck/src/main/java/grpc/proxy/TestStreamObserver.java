@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package grpc.proxy;
 
 import com.google.protobuf.Message;
+import com.oracle.coherence.common.base.Logger;
 import io.grpc.stub.StreamObserver;
 
 import io.reactivex.rxjava3.annotations.NonNull;
@@ -59,10 +60,39 @@ public class TestStreamObserver<T>
     @Override
     public void onCompleted()
         {
+        if (m_fLog)
+            {
+            Logger.info("TestStreamObserver.onCompleted() called");
+            }
         onComplete();
         }
 
+    @Override
+    public void onNext(@NonNull T value)
+        {
+        if (m_fLog)
+            {
+            Logger.info("TestStreamObserver.onCompleted() called value=" + value);
+            }
+        super.onNext(value);
+        }
+
+    @Override
+    public void onError(@NonNull Throwable t)
+        {
+        if (m_fLog)
+            {
+            Logger.info("TestStreamObserver.onCompleted() called t=" + t);
+            }
+        super.onError(t);
+        }
+
     // ----- public methods -------------------------------------------------
+
+    public void enableLog(boolean enable)
+        {
+        m_fLog = enable;
+        }
 
     public Throwable getError()
         {
@@ -196,4 +226,8 @@ public class TestStreamObserver<T>
             {
             }
         }
+
+    // ----- data members ---------------------------------------------------
+
+    private boolean m_fLog;
     }

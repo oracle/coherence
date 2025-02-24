@@ -185,12 +185,13 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
         {
         GrpcConnection.Dependencies deps = new GrpcConnection.DefaultDependencies(sProtocol, m_dependencies, m_channel,
                 nVersion, nVersionMin, m_serializer);
-        return GrpcRemoteService.connect(deps, responseType, nMinService);
+        return GrpcRemoteService.connect(this, deps, responseType, nMinService);
         }
 
     /**
      * Create a {@link GrpcConnection}.
      *
+     * @param service       the parent {@link GrpcRemoteService}
      * @param dependencies  the connection dependencies
      * @param responseType  the type of the expected response message
      * @param nMinService   the minimum required service version
@@ -200,13 +201,13 @@ public abstract class GrpcRemoteService<D extends RemoteGrpcServiceDependencies>
      *
      * @throws NullPointerException if the expected response type is {@code null}
      */
-    public static GrpcConnection connect(GrpcConnection.Dependencies dependencies,
+    public static GrpcConnection connect(GrpcRemoteService service, GrpcConnection.Dependencies dependencies,
             Class<? extends Message> responseType, int nMinService)
         {
         try
             {
             Class<? extends Message> type       = Objects.requireNonNull(responseType);
-            GrpcConnection           connection = new GrpcConnectionV1(dependencies, type);
+            GrpcConnection           connection = new GrpcConnectionV1(service, dependencies, type);
             connection.connect();
             return connection;
             }

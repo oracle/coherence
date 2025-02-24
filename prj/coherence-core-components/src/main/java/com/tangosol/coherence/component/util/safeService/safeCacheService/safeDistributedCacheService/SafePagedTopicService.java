@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,14 +23,18 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 
 import com.tangosol.net.internal.ScopedTopicReferenceStore;
 
+import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.TopicBackingMapManager;
 
+import com.tangosol.util.Filter;
 import com.tangosol.util.ListMap;
+import com.tangosol.util.ValueExtractor;
 
 import java.util.Map;
 
@@ -183,9 +187,21 @@ public class SafePagedTopicService
         }
 
     @Override
-    public long ensureSubscription(String Param_1, com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId Param_2, com.tangosol.net.topic.Subscriber.Id Param_3, com.tangosol.util.Filter Param_4, com.tangosol.util.ValueExtractor Param_5)
+    public void ensureSubscription(String Param_1, long Param_2, com.tangosol.net.topic.Subscriber.Id Param_3, boolean Param_4, int[] anChannel)
         {
-        return getRunningTopicService().ensureSubscription(Param_1, Param_2, Param_3, Param_4, Param_5);
+        getRunningTopicService().ensureSubscription(Param_1, Param_2, Param_3, Param_4, anChannel);
+        }
+
+    @Override
+    public long ensureSubscription(String Param_1, SubscriberGroupId Param_2, Subscriber.Id Param_3, Filter Param_4, ValueExtractor Param_5)
+        {
+        return getRunningTopicService().ensureSubscription(Param_1, Param_2, Param_3, Param_4, Param_5, null);
+        }
+
+    @Override
+    public long ensureSubscription(String Param_1, SubscriberGroupId Param_2, Subscriber.Id Param_3, Filter Param_4, ValueExtractor Param_5, int[] anChannel)
+        {
+        return getRunningTopicService().ensureSubscription(Param_1, Param_2, Param_3, Param_4, Param_5, anChannel);
         }
 
     @Override

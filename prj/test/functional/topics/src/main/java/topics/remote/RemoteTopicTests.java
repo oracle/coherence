@@ -25,8 +25,12 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Classes;
+import com.tangosol.coherence.component.net.extend.RemoteSubscriber;
+import com.tangosol.coherence.component.util.safeNamedTopic.SafeSubscriberConnector;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
+import com.tangosol.internal.net.topic.SubscriberConnector;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Invocable;
@@ -34,7 +38,9 @@ import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
+import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
+import com.tangosol.util.Binary;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -47,10 +53,16 @@ import topics.NamedTopicTests;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(Parameterized.class)
 public class RemoteTopicTests
@@ -121,6 +133,57 @@ public class RemoteTopicTests
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldReceiveSpecifiedNumberOfMessages() throws Exception
+        {
+        NamedTopic<String> topic  = ensureTopic();
+        int                nCount = 10;
+
+        try (Publisher<String>            publisher  = topic.createPublisher(Publisher.OrderBy.id(0));
+             NamedTopicSubscriber<String> subscriber = (NamedTopicSubscriber<String>) topic.createSubscriber())
+            {
+            SubscriberConnector<String> connector = subscriber.getConnector();
+            if (connector instanceof SafeSubscriberConnector<String>)
+                {
+                connector = ((SafeSubscriberConnector<String>) connector).ensureRunningConnector();
+                }
+
+            RemoteSubscriber<String> grpcConnector = (RemoteSubscriber<String>) connector;
+
+            publisher.publish("Message 0").get(1, TimeUnit.MINUTES);
+
+            Subscriber.Element<String> element = subscriber.receive().get(1, TimeUnit.MINUTES);
+            assertThat(element, is(notNullValue()));
+            assertThat(element.getValue(), is("Message 0"));
+
+            int nChannel = element.getChannel();
+
+            for (int i = 0; i < nCount; i++)
+                {
+                publisher.publish("Message " + i).get(1, TimeUnit.MINUTES);
+                }
+
+            Queue<Binary> queue = new LinkedList<>();
+
+            SubscriberConnector.ReceiveHandler handler = (lVersion, result, error, continuation) ->
+                {
+                queue.addAll(result.getElements());
+                if (continuation != null)
+                    {
+                    continuation.onContinue();
+                    }
+                };
+
+            grpcConnector.receive(subscriber, nChannel, null, 0L, 2, handler).get(1, TimeUnit.MINUTES);
+            assertThat(queue.size(), is(2));
+
+            grpcConnector.receive(subscriber, nChannel, null, 0L, 1, handler).get(1, TimeUnit.MINUTES);
+            assertThat(queue.size(), is(3));
+            }
+
+        }
 
     @Test
     public void shouldDestroy() throws Exception

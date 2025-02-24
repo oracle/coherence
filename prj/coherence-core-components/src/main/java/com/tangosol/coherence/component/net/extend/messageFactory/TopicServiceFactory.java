@@ -580,6 +580,11 @@ public class TopicServiceFactory
          */
         private String m_sSubscriberGroup;
 
+        /**
+         * The channels this subscriber wants to subscribe to.
+         */
+        private int[] m_anChannel;
+
         // ----- constructors ---------------------------------------------------
 
         public EnsureSubscriberRequest()
@@ -643,6 +648,7 @@ public class TopicServiceFactory
                     Subscriber.withFilter(m_filter),
                     Subscriber.withConverter(m_extractor),
                     m_fCompleteOnEmpty ? Subscriber.CompleteOnEmpty.enabled() : Subscriber.Option.nullOption(),
+                    Subscriber.subscribeTo(m_anChannel),
                     };
 
             ConnectedSubscriber<Binary> subscriber
@@ -686,6 +692,11 @@ public class TopicServiceFactory
             m_sSubscriberGroup = sSubscriberGroup;
             }
 
+        public void setChannels(int[] anChannel)
+            {
+            m_anChannel = anChannel;
+            }
+
         @Override
         public void readExternal(PofReader in) throws IOException
             {
@@ -694,6 +705,7 @@ public class TopicServiceFactory
             m_extractor        = in.readObject(11);
             m_fCompleteOnEmpty = in.readBoolean(12);
             m_sSubscriberGroup = in.readString(13);
+            m_anChannel        = in.readIntArray(14);
             }
 
         @Override
@@ -705,6 +717,7 @@ public class TopicServiceFactory
             out.writeObject(11, m_extractor);
             out.writeBoolean(12, m_fCompleteOnEmpty);
             out.writeString(13, m_sSubscriberGroup);
+            out.writeIntArray(14, m_anChannel);
             }
         }
 
@@ -768,6 +781,13 @@ public class TopicServiceFactory
             Channel channel = getChannel().getConnection().getChannel(m_nSubscriberId);
             if (channel != null)
                 {
+                Channel.Receiver receiver = channel.getReceiver();
+                if (receiver instanceof TopicSubscriberProxy)
+                    {
+                    TopicSubscriberProxy        proxy      = (TopicSubscriberProxy) receiver;
+                    ConnectedSubscriber<Binary> subscriber = proxy.getSubscriber();
+                    subscriber.close();
+                    }
                 channel.close();
                 }
             }

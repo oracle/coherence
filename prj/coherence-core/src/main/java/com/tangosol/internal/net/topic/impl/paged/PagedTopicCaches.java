@@ -67,6 +67,7 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import java.io.PrintStream;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -578,13 +579,32 @@ public class PagedTopicCaches
      */
     public Map<Long, Set<Integer>> getChannelAllocations(String sGroup)
         {
-        Subscription.Key key          = new Subscription.Key(0, 0, SubscriberGroupId.withName(sGroup));
-        Subscription     subscription = Subscriptions.get(key);
-        if (subscription != null)
+        PagedTopicService      service         = getService();
+        long                   lSubscriptionId = service.getSubscriptionId(f_sTopicName, SubscriberGroupId.withName(sGroup));
+        PagedTopicSubscription subscription    = service.getSubscription(lSubscriptionId);
+
+        if (subscription == null)
             {
-            return Collections.unmodifiableMap(subscription.getAllocationMap());
+            return Collections.emptyMap();
             }
-        return Collections.emptyMap();
+
+        long[]                  alAllocation  = subscription.getChannelAllocations();
+        Map<Long, Set<Integer>> mapAllocation = new HashMap<>();
+
+        for (int i = 0; i < alAllocation.length; i++)
+            {
+            int nChannel = i;
+            mapAllocation.compute(alAllocation[i], (k, set) ->
+                {
+                if (set == null)
+                    {
+                    set = new HashSet<>();
+                    }
+                set.add(nChannel);
+                return set;
+                });
+            }
+        return mapAllocation;
         }
 
     /**
@@ -725,7 +745,8 @@ public class PagedTopicCaches
         {
         assertStorage();
         SubscriberGroupId subscriberGroupId = SubscriberGroupId.withName(sName);
-        initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, 0L, filter, extractor, false, true, false);
+        initializeSubscription(subscriberGroupId, SubscriberId.NullSubscriber, 0L, filter, extractor,
+                null, false, true, false);
         }
 
     /**
@@ -735,6 +756,7 @@ public class PagedTopicCaches
      * @param subscriberId       the subscriber identifier
      * @param filter             the filter to use to filter messages received by the subscription
      * @param extractor          the {@link ValueExtractor} function to convert the messages received by the subscription
+     * @param anManualChannels   the manually assigned channels
      * @param fReconnect         {@code true} if this is a reconnection
      * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
      * @param fDisconnected      {@code true} if this is an existing, disconnected subscription
@@ -746,6 +768,7 @@ public class PagedTopicCaches
                                             long                 lSubscription,
                                             Filter<?>            filter,
                                             ValueExtractor<?, ?> extractor,
+                                            int[]                anManualChannels,
                                             boolean              fReconnect,
                                             boolean              fCreateGroupOnly,
                                             boolean              fDisconnected)
@@ -757,7 +780,8 @@ public class PagedTopicCaches
 
             if (lSubscription == 0)
                 {
-                lSubscription = getService().ensureSubscription(f_sTopicName, subscriberGroupId, subscriberId, filter, extractor);
+                lSubscription = getService().ensureSubscription(f_sTopicName, subscriberGroupId, subscriberId,
+                        filter, extractor, anManualChannels);
                 }
 
             for (int i = 0; i < f_cPartition; ++i)
@@ -771,7 +795,7 @@ public class PagedTopicCaches
             // Otherwise, there is no guarantee that there isn't gaps in our pinned pages.
             // check results to verify if initialization has already completed
             EnsureSubscriptionProcessor processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_INQUIRE,
-                    null, filter,  extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
+                    null, filter,  extractor, anManualChannels, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
             Collection<EnsureSubscriptionProcessor.Result> results;
             if (sName == null)
                 {
@@ -809,7 +833,7 @@ public class PagedTopicCaches
             if (colPages == null || colPages.contains(null) || fDisconnected)
                 {
                 alHead = initialiseSubscriptionPages(subscriberId, lSubscription, filter, extractor,
-                                                     fReconnect, fCreateGroupOnly, setSubKeys);
+                                                     anManualChannels, fReconnect, fCreateGroupOnly, setSubKeys);
                 }
             else
                 {
@@ -840,23 +864,25 @@ public class PagedTopicCaches
     /**
      * Initialise the head pages for the subscriber.
      *
-     * @param subscriberId       the subscriber identifier
-     * @param filter             the filter to use to filter messages received by the subscription
-     * @param extractor        the converter function to convert the messages received by the subscription
-     * @param fReconnect         {@code true} if this is a reconnection
-     * @param fCreateGroupOnly   {@code true} if this is to only create a subscriber group
-     * @param setSubKeys         the set of {@link Subscription.Key keys} to use to initialise the subscription pages
+     * @param subscriberId      the subscriber identifier
+     * @param filter            the filter to use to filter messages received by the subscription
+     * @param extractor         the converter function to convert the messages received by the subscription
+     * @param anManualChannels  the manually assigned channels
+     * @param fReconnect        {@code true} if this is a reconnection
+     * @param fCreateGroupOnly  {@code true} if this is to only create a subscriber group
+     * @param setSubKeys        the set of {@link Subscription.Key keys} to use to initialise the subscription pages
      *
      * @return an array of head pages
      *
      * @throws InterruptedException if any asynchronous operations are interrupted
-     * @throws ExecutionException if any asynchronous operations fail
+     * @throws ExecutionException   if any asynchronous operations fail
      */
     @SuppressWarnings("OptionalGetWithoutIsPresent")
     protected long[] initialiseSubscriptionPages(SubscriberId          subscriberId,
                                                  long                  lSubscription,
                                                  Filter<?>             filter,
                                                  ValueExtractor<?, ?>  extractor,
+                                                 int[]                 anManualChannels,
                                                  boolean               fReconnect,
                                                  boolean               fCreateGroupOnly,
                                                  Set<Subscription.Key> setSubKeys)
@@ -864,13 +890,13 @@ public class PagedTopicCaches
         {
         EnsureSubscriptionProcessor processor
                 = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_PIN, null,
-                        filter, extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
+                filter, extractor, anManualChannels, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
 
         CompletableFuture<Map<Subscription.Key, EnsureSubscriptionProcessor.Result>> future
                 = InvocableMapHelper.invokeAllAsync(Subscriptions,
-                                                    setSubKeys,
-                                                    key -> getUnitOfOrder(key.getPartitionId()),
-                                                    processor);
+                setSubKeys,
+                key -> getUnitOfOrder(key.getPartitionId()),
+                processor);
 
         Collection<EnsureSubscriptionProcessor.Result> results;
         try
@@ -895,8 +921,8 @@ public class PagedTopicCaches
         int                cChannel = colPages.stream().mapToInt(an -> an.length).max().orElse(getChannelCount());
 
         PagedTopicDependencies dependencies = getDependencies();
-        long                   lPageBase     = getBasePage();
-        long[]                 alHead        = new long[cChannel];
+        long                   lPageBase    = getBasePage();
+        long[]                 alHead       = new long[cChannel];
 
         // mapPages now reflects pinned pages
         for (int nChannel = 0; nChannel < cChannel; ++nChannel)
@@ -907,23 +933,23 @@ public class PagedTopicCaches
                 {
                 // select lowest page in each channel as our channel heads
                 alHead[nChannel] = colPages.stream()
-                    .mapToLong((alPage) -> alPage.length > finChan ? Math.max(alPage[finChan], lPageBase) : lPageBase)
-                    .min()
-                    .getAsLong();
+                        .mapToLong((alPage) -> alPage.length > finChan ? Math.max(alPage[finChan], lPageBase) : lPageBase)
+                        .min()
+                        .getAsLong();
                 }
             else
                 {
                 // select highest page in each channel as our channel heads
                 alHead[nChannel] = colPages.stream()
-                    .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
-                    .max()
-                    .getAsLong();
+                        .mapToLong((alPage) -> Math.max(alPage[finChan], lPageBase))
+                        .max()
+                        .getAsLong();
                 }
             }
 
         // finish the initialization by having subscription in all partitions advance to our selected heads
         processor = new EnsureSubscriptionProcessor(EnsureSubscriptionProcessor.PHASE_ADVANCE, alHead, filter,
-                extractor, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
+                extractor, anManualChannels, subscriberId, fReconnect, fCreateGroupOnly, lSubscription);
 
         CompletableFuture<?> futureSub = InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
                 key -> getUnitOfOrder(key.getPartitionId()), processor);

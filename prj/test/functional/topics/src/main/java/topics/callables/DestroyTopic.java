@@ -8,11 +8,13 @@
 package topics.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
-import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.NamedTopicEvent;
+import com.tangosol.net.topic.NamedTopicListener;
+import com.tangosol.util.SynchronousListener;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -30,26 +32,52 @@ public class DestroyTopic
     @Override
     public Boolean call()
         {
+        Logger.info("Entered DestroyTopic.call() topic=" + f_sTopic);
         Session       session    = Coherence.getInstance().getSession();
         NamedTopic<?> topic      = session.getTopic(f_sTopic);
-        AtomicBoolean fDestroyed = new AtomicBoolean(false);
+        Listener      listener   = new Listener();
+        Logger.info("In DestroyTopic.call() ensured topic=" + f_sTopic);
 
-        topic.addListener(evt ->
+        topic.addListener(listener);
+        Logger.info("In DestroyTopic.call() added topic listener topic=" + f_sTopic);
+
+        assertThat(topic.isActive(), is(true));
+        Logger.info("In DestroyTopic.call() topic is active topic=" + f_sTopic);
+        assertThat(topic.isDestroyed(), is(false));
+        Logger.info("In DestroyTopic.call() topic is not destroyed topic=" + f_sTopic);
+        Logger.info("In DestroyTopic.call() destroying topic topic=" + f_sTopic);
+        session.destroy(topic);
+        Logger.info("In DestroyTopic.call() destroyed topic topic=" + f_sTopic);
+        assertThat(topic.isActive(), is(false));
+        Logger.info("In DestroyTopic.call() topic is not active topic=" + f_sTopic);
+        assertThat(topic.isDestroyed(), is(true));
+        Logger.info("In DestroyTopic.call() topic is destroyed topic=" + f_sTopic);
+        assertThat(listener.isDestroyed(), is(true));
+        Logger.info("Exiting DestroyTopic.call() topic=" + f_sTopic);
+        return true;
+        }
+
+    @SuppressWarnings("rawtypes")
+    private static class Listener
+            implements NamedTopicListener, SynchronousListener
+        {
+        @Override
+        public void onEvent(NamedTopicEvent evt)
             {
             if (evt.getType() == NamedTopicEvent.Type.Destroyed)
                 {
-                fDestroyed.set(true);
+                f_fDestroyed.set(true);
                 }
-            });
+            }
 
-        assertThat(topic.isActive(), is(true));
-        assertThat(topic.isDestroyed(), is(false));
-        session.destroy(topic);
-        assertThat(topic.isActive(), is(false));
-        assertThat(topic.isDestroyed(), is(true));
-        // ToDo: Fails....
-        assertThat(fDestroyed.get(), is(true));
-        return true;
+        public boolean isDestroyed()
+            {
+            return f_fDestroyed.get();
+            }
+
+        // ----- data members ---------------------------------------------------
+
+        private final AtomicBoolean f_fDestroyed = new AtomicBoolean(false);
         }
 
     // ----- data members ---------------------------------------------------

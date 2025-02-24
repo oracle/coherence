@@ -114,18 +114,7 @@ public class RemoteSubscriberChannel<V>
         Protocol.MessageFactory factory = channel.getMessageFactory();
         M                       request = (M) factory.createMessage(id);
         configurer.accept(request);
-//        try
-//            {
-            return (R) channel.request(request);
-//            }
-//        catch (Exception e)
-//            {
-//            if (e instanceof ConnectionException)
-//                {
-//                channel.close();
-//                }
-//            throw Exceptions.ensureRuntimeException(e);
-//            }
+        return (R) channel.request(request);
         }
 
     /**

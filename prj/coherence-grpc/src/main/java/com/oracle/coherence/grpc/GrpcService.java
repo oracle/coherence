@@ -10,6 +10,7 @@ package com.oracle.coherence.grpc;
 import com.tangosol.application.Context;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
+import com.tangosol.coherence.config.Config;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
 
@@ -83,4 +84,14 @@ public interface GrpcService
          */
         Optional<Context> getContext();
         }
+
+    /**
+     * The name of the property to indicate whether to log gRPC messages sent and received.
+     */
+    String PROP_LOG_MESSAGES = "coherence.grpc.log.messages";
+
+    /**
+     * A flag to indicate whether to log messages sent and received.
+     */
+    boolean LOG_MESSAGES = Config.getBoolean(PROP_LOG_MESSAGES, false);
     }

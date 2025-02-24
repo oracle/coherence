@@ -21,12 +21,14 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.ErrorsHelper;
+import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.LockingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
 import com.oracle.coherence.grpc.client.common.BaseGrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 
+import com.oracle.coherence.grpc.client.common.GrpcRemoteService;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.HeartbeatMessage;
 
@@ -47,6 +49,8 @@ import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.SafeClock;
+import com.tangosol.util.ServiceEvent;
+import com.tangosol.util.ServiceListener;
 import com.tangosol.util.UUID;
 
 import io.grpc.Channel;
@@ -87,7 +91,7 @@ public class GrpcConnectionV1
      *
      * @throws NullPointerException if the expected response type is {@code null}
      */
-    public GrpcConnectionV1(Dependencies dependencies, Class<? extends Message> type)
+    public GrpcConnectionV1(GrpcRemoteService<?> service, Dependencies dependencies, Class<? extends Message> type)
         {
         RemoteGrpcServiceDependencies serviceDependencies = dependencies.getServiceDependencies();
 
@@ -100,6 +104,11 @@ public class GrpcConnectionV1
         f_requestTimeout     = serviceDependencies.getRequestTimeoutMillis();
         f_nHeartbeatInterval = serviceDependencies.getHeartbeatInterval();
         f_fHeartbeatAck      = serviceDependencies.isRequireHeartbeatAck();
+        f_service            = service;
+        if (service != null)
+            {
+            service.addServiceListener(f_serviceListener);
+            }
         }
 
     @Override
@@ -129,6 +138,12 @@ public class GrpcConnectionV1
 
     public void closeInternal(Throwable closeWithError)
         {
+        GrpcRemoteService<?> service = f_service;
+        if (service != null)
+            {
+            service.removeServiceListener(f_serviceListener);
+            }
+
         Throwable error = closeWithError == null
                 ? new RequestIncompleteException("Channel was closed")
                 : closeWithError;
@@ -224,6 +239,10 @@ public class GrpcConnectionV1
     @SuppressWarnings("unchecked")
     public void onNext(ProxyResponse response)
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "GrpcConnectionV1: onNext() called response=" + response);
+            }
         f_observerLock.lock();
         try
             {
@@ -242,12 +261,24 @@ public class GrpcConnectionV1
                 try
                     {
                     Message message = response.getMessage().unpack(f_responseType);
+                    if (GrpcService.LOG_MESSAGES)
+                        {
+                        Logger.info( "GrpcConnectionV1: onNext() called with event message=" + message + " listenerCount=" + m_listeners.size());
+                        }
                     m_listeners.forEach(listener ->
                         {
                         Predicate<Message> predicate = (Predicate<Message>) listener.predicate();
                         if (predicate.evaluate(message))
                             {
+                            if (GrpcService.LOG_MESSAGES)
+                                {
+                                Logger.info( "GrpcConnectionV1: onNext() passing event to listener, message=" + message + " listener=" + listener);
+                                }
                             ((StreamObserver<Message>) listener.observer()).onNext(message);
+                            }
+                        else if (GrpcService.LOG_MESSAGES)
+                            {
+                            Logger.info( "GrpcConnectionV1: onNext() called with event message=" + message + " listener predicate returned false + " + listener);
                             }
                         });
                     }
@@ -266,6 +297,10 @@ public class GrpcConnectionV1
                         if (responseCase == ProxyResponse.ResponseCase.MESSAGE)
                             {
                             Message message = response.getMessage().unpack(f_responseType);
+                            if (GrpcService.LOG_MESSAGES)
+                                {
+                                Logger.info( "GrpcConnectionV1: onNext() forwarding message to handler, message=" + message);
+                                }
                             handler.onNext(message);
                             // we do not remove the handler from the map yet, as there may be
                             // more responses for the same request
@@ -279,6 +314,10 @@ public class GrpcConnectionV1
                                 case INIT:
                                     m_initResponse = response.getInit();
                                     m_uuid         = new UUID(m_initResponse.getUuid().toByteArray());
+                                    if (GrpcService.LOG_MESSAGES)
+                                        {
+                                        Logger.info( "GrpcConnectionV1: onNext() forwarding init response to handler, initResponse=" + m_initResponse);
+                                        }
                                     handler.onNext(m_initResponse);
                                     handler.onCompleted();
                                     break;
@@ -295,10 +334,18 @@ public class GrpcConnectionV1
                                         }
                                     catch(Throwable t)
                                         {
+                                        if (GrpcService.LOG_MESSAGES)
+                                            {
+                                            Logger.info( "GrpcConnectionV1: onNext() forwarding exception to handler, error=" + t);
+                                            }
                                         handler.onError(t);
                                         }
                                     break;
                                 case COMPLETE:
+                                    if (GrpcService.LOG_MESSAGES)
+                                        {
+                                        Logger.info( "GrpcConnectionV1: onNext() calling handler onComplete()");
+                                        }
                                     handler.onCompleted();
                                     break;
                                 case RESPONSE_NOT_SET:
@@ -327,6 +374,11 @@ public class GrpcConnectionV1
     @Override
     public void onError(Throwable t)
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "GrpcConnectionV1: onError() called with: " + t);
+            }
+
         f_observerLock.lock();
         try
             {
@@ -368,6 +420,10 @@ public class GrpcConnectionV1
     @Override
     public void onCompleted()
         {
+        if (GrpcService.LOG_MESSAGES)
+            {
+            Logger.info( "GrpcConnectionV1: onCompleted() called");
+            }
         f_observerLock.lock();
         try
             {
@@ -492,6 +548,10 @@ public class GrpcConnectionV1
 
             m_mapFuture.put(nId, observer);
             ProxyRequest request = builder.build();
+            if (GrpcService.LOG_MESSAGES)
+                {
+                Logger.info( "GrpcConnectionV1: Sending request: " + request);
+                }
             sender.onNext(request);
             }
         catch (Exception e)
@@ -721,6 +781,33 @@ public class GrpcConnectionV1
         private final HeartbeatMessage f_message;
         }
 
+    // ----- inner class RemoteServiceListener ------------------------------
+
+    protected class RemoteServiceListener
+            implements ServiceListener
+        {
+        @Override
+        public void serviceStarting(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStarted(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStopping(ServiceEvent evt)
+            {
+            close();
+            }
+
+        @Override
+        public void serviceStopped(ServiceEvent evt)
+            {
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -811,7 +898,7 @@ public class GrpcConnectionV1
     /**
      * The underlying gRPC {@link Channel}
      */
-    private Channel m_channel;
+    private final Channel m_channel;
 
     /**
      * The request timeout to apply.
@@ -826,7 +913,7 @@ public class GrpcConnectionV1
     /**
      * A flag to indicate whether the server should send ack responses for heart beat messages.
      */
-    private boolean f_fHeartbeatAck;
+    private final boolean f_fHeartbeatAck;
 
     /**
      * The count of heartbeat acks received.
@@ -842,4 +929,14 @@ public class GrpcConnectionV1
      * The timestamp of the last heart beat message.
      */
     private long m_nLastHeartbeatTime;
+
+    /**
+     * The parent {@link GrpcRemoteService}.
+     */
+    private final GrpcRemoteService<?> f_service;
+
+    /**
+     * The listener for the parent remote service.
+     */
+    private final RemoteServiceListener f_serviceListener = new RemoteServiceListener();
     }

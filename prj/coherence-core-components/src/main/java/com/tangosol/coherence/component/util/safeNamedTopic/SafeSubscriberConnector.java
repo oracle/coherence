@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -164,9 +164,9 @@ public class SafeSubscriberConnector<V>
         }
 
     @Override
-    public CompletableFuture<ReceiveResult> receive(ConnectedSubscriber<V> subscriber, int nChannel, Position headPosition, long lVersion, ReceiveHandler handler)
+    public CompletableFuture<ReceiveResult> receive(ConnectedSubscriber<V> subscriber, int nChannel, Position headPosition, long lVersion, int cMaxElements, ReceiveHandler handler)
         {
-        return ensureRunningConnector().receive(subscriber, nChannel, headPosition, lVersion, handler);
+        return ensureRunningConnector().receive(subscriber, nChannel, headPosition, lVersion, cMaxElements, handler);
         }
 
     @Override
@@ -293,7 +293,7 @@ public class SafeSubscriberConnector<V>
     // ----- helper methods -------------------------------------------------
 
     @SuppressWarnings({"unchecked"})
-    protected SubscriberConnector<V> ensureRunningConnector()
+    public SubscriberConnector<V> ensureRunningConnector()
         {
         SubscriberConnector<V> connector = m_connector;
         if (connector == null || !connector.isActive())

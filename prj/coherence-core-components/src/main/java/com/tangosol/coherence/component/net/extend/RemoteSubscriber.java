@@ -133,13 +133,12 @@ public class RemoteSubscriber<V>
         }
 
     @Override
-    protected SimpleReceiveResult receiveInternal(int nChannel, Position headPosition, long lVersion)
+    protected SimpleReceiveResult receiveInternal(int nChannel, Position headPosition, long lVersion, int cMaxElements)
         {
         return f_remoteChannel.send(NamedTopicFactory.TYPE_ID_RECEIVE, NamedTopicFactory.ReceiveRequest.class, request ->
             {
             request.setChannel(nChannel);
-            request.setPosition(headPosition);
-            request.setVersion(lVersion);
+            request.setMaxElements(cMaxElements);
             });
         }
 

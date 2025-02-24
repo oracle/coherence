@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -51,6 +51,7 @@ import java.util.TreeSet;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * A representation of a subscription (subscriber group) in a topic.
@@ -183,6 +184,7 @@ public class PagedTopicSubscription
             m_mapSubscriberChannels.putAll(subscription.m_mapSubscriberChannels);
             m_mapSubscriberTimestamp.keySet().retainAll(subscription.m_mapSubscriberTimestamp.keySet());
             m_mapSubscriberTimestamp.putAll(subscription.m_mapSubscriberTimestamp);
+            m_mapManualChannels.putAll(subscription.m_mapManualChannels);
             }
         finally
             {
@@ -193,14 +195,28 @@ public class PagedTopicSubscription
     /**
      * Add one or more subscribers to this subscription.
      *
-     * @param aSubscriberId  the ids of the subscriber to add
+     * @param subscriberId  the ids of the subscriber to add
      *
      * @return {@code true} if one or more subscriber was added, of {@code false} if
      *         the subscription was unchanged
      */
-    public boolean addSubscribers(SubscriberId... aSubscriberId)
+    public boolean addSubscriber(SubscriberId subscriberId)
         {
-        if (aSubscriberId.length == 0)
+        return addSubscriber(subscriberId, null);
+        }
+
+    /**
+     * Add one or more subscribers to this subscription.
+     *
+     * @param subscriberId  the ids of the subscriber to add
+     * @param anChannel     the manual channel allocations
+     *
+     * @return {@code true} if the subscriber was added, of {@code false} if
+     *         the subscription was unchanged
+     */
+    public boolean addSubscriber(SubscriberId subscriberId, int[] anChannel)
+        {
+        if (subscriberId == null || SubscriberId.NullSubscriber.equals(subscriberId))
             {
             return false;
             }
@@ -209,18 +225,12 @@ public class PagedTopicSubscription
         f_lock.lock();
         try
             {
-            for (SubscriberId subscriberId : aSubscriberId)
+            boolean fAdded = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId) == null;
+            if (fAdded)
                 {
-                if (SubscriberId.NullSubscriber.equals(subscriberId))
-                    {
-                    continue;
-                    }
-                boolean fAdded = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId) == null;
-                if (fAdded)
-                    {
-                    fModified = true;
-                    m_mapSubscriberTimestamp.put(subscriberId.getId(), s_clock.getSafeTimeMillis());
-                    }
+                fModified = true;
+                m_mapManualChannels.put(subscriberId, anChannel);
+                m_mapSubscriberTimestamp.put(subscriberId.getId(), s_clock.getSafeTimeMillis());
                 }
             }
         finally
@@ -260,6 +270,18 @@ public class PagedTopicSubscription
             }
         Long lTimestamp = m_mapSubscriberTimestamp.get(nId);
         return lTimestamp == null ? Long.MAX_VALUE : lTimestamp;
+        }
+
+    /**
+     * Return any manual channel allocation for a subscriber.
+     *
+     * @param subscriberId  the subscriber identifier
+     *
+     * @return the manual channel allocation for the subscriber
+     */
+    public int[] getManualChannels(SubscriberId subscriberId)
+        {
+        return m_mapManualChannels.get(subscriberId);
         }
 
     /**
@@ -317,6 +339,7 @@ public class PagedTopicSubscription
             m_mapSubscriber.clear();
             Arrays.fill(m_aChannelAllocation, 0L);
             m_mapSubscriberChannels.clear();
+            m_mapManualChannels.clear();
             m_mapSubscriberTimestamp.clear();
             return true;
             }
@@ -353,6 +376,7 @@ public class PagedTopicSubscription
                 fModified = m_mapSubscriber.remove(subscriberId.getId()) != null || fModified;
                 m_mapSubscriberTimestamp.remove(subscriberId.getId());
                 m_mapSubscriberChannels.remove(subscriberId);
+                m_mapManualChannels.remove(subscriberId);
                 }
             return fModified;
             }
@@ -460,6 +484,7 @@ public class PagedTopicSubscription
      * Set the channel allocations for this subscription.
      *
      * @param strategy  the {@link ChannelAllocationStrategy} to use
+     * @param cChannel  the channel count
      */
     @SuppressWarnings("unchecked")
     public void updateChannelAllocations(ChannelAllocationStrategy strategy, int cChannel)
@@ -471,7 +496,7 @@ public class PagedTopicSubscription
                 {
                 cChannel = m_aChannelAllocation.length;
                 }
-            m_aChannelAllocation = strategy.allocate(m_mapSubscriber, cChannel);
+            m_aChannelAllocation = strategy.allocate(m_mapSubscriber, m_mapManualChannels, cChannel);
             m_mapSubscriberChannels.clear();
             for (int i = 0; i < m_aChannelAllocation.length; i++)
                 {
@@ -614,6 +639,11 @@ public class PagedTopicSubscription
             m_mapSubscriberChannels.putAll(in.readMap(6, new HashMap<>()));
             m_mapSubscriberTimestamp.clear();
             m_mapSubscriberTimestamp.putAll(in.readMap(7, new HashMap<>()));
+            if (getDataVersion() > 0)
+                {
+                m_mapManualChannels.clear();
+                m_mapManualChannels.putAll(in.readMap(8, new HashMap<>()));
+                }
             }
         finally
             {
@@ -635,12 +665,12 @@ public class PagedTopicSubscription
             out.writeMap(5, m_mapSubscriber);
             out.writeMap(6, m_mapSubscriberChannels);
             out.writeMap(7, m_mapSubscriberTimestamp);
+            out.writeMap(8, m_mapManualChannels);
             }
         finally
             {
             f_lock.unlock();
             }
-
         }
 
     // ----- ExternalizableLite methods -------------------------------------
@@ -662,6 +692,8 @@ public class PagedTopicSubscription
             ExternalizableHelper.readMap(in, m_mapSubscriberChannels, null);
             m_mapSubscriberTimestamp.clear();
             ExternalizableHelper.readMap(in, m_mapSubscriberTimestamp, null);
+            m_mapManualChannels.clear();
+            ExternalizableHelper.readMap(in, m_mapManualChannels, null);
             }
         finally
             {
@@ -683,6 +715,7 @@ public class PagedTopicSubscription
             ExternalizableHelper.writeMap(out, m_mapSubscriber);
             ExternalizableHelper.writeMap(out, m_mapSubscriberChannels);
             ExternalizableHelper.writeMap(out, m_mapSubscriberTimestamp);
+            ExternalizableHelper.writeMap(out, m_mapManualChannels);
             }
         finally
             {
@@ -702,6 +735,9 @@ public class PagedTopicSubscription
                 ", extractor=" + m_extractor +
                 ", subscribers=" + m_mapSubscriber +
                 ", channelAllocations=" + Arrays.toString(m_aChannelAllocation) +
+                ", manualChannelAllocations=" + m_mapManualChannels.entrySet().stream()
+                        .map(e -> e.getKey() + "=" + Arrays.toString(e.getValue()))
+                        .collect(Collectors.joining(",")) +
                 ", subscriberAllocations=" + m_mapSubscriberChannels +
                 ", timestamps=" + m_mapSubscriberTimestamp +
                 '}';
@@ -940,7 +976,7 @@ public class PagedTopicSubscription
 
     // ----- constants ------------------------------------------------------
 
-    public static final int EVOLVABLE_VERSION = 0;
+    public static final int EVOLVABLE_VERSION = 1;
 
     /**
      * A singleton empty long array.
@@ -988,6 +1024,11 @@ public class PagedTopicSubscription
      * The subscribers subscribed to this subscription.
      */
     private final SortedMap<Long, SubscriberId> m_mapSubscriber = new TreeMap<>();
+
+    /**
+     * The manually allocated channels.
+     */
+    private final Map<SubscriberId, int[]> m_mapManualChannels = new HashMap<>();
 
     /**
      * The channel allocations for this subscription.

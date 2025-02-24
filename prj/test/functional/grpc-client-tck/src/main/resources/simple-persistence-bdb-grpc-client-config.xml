@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>cache-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>simple-persistent-topic-*</topic-name>
+      <scheme-name>client-scheme</scheme-name>
+      <value-type>String</value-type>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-persistent-retained-topic-*</topic-name>
+      <scheme-name>client-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>retain-values</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-transient-topic-*</topic-name>
+      <scheme-name>client-scheme</scheme-name>
+      <value-type>String</value-type>
+      <init-params>
+        <init-param>
+          <param-name>transient</param-name>
+          <param-value>true</param-value>
+        </init-param>
+      </init-params>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>simple-archiver</topic-name>
+      <scheme-name>client-scheme</scheme-name>
+      <value-type>int</value-type>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+    <remote-grpc-topic-scheme>
+      <scheme-name>client-scheme</scheme-name>
+      <service-name>Remote</service-name>
+      <serializer>pof</serializer>
+    </remote-grpc-topic-scheme>
+
+    <distributed-scheme>
+      <scheme-name>cache-scheme</scheme-name>
+      <service-name>DistributedCacheService</service-name>
+      <serializer>pof</serializer>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>

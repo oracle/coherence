@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -127,9 +127,9 @@ public class ConverterConnectedSubscriber<F, T>
         }
 
     @Override
-    public CompletableFuture<ReceiveResult> receive(int nChannel, SubscriberConnector.ReceiveHandler handler)
+    public CompletableFuture<ReceiveResult> receive(int nChannel, int cMaxElements, SubscriberConnector.ReceiveHandler handler)
         {
-        return f_connectedSubscriber.receive(nChannel, new ConverterReceiveHandler(handler));
+        return f_connectedSubscriber.receive(nChannel, cMaxElements, new ConverterReceiveHandler(handler));
         }
 
     @Override

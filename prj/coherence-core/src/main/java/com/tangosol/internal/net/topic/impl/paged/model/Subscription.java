@@ -1,12 +1,10 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
-
-import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 
 import com.tangosol.io.AbstractEvolvable;
 
@@ -26,22 +24,15 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import java.util.TreeSet;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-
-import java.util.stream.Collectors;
 
 /**
  * Subscriber group data for a particular cache partition.
@@ -305,129 +296,6 @@ public class Subscription
         }
 
     /**
-     * Add a subscriber to the subscription.
-     *
-     * @param subscriberId  the unique identifier of the subscriber to add
-     * @param cChannel      the number of channels to distribute across the subscribers
-     * @param setMember     the set of current member identifiers
-     *
-     * @return a map of any removed subscribers, keyed by departed member identifier
-     */
-    public Map<Integer, Set<SubscriberId>> addSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
-        {
-        if (subscriberId == null || subscriberId.getId() == 0)
-            {
-            return Collections.emptyMap();
-            }
-
-        f_lock.lock();
-        try
-            {
-            if (m_mapSubscriber == null)
-                {
-                m_mapSubscriber = new TreeMap<>();
-                }
-
-            SubscriberId idPrevious = m_mapSubscriber.putIfAbsent(subscriberId.getId(), subscriberId);
-            if (idPrevious == null || cChannel != m_cChannel)
-                {
-                return refresh(m_mapSubscriber, cChannel, setMember);
-                }
-            return Collections.emptyMap();
-            }
-        finally
-            {
-            f_lock.unlock();
-            }
-        }
-
-    /**
-     * Remove a subscriber from the subscription.
-     *
-     * @param subscriberId  the unique identifier of the subscriber to remove
-     * @param cChannel      the number of channels to distribute across the subscribers
-     * @param setMember     the set of current member identifiers
-     *
-     * @return a map of any removed subscribers, keyed by departed member identifier
-     */
-    public Map<Integer, Set<SubscriberId>> removeSubscriber(SubscriberId subscriberId, int cChannel, Set<Member> setMember)
-        {
-        if (subscriberId == null || subscriberId.getId() == 0)
-            {
-            return Collections.emptyMap();
-            }
-
-        f_lock.lock();
-        try
-            {
-            if (m_mapSubscriber != null)
-                {
-                if (m_mapSubscriber.remove(subscriberId.getId()) != null)
-                    {
-                    Map<Integer, Set<SubscriberId>> mapRemoved = refresh(m_mapSubscriber, cChannel, setMember);
-                    int                             nMember    = m_owningSubscriber.getMemberId();
-                    mapRemoved.compute(nMember, (key, set) -> ensureSet(nMember, subscriberId, set));
-                    return mapRemoved;
-                    }
-                }
-            else if (Objects.equals(m_owningSubscriber, subscriberId))
-                {
-                int nMember = subscriberId.getMemberId();
-                m_owningSubscriber = null;
-                return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
-                }
-            return Collections.emptyMap();
-            }
-        finally
-            {
-            f_lock.unlock();
-            }
-        }
-
-    /**
-     * Remove all subscribers from the subscription.
-     *
-     * @param cChannel   the number of channels to distribute across the subscribers
-     * @param setMember  the set of current member identifiers
-     *
-     * @return a map of any removed subscribers, keyed by departed member identifier
-     */
-    public Map<Integer, Set<SubscriberId>> removeAllSubscribers(int cChannel, Set<Member> setMember)
-        {
-        f_lock.lock();
-        try
-            {
-            if (m_mapSubscriber != null)
-                {
-                m_mapSubscriber.clear();
-                return refresh(m_mapSubscriber, cChannel, setMember);
-                }
-            else if (m_owningSubscriber != null)
-                {
-                SubscriberId subscriberId = m_owningSubscriber;
-                int          nMember      = m_owningSubscriber.getMemberId();
-                m_owningSubscriber = null;
-                return Collections.singletonMap(nMember, Collections.singleton(subscriberId));
-                }
-            return Collections.emptyMap();
-            }
-        finally
-            {
-            f_lock.unlock();
-            }
-        }
-
-    /**
-     * Returns the subscriber identifiers that this subscription knows about.
-     *
-     * @return  the subscriber identifiers that this subscription knows about
-     */
-    public Set<SubscriberId> getSubscribers()
-        {
-        return m_mapSubscriber == null ? Collections.emptySet() : new TreeSet<>(m_mapSubscriber.values());
-        }
-
-    /**
      * Returns {@code true} if the subscriber identifier is known to this {@link Subscription}.
      *
      * @param id  the identifier of the subscriber
@@ -438,119 +306,6 @@ public class Subscription
     public boolean hasSubscriber(SubscriberId id)
         {
         return m_mapSubscriber == null ? Objects.equals(m_owningSubscriber, id) : m_mapSubscriber.containsKey(id.getId());
-        }
-
-    /**
-     * Returns the channel allocations.
-     *
-     * @return the channel allocations
-     */
-    public String getAllocations()
-        {
-        Map<Long, Set<Integer>> map = getAllocationMap();
-
-        if (map.isEmpty())
-            {
-            return "[all channels unallocated]";
-            }
-
-        return map.entrySet().stream()
-                .map(e -> e.getValue() + "=" + e.getKey() + "/" + SubscriberId.memberIdFromId(e.getKey()))
-                .collect(Collectors.joining(", "));
-        }
-
-    /**
-     * Returns a Map of subscriber id to a Set of channels allocated to that subscriber.
-     *
-     * @return a Map of subscriber id to a Set of channels allocated to that subscriber
-     */
-    public Map<Long, Set<Integer>> getAllocationMap()
-        {
-        Map<Long, Set<Integer>> map       = new HashMap<>();
-        long[]                   alChannel = m_aChannel;
-
-        for (int i = 0; i < alChannel.length; i++)
-            {
-            if (alChannel[i] != 0)
-                {
-                map.computeIfAbsent(alChannel[i], k -> new TreeSet<>()).add(i);
-                }
-            }
-
-        return map;
-        }
-
-    /**
-     * Returns the channels allocated to the specified subscriber.
-     *
-     * @param nSubscriber  the identifier of the subscriber
-     * @param cChannel     the total number of channels
-     *
-     * @return the channels allocated to the specified subscriber or
-     *         an empty list if the subscriber is not allocated any \
-     *         channels
-     */
-    public int[] getChannels(long nSubscriber, int cChannel)
-        {
-        return getChannels(m_mapSubscriber.get(nSubscriber), cChannel);
-        }
-
-    /**
-     * Returns the channels allocated to the specified subscriber.
-     *
-     * @param subscriberId  the identifier of the subscriber
-     * @param cChannel      the total number of channels
-     *
-     * @return the channels allocated to the specified subscriber or
-     *         an empty list if the subscriber is not allocated any \
-     *         channels
-     */
-    public int[] getChannels(SubscriberId subscriberId, int cChannel)
-        {
-        if (subscriberId == null)
-            {
-            return new int[0];
-            }
-
-        if (m_aChannel == null || m_aChannel.length == 0)
-            {
-            if (Objects.equals(subscriberId, m_owningSubscriber))
-                {
-                int[] anChannel = new int[cChannel];
-                for (int i = 0; i < cChannel; i++)
-                    {
-                    anChannel[i] = i;
-                    }
-                return anChannel;
-                }
-            return new int[0];
-            }
-
-        long  nSubscriber = subscriberId.getId();
-        int   cMatch      = (int) Arrays.stream(m_aChannel).filter(s -> s == nSubscriber).count();
-        int[] anChannel   = new int[cMatch];
-        int   nIndex      = 0;
-
-        for (int i = 0; i < m_aChannel.length; i++)
-            {
-            if (m_aChannel[i] == nSubscriber)
-                {
-                anChannel[nIndex++] = i;
-                }
-            }
-
-        return anChannel;
-        }
-
-    /**
-     * Returns an immutable {@link Map} of channel allocations.
-     *
-     * @return an immutable {@link Map} of channel allocations where the key is
-     *         a channel number and the value is the owning subscriber identifier
-     */
-    long[] getChannelAllocations()
-        {
-        return m_aChannel;
         }
 
     /**
@@ -750,42 +505,6 @@ public class Subscription
                 + ", lastPolledBy=" + m_lastPolledSubscriber
                 + ", subscribers=" + m_mapSubscriber
                 + ", channelOwners=" + Arrays.toString(m_aChannel) + ")";
-        }
-
-    // ----- helper methods -------------------------------------------------
-
-    /**
-     * Refresh the channel allocations.
-     * <p>
-     * It is <b>vital</b> that this method always returns a consistent allocation for a given
-     * set of subscribers, regardless of the order that those subscribers were added.
-     * <p>
-     * Any subscriber for a member that is not in the {@code setMember} set will be removed
-     * from the allocations.
-     *
-     * @param mapSubscriber  the set of subscribers
-     * @param cChannel       the number of channels to allocate
-     * @param setMember      the current set of member identifiers
-     *
-     * @return a map of any removed subscribers, keyed by departed member identifier
-     */
-    private Map<Integer, Set<SubscriberId>> refresh(SortedMap<Long, SubscriberId> mapSubscriber, int cChannel, Set<Member> setMember)
-        {
-        SimpleChannelAllocationStrategy strategy   = new SimpleChannelAllocationStrategy();
-        Map<Integer, Set<SubscriberId>> mapRemoved = strategy.cleanup(mapSubscriber, setMember);
-        m_aChannel = strategy.allocate(mapSubscriber, cChannel);
-        m_cChannel = cChannel;
-        return mapRemoved;
-        }
-
-    private Set<SubscriberId> ensureSet(Integer ignored, SubscriberId id, Set<SubscriberId> setId)
-        {
-        if (setId == null)
-            {
-            setId = new HashSet<>();
-            }
-        setId.add(id);
-        return setId;
         }
 
     // ----- Key class ------------------------------------------------------

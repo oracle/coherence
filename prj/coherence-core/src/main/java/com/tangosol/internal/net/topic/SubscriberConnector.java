@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -148,11 +148,13 @@ public interface SubscriberConnector<V>
      * @param nChannel      the channel to poll
      * @param headPosition  the head position of the channel
      * @param lVersion      the channel version
+     * @param cMaxElements  the maximum number of elements to return
      * @param handler       the response handler
+     *
      * @return a {@link CompletableFuture} that will complete with the completion of the receive operation
      */
     CompletableFuture<ReceiveResult> receive(ConnectedSubscriber<V> subscriber,
-            int nChannel, Position headPosition, long lVersion, ReceiveHandler handler);
+            int nChannel, Position headPosition, long lVersion, int cMaxElements, ReceiveHandler handler);
 
     /**
      * Asynchronously Commit a position.
@@ -463,11 +465,12 @@ public interface SubscriberConnector<V>
          * Asynchronously poll the topic for a message
          *.
          * @param nChannel  the channel to poll
+         * @param cMaxElements  the maximum number of elements to receive
          * @param handler   the {@link SubscriberConnector.ReceiveHandler} to handle the result
          *
          * @return a {@link CompletableFuture} that will complete with the result of the poll
          */
-        CompletableFuture<ReceiveResult> receive(int nChannel, SubscriberConnector.ReceiveHandler handler);
+        CompletableFuture<ReceiveResult> receive(int nChannel, int cMaxElements, SubscriberConnector.ReceiveHandler handler);
 
         /**
          * Update a channel that has been repositioned by a seek operation.

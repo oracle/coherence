@@ -545,6 +545,7 @@ public class RemoteTopicService
 
         request.setTopicName(sTopicName);
         request.setCompleteOnEmpty(optionSet.isCompleteOnEmpty());
+        request.setChannels(optionSet.getSubscribeTo());
 
         Object[] aoResponse = (Object[]) channel.request(request);
 

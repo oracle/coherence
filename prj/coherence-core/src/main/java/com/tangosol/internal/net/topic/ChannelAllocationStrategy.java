@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.net.topic;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.net.Member;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 
@@ -34,25 +35,27 @@ public interface ChannelAllocationStrategy
      * Allocate subscribers to channels.
      *
      * @param mapSubscriber  the sorted set of subscriber id long value to {@link SubscriberId}
+     * @param mapChannel     the map of manual channel allocations
      * @param cChannel       the number of channels
      *
      * @return  the new channel allocations
      */
-    long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, int cChannel);
+    long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, Map<SubscriberId, int[]> mapChannel, int cChannel);
 
     /**
      * Remove any dead subscribers from the subscriber map and allocate
      * the remaining subscribers to channels.
      *
      * @param mapSubscriber  the sorted set of subscriber id long value to {@link SubscriberId}
+     * @param mapChannel     the map of manual channel allocations
      * @param cChannel       the number of channels
      * @param setMember      the current service member set
      *
      * @return  the new channel allocations
      */
-    default long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, int cChannel, Set<Member> setMember)
+    default long[] allocate(SortedMap<Long, SubscriberId> mapSubscriber, Map<SubscriberId, int[]> mapChannel, int cChannel, Set<Member> setMember)
         {
         cleanup(mapSubscriber, setMember);
-        return allocate(mapSubscriber, cChannel);
+        return allocate(mapSubscriber, mapChannel, cChannel);
         }
     }

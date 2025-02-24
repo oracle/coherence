@@ -894,13 +894,11 @@ public class NamedTopicFactory
         {
         private int m_nChannel;
 
-        private Position m_position;
-
-        private long m_lVersion;
+        private int m_cMaxElements;
 
         public ReceiveRequest()
             {
-            super(null, null, true);
+            this(null, null, true);
             }
 
         public ReceiveRequest(String sName, Component compParent, boolean fInit)
@@ -908,19 +906,14 @@ public class NamedTopicFactory
             super(sName, compParent, fInit);
             }
 
-        public void setPosition(Position position)
-            {
-            m_position = position;
-            }
-
-        public void setVersion(long lVersion)
-            {
-            m_lVersion = lVersion;
-            }
-
         public void setChannel(int nChannel)
             {
             m_nChannel = nChannel;
+            }
+
+        public void setMaxElements(int cMaxElements)
+            {
+            m_cMaxElements = cMaxElements;
             }
 
         @Override
@@ -934,7 +927,7 @@ public class NamedTopicFactory
             {
             ConnectedSubscriber<Binary> subscriber = getSubscriber();
             CompletableFuture<Void>     future     = new CompletableFuture<>();
-            subscriber.receive(m_nChannel, new Handler(future, response)).join();
+            subscriber.receive(m_nChannel, m_cMaxElements, new Handler(future, response)).join();
             }
 
         protected class Handler
@@ -999,9 +992,8 @@ public class NamedTopicFactory
                 throws IOException
             {
             super.readExternal(in);
-            m_nChannel = in.readInt(10);
-            m_position = in.readObject(11);
-            m_lVersion = in.readLong(12);
+            m_nChannel     = in.readInt(10);
+            m_cMaxElements = in.readInt(11);
             }
 
         @Override
@@ -1010,8 +1002,7 @@ public class NamedTopicFactory
             {
             super.writeExternal(out);
             out.writeInt(10, m_nChannel);
-            out.writeObject(11, m_position);
-            out.writeLong(12, m_lVersion);
+            out.writeInt(11, m_cMaxElements);
             }
         }
 

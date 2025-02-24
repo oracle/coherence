@@ -86,6 +86,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
 /**
  * See PartitionedCacheService.doc in the main depot
@@ -1020,6 +1022,12 @@ public class PagedTopic
     @Override
     public void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id id, boolean fForceReconnect)
         {
+        ensureSubscription(sTopicName, lSubscription, id, fForceReconnect, null);
+        }
+
+    @Override
+    public void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id id, boolean fForceReconnect, int[] anChannel)
+        {
         if (id == null || id instanceof SubscriberId)
             {
             SubscriberId           subscriberId = (SubscriberId) id;
@@ -1033,10 +1041,14 @@ public class PagedTopic
             do
                 {
                 PagedTopic.SubscriberIdRequest msg = (PagedTopic.SubscriberIdRequest) instantiateMessage("SubscriberIdRequest");
-        
+
+                long[] al = anChannel == null || anChannel.length == 0
+                    ? null : IntStream.of(anChannel).asLongStream().toArray();
+
                 msg.addToMember(getThisMember());
                 msg.setTopicName(sTopicName);
                 msg.setSubscriptionId(lSubscription);
+                msg.setChannelAllocations(al);
                 msg.setSubscriberAction(PagedTopic.SubscriberIdRequest.SUBSCRIBER_CREATE);
         
                 if (id == null || SubscriberId.NullSubscriber.equals(id))
@@ -1073,7 +1085,15 @@ public class PagedTopic
         }
     
     @Override
-    public long ensureSubscription(String sTopicName, SubscriberGroupId groupId, Subscriber.Id id, Filter filter, ValueExtractor extractor)
+    public long ensureSubscription(String sTopicName, SubscriberGroupId groupId, Subscriber.Id id, Filter filter,
+                                   ValueExtractor extractor)
+        {
+        return ensureSubscription(sTopicName, groupId, id, filter, extractor, null);
+        }
+
+    @Override
+    public long ensureSubscription(String sTopicName, SubscriberGroupId groupId, Subscriber.Id id, Filter filter,
+                                   ValueExtractor extractor, int[] anChannel)
         {
         if (id == null || id instanceof SubscriberId)
             {
@@ -1113,12 +1133,16 @@ public class PagedTopic
         
                 PagedTopic.SubscriberIdRequest msg = (PagedTopic.SubscriberIdRequest) instantiateMessage("SubscriberIdRequest");
         
+                long[] al = anChannel == null || anChannel.length == 0
+                    ? null : IntStream.of(anChannel).asLongStream().toArray();
+
                 msg.addToMember(getThisMember());
                 msg.setTopicName(sTopicName);
                 msg.setGroupId(groupId);
                 msg.setSubscriptionId(lSubscription);
                 msg.setFilter(filter);
                 msg.setConverter(extractor);
+                msg.setChannelAllocations(al);
                 msg.setSubscriberAction(PagedTopic.SubscriberIdRequest.SUBSCRIBER_CREATE);
         
                 if (id == null || SubscriberId.NullSubscriber.equals(id))
@@ -1788,7 +1812,7 @@ public class PagedTopic
 
         if (memberThis == memberCoordinator)
             {
-            Daemons.commonPool().add(() ->
+            getDaemonPool().add(() ->
                 {
                 try
                     {
@@ -1933,7 +1957,6 @@ public class PagedTopic
         // import Component.Util.Daemon.QueueProcessor.Service.Grid$ServiceConfig$Map as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.ServiceConfig.Map;
         // import com.oracle.coherence.common.base.Logger;
         // import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names as com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches.Names;
-        
         int        cRequired  = msgRequest.getRequiredCount();
         String     sTopic     = msgRequest.getTopicName();
         int        cConfigMap = getChannelCountFromConfigMap(sTopic);
@@ -2140,7 +2163,9 @@ public class PagedTopic
                     case PagedTopic.SubscriberIdRequest.SUBSCRIBER_CREATE:
                         Filter         filter     = request.getFilter();
                         ValueExtractor converter  = request.getConverter();
-        
+                        long[]         al         = request.getChannelAllocations();
+                        int[]          anChannel  = al == null ? null : LongStream.of(al).mapToInt(l -> (int) l).toArray();
+
                         if (lSubscriptionId == 0)
                             {
                             // the caller did not have a subscription id, but we may already
@@ -2161,7 +2186,7 @@ public class PagedTopic
                                 subscription.assertFilterAndConverter(filter, converter);
                                 if (aSubscriberId.length > 0)
                                     {
-                                    if (subscription.addSubscribers(aSubscriberId) || subscription.getChannelCount() != getChannelCount(sTopicName))
+                                    if (subscription.addSubscriber(aSubscriberId[0], anChannel) || subscription.getChannelCount() != getChannelCount(sTopicName))
                                         {
                                         subscription.updateChannelAllocations(getChannelAllocationStrategy(), getChannelCount(subscription.getTopicName()));
                                         Logger.finest("Added subscribers " + Arrays.toString(aSubscriberId) + " to subscription " + subscription);
@@ -5005,15 +5030,6 @@ public class PagedTopic
         public void setChannelAllocations(long[] alAllocations)
             {
             __m_ChannelAllocations = alAllocations;
-            }
-        
-        // Accessor for the property "ChannelAllocations"
-        /**
-         * Setter for property ChannelAllocations.<p>
-         */
-        public void setChannelAllocations(int i, long lAllocations)
-            {
-            getChannelAllocations()[i] = lAllocations;
             }
         
         // Accessor for the property "Converter"

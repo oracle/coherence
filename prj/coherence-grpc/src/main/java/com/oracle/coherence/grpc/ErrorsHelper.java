@@ -292,7 +292,7 @@ public final class ErrorsHelper
 
             if (code == Status.Code.UNAVAILABLE)
                 {
-                fLog = !t.getMessage().equals("Channel shutdownNow invoked");
+                fLog = !t.getMessage().contains("Channel shutdownNow invoked");
                 }
             else
                 {

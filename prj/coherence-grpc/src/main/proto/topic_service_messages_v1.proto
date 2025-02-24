@@ -1,0 +1,594 @@
+/*
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+// -----------------------------------------------------------------
+// Messages used by the Coherence gRPC NamedTopic Service.
+//
+// NOTE: If you add a new request message to this message the current
+// protocol version in com.oracle.coherence.grpc.NamedTopicProtocol must
+// be increased. This only needs to be done once for any given Coherence
+// release.
+// -----------------------------------------------------------------
+
+syntax = "proto3";
+
+package coherence.topic.v1;
+
+import "common_messages_v1.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_multiple_files = true;
+option java_package = "com.oracle.coherence.grpc.messages.topic.v1";
+
+// An enum representing the types of request for a Named Topic Service proxy
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+//
+enum TopicServiceRequestType {
+    // An unknown message.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being 
+    // incorrectly set.
+    RequestUnknown = 0;
+    // Called to ensure a topic.
+    // Must be the first message called prior to any other topic requests.
+    // The message field must be an EnsureTopicRequest.
+    // The response will contain the Topic Id and an empty response field.
+    EnsureTopic = 1;
+    // Destroy the specified topic.
+    // A destroy topic message must be sent with a proxy identifier of zero as it
+    // is targeted at the topic service proxy.
+    // The message field should be set to a StringValue containing the name of the topic to destroy.
+    // The response will just be a Complete message corresponding to the request id.
+    DestroyTopic = 2;
+    // Called to get the channel count for a topic.
+    // This message can be sent without ensuring the topic first and does not require
+    // a topic id to be set. If the topic id is set then that will be used to identify
+    // the topic to use, otherwise the topic name should be in the StringValue message.
+    // If no topic id is set, the message field is a StringValue which is the name of the
+    // topic to get the channel count for.
+    // The response will be an Int32Value containing the channel count
+    GetChannelCount = 3;
+    // Get the durable subscriber groups for a topic
+    // This message can be sent without ensuring the topic first and does not require
+    // a topic id to be set. If the topic id is set then that will be used to identify
+    // the topic to use, otherwise the topic name should be in the StringValue message.
+    // If no topic id is set, the message field is a StringValue which is the name of the
+    // topic to get the subscriber groups for.
+    // The response will be a CollectionOfString message containing the names of the
+    // subscriber groups.
+    GetSubscriberGroups = 4;
+    // Ensure that a topic has a specified number of channels
+    // The message field should be an EnsureChannelCount message
+    // The response wil be an Int32Value containing the topic channel count
+    EnsureChannelCount = 5;
+    // Ensure a subscriber group exists for a topic.
+    // The message field should be an EnsureSubscriberGroupRequest message
+    // The response will just be a Complete message corresponding to the request id.
+    EnsureSubscriberGroup = 6;
+    // Ensure a subscriber group exists for a topic.
+    // The message field should be an StringValue containing the name of the
+    // subscriber group to be destroyed
+    // The response will just be a Complete message corresponding to the request id.
+    DestroySubscriberGroup = 7;
+    // Get a count of the remaining messages in a topic for a subscriber group.
+    // The message field should be a GetRemainingMessagesRequest
+    // The response will be an Int32Value containing the count of remaining messages.
+    GetRemainingMessages = 8;
+    // Get the tail positions for a topic
+    // The response will be a MapOfChannelAndPosition with a position for each channel.
+    GetTails = 9;
+    // Called to ensure a publisher.
+    // Must be the first message called prior to any other publisher requests.
+    // The message field must be an EnsurePublisherRequest.
+    // The response will contain the Publisher Id and an EnsurePublisherResponse response message.
+    EnsurePublisher = 10;
+    // Destroy the specified publisher.
+    // The message field must be set to an Int32Value containing the publisher identifier
+    // returned by the original ensure publisher request.
+    // The response will just be a Complete message corresponding to the request id.
+    DestroyPublisher = 11;
+    // Publish values to a topic
+    // The message field must be a PublishRequest
+    // The response will be a PublishResult message
+    Publish = 12;
+    // Called to ensure a subscriber.
+    // Must be the first message called prior to any other subscriber requests.
+    // The message field must be an EnsureSubscriberRequest.
+    // The response will contain the Subscriber Id and an EnsureSubscriberResponse
+    // message in the response field.
+    EnsureSubscriber = 13;
+    // Destroy the specified subscriber.
+    // The message field must be set to an Int32Value containing the subscriber identifier
+    // returned by the original ensure subscriber request.
+    // The response will just be a Complete message corresponding to the request id.
+    DestroySubscriber = 14;
+    // Initialize a subscriber connection
+    // The message field should be an InitializeSubscriptionRequest message.
+    // The response will be a InitializeSubscriptionResponse message.
+    InitializeSubscription = 15;
+    // Ensure a subscriber has a subscription to the topic.
+    // The message field should be an EnsureSubscriptionRequest message.
+    // The response will be a BoolValue indicating whether the subscription exists
+    EnsureSubscription = 16;
+    // Get the head positions for a subscriber
+    // The message body should be a CollectionOfInt32 specifying the channels to
+    // get the head positions for.
+    // The response will be a MapOfChannelAndPosition with a position for each channel.
+    GetSubscriberHeads = 17;
+    // Get the last committed positions for a subscriber.
+    // The message field should be empty.
+    // The response will be a MapOfChannelAndPosition with a last committed position for each channel.
+    GetLastCommited = 18;
+    // Obtain the channels that are owned by a subscriber.
+    // The message field should be empty.
+    // The response will be a CollectionOfInt32 containing the owned channel identifiers.
+    GetOwnedChannels = 19;
+    // Send a heartbeat message for a subscriber.
+    // The message contains a BoolValue indicating whether the heartbeat should
+    // be sent asynchronously.
+    SubscriberHeartbeat = 20;
+    // Determine whether a position has been committed by a subscriber.
+    // The message contains a ChannelAndPosition value.
+    // The response will be a BoolValue indicating whether the position is committed.
+    IsPositionCommitted = 21;
+    // Peek at a value in a position.
+    // The message contains a ChannelAndPosition value.
+    // The response will be a TopicElement with the value from the position
+    PeekAtPosition = 22;
+    // Receive values from a topic.
+    // The message should be a ReceiveRequest.
+    // The response will be a ReceiveResponse.
+    Receive = 23;
+    // Seek a subscriber to a new position.
+    // The message should be a SeekRequest.
+    // The response will be a SeekResult.
+    SeekSubscriber = 24;
+    // Commit a channel and position
+    // The message should be a ChannelAndPosition
+    // The response will be a CommitResponse
+    CommitPosition = 25;
+}
+
+// A request to perform an operation on a remote NamedTopic.
+message TopicServiceRequest {
+    // The type of the request
+    TopicServiceRequestType type = 1;
+    // The topic identifier for the request.
+    // The identifier must be the same value returned by the initial ensure request.
+    // This is optional only for EnsureTopic as this cannot have a topic identifier
+    optional int32 proxyId = 2;
+    // The actual request message, this is optional because some messages do not require
+    // a message body, for example topic.size()
+    // The actual request message should be packed inside an Any message and set in this field.
+    // The proxy will know which message type to expect here based on the "type" field's value.
+    optional google.protobuf.Any message = 3;
+}
+
+// An enum representing different types of response.
+//
+// NOTE: The index numbers for the enum elements MUST NOT BE CHANGED as
+// that would break backwards compatibility. Only new index numbers can
+// be added.
+enum ResponseType {
+    // The response is a message.
+    Message = 0;
+    // The response is a map event.
+    Event = 1;
+}
+
+// A response message from a Named Topic Service proxy.
+//
+// NOTE: If you add a new request message to this message the protocol
+// version in com.oracle.coherence.grpc.NamedTopicProtocol must be
+// increased. This only needs to be done once for any given Coherence
+// release.
+message TopicServiceResponse {
+    // The proxy identifier for the response
+    int32 proxyId = 1;
+    // An enum representing different response types.
+    // The type of the request.
+    ResponseType type = 2;
+    // The response can contain one of a number of response types
+    // The sender of the corresponding request should know which
+    // response type it expects
+    optional google.protobuf.Any message = 3;
+}
+
+// A request to ensure a specific topic.
+message EnsureTopicRequest {
+    // The name of the topic.
+    string topic = 1;
+}
+
+enum TopicEventType {
+    // An unknown type.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being
+    // incorrectly set.
+    EventUnknown = 0;
+    // The topic has been destroyed
+    TopicDestroyed = 1;
+}
+
+// An event to indicate the state of a NamedTopic has changed.
+message NamedTopicEvent {
+    // The type of the event.
+    TopicEventType type = 1;
+}
+
+// Ensure that a topic has a specified number of channels.
+message EnsureChannelCountRequest {
+    // the name of the topic if this message is sent without a topic id
+    optional string topic = 1;
+    // the required number of channels
+    int32  requiredCount = 2;
+    // the number of channels to create if the actual count is less
+    // than the requiredCount
+    optional int32  channelCount = 3;
+}
+
+// A request to ensure a subscriber group exists for a topic.
+message EnsureSubscriberGroupRequest {
+    // the name of the subscriber group
+    string subscriberGroup = 2;
+    // an optional Filter to filter received messages
+    optional bytes filter = 3;
+    // an optional ValueExtractor to convert received messages
+    optional bytes extractor = 4;
+}
+
+// Get a count of the remaining messages in a topic for a subscriber group.
+message GetRemainingMessagesRequest {
+    // the name of the topic if this message is sent without a topic id
+    optional string topic = 1;
+    // The subscriber group to obtain the remaining message counts for
+    string subscriberGroup = 2;
+    // The channels to obtain the remaining message count for.
+    // An empty channel set will return all channels.
+    repeated int32 channels = 3;
+}
+
+// A request to ensure a specific publisher.
+message EnsurePublisherRequest {
+    // The name of the topic.
+    string topic = 1;
+    // The number of channels the publisher requires
+    int32 channelCount = 2;
+}
+
+// The response message sent as a result of an EnsurePublisher request.
+message EnsurePublisherResponse {
+    // The publisher proxy identifier
+    int32 proxyId = 1;
+    // The identifier of the publisher
+    int64 publisherId = 2;
+    // The number of channels the topic has.
+    int32 channelCount = 3;
+    // The maximum batch size before the publisher is throttled
+    int64 maxBatchSize = 4;
+}
+
+// The types for a publisher event.
+enum PublisherEventType {
+    // An unknown type.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being
+    // incorrectly set.
+    PublisherEventUnknown = 0;
+    // The publisher has connected.
+    PublisherConnected = 1;
+    // The publisher has disconnected.
+    PublisherDisconnected = 2;
+    // A previously full topic now has space
+    PublisherChannelsFreed = 3;
+    // The topic the publisher publishes to has been destroyed.
+    PublisherDestroyed = 4;
+    // The topic the publisher publishes to has been released.
+    PublisherReleased = 5;
+}
+
+// An event to indicate the state of a NamedTopic Publisher has changed.
+message PublisherEvent {
+    // The type of the event.
+    PublisherEventType type = 1;
+    // The channels the event relates to.
+    repeated int32 channels = 2 [packed=true];
+}
+
+// A request to publish values to a channel in a topic
+// using a previously ensured publisher.
+message PublishRequest {
+    // The channel to publish to
+    int32 channel = 2;
+    // The serialized values to publish.
+    repeated bytes values = 3;
+    // The identifier used to register for notifications
+    // if the topic is full.
+    // This is used by the Coherence Java client and can be safely
+    // ignored in other implementations.
+    optional int32 notificationIdentifier = 4;
+}
+
+enum PublishStatus {
+    // The offer invocation was successful and all elements were
+    // accepted into the page.
+    Success = 0;
+    // The offer invocation was unsuccessful as the topic was full.
+    // The offer may have been partially successful if multiple elements
+    // had been offered.
+    // The publisher should wait for a PublisherEvent of type
+    TopicFull = 1;
+}
+
+// The status of a published value.
+message PublishedValueStatus {
+    oneof state {
+        // An opaque representation of the position the element was published to
+        TopicPosition position = 1;
+        // Any error that may have occurred, in which case the value was not published.
+        coherence.common.v1.ErrorMessage error = 2;
+    }
+}
+
+// The result of publishing values to a topic.
+message PublishResult {
+    // The channel published to.
+    int32 channel = 1;
+    // The result status.
+    PublishStatus status = 3;
+    // The number of values that were successfully published.
+    int32 acceptedCount = 5;
+    // The remaining capacity.
+    int32 remainingCapacity = 6;
+    // A status for each of the published values.
+    repeated PublishedValueStatus valueStatus = 7;
+}
+
+// A position within a paged topic.
+message PagedPosition {
+    // The page identifier.
+    int64 page = 1;
+    // The offset within a page
+    int32 offset = 2;
+}
+
+// An opaque topic position
+message TopicPosition {
+    google.protobuf.Any position = 1;
+}
+
+// The response to an EnsureSubscriberRequest
+message EnsureSubscriberResponse {
+    // The publisher proxy identifier
+    int32 proxyId = 1;
+    // The unique server side subscriber identifier.
+    SubscriberId subscriberId = 2;
+    // The subscribers group identifier
+    SubscriberGroupId groupId = 3;
+}
+
+// A request to ensure a specific subscriber.
+message EnsureSubscriberRequest {
+    // The name of the topic.
+    string topic = 1;
+    // the optional name of the subscriber group
+    optional string subscriberGroup = 2;
+    // an optional Filter to filter received messages
+    optional bytes filter = 3;
+    // an optional ValueExtractor to convert received messages
+    optional bytes extractor = 4;
+    // True to return an empty value if the topic is empty
+    bool completeOnEmpty = 5;
+    // The channels to allocate to this subscriber (invalid channels will be ignored)
+    repeated int32 channels = 6;
+}
+
+enum SubscriberEventType {
+    // An unknown type.
+    // This request type is not used, it is here as enums must have a zero value,
+    // but we need to know the difference between a zero value and the field being
+    // incorrectly set.
+    SubscriberEventUnknown = 0;
+    //  The event indicates the subscriber group was destroyed.
+    SubscriberGroupDestroyed = 1;
+    //  The event is a channel allocation event.
+    SubscriberChannelAllocation = 2;
+    //  The event is a channels lost event.
+    SubscriberChannelsLost = 3;
+    //  The event is a channel populated event.
+    SubscriberChannelPopulated = 4;
+    // The head position of a channel has changed
+    SubscriberChannelHead = 5;
+    //  The event is an unsubscribed event.
+    SubscriberUnsubscribed = 6;
+    // The parent topic was destroyed.
+    SubscriberDestroyed = 7;
+    // The parent topic was released.
+    SubscriberReleased = 8;
+    // The subscriber was disconnected.
+    SubscriberDisconnected = 9;
+}
+
+// An event to indicate the state of a NamedTopic Subscriber has changed.
+message SubscriberEvent {
+    // The type of the event.
+    SubscriberEventType type = 1;
+    // The channels associated with the event
+    repeated int32 channels = 2 [packed=true];
+}
+
+// The unique identifier for a subscriber.
+message SubscriberId {
+    // The subscriber identifier.
+    int64 id = 1;
+    // The owning member UUID.
+    bytes uuid = 4;
+}
+
+// An identifier for a subscriber group
+message SubscriberGroupId {
+    // The subscriber group name
+    string name = 1;
+    // The subscriber group identifier
+    int64 id = 2;
+}
+
+// Initialize the subscriber connection.
+message InitializeSubscriptionRequest {
+    //  A flag to indicate if the subscriber was initially disconnected.
+    bool disconnected = 1;
+    // This is a reconnection of an existing subscriber
+    bool reconnect = 2;
+    // A flag to indicate that the reconnect logic should force a reconnect
+    // request even if the subscriber is in the config map
+    bool forceReconnect = 3;
+}
+
+// A response to an initialize subscriber request.
+message InitializeSubscriptionResponse {
+    // The identifier for the subscribers current subscription.
+    int64 subscriptionId = 1;
+    // The subscribers connection timestamp
+    google.protobuf.Timestamp timestamp = 2;
+    // The head positions of the topic channels
+    repeated coherence.topic.v1.TopicPosition heads = 3;
+}
+
+// Ensure a subscriber has a subscription in the topic.
+message EnsureSubscriptionRequest {
+    // The identifier for the subscribers current subscription.
+    int64 subscriptionId = 1;
+    // A flag to indicate that the reconnect logic should force a reconnect
+    // request even if the subscriber is in the config map
+    bool forceReconnect = 2;
+}
+
+// An element received by a subscriber after calling receive.
+message TopicElement {
+    // The channel that the element was received from.
+    int32 channel = 1;
+    // The serialized binary value
+    bytes value = 2;
+    // The position the element was in the topic
+    TopicPosition position = 3;
+    // the timestamp the value was published
+    google.protobuf.Timestamp timestamp = 4;
+}
+
+message ReceiveRequest {
+    // The channel to received from.
+    int32 channel = 1;
+    // The maximum number of messages to return.
+    // If not set (or <= 0) multiple messages may be returned, in which case
+    // the exact number will be determined by the topic implementation
+    // on the server.
+    optional int32 maxMessages = 2;
+}
+
+// The status of a receive response.
+enum ReceiveStatus {
+    // The receive request was successful.
+    ReceiveSuccess = 0;
+    // The channel was exhausted.
+    ChannelExhausted = 1;
+    // The channel was not allocated to the subscriber.
+    ChannelNotAllocatedChannel = 2;
+    // The server did not recognise the subscriber
+    UnknownSubscriber = 3;
+}
+
+message ReceiveResponse {
+    // The status of the receive result.
+    ReceiveStatus status = 1;
+    // The serialized values received from the channel.
+    repeated bytes values = 2;
+    // The new head position for the channel.
+    TopicPosition headPosition = 3;
+    // The count of the remaining values.
+    int32 remainingValues = 4;
+}
+
+// A request to seek (reposition) one or more channels.
+message SeekRequest {
+    // The positions to seek to.
+    oneof positions {
+        // Seek to the specified positions in channels.
+        MapOfChannelAndPosition byPosition = 1;
+        // Seek to the specified timestamps in channels.
+        MapOfChannelAndTimestamp byTimestamp = 2;
+    }
+}
+
+// The result of a seek request for a channel.
+message SeekedPositions {
+    // The new head position.
+    TopicPosition head = 2;
+    // The seeked to position.
+    TopicPosition seekedTo = 3;
+}
+
+// The result of a seek request.
+message SeekResponse {
+    // The map of SeekedPositions by channel.
+    map<int32, SeekedPositions> positions = 1;
+}
+
+// The different result statuses for a commit request.
+enum CommitResponseStatus
+    {
+    // The position was successfully committed.
+    Committed = 0;
+    // The position was already committed.
+    // Typically, this is caused by a commit of a higher position in the channel
+    // already being processed.
+    AlreadyCommitted = 1;
+    // The commit request was rejected.
+    Rejected = 2;
+    // The position was successfully committed but the committing subscriber
+    // does not own the committed channel.
+    Unowned = 3;
+    // A commit request was made, but there was no position to be committed.
+    NothingToCommit = 4;
+    }
+
+// The result of a commit request
+message CommitResponse {
+    // The channel committed.
+    int32 channel = 1;
+    // The position committed.
+    TopicPosition position = 2;
+    // The channel's head position.
+    TopicPosition head = 3;
+    // The status of the commit response.
+    CommitResponseStatus status = 4;
+    // Any error that may hav occurred
+    optional coherence.common.v1.ErrorMessage error = 5;
+}
+
+// A channel and position.
+message ChannelAndPosition {
+    int32 channel = 1;
+    TopicPosition position = 2;
+}
+
+// A map of topic channel identifier to position.
+message MapOfChannelAndPosition {
+    // The map of channels to positions.
+    map<int32, TopicPosition> positions = 1;
+}
+
+// A map of topic channel identifier to timestamps.
+message MapOfChannelAndTimestamp {
+    // The map of channels to timestamps.
+    map<int32, google.protobuf.Timestamp> timestamps = 1;
+}

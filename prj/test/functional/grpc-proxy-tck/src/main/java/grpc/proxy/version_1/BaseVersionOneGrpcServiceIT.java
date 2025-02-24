@@ -19,6 +19,7 @@ import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 import com.oracle.coherence.grpc.proxy.common.BaseGrpcAcceptorController;
+import com.oracle.coherence.grpc.proxy.common.ProxyServiceChannel;
 import com.oracle.coherence.grpc.proxy.common.ProxyServiceGrpcImpl;
 
 import com.tangosol.coherence.component.util.SafeService;
@@ -36,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 

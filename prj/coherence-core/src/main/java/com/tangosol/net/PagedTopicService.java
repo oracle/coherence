@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -43,6 +43,23 @@ public interface PagedTopicService
                             Filter<?> filter, ValueExtractor<?, ?> extractor);
 
     /**
+     * Ensure the specified subscriber is created in a subscription.
+     *
+     * @param sTopicName    the name of the topic
+     * @param groupId       the {@link SubscriberGroupId id} of the subscriber group
+     * @param subscriberId  the {@link Subscriber.Id}
+     * @param filter        the {@link Filter} to use to filter messages sent to subscribers
+     * @param extractor     the {@link ValueExtractor} to use to convert messages sent to subscribers
+     * @param anChannel     the channels to manually allocate to the subscriber
+     *
+     * @return  the unique identifier of the subscriber group the {@link Subscriber}
+     *          is subscribed to, of {@code -1} if the cluster is not version
+     *          compatible and cannot create subscriptions
+     */
+    long ensureSubscription(String sTopicName, SubscriberGroupId groupId, Subscriber.Id subscriberId,
+                            Filter<?> filter, ValueExtractor<?, ?> extractor, int[] anChannel);
+
+    /**
      * Ensure the specified subscriber is subscribed to a subscription.
      *
      * @param sTopicName     the name of the topic
@@ -60,6 +77,16 @@ public interface PagedTopicService
      * @param fForceReconnect  force a reconnection even if the subscriber is known to the service
      */
     void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId, boolean fForceReconnect);
+
+    /**
+     * Ensure the specified subscriber is subscribed to a subscription.
+     *
+     * @param sTopicName       the name of the topic
+     * @param lSubscription    the unique id of the subscriber group
+     * @param subscriberId     the {@link Subscriber.Id}
+     * @param fForceReconnect  force a reconnection even if the subscriber is known to the service
+     */
+    void ensureSubscription(String sTopicName, long lSubscription, Subscriber.Id subscriberId, boolean fForceReconnect, int[] anChannel);
 
     /**
      * Remove an existing subscriber from a subscriber group.

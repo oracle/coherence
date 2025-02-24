@@ -300,27 +300,29 @@ public class NamedTopicProxy
     @Override
     public void onEvent(com.tangosol.net.topic.NamedTopicEvent event)
         {
+        Channel channel = getChannel();
+        if (channel != null)
+            {
+            Message[] aMessages = instantiateEventMessages(event);
+            try
+                {
+                for (Message message : aMessages)
+                    {
+                    channel.send(message);
+                    }
+                }
+            catch (ConnectionException e)
+                {
+                // the Channel is most likely closing or has been closed
+                }
+            catch (Throwable t)
+                {
+                _trace(t, "Error sending topic event to " + channel);
+                }
+            }
         if (event.getType() == NamedTopicEvent.Type.Destroyed)
             {
             onDeactivation();
-            }
-
-        Channel   channel   = getChannel();
-        Message[] aMessages = instantiateEventMessages(event);
-        try
-            {
-            for (Message message : aMessages)
-                {
-                channel.send(message);
-                }
-            }
-        catch (ConnectionException e)
-            {
-            // the Channel is most likely closing or has been closed
-            }
-        catch (Throwable t)
-            {
-            _trace(t, "Error sending topic event to " + channel);
             }
         }
 
