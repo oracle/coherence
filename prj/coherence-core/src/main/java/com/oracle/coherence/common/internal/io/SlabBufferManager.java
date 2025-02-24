@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.io;
 
@@ -10,7 +10,15 @@ import com.oracle.coherence.common.collections.WeakIdentityHashMap;
 
 import com.oracle.coherence.common.io.BufferManagers;
 
+import com.oracle.coherence.common.util.SafeClock;
+
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
+
 import java.lang.ref.WeakReference;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 import java.nio.ByteBuffer;
 
@@ -19,20 +27,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import com.oracle.coherence.common.util.SafeClock;
-
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicLong;
+
 import java.util.function.Consumer;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
 import java.util.logging.Level;
-
 
 /**
  * The SlabBufferManager is a BufferManager which allocates buffers in large slabs which are then sliced into smaller
@@ -134,7 +134,7 @@ public class SlabBufferManager
                     f_cReclaimed.addAndGet(getGenerationSize());
                     LOGGER.log(Level.WARNING, getName() + " replenished leaked segment '" + getBufferSize()
                             + "' slab for generation " + i +
-                            "; set the com.oracle.common.io.BufferManagers.checked system property to true to help identify leak suspects");
+                            "; set the com.oracle.coherence.common.io.BufferManagers.checked system property to true to help identify leak suspects");
                     }
                 }
 
@@ -144,7 +144,7 @@ public class SlabBufferManager
             if (!slab.ensure())
                 {
                 // revive generation that was never fully released
-                LOGGER.log(Level.FINE, getName() + " reviving segment '" + getBufferSize() + "' slab for generation "
+                LOGGER.log(Level.FINEST, getName() + " reviving segment '" + getBufferSize() + "' slab for generation "
                         + nGen);
                 }
             // else; new memory allocation
@@ -172,7 +172,7 @@ public class SlabBufferManager
                             LOGGER.log(Level.WARNING, getName() + " detected leaked segment '" + getBufferSize()
                                     + "' slab for generation " + GEN_ID_UNPOOLED + "; " + slab.f_afOutstanding.cardinality() +
                                     " of " + f_cBufferGen + " buffers were leaked" +
-                                    "; set the com.oracle.common.io.BufferManagers.checked system property to true to help identify leak suspects");
+                                    "; set the com.oracle.coherence.common.io.BufferManagers.checked system property to true to help identify leak suspects");
                             }
                         // else; just a GC
                         }
@@ -190,7 +190,7 @@ public class SlabBufferManager
                         if (!slabRevive.ensure())
                             {
                             // revive generation that was never fully released
-                            LOGGER.log(Level.FINE, getName() + " reviving segment '" + getBufferSize() + "' slab for generation "
+                            LOGGER.log(Level.FINEST, getName() + " reviving segment '" + getBufferSize() + "' slab for generation "
                                     + GEN_ID_UNPOOLED);
                             }
 
@@ -205,7 +205,7 @@ public class SlabBufferManager
                     f_cNonPooledAllocations.incrementAndGet();
                     instantiateSlab(f_cbUnpooledBuffer).ensure(); // note: ensure inserts its buffers into the segment
 
-                    LOGGER.log(Level.FINE, getName() + " allocating unpooled slab for segment '" + getBufferSize());
+                    LOGGER.log(Level.FINEST, getName() + " allocating unpooled slab for segment '" + getBufferSize());
 
                     buff = f_stackBuf.pop();
                     }
@@ -261,7 +261,7 @@ public class SlabBufferManager
                         // we didn't produce.  We have no evidence that it is the callers fault though, so we don't throw
                         LOGGER.log(Level.WARNING, getName() + " detected release of unknown ByteBuffer for segment '"
                                 + getBufferSize() + "' generation " + nGen
-                                + "; set the com.oracle.common.io.BufferManagers.checked system property to true to help identify suspects");
+                                + "; set the com.oracle.coherence.common.io.BufferManagers.checked system property to true to help identify suspects");
                         // return and let GC deal with it
                         }
                     else if (slab.releaseSlice(buffer))
@@ -399,7 +399,7 @@ public class SlabBufferManager
                     if (f_afOutstanding.isEmpty())
                         {
                         // we've reclaimed the entire generation (slab); release it now
-                        LOGGER.log(Level.FINE, getName() + " releasing segment '" + getBufferSize()
+                        LOGGER.log(Level.FINEST, getName() + " releasing segment '" + getBufferSize()
                                 + "' slab for generation " + decodeGeneration(f_cbSlice));
                         getAllocator().release(bufSlab);
                         m_weakBuf.clear();
@@ -453,7 +453,7 @@ public class SlabBufferManager
                     // double release of slice
                     LOGGER.log(Level.WARNING, getName() + " double release of '" + getBufferSize()
                             + "' buffer in generation " + decodeGeneration(f_cbSlice) +
-                            "; set the com.oracle.common.io.BufferManagers.checked system property to true to help identify suspects");
+                            "; set the com.oracle.coherence.common.io.BufferManagers.checked system property to true to help identify suspects");
                     }
 
                 return false;

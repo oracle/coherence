@@ -6,7 +6,6 @@
  */
 package com.oracle.coherence.common.io;
 
-
 import com.oracle.coherence.common.internal.io.AbstractBufferManager;
 import com.oracle.coherence.common.internal.io.SegmentedBufferManager;
 import com.oracle.coherence.common.internal.io.CheckedBufferManager;
@@ -17,17 +16,16 @@ import com.oracle.coherence.common.util.MemorySize;
 import com.tangosol.coherence.config.Config;
 
 import java.nio.ByteBuffer;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 
 /**
  * BufferManagers provides access to pre-defined system-wide managers.
  * <p>
- * The default size of each of the pools may be specified via the <tt>com.oracle.common.io.BufferManagers.pool</tt>
- * system property.  Additionally <tt>com.oracle.common.io.BufferManagers.checked</tt> can be used to default all
+ * The default size of each of the pools may be specified via the <tt>com.oracle.coherence.common.io.BufferManagers.pool</tt>
+ * system property. Additionally <tt>com.oracle.coherence.common.io.BufferManagers.checked</tt> can be used to default all
  * managers to utilize checked implementations to watch for pool usage issues.
- * </p>
  *
  * @author mf  2010.12.02
  */
@@ -180,7 +178,7 @@ public final class BufferManagers
                 }
 
             mgr      = new NonDisposableBufferManager(mgr);
-            LOGGER.log(Level.FINE, "initialized HeapBufferManager " + mgr);
+            LOGGER.log(Level.FINEST, "initialized HeapBufferManager " + mgr);
             INSTANCE = Config.getBoolean(BufferManagers.class.getName() + ".heap.checked",
                                          Config.getBoolean(BufferManagers.class.getName() + ".checked"))
                             ? new CheckedBufferManager(mgr) : mgr;
@@ -242,7 +240,7 @@ public final class BufferManagers
                 }
 
             mgr      = new NonDisposableBufferManager(mgr);
-            LOGGER.log(Level.FINE, "initialized DirectBufferManager " + mgr);
+            LOGGER.log(Level.FINEST, "initialized DirectBufferManager " + mgr);
             INSTANCE = Config.getBoolean(BufferManagers.class.getName() + ".direct.checked",
                                          Config.getBoolean(BufferManagers.class.getName() + ".checked"))
                             ? new CheckedBufferManager(mgr) : mgr;

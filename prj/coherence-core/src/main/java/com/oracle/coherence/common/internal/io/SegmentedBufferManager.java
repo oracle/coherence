@@ -6,8 +6,8 @@
  */
 package com.oracle.coherence.common.internal.io;
 
-
 import com.oracle.coherence.common.base.Disposable;
+
 import com.oracle.coherence.common.collections.ConcurrentLinkedStack;
 import com.oracle.coherence.common.collections.Stack;
 import com.oracle.coherence.common.io.BufferManager;
@@ -18,17 +18,17 @@ import com.oracle.coherence.common.util.MemorySize;
 
 import com.tangosol.coherence.config.Config;
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.logging.Logger;
-import java.util.logging.Level;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.nio.ByteBuffer;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * The SegmentedBufferManager performs buffer managment by dividing
+ * The SegmentedBufferManager performs buffer management by dividing
  * the buffers into a number of segments, such as small, medium, and large.
  * <p>
  * Each segment contains a number of generations, where generations are created
@@ -805,7 +805,7 @@ public class SegmentedBufferManager
             {
             int cbBuffer = encodeGeneration(nGeneration);
 
-            LOGGER.log(Level.FINE, getName() + " growing segment '"
+            LOGGER.log(Level.FINEST, getName() + " growing segment '"
                     + getBufferSize() + "' to " + (nGeneration + 1)
                     + " generations");
 
@@ -883,7 +883,7 @@ public class SegmentedBufferManager
                             {
                             m_cMaxBuffersHistoric = m_cMaxBuffers;
 
-                            LOGGER.log(Level.FINE, getName() + " shrinking segment '" + getBufferSize()
+                            LOGGER.log(Level.FINEST, getName() + " shrinking segment '" + getBufferSize()
                                     + "' by " + (nGen - nDesiredGen)
                                     + " generation(s) to " + (nDesiredGen + 1) + ", based on recent high water mark of "
                                     + new MemorySize(m_cMaxBuffers * f_cbBuffer));
@@ -1074,7 +1074,7 @@ public class SegmentedBufferManager
     // ----- inner class: BufferAllocator -----------------------------------
 
     /**
-     * A BufferAllocator is provides a mean for allocating ByteBuffers.
+     * A BufferAllocator provides a means for allocating ByteBuffers.
      */
     public interface BufferAllocator
         {
@@ -1085,7 +1085,7 @@ public class SegmentedBufferManager
          *
          * @return the buffer
          *
-         * @throws OutOfMemoryError if the request cannot be satisified
+         * @throws OutOfMemoryError if the request cannot be satisfied
          */
         public ByteBuffer allocate(int cb);
 
@@ -1137,7 +1137,7 @@ public class SegmentedBufferManager
     public static final long UNPOOLED_RECLAIM_INTERVAL = 1024;
 
     /**
-     * The default release frequency at which to records statistics.
+     * The default release frequency at which to record statistics.
      *
      * Note this value must be a power of two - 1.
      */
@@ -1188,7 +1188,7 @@ public class SegmentedBufferManager
     private final BufferAllocator m_allocator;
 
     /**
-     * The pool is composed of several sub-ordinate pools represented by the
+     * The pool is composed of several subordinate pools represented by the
      * PoolSegment inner class, each of a specific allocation size. This array
      * holds the various PoolSegment instances, starting with the smallest
      * allocation size and proceeding to the largest.
