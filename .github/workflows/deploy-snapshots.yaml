@@ -28,16 +28,17 @@ env:
 
 jobs:
   build:
+    if: github.run_attempt == 1
     runs-on: ${{ inputs.runner }}
 
     steps:
     - uses: actions/checkout@v4
 
     - name: Set up JDK
-      uses: actions/setup-java@v4
+      uses: oracle-actions/setup-java@v1
       with:
-        distribution: 'temurin'
-        java-version: '11'
+        website: oracle.com
+        release: 21
 
     - name: Cache Maven packages
       uses: actions/cache@v4
@@ -54,3 +55,18 @@ jobs:
         git config --local user.name "${GIT_USER}"
         git config --local user.email "${GIT_EMAIL}"
         sh tools/bin/github-deploy-snapshots.sh
+
+    - name: Build Docs
+      env:
+        MAVEN_USER: ${{ secrets.MavenUser }}
+        MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
+      run: |
+        cd prj
+        make docs
+
+    - name: Upload Docs
+      uses: actions/upload-artifact@v4
+      with:
+        name: docs.zip
+        path: prj/docs/target/docs.zip
+        if-no-files-found: ignore

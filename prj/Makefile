@@ -66,6 +66,11 @@ define mvn_build_modules
 	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -DskipTests $(1) $(ARGS)
 endef
 
+.PHONY: docs
+docs: ## Build the documentation
+	mvn clean install -DskipTests -pl docs -P docs -nsu
+	cd docs/target/docs && zip -r ../docs.zip *
+
 # ======================================================================================================================
 # Run targets
 # ======================================================================================================================
