@@ -88,6 +88,11 @@ define mvn_build_modules
 	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
+.PHONY: docs
+docs: ## Build the documentation
+	mvn clean install -DskipTests -pl docs -P docs -nsu
+	cd docs/target/docs && zip -r ../docs.zip *
+
 # ======================================================================================================================
 # HNSW targets
 # ======================================================================================================================
@@ -163,6 +168,12 @@ coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll: $(HNSW_HDR_FILES) $(HNS
 		mkdir -p $(HNSW_LIB_DIR) || true
 		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dll
     endif
+
+# To build on Windows using the cl.exe compiler use the following commands:
+#
+# cl /D_USRDLL /D_WINDLL coherence-hnsw\src\main\cpp\bindings.cpp /I prj\coherence-hnsw\src\main\cpp\hnswlib /MT /link /DLL /OUT:prj\coherence-hnsw\target\libs\libhnswlib-x86-64.dll
+# ren prj\coherence-hnsw\target\libs\libhnswlib-x86-64.lib libhnswlib-x86-64.libw
+#
 
 
 # ======================================================================================================================
