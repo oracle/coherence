@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package security;
@@ -96,8 +96,8 @@ public class NameServiceSecurityTests
     @Test
     public void testIdentityPassing()
         {
-        final Subject subject0 = loginJAAS("manager", "private");
-        final Subject subject1 = loginJAAS("worker",  "private");
+        final Subject subject0 = loginJAAS("manager", "password");
+        final Subject subject1 = loginJAAS("worker",  "password");
 
         assertTrue(subject0 != null);
         assertTrue(subject1 != null);
@@ -244,7 +244,7 @@ public class NameServiceSecurityTests
         try
             {
             context = new LoginContext("Coherence",
-                   new SimpleHandler(sUser, sPassword.toCharArray()));
+                   new SimpleHandler(sUser, sPassword.toCharArray(), false));
             }
         catch (LoginException le)
             {

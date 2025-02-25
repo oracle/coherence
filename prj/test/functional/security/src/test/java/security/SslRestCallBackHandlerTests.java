@@ -8,6 +8,7 @@ package security;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -51,7 +52,9 @@ public class SslRestCallBackHandlerTests
     @BeforeClass
     public static void startServer()
         {
-        CoherenceClusterMember clusterMember = startCacheServer("SslRestCallBackHandlerTests", "security", FILE_CFG_CACHE_RSA);
+        Properties props = new Properties();
+        props.setProperty("coherence.override", "tangosol-coherence-override-rsa.xml");
+        CoherenceClusterMember clusterMember = startCacheServer("SslRestCallBackHandlerTests", "security", FILE_CFG_CACHE_RSA, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning("HttpProxyService"), is(true));
         }
 

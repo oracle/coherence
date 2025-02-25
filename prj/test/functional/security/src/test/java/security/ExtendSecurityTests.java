@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package security;
@@ -86,6 +86,7 @@ public class ExtendSecurityTests
         Properties props = new Properties();
         props.setProperty("test.server.classname",
                 "security.SubjectCacheServer");
+        props.setProperty("coherence.override", "tangosol-coherence-override.xml");
 
         CoherenceClusterMember clusterMember = startCacheServer("ExtendSecurityTests", "security",
                 "server-cache-config.xml", props);
@@ -107,8 +108,8 @@ public class ExtendSecurityTests
     @Test
     public void testIdentityPassing()
         {
-        final Subject subject0 = loginJAAS("manager", "private");
-        final Subject subject1 = loginJAAS("worker",  "private");
+        final Subject subject0 = loginJAAS("manager", "password");
+        final Subject subject1 = loginJAAS("worker",  "password");
 
         assertTrue(subject0 != null);
         assertTrue(subject1 != null);
@@ -288,12 +289,12 @@ public class ExtendSecurityTests
     @Test
     public void testSubjectCacheScoping()
         {
-        Subject subjectMgr = Security.login("manager", "private".toCharArray());
+        Subject subjectMgr = Security.login("manager", "password".toCharArray());
 
         NamedCache cache00 = (NamedCache) Subject.doAs(subjectMgr,
                 (PrivilegedAction) () -> getFactory().ensureCache("dist-test", null));
 
-        Subject subjectWkr = Security.login("worker", "private".toCharArray());
+        Subject subjectWkr = Security.login("worker", "password".toCharArray());
 
         NamedCache cache01 = (NamedCache) Subject.doAs(subjectWkr,
                 (PrivilegedAction) () -> getFactory().ensureCache("dist-test", null));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.net.security.Security;
 
 import common.AbstractFunctionalTest;
 
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,7 +49,9 @@ public class SecurityFrameworkTests
         System.setProperty("coherence.cacheconfig", CACHE_CONFIG);
 
         AbstractFunctionalTest._startup();
-        startCacheServer("SecurityFrameworkTests", "security", CACHE_CONFIG, null);
+        Properties props = new Properties();
+        props.setProperty("coherence.override", "tangosol-coherence-override.xml");
+        startCacheServer("SecurityFrameworkTests", "security", CACHE_CONFIG, props);
         }
 
     /**
@@ -68,7 +71,7 @@ public class SecurityFrameworkTests
         {
         assertTrue(Security.ENABLED);
 
-        Subject    subject = Security.login("manager", "private".toCharArray());
+        Subject    subject = Security.login("manager", "password".toCharArray());
         NamedCache cache   = (NamedCache) Security.runAs(subject, ACTION);
 
         assertTrue(cache != null);
@@ -82,14 +85,14 @@ public class SecurityFrameworkTests
         {
         assertTrue(Security.ENABLED);
 
-        Subject subject = Security.login("manager", "private".toCharArray());
+        Subject subject = Security.login("manager", "password".toCharArray());
 
         Security.runAs(subject, ACTION);
         // try with same subject
         Security.runAs(subject, ACTION);
 
         // change Subject and see if access is permitted
-        subject = Security.login("admin", "private".toCharArray());
+        subject = Security.login("admin", "password".toCharArray());
         try
             {
             Security.runAs(subject, ACTION);

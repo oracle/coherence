@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package rest;
 
-import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.net.NamedCache;
 
@@ -61,9 +61,9 @@ public class BasicAuthRestTests
 
         loginConfig = new File(fileName);
         String config = "Coherence { com.tangosol.security.KeystoreLogin required"
-            + " keyStorePath=\"" + resDir + "client.jks\"; };"
-            + " CoherenceREST { com.tangosol.security.KeystoreLogin required "
-            + " keyStorePath=\"" + resDir + "client.jks\"; };\n";
+            + " keyStorePath=\"" + resDir + "client.jks\" keyStoreType=\"JKS\" keyStorePass=\"password\"; };"
+            + " CoherenceREST { com.tangosol.security.KeystoreLogin required"
+            + " keyStorePath=\"" + resDir + "client.jks\" keyStoreType=\"JKS\" keyStorePass=\"password\"; };\n";
         BufferedWriter output = new BufferedWriter(new FileWriter(loginConfig));
         output.write(config);
         output.close();

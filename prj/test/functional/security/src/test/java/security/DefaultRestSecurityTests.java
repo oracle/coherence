@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package security;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -36,13 +37,22 @@ public class DefaultRestSecurityTests
 
     // ----- lifecycle methods ----------------------------------------------
 
+    @BeforeClass
+    public static void _startup()
+        {
+        System.setProperty("coherence.override", "tangosol-coherence-override.xml");
+        AbstractRestSecurityTests._startup();
+        }
+
     /**
      * Start the cache server for this test class.
      */
     @BeforeClass
     public static void startServer()
         {
-        CoherenceClusterMember clusterMember = startCacheServer("DefaultRestSecurityTests", "security", FILE_CFG_CACHE);
+        Properties props = new Properties();
+        props.setProperty("coherence.override", "tangosol-coherence-override.xml");
+        CoherenceClusterMember clusterMember = startCacheServer("DefaultRestSecurityTests", "security", FILE_CFG_CACHE, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning("HttpProxyService"), is(true));
         }
 

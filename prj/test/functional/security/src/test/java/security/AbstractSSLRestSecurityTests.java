@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package security;
 
@@ -46,6 +46,7 @@ public abstract class AbstractSSLRestSecurityTests
     public AbstractSSLRestSecurityTests(String sPath)
         {
         super(sPath);
+        m_pwd = "private";
         }
 
     // ----- lifecycle methods ----------------------------------------------
