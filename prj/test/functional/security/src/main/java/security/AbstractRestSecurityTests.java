@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -74,7 +74,7 @@ public abstract class AbstractRestSecurityTests
     @Before
     public void setupTest()
         {
-        Subject subject = Security.login("manager", "private".toCharArray());
+        Subject subject = Security.login("manager", m_pwd.toCharArray());
 
         Security.runAs(subject, (PrivilegedAction) () -> getNamedCache("dist-test").put("test", "secret"));
         }
@@ -91,7 +91,7 @@ public abstract class AbstractRestSecurityTests
         WebTarget webTarget = client.target(getResourceUrl("api/dist-test/test"));
 
         Response  response  = webTarget.request(MediaType.TEXT_PLAIN_TYPE)
-                    .header("Authorization", "Basic " + AbstractHttpServer.toBase64("manager:private"))
+                    .header("Authorization", "Basic " + AbstractHttpServer.toBase64("manager:" + m_pwd))
                     .get();
         assertEquals(200, response.getStatus());
         assertEquals("secret", response.readEntity(String.class));
@@ -107,7 +107,7 @@ public abstract class AbstractRestSecurityTests
         WebTarget webTarget = client.target(getResourceUrl("api/dist-test/test"));
 
         Response  response  = webTarget.request(MediaType.TEXT_PLAIN_TYPE)
-                    .header("Authorization", "Basic " + AbstractHttpServer.toBase64("worker:private"))
+                    .header("Authorization", "Basic " + AbstractHttpServer.toBase64("worker:" + m_pwd))
                     .get(Response.class);
         assertEquals(403, response.getStatus());
         }
@@ -200,4 +200,6 @@ public abstract class AbstractRestSecurityTests
         return getProtocol() + "://" + getAddress() + ":" + getPort()
                 + contextPath + resource;
         }
+
+    protected String m_pwd = "password";
     }
