@@ -156,44 +156,32 @@ public class KeystoreLogin
                 fileKeyStore.getAbsolutePath());
             }
 
+        if (achPwd == null)
+            {
+            // try getting the password from callback handler
+            PasswordCallback callbackPwd = new PasswordCallback("Password:", false);
+
+            try
+                {
+                callbackHandler.handle(new Callback[] {callbackPwd});
+                m_achPwd = achPwd = callbackPwd.getPassword();
+                }
+            catch (Exception e)
+                {
+                throw new SecurityException("Failed to load keystore: " +
+                                            fileKeyStore.getAbsolutePath() + "; exception: " + e);
+                }
+            }
+
         FileInputStream inStore = null;
-        KeyStore        store   = null;
         try
             {
-            store = KeyStore.getInstance(m_sKeyStoreType);
+            KeyStore store = KeyStore.getInstance(m_sKeyStoreType);
 
             inStore = new FileInputStream(fileKeyStore);
             store.load(inStore, achPwd);
 
             m_store = store;
-            }
-        catch (IOException e)
-            {
-            if (achPwd == null)
-                {
-                // try getting the password from callback handler
-                PasswordCallback callbackPwd = new PasswordCallback("Password:", false);
-
-                try
-                    {
-                    callbackHandler.handle(new Callback[] {callbackPwd});
-
-                    achPwd = callbackPwd.getPassword();
-                    store.load(inStore, achPwd);
-
-                    m_store = store;
-                    }
-                catch (Exception e2)
-                    {
-                    throw new SecurityException("Failed to load keystore: " +
-                                               fileKeyStore.getAbsolutePath() + "; exception: " + e);
-                    }
-                }
-            else
-                {
-                throw new SecurityException("Failed to load keystore: " +
-                        fileKeyStore.getAbsolutePath() + "; exception: " + e);
-                }
             }
         catch (Exception e)
             {
@@ -242,11 +230,17 @@ public class KeystoreLogin
         String sName = callbackName.getName();
         char[] acPwd = callbackPwd.getPassword();
 
+        if (acPwd == null)
+            {
+            acPwd = m_achPwd;
+            }
+
         callbackPwd.clearPassword();
 
         try
             {
             validate(sName, acPwd);
+            m_achPwd = null;
             return true;
             }
         catch (GeneralSecurityException e)
@@ -415,4 +409,9 @@ public class KeystoreLogin
     * The KeyStore type.
     */
     protected String m_sKeyStoreType = KEYSTORE_TYPE;
+
+    /**
+     * The pwd from callback
+     */
+    private char[] m_achPwd;
     }

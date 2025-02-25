@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@ package security;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import java.util.Properties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
@@ -41,7 +42,9 @@ public class NettySSLRestSecurityTests
     @BeforeClass
     public static void startServer()
         {
-        CoherenceClusterMember clusterMember = startCacheServer("NettySSLRestSecurityTests", "security", FILE_CFG_CACHE_RSA);
+        Properties props = new Properties();
+        props.setProperty("coherence.override", "tangosol-coherence-override-rsa.xml");
+        CoherenceClusterMember clusterMember = startCacheServer("NettySSLRestSecurityTests", "security", FILE_CFG_CACHE_RSA, props);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning("HttpProxyService"), is(true));
         }
 
