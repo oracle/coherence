@@ -24,9 +24,6 @@
     <module.name>grpc.client.testing.netty</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
-
-    <java.version>21</java.version>
-    <java.version.release>21</java.version.release>
   </properties>
 
   <dependencies>
