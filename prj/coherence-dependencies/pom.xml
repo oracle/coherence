@@ -190,9 +190,9 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.1.5</helidon.version.4>
+    <helidon.version.4>4.1.7</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.3>3.2.11</helidon.version.3>
+    <helidon.version.3>3.2.12</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
     <helidon.version>${helidon.version.4}</helidon.version>
 
