@@ -19,8 +19,8 @@ import java.util.function.Supplier;
 /**
  * A wrapper to handle the removal of Java's SecurityManger class.
  * <p>
- * This class is here to allow for pose-Java24 code to work with a SecurityManager
- * or AccessController class. There post-Java24 version of this class is in
+ * This class is here to allow for Java 24 and above code to work with a SecurityManager
+ * or AccessController class. This Java 24 and above version of this class is in
  * the coherence-core-24 module and is built into the multi-release coherence.jar.
  *
  * @author Jonathan Knight 25/01/2025
