@@ -123,7 +123,7 @@ import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleResourceRegistry;
 
 import java.io.File;
-
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -1682,21 +1682,8 @@ public class ExtensibleConfigurableCacheFactory
                     {
                     URL url = Resources.findFileOrResource(sValue, loader);
 
-                    if (url == null)
-                        {
-                        try
-                            {
-                            url = new URL((sValue.contains(":") ? "" : "file://") + sValue);
-                            }
-                        catch (MalformedURLException e)
-                            {
-                            throw ensureRuntimeException(e,
-                                    "The configuration URI contains illegal characters for a URL " +
-                                    sValue);
-                            }
-                        }
-
-                    return XmlHelper.loadResource(url, "cache configuration override", loader);
+                    return (url == null) ? null
+                                         : XmlHelper.loadResource(url, "cache configuration override", loader);
                     }
                 }
             }

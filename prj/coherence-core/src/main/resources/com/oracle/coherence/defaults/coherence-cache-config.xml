@@ -45,7 +45,7 @@ class path, or module path, of the JVM.
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd"
-              xml-override="{coherence.cacheconfig.override}">
+              xml-override="{coherence.cacheconfig.override coherence-cacheconfig-override.xml}">
   <defaults>
     <scope-name>${coherence.scope}</scope-name>
     <serializer>${coherence.serializer}</serializer>

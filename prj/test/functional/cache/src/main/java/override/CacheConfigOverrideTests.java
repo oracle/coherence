@@ -15,7 +15,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.concurrent.Queues;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
-
+import com.tangosol.coherence.config.scheme.ServiceScheme;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
@@ -39,6 +39,7 @@ import com.tangosol.run.xml.XmlHelper;
 import org.junit.Test;
 
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.management.MBeanServer;
@@ -740,6 +741,47 @@ public class CacheConfigOverrideTests
             }
         }
 
+    @Test
+    public void testDefaultCacheConfigOvrrideXmlFile()
+            throws Exception
+        {
+        setupTestProps();
+        System.setProperty("coherence.cacheconfig", FILE_CFG_CACHE_DEFAULTS);
+        System.setProperty("coherence.cacheconfig.override", "override/coherence-cacheconfig-override.xml");
+
+        Cluster cluster = startCluster();
+
+        try
+            {
+            ExtensibleConfigurableCacheFactory eccf =
+                    (ExtensibleConfigurableCacheFactory) CacheFactory.getConfigurableCacheFactory();
+
+            Iterator<ServiceScheme> iterator = eccf.getCacheConfig().getServiceSchemeRegistry().iterator();
+
+            while (iterator.hasNext())
+                {
+                ServiceScheme serviceScheme = iterator.next();
+
+                if ("PartitionedCache".equals(serviceScheme.getServiceName()))
+                    {
+                    assertEquals(false, serviceScheme.isAutoStart());
+                    }
+                }
+            }
+        finally
+            {
+            if (cluster != null)
+                {
+                cluster.shutdown();
+
+                Eventually.assertDeferred(() -> cluster.isRunning(), is(false));
+                }
+
+            clearTestProps();
+            System.clearProperty("coherence.cacheconfig");
+            }
+        }
+
     // ----- constants and data members -------------------------------------
 
     /**
@@ -771,6 +813,11 @@ public class CacheConfigOverrideTests
      * coherence cache configuration with topics.
      */
     public final static String FILE_CFG_CACHE_TOPICS = "override/cache-config-with-topics.xml";
+
+    /**
+     * Coherence default cache configuration file
+     */
+    public final static String FILE_CFG_CACHE_DEFAULTS = "com/oracle/coherence/defaults/coherence-cache-config.xml";
 
     /**
      * Operational override file.

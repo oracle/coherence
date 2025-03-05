@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -63,11 +63,6 @@ public class ConcurrentCacheConfigOverrideTest
     // ----- data members ---------------------------------------------------
 
     /**
-     * Override file for concurrent cacheconfig xml.
-     */
-    public final static String FILE_CFG_CACHE_OVERRIDE = "concurrent-cache-config-override.xml";
-
-    /**
      * A Bedrock JUnit5 extension to start a Coherence cluster with
      * storage-enabled member.
      */
@@ -76,8 +71,6 @@ public class ConcurrentCacheConfigOverrideTest
             new CoherenceClusterExtension()
                     .using(LocalPlatform.get())
                     .with(ClassName.of(Coherence.class),
-                          SystemProperty.of("coherence.concurrent.cacheconfig.override",
-                                  FILE_CFG_CACHE_OVERRIDE),
                           Logging.at(9),
                           LocalHost.only(),
                           Multicast.ttl(0),
