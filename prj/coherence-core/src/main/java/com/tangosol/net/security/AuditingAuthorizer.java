@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.security;
 
@@ -13,6 +13,9 @@ import com.tangosol.net.BackingMapContext;
 import com.tangosol.util.BinaryEntry;
 
 import javax.security.auth.Subject;
+import java.security.Principal;
+
+import java.util.stream.Collectors;
 
 /**
  * Simple StorageAccessAuthorizer implementation that logs the authorization
@@ -20,6 +23,7 @@ import javax.security.auth.Subject;
  *
  * @author gg 2014.09.25
  */
+@SuppressWarnings("rawtypes")
 public class AuditingAuthorizer
         implements StorageAccessAuthorizer
     {
@@ -108,7 +112,7 @@ public class AuditingAuthorizer
             + entry.getKey()
             + (subject == null ?
                 "\" from unidentified user" :
-                "\" on behalf of " + subject.getPrincipals())
+                "\" on behalf of " + getPrincipalNames(subject))
             + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\"");
         }
 
@@ -126,10 +130,22 @@ public class AuditingAuthorizer
             + context.getCacheName() + '"'
             + (subject == null ?
                 " from unidentified user" :
-                " on behalf of " + subject.getPrincipals())
+                " on behalf of " + getPrincipalNames(subject))
             + " caused by \"" + StorageAccessAuthorizer.reasonToString(nReason) + "\"");
         }
 
+    /**
+     * Return a string containing a comma-delimited list of the principal names
+     * contained in the {@link Subject}.
+     *
+     * @param subject  the {@link Subject} to get the principal names from
+     *
+     * @return the names of the principals
+     */
+    protected String getPrincipalNames(Subject subject)
+        {
+        return subject.getPrincipals().stream().map(Principal::getName).collect(Collectors.joining(","));
+        }
 
     // ----- data fields -----------------------------------------------------
 

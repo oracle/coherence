@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.security;
@@ -37,7 +37,6 @@ import java.io.Serializable;
 
 import java.net.URL;
 
-import java.security.AccessControlException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.Permissions;
@@ -56,6 +55,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import java.util.stream.Collectors;
 
 import javax.security.auth.Subject;
 
@@ -89,11 +90,11 @@ public final class DefaultController
     * @param fileKeyStore the key store
     * @param filePermits  the permissions file
     *
-    * @throws IOException             if an I/O error occurs
-    * @throws AccessControlException  if an access control error occurs
+    * @throws IOException          if an I/O error occurs
+    * @throws PermissionException  if an access control error occurs
     */
     public DefaultController(File fileKeyStore, File filePermits)
-            throws IOException, AccessControlException
+            throws IOException
         {
         this(fileKeyStore, filePermits, false);
         }
@@ -106,11 +107,11 @@ public final class DefaultController
     * @param filePermits  the permissions file
     * @param fAudit       the audit flag; if true, log all the access requests
     *
-    * @throws IOException             if an I/O error occurs
-    * @throws AccessControlException  if an access control error occurs
+    * @throws IOException          if an I/O error occurs
+    * @throws PermissionException  if an access control error occurs
     */
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit)
-            throws IOException, AccessControlException
+            throws IOException
         {
         this(fileKeyStore, filePermits, fAudit, (char[]) null);
         }
@@ -125,13 +126,13 @@ public final class DefaultController
      * @param fAudit       the audit flag; if true, log all the access requests
      * @param pwdProvider  the key store password provider
      *
-     * @throws IOException             if an I/O error occurs
-     * @throws AccessControlException  if an access control error occurs
+     * @throws IOException          if an I/O error occurs
+     * @throws PermissionException  if an access control error occurs
      *
      * @since 12.2.1.4.13
      */
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit, PasswordProvider pwdProvider)
-            throws IOException, AccessControlException
+            throws IOException
         {
         this(fileKeyStore, filePermits, fAudit, pwdProvider.get());
         }
@@ -145,19 +146,19 @@ public final class DefaultController
     * @param fAudit       the audit flag; if true, log all the access requests
     * @param sPwd         the key store password
     *
-    * @throws IOException             if an I/O error occurs
-    * @throws AccessControlException  if an access control error occurs
+    * @throws IOException          if an I/O error occurs
+    * @throws PermissionException  if an access control error occurs
     *
     * @since 12.2.1.4.0
     */
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit, String sPwd)
-            throws IOException, AccessControlException
+            throws IOException
         {
         this(fileKeyStore, filePermits, fAudit, (sPwd == null || sPwd.isEmpty()) ? null : sPwd.toCharArray());
         }
 
     private DefaultController(File fileKeyStore, File filePermits, boolean fAudit, char[] pwdArray)
-            throws IOException, AccessControlException
+            throws IOException
         {
         azzert(fileKeyStore != null && filePermits  != null, "Null files");
 
@@ -218,14 +219,14 @@ public final class DefaultController
     * Subject (requestor).
     * <p>
     * This method quietly returns if the access request is permitted,
-    * or throws a suitable AccessControlException if the specified
+    * or throws a suitable PermissionException if the specified
     * authentication is invalid or insufficient.
     *
     * @param permission  the permission object that represents access
     *                    to a clustered resource
     * @param subject     the Subject object representing the requestor
     *
-    * @throws AccessControlException if the specified permission
+    * @throws PermissionException if the specified permission
     *         is not permitted, based on the current security policy
     */
     public void checkPermission(ClusterPermission permission, Subject subject)
@@ -258,7 +259,7 @@ public final class DefaultController
             logPermissionRequest(permission, subject, false);
             }
 
-        throw new AccessControlException(
+        throw new PermissionException(
             "Insufficient rights to perform the operation", permission);
         }
 
@@ -632,7 +633,7 @@ public final class DefaultController
         {
         Logger.info((fAllowed ? "Allowed" : "Denied")
             + " request for " + permission + " on behalf of "
-            + subject.getPrincipals());
+            + subject.getPrincipals().stream().map(Principal::getName).collect(Collectors.joining(",")));
         }
 
 
