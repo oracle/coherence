@@ -12,7 +12,6 @@ import java.security.Permission;
 public class PermissionException
         extends SecurityException
     {
-    @java.io.Serial
     private static final long serialVersionUID = 5138225684096988535L;
     /**
      * The permission that caused the exception to be thrown.
