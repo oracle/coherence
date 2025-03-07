@@ -69,6 +69,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -445,6 +446,18 @@ public abstract class BaseGrpcIT
         return s_mapCCF.computeIfAbsent(sScope, BaseGrpcIT::createCCF);
         }
 
+    protected String ensureUniqueName()
+        {
+        return ensureScopeName(null);
+        }
+
+    protected String ensureUniqueName(String sName)
+        {
+        return sName == null || sName.isBlank()
+                ? "test-" + s_id.incrementAndGet()
+                : sName + "-" + s_id.incrementAndGet();
+        }
+
     protected static ConfigurableCacheFactory createCCF(String sScope)
         {
         ClassLoader loader    = Classes.getContextClassLoader();
@@ -553,6 +566,8 @@ public abstract class BaseGrpcIT
         }
 
     // ----- data members ---------------------------------------------------
+
+    protected static final AtomicLong s_id = new AtomicLong(0L);
 
     protected static ConfigurableCacheFactory s_ccfDefault;
 
