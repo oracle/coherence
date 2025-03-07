@@ -138,7 +138,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddIndex(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String          sCacheName = "add-index-cache";
+        String          sCacheName = ensureUniqueName( "add-index-cache");
         NamedCache<?,?> cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
@@ -170,7 +170,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddSortedIndex(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String     sCacheName = "add-index-cache";
+        String     sCacheName = ensureUniqueName( "add-index-cache");
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
@@ -200,7 +200,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddSortedIndexWithComparator(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String     sCacheName = "add-index-cache";
+        String     sCacheName = ensureUniqueName("add-index-cache");
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         Map<ValueExtractor, MapIndex> indexMap = removeIndexes(cache);
@@ -237,7 +237,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallAggregateWithFilterExpectingSingleResult(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
 
         cache.clear();
@@ -283,7 +283,7 @@ public class NamedCacheProxyProtocolIT
                                                                                     String     sScope)
             throws Exception
         {
-        String                      sCacheName = "people";
+        String                      sCacheName = ensureUniqueName("people");
         NamedCache<String, Person>  cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -324,7 +324,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallAggregateWithKeysExpectingSingleResult(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -373,7 +373,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallAggregateWithKeysMatchingNoEntriesExpectingSingleResult(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -422,7 +422,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallAggregateWithNoKeysOrFilterExpectingSingleResult(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -460,7 +460,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallAggregateWithFilterExpectingMapResult(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -503,7 +503,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallAggregateWithKeysExpectingMapResult(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -555,7 +555,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldClearEmptyCache(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String     sCacheName = "test-cache";
+        String     sCacheName = ensureUniqueName("test-cache");
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -574,7 +574,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldClearPopulatedCache(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
@@ -595,7 +595,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldContainEntryWhenMappingPresent(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
@@ -623,7 +623,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldNotContainEntryWhenMappingHasDifferentValue(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
@@ -650,7 +650,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldNotContainEntryWhenMappingNotPresent(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
@@ -680,7 +680,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnTrueForContainsKeyWithExistingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -705,7 +705,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnFalseForContainsKeyWithNonExistentMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -730,7 +730,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldContainValueWhenValuePresent(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
@@ -753,7 +753,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldContainValueWhenValuePresentMultipleTimes(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.put("key-1", "value-1");
         cache.put("key-2", "value-2");
@@ -779,7 +779,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldNotContainValueWhenMappingNotPresent(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 3);
 
@@ -804,7 +804,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldDestroyCache(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String     sCacheName = "test-cache";
+        String     sCacheName = ensureUniqueName("test-cache");
         NamedCache cache      = ensureEmptyCache(sScope, sCacheName);
 
         TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
@@ -845,7 +845,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallEntrySetWithFilterWhenSomeEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -880,7 +880,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallEntrySetWithFilterWhenAllEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -915,7 +915,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallEntrySetWithFilterWhenNoEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -952,7 +952,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallEntrySetWithFilterAndComparatorWhenSomeEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -994,7 +994,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallEntrySetWithFilterAndComparatorWhenAllEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -1036,7 +1036,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallEntrySetWithFilterAndComparatorWhenNoEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -1075,7 +1075,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldReceiveTruncateEvent(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        String                     sCacheName = ensureUniqueName("test-events");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("foo", "bar");
@@ -1116,7 +1116,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToAllEvents(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
         MapEventFilter<String, String>        filter     = new MapEventFilter<>(MapEventFilter.E_ALL, Filters.always());
         NamedCache<String, String>            cache      = ensureEmptyCache(sScope, sCacheName);
@@ -1179,7 +1179,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToSingleEventForSingleKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                                            sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                                            sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
         NamedCache<String, String>                                        cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1227,7 +1227,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToAllEventsForSingleKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                                            sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                                            sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
         NamedCache<String, String>                                        cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1286,7 +1286,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddPrimingListenerForNonExistentKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        String                     sCacheName = ensureUniqueName("test-events");
         String                     key        = "key-2";
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1329,7 +1329,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddPrimingListenerForExistingKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        String                     sCacheName = ensureUniqueName("test-events");
         String                     key        = "key-2";
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1373,7 +1373,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddMapTrigger(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        String                     sCacheName = ensureUniqueName("test-events");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -1422,7 +1422,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForMultipleKeys(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                                            sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                                            sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, String> listener   = new CollectingMapListener<>();
         NamedCache<String, String>                                        cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1493,7 +1493,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForFilter(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                                             sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                                             sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, Integer> listener   = new CollectingMapListener<>();
         NamedCache<String, Integer>                                        cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
@@ -1556,7 +1556,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForKeyAndFilter(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                sCacheName = "test-events-" + System.currentTimeMillis();
+        String                                sCacheName = ensureUniqueName("test-events");
         String                                                            key         = "key-2";
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
@@ -1625,7 +1625,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForMultipleFilters(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                sCacheName  = "test-events-" + System.currentTimeMillis();
+        String                                sCacheName  = ensureUniqueName("test-events");
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
         NamedCache<String, Person>            cache       = ensureEmptyCache(sScope, sCacheName);
@@ -1698,7 +1698,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldSubscribeToEventsForMultipleOverlappingFilters(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                                sCacheName  = "test-events-" + System.currentTimeMillis();
+        String                                sCacheName = ensureUniqueName("test-events");
         CollectingMapListener<String, Person> listenerOne = new CollectingMapListener<>();
         CollectingMapListener<String, Person> listenerTwo = new CollectingMapListener<>();
         NamedCache<String, Person>            cache       = ensureEmptyCache(sScope, sCacheName);
@@ -1764,7 +1764,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldAddPrimingListenerWithFilter(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-events-" + System.currentTimeMillis();
+        String                     sCacheName = ensureUniqueName("test-events");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-4", "value-4");
@@ -1848,7 +1848,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetExistingKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
 
         cache.clear();
@@ -1875,7 +1875,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetExistingKeyMappedToNull(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
@@ -1901,7 +1901,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetNonExistentKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -1928,7 +1928,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetAllForEmptyKeyCollection(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -1939,7 +1939,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetAllWhenNoKeysMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
@@ -1952,7 +1952,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetAllWhenAllKeysMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
@@ -1965,7 +1965,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetAllWhenAllSomeKeysMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 4);
 
@@ -2012,7 +2012,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallInvoke(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         String                     sKey       = "bb";
         Person                     person     = new Person("bob", "builder", 25, "male");
@@ -2048,7 +2048,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallInvokeWithMissingEntryProcessor(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
 
         TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
@@ -2071,7 +2071,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallInvokeAllWithFilter(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2114,7 +2114,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallInvokeAllWithNoFilterOrKeys(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2154,7 +2154,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallInvokeAllWithKeys(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2198,7 +2198,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallInvokeAllWithMissingProcessor(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String sCacheName = "people";
+        String sCacheName = ensureUniqueName("people");
 
         TestProxyResponseStreamObserver   observer = new TestProxyResponseStreamObserver();
         StreamObserver<ProxyRequest>      channel  = openChannel(observer);
@@ -2222,7 +2222,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldBeEmpty(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2241,7 +2241,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldNotBeEmpty(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
@@ -2262,7 +2262,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallKeySetWithFilterWhenSomeEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2300,7 +2300,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallKeySetWithFilterWhenAllEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2338,7 +2338,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldCallKeySetWithFilterWhenNoEntriesMatch(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -2370,7 +2370,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldInsertNewEntry(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2398,7 +2398,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldUpdateEntry(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String sCacheName = "test-cache";
+        String sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -2428,7 +2428,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldUpdateEntryPreviouslyMappedToNull(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
@@ -2459,7 +2459,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldUpdateEntryWithNullValue(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         ByteString                 key        = toByteString("key-1", serializer);
         ByteString                 value      = toByteString(null, serializer);
@@ -2491,7 +2491,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutAll(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2521,7 +2521,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutAllWithExpiry(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2555,7 +2555,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutAllWithZeroEntries(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2577,7 +2577,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutIfAbsentForNonExistentKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2602,7 +2602,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutIfAbsentForExistingKey(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -2628,7 +2628,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldPutIfAbsentForExistingKeyMappedToNull(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", null);
@@ -2656,7 +2656,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldRemoveOnNonExistentEntry(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         int count = 10;
         clearAndPopulate(cache, count);
@@ -2681,7 +2681,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnPreviousValueForRemoveOnExistingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         int cCount = 10;
         clearAndPopulate(cache, cCount);
@@ -2709,7 +2709,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnFalseForRemoveMappingOnNonExistentMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<Binary, Binary> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2734,7 +2734,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnFalseForRemoveMappingOnNonMatchingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-1");
@@ -2760,7 +2760,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnTrueForRemoveMappingOnMatchingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         cache.put("key-1", "value-123");
@@ -2788,7 +2788,7 @@ public class NamedCacheProxyProtocolIT
     @SuppressWarnings("unchecked")
     public void shouldRemoveIndexWhenIndexExists(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                        sCacheName = "add-index-cache";
+        String                        sCacheName = ensureUniqueName("add-index-cache");
         NamedCache                    cache      = ensureEmptyCache(sScope, sCacheName);
         Map<ValueExtractor, MapIndex> indexMap   = removeIndexes(cache);
 
@@ -2818,7 +2818,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldRemoveIndexWhenIndexDoesNotExist(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                        sCacheName = "add-index-cache";
+        String                        sCacheName = ensureUniqueName("add-index-cache");
         NamedCache                    cache      = ensureEmptyCache(sScope, sCacheName);
         Map<ValueExtractor, MapIndex> indexMap   = removeIndexes(cache);
 
@@ -2848,7 +2848,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnNullValueForReplaceOnNonExistentMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2874,7 +2874,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnNonNullForReplaceOnExistingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -2902,7 +2902,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnFalseForReplaceMappingOnNonExistentMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -2934,7 +2934,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnFalseForReplaceMappingOnNonMatchingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -2968,7 +2968,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldReturnTrueForReplaceMappingOnMatchingMapping(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -3001,7 +3001,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetSizeOfEmptyCache(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
 
@@ -3022,7 +3022,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldGetSizeOfPopulatedCache(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 10);
 
@@ -3045,7 +3045,7 @@ public class NamedCacheProxyProtocolIT
     @MethodSource("serializers")
     public void shouldTruncate(String ignored, Serializer serializer, String sScope) throws Exception
         {
-        String                     sCacheName = "test-cache";
+        String                     sCacheName = ensureUniqueName("test-cache");
         NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
         clearAndPopulate(cache, 5);
 
@@ -3068,7 +3068,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallValuesWithFilterWhenSomeEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -3108,7 +3108,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallValuesWithFilterWhenAllEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -3149,7 +3149,7 @@ public class NamedCacheProxyProtocolIT
     public void shouldCallValuesWithFilterWhenNoEntriesMatch(String ignored, Serializer serializer, String sScope)
             throws Exception
         {
-        String                     sCacheName = "people";
+        String                     sCacheName = ensureUniqueName("people");
         NamedCache<String, Person> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         Person person1 = new Person("Arthur", "Dent", 25, "male");
@@ -3192,7 +3192,7 @@ public class NamedCacheProxyProtocolIT
                                                                             String     sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -3239,7 +3239,7 @@ public class NamedCacheProxyProtocolIT
                                                                            String     sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
@@ -3283,7 +3283,7 @@ public class NamedCacheProxyProtocolIT
                                                                           String     sScope)
             throws Exception
         {
-        String                      sCacheName = "numbers";
+        String                      sCacheName = ensureUniqueName("numbers");
         NamedCache<String, Integer> cache      = ensureEmptyCache(sScope, sCacheName);
         cache.clear();
         for (int i = 0; i < 100; i++)
