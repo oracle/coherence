@@ -13489,7 +13489,7 @@ public abstract class PartitionedService
                                                 }
                                             }
                 
-                                        if (iStore1 == -1 && iStore2 == -1)
+                                        if (iStore1 == -1 || iStore2 == -1)
                                             {
                                             // this shouldn't be possible; give up
                                             break;
