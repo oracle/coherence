@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.filter;
 
+import com.tangosol.internal.util.FilterHelper;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.ExternalizableLite;
@@ -30,7 +31,6 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +87,15 @@ public abstract class ExtractorFilter<T, E>
                 : new ChainedExtractor<>(sMethod);
         }
 
+    /**
+     * Return the string representation of the extractor name.
+     * @return the string representation of the extractor name
+     */
+    @SuppressWarnings("rawtypes")
+    protected String getExtractorName()
+        {
+        return FilterHelper.getExtractorName(getValueExtractor());
+        }
 
     // ----- Filter interface -----------------------------------------------
 

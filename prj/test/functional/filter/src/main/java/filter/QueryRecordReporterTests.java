@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,28 +11,28 @@ package filter;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
 
+import com.tangosol.io.pof.reflect.SimplePofPath;
+import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.partition.PartitionSet;
 
+import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
+import com.tangosol.util.Filters;
 import com.tangosol.util.Resources;
 import com.tangosol.util.SimpleQueryRecord;
 import com.tangosol.util.SimpleQueryRecordReporter;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.aggregator.QueryRecorder;
 
-import com.tangosol.util.filter.AllFilter;
-import com.tangosol.util.filter.AlwaysFilter;
-import com.tangosol.util.filter.AndFilter;
-import com.tangosol.util.filter.BetweenFilter;
-import com.tangosol.util.filter.EqualsFilter;
-import com.tangosol.util.filter.LessEqualsFilter;
-import com.tangosol.util.filter.LikeFilter;
-import com.tangosol.util.filter.PartitionedFilter;
+import com.tangosol.util.extractor.PofExtractor;
+import com.tangosol.util.filter.*;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import data.evolvable.v1.Dog;
 import data.pof.Address;
 
 import filter.nestinglevel1.nestinglevel2.nestinglevel3.IntegerToStringPersonKeyExtractor;
@@ -51,9 +51,9 @@ import java.io.Serializable;
 
 import java.net.URL;
 
-import java.util.Calendar;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -129,6 +129,98 @@ public class QueryRecordReporterTests
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void testBasicToExpression()
+        {
+        assertEquals("TRUE", Filters.always().toExpression());
+        assertEquals("FALSE", Filters.never().toExpression());
+        assertEquals("name IN HashSet[two, three]", Filters.in(Extractors.extract("name"), "two", "three").toExpression());
+        assertEquals("age BETWEEN [1, 3]", Filters.between(Extractors.extract("age"), 1, 3).toExpression());
+
+        Filter<?> f = Filters.between(Extractors.extract("age"), 1, 3).and(Filters.isNotNull(Extractors.extract("address")));
+        assertEquals("(age BETWEEN [1, 3] AND address IS NOT NULL)", f.toExpression());
+
+        assertEquals("name != 'Tim'", Filters.notEqual(TestPerson::getName, "Tim").toExpression());
+
+        Filter<?> f2 = Filters.between(Extractors.extract("age"), 1, 3).or(Filters.isNotNull(Extractors.extract("address")));
+        assertEquals("(age BETWEEN [1, 3] OR address IS NOT NULL)", f2.toExpression());
+
+        assertEquals("(TRUE OR FALSE)", Filters.any(Filters.always(), Filters.never()).toExpression());
+        assertEquals("(TRUE AND FALSE)", Filters.all(Filters.always(), Filters.never()).toExpression());
+        assertEquals("IS PRESENT", Filters.present().toExpression());
+
+        assertEquals("id == 1", Filters.equal(TestPerson::getId, 1).toExpression());
+        assertEquals("id == 1", Filters.equal("id", 1).toExpression());
+        assertEquals("id == 1", Filters.equal("getId", 1).toExpression());
+
+        assertEquals("id < 1", Filters.less(Extractors.extract("id"), 1).toExpression());
+        assertEquals("id < 1", Filters.less(TestPerson::getId, 1).toExpression());
+        assertEquals("id <= 1", Filters.lessEqual(Extractors.extract("id"), 1).toExpression());
+        assertEquals("id <= 1", Filters.lessEqual(TestPerson::getId, 1).toExpression());
+
+        assertEquals("id > 1", Filters.greater(Extractors.extract("id"), 1).toExpression());
+        assertEquals("id > 1", Filters.greater(TestPerson::getId, 1).toExpression());
+        assertEquals("id >= 1", Filters.greaterEqual(Extractors.extract("id"), 1).toExpression());
+        assertEquals("id >= 1", Filters.greaterEqual(TestPerson::getId, 1).toExpression());
+
+        assertEquals("languages CONTAINS 'English'", Filters.contains(TestPerson::getLanguages, "English").toExpression());
+        assertEquals("languages CONTAINS ANY HashSet[English, Italian]", Filters.containsAny(TestPerson::getLanguages, "English", "Italian").toExpression());
+        assertEquals("languages CONTAINS ALL HashSet[English, Italian]", Filters.containsAll(TestPerson::getLanguages, "English", "Italian").toExpression());
+
+        assertEquals("languages CONTAINS 'English'", Filters.contains(Extractors.extract("languages"),"English").toExpression());
+        assertEquals("languages CONTAINS ANY HashSet[English, Italian]", Filters.containsAny(Extractors.extract("languages"), "English", "Italian").toExpression());
+        assertEquals("languages CONTAINS ALL HashSet[English, Italian]", Filters.containsAll(Extractors.extract("languages"), "English", "Italian").toExpression());
+
+        assertEquals("pets CONTAINS 'Dog'", Filters.arrayContains(TestPerson::getPets, "Dog").toExpression());
+        assertEquals("pets CONTAINS ALL HashSet[Cat, Dog]", Filters.arrayContainsAll(TestPerson::getPets, "Dog", "Cat").toExpression());
+        assertEquals("pets CONTAINS ANY HashSet[Cat, Dog]", Filters.arrayContainsAny(TestPerson::getPets, "Dog", "Cat").toExpression());
+
+        assertEquals("pets CONTAINS 'Dog'", Filters.arrayContains(Extractors.extract("pets"), "Dog").toExpression());
+        assertEquals("pets CONTAINS ALL HashSet[Cat, Dog]", Filters.arrayContainsAll(Extractors.extract("pets"), "Dog", "Cat").toExpression());
+        assertEquals("pets CONTAINS ANY HashSet[Cat, Dog]", Filters.arrayContainsAny(Extractors.extract("pets"), "Dog", "Cat").toExpression());
+
+        assertEquals("pets IN HashSet[Cat, Dog]", Filters.in(Extractors.extract("pets"), "Dog", "Cat").toExpression());
+        assertEquals("pets IN HashSet[Cat, Dog]", Filters.in(TestPerson::getPets, "Dog", "Cat").toExpression());
+        assertEquals("languages IN HashSet[English, Italian]", Filters.in(TestPerson::getLanguages, "English", "Italian").toExpression());
+
+        assertEquals("name LIKE 'T%'", Filters.like(TestPerson::getName, "T%").toExpression());
+        assertEquals("name LIKE 'T%'", Filters.like(Extractors.extract("name"), "T%").toExpression());
+
+        ValueExtractor<?, String> e1 = new PofExtractor<>(null, 0);
+        assertEquals("pof(0) IS NOT NULL", Filters.isNotNull(e1).toExpression());
+
+        e1 = new PofExtractor<>(null, new SimplePofPath(1), PofExtractor.KEY);
+        assertEquals("pof[key](1) IS NOT NULL", Filters.isNotNull(e1).toExpression());
+
+        PofExtractor<Object, Movie> e2 = Extractors.fromPof(Movie.class, 1);
+        assertEquals("pof(1) IS NOT NULL", Filters.isNotNull(e2).toExpression());
+
+        PofExtractor<Movie, Object> e3 = Extractors.fromPof(Movie.class, "id");
+        assertEquals("pof(id) IS NOT NULL", Filters.isNotNull(e3).toExpression());
+
+        assertEquals("{id} IS NOT NULL", Filters.isNotNull(Extractors.identity()).toExpression());
+
+        KeyFilter<String> filter = new KeyFilter<>(Set.of("one", "two", "three"));
+        assertEquals(true, filter.toExpression().contains("Key in HashSet["));
+
+        Collection<String> setValues = new LinkedHashSet<>();
+        for (int i = 0; i < 20; i++)
+           {
+           setValues.add("value" + i);
+           }
+
+        ContainsFilter<Object, ?> filter2 = Filters.contains(Extractors.extract("name"), setValues);
+        assertEquals("name CONTAINS [value0, value1, value2, value3, value4, value5, value6, value7, value8, value9... (more)]", filter2.toExpression());
+
+        LimitFilter limitFilter = new LimitFilter(AlwaysFilter.INSTANCE(), 2);
+
+        assertEquals("LIMIT FILTER (pageSize=2, page=0, filter=TRUE)", limitFilter.toExpression());
+
+        KeyAssociatedFilter<String> filter3 = new KeyAssociatedFilter<>(AlwaysFilter.INSTANCE(), "key");
+        assertEquals("KEY ASSOCIATED (key=key, filter=TRUE)", filter3.toExpression());
+        }
 
     @Test
     public void testReporterDoubleIndex() throws Exception
@@ -214,6 +306,9 @@ public class QueryRecordReporterTests
         SimpleQueryRecord record = (SimpleQueryRecord) cache.aggregate(filter, agent);
 
         String sOutput = SimpleQueryRecordReporter.report(record);
+        System.out.println("DEBUG START ACTUAL OUTPUT");
+        System.out.println(sOutput);
+        System.out.println("DEBUG END");
 
         assertFalse("Report is null", sOutput == null);
         out(sOutput);
@@ -227,7 +322,13 @@ public class QueryRecordReporterTests
         int     nLine       = 0;
         try
             {
-            URL url = Resources.findFileOrResource(sFileName, getClass().getClassLoader());
+            URL          url         = Resources.findFileOrResource(sFileName, getClass().getClassLoader());
+            List<String> listStrings = Files.readAllLines(Path.of(url.toURI()));
+
+            System.out.println("DEBUG START EXPECTED OUTPUT");
+            listStrings.forEach(System.out::println);
+            System.out.println("DEBUG END");
+
             scanPattern = new Scanner(url.openStream());
             scanResult = new Scanner(sOut);
 
@@ -432,6 +533,57 @@ public class QueryRecordReporterTests
         String  m_sSSN;
         Address m_address;
 
+        }
+
+    /**
+     * Test class.
+     */
+    @PortableType(id = 9999)
+    public static class Movie
+        {
+
+        private int id;
+        private String title;
+
+        public Movie(int id, String title)
+            {
+            this.id = id;
+            this.title = title;
+            }
+
+        public int getId()
+            {
+            return id;
+            }
+
+        public void setId(int id)
+            {
+            this.id = id;
+            }
+
+        public String getTitle()
+            {
+            return title;
+            }
+
+        public void setTitle(String title)
+            {
+            this.title = title;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (o == null || getClass() != o.getClass()) return false;
+            Movie movie = (Movie) o;
+            return id == movie.id && Objects.equals(title, movie.title);
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(id, title);
+            }
         }
     }
 

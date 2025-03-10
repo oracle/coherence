@@ -3,10 +3,10 @@ Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
 AllFilter                                                         \| ----  \| 0
-  LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglev\.\.\. \(0\) \| 0     \| 11
-  BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nesting\.\.\. \(1\) \| 1     \| (66|67)
-  LessEqualsFilter\(\.getAge\(\), 98\)                                 \| 2     \| 100000
-  EqualsFilter\(\.getFirstName\(\), Hector\)                           \| 3     \| 100000
+  filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.Integer\.\.\. \(0\) \| 0     \| 11
+  filter\.nestinglevel1\.nestinglevel2\.nestinglevel3.StringT\.\.\. \(1\) \| 1     \| 67
+  age <= 98                                                       \| 2     \| 100000
+  firstName == 'Hector'                                           \| 3     \| 100000
 
 
 Index Lookups
@@ -21,12 +21,11 @@ Index Description                             Extractor                        O
 Complete filter and index descriptions
 N     Full Name
 ======================================================================================
-0   \| LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPers
-    \| onKeyExtractor\( Person\.Key \), \&2%\)
+0   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPersonKeyExtrac
+    \| tor\( Person\.Key \) LIKE '&2%'
 
-1   \| BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZ
-    \| ipExtractor\( Person.Address\.Zip \) >= 100 and filter\.nestinglevel1\.nestinglevel2
-    \| \.nestinglevel3\.StringToIntegerZipExtractor\( Person\.Address\.Zip \) <= 15000\)
+1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
+    \| erson.Address.Zip \) BETWEEN \[100, 15000\]
 
 2   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50
 

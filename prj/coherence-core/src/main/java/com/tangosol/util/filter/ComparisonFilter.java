@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.util.filter;
 
+
+import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -17,8 +19,10 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 
@@ -79,7 +83,7 @@ public abstract class ComparisonFilter<T, E, C>
                         || value instanceof Map
                         || value.getClass().isArray()
                         ? toStringValue() : "'" + value + "'";
-        return getValueExtractor().getCanonicalName() + " " + getOperator() + " " + sValue;
+        return getExtractorName() + " " + getOperator() + " " + sValue;
         }
 
     protected String getOperator()
@@ -111,8 +115,45 @@ public abstract class ComparisonFilter<T, E, C>
     */
     protected String toStringValue()
         {
+        C value = getValue();
+        if (value instanceof Collection<?> || value != null && value.getClass().isArray())
+            {
+            return toStringLimit(value instanceof Collection<?>
+                                  ? () -> (Collection<?>) value
+                                  : () -> Arrays.asList((Object[]) value), 10);
+            }
+        
         return String.valueOf(getValue());
         }
+
+    /**
+     * Limit the number of entries returned from a {@link Supplier} for toString().
+     *
+     * @param iterSupplier  {@link Supplier} to limit
+     * @param limit         the number of entries to limit
+     *
+     * @return  the toString() representation
+     */
+    public static String toStringLimit(Supplier<Iterable<?>> iterSupplier, int limit)
+        {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        int count = 0;
+        for (Object oElement : iterSupplier.get())
+            {
+            if (count >= limit) {
+                sb.append("... (more)");
+                break;
+            }
+            if (count > 0) {
+                sb.append(", ");
+            }
+            sb.append(oElement);
+            count++;
+        }
+        sb.append("]");
+        return sb.toString();
+    }
 
 
     // ----- Object methods -------------------------------------------------

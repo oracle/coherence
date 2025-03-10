@@ -3,13 +3,13 @@ Trace
 Filter Name                                 Index   Effectiveness          Duration  
 ======================================================================================
 AllFilter                                 \| ----  \| 100\|7\(93%\)           \| [0-9]+[\s]*
-  LikeFilter\(filter\.nestinglevel1\.\.\.\. \(0\) \| 0     \| 100\|11\(89%\)          \| [0-9]+[\s]*
-  BetweenFilter\(filter\.nestingleve\.\.\. \(1\) \| 1     \| 11\|7\(36%\)            \| [0-9]+[\s]*
-  LessEqualsFilter\(\.getAge\(\), 98\)         \| 2     \| 7\|7\(0%\)              \| [0-9]+[\s]*
-  EqualsFilter\(\.getFirstName\(\), Hector\)   \| 3     \| 7\|7\(0%\)              \| [0-9]+[\s]*
+  filter\.nestinglevel1\.nestingleve\.\.\. \(0\) \| 0     \| 100\|11\(89%\)          \| .*
+  filter\.nestinglevel1\.nestingleve\.\.\. \(1\) \| 1     \| 11\|7\(36%\)            \| .*
+  age <= 98                               \| 2     \| 7\|7\(0%\)              \| 0
+  firstName == 'Hector'                   \| 3     \| 7\|7\(0%\)              \| 0
 AllFilter                                 \| ----  \| 7\|1\(85%\)             \| [0-9]+[\s]*
-  LessEqualsFilter\(\.getAge\(\), 98\)         \| ----  \| 7\|7\(0%\)              \| [0-9]+[\s]*
-  EqualsFilter\(\.getFirstName\(\), Hector\)   \| ----  \| 7\|1\(85%\)             \| [0-9]+[\s]*
+  age <= 98                               \| ----  \| 7\|7\(0%\)              \| .*
+  firstName == 'Hector'                   \| ----  \| 7\|1\(85%\)             \| .*
 
 
 Index Lookups
@@ -24,12 +24,11 @@ Index Description                             Extractor                        O
 Complete filter and index descriptions
 N     Full Name
 ======================================================================================
-0   \| LikeFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPers
-    \| onKeyExtractor\( Person\.Key \), \&2%\)
+0   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.IntegerToStringPersonKeyExtrac
+    \| tor\( Person\.Key \) LIKE '&2%'
 
-1   \| BetweenFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZ
-    \| ipExtractor\( Person.Address\.Zip \) >= 100 and filter\.nestinglevel1\.nestinglevel2
-    \| \.nestinglevel3\.StringToIntegerZipExtractor\( Person\.Address\.Zip \) <= 15000\)
+1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
+    \| erson.Address.Zip \) BETWEEN \[100, 15000\]
 
 2   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=50
 

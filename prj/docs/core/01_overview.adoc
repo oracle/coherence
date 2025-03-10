@@ -37,4 +37,11 @@ Use Java 21 virtual threads within Coherence.
 Use Coherence as a Vector Database.
 --
 
+[CARD]
+.Query and Trace Recorder Improvements
+[icon=fa-database,link=docs/core/10_filter_descriptions.adoc]
+--
+Improvements in displaying of filters in Query and Trace Recorder.
+--
+
 ====

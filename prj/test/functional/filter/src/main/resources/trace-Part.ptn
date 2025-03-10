@@ -2,7 +2,7 @@
 Trace
 Filter Name                                 Index   Effectiveness          Duration
 ======================================================================================
-LessEqualsFilter\(filter\.nestinglev\.\.\. \(0\) \| 0     \| 56\|43\(23%\)           \| [0-9]+[\s]*
+filter\.nestinglevel1\.nestinglevel2\.\.\. \(0\) \| 0     \| 56\|43\(23%\)           \| [0-9]+[\s]*
 
 
 Index Lookups
@@ -14,8 +14,8 @@ Index Description                             Extractor                        O
 Complete filter and index descriptions
 N     Full Name
 ======================================================================================
-0   \| LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToInteg
-    \| erZipExtractor\( Person\.Address\.Zip \), 5000\)
+0   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
+    \| erson\.Address\.Zip \) <= 5000
 
 1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
     \| erson\.Address\.Zip \)

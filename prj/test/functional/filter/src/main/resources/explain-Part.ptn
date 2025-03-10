@@ -2,7 +2,7 @@
 Explain Plan
 Filter Name                                                         Index   Cost
 ======================================================================================
-LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestin\.\.\. \(0\) \| 0     \| (66|67)
+filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToI\.\.\. \(0\) \| 0     \| (66|67)
 
 
 Index Lookups
@@ -14,8 +14,8 @@ Index Description                             Extractor                        O
 Complete filter and index descriptions
 N     Full Name
 ======================================================================================
-0   \| LessEqualsFilter\(filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToInteg
-    \| erZipExtractor\( Person\.Address\.Zip \), 5000\)
+0   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
+    \| erson\.Address\.Zip \) <= 5000
 
 1   \| filter\.nestinglevel1\.nestinglevel2\.nestinglevel3\.StringToIntegerZipExtractor\( P
     \| erson\.Address\.Zip \)

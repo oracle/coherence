@@ -1,0 +1,103 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Query and Trace Recorder Improvements
+:description: Coherence Core Improvements
+:keywords: coherence, java, documentation
+
+// DO NOT remove this header - it might look like a duplicate of the header above, but
+// both they serve a purpose, and the docs will look wrong if it is removed.
+== Query and Trace Record Improvements
+
+In 25.03, we have improved the display of filters in the output of the Query and Trace Recorder. This also applies to the
+`MaxQueryDescription` attribute on the `StorageManager` MBean.
+
+Consider the following code snippet which:
+
+1. Gets a cache and adds an index
+2. Creates a filter
+3. Adds 15,000 entries to the cache
+4. Runs a query explain
+
+[source,java]
+.Example Query
+----
+NamedCache<String, Person> cache = CacheFactory.getCache("people");
+cache.addIndex(Person::getAge, true, null);
+
+AllFilter filter = new AllFilter(new Filter[]
+    {
+    Filters.equal(Person::getAge, 16).or(Filters.equal(Person::getAge, 19)),
+    Filters.equal(Person::getLastName, "Smith"),
+    Filters.equal(Person::getFirstName, "Bob"),
+    });
+
+// populate the cache
+Map<String, Person> buffer = new HashMap<>();
+for (int i = 0; i < 15000; ++i)
+    {
+    Person person = new Person(i % 3 == 0 ? "Joe" : "Bob", i % 2 == 0 ? "Smith" : "Jones", 15 + i % 10);
+    buffer.put("key" + i, person);
+    }
+cache.putAll(buffer);
+
+QueryRecorder<String, Person> agent = new QueryRecorder<>(RecordType.EXPLAIN);
+Object resultsExplain = cache.aggregate(filter, agent);
+System.out.println("\nTrace =\n" + resultsExplain + "\n")
+----
+
+In this version the output looks like the following, showing the filters in a more human readable format.
+
+[source,text]
+.New Results
+----
+Explain Plan
+Filter Name                                                         Index   Cost
+======================================================================================
+AllFilter                                                         | ----  | 0
+  OrFilter                                                        | ----  | 0
+    age == 16                                                     | 0     | 1500
+    age == 19                                                     | 0     | 1500
+  lastName == 'Smith'                                             | 1     | 15000000
+  firstName == 'Bob'                                              | 2     | 15000000
+----
+
+Whereas the previous versions the output was a bit more cryptic.
+
+[source,text]
+.Old Results
+----
+Explain Plan
+Filter Name                                                         Index   Cost
+======================================================================================
+AllFilter                                                         | ----  | 0
+  OrFilter                                                        | ----  | 0
+    EqualsFilter(.getAge(), 16)                                   | 0     | 1500
+    EqualsFilter(.getAge(), 19)                                   | 0     | 1500
+  EqualsFilter(.getLastName(), Smith)                             | 1     | 15000000
+  EqualsFilter(.getFirstName(), Bob)                              | 2     | 15000000
+----
+
+Additionally, when using `PofExtractor`, the descriptions output are shorter and more readable.
+
+E.g. When taking the following filter example:
+
+[source,java]
+----
+Filters.isNotNull(Extractors.fromPof(1))
+----
+
+[source,text]
+.Output with new version
+----
+pof(1) IS NOT NULL
+----
+
+[source,text]
+.Previous output
+----
+IsNotNullFilter(PofExtractor(target=VALUE, navigator=1, ValueExtractor(pof(1))), null)
+----

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -128,9 +128,6 @@ public class PofExtractorTest
 
         BinaryEntry binEntry = new TestBinaryEntry(binPerson, null,
                                           PofDataUtils.getPofContext());
-
-        //AbstractExtractor ke = new KeyExtractor(new PofExtractor(0));
-        //assertEquals(ke.extract(binEntry), "Aleksandar Seovic");
 
         AbstractExtractor ve = new PofExtractor(null,
                 new SimplePofPath(new int[] {PortablePerson.ADDRESS, Address.CITY}),
@@ -619,7 +616,6 @@ public class PofExtractorTest
                                                          ObjectWithAllTypes.P_BOOLEAN_FALSE);
 
         assertNotNull(extractor.getCanonicalName());
-        assertNull(extractorNoCName.getCanonicalName());
         assertFalse(extractor.equals(extractorNoCName));
         assertNotEquals(extractor.hashCode(), extractorNoCName.hashCode());
         }
@@ -633,8 +629,8 @@ public class PofExtractorTest
         PofExtractor extractor2 = new PofExtractor(boolean.class,
                                                    ObjectWithAllTypes.P_BOOLEAN_FALSE);
 
-        assertNull(extractor1.getCanonicalName());
-        assertNull(extractor2.getCanonicalName());
+        assertEquals("pof(0)", extractor1.getCanonicalName());
+        assertEquals("pof(0)", extractor2.getCanonicalName());
 
         assertTrue(extractor1.equals(extractor2));
         assertTrue(extractor2.equals(extractor1));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -148,7 +148,7 @@ public class EqualsFilterTest
         // begin test
         filter.explain(ctx, step, setKeys);
 
-        assertEquals(filter.toString(), step.getFilterDescription());
+        assertEquals(filter.toExpression(), step.getFilterDescription());
         assertEquals(setKeys.size(), step.getPreFilterKeySetSize());
         assertEquals(0, step.getEfficiency());
         }
@@ -201,7 +201,7 @@ public class EqualsFilterTest
         // begin test
         filter.trace(ctx, step, setKeys);
 
-        assertEquals(filter.toString(), step.getFilterDescription());
+        assertEquals(filter.toExpression(), step.getFilterDescription());
         assertEquals(m_fPartial ? 8 : 4, step.getPreFilterKeySetSize());
         assertEquals(1, step.getPostFilterKeySetSize());
 
@@ -237,7 +237,7 @@ public class EqualsFilterTest
         // begin test
         filter.trace(ctx, step, entry);
 
-        assertEquals(filter.toString(), step.getFilterDescription());
+        assertEquals(filter.toExpression(), step.getFilterDescription());
         assertEquals(1, step.getPreFilterKeySetSize());
         assertEquals(1, step.getPostFilterKeySetSize());
 

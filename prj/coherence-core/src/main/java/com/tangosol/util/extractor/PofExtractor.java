@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -276,6 +276,14 @@ public class PofExtractor<T, E>
     public ValueExtractor<T, E> fromKey()
         {
         return new PofExtractor<>(m_clz, m_navigator, KEY, m_sNameCanon);
+        }
+
+    @Override
+    public String getCanonicalName()
+        {
+        return m_sNameCanon == null
+                ? ("pof" + (m_nTarget == KEY ? "[key]" : "") + "(" + m_navigator.toString()) + ")"
+                : m_sNameCanon;
         }
 
     // ----- accessors ------------------------------------------------------

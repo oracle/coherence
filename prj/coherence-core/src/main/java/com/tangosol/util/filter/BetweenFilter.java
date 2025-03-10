@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
+
+import com.tangosol.internal.util.FilterHelper;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMapHelper;
@@ -18,7 +20,6 @@ import com.tangosol.util.ValueExtractor;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.NavigableMap;
 
@@ -206,7 +207,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
     public String toExpression()
         {
-        return getValueExtractor().getCanonicalName() + " BETWEEN " +
+        return FilterHelper.getExtractorName(getValueExtractor()) + " BETWEEN " +
                (isLowerBoundInclusive() ? '[' : '(') +
                getLowerBound() + ", " + getUpperBound() +
                (isUpperBoundInclusive() ? ']' : ')');

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,6 @@ import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.SimpleEnumerator;
 import com.tangosol.util.SimpleMapEntry;
-import com.tangosol.util.ValueExtractor;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -91,6 +90,11 @@ public class LimitFilter<T>
         return m_filter.evaluate(o);
         }
 
+    @Override
+    public String toExpression()
+        {
+        return "LIMIT FILTER (pageSize=" + getPageSize() + ", page=" + getPage() + ", filter=" + m_filter.toExpression() + ")";
+        }
 
     // ----- EntryFilter interface ------------------------------------------
 

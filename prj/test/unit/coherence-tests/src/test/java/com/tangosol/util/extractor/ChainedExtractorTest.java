@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -171,11 +171,6 @@ public class ChainedExtractorTest
 
         assertEquals(ce6, ce2);
         assertEquals(ce6.hashCode(), ce2.hashCode());
-
-        // non Equivalent cases
-        assertNull(ce3.getCanonicalName());
-        assertNull(ce4.getCanonicalName());
-        assertNull(ce5.getCanonicalName());
 
         assertNotEquals(ce2, ce3);
         assertNotEquals(ce2, ce4);

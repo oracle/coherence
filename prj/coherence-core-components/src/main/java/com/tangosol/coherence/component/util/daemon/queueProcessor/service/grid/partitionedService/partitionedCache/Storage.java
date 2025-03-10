@@ -10494,7 +10494,7 @@ public class Storage
             {
             String sItem       = nQueryType == QUERY_KEYS ? " keys" : " entries";
             String sFilterDesc = filterOrig == null ? ""
-                                                    : Base.truncateString(filterOrig.toString(), 1024);
+                                                    : Base.truncateString(filterOrig.toExpression(), 1024);
 
             if (filterOrig == null)
                 {
