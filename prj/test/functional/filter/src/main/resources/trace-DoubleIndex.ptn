@@ -5,8 +5,8 @@ Filter Name                                 Index   Effectiveness          Durat
 AllFilter                                 \| ----  \| 100\|7\(93%\)           \| [0-9]+[\s]*
   filter\.nestinglevel1\.nestingleve\.\.\. \(0\) \| 0     \| 100\|11\(89%\)          \| .*
   filter\.nestinglevel1\.nestingleve\.\.\. \(1\) \| 1     \| 11\|7\(36%\)            \| .*
-  age <= 98                               \| 2     \| 7\|7\(0%\)              \| 0
-  firstName == 'Hector'                   \| 3     \| 7\|7\(0%\)              \| 0
+  age <= 98                               \| 2     \| 7\|7\(0%\)              \| .*
+  firstName == 'Hector'                   \| 3     \| 7\|7\(0%\)              \| .*
 AllFilter                                 \| ----  \| 7\|1\(85%\)             \| [0-9]+[\s]*
   age <= 98                               \| ----  \| 7\|7\(0%\)              \| .*
   firstName == 'Hector'                   \| ----  \| 7\|1\(85%\)             \| .*
@@ -17,8 +17,8 @@ Index Description                             Extractor                        O
 ======================================================================================
 0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B,\.\.\. \(2\)\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
 1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3 \| filter\.nestinglevel1\.nes\.\.\. \(4\) \| true
-2   \| No index found                        \| \.getAge\(\)                       \| false
-3   \| No index found                        \| \.getFirstName\(\)                 \| false
+2   \| No index found                        \| age                             \| false
+3   \| No index found                        \| firstName                       \| false
 
 
 Complete filter and index descriptions

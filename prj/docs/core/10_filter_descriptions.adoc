@@ -15,9 +15,178 @@
 In 25.03, we have improved the display of filters in the output of the Query and Trace Recorder. This also applies to the
 `MaxQueryDescription` attribute on the `StorageManager` MBean.
 
-Consider the following code snippet which:
+Below are two examples of the updated filter descriptions, the first showing using Portable Object Format (POF), and `PortableTypes` and the second showing using standard Java serialization.
 
-1. Gets a cache and adds an index
+Using `PortableTypes` is the preferred method for serializing objects using POF as it provides the following benefits:
+
+1. You do not have to implement serialization logic as you just annotate the class and fields,
+and then include the pof-maven-plugin to your build process to instrument the annotated classes
+2. Instrumenting the classes automatically ensures they can evolve as you change your data model
+3. Using the POF serialization format is very compact and can save considerable space
+4. It is cross-platform compatible with C++, Java and .NET
+
+See {commercial-docs-base-url}/develop-applications/using-portable-object-format.html[Using Portable Object Format] for more information on the above.
+
+=== Example 1 - Portable Types
+
+Consider that we have the following classes annotated using `PortableTypes`.
+
+NOTE: We have not included all getters and setting for brevity.
+
+[source,java]
+.Employee
+----
+@PortableType(id=10000)
+public static class Employee {
+    @Portable
+    private final String firstName;
+
+    @Portable
+    private final String lastName;
+
+    @Portable
+    private final int age;
+
+    @Portable
+    public Address homeAddress;
+
+    @Portable
+    public Address workAddress;
+
+    // constructors, getters, setters, hashCode and toString omitted
+}
+----
+
+[source,java]
+.Address
+----
+@PortableType(id = 10001)
+public static class Address {
+    @Portable
+    private String addressLine1;
+
+    @Portable
+    private String addressLine2;
+
+    @Portable
+    private String city;
+
+    @Portable
+    private String state;
+
+    @Portable
+    private String zip;
+
+    // constructors, getters, setters, hashCode and toString omitted
+}
+----
+
+Consider the following code which:
+
+1. Gets a cache and adds indexes
+2. Creates a filter
+3. Adds 15,000 entries to the cache
+4. Runs a query explain
+
+[source,java]
+----
+NamedCache<String, Employee> cache = CacheFactory.getCache("employees");
+
+PofExtractor<Employee, Integer> age       = Extractors.fromPof(Employee.class, "age");
+PofExtractor<Employee, String>  lastName  = Extractors.fromPof(Employee.class, "lastName");
+PofExtractor<Employee, String>  firstName = Extractors.fromPof(Employee.class, "firstName");
+PofExtractor<Employee, String>  homeCity  = Extractors.fromPof(Employee.class, "homeAddress.city");
+
+cache.addIndex(age, true, null);
+cache.addIndex(homeCity, true, null);
+
+AllFilter filter = new AllFilter(new Filter[]
+        {
+        equal(age, 16).or(equal(age, 19)),
+        equal(lastName, "Smith"),
+        equal(firstName, "Bob"),
+        equal(homeCity, "Boston"),
+        });
+
+populateCache(cache);
+
+QueryRecorder<String, Employee> agent = new QueryRecorder<>(RecordType.EXPLAIN);
+Object resultsExplain = cache.aggregate(filter, agent);
+System.out.println("\nExplain Plan=\n" + resultsExplain + "\n");
+----
+
+The filter and index output is much clearer and easy to read than in previous versions.
+
+[source,text]
+.Output
+----
+Explain Plan
+Filter Name                                                         Index   Cost
+======================================================================================
+AllFilter                                                         | ----  | 0
+  OrFilter                                                        | ----  | 0
+    age == 16                                                     | 0     | 1500
+    age == 19                                                     | 0     | 1500
+  homeAddress.city == 'Boston'                                    | 1     | 7394
+  lastName == 'Smith'                                             | 2     | 15000000
+  firstName == 'Bob'                                              | 3     | 15000000
+
+
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   | Partitioned: Footprint=1.76MB,... (0) | age                             | true
+1   | Partitioned: Footprint=1.51MB, Size=2 | homeAddress.city                | true
+2   | No index found                        | lastName                        | false
+3   | No index found                        | firstName                       | false
+----
+
+As a comparison, the following would have been output in previous versions:
+
+[source,text]
+.Old Output
+----
+Explain Plan
+Filter Name                                                         Index   Cost
+======================================================================================
+AllFilter                                                         | ----  | 0
+  OrFilter                                                        | ----  | 0
+    EqualsFilter(PofExtractor(target=VALUE, navigator=Simp... (0) | 0     | 1500
+    EqualsFilter(PofExtractor(target=VALUE, navigator=Simp... (1) | 0     | 1500
+  EqualsFilter(PofExtractor(target=VALUE, navigator=Simple... (2) | 1     | 7517
+  EqualsFilter(PofExtractor(target=VALUE, navigator=Simple... (3) | 2     | 15000000
+  EqualsFilter(PofExtractor(target=VALUE, navigator=Simple... (4) | 3     | 15000000
+
+
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   | Partitioned: Footprint=1.76MB,... (5) | PofExtractor(target=VALU... (6) | true
+1   | Partitioned: Footprint=1.51MB, Size=2 | PofExtractor(target=VALU... (7) | true
+2   | No index found                        | PofExtractor(target=VALU... (8) | false
+3   | No index found                        | PofExtractor(target=VALU... (9) | false
+----
+
+
+=== Example 2 - Java Serialization
+
+In this example we have a `Person` class using Java serialization.
+
+[source,java]
+.Person.java
+----
+public class Person implements Serializable {
+    private final String firstName;
+    private final String lastName;
+    private final int    age;
+
+    // constructors, getters, setters, hashCode and toString omitted
+}
+----
+
+Consider the following code which:
+
+1. Gets a cache and add an index
 2. Creates a filter
 3. Adds 15,000 entries to the cache
 4. Runs a query explain
@@ -49,6 +218,8 @@ Object resultsExplain = cache.aggregate(filter, agent);
 System.out.println("\nTrace =\n" + resultsExplain + "\n")
 ----
 
+
+
 In this version the output looks like the following, showing the filters in a more human readable format.
 
 [source,text]
@@ -63,6 +234,18 @@ AllFilter                                                         | ----  | 0
     age == 19                                                     | 0     | 1500
   lastName == 'Smith'                                             | 1     | 15000000
   firstName == 'Bob'                                              | 2     | 15000000
+
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   | Partitioned: Footprint=1.76MB,... (0) | age                             | true
+1   | No index found                        | lastName                        | false
+2   | No index found                        | firstName                       | false
+
+Complete filter and index descriptions
+N     Full Name
+======================================================================================
+0   | Partitioned: Footprint=1.76MB, Size=10
 ----
 
 Whereas the previous versions the output was a bit more cryptic.
@@ -79,25 +262,17 @@ AllFilter                                                         | ----  | 0
     EqualsFilter(.getAge(), 19)                                   | 0     | 1500
   EqualsFilter(.getLastName(), Smith)                             | 1     | 15000000
   EqualsFilter(.getFirstName(), Bob)                              | 2     | 15000000
-----
 
-Additionally, when using `PofExtractor`, the descriptions output are shorter and more readable.
+Index Lookups
+Index Description                             Extractor                        Ordered
+======================================================================================
+0   | Partitioned: Footprint=1.76MB,... (0) | .getAge()                       | true
+1   | No index found                        | .getLastName()                  | false
+2   | No index found                        | .getFirstName()                 | false
 
-E.g. When taking the following filter example:
 
-[source,java]
-----
-Filters.isNotNull(Extractors.fromPof(1))
-----
-
-[source,text]
-.Output with new version
-----
-pof(1) IS NOT NULL
-----
-
-[source,text]
-.Previous output
-----
-IsNotNullFilter(PofExtractor(target=VALUE, navigator=1, ValueExtractor(pof(1))), null)
+Complete filter and index descriptions
+N     Full Name
+======================================================================================
+0   | Partitioned: Footprint=1.76MB, Size=10
 ----

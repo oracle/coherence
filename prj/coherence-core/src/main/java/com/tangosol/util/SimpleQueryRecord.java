@@ -913,7 +913,9 @@ public class SimpleQueryRecord
              */
             public IndexLookupRecord(ValueExtractor extractor, MapIndex index)
                 {
-                m_sExtractor = extractor.toString();
+                String sCanonicalName = extractor.getCanonicalName();
+
+                m_sExtractor = sCanonicalName == null ? extractor.toString() : sCanonicalName;
                 m_fOrdered   = index != null && index.isOrdered();
 
                 String sIndex = null;

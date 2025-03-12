@@ -141,7 +141,7 @@ public class SimplePofPath
     public String toString()
         {
         return m_sFieldPath == null
-                ? toDelimitedString(m_aiElements, ".")
+                ? "pof(" + toDelimitedString(m_aiElements, ".") + ")"
                 : m_sFieldPath;
         }
 

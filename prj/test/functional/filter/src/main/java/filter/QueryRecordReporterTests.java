@@ -12,7 +12,9 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceCacheServer;
 
 import com.tangosol.io.pof.reflect.SimplePofPath;
+import com.tangosol.io.pof.schema.annotation.Portable;
 import com.tangosol.io.pof.schema.annotation.PortableType;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
@@ -188,17 +190,10 @@ public class QueryRecordReporterTests
         assertEquals("name LIKE 'T%'", Filters.like(TestPerson::getName, "T%").toExpression());
         assertEquals("name LIKE 'T%'", Filters.like(Extractors.extract("name"), "T%").toExpression());
 
-        ValueExtractor<?, String> e1 = new PofExtractor<>(null, 0);
-        assertEquals("pof(0) IS NOT NULL", Filters.isNotNull(e1).toExpression());
-
-        e1 = new PofExtractor<>(null, new SimplePofPath(1), PofExtractor.KEY);
-        assertEquals("pof[key](1) IS NOT NULL", Filters.isNotNull(e1).toExpression());
-
-        PofExtractor<Object, Movie> e2 = Extractors.fromPof(Movie.class, 1);
-        assertEquals("pof(1) IS NOT NULL", Filters.isNotNull(e2).toExpression());
-
         PofExtractor<Movie, Object> e3 = Extractors.fromPof(Movie.class, "id");
-        assertEquals("pof(id) IS NOT NULL", Filters.isNotNull(e3).toExpression());
+        assertEquals("id IS NOT NULL", Filters.isNotNull(e3).toExpression());
+
+        assertEquals("bar IS NOT NULL", Filters.isNotNull(new PofExtractor<>(Object.class, 4, "bar")).toExpression());
 
         assertEquals("{id} IS NOT NULL", Filters.isNotNull(Extractors.identity()).toExpression());
 
@@ -542,7 +537,10 @@ public class QueryRecordReporterTests
     public static class Movie
         {
 
+        @Portable
         private int id;
+
+        @Portable
         private String title;
 
         public Movie(int id, String title)

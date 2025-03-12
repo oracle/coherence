@@ -14,8 +14,8 @@ Index Description                             Extractor                        O
 ======================================================================================
 0   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B,\.\.\. \(2\)\s+\| filter\.nestinglevel1\.nes\.\.\. \(3\) \| true
 1   \| Partitioned: Footprint=[0-9]+[\.[0-9]+]*[K\|M]*B, Size=3\s+\| filter\.nestinglevel1\.nes\.\.\. \(4\) \| true
-2   \| No index found                        \| \.getAge\(\)                       \| false
-3   \| No index found                        \| \.getFirstName\(\)                 \| false
+2   \| No index found                        \| age                             \| false
+3   \| No index found                        \| firstName                       \| false
 
 
 Complete filter and index descriptions

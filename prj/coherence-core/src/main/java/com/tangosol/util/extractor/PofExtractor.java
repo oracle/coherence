@@ -281,9 +281,7 @@ public class PofExtractor<T, E>
     @Override
     public String getCanonicalName()
         {
-        return m_sNameCanon == null
-                ? ("pof" + (m_nTarget == KEY ? "[key]" : "") + "(" + m_navigator.toString()) + ")"
-                : m_sNameCanon;
+        return m_sNameCanon == null ? m_navigator.toString() : m_sNameCanon;
         }
 
     // ----- accessors ------------------------------------------------------
