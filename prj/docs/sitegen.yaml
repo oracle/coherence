@@ -110,14 +110,6 @@ backend:
               items:
                 - includes:
                     - "examples/tutorials/**/*.adoc"
-            - title: "Miscellaneous"
-              pathprefix: "/miscellaneous"
-              glyph:
-                type: "icon"
-                value: "widgets"
-              items:
-                - includes:
-                    - "examples/miscellaneous/**/*.adoc"
         - title: "API Documentation"
           pathprefix: "/api-docs"
           items:
