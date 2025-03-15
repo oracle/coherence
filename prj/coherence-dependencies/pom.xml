@@ -190,7 +190,7 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.1.7</helidon.version.4>
+    <helidon.version.4>4.2.0</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
     <helidon.version.3>3.2.12</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
@@ -236,7 +236,7 @@
     <jline.version>3.25.0</jline.version>
     <jna.version>5.14.0</jna.version>
     <log4j2.version>2.18.0</log4j2.version>
-    <micrometer.version>1.11.3</micrometer.version>
+    <micrometer.version>1.13.4</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <netty.version>4.1.118.Final</netty.version>

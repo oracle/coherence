@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,15 +17,12 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.metrics.MBeanMetric;
 
-import io.micrometer.prometheus.PrometheusConfig;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
-
-import io.prometheus.client.Collector;
+import io.micrometer.prometheusmetrics.PrometheusConfig;
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
@@ -78,6 +75,10 @@ public class CoherenceMicrometerMetricsIT
             {
             // name without scope
             String sName = holder.getIdentifier().getLegacyName().substring(7);
+            // sName is changed to conform to the changed naming convention in the micrometer version 1.13.4
+            // see https://github.com/micrometer-metrics/micrometer/wiki/1.13-Migration-Guide
+            // New PrometheusMeterRegistry from Micrometer 1.13.4 removes the _total suffix
+            sName = stripTotalSuffix(sName);
             StringBuilder str = new StringBuilder(sName);
             for (Map.Entry<String, String> entry : holder.getIdentifier().getPrometheusTags().entrySet())
                 {
@@ -90,31 +91,134 @@ public class CoherenceMicrometerMetricsIT
             setExpected.add(str.toString());
             }
 
-        Enumeration<Collector.MetricFamilySamples> samples = s_prometheusRegistry.getPrometheusRegistry().metricFamilySamples();
-        while (samples.hasMoreElements())
-            {
-            Collector.MetricFamilySamples sample = samples.nextElement();
+        String   prometheusTextFormat = s_prometheusRegistry.scrape();
+        String[] lines                = prometheusTextFormat.split("\n");
 
-            sample.samples.forEach(s -> setActual.add(sampleToString(s)));
+        for (String sLine : lines) {
+            if (sLine.startsWith("#") || sLine.trim().isEmpty()) {
+                continue;
             }
+            setActual.add(sampleToString(sLine.trim()));
+        }
 
         Iterator<String> itExpected = setExpected.iterator();
         Iterator<String> itActual   = setActual.iterator();
         while (itExpected.hasNext())
             {
             assertThat(itActual.hasNext(), is(true));
-            assertThat(itActual.next(), is(itExpected.next()));
+            String sActual   = itActual.next();
+            String sExpected = itExpected.next();
+            assertThat(sActual, is(sExpected));
             }
         }
 
-    private String sampleToString(Collector.MetricFamilySamples.Sample sample)
+    private String sampleToString(String sSampleToString)
         {
-        StringBuilder str = new StringBuilder(sample.name);
-        for (int i=0; i<sample.labelNames.size(); i++)
+        if (sSampleToString == null || sSampleToString.isEmpty())
             {
-            str.append(" ").append(sample.labelNames.get(i)).append("=").append(sample.labelValues.get(i));
+            return "";
             }
-        return str.toString();
+
+        int    cBraceStart = sSampleToString.indexOf('{');
+        String sMetricName;
+        String sLabelsPart = "";
+
+        if (cBraceStart != -1)
+            {
+            sMetricName = sSampleToString.substring(0, cBraceStart);
+
+            int cBraceEnd  = sSampleToString.indexOf('}', cBraceStart);
+            if (cBraceEnd != -1 && cBraceEnd > cBraceStart)
+                {
+                sLabelsPart = sSampleToString.substring(cBraceStart + 1, cBraceEnd);
+                }
+            }
+        else
+            {
+            int cFirstSpace = sSampleToString.indexOf(' ');
+                sMetricName = (cFirstSpace != -1)
+                                ? sSampleToString.substring(0, cFirstSpace)
+                                : sSampleToString;
+            }
+
+        StringBuilder result = new StringBuilder(sMetricName);
+
+        if (!sLabelsPart.isEmpty())
+            {
+            int cLen = sLabelsPart.length();
+            int i    = 0;
+
+            while (i < cLen)
+                {
+                // Find the key
+                int cEqIndex = sLabelsPart.indexOf('=', i);
+                if (cEqIndex == -1)
+                    {
+                    break; // no more key=value pairs
+                    }
+                String sKey = sLabelsPart.substring(i, cEqIndex).trim();
+
+                // Find the value
+                i = cEqIndex + 1;
+
+                char   quoteChar = sLabelsPart.charAt(i);
+                int    cValEnd;
+                String value;
+
+                if (quoteChar == '\"')
+                    {
+                    // Quoted value
+                    i++;
+                    cValEnd = sLabelsPart.indexOf('\"', i);
+                    if (cValEnd == -1)
+                        {
+                        break; // malformed, but we bail out safely
+                        }
+                    value = sLabelsPart.substring(i, cValEnd);
+                    i     = cValEnd + 1;
+                    }
+                else
+                    {
+                    // Unquoted value (not expected in Prometheus, but defensive code)
+                    cValEnd = sLabelsPart.indexOf(',', i);
+                    if (cValEnd == -1)
+                        {
+                        value = sLabelsPart.substring(i);
+                        i     = cLen;
+                        }
+                    else
+                        {
+                        value = sLabelsPart.substring(i, cValEnd);
+                        i     = cValEnd + 1;
+                        }
+                    }
+
+                result.append(" ").append(sKey).append("=").append(value);
+
+                // Skip the comma separator if there is one
+                if (i < cLen && sLabelsPart.charAt(i) == ',')
+                    {
+                    i++;
+                    }
+                }
+            }
+
+        return result.toString();
+        }
+
+    // Added to conform to the changed naming convention in the micrometer version 1.13.4
+    private String stripTotalSuffix(String input)
+        {
+        String sSuffix = "_total";
+
+        if (input != null && input.endsWith(sSuffix))
+            {
+            // Remove the suffix by taking a substring from index 0 to the suffix's starting point
+            return input.substring(0, input.length() - sSuffix.length());
+            }
+
+        // If it doesn't end with "_total", return the string as is
+        return input;
         }
 
     // ----- data members ---------------------------------------------------
