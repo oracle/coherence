@@ -484,5 +484,17 @@
     <cpe>cpe:2.3:a:eclipse:jakarta_expression_language</cpe>
     <cve>CVE-2023-5763</cve>
   </suppress>
-  
+
+  <!-- This is being triggered from tests/functional/mp-metrics tests
+  False Positive on micrometer-registry-prometheus
+  https://github.com/dependency-check/DependencyCheck/issues/1927 -->
+  <suppress>
+    <notes><![CDATA[
+    file name: micrometer-registry-prometheus-simpleclient-1.13.4.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.micrometer/micrometer\-registry\-prometheus\-simpleclient@.*$</packageUrl>
+    <cpe>cpe:2.3:a:prometheus:prometheus</cpe>
+    <cve>CVE-2019-3826</cve>
+  </suppress>
+
 </suppressions>
