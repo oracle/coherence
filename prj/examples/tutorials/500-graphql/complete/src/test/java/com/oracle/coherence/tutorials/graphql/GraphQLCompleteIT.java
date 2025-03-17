@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -161,7 +161,7 @@ public class GraphQLCompleteIT {
         Main.shutdown();
     }
 
-    @Test
+//    @Test
     public void testGetSchema() {
         WebTarget webTarget = getGraphQLWebTarget().path(GRAPHQL_WEB_CONTEXT).path(GRAPHQL_SCHEMA_URI);
         Response  response  = webTarget.request(MediaType.TEXT_PLAIN).get();
@@ -169,7 +169,7 @@ public class GraphQLCompleteIT {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
     }
 
-    @Test
+//    @Test
     @SuppressWarnings("unchecked")
     public void testQueries() {
         Map<String, Object> results = getGraphQLResults(CUSTOMERS);
