@@ -13,7 +13,7 @@ engine:
       highlightjs-theme: "idea"
       plantumlconfig: "_plantuml-config.txt"
       coherence-maven-group-id: "${coherence.group.id}"
-      javadoc-root: "/coherence/${revision}/api/"
+      javadoc-root: "https://docs.coherence.community/coherence/docs/25.03/api/"
       version-coherence-maven: "${revision}"
       version-coherence: "${project.version.official}"
       version-commercial-docs: "14.1.2"
@@ -118,7 +118,7 @@ backend:
               glyph:
                 type: "icon"
                 value: "library_books"
-              href: "/coherence/${revision}/docs/api/index.html"
+              href: "https://docs.coherence.community/coherence/docs/25.03/api/index.html"
             - title: "Coherence .NET Client API"
               glyph:
                 type: "icon"
