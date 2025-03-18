@@ -10,7 +10,6 @@ package com.oracle.coherence.tutorials.graphql;
 import io.helidon.microprofile.cdi.Main;
 
 import io.helidon.microprofile.server.ServerCdiExtension;
-import io.helidon.microprofile.testing.junit5.HelidonTest;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -50,7 +49,6 @@ import static io.helidon.graphql.server.GraphQlConstants.GRAPHQL_WEB_CONTEXT;
  *
  * @author Tim Middleton 2020.01.29
  */
-@HelidonTest
 public class GraphQLCompleteIT {
 
     /**
@@ -144,6 +142,7 @@ public class GraphQLCompleteIT {
 
     @BeforeAll
     public static void startup() {
+        System.setProperty("coherence.wka", "127.0.0.1");
         Main.main(new String[0]);
 
         ServerCdiExtension current = CDI.current().getBeanManager().getExtension(ServerCdiExtension.class);
@@ -161,7 +160,7 @@ public class GraphQLCompleteIT {
         Main.shutdown();
     }
 
-//    @Test
+    @Test
     public void testGetSchema() {
         WebTarget webTarget = getGraphQLWebTarget().path(GRAPHQL_WEB_CONTEXT).path(GRAPHQL_SCHEMA_URI);
         Response  response  = webTarget.request(MediaType.TEXT_PLAIN).get();
@@ -169,7 +168,7 @@ public class GraphQLCompleteIT {
         assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
     }
 
-//    @Test
+    @Test
     @SuppressWarnings("unchecked")
     public void testQueries() {
         Map<String, Object> results = getGraphQLResults(CUSTOMERS);
@@ -193,7 +192,7 @@ public class GraphQLCompleteIT {
         assertEquals(1, results.size());
         results = (Map<String, Object>) results.get("createCustomer");
         assertEquals(5, results.size());
-        assertEquals(results.get("name"), "Tim");
+        assertEquals("Tim", results.get("name"));
 
         results = getGraphQLResults(CREATE_ORDER);
         assertEquals(1, results.size());
@@ -201,7 +200,7 @@ public class GraphQLCompleteIT {
         assertEquals(1, results.size());
         results = (Map<String, Object>) results.get("createOrder");
         assertEquals(4, results.size());
-        assertEquals(results.get("orderTotal"), "$0.00");
+        assertEquals("$0.00", results.get("orderTotal"));
         assertEquals(BigDecimal.valueOf(200), results.get("orderId"));
 
         results = getGraphQLResults(ADD_ORDER_LINE);
@@ -284,7 +283,7 @@ public class GraphQLCompleteIT {
      */
     @SuppressWarnings("unchecked")
     public static Map<String, Object> convertJSONtoMap(String json) {
-        if (json == null || json.trim().length() == 0) {
+        if (json == null || json.trim().isEmpty()) {
             return Collections.emptyMap();
         }
         return JSONB.fromJson(json, LinkedHashMap.class);
@@ -313,6 +312,4 @@ public class GraphQLCompleteIT {
     public static String convertMapToJson(Map map) {
         return JSONB.toJson(map);
     }
-
-
 }

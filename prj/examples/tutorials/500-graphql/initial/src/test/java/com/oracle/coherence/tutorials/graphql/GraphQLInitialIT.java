@@ -16,8 +16,6 @@ import com.tangosol.net.Session;
 
 import io.helidon.microprofile.cdi.Main;
 
-import io.helidon.microprofile.testing.junit5.HelidonTest;
-
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -30,11 +28,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  *
  * @author Tim Middleton 2020.01.29
  */
-@HelidonTest
 public class GraphQLInitialIT {
 
     @BeforeAll
     public static void startup() {
+        System.setProperty("coherence.wka", "127.0.0.1");
         Main.main(new String[0]);
     }
 
@@ -43,7 +41,7 @@ public class GraphQLInitialIT {
         Main.shutdown();
     }
 
-//    @Test
+    @Test
     public void testCache() {
         Coherence coherence = Coherence.getInstance();
         if (coherence == null) {
