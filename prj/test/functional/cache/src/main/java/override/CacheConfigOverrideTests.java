@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -74,6 +74,8 @@ public class CacheConfigOverrideTests
         System.setProperty(WellKnownAddress.PROPERTY, LocalHost.loopback().getAddress());
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
         System.setProperty("coherence.distributed.localstorage", "true");
+
+        setupProps();
         }
 
     /**
