@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -46,6 +46,7 @@
     <module>guides/210-ssl</module>
     <module>guides/220-performance</module>
     <module>guides/460-topics</module>
+    <module>guides/300-vector-store</module>
     <module>guides/510-executor</module>
     <module>guides/600-response-caching</module>
     <module>guides/905-key-association</module>
