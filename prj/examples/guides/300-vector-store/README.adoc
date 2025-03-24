@@ -1,0 +1,367 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Vector DB and Knn Search
+:description: Coherence Guides
+:keywords: coherence, java, documentation, guides, vector, AI, Knn, search
+
+== Vector DB and Knn Search
+
+This example shows how to use some of the Coherence Vector DB features to store vectors and
+perform a Knn search on those vectors.
+
+=== What You Will Build
+
+This example will use the Coherence AI features in `coherence.jar` to store vectors produced from a `.pdf`
+file of Coherence documentation. The example will show how to then perform a nearest neighbour search (Knn search)
+of those vectors to find matches for search text.
+
+Coherence includes an implementation of the HNSW index which can be used to index vectors to improve search times.
+
+Coherence is only a vector store so in order to actually create vectors from text snippets this example uses
+the https://github.com/langchain4j/langchain4j[LangChain4J] library to integrate with a model and produce vector
+embeddings from text.
+
+This example shows just some basic usages of vectors in Coherence including using Coherence HNSW indexes.
+It has not been optimised at all for speed of loading vector data or searches.
+
+// Do not change this part.
+=== What You Need
+:java_version: 17
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+// Do not change this part unless you have more complex build instructions.
+==== Building the Example Code
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+=== Coherence Vectors
+
+Coherence can handle few different types of vector, this example will use the Coherence
+`com.oracle.coherence.ai.Vector<float[]>` vector type.
+
+Just like any other data type in Coherence, vectors are stored in normal Coherence caches.
+The vector may be stored as the actual cache value, or it may be in a field of another type that is the cache value.
+Vector data is then loaded into Coherence the same way that any other data is loaded using the `NamedMap` API.
+
+=== Movie Database
+
+This example is going to build a small database of movies.
+The database is small because the data used is stored in the source repository along with the code.
+The same techniques could be used to load any of the freely available much larger JSON datasets with the required field names.
+
+==== The Data Model
+
+This example is not going to use an specialized classes to store the data in the cache.
+The dataset is a json file and the example will use Coherence json support to read and store the data.
+The actual type used for the value will be a Coherence `com.oracle.coherence.io.json.JsonObject` class, which is
+part of the `coherence-json` module.
+
+The schema of the JSON movie data looks like this
+
+
+|===
+|Field Name |Description
+
+|title
+|The title of the movie
+
+|plot
+|A short summary of the plot of the movie
+
+|fullplot
+|A longer summary of the plot of the movie
+
+|cast
+|A list of the names of the actors in the movie
+
+|genres
+|A list of string values representing the different genres the movie belongs to
+
+|runtime
+|How long the move runs for in minutes
+
+|poster
+|A link to the poster for the movie
+
+|languages
+|A list of string values representing the different languages for the movie
+
+|directors
+|A list of the names of the directors of the movie
+
+|writers
+|A list of the names of the writers of the movie
+|===
+
+This example uses the fullplot to create the vector embeddings for each movie.
+Other fields can be used by normal Coherence filters to further narrow down vector searches.
+
+==== The `MovieRepository` Class
+
+The `com.oracle.coherence.guides.vectors.MovieRepository` class contains all the code to load and search movie data.
+The constructor for the class takes a `NamedMap<String, JsonObject>` which is the cache to use to store the data.
+
+==== Loading the Dataset
+
+The `load()` method in the `com.oracle.coherence.guides.vectors.MovieRepository` class will load JSON data
+from an `InputStream` into the cache.
+The JSON data should be a JSON list of movie objects in the format described above.
+The example uses the `src/main/resources/movies.json.gzip` file, which is JSON data g-zipped to make it smaller.
+
+The JSON data is deserialized into a `List` of `JsonObject` instances with the following code.
+
+[source,java]
+----
+JsonSerializer serializer = new JsonSerializer();
+List<JsonObject> list = serializer.deserialize(in.readAllBytes(), List.class);
+----
+
+The code above uses a Coherence `JsonSerializer` to simply deserialize the whole dataset in one go.
+Obviously for a larger dataset this may not be practical and other ways would need to be written to read
+the dataset in chunks.
+
+The list of movies that have now been converted to `JsonObject` are then loaded into the cache.
+
+[source,java]
+----
+for (JsonObject jsonObject : list) {
+    String plot = (String) jsonObject.get("fullplot");      // <1>
+    Vector<float[]> vector = vectorize(plot);               // <2>
+    jsonObject.put("embeddings", vector);                   // <3>
+    movies.put(jsonObject.getString("title"), jsonObject);  // <4>
+}
+----
+
+<1> For each `JsonObject` the "fullplot" field is extracted.
+<2> The text of the plot is converted to a vector by calling the `vectorize()` method (see below)
+<3> The vector is added to the `JsonObject` in the `"embeddings"` field
+<4> The `JsonObject` is added to the cache using the "title" field as the cache key
+
+==== Vectorizing Text
+
+The `MovieRepository` class has a `vectorize` method that takes a `String`
+value and returns a `Vector<float[]>`.
+
+[source,java]
+----
+public Vector<float[]> vectorize(String s) {
+    Response<Embedding> response  = this.model.embed(s);    // <1>
+    Embedding embedding = response.content();               // <2>
+    float[] vector = Vectors.normalize(embedding.vector()); // <3>
+    return new Float32Vector(Vectors.normalize(vector));    // <4>
+}
+----
+
+<1> The model being used by the `MovieRepository` is used to create embeddings for the text. In this example the model used is the LangChain4J `AllMiniLmL6V2EmbeddingModel` embedding model.
+<2> The embedding is obtained from the result of the `model.embed()` call
+<3> The vector returned is normalized, which makes future operations on the vector more efficient
+<4> The `float[]` vector is then returned as a Coherence `Float32Vector` instance.
+
+==== Storing Movies with Vectorized Plots
+
+In the `MovieRepository` example we can load JSON data from the `movies.json.gzip` file like this:
+
+[source,java]
+----
+NamedMap<String, JsonObject> movies  = session.getMap("movies");
+MovieRepository              movieDb = new MovieRepository(movies);
+
+URL url = Resources.findFileOrResource("movies.json.gzip", null);
+try (GZIPInputStream in = new GZIPInputStream(url.openStream())) {
+    movieDb.load(in);
+}
+----
+
+After running the code above the `movies` cache will contain the movie dataset with embedding vectors created from the
+movie's plot. This data can then be searched to find movies with plots matching a search term.
+
+=== Searching Vectors
+
+A common way to search data in Coherence caches is to use Coherence aggregators.
+The aggregator feature has been used to implement nearest neighbour (Knn) vector searching using a
+new built-in aggregator named `com.oracle.coherence.ai.search.SimilaritySearch`.
+When invoking a `SimilaritySearch` aggregator on a cache the results are returned as a list
+of `com.oracle.coherence.ai.QueryResult` instances. The list is ordered with the nearest neighbour returned first in the list.
+
+The `SimilaritySearch` aggregator is used to perform a Knn vector search on a cache in the same way that
+normal Coherence aggregators are used.
+
+The example below shows using the `SimilaritySearch` aggregator on a simple cache that uses a `String` key and a `JsonObject` as the cache value.
+The search will find the nearest 10 neighbours to a float array vector.
+
+[source,java]
+----
+float[] searchFor = new float[]{1.0, 2.0, 3.0};
+Vector<float[]> vector = new Float32Vector(Vectors.normalize(searchFor)); // <1>
+ValueExtractor<JsonObject, Vector<float[]>> extractor = Extractors.extract("embeddings"); // <2>
+SimilaritySearch<String, JsonObject, float[]> search = new SimilaritySearch<>(extractor, vector, 10); // <3>
+List<QueryResult<String, JsonObject>> results = cache.aggregate(search); // <4>
+----
+
+<1> A `Vector` instance is created from the `searchFor` float array, the 10 nearest neighbours to this vector will be searched for.
+<2> The vector is stored in the `embeddings` field of a `JsonObject` in the cache, so a `ValueExtractor` is required that
+can extract the vector.
+<3> A `SimilaritySearch` instance is created that uses the extractor, the search vector and sets the result size to ten.
+<4> The search is performed with a simple call to `cache.aggregate()`.
+
+The `MovieRepository` class has a `search` method that takes a `String` which is the text to use to convert to a vector
+and search the movie plot for the nearest matches.
+The second parameter is a count of the number of nearest neighbours to search for.
+
+[source,java]
+----
+public List<QueryResult<String, JsonObject>> search(String text, int count) {
+    Vector<float[]> vector = vectorize(text);    // <1>
+    ValueExtractor<JsonObject, Vector<float[]>> extractor = Extractors.extract("embeddings"); // <2>
+    SimilaritySearch<String, JsonObject, float[]> search = new SimilaritySearch<>(extractor, vector, count); // <3>
+    return movies.aggregate(filter, search); // <4>
+}
+----
+
+<1> The `text` parameter is converted to a normalized vector using the method described in the "Vectorizing Text" section above.
+<2> The movie plot vector is stored in the `embeddings` field of a `JsonObject` in the cache, so a `ValueExtractor`
+is required that can extract the vector.
+<3> A `SimilaritySearch` instance is created using the extractor, vector and count.
+<4> The aggregator is invoked on the `movies` cache and the results returned.
+
+==== Search for Interesting Movies
+
+Using the dataset in the example, we can search for movies based on a plot we are interested in.
+
+For example, looking for five movies roughly based on _"star travel and space ships"_ could be
+done by calling the `search` method like this:
+
+[source]
+----
+List<QueryResult<String, JsonObject>> results = movieDb.search("star travel and space ships", 5);
+----
+
+If we ran this search against the example dataset the five movies returned are shown below.
+The lower the distance value, the nearer the plot is to the search term.
+All five are good matches for movies about  _"star travel and space ships"_.
+
+|===
+|Title |Distance |Plot
+
+|Star Trek
+|0.551528
+|Captain Picard, with the help of supposedly dead Captain Kirk, must stop a madman willing to murder on a planetary scale in order to enter an energy ribbon.
+
+|Babylon 5
+|0.561844
+|A space station in neutral territory is the focus of a unique five year saga
+
+|Serenity
+|0.632477
+|he crew of the ship Serenity tries to evade an assassin sent to recapture one of their number who is telepathic.
+
+|Dune
+|0.635018
+|A Duke's son leads desert warriors against the galactic emperor and his father's evil nemesis when they assassinate his father and free their desert world from the emperor's rule.
+
+|Starcrash
+|0.648616
+|An outlaw smuggler and her alien companion are recruited by the Emperor of the Galaxy to rescue his son and destroy a secret weapon by the evil Count Zarth Arn.
+|===
+
+==== Searching with Metadata
+
+When a vector is stored in a cache inside another class, such as a `JsonObject` in this example,
+the Knn search can also include a `Filter`. The filter is used to reduce the cache entries used to
+perform the Knn search.
+
+The `MovieRepository` class has a `search` method that takes a `String` which is the text to use to convert to a vector
+and search the movie plot for the nearest matches.
+[source,java]
+----
+public List<QueryResult<String, JsonObject>> search(String text, Filter<JsonObject> filter, int count) {
+    Vector<float[]> vector = vectorize(text);
+    SimilaritySearch<String, JsonObject, float[]> search = new SimilaritySearch<>(extractor, vector, count);
+    return movies.aggregate(filter, search);
+}
+----
+
+==== Search for Interesting Movies with a Specific Cast
+
+In the example above any movie with a plot similar to _"star travel and space ships"_ was searched for.
+If we want to find a similar movie, but one that starred "Harrison Ford" we can use a `Filter` to narrow down the
+search. The filter will be applied to the `cast` field of the `JsonObject`.
+
+[source,java]
+----
+ValueExtractor<JsonObject, List<String>> castExtractor = Extractors.extract("cast");  // <1>
+Filter<JsonObject> filter = Filters.contains(castExtractor, "Harrison Ford"); // <2>
+
+results = movieDb.search("star travel and space ships", filter, 2); // <3>
+----
+
+<1> The `Filter` will need a `ValueExtractor` to extract the `cast` field from the `JsonObject`
+<2> The `cast` field is a JSON array of `String` values. In a `JsonObject` this would be a field `List<String>` so
+the `Filter` needs to be a `ContainsFilter` to match any cast list containing ""Harrison Ford".
+<3> The `search` method is called specifying the plot search term, the cast `Filter` and the number of matches.
+
+This time the search is for the nearest two matches (as the example movie dataset is very small and does not contain many "Harrison Ford" movies).
+
+Executing the code above returns the following two movies, which are pretty good matches:
+
+|===
+|Title |Distance |Plot
+
+|Star Wars: Episode V - The Empire Strikes Back
+|0.662698
+|After the rebels have been brutally overpowered by the Empire on their newly established base, Luke Skywalker takes advanced Jedi training with Master Yoda, while his friends are pursued by Darth Vader as part of his plan to capture Luke.
+
+|Star Wars: Episode IV - A New Hope
+|0.686102
+|Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a wookiee and two droids to save the universe from the Empire's world-destroying battle-station, while also attempting to rescue Princess Leia from the evil Darth Vader.
+|===
+
+=== Adding Indexes
+
+As data is stored in normal caches, indexes can be used to speed up searching.
+An Coherence index can be created like normal on a cache, so an index can be created for the vector field that
+the `SimilaritySearch` will use. Indexes can also be created on any metadata fields that may be used when searches
+include an additional `Filter`.
+
+=== HNSW Indexing
+
+Coherence includes an implementation of the HNSW index that can be used to speed up searches.
+This implementation is in the `coherence-hnsw` module.
+When this module is on the class path, a HNSW index can be created on a cache.
+
+An index is added to a cache in Coherence by calling the `addIndex` method on the cache and passing in
+a `ValueExtractor` specifying the field to index.
+The `coherence-hnsw` module contains a special extractor implementation named `com.oracle.coherence.ai.hnsw.HnswIndex`
+which can be used to create a HNSW index on a vector stored in the cache.
+
+An instance of `HnswIndex` is constructed with a `ValueExtractor` that will extract the vector field
+from the cache value and an `int` parameter that specifies the number of dimensions the vector has.
+
+For example, in the `MovieRepository` the vector to index is stored in the `embeddings` field.
+The number of vector dimensions in the example is 384, which is the number of dimensions used by
+the LangChain4j "AllMiniLmL6V2EmbeddingModel" embedding model.
+
+A HNSW index can be added to the movies cache with the code shown below.
+
+[source,java]
+----
+ValueExtractor<JsonObject, Vector<float[]>> extractor = Extractors.extract("embeddings");
+int dimensions = model.dimension();
+movies.addIndex(new HnswIndex<>(extractor, dimensions));
+----
+
+The `HnswIndex` class will create a special type of cache index implementing `com.oracle.coherence.ai.VectorIndex`
+which the `SimilaritySearch` aggregator knows how to use to speed up searching.
+In the case of a HNSW index, the cache data will not be used to perform the search, the HNSW index in memory is used.
+
+=== Summary
+
+This example has shown how easy it is to add vector search capabilities to cache data in Coherence
+and how to easily add HNSW indexes to those searches.
+
+Using Coherence vector features combined with AI libraries such as LangChain4J can help to build powerful AI
+applications for RAG and vector searches.
+
