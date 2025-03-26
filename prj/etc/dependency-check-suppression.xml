@@ -497,4 +497,29 @@
     <cve>CVE-2019-3826</cve>
   </suppress>
 
+  <!-- Added for langchain4j-document-parser-apache-tika-1.0.0-beta2.jar
+  used in examples -->
+  <suppress>
+    <notes><![CDATA[
+    file name: langchain4j-document-parser-apache-tika-1.0.0-beta2.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/dev\.langchain4j/langchain4j\-document\-parser\-apache\-tika@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:tika</cpe>
+    <cpe>cpe:2.3:a:langchain:langchain</cpe>
+    <cve>CVE-2016-6809</cve>
+    <cve>CVE-2018-1335</cve>
+    <cve>CVE-2018-11761</cve>
+    <cve>CVE-2018-11796</cve>
+    <cve>CVE-2018-11762</cve>
+    <cve>CVE-2018-1338</cve>
+    <cve>CVE-2018-1339</cve>
+    <cve>CVE-2020-1950</cve>
+    <cve>CVE-2020-1951</cve>
+    <cve>CVE-2021-28657</cve>
+    <cve>CVE-2022-25169</cve>
+    <cve>CVE-2022-30126</cve>
+    <cve>CVE-2022-30973</cve>
+    <cve>CVE-2022-33879</cve>
+  </suppress>
+
 </suppressions>
