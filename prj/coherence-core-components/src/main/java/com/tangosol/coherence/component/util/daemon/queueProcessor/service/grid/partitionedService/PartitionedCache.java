@@ -9698,27 +9698,12 @@ public class PartitionedCache
     
     /**
      * Publish changes related to a multi-entry request. Called on the service
-    * or a daemon pool thread.
-    * This method will not mutate the passed in collections.
+     * or a daemon pool thread.
+     * <p>
+     * This method will not mutate the passed in collections.
      */
     protected void publishChanges(com.tangosol.coherence.component.net.RequestContext ctx, com.tangosol.coherence.component.util.PartialJob job, java.util.Collection colStatus, java.util.Collection colStatusOOB, PartitionedCache.BatchContext ctxBatch)
         {
-        // import Component.Net.Message;
-        // import com.oracle.coherence.common.base.Collector;
-        // import com.tangosol.internal.tracing.Span;
-        // import com.tangosol.net.events.partition.TransactionEvent$Type as com.tangosol.net.events.partition.TransactionEvent.Type;
-        // import com.tangosol.util.Base;
-        // import com.tangosol.util.Binary;
-        // import com.tangosol.util.LiteMap;
-        // import java.util.Collection;
-        // import java.util.Collections;
-        // import java.util.HashSet;
-        // import java.util.Iterator;
-        // import java.util.LinkedList;
-        // import java.util.List;
-        // import java.util.Map;
-        // import java.util.Set;
-        
         // Combine the expected status updates with the out-of-band
         // (unexpected) updates, producing a data structure to be used
         // to perform either a single-cache or multi-cache backup.
@@ -9728,8 +9713,7 @@ public class PartitionedCache
         
         acolStatus[0] = colStatus    == null ? Collections.emptySet() : colStatus;
         acolStatus[1] = colStatusOOB == null ? Collections.emptySet() : colStatusOOB;
-        
-        
+
         int cSyncBackupMsgs = 0;
         if (cStatus + cStatusOOB > 0)
             {
@@ -9742,6 +9726,13 @@ public class PartitionedCache
         
             boolean fServiceInterceptors = evtHelper.hasServiceInterceptors(com.tangosol.net.events.partition.TransactionEvent.Type.COMMITTED);
             boolean fStorageInterceptors = false;
+
+            // if there are OOB events and fServiceInterceptors is false, check if there are UCE interceptors;
+            // fServiceInterceptors is applicable to both in-band and out-of-band changes
+            boolean fUCEInterceptors = cStatusOOB == 0 || fServiceInterceptors
+                ? false // skip the hasServiceInterceptors() call if there are no OOB events or fServiceInterceptors is already true
+                : evtHelper.hasServiceInterceptors(com.tangosol.net.events.partition.UnsolicitedCommitEvent.Type.COMMITTED);
+
             try
                 {
                 // collect the changes, grouped by partition
@@ -9758,7 +9749,16 @@ public class PartitionedCache
                        (i == 0 && (iter = acolStatus[++i].iterator()).hasNext()))
                     {
                     Storage.EntryStatus status = (Storage.EntryStatus) iter.next();
-        
+
+                    // when processing OOB changes, update fServiceInterceptors to
+                    // include whether there are UCE interceptors;
+                    // this is done after processing non-OOB events so that non-OOB
+                    // events are not unnecessarily published
+                    if (i == 1 && !fServiceInterceptors && fUCEInterceptors)
+                        {
+                        fServiceInterceptors = true;
+                        }
+
                     status.setPending(true);
         
                     boolean fChange = status.isAnyAction();
@@ -20038,26 +20038,19 @@ public class PartitionedCache
         
         /**
          * Create a BinaryEntry view for a collection of $EntryStatus objects.
-        * This method is only called to create a UEM event information.
+         * <p>
+         * This method is only called to create UEM pre-commit event information.
          */
         protected java.util.Set getBinaryEntries(java.util.Collection colStatus, boolean fPost)
             {
-            // import com.tangosol.util.ConverterCollections$ConverterSet as com.tangosol.util.ConverterCollections.ConverterSet;
-            // import com.tangosol.internal.util.ConversionHelper;
-            // import com.tangosol.util.NullImplementation;
-            // import java.util.HashSet;
-            // import java.util.Iterator;
-            // import java.util.Set;
-            
             if (fPost)
                 {
-                // create the set of BinaryEntry objects immediately as it can be used 
-                // asynchronously 
+                // create the set of BinaryEntry objects immediately as it can be used asynchronously
                 Set setEntries = new HashSet(colStatus.size());
                 for (Iterator iter = colStatus.iterator(); iter.hasNext(); )
                     {
                     Storage.EntryStatus status = (Storage.EntryStatus) iter.next();
-                    if (status.isAnyAction() && !status.isExpiryOnly() && !status.isSuppressEvents())
+                    if (status.isAnyAction() && !status.isExpiryOnly())
                         {
                         setEntries.add(status.getReadOnlyEntry());
                         }
@@ -20861,16 +20854,12 @@ public class PartitionedCache
         
         /**
          * Raise an event (if necessary) signalling that a number of entries are
-        * being changed.
-        * 
-        * Called on a worker or service thread.
+         * being changed.
+         * <p>
+         * Called on a worker or service thread.
          */
         public final void onTransactionPreCommit(java.util.Collection colStatus)
             {
-            // import com.tangosol.net.events.partition.TransactionEvent$Type as com.tangosol.net.events.partition.TransactionEvent.Type;
-            // import com.tangosol.net.events.internal.ServiceDispatcher as com.tangosol.net.events.internal.ServiceDispatcher;
-            // import java.util.Set;
-            
             com.tangosol.net.events.internal.ServiceDispatcher dispatcher = getServiceDispatcher();
             if (dispatcher != null && !colStatus.isEmpty() &&
                 getInterceptorCount().get() > 0 && dispatcher.isSubscribed(com.tangosol.net.events.partition.TransactionEvent.Type.COMMITTING))
@@ -21215,8 +21204,7 @@ public class PartitionedCache
                 Storage.EntryStatus status   = (Storage.EntryStatus) oValue;
                 Storage.BinaryEntry binEntry = status.getBinaryEntry();
                 
-                return binEntry != null && (binEntry.isValueChanged() || binEntry.isValueLoaded())
-                    && !status.isSuppressEvents();
+                return binEntry != null && (binEntry.isValueChanged() || binEntry.isValueLoaded());
                 }
             }
 
@@ -38778,6 +38766,19 @@ public class PartitionedCache
                     // no need to update the key-index for an update
                     fKeyIndex = false;
                     }
+                // check for cachestore write-behind remove
+                else if (nEventType == com.tangosol.util.MapEvent.ENTRY_DELETED &&
+                         (fIndex || fEvents || fIncptrs) &&
+                         (binValueOld != null && binValueOld.equals(ReadWriteBackingMap.BIN_ERASE_PENDING)))
+                    {
+                    // RWBM write-behind remove - suppress these events as they were processed on the original remove
+                    fEvents   = false;
+                    fIncptrs  = false;
+                    fIndex    = false;
+                    fKeyIndex = false;
+                    status.setSuppressEvents(true);
+                    }
+
                 if (fIndex || fEvents || fIncptrs)
                     {
                     fSynthetic = event instanceof CacheEvent &&
