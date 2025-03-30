@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1781,6 +1781,7 @@
                   <xsd:element ref="remote-addresses" />
                   <xsd:element ref="name-service-addresses" />
                 </xsd:choice>
+                <xsd:element minOccurs="0" ref="error-on-elastic-data-full" />
                 <xsd:any namespace="##other" processContents="lax"
                     minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>
@@ -1893,6 +1894,22 @@
             <xsd:documentation>
                 The send-old-value flag indicates if the federation service should include the old
                 values when replicating updated cache entries to the remote participants.
+
+                The legal value is true or false.
+
+                Default value is true.
+
+                Used in: participant
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="error-on-elastic-data-full" type="coherence-boolean-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The error-on-elastic-data-full flag indicates whether federation will put the
+                remote participant into the ERROR state when Elastic Data or the device used
+                by Elastic Data is full.
 
                 The legal value is true or false.
 
