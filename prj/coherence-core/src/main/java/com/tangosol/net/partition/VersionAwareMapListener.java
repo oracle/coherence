@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.partition;
 
@@ -21,7 +21,7 @@ import com.tangosol.util.PrimitiveSparseArray;
  * below.
  * <p>
  * Implementations of this interface suggest that they are aware of event versions
- * ({@link com.tangosol.util.MapEvent#getPartition() partition} &
+ * ({@link com.tangosol.util.MapEvent#getPartition() partition} and
  * {@link com.tangosol.util.MapEvent#getVersion() version}), such that this
  * implementation can be asked for all partition version that were last received
  * or is interested in receiving. Additionally, there is a convenient {@link
@@ -48,7 +48,7 @@ import com.tangosol.util.PrimitiveSparseArray;
  *     <li><b>Client death</b> - client process dies but the same logical process
  *     restarts</li>
  * </ol>
- * For cases 1 & 2, having to "reconnect" to the source is automatically handled
+ * For cases 1 and 2, having to "reconnect" to the source is automatically handled
  * by Coherence, thus this interface allows Coherence to which version for
  * each partition was last read and request the replay with the aforementioned
  * considerations.

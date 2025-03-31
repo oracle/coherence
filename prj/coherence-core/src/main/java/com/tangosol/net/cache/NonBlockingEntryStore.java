@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
@@ -30,12 +30,12 @@ import java.util.Set;
  * an implementation to suggest to Coherence that no further processing will occur for the
  * relevant operation. Below is an example implementation:
  * <pre><code>
- *   public void loadAll(Set<? extends BinaryEntry<K, V>> setBinEntries, StoreObserver<K, V> observer)
+ *   public void loadAll(Set&lt;? extends BinaryEntry&lt;K, V>> setBinEntries, StoreObserver&lt;K, V> observer)
  *       {
  *       SomeReactiveResource resource;
- *       for (BinaryEntry<K, V> binEntry : setBinEntries)
+ *       for (BinaryEntry&lt;K, V> binEntry : setBinEntries)
  *           {
- *           CompletableFuture<V> future = resource.get(binEntry.getKey);
+ *           CompletableFuture&lt;V> future = resource.get(binEntry.getKey);
  *           future.whenComplete((value, exception) ->
  *               {
  *               if (exception == null)
@@ -48,7 +48,7 @@ import java.util.Set;
  *                   observer.onError(binEntry, exception))
  *                   if (isTerminal(exception))
  *                       {
- *                       // no futher processing will be possible as resource
+ *                       // no further processing will be possible as resource
  *                       // is terminally unavailable and assume futures will
  *                       // not be fired
  *                       observer.onComplete();
@@ -60,9 +60,9 @@ import java.util.Set;
  * </code></pre>
  * Some additional notes on calling {@link StoreObserver#onComplete()}:
  * <ul>
- *   <li>The StoreObserver instance will throw a IllegalStateExcpetion on
+ *   <li>The StoreObserver instance will throw a IllegalStateException on
  *       any future calls to {@link StoreObserver#onNext onNext} or {@link StoreObserver#onError onError}.</li>
- *   <li>Any unprocessed entires will have their decorations removed thus store
+ *   <li>Any unprocessed entries will have their decorations removed thus store
  *       will not be called on failover</li>
  * </ul>
  *
