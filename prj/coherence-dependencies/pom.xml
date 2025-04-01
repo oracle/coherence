@@ -233,7 +233,6 @@
     <jersey.version>3.1.9</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
-    <jline.version>3.25.0</jline.version>
     <jna.version>5.14.0</jna.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.13.4</micrometer.version>
@@ -604,14 +603,6 @@
           <artifactId>jakarta.inject-api</artifactId>
           <version>${jakarta.inject.version}</version>
       </dependency>
-
-      <!-- jline -->
-      <dependency>
-        <groupId>org.jline</groupId>
-        <artifactId>jline</artifactId>
-        <version>${jline.version}</version>
-      </dependency>
-
       <!-- JSON-B -->
       <dependency>
         <groupId>jakarta.json.bind</groupId>
