@@ -210,7 +210,6 @@
          This is not always possible if we need to bump versions for CVE's -->
     <jersey.version>2.41</jersey.version>
     <jettison.version>1.5.4</jettison.version>
-    <jline.version>3.25.0</jline.version>
     <log4j2.version>2.18.0</log4j2.version>
     <micrometer.version>1.11.0</micrometer.version>
     <!-- NOTE: mvel dependency removed.
@@ -674,13 +673,6 @@
           <groupId>jakarta.interceptor</groupId>
           <artifactId>jakarta.interceptor-api</artifactId>
           <version>${jakarta.interceptor.version}</version>
-      </dependency>
-
-      <!-- jline -->
-      <dependency>
-        <groupId>org.jline</groupId>
-        <artifactId>jline</artifactId>
-        <version>${jline.version}</version>
       </dependency>
 
       <!-- JProfiler -->
