@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -18,20 +18,19 @@
   </caching-scheme-mapping>
 
   <caching-schemes>
-
-    <flashjournal-scheme>
-      <scheme-name>flash-scheme</scheme-name>
-    </flashjournal-scheme>
+    <local-scheme>
+      <scheme-name>my-local-scheme</scheme-name>
+    </local-scheme>
 
     <distributed-scheme>
       <scheme-name>queue-concurrent</scheme-name>
       <service-name>ConcurrentQueueService</service-name>
       <backup-storage>
         <type>scheme</type>
-        <scheme-name>flash-scheme</scheme-name>
+        <scheme-name>my-local-scheme</scheme-name>
       </backup-storage>
       <backing-map-scheme>
-        <flashjournal-scheme/>
+        <local-scheme/>
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
