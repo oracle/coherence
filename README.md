@@ -38,7 +38,7 @@ The product is used at scale, for both compute and raw storage, in a vast array 
 industries such as critical financial trading systems, high performance telecommunication
 products and eCommerce applications.
 
-Typically these deployments do not tolerate any downtime and Coherence is chosen due to its
+Typically, these deployments do not tolerate any downtime and Coherence is chosen due to its
 novel features in death detection, application data evolvability, and the robust,
 battle-hardened core of the product that enables it to be seamlessly deployed and
 adapted within any ecosystem.
@@ -84,7 +84,7 @@ evict, shun, or in some cases, voluntarily depart the cluster when deemed necess
 As members join and leave the cluster, other Coherence services are notified,
 thus enabling those services to react accordingly.
 
-> Note: This part of the Coherence product has been in production for more that 10 years,
+> Note: This part of the Coherence product has been in production for more than 10 years,
 >       being the subject of some extensive and imaginative testing. While this feature has
 >       been discussed here, it certainly is not something that customers, generally,
 >       interact with directly, but is important to be aware of.
@@ -156,7 +156,7 @@ snapshot of cluster state, and recover snapshot in this or a different cluster
 (leverages persistence feature).
 * **Lossy redundancy** - Ability to reduce the redundancy guarantee by making backups
 and/or persistence asynchronous from a client perspective.
-* **Single Mangement View** - Provides insight into the cluster  with a single
+* **Single Management View** - Provides insight into the cluster  with a single
 JMX server that provides a view of all members of the cluster.
 * **Management over REST** - All JMX data and operations can be performed over REST,
 including cluster wide thread dumps and heapdumps.
@@ -173,7 +173,7 @@ You must have the following installed and available on your PATH.
 
   1. Java - JDK 17 or higher
   2. Maven - 3.8.5 or higher
-  3. Cohrence CLI Installed (see below)
+  3. Coherence CLI Installed (see below)
 
 The following example shows you how to quickly get started with Coherence using the
 [Coherence CLI](https://github.com/oracle/coherence-cli) to create a 3 node Coherence cluster scoped to you local machine.

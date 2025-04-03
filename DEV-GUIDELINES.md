@@ -445,7 +445,7 @@ int anSizes[] = new int[MAX_COUNT];
 
 5. For complex (non-intrinsic) Java types, the intent prefix should reflect a core use of the reference in a shortest but recognizable manner.
 
-6. Where a variable is used only once, abbreviates may not be required. However abbreviations are encouraged when a type is used more than once.
+6. Where a variable is used only once, abbreviates may not be required. However, abbreviations are encouraged when a type is used more than once.
 
 Example variable declarations:
 ```java
@@ -617,7 +617,7 @@ Example: Unacceptable JavaDoc Style
 
 6. Always provide `@param`, `@return`, `@throws`, `@since` declarations in that order.
 
-7. There must be a blank comment line between each JavaDoc tag (`@param`, `@return` et al) declaration except between `@author` and `@since`.
+7. There must be a blank comment line between each JavaDoc tag (`@param`, `@return` et al.) declaration except between `@author` and `@since`.
 
 8. Align `@param` declaration descriptions.
 
@@ -752,7 +752,7 @@ Consumer<String> charPrinter = s ->
     }
 ```
 
-3. The parentheses should be used around lambda arguments only if required by the Java compiler (ie. when there are two or more arguments).
+3. The parentheses should be used around lambda arguments only if required by the Java compiler (i.e. when there are two or more arguments).
 
 4. The nesting of lambdas should be avoided, not only because it creates a [Pyramid of Doom](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)), but more importantly because it makes inner lambdas non-remotable, thus breaking the support for remoting of outer lambdas as well.
 
@@ -813,8 +813,8 @@ The annotation is recommended when:
 
 The annotation is not recommended when:
 
-*   It is obvious that a method is being overridden (for example toString, equals, etc)
-*   Implementing common interfaces (for example `Map.put`, `Map.get`, etc)
+*   It is obvious that a method is being overridden (for example toString, equals, etc.)
+*   Implementing common interfaces (for example `Map.put`, `Map.get`, etc.)
 *   A class that is implementing a single interface
 *   Anonymous classes
 
@@ -879,7 +879,7 @@ TDE is an entire development environment, IDE + ([bootstrapping](https://en.wiki
 
 ## IDE Keyboard shortcuts
 
-| Key stroke | Descritpion |
+| Key stroke | Description |
 |------------|-------------|
 |Ctrl-A, Command-A|Select all.|
 |Ctrl-B, Command-B|Go to a method declaration. works only within a scope of a single component.|
