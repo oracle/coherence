@@ -55,7 +55,7 @@ There are a number of features that caches provide:
 ** *Locks* - for implementing lock-based concurrency control across multiple cluster members
 ** *Queues* - for implementing blocking queue / dequeue behavior across multiple cluster members
 ** *Semaphores* - for implementing synchronization of execution across multiple cluster members
-* *Microservices integration* - broad and close integration with https://docs.oracle.com/en/middleware/standalone/coherence/14.1.2/integrate/index.html[Helidon], https://micronaut-projects.github.io/micronaut-coherence/latest/guide/[Micronaut], and https://spring.coherence.community/4.3.0/#/about/01_overview[Spring] for developing microservices applications using Coherence as a data source or cache
+* *Microservices integration* - broad and close integration with https://docs.oracle.com/en/middleware/fusion-middleware/coherence/14.1.2/integrate/coherence-microprofile-config.htm[Helidon], https://micronaut-projects.github.io/micronaut-coherence/latest/guide/[Micronaut], and https://spring.coherence.community/4.3.0/#/about/01_overview[Spring] for developing microservices applications using Coherence as a data source or cache
 
 There are also a number of non-functional features that Coherence provides:
 
