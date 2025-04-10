@@ -8,27 +8,22 @@ package com.tangosol.internal.tracing.opentelemetry;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.tracing.PropertySource;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.Tracer;
 import com.tangosol.internal.tracing.TracingShim;
 
-import com.tangosol.util.Base;
-
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
-
-import io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider;
-
 import io.opentelemetry.api.trace.TracerProvider;
 
-import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 
-import java.io.Closeable;
-import java.io.IOException;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 
-import java.lang.reflect.Field;
-
+import java.util.Map;
 import java.util.Objects;
+import java.util.ServiceLoader;
+
+import java.util.stream.Collectors;
 
 /**
  * {@link TracingShim} implementation for {@code OpenTelemetry}.
@@ -63,87 +58,57 @@ public class OpenTelemetryShim
         {
         final TracingShim.Dependencies depsFin = m_dependencies = new TracingShim.DefaultDependencies(dependencies);
 
-        m_tracer = new OpenTelemetryTracer();
-
-        if (isEnabled())
+        if (checkTracingEnabled(dependencies.getSamplingRatio()))
             {
-            return null;
+            Map<String, String> props = configureTracing(dependencies);
+
+            // initialize the tracing SDK
+            OpenTelemetrySdk sdk = AutoConfiguredOpenTelemetrySdk.builder()
+                    .addPropertiesSupplier(() -> props)
+                    .build()
+                    .getOpenTelemetrySdk();
+
+            m_tracer = new OpenTelemetryTracer(sdk);
             }
         else
             {
-            float flSamplingRatio = dependencies.getSamplingRatio();
+            // tracer will be present, but will be noop
+            m_tracer = new OpenTelemetryTracer(null);
+            }
 
-            if (checkTracingEnabled(flSamplingRatio))
+        Logger.finest(() -> "Initialized TracingShim: " + this);
+
+        return new TracingShim.Control()
+            {
+            public synchronized void close()
                 {
-                configureTracingSampling(flSamplingRatio);
-
-                OpenTelemetry underlying = getUnderlying();
-                if (underlying != null && !INTERNAL_NOOP.equals(underlying))
+                if (!m_fClosed)
                     {
-                    return null; // Tracer wasn't registered by Coherence,
-                                 // which implies pre-existing Tracer; no control
+                    m_fClosed = true;
+                    m_tracer.dispose();
+                    m_tracer = null;
                     }
-
-                if (INTERNAL_NOOP.equals(underlying))
-                    {
-                    GlobalOpenTelemetry.resetForTest();
-                    GlobalEventLoggerProvider.resetForTest();
-                    }
-
-                GlobalOpenTelemetry.get(); // initialize OT
                 }
 
-            Logger.finest(() -> "Initialized TracingShim: " + this);
-
-            return new TracingShim.Control()
+            public TracingShim.Dependencies getDependencies()
                 {
-                public synchronized void close()
-                    {
-                    if (!m_fClosed)
-                        {
-                        m_fClosed = true;
-                        try
-                            {
-                            OpenTelemetry ot = (OpenTelemetry) GLOBAL_TELEMETRY_REGISTERED_FIELD.get(null);
-                            if (ot != null)
-                                {
-                                Object oDelegate = OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(ot);
-                                if (oDelegate instanceof Closeable)
-                                    {
-                                    ((Closeable) oDelegate).close();
-                                    }
-                                }
-                            }
-                        catch (IllegalAccessException | IOException e)
-                            {
-                            throw Base.ensureRuntimeException(e);
-                            }
+                return depsFin;
+                }
 
-                        GlobalOpenTelemetry.resetForTest();
-                        GlobalEventLoggerProvider.resetForTest();
-                        GlobalOpenTelemetry.set(INTERNAL_NOOP);
-                        }
-                    }
+            // ----- data members -----------------------------------
 
-                public TracingShim.Dependencies getDependencies()
-                    {
-                    return depsFin;
-                    }
-
-                // ----- data members -----------------------------------
-
-                /**
-                 * True once close has been called.
-                 */
-                private boolean m_fClosed;
-                };
-            }
+            /**
+             * True once close has been called.
+             */
+            private boolean m_fClosed;
+            };
         }
 
     @Override
     public boolean isEnabled()
         {
-        return isTelemetryRegistered();
+        Tracer tracer = getTracer();
+        return tracer != null && !tracer.isNoop();
         }
 
     @Override
@@ -179,11 +144,12 @@ public class OpenTelemetryShim
             {
             return true;
             }
-        if (!(o instanceof OpenTelemetryShim))
+
+        if (!(o instanceof OpenTelemetryShim that))
             {
             return false;
             }
-        OpenTelemetryShim that = (OpenTelemetryShim) o;
+
         return Objects.equals(getDependencies(), that.getDependencies())
                && Objects.equals(getTracer(), that.getTracer());
         }
@@ -206,50 +172,28 @@ public class OpenTelemetryShim
     // ----- helper methods -------------------------------------------------
 
     /**
-     * Returns {@code true} if a non-noop {@link OpenTelemetry} instance has been
-     * registered with the {@link GlobalOpenTelemetry}.
+     * Return the {@link PropertySource} used to initialize
+     * {@code OpenTelemetry}.
      *
-     * @return {@code true} if a non-noop {@link OpenTelemetry} instance has been
-     *         registered with the {@link GlobalOpenTelemetry}
+     * @return the {@link PropertySource} used to initialize
+     *         {@code OpenTelemetry}
      *
-     * @throws RuntimeException if any of the reflection calls fail
+     * @since 25.03.1
      */
-    private static boolean isTelemetryRegistered()
-        {
-        OpenTelemetry otelActual = getUnderlying();
-
-        if (otelActual == null || INTERNAL_NOOP.equals(otelActual))
-            {
-            return false;
-            }
-
-        return !OpenTelemetry.noop().equals(otelActual);
-        }
-
-    /**
-     * Return the actual {@link OpenTelemetry} instance registered
-     * with {@link GlobalOpenTelemetry}.
-     *
-     * @return the registered {@link OpenTelemetry} instance or {@code null}
-     *
-     * @throws RuntimeException if any of the reflection calls fail
-     */
-    private static OpenTelemetry getUnderlying()
+    private static PropertySource getPropertySource()
         {
         try
             {
-            OpenTelemetry otel = (OpenTelemetry) GLOBAL_TELEMETRY_REGISTERED_FIELD.get(null);
+            PropertySource propertySource = ServiceLoader.load(PropertySource.class).iterator().next();
 
-            if (otel == null)
-                {
-                return null;
-                }
+            Logger.finest(() -> "Loaded OpenTelemetry PropertySource: " + propertySource.getClass().getName());
 
-            return (OpenTelemetry) OBFUSCATED_TELEMETRY_DELEGATE_FIELD.get(otel);
+            return propertySource;
             }
-        catch (IllegalAccessException iae)
+        catch (Exception e)
             {
-            throw Base.ensureRuntimeException(iae);
+            Logger.finest("No PropertySource found, falling back to the default PropertySource");
+            return new DefaultPropertySource();
             }
         }
 
@@ -267,54 +211,91 @@ public class OpenTelemetryShim
         }
 
     /**
-     * Determine if the specified system property or environment variable is present.
+     * Obtain the configuration properties that will be passed to the
+     * {@code OpenTelemetry} runtime.
      *
-     * @param sPropOrEnvName  the system property or environment variable name
+     * @param dependencies tracing dependencies
      *
-     * @return {@code true} if the name is already present as a system property or
-     * environment variable
+     * @since 25.03.1
      */
-    @SuppressWarnings("SameParameterValue")
-    private static boolean isSet(String sPropOrEnvName)
+    private static Map<String, String> configureTracing(Dependencies dependencies)
         {
-        return System.getProperty(sPropOrEnvName) != null
-               || System.getenv(sPropOrEnvName) != null;
-        }
+        Map<String, String> props = getPropertySource().getProperties();
 
-    /**
-     * Configure the sampling for known {@link Tracer tracers}.
-     *
-     * @param flSamplingRatio  the sampling ratio
-     */
-    private static void configureTracingSampling(float flSamplingRatio)
-        {
-        // if the user has already provided these, honor their configuration, otherwise expose our configuration
-        if (!isSet(OTEL_SAMPLER_TYPE_PROPERTY))
+        // by default, unless already set, we set these properties to none;
+        // the user will be required to configure explicitly
+
+        if (!props.containsKey(OTEL_LOGS_EXPORTER_PROPERTY))
             {
-            System.setProperty(OTEL_SAMPLER_TYPE_PROPERTY, OTEL_SAMPLER_VALUE_PROPERTY);
-            System.setProperty(OTEL_TRACES_SAMPLER_ARG_PROPERTY,
-                               Float.compare(0.0f, flSamplingRatio) == 0
-                               ? "1.0"
-                               : String.valueOf(flSamplingRatio));
-            }
-        }
-
-    // ----- inner class: InternalNoopTelemetry -----------------------------
-
-    /**
-     * A no-op {@link OpenTelemetry} implementation.
-     */
-    public static class InternalNoopTelemetry
-            implements OpenTelemetry
-        {
-        public TracerProvider getTracerProvider()
-            {
-            return TracerProvider.noop();
+            props.put(OTEL_LOGS_EXPORTER_PROPERTY, "none");
             }
 
-        public ContextPropagators getPropagators()
+        if (!props.containsKey(OTEL_METRICS_EXPORTER_PROPERTY))
             {
-            return ContextPropagators.noop();
+            props.put(OTEL_METRICS_EXPORTER_PROPERTY, "none");
+            }
+
+        if (!props.containsKey(OTEL_TRACES_EXPORTER_PROPERTY))
+            {
+            Logger.warn(("OpenTelemetry enabled, but %s property was not defined."
+                         + "  No traces will be captured.").formatted(OTEL_TRACES_EXPORTER_PROPERTY));
+
+            props.put(OTEL_TRACES_EXPORTER_PROPERTY, "none");
+            }
+
+        if (!props.containsKey(OTEL_SERVICE_NAME_PROPERTY))
+            {
+            String sIdentity = dependencies.getIdentity();
+
+            if (sIdentity != null)
+                {
+                props.put(OTEL_SERVICE_NAME_PROPERTY, sIdentity);
+                }
+            else
+                {
+                Logger.warn(("OpenTelemetry enabled, but no %s property was defined and no identity was configured.  "
+                             + "Defaulting the service name to 'Coherence'").formatted(OTEL_SERVICE_NAME_PROPERTY));
+
+                props.put(OTEL_SERVICE_NAME_PROPERTY, "Coherence");
+                }
+            }
+
+        // if the user has already provided these, honor their configuration,
+        // otherwise, expose our configuration
+        if (!props.containsKey(OTEL_SAMPLER_TYPE_PROPERTY))
+            {
+            float flSamplingRatio = dependencies.getSamplingRatio();
+
+            props.put(OTEL_SAMPLER_TYPE_PROPERTY, OTEL_SAMPLER_PROPERTY_VALUE);
+            props.put(OTEL_TRACES_SAMPLER_ARG_PROPERTY,
+                      Float.compare(0.0f, flSamplingRatio) == 0
+                          ? "1.0"
+                          : String.valueOf(flSamplingRatio));
+            }
+
+        return props;
+        }
+
+    // ----- inner class: DefaultPropertySource -----------------------------
+
+    /**
+     * The default {@link PropertySource} if none are found by the
+     * {@link ServiceLoader}.  This implementation uses system properties
+     * for underlying source.
+     */
+    protected static class DefaultPropertySource
+            implements PropertySource
+        {
+        // ----- PropertySource interface -----------------------------------
+
+        @Override
+        public Map<String, String> getProperties()
+            {
+            return System.getProperties().entrySet().stream()
+                    .filter(e -> e.getKey().toString().startsWith("otel."))
+                    .collect(Collectors.toMap(
+                            e -> e.getKey().toString(),
+                            e -> e.getValue().toString()));
             }
         }
 
@@ -325,23 +306,6 @@ public class OpenTelemetryShim
      */
     protected static final OpenTelemetrySpan NOOP_SPAN =
             new OpenTelemetrySpan(io.opentelemetry.api.trace.Span.getInvalid());
-
-    /**
-     * A static, no-op, {@link OpenTelemetryTracer.SpanBuilder}.
-     */
-    protected static final OpenTelemetryTracer.SpanBuilder NOOP_BUILDER;
-
-    /**
-     * A private static field within {@link GlobalOpenTelemetry} which must be manipulated
-     * via reflection to properly support enabling/disabling tracing dynamically.
-     */
-    protected static final Field GLOBAL_TELEMETRY_REGISTERED_FIELD;
-
-    /**
-     * A field within a static inner class within {@link GlobalOpenTelemetry}
-     * which contains the actual registered {@link OpenTelemetry} instance.
-     */
-    protected static final Field OBFUSCATED_TELEMETRY_DELEGATE_FIELD;
 
     /**
      * Valid lower-range value for probabilistic sampling.
@@ -363,7 +327,7 @@ public class OpenTelemetryShim
      * The default tracing sampler that Coherence will use when it's configuring
      * the OpenTelemetry runtime.
      */
-    protected static final String OTEL_SAMPLER_VALUE_PROPERTY = "parentbased_traceidratio";
+    protected static final String OTEL_SAMPLER_PROPERTY_VALUE = "parentbased_traceidratio";
 
     /**
      * System property recognized by {@code OpenTelemetry} to pass arguments to
@@ -372,11 +336,53 @@ public class OpenTelemetryShim
     protected static final String OTEL_TRACES_SAMPLER_ARG_PROPERTY = "otel.traces.sampler.arg";
 
     /**
-     * Internal no-op {@link OpenTelemetry} instance.  This will be used when
-     * Coherence manages the lifecycle of {@link OpenTelemetry} to be able to
-     * discern from a user-installed no-op {@link OpenTelemetry} instance.
+     * System property that configures the traces exporter for {@code OpenTelemetry}.
+     *
+     * @since 25.03.1
      */
-    protected static final OpenTelemetry INTERNAL_NOOP = new InternalNoopTelemetry();
+    protected static final String OTEL_TRACES_EXPORTER_PROPERTY = "otel.traces.exporter";
+
+    /**
+     * System property that configures the logs exporter for {@code OpenTelemetry}.
+     *
+     * @since 25.03.1
+     */
+    protected static final String OTEL_LOGS_EXPORTER_PROPERTY = "otel.logs.exporter";
+
+    /**
+     * System property that configures the traces exporter for {@code OpenTelemetry}.
+     *
+     * @since 25.03.1
+     */
+    protected static final String OTEL_METRICS_EXPORTER_PROPERTY = "otel.metrics.exporter";
+
+    /**
+     * System property that configures the {@code OpenTelemetry} service name.
+     *
+     * @since 25.03.1
+     */
+    protected static final String OTEL_SERVICE_NAME_PROPERTY = "otel.service.name";
+
+    /**
+     * A no-op Tracer which will be used when tracing is on the classpath,
+     * but Coherence tracing itself is disabled.
+     *
+     * @since 25.03.1
+     */
+    protected static final io.opentelemetry.api.trace.Tracer NOOP_TRACER =
+            TracerProvider.noop().get(OpenTelemetryTracer.SCOPE_NAME);
+
+    /**
+     * A static, no-op, {@link OpenTelemetryTracer.SpanBuilder}.
+     */
+    protected static final OpenTelemetryTracer.SpanBuilder NOOP_BUILDER =
+            new OpenTelemetryTracer.SpanBuilder(NOOP_TRACER.spanBuilder("noop"))
+                {
+                public Span startSpan()
+            {
+            return NOOP_SPAN;
+            }
+                };
 
     // ----- data members ---------------------------------------------------
 
@@ -388,50 +394,5 @@ public class OpenTelemetryShim
     /**
      * The {@link Tracer} that Coherence will be using.
      */
-    protected com.tangosol.internal.tracing.Tracer m_tracer;
-
-    // ----- static initializer ---------------------------------------------
-
-    static
-        {
-        // initialize the static, no-op SpanBuilder
-        TracerProvider                    p = TracerProvider.noop();
-        io.opentelemetry.api.trace.Tracer t = p.get("oracle.coherence");
-
-        NOOP_BUILDER = new OpenTelemetryTracer.SpanBuilder(t.spanBuilder("noop"))
-            {
-            public Span startSpan()
-                {
-                return NOOP_SPAN;
-                }
-            };
-
-        // Get our hook into the internals of GlobalOpenTelemetry to
-        // allow dynamic enable/disable of tracing.
-        Field fieldRegistered = null;
-        try
-            {
-            fieldRegistered = GlobalOpenTelemetry.class.getDeclaredField("globalOpenTelemetry");
-            fieldRegistered.setAccessible(true);
-            }
-        catch (NoSuchFieldException e)
-            {
-            Logger.err("An incompatible version of the OpenTelemetry API has been detected "
-                       + "on the classpath. Tracing will be disabled.");
-            }
-        GLOBAL_TELEMETRY_REGISTERED_FIELD = fieldRegistered;
-
-        Field fieldDelegate;
-        try
-            {
-            fieldDelegate = Class.forName(GlobalOpenTelemetry.class.getName() + "$ObfuscatedOpenTelemetry")
-                    .getDeclaredField("delegate");
-            fieldDelegate.setAccessible(true);
-            OBFUSCATED_TELEMETRY_DELEGATE_FIELD = fieldDelegate;
-            }
-        catch (ClassNotFoundException | NoSuchFieldException e)
-            {
-            throw new RuntimeException(e);
-            }
-        }
+    protected OpenTelemetryTracer m_tracer;
     }

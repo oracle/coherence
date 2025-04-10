@@ -9587,10 +9587,16 @@ public class PartitionedCache
                     // Use the backup request as the commit-token collector for the
                     // persistence operations (if there is a backup).  Otherwise,
                     // instantiate a PartitionedCache.BatchContext. (see comment after the try-finally)
-        
+
                     boolean   fSync     = ctrlPart.initiatePersist();
-                    Span      span      = newTracingSpan("persistence.write", null).startSpan();
+                    Span      span      = null;
                     Collector collector = null;
+
+                    if (TracingHelper.isEnabled())
+                        {
+                        span = newTracingSpan("persistence.write", null).startSpan();
+                        }
+
                     if (msgBackup == null ? !isAsyncBackup() : msgBackup.isSyncMsg())
                         {
                         if (msgBackup == null)
@@ -9869,8 +9875,13 @@ public class PartitionedCache
                 if (fPersist && mapStatuses != null)
                     {
                     Collector collector = null;
-                    Span      span      = newTracingSpan("persistence.write", null).startSpan();
-        
+                    Span      span      = null;
+
+                    if (TracingHelper.isEnabled())
+                        {
+                        span = newTracingSpan("persistence.write", null).startSpan();
+                        }
+
                     if (aMsg == null || aMsg.length == 0 ? !isAsyncBackup() : aMsg[0].isSyncMsg())
                         {
                         // increment the operation counter by the # of partitions; this must

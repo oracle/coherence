@@ -6,7 +6,6 @@
  */
 package opentelemetry.core;
 
-import com.google.protobuf.ByteString;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.coherence.common.base.Blocking;
@@ -87,14 +86,10 @@ public class CacheOperationsTracingIT
     protected Properties getDefaultProperties()
         {
         Properties props = super.getDefaultProperties();
-        props.setProperty("otel.service.name",           getClass().getName());
-        props.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
-        props.setProperty("otel.metrics.exporter",       "none");
-        props.setProperty("otel.logs.exporter",          "none");
-
-        props.setProperty("otel.java.global-autoconfigure.enabled", "true");
-
-        props.setProperty("coherence.distributed.localstorage",  "false");
+        props.setProperty("otel.service.name",                  getClass().getName());
+        props.setProperty("otel.traces.exporter",               "otlp");
+        props.setProperty("otel.exporter.otlp.protocol",        "http/protobuf");
+        props.setProperty("coherence.distributed.localstorage", "false");
 
         return props;
         }
