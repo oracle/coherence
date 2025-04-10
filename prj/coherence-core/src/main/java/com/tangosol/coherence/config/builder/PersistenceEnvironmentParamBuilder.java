@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -67,8 +67,6 @@ public class PersistenceEnvironmentParamBuilder
         m_sSnapshot = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_SNAPSHOT_DIR;
         m_sTrash    = sHome + File.separatorChar + CachePersistenceHelper.DEFAULT_TRASH_DIR;
         m_sMode     = "active";
-
-        // events directory must be explicitly specified for now
         }
 
     // ----- ParameterizedBuilder methods -----------------------------------
@@ -205,12 +203,6 @@ public class PersistenceEnvironmentParamBuilder
             }
         }
 
-    /**
-     * Set the persistence active directory.
-     *
-     * @param sPathname  either relative or absolute pathname
-     */
-    @Injectable("events-directory")
     public void setEventsDirectory(String sPathname)
         {
         if (sPathname != null && sPathname.length() > 0)
@@ -268,7 +260,6 @@ public class PersistenceEnvironmentParamBuilder
           .append("\n        Mode: ").append(m_sMode)
           .append("\n        Active Location: ").append(m_sActive)
           .append("\n        Backup Location: ").append(m_sBackup)
-          .append("\n        Events Location: ").append(m_sEvents)
           .append("\n        Snapshot Location:").append(m_sSnapshot)
           .append("\n        Trash Location:").append(m_sTrash);
 
@@ -316,7 +307,6 @@ public class PersistenceEnvironmentParamBuilder
         resolver.add(new Parameter("persistence-mode", String.class, info.getPersistenceMode()));
         resolver.add(new Parameter("active-directory", File.class, info.getPersistenceActiveDirectory()));
         resolver.add(new Parameter("backup-directory", File.class, info.getPersistenceBackupDirectory()));
-        resolver.add(new Parameter("events-directory", File.class, info.getPersistenceEventsDirectory()));
         resolver.add(new Parameter("snapshot-directory", File.class, info.getPersistenceSnapshotDirectory()));
         resolver.add(new Parameter("trash-directory", File.class, info.getPersistenceTrashDirectory()));
 

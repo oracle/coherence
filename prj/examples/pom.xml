@@ -39,7 +39,6 @@
     <module>guides/130-near-caching</module>
     <module>guides/140-client-events</module>
     <module>guides/142-server-events</module>
-    <module>guides/145-durable-events</module>
     <module>guides/190-cache-stores</module>
     <module>guides/195-bulk-loading-caches</module>
     <module>guides/200-federation</module>

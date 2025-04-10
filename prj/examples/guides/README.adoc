@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -115,13 +115,6 @@ This guide walks you through how to use client events within Coherence.
 [link=examples/guides/142-server-events/README.adoc]
 --
 This guide walks you through how to use server-side events within Coherence.
---
-
-[CARD]
-.Durable Events
-[link=examples/guides/145-durable-events/README.adoc]
---
-This guide walks you through how to use durable events within Coherence.
 --
 
 [CARD]
