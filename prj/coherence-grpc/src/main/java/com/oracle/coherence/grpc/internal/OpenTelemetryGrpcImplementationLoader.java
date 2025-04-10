@@ -1,15 +1,20 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.grpc.internal;
 
+import com.tangosol.internal.tracing.Tracer;
+import com.tangosol.internal.tracing.TracingHelper;
+
+import com.tangosol.internal.tracing.opentelemetry.OpenTelemetryTracer;
+
 import io.grpc.ClientInterceptor;
 import io.grpc.ServerInterceptor;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 
 import io.opentelemetry.instrumentation.grpc.v1_6.GrpcTelemetry;
 
@@ -50,14 +55,36 @@ public class OpenTelemetryGrpcImplementationLoader
         @Override
         public ClientInterceptor createClientInterceptor()
             {
-            return GrpcTelemetry.create(GlobalOpenTelemetry.get()).newClientInterceptor();
+            OpenTelemetry openTelemetry = getOpenTelemetry();
+
+            return openTelemetry == null ? null : GrpcTelemetry.create(openTelemetry).newClientInterceptor();
             }
 
         @Override
         public ServerInterceptor createServerInterceptor()
             {
-            return GrpcTelemetry.create(GlobalOpenTelemetry.get()).newServerInterceptor();
+            OpenTelemetry openTelemetry = getOpenTelemetry();
+
+            return openTelemetry == null ? null : GrpcTelemetry.create(openTelemetry).newServerInterceptor();
             }
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return the {@link OpenTelemetry} instance managed by the current
+     * {@code OpenTelemetryTracer}
+     *
+     * @return the {@link OpenTelemetry} instance managed by
+     *         {@code OpenTelemetryTracer}
+     */
+    protected static OpenTelemetry getOpenTelemetry()
+        {
+        Tracer tracer = TracingHelper.getTracer();
+
+        return (TracingHelper.isNoop(tracer) || !(tracer instanceof OpenTelemetryTracer))
+                ? null
+                : ((OpenTelemetryTracer) tracer).getOpenTelemetry();
         }
 
     // ----- constants ------------------------------------------------------

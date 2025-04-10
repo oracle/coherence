@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,12 +27,7 @@ public class JmxConfigurationIT
     protected Properties getDefaultProperties()
         {
         Properties props = super.getDefaultProperties();
-        props.setProperty("otel.service.name",     getClass().getName());
-        props.setProperty("otel.traces.exporter",  "none");
-        props.setProperty("otel.metrics.exporter", "none");
-        props.setProperty("otel.logs.exporter",    "none");
-
-        props.setProperty("otel.java.global-autoconfigure.enabled", "true");
+        props.setProperty("otel.service.name", getClass().getName());
 
         return props;
         }

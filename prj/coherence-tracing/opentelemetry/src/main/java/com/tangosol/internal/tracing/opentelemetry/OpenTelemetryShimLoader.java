@@ -9,6 +9,7 @@ package com.tangosol.internal.tracing.opentelemetry;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.tracing.TracingShim;
 import com.tangosol.internal.tracing.TracingShimLoader;
 
@@ -107,20 +108,19 @@ public class OpenTelemetryShimLoader
             {
             return false;
             }
+
         return true;
         }
 
     // ----- constants ------------------------------------------------------
 
     /**
-     * {@link Map} of class names and their associated maven dependencies that should be on the classpath
-     * in order to enable tracing.
+     * {@link Map} of class names and their associated maven dependencies
+     * that should be on the classpath in order to enable tracing.
      */
     protected static final Map<String, String> EXPECTED_CLASSES = Map.of(
-            "io.opentelemetry.api.OpenTelemetry",                                 "opentelemetry-api",
-            "io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider",    "opentelemetry-api-incubator",
-            "io.opentelemetry.context.Context",                                   "opentelemetry-context",
-            "io.opentelemetry.sdk.OpenTelemetrySdk",                              "opentelemetry-sdk");
+            "io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk",
+                "opentelemetry-sdk-extension-autoconfigure");
 
     /**
      * A flag that allows the explicit disabling of OpenTelemetry.
@@ -197,7 +197,7 @@ public class OpenTelemetryShimLoader
         static
             {
             TracerProvider p = TracerProvider.noop();
-            Tracer         t = p.get("oracle.coherence");
+            Tracer         t = p.get(OpenTelemetryTracer.SCOPE_NAME);
 
             f_clzNoopTracer         = t.getClass();
             f_clzNoopScope          = Scope.noop().getClass();
