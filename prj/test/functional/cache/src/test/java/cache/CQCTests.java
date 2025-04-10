@@ -155,7 +155,7 @@ public class CQCTests
         {
         // put data items into inner cache to generate events
         NamedCache<String, Integer>                    testCache = getAndPopulateNamedCache("dist-test");
-        TestCQCListener                                listener  = new TestCQCListener(SOME_DATA);
+        TestCQCListener                                listener  = new TestCQCListener(SOME_DATA + 20);
         ContinuousQueryCache<String, Integer, Integer> theCQC    = setCQC(new ContinuousQueryCache<>(
                 testCache,
                 AlwaysFilter.INSTANCE,
@@ -184,6 +184,17 @@ public class CQCTests
         // check that the listener received the correct number of events after restart
         Eventually.assertThat(invoking(theCQC).getState(), is(ContinuousQueryCache.STATE_SYNCHRONIZED));
         Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA));
+
+        // test remove from backing store generates CQC delete mapevent
+        for (int i = 0; i < 20; i++)
+            {
+            testCache.remove("TestKey" + String.format("%02d", i));
+            }
+        Eventually.assertThat(invoking(listener).getActualDeletes(), is(20));
+        Eventually.assertThat(invoking(listener).getActualTotal(), is(SOME_DATA + 20));
+        Eventually.assertThat(invoking(listener).isFinished(), is(true));
+        Eventually.assertThat(invoking(theCQC).size(), is(SOME_DATA - 20));
+        Eventually.assertThat(invoking(testCache).size(), is(SOME_DATA - 20));
         }
 
     @Test
