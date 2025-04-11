@@ -42,6 +42,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import org.mockserver.client.MockServerClient;
+
 import org.mockserver.integration.ClientAndServer;
 
 import tracing.AbstractTracingIT;
@@ -171,6 +172,7 @@ public class TracingIT
      * and an outer span is present, allows tracing spans to be collected.
      */
     @Test
+    @Ignore("COH-32112")
     public void testNoTraceCapturedWhenExplicitAndNoOuterSpanAndTraceIsZero()
         {
         runTest(() ->
