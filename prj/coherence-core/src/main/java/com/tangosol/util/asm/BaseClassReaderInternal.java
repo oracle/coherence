@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -136,7 +136,7 @@ public abstract class BaseClassReaderInternal<RT, CVT>
      * Implementation Note:  This doesn't reference the constant to avoid
      *                       strange issues with moditect
      */
-    private static final int MAX_MAJOR_VERSION = 66;  // Opcodes.V22
+    private static final int MAX_MAJOR_VERSION = 69;  // Opcodes.V25
 
     // ----- data members ---------------------------------------------------
 
