@@ -37,7 +37,19 @@ public abstract class BaseClassReaderInternal<RT, CVT>
      */
     public BaseClassReaderInternal(byte[] abBytes)
         {
+        this(abBytes, 0, abBytes.length);
+        }
+
+    /**
+     * @see org.objectweb.asm.ClassReader#ClassReader(byte[], int, int)
+     *
+     * @since 25.03.1
+     */
+    public BaseClassReaderInternal(byte[] abBytes, int cOffset, int cLength)
+        {
         m_abBytes = abBytes;
+        m_cOffset = cOffset;
+        m_cLength = cLength;
         }
 
     // ----- abstract methods -----------------------------------------------
@@ -46,10 +58,12 @@ public abstract class BaseClassReaderInternal<RT, CVT>
      * Create the module-specific ClassReader.
      *
      * @param abBytes  the class bytes
+     * @param cOffset  the starting offset
+     * @param cLength  the class length
      *
      * @return the module-specific ClassReader
      */
-    protected abstract RT createReader(byte[] abBytes);
+    protected abstract RT createReader(byte[] abBytes, int cOffset, int cLength);
 
     /**
      * Perform the accept operation on the module-specific ClassReader
@@ -88,7 +102,7 @@ public abstract class BaseClassReaderInternal<RT, CVT>
             Logger.warn(() -> String.format("Unsupported class file major version " + nOriginalVersion));
             }
 
-        RT classReader = createReader(abBytes);
+        RT classReader = createReader(abBytes, m_cOffset, m_cLength);
 
         if (fRevertVersion)
             {
@@ -144,4 +158,18 @@ public abstract class BaseClassReaderInternal<RT, CVT>
      * The class bytes.
      */
     protected byte[] m_abBytes;
+
+    /**
+     * The offset within {@link #m_abBytes} the class starts.
+     *
+     * @since 25.03.1
+     */
+    protected int m_cOffset;
+
+    /**
+     * The total number of bytes of the class.
+     *
+     * @since 25.03.1
+     */
+    protected int m_cLength;
     }
