@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,12 +48,20 @@ public class ClassReaderInternal
         super(abBytes);
         }
 
+    /**
+     * @see BaseClassReaderInternal#BaseClassReaderInternal(byte[], int, int)
+     */
+    public ClassReaderInternal(byte[] abBytes, int cOffset, int cLength)
+        {
+        super(abBytes, cOffset, cLength);
+        }
+
     // ----- BaseClassReaderInternal methods --------------------------------
 
     @Override
-    protected ClassReader createReader(byte[] abBytes)
+    protected ClassReader createReader(byte[] abBytes, int cOffset, int cLength)
         {
-        return new ClassReader(abBytes);
+        return new ClassReader(abBytes, cOffset, cLength);
         }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -34,7 +34,7 @@ import org.objectweb.asm.*;
  * This class uses ASM library to resolve method and constructor parameter names from debug symbols
  * generated during compilation. Most libraries are compiled with debug symbols so in most cases
  * this class will be able to resolve them. It's pretty cool as you do not need to annotate the
- * parameters anymore! However be careful if you decide to use this feature, you must ensure that
+ * parameters anymore! However, be careful if you decide to use this feature, you must ensure that
  * your software is compiled with debug symbols for production! That's why this feature is disabled
  * by default. To enable it :
  * <p/>
@@ -367,12 +367,20 @@ public final class ASMCreatorParameterNameResolver implements PropertyNameResolv
       super(abBytes);
       }
 
+    /**
+     * @see BaseClassReaderInternal#BaseClassReaderInternal(byte[], int, int)
+     */
+    public ClassReaderInternal(byte[] abBytes, int cOffset, int cLength)
+      {
+      super(abBytes, cOffset, cLength);
+      }
+
     // ----- BaseClassReaderInternal methods --------------------------------
 
     @Override
-    protected ClassReader createReader(byte[] abBytes)
+    protected ClassReader createReader(byte[] abBytes, int cOffset, int cLength)
       {
-      return new ClassReader(abBytes);
+      return new ClassReader(abBytes, cOffset, cLength);
       }
 
     @Override
