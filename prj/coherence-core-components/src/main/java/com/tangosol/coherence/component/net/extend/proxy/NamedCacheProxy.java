@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -551,11 +551,17 @@ public class NamedCacheProxy
                 {
                 if (getCacheService().isRunning())
                     {
+                    int id = __m_Channel == null ? -1 : __m_Channel.getId();
+
+                    _trace("NamedCacheProxy:NameCacheDeactivationListener:entryDeleted:  closeChannel " + id + " for " + getCacheName(), 6);
                     closeChannel();
                     }
                 }
             else
                 {
+                int id = __m_Channel == null ? -1 : __m_Channel.getId();
+
+                _trace("NamedCacheProxy:NameCacheDeactivationListener:entryDeleted[2]:  closeChannel " + id + " for " + getCacheName(), 6);
                 closeChannel();
                 }
             }
@@ -600,6 +606,9 @@ public class NamedCacheProxy
             }
         else
             {
+            int id = __m_Channel == null ? -1 : __m_Channel.getId();
+
+            _trace("NameCacheProxy:NameCacheDeactivationListener:entryUpdated:  closeChannel " + id + " for " + getCacheName(), 6);
             closeChannel();
             }
         }
@@ -746,6 +755,7 @@ public class NamedCacheProxy
                     }
                 else
                     {
+                    _trace("NamedCacheProxy.memberLeft: " + evt + " closing channel=" + channel.getId(), 6);
                     closeChannel();
                     }
                 }
