@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -469,7 +469,9 @@ public class Channel
         
         synchronized (laStatus)
             {
-            Throwable eStatus = e == null ? new ConnectionException("channel closed", getConnection()) : e;
+            String    sMsg    = " channel=" + getId() + " nextRequestId=" + __m_RequestId.get();
+            Throwable eStatus = e == null ? new ConnectionException("channel closed " + sMsg, getConnection())
+                                          : e;
             for (Iterator iter = laStatus.iterator(); iter.hasNext(); )
                 {
                 com.tangosol.net.messaging.Request.Status status = (com.tangosol.net.messaging.Request.Status) iter.next();
