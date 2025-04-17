@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2013, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2013, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.generator;
+
+import com.tangosol.internal.asm.ClassReaderInternal;
 
 import com.tangosol.io.pof.RawDate;
 import com.tangosol.io.pof.RawDateTime;
@@ -170,7 +172,7 @@ public class PortableTypeGenerator
     public PortableTypeGenerator(Schema schema, InputStream in, boolean fDebug, Logger logger)
             throws IOException
         {
-        this(schema, new ClassReader(in), fDebug, logger);
+        this(schema, new ClassReaderInternal(in), fDebug, logger);
         }
 
     /**
@@ -185,7 +187,7 @@ public class PortableTypeGenerator
      */
     public PortableTypeGenerator(Schema schema, byte[] bytes, int nOffset, int nLen, boolean fDebug, Logger logger)
         {
-        this(schema, new ClassReader(bytes, nOffset, nLen), fDebug, logger);
+        this(schema, new ClassReaderInternal(bytes, nOffset, nLen), fDebug, logger);
         }
 
     /**
@@ -209,6 +211,35 @@ public class PortableTypeGenerator
         m_classNode = cn;
 
         com.oracle.coherence.common.schema.Type type = m_schema.findTypeByJavaName(javaName(cn.name));
+        if (type != null)
+            {
+            m_type = (PofType) type.getExtension(PofType.class);
+            }
+        }
+
+    /**
+     * Create a {@link PortableTypeGenerator}.
+     *
+     * @param schema  the {@link Schema} instance to use
+     * @param reader  the {@link ClassReaderInternal} containing the class to instrument
+     * @param fDebug  flag indicating whether to generate debug code
+     * @param logger  the {@link Logger} to use
+     *
+     * @since 25.03.1
+     */
+    protected PortableTypeGenerator(Schema schema, ClassReaderInternal reader, boolean fDebug, Logger logger)
+        {
+        m_schema = schema;
+        m_fDebug = fDebug;
+        m_log    = logger;
+
+        ClassNode cn = new ClassNode();
+
+        reader.accept(cn, 0);
+
+        m_classNode = cn;
+
+        com.oracle.coherence.common.schema.Type<?, ?> type = m_schema.findTypeByJavaName(javaName(cn.name));
         if (type != null)
             {
             m_type = (PofType) type.getExtension(PofType.class);
