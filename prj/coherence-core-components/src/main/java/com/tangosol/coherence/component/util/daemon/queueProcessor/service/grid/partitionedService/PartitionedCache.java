@@ -5088,12 +5088,21 @@ public class PartitionedCache
 
         getRequestCoordinator().onInterval();
 
-        // on some environments the "NotifyDelivery" ack may become lost or be
-        // held up (e.g.: hundreds of ViewCache clients with heavy writes)
-        // the following attempts to get stuck events "unstuck" by re-sending
-        // the oldest and hopefully cause a chain of events to clear the
-        // pending events long array which can become clogged on backup members
-        // due to said clean-up being solely based on oldest ack'ed event.
+        // event sending may miss one or more events due to concurrency on
+        // entry status processing, see ResourceCoordinator.processEvent.
+        // Synthetic events are processed in finalizeInvoke*, which in turn
+        // processes events through ResourceCoordinator.processEvent one by
+        // one. If the event is not "managed" (== synthetic), it is then passed
+        // back to the caller as an OOB event to be sent to the client.
+        // If the event is "managed", it is assumed that the caller is
+        // responsible for sending the event.
+        // There is a narrow race condition where an entry status can be locked
+        // (setting isManaged() to true) while synthetic events are being
+        // processed, for example entries evicted.
+        // In this case the path is that of synthetic events, but the event
+        // is not returned into the OOB set.
+        // This is caught below when we see the oldest event staying too long
+        // in the pending events LongArray structure.
         LongArray laPending = getPendingEvents();
         if (laPending == null) // used in getOldestPendingEventSUID
             {
@@ -5102,7 +5111,6 @@ public class PartitionedCache
 
         long ldtNow      = Base.getSafeTimeMillis();
         long lOldestSUID = getOldestPendingEventSUID();
-
         if (ldtNow > getOldestEventResendNextMillis())
             {
             if (lOldestSUID > 0 &&
@@ -8662,7 +8670,7 @@ public class PartitionedCache
             {
             return;
             }
-        
+
         post(msgEvent);
         }
     
@@ -9538,7 +9546,7 @@ public class PartitionedCache
         
                 // remember the events-holder
                 oHolder = status.getMapEventHolder();
-        
+
                 // increment the partition version
                 int               nPartition = status.getPartition();
                 PartitionedCache.PartitionControl ctrlPart   = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
@@ -9926,8 +9934,11 @@ public class PartitionedCache
         //
         // The batch context data structure is used for "synchronization" and both
         // conditions are checked by $BatchContext#onJobCompleted
-        
-        ctxBatch.onJobCompleted(job);  // may be null
+
+        synchronized (ctxBatch)
+            {
+            ctxBatch.onJobCompleted(job);  // may be null
+            }
         
         // Now, only after backup messages/events have been queued/sent, unlock the
         // keys that were locked during #processEvent
@@ -17566,7 +17577,7 @@ public class PartitionedCache
             
                     // all jobs have run, and all backups have completed; respond to the client
                     service.publishToClients(getPrimaryResponse(), getEvents());
-            
+
                     return true;
                     }
                 }
@@ -29688,7 +29699,7 @@ public class PartitionedCache
         public void onReceived()
             {
             super.onReceived();
-            
+
             ((PartitionedCache) getService()).onMapEvent(this);
             }
         }
@@ -38012,7 +38023,7 @@ public class PartitionedCache
             }
         
         /**
-         * Specialized helper method to collect aynchronously observed
+         * Specialized helper method to collect asynchronously observed
         * $EventStatus objects.
         * 
         * @param setStatus    the Set<$EntryStatus> of asynchronously observed
@@ -38697,7 +38708,7 @@ public class PartitionedCache
                // else this is a troubling case; process the com.tangosol.util.MapEvent updating ancillary
                //      data structures
                }
-            
+
             // event could be null if this is a "synthetic" event holder used
             // to force a flush of the backup & client event changes
             if (event != null)
@@ -38895,7 +38906,7 @@ public class PartitionedCache
             // 3) the status is managed by another thread
             //
             // If the status is unmanaged, we should try to lock the key and "take"
-            // ownership of the EntryStatus (and become reponsible for publishing
+            // ownership of the EntryStatus (and become responsible for publishing
             // backup and client-event changes).  Note: we must not be overly aggressive
             // in attempting to lock due to the possibility of deadlock (see COH-5436).
             //
@@ -38944,7 +38955,10 @@ public class PartitionedCache
                 }
             
             // return true iff the status has been locked by this method
-            // and therefore needs to be added to the OOB status collection
+            // and therefore needs to be added to the OOB status collection.
+            // Caveat: if a "managed" event has grabbed the same lock it could
+            // lead to a "forgotten" event if the caller is the synthetic event
+            // path. See onInterval
             return !fOOBEvent;
             }
         
