@@ -1,10 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Quick Start
+:description: Oracle Coherence CE Documentation - Quick Start
+:keywords: coherence, java, documentation, quick start,
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.

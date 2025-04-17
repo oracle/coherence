@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+    Copyright (c) 2025, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Views
 :description: Provides a guide for creating views using ContinuousQueryCache
-:keywords: coherence, java, documentation
+:keywords: coherence, java, documentation, ContinuousQueryCache, views
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.
