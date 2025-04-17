@@ -1961,7 +1961,24 @@ public abstract class BaseManagementInfoResourceTests
         {
         WebTarget target   = getBaseTarget().path(REPORTERS).path("1").path("runReport").path("report-node");
         Response response  = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-        MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        try
+            {
+            MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            }
+        catch (Throwable t)
+            {
+            // occasionally the manage node could be member 2
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode())
+                {
+                target = getBaseTarget().path(REPORTERS).path("2").path("runReport").path("report-node");
+                response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+                MatcherAssert.assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                }
+            else
+                {
+                throw t;
+                }
+            }
 
         Map    mapEntity = new LinkedHashMap();
         Entity entity    = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
