@@ -7,6 +7,8 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 = Introduction
+:description: Oracle Coherence CE Documentation - Introduction
+:keywords: coherence, java, documentation, introduction
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.
