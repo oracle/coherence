@@ -10673,6 +10673,7 @@ public abstract class PartitionedService
                                 nOwnerLocal  == nMemberThis ||
                                 nOwnerGlobal == nMemberThis ||
                                 nOwnerGlobal == 0 ||
+                                nOwnerLocal == 0 ||
                                 getOwnedIndex(iPartition, nMemberThis, /*fLocal*/ false) != -1, 
                                 "Unrecoverable backup[" + iStore + "] ownership " +
                                 "de-synchronization for partition " +
