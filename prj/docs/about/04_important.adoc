@@ -1,10 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2025 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Important Changes in Coherence Community Edition (CE)
+:description: Oracle Coherence CE Documentation - Important Changes
+:keywords: coherence, java, documentation, Important Changes
 
 == Java Development Kit Requirements
 

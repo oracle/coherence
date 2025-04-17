@@ -1,12 +1,12 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Put Get and Remove Operations
 :description: Coherence Guides Basic NamedMap put, get and remove operations
-:keywords: coherence, java, documentation
+:keywords: coherence, java, documentation, NamedMap put, NamedMap get, NamedMap remote, example
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.

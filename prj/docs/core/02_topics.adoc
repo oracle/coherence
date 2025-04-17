@@ -5,8 +5,8 @@
     https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Topics
-:description: Coherence Core Improvements
-:keywords: coherence, java, documentation
+:description: Coherence Core Improvements - Topics
+:keywords: coherence, java, documentation, topics
 
 // DO NOT remove this header - it might look like a duplicate of the header above, but
 // both they serve a purpose, and the docs will look wrong if it is removed.
