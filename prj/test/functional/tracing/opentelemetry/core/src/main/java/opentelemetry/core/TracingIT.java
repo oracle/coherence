@@ -17,24 +17,17 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.tracing.TracingHelper;
 
-import com.tangosol.internal.tracing.opentelemetry.OpenTelemetryShim;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.TypeAssertion;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
 
-import io.opentelemetry.api.OpenTelemetry;
-
-import io.opentelemetry.api.incubator.events.GlobalEventLoggerProvider;
-
 import io.opentelemetry.api.trace.Tracer;
 
 import io.opentelemetry.context.Scope;
 
 import io.opentelemetry.proto.trace.v1.Span;
-
-import java.lang.reflect.Field;
 
 import java.util.List;
 import java.util.Properties;
@@ -48,13 +41,12 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import org.mockserver.client.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 
 import tracing.AbstractTracingIT;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.CoreMatchers.nullValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -73,11 +65,10 @@ public class TracingIT
     protected Properties getDefaultProperties()
         {
         Properties props = super.getDefaultProperties();
-        props.setProperty("otel.service.name",           getClass().getName());
+        props.setProperty("otel.traces.exporter",        "otlp");
         props.setProperty("otel.exporter.otlp.protocol", "http/protobuf");
-        props.setProperty("otel.metrics.exporter",       "none");
-        props.setProperty("otel.logs.exporter",          "none");
 
+        // for testing we install a Global tracing instance
         props.setProperty("otel.java.global-autoconfigure.enabled", "true");
 
         return props;
@@ -89,12 +80,12 @@ public class TracingIT
     public void _before()
         {
         m_collectorServer = TestingUtils.createServer(4318);
+        new MockServerClient("localhost", 4318).reset();
         }
 
     @After
     public void _after()
         {
-        m_collectorServer.reset();
         m_collectorServer.stop();
         m_collectorServer = null;
         GlobalOpenTelemetry.resetForTest();
@@ -117,9 +108,10 @@ public class TracingIT
     @Test
     public void testTraceCaptured()
         {
+        ClientAndServer server = m_collectorServer;
         runTest(() ->
                 Eventually.assertDeferred("No spans recorded",
-                    () -> !TestingUtils.extractSpans(m_collectorServer).isEmpty(),
+                    () -> !TestingUtils.extractSpans(server).isEmpty(),
                     is(true)));
         }
 
@@ -140,8 +132,7 @@ public class TracingIT
                 {
                 Tracer tracer = GlobalOpenTelemetry.getTracer("oracle.coherence.test");
 
-                io.opentelemetry.api.trace.Span span   = tracer.spanBuilder("test").startSpan();
-                span.makeCurrent();
+                io.opentelemetry.api.trace.Span span = tracer.spanBuilder("test").startSpan();
 
                 NamedCache<String, String> cache =
                         getNamedCache("dist1", TypeAssertion.withTypes(String.class, String.class));
@@ -156,11 +147,12 @@ public class TracingIT
                     span.end();
                     }
 
+                ClientAndServer server = m_collectorServer;
                 Eventually.assertDeferred("No spans recorded",
                         () ->
                             {
                             List<Span> spans =
-                                    TestingUtils.extractSpans(m_collectorServer);
+                                    TestingUtils.extractSpans(server);
 
                             if (spans.isEmpty())
                                 {
@@ -197,124 +189,32 @@ public class TracingIT
      * Assume the required dependencies are on the class path, verify
      * Coherence properly controls the lifecycle of the managed
      * OpenTelemetry runtime.
-     *
-     * @throws Exception if an error occurs processing the test
      */
     @Test
     public void testTelemetryLifecycleManagedByCoherence()
-            throws Exception
         {
         // start from a clean slate - no OpenTelemetry registered
-        assertThat(getOpenTelemetryWithNoInit(), nullValue());
         assertThat(TracingHelper.isEnabled(), is(false));
 
         // Run coherence and assert tracing is enabled.
         runTest(() -> assertThat(TracingHelper.isEnabled(), is(true)), "tracing-enabled-with-zero.xml");
 
         assertThat(TracingHelper.isEnabled(), is(false));
-        assertThat(getOpenTelemetryWithNoInit(), notNullValue());
-        assertThat(getOpenTelemetryDelegateNoInit().getClass(),
-                   is(OpenTelemetryShim.InternalNoopTelemetry.class));
-        }
-
-    /**
-     * Validate Coherence will respect any pre-existing OpenTelemetry registrations
-     * when initializing the cluster.  Additionally, ensure that Coherence doesn't
-     * clobber the pre-existing OpenTelemetry instance when the cluster is stopped.
-     */
-    @Test
-    public void testTelemetryLifecycleNotManagedByCoherence()
-        {
-        Properties propsTest = getDefaultProperties();
-        propsTest.forEach((key, value) -> System.setProperty(key.toString(), value.toString()));
-
-        try
-            {
-            GlobalOpenTelemetry.get(); // trigger initialization of otel runtime
-
-            // call GlobalTelemetry.get() again as two different
-            // ObfuscatedGlobalOpenTelemetry instances will be created
-            // during initialization.  We want the second one.
-            OpenTelemetry otel = GlobalOpenTelemetry.get();
-
-            // start coherence and validate TracingHelper is active
-            // and that the GlobalOpenTelemetry instance is the same
-            // meaning Coherence hasn't made any changes
-            runTest(() ->
-                    {
-                    assertThat(TracingHelper.isEnabled(), is(true));
-                    assertThat(GlobalOpenTelemetry.get(), is(otel));
-                    }, "tracing-enabled-with-zero.xml");
-
-            // Coherence is now shutdown, assert Coherence didn't clobber
-            // the existing registered OpenTelemetry
-            assertThat(GlobalOpenTelemetry.get(), is(otel));
-            }
-        finally
-            {
-            propsTest.forEach((key, value) -> System.clearProperty(key.toString()));
-            GlobalOpenTelemetry.resetForTest();
-            GlobalEventLoggerProvider.resetForTest();
-            }
         }
 
     // ----- helper methods -------------------------------------------------
-
-    /**
-     * Obtain the {@link OpenTelemetry} instance registered with the
-     * {@link GlobalOpenTelemetry} via reflection to avoid initializing the
-     * runtime.
-     *
-     * @return the registered {@link OpenTelemetry}, or {@code null} if there
-     *         is no such registration
-     *
-     * @throws Exception if a reflection error occurs
-     */
-    protected OpenTelemetry getOpenTelemetryWithNoInit()
-            throws Exception
-        {
-        Field otel = GlobalOpenTelemetry.class.getDeclaredField("globalOpenTelemetry");
-        otel.setAccessible(true);
-
-        return (OpenTelemetry) otel.get(null);
-        }
-
-    /**
-     * Obtain the {@link OpenTelemetry} instance delegate registered with the
-     * {@link GlobalOpenTelemetry} via reflection to avoid initializing the
-     * runtime.
-     *
-     * @return the registered {@link OpenTelemetry}, or {@code null} if there
-     *         is no such registration
-     *
-     * @throws Exception if a reflection error occurs
-     */
-    protected OpenTelemetry getOpenTelemetryDelegateNoInit()
-        throws Exception
-        {
-        OpenTelemetry otel = getOpenTelemetryWithNoInit();
-        if (otel != null)
-            {
-            Field fieldDelegate = Class.forName(
-                            GlobalOpenTelemetry.class.getName() +
-                            "$ObfuscatedOpenTelemetry")
-                    .getDeclaredField("delegate");
-            fieldDelegate.setAccessible(true);
-            otel = (OpenTelemetry) fieldDelegate.get(otel);
-            }
-
-        return otel;
-        }
 
     /**
      * Over a 15-second time period, assert no spans are captured.
      */
     protected void assertNoSpans()
         {
+        ClientAndServer server = m_collectorServer;
+
         Repetitively.assertThat("Spans incorrectly recorded",
                 (Deferred<Boolean>) () ->
                     {
-                    List<Span> spans = TestingUtils.extractSpans(m_collectorServer);
+                    List<Span> spans = TestingUtils.extractSpans(server);
                     if (!spans.isEmpty())
                         {
                         Logger.err("Unexpected spans! " + spans);

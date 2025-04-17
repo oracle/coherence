@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1130,19 +1130,12 @@ public abstract class Service
     
     /**
      * Return a new OpenTracing Scope for the supplied op
-    * 
-    * @param sStage          the stage of the op, or null
-    * @param op                 a RequestMessage or DaemonPool task (i.e.
-    * Runnable)
-    * @param spanParent  the parent span, or null for implicit parent
+     *
+     * @param sStage  the stage of the op, or null
+     * @param op      a RequestMessage or DaemonPool task (i.e. Runnable)
      */
     public com.tangosol.internal.tracing.Span.Builder newTracingSpan(String sStage, Object op)
         {
-        // import com.tangosol.internal.tracing.Span$Type as com.tangosol.internal.tracing.Span.Type;
-        // import com.tangosol.internal.tracing.Span$Builder as com.tangosol.internal.tracing.Span.Builder;
-        // import com.tangosol.internal.tracing.TracingHelper;
-        // import Component.Net.Message.RequestMessage;
-        
         com.tangosol.internal.tracing.Span.Builder bldSpan = TracingHelper.newSpan(sStage, op)
             .withMetadata(com.tangosol.internal.tracing.Span.Type.COMPONENT.key(), getServiceName());
         
@@ -3229,15 +3222,16 @@ public abstract class Service
             // Declared at the super level
             public void run()
                 {
-                // import com.tangosol.internal.tracing.Scope;
-                // import com.tangosol.internal.tracing.Span;
-                // import com.tangosol.internal.tracing.TracingHelper;
-                
-                Span span = ((Service) get_Module()).newTracingSpan("process", getTask())
-                                    .setParent(getParentTracingSpan())
-                                    .startSpan();
-                
-                Scope scope = TracingHelper.getTracer().withSpan(span);
+                Span  span  = null;
+                Scope scope = null;
+
+                if (TracingHelper.isEnabled())
+                    {
+                    span  = ((Service) get_Module()).newTracingSpan("process", getTask())
+                            .setParent(getParentTracingSpan())
+                            .startSpan();
+                    scope = TracingHelper.getTracer().withSpan(span);
+                    }
                 try
                     {
                     super.run();
@@ -3249,8 +3243,14 @@ public abstract class Service
                     }
                 finally
                     {
-                    scope.close();
-                    span.end();
+                    if (scope != null)
+                        {
+                        scope.close();
+                        }
+                    if (span != null)
+                        {
+                        span.end();
+                        }
                     }
                 }
             

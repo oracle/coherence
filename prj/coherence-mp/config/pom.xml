@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -75,6 +75,38 @@
                   <id>make-index</id>
               </execution>
           </executions>
+      </plugin>
+
+      <!-- create module descriptor (module-info) -->
+      <plugin>
+        <groupId>com.oracle.coherence.moditect</groupId>
+        <artifactId>moditect-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>add-module-info</id>
+            <phase>package</phase>
+            <goals>
+              <goal>add-module-info</goal>
+            </goals>
+            <configuration>
+              <module>
+                <moduleInfo>
+                  <name>${module.name}</name>
+                  <open>true</open>
+                  <exports>
+                    *;
+                  </exports>
+                  <uses>
+                    com.tangosol.internal.tracing.PropertySource
+                  </uses>
+                  <provides>
+                    com.tangosol.internal.tracing.PropertySource with com.oracle.coherence.mp.config.tracing.OtelPropertySource;
+                  </provides>
+                </moduleInfo>
+              </module>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- maven-bundle-pugin for generating manifest with metadata -->

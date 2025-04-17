@@ -13,11 +13,13 @@ import com.tangosol.internal.tracing.Tracer;
 
 import com.tangosol.util.LiteMap;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.SpanKind;
 
+import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.context.Context;
+
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 
 import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapPropagator;
@@ -29,7 +31,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Implementation of {@link com.tangosol.internal.tracing.Tracer} for {@code OpenTelemetry}.
+ * Implementation of {@link com.tangosol.internal.tracing.Tracer} for
+ * {@code OpenTelemetry}.
  *
  * @author rl 8.25.2023
  * @since  24.03
@@ -37,6 +40,25 @@ import java.util.Objects;
 public class OpenTelemetryTracer
         implements Tracer
     {
+    // ----- constructors ---------------------------------------------------
+
+    /**
+     * Constructs a new {@link OpenTelemetryTracer}.
+     *
+     * @param openTelemetrySdk  the {@link OpenTelemetrySdk}.
+     *                          If {@code null}, this tracer's operations
+     *                          will all be noops
+     *
+     * @since 25.03.1
+     */
+    public OpenTelemetryTracer(OpenTelemetrySdk openTelemetrySdk)
+        {
+        f_otelSdk = openTelemetrySdk;
+        f_tracer  = openTelemetrySdk == null
+                    ? TracerProvider.noop().get(SCOPE_NAME)
+                    : openTelemetrySdk.getTracerProvider().get(SCOPE_NAME);
+        }
+
     // ----- Tracer interface -----------------------------------------------
 
     @Override
@@ -62,10 +84,15 @@ public class OpenTelemetryTracer
     public Map<String, String> inject(SpanContext spanContext)
         {
         LiteMap<String, String> injectTarget = new LiteMap<>();
-        TextMapPropagator       propagator   = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
+        OpenTelemetrySdk        sdk          = f_otelSdk;
 
-        propagator.inject(Context.current().with(
-                io.opentelemetry.api.trace.Span.wrap(spanContext.underlying())), injectTarget, new MapSetter());
+        if (sdk != null && !isNoop())
+            {
+            TextMapPropagator propagator = sdk.getPropagators().getTextMapPropagator();
+
+            propagator.inject(Context.current().with(
+                    io.opentelemetry.api.trace.Span.wrap(spanContext.underlying())), injectTarget, new MapSetter());
+            }
 
         return injectTarget;
         }
@@ -73,7 +100,12 @@ public class OpenTelemetryTracer
     @Override
     public SpanContext extract(Map<String, String> carrier)
         {
-        TextMapPropagator propagator = GlobalOpenTelemetry.getPropagators().getTextMapPropagator();
+        if (isNoop())
+            {
+            return SpanContext.Noop.INSTANCE;
+            }
+
+        TextMapPropagator propagator = f_otelSdk.getPropagators().getTextMapPropagator();
 
         return new OpenTelemetrySpanContext(io.opentelemetry.api.trace.Span.fromContext(
                         propagator.extract(Context.current(), carrier, new MapGetter()))
@@ -107,9 +139,32 @@ public class OpenTelemetryTracer
 
     // ----- helper methods -------------------------------------------------
 
+    /**
+     * Returns the {@link OpenTelemetrySdk} initialized by this shim.
+     *
+     * @return the {@link OpenTelemetrySdk} initialized by this shim
+     */
+    public OpenTelemetry getOpenTelemetry()
+        {
+        return f_otelSdk;
+        }
+
     private io.opentelemetry.api.trace.Tracer getTracer()
         {
-        return GlobalOpenTelemetry.getTracer(SCOPE_NAME);
+        return f_tracer;
+        }
+
+    /**
+     * Disposes this {@code Tracer}.
+     *
+     * @since 25.03.1
+     */
+    void dispose()
+        {
+        if (f_otelSdk != null)
+            {
+            f_otelSdk.close();
+            }
         }
 
     // ----- inner class SpanBuilder ----------------------------------------
@@ -124,7 +179,6 @@ public class OpenTelemetryTracer
             Objects.requireNonNull(spanBuilder, "Parameter spanBuilder cannot be null");
             f_spanBuilder = spanBuilder;
             }
-
 
         // ----- Span.Builder interface -------------------------------------
 
@@ -234,7 +288,8 @@ public class OpenTelemetryTracer
         // ----- constants --------------------------------------------------
 
         /**
-         * Special key to translate span.kind metadata to otel SpanKind.
+         * Special key to translate {@code span.kind} metadata to otel
+         * SpanKind.
          */
         private static final String SPAN_KIND = "span.kind";
 
@@ -296,4 +351,20 @@ public class OpenTelemetryTracer
      * will use.
      */
     public static final String SCOPE_NAME = "oracle.coherence";
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The {@code OpenTelemetry} SDK.
+     *
+     * @since 25.03.1
+     */
+    private final OpenTelemetrySdk f_otelSdk;
+
+    /**
+     * The {@code OpenTelemetry} {@link io.opentelemetry.api.trace.Tracer}
+     *
+     * @since 25.03.1
+     */
+    private final io.opentelemetry.api.trace.Tracer f_tracer;
     }

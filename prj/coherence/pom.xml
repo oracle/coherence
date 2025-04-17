@@ -240,19 +240,10 @@
     </dependency>
 
     <!-- OpenTelemetry -->
+
     <dependency>
       <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-api</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-context</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-sdk</artifactId>
+      <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
       <optional>true</optional>
     </dependency>
 
@@ -483,7 +474,16 @@
                     !*.internal;
                     !com.oracle.coherence.common.internal*;
                     !com.tangosol.coherence.transaction.internal*;
-                    !com.tangosol.internal.*;
+                    !com.tangosol.internal.asm.*;
+                    !com.tangosol.internal.cdi.*;
+                    !com.tangosol.internal.health.*;
+                    !com.tangosol.internal.http.*;
+                    !com.tangosol.internal.io.*;
+                    !com.tangosol.internal.management.*;
+                    !com.tangosol.internal.metrics.*;
+                    !com.tangosol.internal.net.*;
+                    !com.tangosol.internal.sleepycat.je.utilint.*;
+                    !com.tangosol.internal.util.*;
                     !com.tangosol.coherence.component*;
                     !com.tangosol.coherence;
                     *;
