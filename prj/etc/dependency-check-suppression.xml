@@ -444,6 +444,7 @@
     <cve>CVE-2024-21235</cve>
     <cve>CVE-2024-21211</cve>
     <cve>CVE-2025-21502</cve>
+    <cve>CVE-2025-21587</cve>
   </suppress>
 
   <!-- suppress plexus-classworlds, plexus-component-annotations- CVE-2022-4244,
