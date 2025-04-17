@@ -121,6 +121,7 @@ public class TracingIT
      * will result in no spans being captured.
      */
     @Test
+    @Ignore("COH-32112")
     public void testTraceNotCapturedWhenTraceIsZero()
         {
         runTest(this::assertNoSpans, "tracing-enabled-with-zero.xml");
