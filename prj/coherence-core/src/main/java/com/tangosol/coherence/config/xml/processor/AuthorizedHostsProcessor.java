@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -19,6 +19,7 @@ import com.tangosol.run.xml.XmlHelper;
 
 import com.tangosol.util.Filter;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -32,7 +33,10 @@ public class AuthorizedHostsProcessor
         implements ElementProcessor<ParameterizedBuilder<Filter>>
     {
     /**
-     * {@inheritDoc}
+     * An {@link ElementProcessor} for &lt;authorized-hosts&gt; Configuration Elements.
+     * <p>
+     * Since 25.03.1, the {@code authorized-hosts.host-address} value can be either an IP host address or
+     * a comma separated list of IP host addresses.
      */
     @Override
     public ParameterizedBuilder<Filter> process(ProcessingContext context, XmlElement xmlElement)
@@ -54,9 +58,18 @@ public class AuthorizedHostsProcessor
             // <host-address>
             for (Iterator iter = xmlElement.getElements("host-address"); iter.hasNext(); )
                 {
-                XmlElement xmlHost = (XmlElement) iter.next();
+                String hostString = ((XmlElement) iter.next()).getString();
 
-                builder.addAuthorizedHostsToFilter(xmlHost.getString(), null);
+                if (hostString.contains(","))
+                    {
+                    Arrays.stream(hostString.split(","))
+                            .map(String::trim)
+                            .forEach(s -> builder.addAuthorizedHostsToFilter(s, null));
+                    }
+                else
+                    {
+                    builder.addAuthorizedHostsToFilter(hostString, null);
+                    }
                 }
 
             // <host-range>

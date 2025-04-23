@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -191,7 +191,7 @@ to find specific notes on changes suggested for production use.
     </outgoing-message-handler>
 
     <authorized-hosts>
-      <host-address></host-address>
+      <host-address system-property="coherence.authorized.hosts"></host-address>
       <host-range>
         <from-address></from-address>
         <to-address></to-address>

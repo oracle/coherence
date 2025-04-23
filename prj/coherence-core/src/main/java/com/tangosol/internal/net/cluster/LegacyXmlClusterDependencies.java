@@ -675,6 +675,9 @@ public class LegacyXmlClusterDependencies
 
     /**
      * Configure the authorized hosts fields.
+     * <p>
+     * Since 25.03.1, the {@code authorized-hosts.host-address} element's value can be either an IP host address or
+     * a comma separated list of IP host addresses.
      *
      * @param xml  the authorized-hosts xml element
      */
@@ -701,10 +704,25 @@ public class LegacyXmlClusterDependencies
         // <host-address>
         for (Iterator iter = xmlCat.getElements("host-address"); iter.hasNext(); )
             {
-            xmlVal = (XmlElement) iter.next();
-            if (addAuthorizedHostsToFilter(filter, xmlVal.getString(), /* sAddrTo */ null))
+            String hostString = ((XmlElement) iter.next()).getString();
+
+            // enable comma separated list of hosts for coherence.authorized.hosts system property for host-address element.
+            if (hostString.contains(","))
                 {
-                fFilterAdded = true;
+                for (String host : hostString.split(","))
+                    {
+                    if (addAuthorizedHostsToFilter(filter, host, /* sAddrTo */ null))
+                        {
+                        fFilterAdded = true;
+                        }
+                    }
+                }
+            else
+                {
+                if (addAuthorizedHostsToFilter(filter, hostString, /* sAddrTo */ null))
+                    {
+                    fFilterAdded = true;
+                    }
                 }
             }
 

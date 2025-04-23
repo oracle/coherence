@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">    
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>*</cache-name>
+      <scheme-name>distributed-scheme</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <!--
+    Distributed caching scheme.
+    -->
+    <distributed-scheme>
+      <scheme-name>distributed-scheme</scheme-name>
+      <service-name>DistributedCache</service-name>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <!--
+    Proxy Service scheme that allows remote clients to connect to the
+    cluster over TCP/IP.
+    -->
+    <proxy-scheme>
+      <scheme-name>proxy-scheme</scheme-name>
+      <!-- if the service name changes, change TestIdentityAsserter.java -->
+      <service-name>Proxy</service-name>
+
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address system-property="test.extend.address.local">127.0.0.1</address>
+            <port    system-property="test.extend.port">9999</port>
+          </local-address>
+          <authorized-hosts>
+            <host-address system-property="coherence.extend.authorized.hosts">nonexistent.dns.name,127.0.0.2</host-address>
+          </authorized-hosts>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>
