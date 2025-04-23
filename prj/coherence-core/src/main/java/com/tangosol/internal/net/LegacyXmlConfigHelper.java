@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
 
@@ -28,6 +28,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -94,6 +95,9 @@ public class LegacyXmlConfigHelper
 
     /**
      * Parse the XML and return the authorized hosts filter.
+     * <p>
+     * Since 25.03.1, the {@code authorized-hosts.host-address} element's value can be either an IP host address or
+     * a comma separated list of IP host addresses.
      *
      * @param xml  the parent of the authorized-hosts XML element
      *
@@ -122,7 +126,19 @@ public class LegacyXmlConfigHelper
                 {
                 xmlVal = (XmlElement) iter.next();
 
-                builder.addAuthorizedHostsToFilter(xmlVal.getString(), null);
+                String hostString = xmlVal.getString();
+
+                // enable comma separated list of host for coherence.extend.authorized.hosts system property for host-address element.
+                if (hostString.contains(","))
+                    {
+                    Arrays.stream(hostString.split(","))
+                            .map(String::trim)
+                            .forEach(s -> builder.addAuthorizedHostsToFilter(s, null));
+                    }
+                else
+                    {
+                    builder.addAuthorizedHostsToFilter(hostString, null);
+                    }
                 }
 
             // <host-range>
