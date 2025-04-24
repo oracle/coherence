@@ -14,7 +14,7 @@
   <groupId>com.oracle.coherence.ce.guides</groupId>
   <artifactId>bootstrap</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <name>Coherence Guides - Sample</name>
+  <name>Coherence Guides - Bootstrap API</name>
 
   <properties>
     <revision>14.1.2-0-3-SNAPSHOT</revision>

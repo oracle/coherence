@@ -45,6 +45,7 @@
     <module>guides/460-topics</module>
     <module>guides/510-executor</module>
     <module>guides/600-response-caching</module>
+    <module>guides/810-custom-access-controller</module>
     <module>guides/905-key-association</module>
     <module>guides/910-multi-cluster-client</module>
     <module>tutorials/200-persistence</module>
