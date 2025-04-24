@@ -1,0 +1,62 @@
+<?xml version='1.0'?>
+<!--
+  ~ Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+    <cluster-config>
+        <storage-authorizers>
+          <storage-authorizer id="capture">
+            <class-name>com.oracle.coherence.guides.security.CapturingAuthorizer</class-name>
+          </storage-authorizer>
+        </storage-authorizers>
+    </cluster-config>
+
+    <security-config>
+        <enabled system-property="coherence.security">true</enabled>
+        <access-controller>
+            <class-name>com.oracle.coherence.guides.security.CertAccessController</class-name>
+            <init-params>
+                <init-param id="1">
+                    <param-type>java.io.File</param-type>
+                    <param-value system-property="coherence.security.truststore"/>
+                </init-param>
+                <init-param id="2">
+                    <param-type>java.io.File</param-type>
+                    <param-value system-property="coherence.security.permissions"/>
+                </init-param>
+                <init-param id="3">
+                    <param-type>java.lang.Boolean</param-type>
+                    <param-value system-property="coherence.security.log">true</param-value>
+                </init-param>
+                <init-param id="4">
+                    <param-type>java.lang.String</param-type>
+                    <param-value system-property="coherence.security.truststore.password"/>
+                </init-param>
+                <init-param id="5">
+                    <param-type>java.lang.String</param-type>
+                    <param-value system-property="coherence.truststore.type">PKCS12</param-value>
+                </init-param>
+                <init-param id="6">
+                    <param-type>java.lang.String</param-type>
+                    <param-value system-property="coherence.security.signature">SHA256withRSA</param-value>
+                </init-param>
+            </init-params>
+        </access-controller>
+        <callback-handler>
+            <class-name>com.oracle.coherence.guides.security.TestCallBackHandler</class-name>
+        </callback-handler>
+        <identity-asserter>
+            <class-name>com.oracle.coherence.guides.security.CertIdentityAsserter</class-name>
+        </identity-asserter>
+        <identity-transformer>
+            <class-name>com.oracle.coherence.guides.security.CertIdentityTransformer</class-name>
+        </identity-transformer>
+    </security-config>
+</coherence>

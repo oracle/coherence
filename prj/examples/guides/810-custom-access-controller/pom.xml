@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
-
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
+  ~ Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -12,26 +12,27 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.oracle.coherence.guides</groupId>
-  <artifactId>bootstrap</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
-  <name>Coherence Guides - Bootstrap API</name>
+  <artifactId>custom-access-controller</artifactId>
+  <version>${revision}</version>
+  <name>Coherence Guides - Custom Access Controller</name>
 
   <properties>
     <revision>25.03.1-SNAPSHOT</revision>
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
-    <coherence.version>${revision}</coherence.version>
+    <coherence.version>${project.version}</coherence.version>
 
-    <hamcrest.version>2.2</hamcrest.version>
-    <junit.jupiter.version>5.8.2</junit.jupiter.version>
-
-    <java.version>17</java.version>
+    <java.version>11</java.version>
 
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
+    <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
     <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
+
+    <hamcrest.version>1.3</hamcrest.version>
+    <junit.jupiter.version>5.8.2</junit.jupiter.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -56,6 +57,17 @@
     </dependency>
 
     <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-bedrock-testing-support</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-all</artifactId>
+      <version>${hamcrest.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <version>${junit.jupiter.version}</version>
@@ -75,6 +87,32 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.depdency.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>copy-libs</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libs</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeScope>runtime</includeScope>
+              <excludeScope>test</excludeScope>
+              <stripVersion>true</stripVersion>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -4,18 +4,19 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.testing.util;
+package com.oracle.coherence.guides.security;
 
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.SimpleApplication;
+
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.Executable;
 
 import com.tangosol.net.InetAddressHelper;
 
-import org.junit.Assume;
+import org.junit.jupiter.api.Assumptions;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,15 +38,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * A simple utility to create test self-signed private keys, certificates and keystores.
  *
- * @author Jonathan Knight  2022.01.25
- * @since 22.06
+ * @author Jonathan Knight  2025.04.11
  */
 public class KeyTool
     {
     /**
      * Assert that openssl and Java keytool can be used to create test keys and certs.
      *
-     * @throws org.junit.AssumptionViolatedException if the check fails
+     * @throws org.opentest4j.TestAbortedException if the check fails
      */
     public static void assertCanCreateKeys()
         {
@@ -54,7 +54,8 @@ public class KeyTool
                                                                   Arguments.of("version"),
                                                                   Console.system()))
             {
-            Assume.assumeTrue("OpenSSL does not exist on the PATH",application.waitFor() == 0);
+
+            Assumptions.assumeTrue(application.waitFor() == 0, "OpenSSL does not exist on the PATH");
             }
 
         try (Application application = LocalPlatform.get().launch(SimpleApplication.class,
@@ -62,7 +63,7 @@ public class KeyTool
                                                                   Arguments.of("-h"),
                                                                   Console.none()))
             {
-            Assume.assumeTrue("Java keytool does not exist at " + KEY_TOOL,application.waitFor() == 0);
+            Assumptions.assumeTrue(application.waitFor() == 0, "Java keytool does not exist at " + KEY_TOOL);
             }
         }
 
@@ -87,7 +88,7 @@ public class KeyTool
     /**
      * Create a self-signed CA cert.
      *
-     * @param fileBuild   the build target directory below which the certificate directory will be created
+     * @param fileParent   the build target directory below which the certificate directory will be created
      * @param sName       the name for the CA cert and cert CN
      * @param sStoreType  they type of the keystore to create
      *
@@ -95,10 +96,9 @@ public class KeyTool
      *
      * @throws IOException if the cert creation fails
      */
-    public static KeyAndCert createCACert(File fileBuild, String sName, String sStoreType) throws IOException
+    public static KeyAndCert createCACert(File fileParent, String sName, String sStoreType) throws IOException
         {
-        File   fileClasses  = new File(fileBuild, "test-classes");
-        File   fileCerts    = new File(fileClasses, "certs");
+        File   fileCerts    = new File(fileParent, "certs");
         File   fileKey      = new File(fileCerts, sName + "-ca.key");
         File   fileCert     = new File(fileCerts, sName + "-ca.cert");
         File   fileKeystore = new File(fileCerts, sName + "-ca.jks");
@@ -133,15 +133,14 @@ public class KeyTool
         return new KeyAndCert(sName, fileKey, null, null, fileCert, sKeyPass, null, fileKeystore, sStorePass);
         }
 
-    public static KeyAndCertSet merge(File fileBuild, String sName, KeyAndCert... sources) throws IOException
+    public static KeyAndCertSet merge(File fileParent, String sName, KeyAndCert... sources) throws IOException
         {
         if (sources == null || sources.length == 0)
             {
             throw new IllegalArgumentException("No sources specified");
             }
 
-        File   fileClasses  = new File(fileBuild, "test-classes");
-        File   fileCerts    = new File(fileClasses, "certs");
+        File   fileCerts    = new File(fileParent, "certs");
         File   fileP12      = new File(fileCerts, sName + ".p12");
         File   fileKeystore = new File(fileCerts, sName + ".jks");
         File   fileCertsP12 = new File(fileCerts, sName + "-certs.p12");
@@ -193,7 +192,7 @@ public class KeyTool
     /**
      * Create a self-signed private key and cert.
      *
-     * @param fileBuild     the build target directory below which the key and cert directory will be created
+     * @param fileParent     the build target directory below which the key and cert directory will be created
      * @param keyAndCertCA  the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
      * @param sName         the name for the CA cert and cert CN
      *
@@ -201,15 +200,15 @@ public class KeyTool
      *
      * @throws IOException if the cert creation fails
      */
-    public static KeyAndCert createKeyCertPair(File fileBuild, KeyAndCert keyAndCertCA, String sName) throws IOException
+    public static KeyAndCert createKeyCertPair(File fileParent, KeyAndCert keyAndCertCA, String sName) throws IOException
         {
-        return KeyTool.createKeyCertPair(fileBuild, sName, keyAndCertCA, sName, null);
+        return KeyTool.createKeyCertPair(fileParent, sName, keyAndCertCA, sName, null);
         }
 
     /**
      * Create a self-signed private key and cert.
      *
-     * @param fileBuild     the build target directory below which the key and cert directory will be created
+     * @param fileParent     the build target directory below which the key and cert directory will be created
      * @param keyAndCertCA  the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
      * @param sName         the name for the CA cert and cert CN
      *
@@ -217,15 +216,15 @@ public class KeyTool
      *
      * @throws IOException if the cert creation fails
      */
-    public static KeyAndCert createKeyCertPair(File fileBuild, String sFilePrefix, KeyAndCert keyAndCertCA, String sName) throws IOException
+    public static KeyAndCert createKeyCertPair(File fileParent, String sFilePrefix, KeyAndCert keyAndCertCA, String sName) throws IOException
         {
-        return createKeyCertPair(fileBuild, sFilePrefix, keyAndCertCA, sName, null);
+        return createKeyCertPair(fileParent, sFilePrefix, keyAndCertCA, sName, null);
         }
 
     /**
      * Create a self-signed private key and cert.
      *
-     * @param fileBuild         the build target directory below which the key and cert directory will be created
+     * @param fileParent         the build target directory below which the key and cert directory will be created
      * @param keyAndCertCA      the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
      * @param sName             the name for the CA cert and cert CN
      * @param sExtendedKeyUsage  the optional value for the certificates extended key usage
@@ -234,15 +233,15 @@ public class KeyTool
      *
      * @throws IOException if the cert creation fails
      */
-    public static KeyAndCert createKeyCertPair(File fileBuild, KeyAndCert keyAndCertCA, String sName, String sExtendedKeyUsage) throws IOException
+    public static KeyAndCert createKeyCertPair(File fileParent, KeyAndCert keyAndCertCA, String sName, String sExtendedKeyUsage) throws IOException
         {
-        return createKeyCertPair(fileBuild, sName, keyAndCertCA, sExtendedKeyUsage, sExtendedKeyUsage);
+        return createKeyCertPair(fileParent, sName, keyAndCertCA, sExtendedKeyUsage, sExtendedKeyUsage);
         }
 
     /**
      * Create a self-signed private key and cert.
      *
-     * @param fileBuild          the build target directory below which the key and cert directory will be created
+     * @param fileParent          the build target directory below which the key and cert directory will be created
      * @param sFilePrefix        the prefix to use on the file names
      * @param keyAndCertCA       the {@link KeyAndCert} holder containing the CA cert to use to sign the key and cert
      * @param sName              the name for the CA cert and cert CN
@@ -252,10 +251,9 @@ public class KeyTool
      *
      * @throws IOException if the cert creation fails
      */
-    public static KeyAndCert createKeyCertPair(File fileBuild, String sFilePrefix, KeyAndCert keyAndCertCA, String sName, String sExtendedKeyUsage) throws IOException
+    public static KeyAndCert createKeyCertPair(File fileParent, String sFilePrefix, KeyAndCert keyAndCertCA, String sName, String sExtendedKeyUsage) throws IOException
         {
-        File  fileClasses   = new File(fileBuild, "test-classes");
-        File  fileCerts     = new File(fileClasses, "certs");
+        File  fileCerts     = new File(fileParent, "certs");
         File  fileSign      = new File(fileCerts, sFilePrefix + "-signing.key");
         File  fileKey       = new File(fileCerts, sFilePrefix + ".key");
         File  filePEM       = new File(fileCerts, sFilePrefix + ".pem");

@@ -49,6 +49,7 @@
     <module>guides/300-vector-store</module>
     <module>guides/510-executor</module>
     <module>guides/600-response-caching</module>
+    <module>guides/810-custom-access-controller</module>
     <module>guides/905-key-association</module>
     <module>guides/906-partition-level-transactions</module>
     <module>guides/910-multi-cluster-client</module>
