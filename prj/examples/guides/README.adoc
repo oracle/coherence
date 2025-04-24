@@ -160,6 +160,14 @@ This guide walks you through how to configure CDI Response Caching to cache the 
 --
 
 [CARD]
+.Certificate Based Security
+[link=examples/guides/810-custom-access-controller/README.adoc]
+--
+This guide walks you through how to configure Coherence to use private key and certificate-based security
+using a custom access controller, and custom Extend identity provider and identity asserter.
+--
+
+[CARD]
 .Key Association
 [link=examples/guides/905-key-association/README.adoc]
 --
