@@ -1,14 +1,18 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
 
 import org.junit.Before;
 import org.junit.Test;
+
+import com.tangosol.net.internal.WrapperSerializer;
+
+import com.tangosol.util.NullImplementation;
 
 import java.io.IOException;
 
@@ -48,6 +52,14 @@ public class SerializerTest
         m_reader = new PofBufferReader(m_bi, ctx);
         Customer cResult = (Customer) m_reader.readObject(0);
         azzert(cResult.getProduct().getBalance() == cResult.getBalance());
+        }
+
+    @Test
+    public void testForGetName()
+        {
+        // assert these no longer throw NoClassDefFoundError for optional Named.class not being found.
+        System.out.println("NullPofContext.getName()=" + NullImplementation.getPofContext().getName());
+        System.out.println("WrapperSerializer.getName()=" + new WrapperSerializer(NullImplementation.getPofContext()).getName());
         }
 
     public static class Balance

@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import java.io.IOException;
+
 import javax.inject.Named;
 
 /**
@@ -104,7 +107,21 @@ public interface Serializer
      */
     default String getName()
         {
-        Named named = getClass().getAnnotation(Named.class);
+        Named  named = null;
+
+        if (NAMED_FOUND.get())
+            {
+            try
+                {
+                named = getClass().getAnnotation(Named.class);
+                }
+            catch (NoClassDefFoundError e)
+                {
+                NAMED_FOUND.compareAndSet(true, false);
+                }
+            }
         return named == null ? null : named.value();
         }
+
+    static AtomicBoolean NAMED_FOUND = new AtomicBoolean(true);
     }
