@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The Serializer interface provides the capability of reading and writing a
@@ -115,7 +117,19 @@ public interface Serializer
      */
     default String getName()
         {
-        Named named = getClass().getAnnotation(Named.class);
+        Named named = null;
+
+        if (CLZ_INJECT_NAMED_FOUND.get())
+            {
+            try
+                {
+                named = getClass().getAnnotation(Named.class);
+                }
+            catch (NoClassDefFoundError e)
+                {
+                CLZ_INJECT_NAMED_FOUND.compareAndSet(true, false);
+                }
+            }
         return named == null ? null : named.value();
         }
 
@@ -208,4 +222,6 @@ public interface Serializer
             }
         return mapSerializer;
         }
+
+    static AtomicBoolean CLZ_INJECT_NAMED_FOUND = new AtomicBoolean(true);
     }
