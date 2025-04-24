@@ -1,0 +1,46 @@
+/*
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+plugins {
+	id 'java'
+}
+
+group = 'com.oracle.coherence.guides'
+version = '1.0.0-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	deployment
+}
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+
+	implementation "${coherenceGroupId}:coherence"
+
+	testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
+	testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+	useJUnitPlatform()
+	systemProperty "project.build.directory", project.buildDir.toString()
+}
+
+task copyLibToBuild() {
+	copy {
+		from configurations.runtimeClasspath
+		into "$buildDir/../distribution/lib"
+	}
+}
+
