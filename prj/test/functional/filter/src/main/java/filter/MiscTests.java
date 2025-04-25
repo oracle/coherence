@@ -7,12 +7,15 @@
 
 package filter;
 
+import com.oracle.coherence.common.collections.NullableSortedMap;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ChainedCollection;
+import com.tangosol.util.SubSet;
 import com.tangosol.util.comparator.SafeComparator;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.LimitFilter;
-import data.Person;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
@@ -24,15 +27,28 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AllFilter;
 import com.tangosol.util.filter.BetweenFilter;
 
+import data.Person;
+
+import java.nio.charset.StandardCharsets;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-
+import java.util.Set;
 import java.util.SortedSet;
+
+import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static junit.framework.Assert.fail;
+
 import static org.junit.Assert.assertEquals;
 
 public class MiscTests
@@ -58,6 +74,19 @@ public class MiscTests
         }
 
     // ----- test methods ---------------------------------------------------
+
+    @Test
+    public void testRetainAll()
+        {
+        testSubset(true);
+        }
+
+    @Test
+    public void testRemoveAll()
+        {
+        testSubset(false);
+        }
+
     @Test
     public void testNullFirst()
         {
@@ -84,8 +113,6 @@ public class MiscTests
 
         assertEquals(s.last().getValue().getName(), null);
         }
-
-
 
     @Test
     public void testBetweenFilter()
@@ -185,5 +212,99 @@ public class MiscTests
             {
             fail("Test run interrupted");
             }
+
+        cache.removeIndex(extrFirst);
+        cache.removeIndex(extrLast);
+        cache.removeIndex(extrYear);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Test the performance of retainAll() and removeAll() as any deviation
+     * can result in query timeouts
+     *
+     * @param fRetain  Whether retainAll() or removeAll() should be tested
+     */
+    public void testSubset(boolean fRetain)
+        {
+        SubSet<Binary> setKeys = new SubSet<>(createSet());
+        SubSet<Binary> setKeys2 = new SubSet<>(setKeys);
+        NullableSortedMap<Integer, Set<Binary>> mapTail = new NullableSortedMap<>();
+        for (int i = 0; i < 43000; i++)
+            {
+            mapTail.put(i, Collections.singleton(createBinary(i)));
+            }
+
+        // new Style
+        long start = System.currentTimeMillis();
+        List<Set<?>> listGT = new ArrayList<>(mapTail.size());
+        for (Object o : mapTail.values())
+            {
+            Set set = (Set) o;
+            listGT.add(ensureSafeSet(set));
+            }
+        Collection<Object> c = new ChainedCollection<>(listGT.toArray(Set[]::new));
+
+        if (fRetain)
+            {
+            // test against passed set
+            setKeys.retainAll(c);
+            // test against "original" set
+            setKeys.retainAll(c);
+            }
+        else
+            {
+            // test against passed set
+            setKeys.removeAll(c);
+            // test against "original" set
+            setKeys.removeAll(c);
+            }
+
+        long newStyle = System.currentTimeMillis() - start;
+
+        // old style:
+        start = System.currentTimeMillis();
+        NullableSortedMap<Integer, Set<Binary>> mapGE = new NullableSortedMap<>(mapTail);
+        Set setGT = new HashSet();
+        for (Iterator iterGE = mapGE.values().iterator(); iterGE.hasNext(); )
+            {
+            Set set = (Set) iterGE.next();
+            setGT.addAll(ensureSafeSet(set));
+            }
+        if (fRetain)
+            {
+            setKeys2.retainAll(setGT);
+            }
+        else
+            {
+            setKeys2.removeAll(setGT);
+            }
+        long oldStyle = System.currentTimeMillis() - start;
+        System.out.println("Time: new style(partitioned index):" + newStyle + " ms, old style(monolithic index):" + oldStyle + " ms");
+        Assert.assertEquals(setKeys, setKeys2);
+        // new style called twice ~ as good as old style called once
+        Assert.assertTrue((newStyle * .25) <= oldStyle);
+        }
+
+    private Set<Binary> createSet()
+        {
+        Set<Binary> s = new HashSet<>();
+        for (int i = 0; i < 30000; i++)
+            {
+            s.add(createBinary(i + 15000));
+            }
+        return s;
+        }
+
+    protected static Set ensureSafeSet(Set set)
+        {
+        return set == null ? Collections.emptySet() : set;
+        }
+
+    private Binary createBinary(int i)
+        {
+        String s = "randomkey_no_test_gldfkjglkdfgjdflkgjdflkgjlkdfjglkdfjglkdfjglkdf" + i;
+        return new Binary(s.getBytes(StandardCharsets.UTF_8));
         }
     }
