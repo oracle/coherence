@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,7 @@ package filter;
 
 import com.oracle.coherence.common.collections.NullableSortedMap;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
-import com.tangosol.coherence.config.Config;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.ChainedCollection;
 import com.tangosol.util.SubSet;
