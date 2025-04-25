@@ -157,7 +157,16 @@ public class Connection
      * @see com.tangosol.net.messaging.Connection#getPeerId
      */
     private com.tangosol.util.UUID __m_PeerId;
-    
+
+    /**
+     * Property PendingCloses
+     *
+     * The number of outstanding pending close requests.
+     *
+     * @see com.tangosol.net.messaging.Connection#getPendingCloses
+     */
+    private volatile int __m_PendingCloses;
+
     /**
      * Property PingLastMillis
      *
@@ -515,8 +524,10 @@ public class Connection
         {
         // import Component.Util.Daemon.QueueProcessor.Service.Peer as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
         
-        if (isOpen())
+        if (isOpen() && getPendingCloses() < MAX_PENDING)
             {
+            setPendingCloses(getPendingCloses() + 1);
+
             com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) getConnectionManager();
             if (Thread.currentThread() == manager.getThread())
                 {
@@ -1026,7 +1037,17 @@ public class Connection
         {
         return __m_PeerId;
         }
-    
+
+    // Accessor for the property "PendingCloses"
+    /**
+     * Getter for property PendingCloses.<p>
+     * The number of outstanding pending close requests.
+     */
+    public int getPendingCloses()
+    {
+        return __m_PendingCloses;
+    }
+
     // Accessor for the property "PingLastMillis"
     /**
      * Getter for property PingLastMillis.<p>
@@ -1665,7 +1686,17 @@ public class Connection
         {
         __m_PeerId = uuid;
         }
-    
+
+    // Accessor for the property "PendingCloses"
+    /**
+     * Setter for property PendingCloses.<p>
+     * The number of outstanding pending close requests.
+     */
+    public void setPendingCloses(int nCloses)
+        {
+        __m_PendingCloses = nCloses;
+        }
+
     // Accessor for the property "PingLastMillis"
     /**
      * Setter for property PingLastMillis.<p>
