@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -496,8 +496,9 @@ public class SubSet<E>
                 }
 
             // if the percentage of removed is high enough (25% threshold)
-            // switch to "retained"
-            if (cOrig > 64 && (cRemove + cRemoved) > (cOrig >>> 2))
+            // or the passed collection is chained,  switch to "retained"
+            if (!(col instanceof ChainedCollection<?>) &&
+                cOrig > 64 && (cRemove + cRemoved) > (cOrig >>> 2))
                 {
                 return ensureRetained().removeAll(col);
                 }
@@ -530,15 +531,16 @@ public class SubSet<E>
         // contains implementation is expected, i.e. col implements Set
 
         Set setMod  = m_setMod;
-        int cPassed = col.size();
 
         if (m_fRetained)
             {
             setMod = ensureRetained();
 
             int cPrevSize = setMod.size();
-            if (cPrevSize >= cPassed * 2)
+            if (col instanceof ChainedCollection<?> || cPrevSize >= col.size() * 2)
                 {
+                // moving to a partitioned index makes iterating over the passed
+                // collection always faster if it's a chained collection; or:
                 // as the original set is at least twice the size of the passed
                 // set it is cheaper to create a new retained set than remove
                 // from the original
@@ -573,7 +575,9 @@ public class SubSet<E>
             }
 
         // optimization: decide on the cheaper walk (original or passed)
-        if (cOrig >= cPassed)
+        // as moving to a partitioned index makes iterating over the passed
+        // collection always faster
+        if (col instanceof ChainedCollection<?> || cOrig > col.size())
             {
             retainAllInternal(col, setOrig, setRemoved);
             }
