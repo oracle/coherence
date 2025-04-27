@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -637,9 +637,10 @@ public abstract class Daemon
                     m_nState = STATE_STOPPED;
 
                     // release the GuardContext if this Daemon is being guarded
-                    if (isGuarded())
+                    Guardian.GuardContext ctx = getContext();
+                    if (ctx != null)
                         {
-                        getContext().release();
+                        ctx.release();
                         GuardSupport.setThreadContext(null);
                         }
                     }

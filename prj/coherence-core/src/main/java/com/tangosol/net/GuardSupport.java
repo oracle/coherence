@@ -645,8 +645,11 @@ public class GuardSupport
         public void release()
             {
             Guardable guardable = getGuardable();
-            guardable.setContext(null);
-            GuardSupport.this.remove(guardable);
+            if (guardable != null)
+                {
+                guardable.setContext(null);
+                GuardSupport.this.remove(guardable);
+                }
             }
 
         /**
