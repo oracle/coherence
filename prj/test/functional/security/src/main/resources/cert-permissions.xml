@@ -1,0 +1,50 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<permissions>
+   <grant>
+      <principal>
+         <class>javax.security.auth.x500.X500Principal</class>
+         <name>CN=member-1</name>
+      </principal>
+      <permission>
+         <target>*</target>
+         <action>all</action>
+      </permission>
+   </grant>
+   <grant>
+      <principal>
+         <class>javax.security.auth.x500.X500Principal</class>
+         <name>CN=member-2</name>
+      </principal>
+      <permission>
+         <target>*</target>
+         <action>all</action>
+      </permission>
+   </grant>
+   <grant>
+      <principal>
+         <class>javax.security.auth.x500.X500Principal</class>
+         <name>CN=member-3</name>
+      </principal>
+      <permission>
+         <target>*</target>
+         <action>all</action>
+      </permission>
+   </grant>
+   <deny>
+      <principal>
+         <class>javax.security.auth.x500.X500Principal</class>
+         <name>CN=member-4</name>
+      </principal>
+      <permission>
+         <target>*</target>
+         <action>all</action>
+      </permission>
+   </deny>
+</permissions>

@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.Principal;
 import java.security.PrivateKey;
 
 import java.security.cert.Certificate;
@@ -62,8 +63,8 @@ import javax.security.auth.x500.X500PrivateCredential;
 *     };
 *   </pre>
 *
-* Note: this class is intentionally made completely autonomous, capable to
-* operate without a presence of any other tangosol classes.
+* Note: this class is intentionally made completely autonomous, capable of
+* operating without the presence of any other Coherence classes.
 * <p>
 * Note: the reason we cannot just use a keystore module supplied by Sun
 * ("com.sun.security.auth.module.KeyStoreLoginModule") is an
@@ -196,7 +197,7 @@ public class KeystoreLogin
                     {
                     inStore.close();
                     }
-                catch (IOException eIgnore) {}
+                catch (IOException ignored) {}
                 }
             }
 
@@ -310,7 +311,7 @@ public class KeystoreLogin
                 subject.getPrivateCredentials().clear();
                 }
             }
-        catch (NullPointerException e) {}
+        catch (NullPointerException ignored) {}
 
         return true;
         }
@@ -326,6 +327,7 @@ public class KeystoreLogin
     *
     * @throws GeneralSecurityException if the validation fails
     */
+    @SuppressWarnings("PatternVariableCanBeUsed")
     protected void validate(String sName, char[] acPwd)
             throws GeneralSecurityException
         {
@@ -343,7 +345,7 @@ public class KeystoreLogin
                 {
                 // follow the com.sun.security.auth.module.KeyStoreLoginModule process
                 X509Certificate certX509  = (X509Certificate) cert;
-                X500Principal   principal = new X500Principal(certX509.getIssuerDN().getName());
+                X500Principal   principal = certX509.getSubjectX500Principal();
 
                 CertificateFactory factory  = CertificateFactory.getInstance("X.509");
                 CertPath           certPath = factory.generateCertPath(Arrays.asList(acert));
@@ -388,17 +390,17 @@ public class KeystoreLogin
     /**
     * The set of not-yet-committed Principals.
     */
-    private Set m_setPrincipals = new HashSet();
+    private final Set<Principal> m_setPrincipals = new HashSet<>();
 
     /**
     * The set of not-yet-committed PublicCredentials.
     */
-    private Set m_setPublicCreds = new HashSet();
+    private final Set<Object> m_setPublicCreds = new HashSet<>();
 
     /**
     * The set of not-yet-committed PrivateCredentials.
     */
-    private Set m_setPrivateCreds = new HashSet();
+    private final Set<Object> m_setPrivateCreds = new HashSet<>();
 
     /**
     * The KeyStore.
