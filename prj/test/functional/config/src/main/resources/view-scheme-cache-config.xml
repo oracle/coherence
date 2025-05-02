@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -66,7 +66,6 @@
   <caching-schemes>
     <view-scheme>
       <scheme-name>view-filter</scheme-name>
-      <service-name>view-filter</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -81,7 +80,6 @@
 
     <view-scheme>
       <scheme-name>view-filter-with-params</scheme-name>
-      <service-name>view-filter-with-params</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -120,7 +118,6 @@
 
     <view-scheme>
       <scheme-name>view-transformer</scheme-name>
-      <service-name>view-transformer</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -135,7 +132,6 @@
 
     <view-scheme>
       <scheme-name>view-transformer-with-params</scheme-name>
-      <service-name>view-transformer-with-params</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -156,7 +152,6 @@
 
     <view-scheme>
       <scheme-name>view-read-only</scheme-name>
-      <service-name>view-read-only</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -167,7 +162,6 @@
 
     <view-scheme>
       <scheme-name>view-keys-only</scheme-name>
-      <service-name>view-keys-only</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -178,7 +172,6 @@
 
     <view-scheme>
       <scheme-name>view-reconnect-interval</scheme-name>
-      <service-name>view-reconnect-interval</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -189,7 +182,6 @@
 
     <view-scheme>
       <scheme-name>view-reconnect-interval2</scheme-name>
-      <service-name>view-reconnect-interval2</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -200,7 +192,6 @@
 
     <view-scheme>
       <scheme-name>view-with-listener</scheme-name>
-      <service-name>view-with-listener</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>
@@ -215,7 +206,6 @@
 
     <view-scheme>
       <scheme-name>view-with-macro</scheme-name>
-      <service-name>view-with-macro</service-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>distributed</scheme-ref>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -52,6 +52,11 @@ descriptor which is customized for CacheMBeanTests
     <cache-mapping>
       <cache-name>readwriteoverflow-*</cache-name>
       <scheme-name>read-write-overflow</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>view-2</cache-name>
+      <scheme-name>view-scheme2</scheme-name>
     </cache-mapping>
 
     <cache-mapping>
@@ -192,7 +197,16 @@ descriptor which is customized for CacheMBeanTests
 
     <view-scheme>
       <scheme-name>view-scheme</scheme-name>
-      <service-name>DistributedCache</service-name>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>example-distributed</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+      <reconnect-interval>123</reconnect-interval>
+    </view-scheme>
+
+    <view-scheme>
+      <scheme-name>view-scheme2</scheme-name>
       <back-scheme>
         <distributed-scheme>
           <scheme-ref>example-distributed</scheme-ref>

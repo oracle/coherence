@@ -1260,7 +1260,6 @@
             <xsd:sequence>
                 <xsd:element ref="scheme-name" minOccurs="0" />
                 <xsd:element ref="scheme-ref" minOccurs="0" />
-                <xsd:element ref="service-name" minOccurs="0" />
                 <xsd:element ref="back-scheme" minOccurs="0" />
                 <xsd:element ref="view-filter" minOccurs="0"/>
                 <xsd:element ref="listener" minOccurs="0" />

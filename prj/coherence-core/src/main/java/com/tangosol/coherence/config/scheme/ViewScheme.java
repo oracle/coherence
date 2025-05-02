@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -100,6 +100,14 @@ public class ViewScheme
         return ViewCacheService.KEY_CLUSTER_REGISTRY + '-' + super.getScopedServiceName();
         }
 
+    @Override
+    protected String getDefaultServiceName()
+        {
+        // ViewCacheService is backed by another service.
+        // Use the scheme name as its service name.
+        return getSchemeName();
+        }
+
     // ----- ServiceBuilder interface ---------------------------------------
 
     @Override
@@ -132,6 +140,7 @@ public class ViewScheme
 
         service = new ViewCacheService(serviceBack);
         service.setDependencies(deps);
+        ((ViewCacheService) service).setName(getScopedServiceName());
 
         store.putService(service, sServiceName, getServiceType());
 

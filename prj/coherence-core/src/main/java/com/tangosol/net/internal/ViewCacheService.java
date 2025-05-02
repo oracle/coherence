@@ -1,15 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.internal;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.CacheMapping;
 import com.tangosol.coherence.config.ResolvableParameterList;
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.scheme.CachingScheme;
+import com.tangosol.coherence.config.scheme.ViewScheme;
 
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
@@ -18,6 +21,7 @@ import com.tangosol.internal.net.service.DefaultViewDependencies;
 
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -44,6 +48,8 @@ import com.tangosol.util.NullImplementation;
 import com.tangosol.util.RegistrationBehavior;
 import com.tangosol.util.SegmentedConcurrentMap;
 import com.tangosol.util.ValueExtractor;
+
+import java.lang.reflect.Method;
 
 import java.util.Enumeration;
 import java.util.function.Supplier;
@@ -72,6 +78,24 @@ public class ViewCacheService
     public ViewCacheService(CacheService service)
         {
         super(service);
+        }
+
+    static
+        {
+        Class<?> clzSafeCluster;
+        try
+            {
+            clzSafeCluster = Class.forName("com.tangosol.coherence.component.util.SafeCluster",
+                    false,
+                    ViewScheme.class.getClassLoader());
+            SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE =
+                    clzSafeCluster.getDeclaredMethod("getScopedServiceStore");
+
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e, "ViewCacheService initialization failed");
+            }
         }
 
     // ----- CacheService methods -------------------------------------------
@@ -119,6 +143,16 @@ public class ViewCacheService
         if (cacheRemoved != null)
             {
             cacheRemoved.destroy();
+            }
+
+        Cluster cluster = cache.getService().getCluster();
+        try {
+            ScopedServiceReferenceStore store = (ScopedServiceReferenceStore) SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE.invoke(cluster);
+            store.remove(getName());
+            }
+        catch (Exception e)
+            {
+            Logger.warn("Destroy cache: " + cache.getCacheName() + " got exception: " + e);
             }
         }
 
@@ -200,6 +234,17 @@ public class ViewCacheService
                 ", backService=" + getCacheService() + '}';
         }
 
+    // ----- accessors ------------------------------------------------------
+
+    public String getName()
+        {
+        return m_sName;
+        }
+
+    public void setName(String sName)
+        {
+        m_sName = sName;
+        }
 
     // ----- helpers --------------------------------------------------------
 
@@ -545,4 +590,18 @@ public class ViewCacheService
      * The dependencies that define how to configure returned views.
      */
     protected DefaultViewDependencies m_dependencies;
+
+    /**
+     * ViewCacheService name.
+     *
+     * @since 12.2.1.4.26
+     */
+    private String m_sName;
+
+    /**
+     * Method reference to obtain SafeCluster ScopedServiceReferenceStore.
+     *
+     * @since 12.2.1.4.26
+     */
+    private static final Method SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE;
     }

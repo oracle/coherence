@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,6 +37,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * Test Cache MBeans registered by the ConfigurableCacheFactory (ECCF or DCCF).
@@ -255,7 +257,8 @@ public class CacheMBeanTests
         {
         try
             {
-            NamedCache cache = getNamedCache(sCacheName);
+            NamedCache cache  = getNamedCache(sCacheName);
+            NamedCache cache2 = getNamedCache("view-2");
             Map<Integer, String> map = new HashMap<Integer, String>();
 
             for (int i = 0; i < cCacheSize; i++)
@@ -263,6 +266,7 @@ public class CacheMBeanTests
                 map.put(i, "Val" + i);
                 }
             cache.putAll(map);
+            cache2.putAll(map);
 
             // connect to local MBeanServer to retrieve info for the MBean
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
@@ -284,14 +288,24 @@ public class CacheMBeanTests
                 assertEquals(123L, interval);
                 }
 
-
-	    SafeCluster                 safeCluster = (SafeCluster) cache.getService().getCluster();
+            SafeCluster                 safeCluster = (SafeCluster) cache.getService().getCluster();
             ScopedServiceReferenceStore store       = safeCluster.getScopedServiceStore();
-            Service                     service     = store.getService(ViewCacheService.KEY_CLUSTER_REGISTRY + "-DistributedCache");
+            String                      sService    = ViewCacheService.KEY_CLUSTER_REGISTRY + "-view-scheme";
+            Service                     service     = store.getService(sService);
             ((ViewCacheService)service).destroyCache(cache);
 
             setObjectNames = serverJMX.queryNames(nameMBean, null);
             assertTrue(setObjectNames.isEmpty());
+            assertNull(store.getService(sService));
+
+            sName = "Coherence:name=" + cache2.getCacheName()
+                    + ",nodeId=1,service=" + cache2.getCacheService().getInfo().getServiceName()
+                    + "," + Registry.VIEW_TYPE;
+            nameMBean      = new ObjectName(sName);
+            setObjectNames = serverJMX.queryNames(nameMBean, null);
+            sService       = ViewCacheService.KEY_CLUSTER_REGISTRY + "-view-scheme2";
+            assertEquals(1, setObjectNames.size());
+            assertNotNull(store.getService(sService));
             }
         catch (Exception e)
             {
