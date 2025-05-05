@@ -121,7 +121,6 @@ public class TracingIT
      * will result in no spans being captured.
      */
     @Test
-    @Ignore("COH-32112")
     public void testTraceNotCapturedWhenTraceIsZero()
         {
         runTest(this::assertNoSpans, "tracing-enabled-with-zero.xml");
@@ -162,7 +161,12 @@ public class TracingIT
                                 }
 
                             Logger.finest("Captured spans: " + spans);
-                            return true;
+
+                            if (spans.stream().anyMatch(span1 -> span1.getName().equals("test")))
+                                {
+                                return true;
+                                }
+                            return false;
                             },
                         is(true));
                 }, "tracing-enabled-with-zero.xml");
@@ -173,7 +177,6 @@ public class TracingIT
      * and an outer span is present, allows tracing spans to be collected.
      */
     @Test
-    @Ignore("COH-32112")
     public void testNoTraceCapturedWhenExplicitAndNoOuterSpanAndTraceIsZero()
         {
         runTest(() ->

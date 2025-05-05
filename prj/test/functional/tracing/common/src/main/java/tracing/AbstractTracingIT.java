@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 public class AbstractTracingIT
         extends AbstractFunctionalTest
     {
+    // ----- constructors ---------------------------------------------------
+
+    public AbstractTracingIT()
+        {
+        super("cache-config.xml");
+        }
+
+
     // ----- test lifecycle ---------------------------------------------
 
     /**
@@ -101,8 +109,7 @@ public class AbstractTracingIT
             props = new Properties();
             }
 
-        if (!props.containsKey("coherence.distributed.localstorage")
-            && !props.containsKey("coherence.distributed.localstorage"))
+        if (!props.containsKey("coherence.distributed.localstorage"))
             {
             props.setProperty("coherence.distributed.localstorage", "true");
             }
@@ -111,6 +118,7 @@ public class AbstractTracingIT
             props.setProperty("coherence.override", sOverrideXml);
             }
         props.setProperty("test.name", m_testName.getMethodName());
+        props.setProperty("coherence.cacheconfig", "cache-config.xml");
 
         m_origProperties = (Properties) System.getProperties().clone();
 
