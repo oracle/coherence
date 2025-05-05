@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<!--
+  This report shows gRPC Proxy metrics for V0 Proxy Clients.
+-->
+<report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns="http://xmlns.oracle.com/coherence/coherence-report-config"
+               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-report-config coherence-report-config.xsd">
+
+    <report>
+        <file-name>{date}-report-grpc-proxy-v0.txt</file-name>
+        <delim>{tab}</delim>
+
+        <query>
+            <pattern>Coherence:type=GrpcNamedCacheProxy,*</pattern>
+            <filter-ref>equals</filter-ref>
+        </query>
+
+        <row>
+            <column id="BatchCounter">
+                <type>global</type>
+                <name>{batch-counter}</name>
+                <header>Batch Counter</header>
+            </column>
+
+            <column id="ReportTime">
+                <type>global</type>
+                <name>{report-time}</name>
+                <header>Report Time</header>
+            </column>
+
+            <column id="RefreshTime">
+                <name>RefreshTime</name>
+            </column>
+
+            <column id="NodeId">
+                <type>key</type>
+                <name>nodeId</name>
+                <header>Node Id</header>
+            </column>
+
+            <column id="NodeTS">
+                <type>attribute</type>
+                <name>timestamp</name>
+                <query>
+                    <pattern>Coherence:type=Node,nodeId={NodeId}</pattern>
+                </query>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="DaemonCount">
+                <name>DaemonCount</name>
+            </column>
+
+            <column id="TotalMessagesReceivedCount">
+                <name>MessagesReceivedCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalResponsesSentCount">
+                <name>ResponsesSentCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalErrorRequestCount">
+                <name>ErrorRequestCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TotalSuccessfulRequestCount">
+                <name>SuccessfulRequestCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="TaskCount">
+                <name>TotalTaskCount</name>
+                <hidden>true</hidden>
+            </column>
+
+            <column id="MessagesReceivedCount">
+                <type>function</type>
+                <header>Messages Received</header>
+                <column-ref>TotalMessagesReceivedCount</column-ref>
+                <function-name>delta</function-name>
+                <params>
+                    <column-ref>NodeId</column-ref>
+                    <column-ref>NodeTS</column-ref>
+                </params>
+            </column>
+
+            <column id="MessageDurationMin">
+                <name>MessageDurationMin</name>
+            </column>
+
+            <column id="MessageDurationMean">
+                <name>MessageDurationMean</name>
+            </column>
+
+            <column id="MessageDurationMax">
+                <name>MessageDurationMax</name>
+            </column>
+
+            <column id="MessageDuration95thPercentile">
+                <name>MessageDuration95thPercentile</name>
+            </column>
+
+            <column id="MessagesReceivedMeanRate">
+                <name>MessagesReceivedMeanRate</name>
+            </column>
+
+            <column id="MessagesReceivedOneMinuteRate">
+                <name>MessagesReceivedOneMinuteRate</name>
+            </column>
+
+            <column id="MessagesReceivedFiveMinuteRate">
+                <name>MessagesReceivedFiveMinuteRate</name>
+            </column>
+
+            <column id="MessagesReceivedFifteenMinuteRate">
+                <name>MessagesReceivedFifteenMinuteRate</name>
+            </column>
+
+            <column id="ResponsesSentCount">
+                <type>function</type>
+                <header>Responses Sent</header>
+                <column-ref>TotalResponsesSentCount</column-ref>
+                <function-name>delta</function-name>
+                <params>
+                    <column-ref>NodeId</column-ref>
+                    <column-ref>NodeTS</column-ref>
+                </params>
+            </column>
+
+            <column id="RequestDurationMin">
+                <name>RequestDurationMin</name>
+            </column>
+
+            <column id="RequestDurationMean">
+                <name>RequestDurationMean</name>
+            </column>
+
+            <column id="RequestDurationMax">
+                <name>RequestDurationMax</name>
+            </column>
+
+            <column id="RequestDuration75thPercentile">
+                <name>RequestDuration75thPercentile</name>
+            </column>
+
+            <column id="ResponsesSentMeanRate">
+                <name>ResponsesSentMeanRate</name>
+            </column>
+
+            <column id="ResponsesSentOneMinuteRate">
+                <name>ResponsesSentOneMinuteRate</name>
+            </column>
+
+            <column id="ResponsesSentFiveMinuteRate">
+                <name>ResponsesSentFiveMinuteRate</name>
+            </column>
+
+            <column id="ResponsesSentFifteenMinuteRate">
+                <name>ResponsesSentFifteenMinuteRate</name>
+            </column>
+
+            <column id="SuccessfulRequestCount">
+                <type>function</type>
+                <header>Successful Requests</header>
+                <column-ref>TotalSuccessfulRequestCount</column-ref>
+                <function-name>delta</function-name>
+                <params>
+                    <column-ref>NodeId</column-ref>
+                    <column-ref>NodeTS</column-ref>
+                </params>
+            </column>
+
+            <column id="ErrorRequestCount">
+                <type>function</type>
+                <header>Error Requests</header>
+                <column-ref>TotalErrorRequestCount</column-ref>
+                <function-name>delta</function-name>
+                <params>
+                    <column-ref>NodeId</column-ref>
+                    <column-ref>NodeTS</column-ref>
+                </params>
+            </column>
+
+            <column id="SuccessfulRequestMeanRate">
+                <name>SuccessfulRequestMeanRate</name>
+            </column>
+
+            <column id="SuccessfulRequestOneMinuteRate">
+                <name>SuccessfulRequestOneMinuteRate</name>
+            </column>
+
+            <column id="SuccessfulRequestFiveMinuteRate">
+                <name>SuccessfulRequestFiveMinuteRate</name>
+            </column>
+
+            <column id="SuccessfulRequestFifteenMinuteRate">
+                <name>SuccessfulRequestFifteenMinuteRate</name>
+            </column>
+
+            <column id="TaskCount">
+                <type>function</type>
+                <header>Task Count</header>
+                <column-ref>TotalTaskCount</column-ref>
+                <function-name>delta</function-name>
+                <params>
+                    <column-ref>NodeId</column-ref>
+                    <column-ref>NodeTS</column-ref>
+                </params>
+            </column>
+
+            <column id="TaskBacklog">
+                <name>TaskBacklog</name>
+            </column>
+
+            <column id="MaxTaskBacklog">
+                <name>MaxTaskBacklog</name>
+            </column>
+
+            <column id="TaskActiveMillis">
+                <name>TaskActiveMillis</name>
+            </column>
+
+            <column id="HungTaskCount">
+                <name>HungTaskCount</name>
+            </column>
+
+            <column id="HungTaskDuration">
+                <name>HungTaskDuration</name>
+            </column>
+        </row>
+    </report>
+</report-config>
