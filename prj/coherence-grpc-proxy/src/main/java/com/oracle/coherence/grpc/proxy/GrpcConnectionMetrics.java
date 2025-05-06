@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -170,7 +170,7 @@ public class GrpcConnectionMetrics
             {
             ConnectionMetrics mBean    = evt.getOldValue();
             Registry          registry = m_registry.get();
-            String            sName    = registry.ensureGlobalName("type=GrpcConnection,uid=" + mBean.getUID());
+            String            sName    = registry.ensureGlobalName(MBEAN_PREFIX + mBean.getUID());
             if (registry.isRegistered(sName))
                 {
                 registry.unregister(sName);

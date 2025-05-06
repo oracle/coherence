@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc.proxy;
@@ -144,7 +144,8 @@ public class GrpcMetricsInterceptor
         public void close(Status status, Metadata responseHeaders)
             {
             super.close(status, responseHeaders);
-            if (status.getCode() == Status.Code.OK)
+            Status.Code code = status.getCode();
+            if (code == Status.Code.OK || code == Status.Code.CANCELLED)
                 {
                 f_metrics.markSuccess();
                 }
