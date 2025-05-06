@@ -19065,6 +19065,15 @@ public abstract class PartitionedService
                 boolean fStores = input.readBoolean();
                 if (fStores)
                     {
+                    if (service.getClusterMemberSet().getServiceVersionInt(getFromMember().getId()) == 0 &&
+                        !service.getClusterMemberSet().isServiceJoined(getFromMember().getId()))
+                        {
+                        // rare case where an OwnershipResponse message can arrive after
+                        // a member has departed; simply return to avoid terminating the service,
+                        // the message will be ignored anyway
+                        return;
+                        }
+
                     boolean               fStoresCompat = service.isVersionCompatible(getFromMember(), OwnershipResponse::isLazyOpenCompatible);
                     int                   cStores       = input.readInt();
                     PersistentStoreInfo[] aInfo         = new PersistentStoreInfo[cStores];
