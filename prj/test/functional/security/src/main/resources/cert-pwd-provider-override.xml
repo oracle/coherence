@@ -1,0 +1,64 @@
+<?xml version='1.0'?>
+<!--
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+
+    <cluster-config>
+        <storage-authorizers>
+          <storage-authorizer id="capture">
+            <class-name>security.CapturingAuthorizer</class-name>
+          </storage-authorizer>
+        </storage-authorizers>
+
+        <password-providers>
+            <password-provider id="trust-pass">
+              <class-name>com.tangosol.net.URLPasswordProvider</class-name>
+              <init-params>
+                <init-param>
+                  <param-type>String</param-type>
+                  <param-value system-property="coherence.security.truststore.password.file">not-set</param-value>
+                </init-param>
+              </init-params>
+            </password-provider>
+        </password-providers>
+    </cluster-config>
+
+    <security-config>
+        <enabled system-property="coherence.security">true</enabled>
+        <login-module-name>Coherence</login-module-name>
+        <access-controller>
+            <class-name>com.tangosol.net.security.DefaultController</class-name>
+            <init-params>
+                <init-param id="1">
+                    <param-type>java.io.File</param-type>
+                    <param-value system-property="coherence.security.truststore"/>
+                </init-param>
+                <init-param id="2">
+                    <param-type>java.io.File</param-type>
+                    <param-value system-property="coherence.security.permissions"/>
+                </init-param>
+                <init-param id="3">
+                    <param-type>java.lang.Boolean</param-type>
+                    <param-value system-property="coherence.security.log">true</param-value>
+                </init-param>
+                <init-param id="4">
+                    <param-type>java.lang.String</param-type>
+                    <param-value system-property="coherence.security.truststore.password"/>
+                </init-param>
+            </init-params>
+            <password-provider>
+                <name>trust-pass</name>
+            </password-provider>
+        </access-controller>
+        <callback-handler>
+            <class-name>security.CertAliasCallBackHandler</class-name>
+        </callback-handler>
+    </security-config>
+</coherence>

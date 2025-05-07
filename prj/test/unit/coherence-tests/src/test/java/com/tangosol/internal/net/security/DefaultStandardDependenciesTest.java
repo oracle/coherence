@@ -1,12 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.security;
 
+import com.tangosol.internal.net.cluster.DefaultClusterDependencies;
+
 import com.tangosol.util.Resources;
+
 import org.junit.Test;
 
 import com.tangosol.run.xml.XmlDocument;
@@ -81,7 +84,7 @@ public class DefaultStandardDependenciesTest
         XmlDocument xml = XmlHelper.loadXml(xmlString);
 
         DefaultStandardDependencies deps =
-            LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies());
+            LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies(), new DefaultClusterDependencies());
 
         assertFalse(deps.isEnabled());
         assertEquals(deps.getLoginModuleName(), "Coherence");
@@ -128,7 +131,7 @@ public class DefaultStandardDependenciesTest
         XmlDocument xml = XmlHelper.loadXml(xmlString);
 
         DefaultStandardDependencies deps =
-            LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies());
+            LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies(), new DefaultClusterDependencies());
 
         assertTrue(deps.isEnabled());
         assertEquals(deps.getLoginModuleName(), "Coherence");
@@ -192,7 +195,7 @@ public class DefaultStandardDependenciesTest
 
         XmlDocument xml = XmlHelper.loadXml(xmlString);
 
-        DefaultStandardDependencies deps = LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies());
+        DefaultStandardDependencies deps = LegacyXmlStandardHelper.fromXml(xml, new DefaultStandardDependencies(), new DefaultClusterDependencies());
 
         assertTrue(deps.isEnabled());
         assertEquals(deps.getLoginModuleName(), "Coherence");

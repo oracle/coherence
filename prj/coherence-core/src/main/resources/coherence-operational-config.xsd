@@ -1498,8 +1498,7 @@
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element ref="class-name" minOccurs="0" />
-                <xsd:element ref="init-params" minOccurs="0" />
+                <xsd:group ref="instance" />
                 <xsd:element ref="password-provider" minOccurs="0" />
             </xsd:sequence>
         </xsd:complexType>
@@ -1519,8 +1518,7 @@
         </xsd:annotation>
         <xsd:complexType>
             <xsd:sequence>
-                <xsd:element ref="class-name" minOccurs="0" />
-                <xsd:element ref="init-params" minOccurs="0" />
+                <xsd:group ref="instance" />
             </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
