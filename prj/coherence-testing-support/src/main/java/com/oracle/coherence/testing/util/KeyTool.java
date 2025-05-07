@@ -22,6 +22,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 
+import java.io.PrintWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 
@@ -125,7 +126,7 @@ public class KeyTool
                                 "-key", fileKey.getAbsolutePath(),
                                 "-out", fileCert.getAbsolutePath()));
 
-        runKeytool(Arguments.of("-import", "-storepass", sStorePass, "-noprompt", "-trustcacerts",
+        runKeytool(Arguments.of("-import", "-storepass", sStorePass, "-keypass", sStorePass, "-noprompt", "-trustcacerts",
             "-alias", sCN, "-file", fileCert.getAbsolutePath(),
             "-keystore", fileKeystore.getAbsolutePath(),
             "-deststoretype", sStoreType));
@@ -146,6 +147,7 @@ public class KeyTool
         File   fileKeystore = new File(fileCerts, sName + ".jks");
         File   fileCertsP12 = new File(fileCerts, sName + "-certs.p12");
         File   fileCertsJKS = new File(fileCerts, sName + "-certs.jks");
+        File   filePass     = new File(fileCerts, sName + "-pass.txt");
         String sKeyPass     = "pa55w0rd";  // For PKCS12 key stores, both passwords must be the same
         String sStorePass   = "pa55w0rd";
 
@@ -160,6 +162,12 @@ public class KeyTool
         Files.deleteIfExists(fileKeystore.toPath());
         Files.deleteIfExists(fileCertsP12.toPath());
         Files.deleteIfExists(fileCertsJKS.toPath());
+        Files.deleteIfExists(filePass.toPath());
+
+        try (PrintWriter out = new PrintWriter(filePass))
+            {
+            out.write(sStorePass);
+            }
 
         for (KeyAndCert source : sources)
             {
@@ -187,7 +195,7 @@ public class KeyTool
             ));
             }
 
-        return new KeyAndCertSet(map, fileKeystore, fileP12, fileCertsJKS, fileCertsP12, sKeyPass, sStorePass);
+        return new KeyAndCertSet(map, fileKeystore, fileP12, fileCertsJKS, fileCertsP12, sKeyPass, sStorePass, filePass);
         }
 
     /**
@@ -376,7 +384,12 @@ public class KeyTool
         runOpenSSL(arguments);
         }
 
-    private static void runKeytool(Arguments arguments)
+    /**
+     * Run the Java keytool command.
+     *
+     * @param arguments the command line arguments
+     */
+    public static void runKeytool(Arguments arguments)
         {
         try (Application application = LocalPlatform.get().launch(SimpleApplication.class,
                                                                   Executable.named(KEY_TOOL),
@@ -403,7 +416,7 @@ public class KeyTool
     public static class KeyAndCertSet
         {
         public KeyAndCertSet(Map<String, KeyAndCert> map, File fileKeystore, File fileP12,
-                File fileCerts, File fileCertsP12, String sKeyPass, String sStorePass)
+                File fileCerts, File fileCertsP12, String sKeyPass, String sStorePass, File filePass)
             {
             m_map          = map;
             m_fileKeystore = fileKeystore;
@@ -412,6 +425,7 @@ public class KeyTool
             m_fileCertsP12 = fileCertsP12;
             m_sKeyPass     = sKeyPass;
             m_sStorePass   = sStorePass;
+            m_filePass     = filePass;
             }
 
         /**
@@ -546,6 +560,16 @@ public class KeyTool
             return m_fileCerts.toURI().toASCIIString();
             }
 
+        /**
+         * Return the file containing the password for the key store and any private keys.
+         *
+         * @return the file containing the password for the key store and any private keys
+         */
+        public File getPasswordFile()
+            {
+            return m_filePass;
+            }
+
         // ----- data members ---------------------------------------------------
 
         /**
@@ -582,6 +606,11 @@ public class KeyTool
          * The key store password.
          */
         private final String m_sStorePass;
+
+        /**
+         * The file containing the password.
+         */
+        private final File m_filePass;
         }
 
     // ----- inner class: KeyAndCert ----------------------------------------

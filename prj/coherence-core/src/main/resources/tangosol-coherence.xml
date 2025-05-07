@@ -965,17 +965,20 @@ to find specific notes on changes suggested for production use.
         <ssl>
           <protocol>TLS</protocol>
           <identity-manager>
+            <algorithm>${coherence.security.keystore.algorithm ${coherence.security.algorithm}}</algorithm>
             <key-store>
               <url system-property="coherence.security.keystore">file:keystore.jks</url>
               <password system-property="coherence.security.password"/>
+              <type>${coherence.security.keystore.type}</type>
             </key-store>
             <password>${coherence.security.key.password ${coherence.security.password}}</password>
           </identity-manager>
           <trust-manager>
-            <algorithm system-property="coherence.security.algorithm">PeerX509</algorithm>
+            <algorithm>${coherence.security.truststore.algorithm ${coherence.security.algorithm PeerX509}}</algorithm>
             <key-store>
               <url>${coherence.security.truststore ${coherence.security.keystore file:keystore.jks}}</url>
               <password>${coherence.security.truststore.password ${coherence.security.password}}</password>
+              <type>${coherence.security.truststore.type ${coherence.security.keystore.type}}</type>
             </key-store>
           </trust-manager>
           <protocol-versions usage="black-list">

@@ -84,7 +84,7 @@ public class CertSecuritySingleStoreTests
                                 SystemProperty.of("coherence.storage.authorizer", "capture"),
                                 SystemProperty.of("java.security.auth.login.config", s_urlLogin.getFile()),
                                 SystemProperty.of("coherence.security.config", "cert-security-config.xml"),
-                                SystemProperty.of("coherence.security.keystore.password", s_keyAndCertStorage1.storePasswordString()),
+                                SystemProperty.of("coherence.security.login.password", s_keyAndCertStorage1.storePasswordString()),
                                 Logging.atMax(),
                                 IPv4Preferred.autoDetect(),
                                 s_testLogs);
@@ -100,7 +100,7 @@ public class CertSecuritySingleStoreTests
             System.setProperty("java.security.auth.login.config", s_urlLogin.getFile());
             System.setProperty("coherence.security.config", "cert-security-config.xml");
             System.setProperty("coherence.security.keystore", s_keyAndCertStorage1.getP12Keystore().getAbsolutePath());
-            System.setProperty("coherence.security.keystore.password", s_keyAndCertStorage1.storePasswordString());
+            System.setProperty("coherence.security.login.password", s_keyAndCertStorage1.storePasswordString());
             System.setProperty("coherence.security.truststore", s_keyAndCertSet.getP12Certs().getAbsolutePath());
             System.setProperty("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString());
             System.setProperty("coherence.security.permissions", s_urlPerm.getFile());
@@ -118,6 +118,9 @@ public class CertSecuritySingleStoreTests
                             LocalStorage.enabled(),
                             MemberName.withDiscriminator("member"),
                             SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                            SystemProperty.of("coherence.security.login.password", s_keyAndCertSet.storePasswordString()),
+                            SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                            SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                             SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
                             DisplayName.of("storage"),
                             RoleName.of("storage"),
@@ -146,14 +149,16 @@ public class CertSecuritySingleStoreTests
         {
         KeyTool.KeyAndCert keyAndCert = s_keyAndCertAllowed;
 
-        OptionsByType options = OptionsByType.of(s_commonOptions)
+        OptionsByType options = OptionsByType.of(s_commonOptions.asArray())
                 .addAll(MemberName.of(keyAndCert.getName()),
                         ClassName.of(SecureCoherence.class),
                         LocalStorage.disabled(),
-                        SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        OperationalOverride.of("cert-pwd-provider-override.xml"),
+                        SystemProperty.of("coherence.security.keystore", keyAndCert.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.login.password", keyAndCert.storePasswordString()),
+                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.truststore.password.file", s_keyAndCertSet.getPasswordFile().getAbsolutePath()),
                         SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
-                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Certs().getAbsolutePath()),
-                        SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                         DisplayName.of("shouldJoinClusterWhenInAllowList"),
                         RoleName.of("allowed"));
 
@@ -176,7 +181,10 @@ public class CertSecuritySingleStoreTests
                 .addAll(ClassName.of(SecureCoherence.class),
                         LocalStorage.disabled(),
                         MemberName.of(keyAndCert.getName()),
-                        SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.keystore", keyAndCert.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.login.password", keyAndCert.storePasswordString()),
+                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                         SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
                         DisplayName.of("shouldNotJoinClusterWhenNotInPermissionsFile"),
                         RoleName.of("not-in-permissions"));
@@ -196,7 +204,10 @@ public class CertSecuritySingleStoreTests
                 .addAll(ClassName.of(SecureCoherence.class),
                         LocalStorage.disabled(),
                         MemberName.of(keyAndCert.getName()),
-                        SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.keystore", keyAndCert.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.login.password", keyAndCert.storePasswordString()),
+                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                         SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
                         DisplayName.of("shouldNotJoinClusterWhenInDenyList"),
                         RoleName.of("denied"));
@@ -216,7 +227,10 @@ public class CertSecuritySingleStoreTests
                 .addAll(ClassName.of(SecureCoherence.class),
                         LocalStorage.disabled(),
                         MemberName.of(keyAndCert.getName()),
-                        SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.keystore", keyAndCert.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.login.password", keyAndCert.storePasswordString()),
+                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                         SystemProperty.of("coherence.security.permissions", s_urlPermAll.getFile()),
                         DisplayName.of("shouldNotJoinClusterWhenInOwnAllowListButNotInSeniorsPermissionsFile"),
                         RoleName.of("not-in-permissions"));
@@ -236,7 +250,10 @@ public class CertSecuritySingleStoreTests
                 .addAll(ClassName.of(SecureCoherence.class),
                         LocalStorage.enabled(),
                         MemberName.of(keyAndCert.getName()),
-                        SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.keystore", keyAndCert.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.login.password", keyAndCert.storePasswordString()),
+                        SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                        SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                         SystemProperty.of("coherence.security.permissions", s_urlPermAll.getFile()),
                         DisplayName.of("shouldNotJoinClusterWhenInOwnAllowListButInSeniorsDenyList"),
                         RoleName.of("denied"));
