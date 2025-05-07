@@ -175,7 +175,7 @@ public class LegacyXmlStandardHelper
             {
             return null;
             }
-        if (builder instanceof InstanceBuilder<Object> && ((InstanceBuilder<Object>) builder).isUndefined())
+        if (builder instanceof InstanceBuilder && ((InstanceBuilder<Object>) builder).isUndefined())
             {
             return null;
             }
