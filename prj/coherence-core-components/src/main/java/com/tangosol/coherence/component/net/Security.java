@@ -15,6 +15,8 @@ import com.tangosol.coherence.component.net.security.Standard;
 import com.tangosol.internal.net.security.DefaultSecurityDependencies;
 import com.tangosol.internal.net.security.DefaultStandardDependencies;
 import com.tangosol.internal.net.security.LegacyXmlStandardHelper;
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.ClusterPermission;
 import com.tangosol.net.security.Authorizer;
 import com.tangosol.net.security.DefaultIdentityAsserter;
@@ -280,11 +282,12 @@ public abstract class Security
             deps = new DefaultStandardDependencies();
         
             // internal call equivalent to "CacheFactory.getSecurityConfig();"
-            XmlElement xmlConfig = Coherence.getServiceConfig("$Security");
+            XmlElement          xmlConfig   = Coherence.getServiceConfig("$Security");
+            ClusterDependencies depsCluster = CacheFactory.getCluster().getDependencies();
             if (xmlConfig != null)
                 {
                 // load the security dependencies given the xml config 
-                deps = LegacyXmlStandardHelper.fromXml(xmlConfig, deps);
+                deps = LegacyXmlStandardHelper.fromXml(xmlConfig, deps, depsCluster);
         
                 if (deps.isEnabled())
                     {

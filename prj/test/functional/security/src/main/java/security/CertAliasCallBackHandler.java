@@ -30,7 +30,7 @@ public class CertAliasCallBackHandler
         this.certificateAlias = certificateAlias;
         if (this.certificateAlias == null || this.certificateAlias.isBlank())
             {
-            this.certificateAlias = Config.getProperty("coherence.security.alias");
+            this.certificateAlias = Config.getProperty("coherence.security.login.alias");
             }
         }
 
@@ -53,7 +53,7 @@ public class CertAliasCallBackHandler
                 }
             else if (callback instanceof PasswordCallback)
                 {
-                String creds = Config.getProperty("coherence.security.keystore.password");
+                String creds = Config.getProperty("coherence.security.login.password");
                 ((PasswordCallback) callback).setPassword(creds.toCharArray());
                 }
             else

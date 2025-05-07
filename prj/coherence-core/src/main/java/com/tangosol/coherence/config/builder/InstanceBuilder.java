@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -64,7 +64,7 @@ public class InstanceBuilder<T>
      */
     public InstanceBuilder()
         {
-        m_exprClassName             = new LiteralExpression<String>("undefined");
+        m_exprClassName             = new LiteralExpression<>(UNDEFINED_CLASS_NAME);
         m_listConstructorParameters = new ResolvableParameterList();
         }
 
@@ -76,7 +76,7 @@ public class InstanceBuilder<T>
      */
     public InstanceBuilder(Class<?> clzToRealize, Object... aConstructorParameters)
         {
-        m_exprClassName             = new LiteralExpression<String>(clzToRealize.getName());
+        m_exprClassName             = new LiteralExpression<>(clzToRealize.getName());
         m_listConstructorParameters = new SimpleParameterList(aConstructorParameters);
         }
 
@@ -100,7 +100,7 @@ public class InstanceBuilder<T>
      */
     public InstanceBuilder(String sClassName, Object... aConstructorParameters)
         {
-        m_exprClassName             = new LiteralExpression<String>(sClassName);
+        m_exprClassName             = new LiteralExpression<>(sClassName);
         m_listConstructorParameters = new SimpleParameterList(aConstructorParameters);
         }
 
@@ -115,6 +115,18 @@ public class InstanceBuilder<T>
     public Expression<String> getClassName()
         {
         return m_exprClassName;
+        }
+
+    /**
+     * Return true if the class name is undefined.
+     *
+     * @return  true if the class name is undefined
+     */
+    public boolean isUndefined()
+        {
+        return m_exprClassName == null ||
+                (m_exprClassName instanceof LiteralExpression
+                        && UNDEFINED_CLASS_NAME.equals(m_exprClassName.evaluate(null)));
         }
 
     /**
@@ -275,8 +287,8 @@ public class InstanceBuilder<T>
     @Override
     public void readExternal(DataInput in) throws IOException
         {
-        m_exprClassName             = (Expression<String>) ExternalizableHelper.readObject(in, null);
-        m_listConstructorParameters = (ParameterList) ExternalizableHelper.readObject(in, null);
+        m_exprClassName             = ExternalizableHelper.readObject(in, null);
+        m_listConstructorParameters = ExternalizableHelper.readObject(in, null);
         }
 
     /**
@@ -297,8 +309,8 @@ public class InstanceBuilder<T>
     @Override
     public void readExternal(PofReader reader) throws IOException
         {
-        m_exprClassName             = (Expression<String>) reader.readObject(0);
-        m_listConstructorParameters = (ParameterList) reader.readObject(1);
+        m_exprClassName             = reader.readObject(0);
+        m_listConstructorParameters = reader.readObject(1);
         }
 
     /**
@@ -310,6 +322,13 @@ public class InstanceBuilder<T>
         writer.writeObject(0, m_exprClassName);
         writer.writeObject(1, m_listConstructorParameters);
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * The value of the class name expression if no class name has been set.
+     */
+    public static final String UNDEFINED_CLASS_NAME = "undefined";
 
     // ----- data members ---------------------------------------------------
 
