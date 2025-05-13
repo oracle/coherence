@@ -15,6 +15,7 @@ import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
+import com.oracle.bedrock.runtime.java.profiles.RemoteDebugging;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
@@ -729,6 +730,8 @@ public abstract class AbstractTestInfrastructure
             {
             optionsByType.add(SystemProperty.of(sName, props.getProperty(sName)));
             }
+
+        //optionsByType.add(RemoteDebugging.autoDetect().startSuspended(true));
 
         try
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,7 @@ import jakarta.ws.rs.ext.Provider;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
+
 /**
  * Provider responsible for converting Java collections to a JSON formatted
  * stream.
@@ -42,7 +43,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @Provider
 @Produces(APPLICATION_JSON)
 public class JsonCollectionWriter
-        implements MessageBodyWriter<Object>
+        implements MessageBodyWriter<Collection<?>>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -56,7 +57,7 @@ public class JsonCollectionWriter
     /**
      * Construct a JsonCollectionWriter instance.
      *
-     * @param registry  marshaller registry to use
+     * @param registry marshaller registry to use
      */
     public JsonCollectionWriter(MarshallerRegistry registry)
         {
@@ -67,21 +68,21 @@ public class JsonCollectionWriter
 
     @Override
     public boolean isWriteable(Class<?> clz, Type type, Annotation[] aAnnotation,
-            MediaType mediaType)
+                               MediaType mediaType)
         {
         return Collection.class.isAssignableFrom(clz);
         }
 
     @Override
-    public long getSize(Object col, Class<?> clz, Type type, Annotation[] aAnnotation,
-            MediaType mediaType)
+    public long getSize(Collection<?> col, Class<?> clz, Type type, Annotation[] aAnnotation,
+                        MediaType mediaType)
         {
         return -1;
         }
 
     @Override
-    public void writeTo(Object oCol, Class<?> clz, Type type, Annotation[] aAnnotation,
-            MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream stream)
+    public void writeTo(Collection<?> oCol, Class<?> clz, Type type, Annotation[] aAnnotation,
+                        MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream stream)
             throws IOException, WebApplicationException
         {
         MarshallerRegistry registry = m_marshallerRegistry;
@@ -91,11 +92,11 @@ public class JsonCollectionWriter
             }
 
         EntryWriter entryWriter = new EntryWriter(registry);
-        PrintStream out         = new PrintStream(stream);
+        PrintStream out = new PrintStream(stream);
         out.print("[");
 
         boolean first = true;
-        for (Object o : (Collection) oCol)
+        for (Object o : oCol)
             {
             if (o != null)
                 {

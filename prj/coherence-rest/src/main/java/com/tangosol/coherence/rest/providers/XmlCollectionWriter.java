@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,7 +42,7 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_XML;
 @Provider
 @Produces(APPLICATION_XML)
 public class XmlCollectionWriter
-        implements MessageBodyWriter<Object>
+        implements MessageBodyWriter<Collection<?>>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -73,14 +73,14 @@ public class XmlCollectionWriter
         }
 
     @Override
-    public long getSize(Object col, Class<?> clz, Type type, Annotation[] aAnnotation,
+    public long getSize(Collection<?> col, Class<?> clz, Type type, Annotation[] aAnnotation,
             MediaType mediaType)
         {
         return -1;
         }
 
     @Override
-    public void writeTo(Object oCol, Class<?> clz, Type type, Annotation[] aAnnotation,
+    public void writeTo(Collection<?> oCol, Class<?> clz, Type type, Annotation[] aAnnotation,
             MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream stream)
             throws IOException, WebApplicationException
         {
@@ -96,7 +96,7 @@ public class XmlCollectionWriter
         out.print("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>");
         out.print("<collection>");
 
-        for (Object o : (Collection) oCol)
+        for (Object o : oCol)
             {
             if (o instanceof Map.Entry)
                 {

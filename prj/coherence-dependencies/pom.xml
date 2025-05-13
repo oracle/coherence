@@ -190,7 +190,7 @@
     This is not always possible if we need to bump versions for CVE's
     -->
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.2.0</helidon.version.4>
+    <helidon.version.4>4.2.2</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
     <helidon.version.3>3.2.12</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
@@ -230,7 +230,7 @@
     <jaxb-impl.version>4.0.3</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>3.1.9</jersey.version>
+    <jersey.version>3.1.10</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jna.version>5.14.0</jna.version>
@@ -248,7 +248,7 @@
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
-    <parsson-media.version>1.1.6</parsson-media.version>
+    <parsson-media.version>1.1.7</parsson-media.version>
     <protobuf.version>3.25.5</protobuf.version>
     <resin.version>3.0</resin.version>
     <rxjava.version>3.0.2</rxjava.version>
