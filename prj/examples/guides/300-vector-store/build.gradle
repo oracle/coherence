@@ -36,4 +36,5 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+	systemProperty "project.build.directory", "build"
 }
