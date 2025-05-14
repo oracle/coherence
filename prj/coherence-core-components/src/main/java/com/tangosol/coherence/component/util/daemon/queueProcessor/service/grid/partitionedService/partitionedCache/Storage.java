@@ -8156,9 +8156,9 @@ public class Storage
 
         QueryResult result;
 
-        if (partMask.cardinality() == 1 || filter instanceof LimitFilter)
+        if (partMask.cardinality() == 1)
             {
-            // the request is for a single partition or a LimitFilter; run it directly
+            // the request is for a single partition; run it directly
 
             result = queryInternal(filter, nQueryType == QUERY_INVOKE ? QUERY_KEYS : nQueryType, partMask, lIdxVersion);
             }
@@ -8218,6 +8218,23 @@ public class Storage
             int cResults = createQueryResult(filter, aoResult, nQueryType, partMask, lIdxVersion);
             result = new QueryResult(partMask, aoResult, cResults);
             }
+        else if (filter instanceof LimitFilter)
+            {
+            // Note: QUERY_INVOKE and QUERY_AGGREGATE are never used with LimitFilter
+            LimitFilter filterLimit = (LimitFilter) filter;
+            Object[]    aoResult    = result.getResults();
+
+            // LimitFilter: sort always to prevent discrepancies on partitioned index
+            Arrays.sort(aoResult, SafeComparator.INSTANCE);
+
+            filterLimit.setCookie(result.getCount());
+
+            aoResult = nQueryType == QUERY_KEYS || filterLimit.getComparator() == null
+                       ? filterLimit.extractPage(aoResult)
+                       : extractBinaryEntries(aoResult, filterLimit);
+
+            result.setResults(aoResult);
+            }
 
         updateQueryStatistics(filter, result.isOptimized(), ldtStart, cTotal,
                               result.getScannedCount(), result.getCount(), nQueryType, partMask);
@@ -8270,14 +8287,6 @@ public class Storage
                 aoResult = ao;
                 }
 
-            LimitFilter filterLimit = (LimitFilter) filterOrig;
-            int         cAvailable  = aoResult.length;
-
-            filterLimit.setCookie(Integer.valueOf(cAvailable));
-
-            aoResult = nQueryType == QUERY_KEYS || filterLimit.getComparator() == null
-                       ? filterLimit.extractPage(aoResult)
-                       : extractBinaryEntries(aoResult, filterLimit);
             result.setResults(aoResult);
             }
         else
