@@ -246,7 +246,7 @@
     <mockito.version>3.12.4</mockito.version>
     <mock.server.version>5.14.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>7.0.4</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
     <testcontainers.version>1.20.4</testcontainers.version>
 
     <!-- commercial test dependency versions -->
