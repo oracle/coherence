@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import com.oracle.bedrock.util.Capture;
 
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.tangosol.internal.health.HealthHttpHandler;
 import com.tangosol.net.Coherence;
 
 import com.tangosol.util.HealthCheck;
@@ -47,6 +48,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
 
+import java.io.IOException;
 import java.net.ConnectException;
 
 import java.net.URI;
@@ -54,9 +56,11 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
 
 @SuppressWarnings("unused")
 public class HealthCheckTests
@@ -103,42 +107,51 @@ public class HealthCheckTests
         }
 
     @Test
-    public void shouldBeHealthyMultipleMembers()
+    public void shouldBeHealthyMultipleMembers() throws Exception
         {
         LocalPlatform    platform     = LocalPlatform.get();
         Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
         Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
-                                                    ClassName.of(Coherence.class),
-                                                    CacheConfig.of("test-cache-config.xml"),
-                                                    IPv4Preferred.yes(),
-                                                    LocalHost.only(),
-                                                    Logging.atMax(),
-                                                    m_testLogs.builder(),
-                                                    DisplayName.of("Storage-0"),
-                                                    SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1))) {
+                ClassName.of(Coherence.class),
+                CacheConfig.of("test-cache-config.xml"),
+                IPv4Preferred.yes(),
+                LocalHost.only(),
+                Logging.atMax(),
+                m_testLogs.builder(),
+                DisplayName.of("Storage-0"),
+                SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
+            {
             try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
-                                                        ClassName.of(Coherence.class),
-                                                        CacheConfig.of("test-cache-config.xml"),
-                                                        IPv4Preferred.yes(),
-                                                        LocalHost.only(),
-                                                        Logging.atMax(),
-                                                        m_testLogs.builder(),
-                                                        DisplayName.of("Storage-1"),
-                                                        SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2))) {
+                    ClassName.of(Coherence.class),
+                    CacheConfig.of("test-cache-config.xml"),
+                    IPv4Preferred.yes(),
+                    LocalHost.only(),
+                    Logging.atMax(),
+                    m_testLogs.builder(),
+                    DisplayName.of("Storage-1"),
+                    SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
+                {
 
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_STARTED), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_STARTED), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_LIVE), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_LIVE), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_READY), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_HA), is(200));
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_HA), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_STARTED), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_STARTED), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_LIVE), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_LIVE), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_READY), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_HA), is(200));
+                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_HA), is(200));
+
+                HttpResponse response = doHttpRequest(nHealthPort1, HealthCheck.PATH_STARTED);
+                assertThat(response.statusCode(), is(200));
+                Optional<String> optional = response.headers().firstValue(HealthHttpHandler.HEADER_NODE_ID);
+                assertThat(optional.isPresent(), is(true));
+                int nId = Integer.parseInt(optional.get());
+                assertThat(nId, is(greaterThan(0)));
+                }
             }
         }
-    }
 
     @Test
     public void shouldBeHealthyWhenStorageDisabled()
@@ -664,19 +677,7 @@ public class HealthCheckTests
         {
         try
             {
-            if (!sRequest.startsWith("/"))
-                {
-                sRequest = "/" + sRequest;
-                }
-
-            HttpRequest request = HttpRequest.newBuilder()
-                  .GET()
-                  .uri(URI.create("http://127.0.0.1:" + nPort.get() + sRequest))
-                  .build();
-
-            HttpResponse<byte[]> response = m_client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-            return response.statusCode();
+            return doHttpRequest(nPort, sRequest).statusCode();
             }
         catch (ConnectException e)
             {
@@ -686,6 +687,23 @@ public class HealthCheckTests
             {
             throw Exceptions.ensureRuntimeException(e);
             }
+        }
+
+    public HttpResponse doHttpRequest(Capture<Integer> nPort, String sRequest) throws Exception
+        {
+        if (!sRequest.startsWith("/"))
+            {
+            sRequest = "/" + sRequest;
+            }
+
+        HttpRequest request = HttpRequest.newBuilder()
+              .GET()
+              .uri(URI.create("http://127.0.0.1:" + nPort.get() + sRequest))
+              .build();
+
+        HttpResponse<byte[]> response = m_client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+        return response;
         }
 
     private boolean isServiceOneSuspended(CoherenceClusterMember app)
