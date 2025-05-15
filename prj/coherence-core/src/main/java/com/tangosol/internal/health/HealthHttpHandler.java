@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -113,19 +114,19 @@ public class HealthHttpHandler
             if (management == null)
                 {
                 Logger.log("Health: checking readiness failed, no management service present", 9);
-                return Response.status(503).build();
+                return unavailable();
                 }
             if (management.allHealthChecksReady())
                 {
-                return Response.ok().build();
+                return ok();
                 }
                 Logger.log("Health: checking readiness failed, allHealthChecksReady==false", 9);
-                return Response.status(503).build();
+                return unavailable();
             }
         catch (Exception e)
             {
             Logger.finer("Health: checking readiness failed: " + e.getMessage());
-            return Response.status(503).build();
+            return unavailable();
             }
         }
 
@@ -143,11 +144,11 @@ public class HealthHttpHandler
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
-            return Response.status(503).build();
+            return unavailable();
             }
         return management.allHealthChecksLive()
-                ? Response.ok().build()
-                : Response.status(503).build();
+                ? ok()
+                : unavailable();
         }
 
     /**
@@ -164,11 +165,11 @@ public class HealthHttpHandler
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
-            return Response.status(503).build();
+            return unavailable();
             }
         return management.allHealthChecksStarted()
-                ? Response.ok().build()
-                : Response.status(503).build();
+                ? ok()
+                : unavailable();
         }
 
     /**
@@ -185,11 +186,11 @@ public class HealthHttpHandler
         Registry management = CacheFactory.getCluster().getManagement();
         if (management == null)
             {
-            return Response.status(503).build();
+            return unavailable();
             }
         return management.allHealthChecksSafe()
-                ? Response.ok().build()
-                : Response.status(503).build();
+                ? ok()
+                : unavailable();
         }
     
     /**
@@ -223,7 +224,7 @@ public class HealthHttpHandler
                 }
             }
 
-        return Response.ok().build();
+        return ok();
         }
 
     /**
@@ -326,7 +327,7 @@ public class HealthHttpHandler
                 }
             }
 
-        return Response.ok().build();
+        return ok();
         }
 
     private static BodyWriter<?> ensureBodyWriter()
@@ -339,6 +340,39 @@ public class HealthHttpHandler
             {
             return new HealthBodyWriter();
             }
+        }
+
+    private Response ok()
+        {
+        return response(Response.Status.OK);
+        }
+
+    private Response unavailable()
+        {
+        return response(Response.Status.SERVICE_UNAVAILABLE);
+        }
+
+    private Response response(Response.Status status)
+        {
+        Response.Builder resp = Response.status(status);
+        int              nId  = -1;
+        try
+            {
+            Cluster cluster = CacheFactory.getCluster();
+            if (cluster != null)
+                {
+                Member member = cluster.getLocalMember();
+                if (member != null)
+                    {
+                    nId = member.getId();
+                    }
+                }
+            }
+        catch (Exception e)
+            {
+            // ignored
+            }
+        return resp.addHeaders(Map.of(HEADER_NODE_ID, List.of(String.valueOf(nId)))).build();
         }
 
     /**
@@ -374,6 +408,11 @@ public class HealthHttpHandler
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * The http header value used to specify the node id.
+     */
+    public static final String HEADER_NODE_ID = "coherence-node-id";
 
     /**
      * A {@code String} constant representing the json media type.

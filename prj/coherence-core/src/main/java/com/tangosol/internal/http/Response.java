@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -233,7 +233,8 @@ public class Response
          */
         public Response build()
             {
-            return new Response(m_status, m_oEntity);
+            return new Response(m_status, m_oEntity)
+                    .addHeaders(m_headers);
             }
 
         /**
