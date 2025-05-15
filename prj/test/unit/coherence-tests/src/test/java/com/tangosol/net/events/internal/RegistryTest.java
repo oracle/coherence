@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events.internal;
 
@@ -511,13 +511,13 @@ public class RegistryTest
 
                 return null;
                 }
-            }).when(incptr).introduceEventDispatcher(anyString(), org.mockito.Matchers.any(EventDispatcher.class));
+            }).when(incptr).introduceEventDispatcher(anyString(), org.mockito.ArgumentMatchers.any(EventDispatcher.class));
 
         registry.registerEventInterceptor(incptr);
         registry.registerEventDispatcher(dispatcher);
         registry.registerEventInterceptor(mock(EventInterceptor.class));
 
-        verify(incptr, times(3)).onEvent(org.mockito.Matchers.any(DispatcherInterceptorEvent.class));
+        verify(incptr, times(3)).onEvent(org.mockito.ArgumentMatchers.any(DispatcherInterceptorEvent.class));
         }
 
     protected BackingMapContext mockBMC(String sServiceName, String sCacheName)

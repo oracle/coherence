@@ -27,12 +27,12 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
-    <maven.failsafe.plugin.version>3.0.0-M7</maven.failsafe.plugin.version>
-    <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
+    <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
+    <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
 
     <hamcrest.version>2.2</hamcrest.version>
     <hsqldb.version>2.7.1</hsqldb.version>
-    <junit.jupiter.version>5.8.2</junit.jupiter.version>
+    <junit.jupiter.version>5.12.2</junit.jupiter.version>
     <h2.version>2.2.220</h2.version>
     <r2dbc.version>Borca-SR1</r2dbc.version>
 

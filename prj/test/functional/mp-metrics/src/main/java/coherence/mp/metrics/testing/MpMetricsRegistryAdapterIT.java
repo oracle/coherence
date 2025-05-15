@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.coherence.mp.metrics.MpMetricsRegistryAdapter;
 import com.tangosol.internal.metrics.BaseMBeanMetric;
 import com.tangosol.net.metrics.MBeanMetric;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -64,7 +65,7 @@ public class MpMetricsRegistryAdapterIT
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
         ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
-        ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
+        ArgumentCaptor<Tag[]> tagsArgument = ArgumentCaptor.forClass(Tag[].class);
 
         verify(vendorRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(appRegistry);
@@ -77,7 +78,7 @@ public class MpMetricsRegistryAdapterIT
         assertThat(gauge, is(notNullValue()));
         assertThat(gauge.get(), is(metric.getValue()));
 
-        List<Tag> tagList = tagsArgument.getAllValues();
+        List<Tag> tagList = List.of(tagsArgument.getValue());
         assertThat(tagList, containsInAnyOrder(tags));
         }
 
@@ -200,7 +201,7 @@ public class MpMetricsRegistryAdapterIT
 
         ArgumentCaptor<Metadata> metadataArgument = ArgumentCaptor.forClass(Metadata.class);
         ArgumentCaptor<Supplier<Number>> gaugeArgument = ArgumentCaptor.forClass(Supplier.class);
-        ArgumentCaptor<Tag> tagsArgument = ArgumentCaptor.forClass(Tag.class);
+        ArgumentCaptor<Tag[]> tagsArgument = ArgumentCaptor.forClass(Tag[].class);
 
         verify(appRegistry).gauge(metadataArgument.capture(), gaugeArgument.capture(), tagsArgument.capture());
         verifyNoMoreInteractions(vendorRegistry);
@@ -213,7 +214,7 @@ public class MpMetricsRegistryAdapterIT
         assertThat(gauge, is(notNullValue()));
         assertThat(gauge.get(), is(metric.getValue()));
 
-        List<Tag> tagList = tagsArgument.getAllValues();
+        List<Tag> tagList = List.of(tagsArgument.getValue());
         assertThat(tagList, containsInAnyOrder(tags));
         }
 
