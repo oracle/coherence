@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@ plugins {
 
 group = 'com.oracle.coherence.guides'
 version = '1.0.0'
-sourceCompatibility = '11'
+sourceCompatibility = '17'
 
 repositories {
     mavenCentral()
@@ -20,16 +20,17 @@ repositories {
 
 dependencies {
     implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
 
     implementation "${coherenceGroupId}:coherence"
     implementation "${coherenceGroupId}:coherence-json"
     implementation "${coherenceGroupId}:coherence-java-client"
 
     testImplementation project(':multi-cluster-server')
+    testImplementation "org.junit.platform:junit-platform-launcher"
+    testImplementation "org.junit.jupiter:junit-jupiter"
     testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
     testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 test {
