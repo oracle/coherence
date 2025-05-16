@@ -13,7 +13,10 @@ package com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer
 import com.tangosol.coherence.component.net.extend.Channel;
 import com.tangosol.coherence.component.net.extend.Connection;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
+
 import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
@@ -26,7 +29,7 @@ import java.net.URI;
 /**
  * Base definition of a ConnectionAcceptor component.
  */
-@SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+@SuppressWarnings({"rawtypes", "unchecked", "deprecation", "DataFlowIssue"})
 public class GrpcAcceptor
         extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor
     {
@@ -160,10 +163,10 @@ public class GrpcAcceptor
     //++ getter for autogen property _Module
     /**
      * This is an auto-generated method that returns the global [design time]
-    * parent component.
-    * 
-    * Note: the class generator will ignore any custom implementation for this
-    * behavior.
+     * parent component.
+     * <p>
+     * Note: the class generator will ignore any custom implementation for this
+     * behavior.
      */
     private com.tangosol.coherence.Component get_Module()
         {
@@ -173,10 +176,10 @@ public class GrpcAcceptor
     //++ getter for autogen property _ChildClasses
     /**
      * This is an auto-generated method that returns the map of design time
-    * [static] children.
-    * 
-    * Note: the class generator will ignore any custom implementation for this
-    * behavior.
+     * [static] children.
+     * <p>
+     * Note: the class generator will ignore any custom implementation for this
+     * behavior.
      */
     protected java.util.Map get_ChildClasses()
         {
@@ -196,9 +199,6 @@ public class GrpcAcceptor
      */
     protected com.tangosol.internal.net.service.DefaultServiceDependencies cloneDependencies(com.tangosol.net.ServiceDependencies deps)
         {
-        // import com.tangosol.internal.net.service.peer.acceptor.DefaultGrpcAcceptorDependencies;
-        // import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
-        
         return new DefaultGrpcAcceptorDependencies((GrpcAcceptorDependencies) deps);
         }
     
@@ -230,8 +230,6 @@ public class GrpcAcceptor
      */
     public String getDescription()
         {
-        // import com.tangosol.net.grpc.GrpcAcceptorController as com.tangosol.net.grpc.GrpcAcceptorController;
-        
         com.tangosol.net.grpc.GrpcAcceptorController controller = getController();
         if (controller == null)
             {
@@ -278,7 +276,6 @@ public class GrpcAcceptor
         {
         GrpcConnection connection = createConnection();
         connection.setConnectionManager(this);
-//        connection.setMessageFactoryMap(getProtocolMap());
         return connection;
         }
 
@@ -292,21 +289,19 @@ public class GrpcAcceptor
     // Declared at the super level
     /**
      * This event occurs when dependencies are injected into the component. 
-    * First, call super.onDependencies to allow all super components to process
-    * the Dependencies.  Each component is free to chose how it consumes
-    * dependencies from within onDependencies.  Often (though not ideal), the 
-    * dependencies are copied into the component's properties.  This technique
-    * isolates Dependency Injection from the rest of the component code since
-    * components continue to access properties just as they did before. 
-    * 
-    * PartitionedCacheDependencies deps = (PartitionedCacheDependencies)
-    * getDependencies();
-    * deps.getFoo();
+     * First, call super.onDependencies to allow all super components to process
+     * the Dependencies.  Each component is free to chose how it consumes
+     * dependencies from within onDependencies.  Often (though not ideal), the
+     * dependencies are copied into the component's properties.  This technique
+     * isolates Dependency Injection from the rest of the component code since
+     * components continue to access properties just as they did before.
+     * <p>
+     * PartitionedCacheDependencies deps = (PartitionedCacheDependencies)
+     * getDependencies();
+     * deps.getFoo();
      */
     protected void onDependencies(com.tangosol.net.ServiceDependencies deps)
         {
-        // import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
-        
         super.onDependencies(deps);
         
         GrpcAcceptorDependencies grpcDeps = (GrpcAcceptorDependencies) deps;
@@ -325,14 +320,21 @@ public class GrpcAcceptor
         
         GrpcAcceptorDependencies grpcDeps = (GrpcAcceptorDependencies) getDependencies();
 
+        ProxyService service = (ProxyService) getParentService();
+        com.tangosol.coherence.component.util.DaemonPool pool = service.getDaemonPool();
+        controller.setDaemonPool(pool);
         controller.setAcceptor(this);
         controller.setDependencies(grpcDeps);
-        
-        getParentService().getResourceRegistry()
+
+        service.getResourceRegistry()
                 .registerResource(GrpcAcceptorController.class, controller);
         
         super.onServiceStarting();
-                
+
+        if (!pool.isStarted())
+            {
+            pool.start();
+            }
         controller.start();
         
         String sAddr = controller.getLocalAddress();
@@ -351,8 +353,6 @@ public class GrpcAcceptor
      */
     protected void onServiceStopped()
         {
-        // import com.tangosol.net.grpc.GrpcAcceptorController as com.tangosol.net.grpc.GrpcAcceptorController;
-        
         super.onServiceStopped();
         
         com.tangosol.net.grpc.GrpcAcceptorController controller = getController();
@@ -368,8 +368,6 @@ public class GrpcAcceptor
      */
     protected void onServiceStopping()
         {
-        // import com.tangosol.net.grpc.GrpcAcceptorController as com.tangosol.net.grpc.GrpcAcceptorController;
-        
         super.onServiceStopping();
         
         com.tangosol.net.grpc.GrpcAcceptorController controller = getController();

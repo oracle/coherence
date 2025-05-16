@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -313,6 +313,42 @@ public class AsyncNamedCacheClient<K, V>
     public CompletableFuture<Set<Map.Entry<K, V>>> entrySet()
         {
         return executeIfActive(() -> CompletableFuture.completedFuture(new RemoteEntrySet<>(this)));
+        }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter)
+        {
+        return executeIfActive(() ->
+            {
+            try
+                {
+                return f_client.entrySet(toByteString(filter))
+                        .thenApply(map -> (((Map<K, V>) this.toMap(map)).entrySet()));
+                }
+            catch (Throwable t)
+                {
+                return failedFuture(t);
+                }
+            });
+        }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Set<Map.Entry<K, V>>> entrySet(Filter<?> filter, Comparator<?> comparator)
+        {
+        return executeIfActive(() ->
+            {
+            try
+                {
+                return f_client.entrySet(toByteString(filter), toByteString(comparator))
+                        .thenApply(map -> (((Map<K, V>) this.toMap(map)).entrySet()));
+                }
+            catch (Throwable t)
+                {
+                return failedFuture(t);
+                }
+            });
         }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -185,6 +185,36 @@ public interface NamedCacheClientChannel
      * internal resources will be released.
      */
     CompletableFuture<Void> destroy();
+
+    /**
+     * Return a set view of the entries contained in this map that satisfy the
+     * criteria expressed by the {@link Filter}.  Each element in the returned set is a
+     * {@link Map.Entry}.
+     *
+     * @param filter  the {@link Filter} object representing the criteria that the
+     *                entries of this map should satisfy
+     *
+     * @return a set of entries that satisfy the specified criteria
+     */
+    CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter);
+
+    /**
+     * Return a set view of the entries contained in this map that satisfy the
+     * criteria expressed by the {@link Filter}.  Each element in the returned set is a
+     * {@link Map.Entry}.  It is further guaranteed that its iterator
+     * will traverse the set in such a way that the entry values come up in
+     * ascending order, sorted by the specified Comparator or according to the
+     * <i>natural ordering</i> (see {@link Comparable}).
+     *
+     * @param filter      the Filter object representing the criteria that the
+     *                    entries of this map should satisfy
+     * @param comparator  the Comparator object which imposes an ordering on
+     *                    entries in the resulting set; or a null {@link ByteString}
+     *                    if the entry natural ordering should be used
+     *
+     * @return a set of entries that satisfy the specified criteria
+     */
+    CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter, ByteString comparator);
 
     /**
      * Obtain the value mapped to the specified key.
