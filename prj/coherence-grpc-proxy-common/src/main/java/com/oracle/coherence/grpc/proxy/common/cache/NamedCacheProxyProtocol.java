@@ -57,7 +57,6 @@ import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.Serializer;
 
-import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
@@ -82,12 +81,13 @@ import com.tangosol.util.filter.InKeySetFilter;
 import io.grpc.stub.StreamObserver;
 
 import java.net.SocketException;
+
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -487,9 +487,7 @@ public class NamedCacheProxyProtocol
                     .build());
             };
 
-        async(proxy).ifPresentOrElse(
-            asyncCache -> asyncCache.invokeAll(listKeys, BinaryProcessors.get(), callback).join(),
-            () -> proxy.getAll(listKeys).forEach(callback));
+        proxy.getAll(listKeys).forEach(callback);
         observer.onCompleted();
         }
 
@@ -786,20 +784,21 @@ public class NamedCacheProxyProtocol
                     .build());
             };
 
+        Set<Map.Entry<Binary, Binary>> set;
         if (comparator == null)
             {
-            async(proxy).ifPresentOrElse(
-                    asyncCache -> asyncCache.entrySet(filter, callback).join(),
-                    () -> proxy.entrySet(filter).forEach(callback));
+            set = proxy.entrySet(filter);
             }
         else
             {
-            Set<Map.Entry<Binary, Binary>> set = proxy.entrySet(filter, comparator);
-            for (Map.Entry<Binary, Binary> entry : set)
-                {
-                callback.accept(entry);
-                }
+            set = proxy.entrySet(filter, comparator);
             }
+
+        for (Map.Entry<Binary, Binary> entry : set)
+            {
+            callback.accept(entry);
+            }
+
         observer.onCompleted();
         }
 
@@ -819,18 +818,18 @@ public class NamedCacheProxyProtocol
                     .build());
             };
 
-        async(proxy).ifPresentOrElse(
-            asyncCache -> asyncCache.keySet(filter, callback).join(),
-            () -> proxy.keySet(filter).forEach(callback));
+        Set<Binary> set = proxy.keySet(filter);
+        set.forEach(callback);
         observer.onCompleted();
         }
 
     @SuppressWarnings("unchecked")
     protected void onQueryValues(NamedCacheProxy proxy, NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
         {
-        QueryRequest query   = unpack(request, QueryRequest.class);
-        Filter<?>    filter  = query.hasFilter() ? fromByteString(query.getFilter()) : AlwaysFilter.INSTANCE();
-        int          cacheId = proxy.getCacheId();
+        QueryRequest  query      = unpack(request, QueryRequest.class);
+        Filter<?>     filter     = query.hasFilter() ? fromByteString(query.getFilter()) : AlwaysFilter.INSTANCE();
+        Comparator<?> comparator = query.hasComparator() ? fromByteString(query.getComparator()) : null;
+        int           cacheId    = proxy.getCacheId();
 
         Consumer<Binary> callback = binary ->
             {
@@ -841,9 +840,16 @@ public class NamedCacheProxyProtocol
                     .build());
             };
 
-        async(proxy).ifPresentOrElse(
-            asyncCache -> asyncCache.values(filter, callback).join(),
-            () -> proxy.values(filter).forEach(callback));
+        Collection<Binary> values;
+        if (comparator == null)
+            {
+            values = proxy.values(filter);
+            }
+        else
+            {
+            values = proxy.values(filter, comparator);
+            }
+        values.forEach(callback);
         observer.onCompleted();
         }
 
@@ -929,28 +935,6 @@ public class NamedCacheProxyProtocol
     protected NamedCacheResponse.Builder response(int cacheId)
         {
         return NamedCacheResponse.newBuilder().setCacheId(cacheId);
-        }
-
-    /**
-     * Obtain an async version of a {@link NamedCacheProxy}.
-     *
-     * @param proxy  the {@link NamedCacheProxy} to get the async cache for
-     *
-     * @return an {@link Optional} containing the {@link AsyncNamedCache} or
-     *         an empty {@link Optional} if the underlying cache does not
-     *         support async behaviour.
-     */
-    @SuppressWarnings("unchecked")
-    protected Optional<AsyncNamedCache<Binary, Binary>> async(NamedCacheProxy proxy)
-        {
-        try
-            {
-            return Optional.of(proxy.async());
-            }
-        catch (UnsupportedOperationException e)
-            {
-            return Optional.empty();
-            }
         }
 
     /**

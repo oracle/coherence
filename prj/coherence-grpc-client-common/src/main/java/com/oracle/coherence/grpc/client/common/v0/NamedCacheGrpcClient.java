@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import com.oracle.coherence.grpc.messages.cache.v0.ContainsValueRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.DestroyRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.Entry;
 import com.oracle.coherence.grpc.messages.cache.v0.EntryResult;
+import com.oracle.coherence.grpc.messages.cache.v0.EntrySetRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.GetAllRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.GetRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.InvokeAllRequest;
@@ -57,6 +58,8 @@ import com.tangosol.net.PriorityTask;
 import io.grpc.Channel;
 import io.grpc.stub.StreamObserver;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
@@ -496,6 +499,12 @@ public class NamedCacheGrpcClient
         return observer.completionStage();
         }
 
+    CompletableFuture<List<Entry>> entrySet(EntrySetRequest request)
+        {
+        StreamStreamObserver<Entry> observer = new StreamStreamObserver<>();
+        createStub().entrySet(request, observer);
+        return observer.future();
+        }
     /**
      * Add an index to a cache.
      *

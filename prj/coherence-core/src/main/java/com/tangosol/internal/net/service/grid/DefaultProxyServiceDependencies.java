@@ -52,7 +52,7 @@ public class DefaultProxyServiceDependencies
         if (deps == null)
             {
             // by default, use a dynamic thread pool
-            setWorkerThreadCountMin(1);
+            setWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
             }
         else
             {

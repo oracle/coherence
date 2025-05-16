@@ -84,6 +84,7 @@ public class NettyGrpcAcceptorController
         if (m_daemonPool != null)
             {
             serviceDeps.setExecutor(new DaemonPoolExecutor(m_daemonPool));
+            serviceDeps.setDaemonPool(m_daemonPool);
             }
 
         return serviceDeps;
