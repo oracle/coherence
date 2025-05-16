@@ -268,6 +268,7 @@
     <junit.version>4.13.2</junit.version>
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
     <mockito.version>5.17.0</mockito.version>
+    <bytebuddy.version>1.17.5</bytebuddy.version>
     <mock.server.version>5.15.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
@@ -794,9 +795,29 @@
         <version>${hamcrest.version}</version>
       </dependency>
       <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>${bytebuddy.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy-agent</artifactId>
+        <version>${bytebuddy.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 	  <dependency>
         <groupId>org.mock-server</groupId>
@@ -1470,7 +1491,7 @@
               <exclude>**/Abstract*Test.java</exclude>
               <exclude>**/**PerformanceTest.java</exclude>
             </excludes>
-            <argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/5.17.0/mockito-core-5.17.0.jar -Xshare:off ${surefire.argLine} ${surefire.coverage.argline} ${surefire.modules.argline}</argLine>
+            <argLine>${surefire.argLine} ${surefire.coverage.argline} ${surefire.modules.argline}</argLine>
             <environmentVariables>
               <TESTCONTAINERS_RYUK_DISABLED>${testcontainers.ryuk.disabled}</TESTCONTAINERS_RYUK_DISABLED>
             </environmentVariables>
