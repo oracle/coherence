@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,6 +37,7 @@ import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheRequestType;
 import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
 import com.oracle.coherence.grpc.messages.cache.v1.PutAllRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.PutRequest;
+import com.oracle.coherence.grpc.messages.cache.v1.QueryRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.ReplaceMappingRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.ResponseType;
 import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
@@ -199,6 +200,31 @@ public class NamedCacheClientChannel_V1
     public CompletableFuture<Void> destroy()
         {
         return poll(NamedCacheRequestType.Destroy).thenApply(r -> VOID);
+        }
+
+    @Override
+    public CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter)
+        {
+        QueryRequest request = QueryRequest.newBuilder()
+                .setFilter(filter)
+                .build();
+
+        MapStreamObserver observer = new MapStreamObserver();
+        poll(NamedCacheRequestType.QueryEntries, request, observer);
+        return observer.future();
+        }
+
+    @Override
+    public CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter, ByteString comparator)
+        {
+        QueryRequest request = QueryRequest.newBuilder()
+                .setFilter(filter)
+                .setComparator(comparator)
+                .build();
+
+        MapStreamObserver observer = new MapStreamObserver();
+        poll(NamedCacheRequestType.QueryEntries, request, observer);
+        return observer.future();
         }
 
     @Override

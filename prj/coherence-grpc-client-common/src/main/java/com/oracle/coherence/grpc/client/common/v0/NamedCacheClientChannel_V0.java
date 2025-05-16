@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -294,6 +294,20 @@ public class NamedCacheClientChannel_V0
         {
         return f_service.get(Requests.get(f_sScopeName, f_sName, f_sFormat, key))
                 .thenApply(v -> v.getPresent() ? MaybeByteString.ofNullable(v.getValue()) : MaybeByteString.empty());
+        }
+
+    @Override
+    public CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter)
+        {
+        CompletableFuture<List<Entry>> future = f_service.entrySet(Requests.entrySet(f_sScopeName, f_sName, f_sFormat, filter));
+        return future.thenApply(list -> list.stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+        }
+
+    @Override
+    public CompletableFuture<Map<ByteString, ByteString>> entrySet(ByteString filter, ByteString comparator)
+        {
+        CompletableFuture<List<Entry>> future = f_service.entrySet(Requests.entrySet(f_sScopeName, f_sName, f_sFormat, filter, comparator));
+        return future.thenApply(list -> list.stream().collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
         }
 
     /**
