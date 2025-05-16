@@ -27,11 +27,11 @@
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
-    <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
-    <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
+    <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
+    <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
 
     <assertj.version>3.22.0</assertj.version>
-    <junit.jupiter.version>5.8.2</junit.jupiter.version>
+    <junit.jupiter.version>5.12.2</junit.jupiter.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
