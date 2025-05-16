@@ -23,13 +23,14 @@ repositories {
 
 dependencies {
 	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+	testImplementation platform("org.junit:junit-bom:${junitVersion}")
 
 	implementation "${coherenceGroupId}:coherence"
 
+	testImplementation "org.junit.platform:junit-platform-launcher"
+	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
 	testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
-	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
 }
 
 test {

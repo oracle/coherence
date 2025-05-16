@@ -92,10 +92,10 @@
     <skip-sign-artifacts>true</skip-sign-artifacts>
     <skip-code-coverage>true</skip-code-coverage>
 
-    <default.surefire.argLine>-Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.surefire.argLine>
+    <default.surefire.argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Xshare:off -Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.surefire.argLine>
     <surefire.argLine>${default.surefire.argLine}</surefire.argLine>
     <failsafe.max.heap>1g</failsafe.max.heap>
-    <default.failsafe.argLine>-Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.failsafe.argLine>
+    <default.failsafe.argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Xshare:off -Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.failsafe.argLine>
     <failsafe.argLine>${default.failsafe.argLine}</failsafe.argLine>
     <surefire.coverage.argline/>
     <failsafe.coverage.argline/>
@@ -707,12 +707,16 @@
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
+          --add-opens java.management/javax.management=org.mockito
+          --add-reads org.mockito=java.management,ALL-UNNAMED
         </default.failsafe.modules.argline>
         <default.surefire.modules.argline>
           --add-exports org.junit.platform.commons/org.junit.platform.commons=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
           --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
           --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
+          --add-opens java.management/javax.management=org.mockito
+          --add-reads org.mockito=java.management,ALL-UNNAMED
         </default.surefire.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
         <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>

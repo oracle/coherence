@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,13 +20,14 @@ repositories {
 
 dependencies {
     implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
 
     implementation "${coherenceGroupId}:coherence"
 
     testImplementation "org.assertj:assertj-core:${assertjVersion}"
 
-    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    testImplementation "org.junit.platform:junit-platform-launcher"
+    testImplementation "org.junit.jupiter:junit-jupiter"
 
 }
 
