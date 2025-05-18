@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,10 +10,10 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.ConfigUri;
-import com.oracle.coherence.cdi.Name;
 import com.oracle.coherence.cdi.PropertyExtractor;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
+import com.oracle.coherence.cdi.SessionName;
 import com.oracle.coherence.cdi.WhereFilter;
 import cdi.data.Person;
 import cdi.data.PhoneNumber;
@@ -31,7 +31,6 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.cdi.events.EventObserverSupport;
 import com.tangosol.net.NamedCache;
-import com.tangosol.net.Session;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapEvent;
@@ -61,12 +60,8 @@ import org.junit.jupiter.api.TestInstance;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import com.oracle.coherence.testing.util.EventsHelper;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-
-import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
  * Integration test for the {@link EventObserverSupport} using the Weld JUnit
@@ -95,20 +90,15 @@ class CdiMapListenerIT
         {}
 
     @Inject
-    @Name("ClientEvents")
-    private Session m_session;
+    private TestListener listener;
 
     @Inject
-    private TestListener listener;
+    @SessionName("ClientEvents")
+    NamedCache<String, Person> people;
 
     @Test
     void testEvents() throws Exception
         {
-        NamedCache<String, Person> people = m_session.getCache("people");
-
-        // Wait for the listener registration as it is async
-        Eventually.assertDeferred(() -> EventsHelper.getListenerCount(people), is(greaterThanOrEqualTo(3)));
-
         people.put("homer", new Person("Homer", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("marge", new Person("Marge", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
         people.put("bart", new Person("Bart", "Simpson", LocalDate.now(), new PhoneNumber(1, "555-123-9999")));
