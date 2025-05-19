@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -46,5 +46,17 @@ public class CdiMapListenerManager
         CompletableFuture.runAsync(() -> registerListeners(event.getCacheName(), event.getScopeName(),
                 event.getSessionName(), event.getServiceName()));
 
+        }
+    /**
+     * Register the cache listeners.
+     * 
+     * @param sCacheName    the cache name
+     * @param sScopeName    the scope name
+     * @param sSessionName  the session name
+     * @param sServiceName  the service name
+     */
+    public void registerCacheListeners(String sCacheName, String sScopeName, String sSessionName, String sServiceName)
+        {
+        registerListeners(sCacheName, sScopeName, sSessionName, sServiceName);
         }
     }

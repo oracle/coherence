@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2020, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.cdi;
 
@@ -28,11 +28,19 @@ import javax.enterprise.inject.Instance;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.Typed;
 
+import javax.enterprise.inject.spi.Annotated;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.DefinitionException;
 import javax.enterprise.inject.spi.InjectionPoint;
 
 import javax.inject.Inject;
+
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * A CDI producer for {@link NamedCache}, {@link AsyncNamedCache} and {@link
@@ -50,20 +58,23 @@ public class NamedCacheProducer
     /**
      * Construct a {@link NamedCacheProducer} instance.
      *
-     * @param beanManager        the CDI bean manager
-     * @param filterProducer     the producer to use to obtain {@link
-     *                           com.tangosol.util.Filter} instances
-     * @param extractorProducer  the producer to use to obtain {@link
-     *                           com.tangosol.util.ValueExtractor} instances
+     * @param beanManager            the CDI bean manager
+     * @param filterProducer         the producer to use to obtain {@link
+     *                               com.tangosol.util.Filter} instances
+     * @param extractorProducer      the producer to use to obtain {@link
+     *                               com.tangosol.util.ValueExtractor} instances
+     * @param cdiMapListenerManager  the CDI map listener manager
      */
     @Inject
-    NamedCacheProducer(BeanManager       beanManager,
-                       FilterProducer    filterProducer,
-                       ExtractorProducer extractorProducer)
+    NamedCacheProducer(BeanManager           beanManager,
+                       FilterProducer        filterProducer,
+                       ExtractorProducer     extractorProducer,
+                       CdiMapListenerManager cdiMapListenerManager)
         {
-        f_beanManager       = beanManager;
-        f_filterProducer    = filterProducer;
-        f_extractorProducer = extractorProducer;
+        f_beanManager           = beanManager;
+        f_filterProducer        = filterProducer;
+        f_extractorProducer     = extractorProducer;
+        f_cdiMapListenerManager = cdiMapListenerManager;
         }
 
     // ---- producer methods ------------------------------------------------
@@ -330,25 +341,167 @@ public class NamedCacheProducer
         String  sSessionName = sSession;
         Instance<Session> instance = f_beanManager.createInstance()
                 .select(Session.class, Name.Literal.of(sSessionName));
-        Session session      = instance
-                                            .get();
-
-        C cache = (C) session.getCache(sName);
+        Session         session    = instance.get();
+        Set<Annotation> qualifiers = extractQualifiers(injectionPoint);
+        CacheId         cacheId    = new CacheId(sName, sSessionName);
+        final C         cache      = (C) f_cacheInstances.compute(cacheId, (id, current) ->
+            {
+            if (current != null && current.isActive())
+                {
+                return current;
+                }
+            C c = (C) session.getCache(id.f_cacheName);
+            f_cdiMapListenerManager.registerCacheListeners(id.f_cacheName, session.getScopeName(), id.f_sessionName, c.getCacheService().getInfo().getServiceName());
+            return c;
+            });
 
         if (fView)
             {
-            Filter         filter    = f_filterProducer.getFilter(injectionPoint);
-            ValueExtractor extractor = f_extractorProducer.getValueExtractor(injectionPoint);
+            final boolean fCacheVals = fCacheValues;
+            CacheId       cqcId      = new CacheId(sName, sSessionName, qualifiers);
+            return (C) f_cqcInstances.compute(cqcId, (id, current) ->
+                {
+                if (current != null && current.isActive())
+                    {
+                    return current;
+                    }
+                Filter         filter    = f_filterProducer.getFilter(injectionPoint);
+                ValueExtractor extractor = f_extractorProducer.getValueExtractor(injectionPoint);
+                return new ContinuousQueryCache<>(cache, filter, fCacheVals, null, extractor);
+                });
+            }
+        return cache;
+        }
 
-            return (C) new ContinuousQueryCache<>(cache, filter, fCacheValues, null, extractor);
-            }
-        else
+    private Set<Annotation> extractQualifiers(InjectionPoint injectionPoint)
+        {
+        Annotated annotated = injectionPoint.getAnnotated();
+        if (annotated == null)
             {
-            return cache;
+            return Collections.emptySet();
             }
+        return annotated.getAnnotations().stream()
+                .filter(annotation -> annotation.annotationType().isAnnotationPresent(FilterBinding.class) 
+                                      || annotation.annotationType().isAnnotationPresent(ExtractorBinding.class)
+                                      || annotation.annotationType().isAnnotationPresent(View.class))
+                .collect(Collectors.toSet());
+        }
+
+    /**
+     * A cache identifier used as a key for Coherence caches.
+     */
+    static class CacheId 
+        {
+        // ---- constructors ----------------------------------------------------
+
+        /**
+         * Construct a CacheId.
+         * 
+         * @param cacheName    cache name
+         * @param sessionName  session name
+         */
+        CacheId(String cacheName, String sessionName)
+            {
+            this(cacheName, sessionName, null);
+            }
+
+        /**
+         * Construct a CacheId.
+         *
+         * @param cacheName    cache name
+         * @param sessionName  session name
+         * @param qualifiers   qualifiers
+         */
+        CacheId(String cacheName, String sessionName, Set<Annotation> qualifiers)
+            {
+            this.f_cacheName   = cacheName;
+            this.f_sessionName = sessionName;
+            this.f_qualifiers  = qualifiers;
+            }
+
+        /**
+         * Return cache name.
+         *
+         * @return cache name
+         */
+        public String getCacheName()
+            {
+            return f_cacheName;
+            }
+
+        /**
+         * Return the session name.
+         *
+         * @return the session name
+         */
+        public String getSessionName()
+            {
+            return f_sessionName;
+            }
+
+        /**
+         * Return qualifiers.
+         * 
+         * @return the qualifiers
+         */
+        public Set<Annotation> getQualifiers()
+            {
+            return f_qualifiers;
+            }
+
+        // ----- Object methods -------------------------------------------------
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (!(o instanceof CacheId cacheId))
+                {
+                return false;
+                }
+
+            return Objects.equals(f_cacheName, cacheId.f_cacheName) 
+                   && Objects.equals(f_sessionName, cacheId.f_sessionName) 
+                   && Objects.equals(f_qualifiers, cacheId.f_qualifiers);
+            }
+
+        @Override
+        public int hashCode()
+            {
+            int result = Objects.hashCode(f_cacheName);
+            result = 31 * result + Objects.hashCode(f_sessionName);
+            result = 31 * result + Objects.hashCode(f_qualifiers);
+            return result;
+            }
+
+        // ---- data members ----------------------------------------------------
+
+        /**
+         * Cache name.
+         */
+        private final String f_cacheName;
+
+        /**
+         * Session name.
+         */
+        private final String f_sessionName;
+
+        /**
+         * Qualifiers.
+         */
+        private final Set<Annotation> f_qualifiers;
         }
 
     // ---- data members ----------------------------------------------------
+
+    /**
+     * The cached instances of NamedCache.
+     */
+    private final Map<CacheId, NamedCache> f_cacheInstances = new ConcurrentHashMap<>();
+
+    /**
+     * The cached instances of ContinuousQueryCache.
+     */
+    private final Map<CacheId, ContinuousQueryCache> f_cqcInstances = new ConcurrentHashMap<>();
 
     /**
      * The CDI bean manager.
@@ -364,4 +517,9 @@ public class NamedCacheProducer
      * The producer of {@link com.tangosol.util.ValueExtractor} instances.
      */
     private final ExtractorProducer f_extractorProducer;
+
+    /**
+     * The CDI map listener manager.
+     */
+    private final CdiMapListenerManager f_cdiMapListenerManager;
     }

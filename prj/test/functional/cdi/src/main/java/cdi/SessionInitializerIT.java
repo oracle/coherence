@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package cdi;
 
+import com.oracle.coherence.cdi.CdiMapListenerManager;
 import com.oracle.coherence.cdi.CoherenceExtension;
 import com.oracle.coherence.cdi.CoherenceProducer;
 import com.oracle.coherence.cdi.ConfigUri;
 import com.oracle.coherence.cdi.ExtractorProducer;
 import com.oracle.coherence.cdi.FilterProducer;
+import com.oracle.coherence.cdi.MapEventTransformerProducer;
 import com.oracle.coherence.cdi.NamedCacheProducer;
 import com.oracle.coherence.cdi.Scope;
 import com.oracle.coherence.cdi.SessionInitializer;
@@ -56,7 +58,9 @@ class SessionInitializerIT
                                                           .addBeanClass(FilterProducer.class)
                                                           .addBeanClass(ExtractorProducer.class)
                                                           .addBeanClass(EventsSession.class)
-                                                          .addBeanClass(TestSession.class));
+                                                          .addBeanClass(TestSession.class)
+                                                          .addBeanClass(CdiMapListenerManager.class)
+                                                          .addBeanClass(MapEventTransformerProducer.class));
 
     @ApplicationScoped
     @Named("events")
