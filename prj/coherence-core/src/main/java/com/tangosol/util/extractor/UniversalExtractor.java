@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -77,9 +77,10 @@ public class UniversalExtractor<T, E>
      * Construct a UniversalExtractor based on syntax of <code>sName</code>.
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX},
-     * <code>"()"</code>, this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in the {@link #METHOD_SUFFIX},
-     * this extractor is a property extractor. Otherwise,
+     * <code>"()"</code>, this extractor is a property extractor.
+     * If <code>sName</code> is prefixed with one of the {@link #BEAN_ACCESSOR_PREFIXES},
+     * the next letter after the prefix is uppercase and optionally ends in the
+     * {@link #METHOD_SUFFIX}, this extractor is a property extractor. Otherwise,
      * if the <code>sName</code> just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
      *
@@ -96,8 +97,8 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * and has no <code>aoParams</code>,this extractor is a property extractor.
-     * If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, optionally ends in {@link #METHOD_SUFFIX}
+     * If <code>sName</code> is prefixed with one of the {@link #BEAN_ACCESSOR_PREFIXES},
+     * the next letter after the prefix is uppercase, optionally ends in {@link #METHOD_SUFFIX}
      * and has no <code>aoParams</code>,this extractor is a property extractor.
      * Otherwise, if the <code>sName</code>just ends in {#link #METHOD_SUFFIX},
      * this extractor is considered a method extractor.
@@ -120,10 +121,10 @@ public class UniversalExtractor<T, E>
      * <p>
      * If <code>sName</code> does not end in {@link #METHOD_SUFFIX}, <code>"()"</code>,
      * this extractor is a property extractor. If <code>sName</code> is prefixed with
-     * one of the {@link #BEAN_ACCESSOR_PREFIXES} and optionally ends in {@link #METHOD_SUFFIX},
-     * this extractor is a property extractor. If the <code>sName</code>
-     * just ends in {@link #METHOD_SUFFIX}, this extractor is considered a method
-     * extractor.
+     * one of the {@link #BEAN_ACCESSOR_PREFIXES}, the next letter after the prefix is uppercase
+     * and optionally ends in {@link #METHOD_SUFFIX}, this extractor is a property extractor.
+     * If the <code>sName</code> just ends in {@link #METHOD_SUFFIX}, this extractor is considered
+     * a method extractor.
      *
      * @param sName    a method or property name
      * @param aoParam  the array of arguments to be used in the method
