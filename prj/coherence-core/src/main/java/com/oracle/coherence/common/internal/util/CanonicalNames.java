@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,9 +20,9 @@ public class CanonicalNames
      * Canonical name is null when one or more optional method parameters
      * are provided. If <code>sName</code> does not end in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},
      * <code>"()"</code>, the canonical name is <code>sName</code> and represents a property.
-     * If <code>sName</code> is prefixed with one of the {@link #VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES}
-     * and optionally ends in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},"()",
-     * the canonical name is <code>sName</code> with prefix and optional suffix removed.
+     * If <code>sName</code> is prefixed with one of the {@link #VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES},
+     * the next letter after the prefix is uppercase and optionally ends in {@link #VALUE_EXTRACTOR_METHOD_SUFFIX},
+     * "()", the canonical name is <code>sName</code> with prefix and optional suffix removed.
      * This canonical name represents a property.
      * If the <code>sName</code> just ends in {#link #VALUE_EXTRACTOR_METHOD_SUFFIX},
      * the canonical name is same as <code>sName</code>. This canonical name
@@ -48,7 +48,9 @@ public class CanonicalNames
             for (String sPrefix : VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES)
                 {
                 int nPrefixLength = sPrefix.length();
-                if (nNameLength > nPrefixLength && sName.startsWith(sPrefix))
+                if (nNameLength > nPrefixLength
+                        && sName.startsWith(sPrefix)
+                        && Character.isUpperCase(sName.charAt(nPrefixLength)))
                     {
                     // detected a JavaBean accessor; remove prefix and optional suffix when present.
                     int nSuffixLength = sName.endsWith(VALUE_EXTRACTOR_METHOD_SUFFIX)

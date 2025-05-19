@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -258,6 +258,14 @@ public class QueryPlusTests
         assertThat(oValue,  instanceOf(JsonObject.class));
         JsonObject json = (JsonObject) oValue;
         assertThat(json.get("foo"), is(1)); // Json Object will be returned as HashMap
+
+        out = m_queryPlusRunner.runCommand("insert into 'dist-json-test' key 1 " +
+                                           "value new json('{\"foo\": 1, \"isbnNo\": 111, \"getnonjavabeanprop\": 333}')");
+
+        // Run CohQL query against the cache and verify the entry that just put in to test for COH--32395.
+        out = m_queryPlusRunner.runCommand("select * from 'dist-json-test' where isbnNo = 111");
+        assertThat(out.get(1).contains("\"isbnNo\": 111"), is(true));
+        assertThat(out.get(1).contains("\"getnonjavabeanprop\": 333"), is(true));
         }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
