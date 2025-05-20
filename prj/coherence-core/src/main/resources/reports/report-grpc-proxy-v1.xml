@@ -7,7 +7,7 @@
 -->
 
 <!--
-  This report shows gRPC Proxy metrics for V0 Proxy Clients,
+  This report shows gRPC Proxy metrics for V1 Proxy Clients,
   which are only available when using 14.1.2.x and CE 24.09.x or later.
 -->
 <report-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
