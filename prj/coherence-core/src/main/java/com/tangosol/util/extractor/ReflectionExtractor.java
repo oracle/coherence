@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -303,7 +303,8 @@ public class ReflectionExtractor<T, E>
     * <ol>
     *   <li>If parameter aoParam has one or more parameters, the canonical name is null.</li>
     *   <li>if name begins with a JavaBean accessor prefixes {@link CanonicalNames#VALUE_EXTRACTOR_BEAN_ACCESSOR_PREFIXES}
-    *   "get" or "is, it is a property. The canonical name is formed by removing that prefix
+    *   "get" or "is, it is a property and the next letter after the prefix is uppercase.
+    *   The canonical name is formed by removing that prefix
     *   and converting the first letter to lowercase.</li>
     *   <li>Otherwise, sName is consider a no-arg method and its canonical form
     *   is the sName with a suffix of "()" appended.</li>
@@ -337,7 +338,8 @@ public class ReflectionExtractor<T, E>
             for (int cchPrefix = 0, len = accessorPrefixes.length; cchPrefix < len && sNameCanonical == null; cchPrefix++)
                 {
                 int nPrefixLength = accessorPrefixes[cchPrefix].length();
-                if (nNameLength > nPrefixLength && nNameLength > 0 && sName.startsWith(accessorPrefixes[cchPrefix]))
+                if (nNameLength > nPrefixLength && nNameLength > 0 && sName.startsWith(accessorPrefixes[cchPrefix])
+                        && Character.isUpperCase(sName.charAt(nPrefixLength)))
                     {
                     sNameCanonical = Character.toLowerCase(sName.charAt(nPrefixLength)) +
                                      sName.substring(nPrefixLength + 1);
