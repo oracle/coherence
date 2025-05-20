@@ -852,6 +852,7 @@
           --add-opens java.base/java.lang=ALL-UNNAMED,com.oracle.coherence
           --add-opens java.management/javax.management=org.mockito
           --add-reads org.mockito=java.management,ALL-UNNAMED
+          --add-opens=java.base/java.lang.invoke=com.oracle.coherence
         </default.failsafe.modules.argline>
         <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
       </properties>
