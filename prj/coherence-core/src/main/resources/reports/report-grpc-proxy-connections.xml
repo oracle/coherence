@@ -7,7 +7,7 @@
 -->
 
 <!--
-     This report shows connections gRPC Proxy Clients.
+     This report shows connections from gRPC Proxy Clients.
      Note: This report is not automatically included in report-all.xml as
      it can contain a large number of entries when there are many short-lived connections
  -->
