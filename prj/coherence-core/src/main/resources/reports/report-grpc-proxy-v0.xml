@@ -149,8 +149,8 @@
                 <name>RequestDurationMax</name>
             </column>
 
-            <column id="RequestDuration75thPercentile">
-                <name>RequestDuration75thPercentile</name>
+            <column id="RequestDuration95thPercentile">
+                <name>RequestDuration95thPercentile</name>
             </column>
 
             <column id="ResponsesSentMeanRate">
