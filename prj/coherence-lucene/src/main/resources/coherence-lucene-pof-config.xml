@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2025 Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+
+  <user-type-list>
+    <user-type>
+      <type-id>27000</type-id>
+      <class-name>org.apache.lucene.search.TermQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$TermQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27001</type-id>
+      <class-name>org.apache.lucene.search.BooleanClause</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$BooleanClauseSerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27002</type-id>
+      <class-name>org.apache.lucene.search.BooleanQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$BooleanQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27003</type-id>
+      <class-name>org.apache.lucene.search.MatchAllDocsQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$MatchAllDocsQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27004</type-id>
+      <class-name>org.apache.lucene.search.PhraseQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$PhraseQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27005</type-id>
+      <class-name>org.apache.lucene.search.WildcardQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$WildcardQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27006</type-id>
+      <class-name>org.apache.lucene.search.PrefixQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$PrefixQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27007</type-id>
+      <class-name>org.apache.lucene.search.FuzzyQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$FuzzyQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27008</type-id>
+      <class-name>org.apache.lucene.search.RegexpQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$RegexpQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27009</type-id>
+      <class-name>org.apache.lucene.search.BoostQuery</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$BoostQuerySerializer
+        </class-name>
+      </serializer>
+    </user-type>
+    <user-type>
+      <type-id>27010</type-id>
+      <class-name>org.apache.lucene.index.Term</class-name>
+      <serializer>
+        <class-name>
+          com.oracle.coherence.lucene.pof.LucenePofSerializers$TermSerializer
+        </class-name>
+      </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>27100</type-id>
+      <class-name>com.oracle.coherence.lucene.LuceneIndex</class-name>
+    </user-type>
+    <user-type>
+      <type-id>27101</type-id>
+      <class-name>com.oracle.coherence.lucene.LuceneIndex$Config</class-name>
+    </user-type>
+    <user-type>
+      <type-id>27110</type-id>
+      <class-name>com.oracle.coherence.lucene.LuceneSearch</class-name>
+    </user-type>
+    <user-type>
+      <type-id>27111</type-id>
+      <class-name>com.oracle.coherence.lucene.LuceneSearch$PartialResult</class-name>
+    </user-type>
+
+  </user-type-list>
+
+  <enable-type-discovery>true</enable-type-discovery>
+</pof-config>

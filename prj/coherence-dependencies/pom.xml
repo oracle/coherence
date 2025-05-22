@@ -254,6 +254,10 @@
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <slf4j.version>1.7.36</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
+
+    <!-- lucene -->
+    <lucene.version>10.2.1</lucene.version>
+
     <!-- NOTE: this version should ideally be in sync with that used by Helidon -->
     <weld.version>5.1.1.SP2</weld.version>
     <weld-junit.version>3.0.0.Final</weld-junit.version>
@@ -630,6 +634,23 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-api</artifactId>
         <version>${log4j2.version}</version>
+      </dependency>
+
+      <!-- Lucene -->
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-core</artifactId>
+        <version>${lucene.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-analysis-common</artifactId>
+        <version>${lucene.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-queryparser</artifactId>
+        <version>${lucene.version}</version>
       </dependency>
 
       <!-- netty -->

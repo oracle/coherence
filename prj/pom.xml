@@ -397,6 +397,7 @@
         <module>coherence-jpa</module>
         <module>coherence-json</module>
         <module>coherence-login</module>
+        <module>coherence-lucene</module>
         <module>coherence-management</module>
         <module>coherence-micrometer</module>
         <module>coherence-protobuf</module>
@@ -466,6 +467,7 @@
         <module>coherence-jpa</module>
         <module>coherence-json</module>
         <module>coherence-login</module>
+        <module>coherence-lucene</module>
         <module>coherence-management</module>
         <module>coherence-micrometer</module>
         <module>coherence-protobuf</module>

@@ -16321,14 +16321,10 @@ public class Storage
             // import java.util.Map;
 
             Storage     storage  = getStorage();
-            Filter       filter   = getFilter();
+            Filter      filter   = getFilter();
             BinaryEntry entry    = getEntryTemp();
-            Iterator     iterator = getIterator();
-
-            // in the same way as in  createQueryResult(), we will skip the entry
-            // initialization if the backing map is not evicting
-            boolean fInit    = storage.isPotentiallyEvicting();
-            Map     mapPrime = storage.getBackingInternalCache();
+            Iterator    iterator = getIterator();
+            Map         mapPrime = storage.getBackingInternalCache();
 
             if (iterator == null)
                 {
@@ -16355,14 +16351,10 @@ public class Storage
                         storage.getService().checkInterrupt();
                         }
 
-                    Binary binValue = null;
-                    if (fInit)
+                    Binary binValue = (Binary) mapPrime.get(binKey);
+                    if (binValue == null) // must've expired
                         {
-                        binValue = (Binary) mapPrime.get(binKey);
-                        if (binValue == null) // must've expired
-                            {
-                            continue;
-                            }
+                        continue;
                         }
 
                     if (entry == null)

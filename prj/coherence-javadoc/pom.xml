@@ -58,6 +58,13 @@
       <version>${project.version}</version>
     </dependency>
 
+    <!-- Lucene -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-lucene</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- Coherence CDI -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>

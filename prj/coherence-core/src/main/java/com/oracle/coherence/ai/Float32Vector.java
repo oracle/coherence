@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,7 +34,7 @@ public final class Float32Vector
         }
 
     /**
-     * Create a {@link Int8Vector} wrapping the specified {@code float} array.
+     * Create a {@link Float32Vector} wrapping the specified {@code float} array.
      * <p/>
      * Note: this method does not make a copy of the passed in float array.
      * Mutating the array will result in changes to the internal state of
