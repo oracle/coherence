@@ -23,8 +23,9 @@
 
   <properties>
     <module.name>com.oracle.coherence.lucene</module.name>
-    <useModulePath>false</useModulePath>
 
+    <java.version>21</java.version>
+    <java.version.release>21</java.version.release>
   </properties>
 
   <dependencies>
@@ -142,4 +143,18 @@
       </plugin>
     </plugins>
   </build>
+
+  <!-- skip tests if running on Java 17, as Lucene requires Java 21+ -->
+  <profiles>
+    <profile>
+       <id>java17</id>
+       <activation>
+         <jdk>(,20]</jdk>
+       </activation>
+       <properties>
+         <skipTests>true</skipTests>
+         <gradle.skip.test>true</gradle.skip.test>
+       </properties>
+     </profile>
+  </profiles>
 </project>
