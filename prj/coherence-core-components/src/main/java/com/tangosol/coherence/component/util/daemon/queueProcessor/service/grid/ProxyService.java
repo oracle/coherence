@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.net.Poll;
 import com.tangosol.coherence.component.net.ServiceInfo;
 import com.tangosol.coherence.component.net.extend.protocol.CacheServiceProtocol;
@@ -1663,7 +1664,30 @@ public class ProxyService
             || acceptor instanceof HttpAcceptor
             || acceptor instanceof GrpcAcceptor)
             {
-            getMemberListenAddresses().add(getListenSocketAddress(member));
+            String sAddress = getListenSocketAddress(member);
+            if (sAddress == null)
+                {
+                Logger.err("In onNotifyServiceJoined - Null listen address returned for member " + member);
+                ServiceMemberSet setMember = getServiceMemberSet();
+                if (setMember == null)
+                    {
+                    Logger.err("ServiceMemberSet is null");
+                    }
+                else
+                    {
+                    Map cm = setMember.getMemberConfigMap(member.getId());
+                    if (cm == null)
+                        {
+                        Logger.err("ServiceMemberSet config map is null for member");
+                        }
+                    else
+                        {
+                        Logger.err("ServiceMemberSet config map listen-address for member is " + cm.get("listen-address"));
+                        }
+                    }
+                throw new IllegalStateException("Null listen address for member " + member);
+                }
+            getMemberListenAddresses().add(sAddress);
             }
         }
     
@@ -1690,7 +1714,30 @@ public class ProxyService
         if (!setAddr.isEmpty() && (acceptor instanceof TcpAcceptor
             || acceptor instanceof HttpAcceptor || acceptor instanceof GrpcAcceptor))
             {
-            setAddr.remove(getListenSocketAddress(member));
+            String sAddress = getListenSocketAddress(member);
+            if (sAddress == null)
+                {
+                Logger.err("In onNotifyServiceLeft - Null listen address returned for member " + member);
+                ServiceMemberSet setMember = getServiceMemberSet();
+                if (setMember == null)
+                    {
+                    Logger.err("ServiceMemberSet is null");
+                    }
+                else
+                    {
+                    Map cm = setMember.getMemberConfigMap(member.getId());
+                    if (cm == null)
+                        {
+                        Logger.err("ServiceMemberSet config map is null for member");
+                        }
+                    else
+                        {
+                        Logger.err("ServiceMemberSet config map listen-address for member is " + cm.get("listen-address"));
+                        }
+                    }
+                throw new IllegalStateException("Null listen address for member " + member);
+                }
+            setAddr.remove(sAddress);
             }
         
         super.onNotifyServiceLeft(member);
