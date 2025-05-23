@@ -152,7 +152,6 @@ function setup
     PATH=$MAVEN_HOME/bin:$PATH
     export MAVEN_HOME
     echo MAVEN_HOME = $MAVEN_HOME
-    mvn -v
   fi
 
   #
