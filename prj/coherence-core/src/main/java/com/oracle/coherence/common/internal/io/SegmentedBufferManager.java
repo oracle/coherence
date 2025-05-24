@@ -1172,7 +1172,8 @@ public class SegmentedBufferManager
      * would cause them to reevaluate on their own.
      */
     protected static final long CLEANUP_FREQUENCY_MILLIS = Config.getDuration(SegmentedBufferManager.class.getName() + ".cleanup.frequency",
-                                                                              new Duration(1, Duration.Magnitude.SECOND)).as(Duration.Magnitude.MILLI);
+                                                                              new Duration(1, Duration.Magnitude.SECOND),
+                                                                              Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
     /**
      * The logger.
