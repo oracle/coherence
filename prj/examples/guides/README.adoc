@@ -189,6 +189,13 @@ an `EntryProcessor` in a partition level transaction.
 An example of how to connect an Extend or gRPC client to multiple Coherence clusters.
 --
 
+[CARD]
+.Vector DB and Knn Search
+[link=examples/guides/300-vector-store/README.adoc]
+--
+An example of how to use some of Coherence Vector DB features.
+--
+
 ====
 
 // DO NOT ADD CONTENT AFTER THIS LINE
