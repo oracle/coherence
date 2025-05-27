@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -281,7 +281,20 @@ public class ClusterMBean
     protected java.util.Map get_MethodInfo()
         {
         java.util.Map mapInfo = super.get_MethodInfo();
-        
+
+        // behavior configureLogLevel(String sRole, int nLevel)
+            {
+            mapInfo.put("configureLogLevel(Ljava.lang.String;I)", new Object[]
+                {
+                "Configure the logging level for those members matching the specified role, or if role is null or empty,\nthe logging level for all cluster members.",
+                "configureLogLevel",
+                "V",
+                new String[] {"sRole", "nLevel", },
+                new String[] {"Ljava.lang.String;", "I"},
+                null,
+                });
+            }
+
         // behavior configureTracing(String sRole, float fRatio)
             {
             mapInfo.put("configureTracing(Ljava.lang.String;F)", new Object[]
