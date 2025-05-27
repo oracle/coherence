@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -147,6 +147,7 @@ public abstract class Config
             }
         catch (RuntimeException e)
             {
+            System.err.println("Warning: ignoring system property \"" + sName + "\" due to invalid value " + e.getMessage());
             return null;
             }
         }
@@ -188,6 +189,7 @@ public abstract class Config
             }
         catch (RuntimeException e)
             {
+            System.err.println("Warning: ignoring system property \"" + sName + "\" due to invalid value " + e.getMessage());
             return null;
             }
         }
@@ -229,6 +231,7 @@ public abstract class Config
             }
         catch (RuntimeException e)
             {
+            System.err.println("Warning: ignoring system property \"" + sName + "\" due to invalid value " + e.getMessage());
             return null;
             }
         }
@@ -270,6 +273,7 @@ public abstract class Config
             }
         catch (RuntimeException e)
             {
+            System.err.println("Warning: ignoring system property \"" + sName + "\" due to invalid value " + e.getMessage());
             return null;
             }
         }
@@ -305,16 +309,8 @@ public abstract class Config
      */
     public static Duration getDuration(String sName)
         {
-        String sValue = getProperty(sName);
-        try
-            {
-            return sValue == null || sValue.isEmpty() ? null :  new Duration(sValue);
+        return getDuration(sName, /*dDefault*/ null, /*magnitudeDefault*/ null);
             }
-        catch (RuntimeException e)
-            {
-            return null;
-            }
-        }
 
     /**
      * Return Coherence system property value as a {@link Duration}.
@@ -329,10 +325,38 @@ public abstract class Config
      *         return <code>dDefault</code>
      */
     public static Duration getDuration(String sName, Duration dDefault)
-        {
-        Duration d = getDuration(sName);
+            {
+        return getDuration(sName, dDefault, /*magnitudeDefault*/ null);
+        }
 
-        return d == null ? dDefault : d;
+    /**
+     * Return Coherence system property value as a {@link Duration}.
+     * <p>
+     * Backwards compatibility support is described in {@link Config}.
+     *
+     * @param sName     Coherence system property name beginning with <code>coherence.</code>
+     * @param dDefault  default {@link Duration} value
+     * @param magnitudeDefault default Duration magnitude when system property value does not include a magnitude
+     *
+     * @return property value as {@link Duration} if property lookup and conversion
+     *         of the String value to {@link Duration} succeeds; otherwise,
+     *         return <code>dDefault</code>
+     *
+     * @since 25.09
+     */
+    public static Duration getDuration(String sName, Duration dDefault, Duration.Magnitude magnitudeDefault)
+        {
+        String sValue = getProperty(sName);
+        try
+            {
+            return sValue == null || sValue.isEmpty() ? dDefault : new Duration(sValue, magnitudeDefault);
+            }
+        catch (RuntimeException e)
+        {
+            System.err.println("Warning: ignoring system property \"" + sName + "\" due to " + e.getMessage() +
+                               " Verify that duration string value uses valid magnitudes such as ms, s, m, h.");
+            return dDefault;
+            }
         }
 
     /**

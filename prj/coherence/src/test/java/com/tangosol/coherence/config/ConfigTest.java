@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -599,6 +599,102 @@ public class ConfigTest
         assertNull(System.getProperty(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX));
         assertThat(Config.getInteger(COHERENCE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
         assertThat(Config.getInteger(ORACLE_COMMON + RECONNECT_LIMIT_SUFFIX, DEFAULT_VALUE), is(DEFAULT_VALUE));
+        }
+
+    /**
+     * COH-32433: ensure no duration magnitude is needed in system property value ending in "Millis" and provided numeric value defaults to millis.
+     */
+    @Test
+    public void testValidMillisDuration()
+        {
+        final String ORACLE_COMMON    = "com.oracle.common";            // before Coherence 14.1.1.0
+        final String ACKTIMEOUTMILLIS = ".internal.net.socketbus.SocketBusDriver.ackTimeoutMillis";
+        final long   dMillis          = 1200L;
+
+        try (SystemPropertyResource p = new SystemPropertyResource(ORACLE_COMMON + ACKTIMEOUTMILLIS, Long.toString(dMillis));)
+            {
+            long millis = Config.getDuration(ORACLE_COMMON + ACKTIMEOUTMILLIS,
+                                             new Duration("111", Duration.Magnitude.MILLI),
+                                             Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
+            assertThat("system property value does not contain magnitude but defaults to millis as expected for duration for system property ending in Millis",
+                       millis, is(dMillis));
+            }
+        }
+
+    @Test
+    public void testMillisDurationWithDuration()
+        {
+        final String ORACLE_COMMON    = "com.oracle.common";            // before Coherence 14.1.1.0
+        final String ACKTIMEOUTMILLIS = ".internal.net.socketbus.SocketBusDriver.ackTimeoutMillis";
+        final String  sValueSec       = "2s";
+
+        try (SystemPropertyResource p = new SystemPropertyResource(ORACLE_COMMON + ACKTIMEOUTMILLIS, sValueSec);)
+            {
+            long dMillis = Config.getDuration(ORACLE_COMMON + ACKTIMEOUTMILLIS,
+                                             new Duration("111", Duration.Magnitude.MILLI),
+                                             Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
+            assertThat("verify specified magnitude in system property value overrides default magnitude",
+                       dMillis, is(new Duration(sValueSec).as(Duration.Magnitude.MILLI)));
+            }
+        }
+
+    @Test
+    public void testInvalidMillisDuration()
+        {
+        final String ORACLE_COMMON    = "com.oracle.common";
+        final String ACKTIMEOUTMILLIS = ".internal.net.socketbus.SocketBusDriver.ackTimeoutMillis";
+        final long   dMillis          = 1200L;
+
+        try (SystemPropertyResource p = new SystemPropertyResource(ORACLE_COMMON + ACKTIMEOUTMILLIS, Long.toString(dMillis));)
+            {
+            long millis = Config.getDuration(ORACLE_COMMON + ACKTIMEOUTMILLIS,
+                                             new Duration("111", Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
+            assertThat("system property value does not contain magnitude and has no defaults to millis as expected for duration for system property ending in Millis",
+                       millis, is(111L));
+            }
+        }
+
+    @Test
+    public void testInvalidPropertyValues()
+        {
+        // test for Int, Long, Float, Double, Duration, MemorySize
+        try (SystemPropertyResource p = new SystemPropertyResource("IntProperty", "123InvalidInt");)
+            {
+            final int DEFAULT = 5;
+            int       dValue = Config.getInteger("IntProperty", DEFAULT);
+
+            assertThat(dValue, is(DEFAULT));
+            }
+        try (SystemPropertyResource p = new SystemPropertyResource("LongProperty", "123InvalidLong");)
+            {
+            final long DEFAULT = 5;
+            long       lValue = Config.getLong("LongProperty", DEFAULT);
+
+            assertThat(lValue, is(DEFAULT));
+            }
+        try (SystemPropertyResource p = new SystemPropertyResource("FloatProperty", "123InvalidFloat");)
+            {
+            final float DEFAULT = 5.0f;
+            float       fValue = Config.getFloat("FloatProperty", DEFAULT);
+
+            assertThat(fValue, is(DEFAULT));
+            }
+        try (SystemPropertyResource p = new SystemPropertyResource("DoubleProperty", "123InvalidDouble");)
+            {
+            final double DEFAULT = 5.0f;
+            double       fValue = Config.getDouble("DoubleProperty", DEFAULT);
+
+            assertThat(fValue, is(DEFAULT));
+            }
+
+        try (SystemPropertyResource p = new SystemPropertyResource("DurationProperty", "1234");)
+            {
+            // missing duration magnitude in string and Config.getDuration() does not provide a default magnitude.
+            final Duration DEFAULT = new Duration("5s");
+            Duration       durValue = Config.getDuration("DurationProperty", DEFAULT, null);
+
+            assertThat(durValue, is(DEFAULT));
+            }
         }
 
     //----- constants --------------------------------------------------------

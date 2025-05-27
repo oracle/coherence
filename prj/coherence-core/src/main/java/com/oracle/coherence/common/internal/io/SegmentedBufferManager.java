@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1172,7 +1172,8 @@ public class SegmentedBufferManager
      * would cause them to reevaluate on their own.
      */
     protected static final long CLEANUP_FREQUENCY_MILLIS = Config.getDuration(SegmentedBufferManager.class.getName() + ".cleanup.frequency",
-                                                                              new Duration(1, Duration.Magnitude.SECOND)).as(Duration.Magnitude.MILLI);
+                                                                              new Duration(1, Duration.Magnitude.SECOND),
+                                                                              Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
     /**
      * The logger.
