@@ -941,7 +941,8 @@ public class SocketBusDriver
                 }
 
             m_cAckTimeoutMillis = Config.getDuration(SocketBusDriver.class.getName() + ".ackTimeoutMillis",
-                                                     new Duration(getDefaultAckTimeoutMillis(), Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
+                                                     new Duration(getDefaultAckTimeoutMillis(), Duration.Magnitude.MILLI),
+                                                     Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
             return this;
             }
@@ -1010,7 +1011,8 @@ public class SocketBusDriver
          */
         protected long m_cReconnectDelayMillis =
                 Config.getDuration(SocketBusDriver.class.getName() + ".reconnectDelayMillis",
-                                   new Duration(200, Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
+                                   new Duration(200, Duration.Magnitude.MILLI),
+                                   Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
         /**
          * The maximum number of sequential reconnects to attempt.
@@ -1023,7 +1025,8 @@ public class SocketBusDriver
          * Maximum receipt ack delay in millis
          */
         protected long m_cMaxReceiptDelayMillis = Config.getDuration(SocketBusDriver.class.getName()+".maxReceiptDelayMillis",
-                                                                     new Duration(500, Duration.Magnitude.MILLI)).as(Duration.Magnitude.MILLI);
+                                                                     new Duration(500, Duration.Magnitude.MILLI),
+                                                                     Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
         /**
          * Ack timeout in millis
@@ -1040,7 +1043,8 @@ public class SocketBusDriver
          * Fatal ack timeout in millis
          */
         protected long m_cAckFatalTimeoutMillis = Config.getDuration(SocketBusDriver.class.getName()+".fatalTimeoutMillis",
-                                                                     new Duration(10, Duration.Magnitude.MINUTE)).as(Duration.Magnitude.MILLI);
+                                                                     new Duration(10, Duration.Magnitude.MINUTE),
+                                                                     Duration.Magnitude.MILLI).as(Duration.Magnitude.MILLI);
 
         /**
          * Heartbeat interval in millis, disabled by default now that we support reconnects
