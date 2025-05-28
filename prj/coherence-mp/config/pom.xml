@@ -100,7 +100,7 @@
                     com.tangosol.internal.tracing.PropertySource
                   </uses>
                   <provides>
-                    com.tangosol.internal.tracing.PropertySource with com.oracle.coherence.mp.config.tracing.OtelPropertySource;
+                    com.tangosol.internal.tracing.PropertySource with com.oracle.coherence.mp.config.tracing.PropertySource;
                   </provides>
                 </moduleInfo>
               </module>
