@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.net.management.model.localModel;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.component.net.management.Gateway;
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.net.CacheFactory;
@@ -205,6 +206,55 @@ public class ClusterModel
                     {
                     String sNode = gateway.ensureGlobalName(sNodePrefix, member);
                     server.setAttribute(new ObjectName(sNode), new Attribute("TracingSamplingRatio", fRatio));
+                    }
+                catch (Exception ignore)
+                    {
+                    }
+                }
+            }
+        }
+
+    /**
+     * Configure the logging level for those members matching the specified role, or if role is null or empty,
+     * the logging level for all cluster members.
+     */
+    public void configureLogLevel(String sRole, int nLevel)
+        {
+        checkReadOnly("configureLogLevel");
+
+        Cluster cluster = get_Cluster();
+        if (cluster == null)
+            {
+            return;
+            }
+
+        MBeanServer server      = MBeanHelper.findMBeanServer();
+        Gateway     gateway     = (Gateway) cluster.getManagement();
+        boolean     fAllMembers = sRole == null || sRole.isEmpty();
+        String      sNodePrefix = gateway.getDomainName() + ':' + Registry.NODE_TYPE;
+
+        for (Iterator iter = cluster.getMemberSet().iterator(); iter.hasNext(); )
+            {
+            Member member = (Member) iter.next();
+            if (fAllMembers || member.getRoleName().equals(sRole))
+                {
+                try
+                    {
+                    if (nLevel < Base.LOG_MIN)
+                        {
+                        Logger.fine("Minimum severity is " + Logger.ALWAYS
+                                    + " (overriding setting of " + nLevel + ")");
+                        nLevel = Logger.ALWAYS;
+                        }
+                    else if (nLevel > Base.LOG_MAX)
+                        {
+                        Logger.fine("Maximum severity is " + Base.LOG_MAX
+                                    + " (overriding setting of " + nLevel + ")");
+                        nLevel = Base.LOG_MAX;
+                        }
+
+                    String sNode = gateway.ensureGlobalName(sNodePrefix, member);
+                    server.setAttribute(new ObjectName(sNode), new Attribute("LoggingLevel", nLevel));
                     }
                 catch (Exception ignore)
                     {
