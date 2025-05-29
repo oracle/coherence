@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -312,7 +312,7 @@ public class TaskExecutorServicePersistenceTests
                                       Caches.tasks(service),
                                       Caches.properties(service));
 
-        //Utils.heapdump(s_coherence.getCluster());
+        s_coherence.getCluster().heapdump();
         }
 
     protected CacheService getCacheService()

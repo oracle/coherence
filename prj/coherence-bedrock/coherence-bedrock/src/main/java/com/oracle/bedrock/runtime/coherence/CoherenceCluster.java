@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,11 +26,16 @@ import com.oracle.bedrock.runtime.concurrent.options.Caching;
 import com.oracle.bedrock.runtime.concurrent.runnable.ThreadDump;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.util.Trilean;
+import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.common.internal.util.HeapDump;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedCache;
 import com.tangosol.util.UID;
 import com.tangosol.util.function.Remote;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -158,6 +163,36 @@ public class CoherenceCluster
         Iterator<CoherenceClusterMember> members = iterator();
 
         return members.hasNext() ? members.next().getCache(cacheName, keyClass, valueClass) : null;
+        }
+
+
+    /**
+     * Initiates a heap dump across all members of the cluster.
+     */
+    public void heapdump()
+        {
+        for (CoherenceClusterMember member : this)
+            {
+            if (member != null && member.getLocalMemberId() > 0)
+                {
+                String sDir = System.getProperty("test.project.dir");
+
+                if (sDir == null || sDir.isEmpty())
+                    {
+                    try
+                        {
+                        sDir = new java.io.File(".").getCanonicalPath();
+                        }
+                    catch (IOException ioe)
+                        {
+                        Logger.err("Failed to get canonical path of " + sDir, ioe);
+                        }
+                    }
+                final String sPath = sDir;
+                member.submit(()-> CacheFactory.log("### Dumping heap for analysis here : \n" +
+                                                    HeapDump.dumpHeap(sPath + File.separatorChar + "target", true)));
+                }
+            }
         }
 
 
