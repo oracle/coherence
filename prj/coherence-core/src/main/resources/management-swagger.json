@@ -6326,10 +6326,6 @@
           ],
           "readOnly": true
         },
-        "member": {
-          "type": "string",
-          "description": "Name of the cluster member"
-        },
         "processName": {
           "type": "string",
           "description": "A configured name that should be the same for Members that are in the same process (JVM), and different for Members that are in different processes. If not explicitly provided, for processes running with JRE 1.5 or higher the name will be calculated internally as the Name attribute of the system RuntimeMXBean, which normally represents the process identifier (PID).",
