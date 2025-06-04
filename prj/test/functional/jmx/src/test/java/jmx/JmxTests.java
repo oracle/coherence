@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -785,6 +785,89 @@ public class JmxTests
          }
 
     /**
+     * Test that the loggingLevel of a cluster can be dynamically changed for members within a specific role, or,
+     * when no role is specified, for all members of the cluster.
+     */
+    @Test
+    public void testConfigureLogLevel()
+        {
+        CacheFactory.shutdown();
+
+        Properties propsMain = new Properties();
+        propsMain.setProperty("coherence.role", "node1");
+        propsMain.setProperty("coherence.management","all");
+        propsMain.setProperty("coherence.management.remote","true");
+        propsMain.setProperty("test.log", "jdk");
+        propsMain.setProperty("test.log.level", "6");
+        propsMain.setProperty("java.net.preferIPV4Stack", "true");
+
+        Cluster cluster = CacheFactory.ensureCluster();
+
+        assertTrue(cluster.isRunning());
+        assertEquals("cluster already exists", 1, cluster.getMemberSet().size());
+
+        // add 2 members to the cluster
+        propsMain.setProperty("coherence.role", "node2");
+        CoherenceClusterMember member2 = startCacheServer(m_testName.getMethodName() + "-member2", PROJECT, null, propsMain);
+        propsMain.setProperty("coherence.role", "node3");
+        CoherenceClusterMember member3 = startCacheServer(m_testName.getMethodName() + "-member3", PROJECT, null, propsMain);
+        Eventually.assertDeferred(member2::getClusterSize, is(3));
+
+        MBeanServer serverJMX = MBeanHelper.findMBeanServer();
+        try
+            {
+            updateLoggingLevelForCluster(serverJMX, null, 6);
+            // initial state
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(6));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(6));
+
+            // change log level of all members to 9
+            updateLoggingLevelForCluster(serverJMX, null, 9);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(9));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(9));
+
+            // change log level of all members to 6
+            updateLoggingLevelForCluster(serverJMX, null, 6);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(6));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(6));
+
+            // change log level of member2 to 9
+            updateLoggingLevelForCluster(serverJMX, "node2", 9);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(9));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(6));
+
+            // change log level of member3 to 9
+            updateLoggingLevelForCluster(serverJMX, "node3", 9);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(9));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(9));
+
+            // attempt to change log level of all members to 20, revert to max log level
+            updateLoggingLevelForCluster(serverJMX, null, 20);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(9));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(9));
+
+            // attempt to change log level of all members to -1, revert to min log level
+            updateLoggingLevelForCluster(serverJMX, null, -1);
+
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member2), is(0));
+            Eventually.assertDeferred(() -> getLoggingLevelForMember(serverJMX, member3), is(0));
+            }
+        catch (Exception e)
+            {
+            fail(e.getMessage());
+            }
+        finally
+            {
+            AbstractFunctionalTest._shutdown();
+            }
+        }
+
+    /**
      * Test that when logClusterState operation of ClusterMBean is invoked,
      * the thread dump is logged.
      */
@@ -1323,6 +1406,47 @@ public class JmxTests
             }
         return -1;
     }
+
+    /**
+     * Return the current value for the "LoggingLevel" JMX attribute.
+     *
+     * @param server  the {@link MBeanServer} to query
+     * @param member  the {@link CoherenceClusterMember} of interest
+     *
+     * @return the current configuration value or -1 if the attribute can't be retrieved.
+     */
+    public int getLoggingLevelForMember(MBeanServer server, CoherenceClusterMember member)
+        {
+        try
+            {
+            ObjectName oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + member.getLocalMemberId());
+
+            return (int) getMbeanAttribute(server, oBeanName, "LoggingLevel");
+            }
+        catch (Exception e)
+            {
+            Assert.fail(printStackTrace(e));
+            }
+        return -1;
+        }
+
+    /**
+     * Update the logging level at the cluster-level via JMX.
+     *
+     * @param server  the {@link MBeanServer}
+     * @param sRole   the member roles the changes should be scoped to
+     * @param nLevel  the new logging level
+     *
+     * @throws Exception if an unexpected error occurs
+     */
+    public void updateLoggingLevelForCluster(MBeanServer server, String sRole, int nLevel)
+            throws Exception
+        {
+        server.invoke(new ObjectName("Coherence:type=Cluster"),
+                      "configureLogLevel",
+                      new Object[] {sRole, Integer.valueOf(nLevel)},
+                      new String[] {String.class.getName(), Integer.class.getName()});
+        }
 
     /**
     * Helper function to start a cache server with specified site name, rack name and machine name.
