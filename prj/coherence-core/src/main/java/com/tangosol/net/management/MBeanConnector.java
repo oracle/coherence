@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.management;
@@ -288,7 +288,7 @@ public class MBeanConnector
         String sConPort = Config.getProperty(RMI_CONNECTION_PORT_ADJUST_PROPERTY);
         try
             {
-            return sConPort == null ? 65535 : Integer.parseInt(sConPort);
+            return sConPort == null ? 65535 : Math.min(Integer.parseInt(sConPort), 65535);
             }
         catch (NumberFormatException e)
             {
