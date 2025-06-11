@@ -21,9 +21,9 @@
 
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
     <coherence.version>${project.version}</coherence.version>
-    <helidon.version>4.2.2</helidon.version>
+    <helidon.version>4.2.3</helidon.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
-    <parsson-media.version>1.1.6</parsson-media.version>
+    <parsson-media.version>1.1.7</parsson-media.version>
 
     <java.version>21</java.version>
 
