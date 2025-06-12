@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -111,6 +111,8 @@ ENTRY_POINT="java"
 
 CLASSPATH="/coherence/ext/conf:/coherence/ext/lib/*:/app/resources:/app/classes:/app/libs/*"
 
+DESCR="Oracle Coherence is a scalable, fault-tolerant, cloud-ready, distributed platform for building distributed applications and reliably storing data."
+
 IMAGE_PATH=""
 LABEL_JAVA_VERSION=""
 LABEL_JAVA_SPEC_VERSION=""
@@ -149,7 +151,6 @@ ENV_VARS="${ENV_VARS} -e JAEGER_SAMPLER_PARAM=0"
 ENV_VARS="${ENV_VARS} -e JAEGER_SERVICE_NAME=coherence"
 ENV_VARS="${ENV_VARS} -e LANG=en_US.UTF-8"
 
-
 # Build the exposed port list
 PORT_LIST=""
 PORT_LIST="${PORT_LIST} -p ${PORT_EXTEND}"
@@ -179,41 +180,8 @@ common_image(){
 
   if [ "${5}" != "" ]
   then
-#   Argument ${5} is set to a URL to download Java from
-#   We do this inside a "builder" image and then copy the resulting JDK
-#   to our new image
-    buildah rm "builder-${1}" || true
-
-#   Attempt to pull the builder image
-    exitCode=0
-    for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "builder-${1}" "${BUILDER_IMAGE}" \
-      && exitCode=0 && break || exitCode=$? \
-      && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
-      && sleep 10; done;
-
-    if [ ${exitCode} != 0 ]; then
-      exit 1
-    fi
-
-    if [ "${1}" = "amd64" ]; then
-      ARCH="x64"
-    else
-      ARCH="aarch64"
-    fi
-    JAVA_PKG="${5}"_linux-"${ARCH}"_bin.tar.gz
-    IMAGE_JAVA_HOME=/usr/java/jdk-21
-#   Download the JDK
-    curl --output /tmp/jdk.tgz "$JAVA_PKG"
-    mkdir -p "/tmp${IMAGE_JAVA_HOME}"
-    tar --extract --file /tmp/jdk.tgz --directory "/tmp${IMAGE_JAVA_HOME}" --strip-components 1
-#   Copy the JDK from the builder image to the target image
-    buildah copy "builder-${1}" "/tmp${IMAGE_JAVA_HOME}" "${IMAGE_JAVA_HOME}"
-    rm -f /tmp/jdk.tgz
-    rm -rf "/tmp${IMAGE_JAVA_HOME}"
-#   Set the JAVA_HOME env var to the downloaded JDK
-    ENV_VARS_JAVA_HOME="-e JAVA_HOME=${IMAGE_JAVA_HOME}"
-    ADD_JAVA21_DEPS="true"
-fi
+    setup_jdk ${1} ${2} ${3} ${4} ${5}
+  fi
 
   # Create the container from the base image, setting the architecture and O/S
   # The "buildah from" command will pull the base image if not present, this will
@@ -264,6 +232,8 @@ fi
       --annotation "org.opencontainers.image.source=http://github.com/oracle/coherence" \
       --annotation "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
       --annotation "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
+      --annotation "org.opencontainers.image.revision=${P4_CHANGELIST}" \
+      --annotation "org.opencontainers.image.description"="${DESCR}" \
       --label "com.oracle.coherence.java.vm.version=${LABEL_JAVA_VERSION}" \
       --label "com.oracle.coherence.java.vm.specification.version=${LABEL_JAVA_SPEC_VERSION}" \
       --label "org.opencontainers.image.created=${CREATED}" \
@@ -272,6 +242,13 @@ fi
       --label "org.opencontainers.image.source=http://github.com/oracle/coherence" \
       --label "org.opencontainers.image.vendor=${PROJECT_VENDOR}" \
       --label "org.opencontainers.image.title=${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
+      --label "name"="Oracle Coherence" \
+      --label "vendor"="${PROJECT_VENDOR}" \
+      --label "version"="${COHERENCE_VERSION}" \
+      --label "release"="${P4_CHANGELIST}" \
+      --label "maintainer"="Oracle Coherence Engineering Team" \
+      --label "summary"="Oracle Coherence OCI image" \
+      --label "description"="${DESCR}" \
       "container-${1}"
 
   # Copy files into the container
@@ -296,6 +273,45 @@ fi
     buildah push -f v2s2 "coherence:${1}" "docker-daemon:${4}"
     echo "Pushed ${2}/${1} image ${4} to Docker daemon"
   fi
+}
+
+# Download the JDK and configure it
+setup_jdk() {
+#   Argument ${5} is set to a URL to download Java from
+#   We do this inside a "builder" image and then copy the resulting JDK
+#   to our new image
+    buildah rm "builder-${1}" || true
+
+#   Attempt to pull the builder image
+    exitCode=0
+    for i in $(seq 1 5); do buildah from --arch "${1}" --os "${2}" --name "builder-${1}" "${BUILDER_IMAGE}" \
+      && exitCode=0 && break || exitCode=$? \
+      && echo "The command 'buildah from...' failed. Attempt ${i} of 5" \
+      && sleep 10; done;
+
+    if [ ${exitCode} != 0 ]; then
+      exit 1
+    fi
+
+    if [ "${1}" = "amd64" ]; then
+      ARCH="x64"
+    else
+      ARCH="aarch64"
+    fi
+    JAVA_PKG="${5}"_linux-"${ARCH}"_bin.tar.gz
+    JDK_NAME=$(basename ${5})
+    IMAGE_JAVA_HOME=/usr/java/${JDK_NAME}
+#   Download the JDK
+    curl --output /tmp/jdk.tgz "$JAVA_PKG"
+    mkdir -p "/tmp${IMAGE_JAVA_HOME}"
+    tar --extract --file /tmp/jdk.tgz --directory "/tmp${IMAGE_JAVA_HOME}" --strip-components 1
+#   Copy the JDK from the builder image to the target image
+    buildah copy "builder-${1}" "/tmp${IMAGE_JAVA_HOME}" "${IMAGE_JAVA_HOME}"
+    rm -f /tmp/jdk.tgz
+    rm -rf "/tmp${IMAGE_JAVA_HOME}"
+#   Set the JAVA_HOME env var to the downloaded JDK
+    ENV_VARS_JAVA_HOME="-e JAVA_HOME=${IMAGE_JAVA_HOME}"
+    ADD_JAVA21_DEPS="true"
 }
 
 buildah version

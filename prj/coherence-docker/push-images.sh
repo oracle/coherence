@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,11 @@ then
   buildah login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}" "${DOCKER_REGISTRY}"
 fi
 
+DATE_FMT="%Y-%m-%dT%H:%M:%SZ"
+BUILD_DATE=$(date -u "+${DATE_FMT}")
+# Do not put commas in this description!!
+DESCR="Oracle Coherence is a scalable platform for reliably storing and managing data in distributed applications."
+
 push_image() {
   if [ "${NO_DAEMON}" != "true" ]
   then
@@ -23,7 +28,15 @@ push_image() {
 
   buildah rmi "${IMAGE_NAME}${1}" || true
   buildah manifest rm "${IMAGE_NAME}${1}" || true
-  buildah manifest create "${IMAGE_NAME}${1}"
+  buildah manifest create \
+      --annotation "org.opencontainers.image.created"="${BUILD_DATE}" \
+      --annotation "org.opencontainers.image.version"="${COHERENCE_VERSION}" \
+      --annotation "org.opencontainers.image.url"="https://github.com/oracle/coherence/pkgs/container/coherence-ce" \
+      --annotation "org.opencontainers.image.source"="http://github.com/oracle/coherence" \
+      --annotation "org.opencontainers.image.vendor"="${PROJECT_VENDOR}" \
+      --annotation "org.opencontainers.image.title"="${PROJECT_DESCRIPTION} ${COHERENCE_VERSION}" \
+      --annotation "org.opencontainers.image.description"="${DESCR}" \
+      "${IMAGE_NAME}${1}"
   buildah manifest add --arch amd64 --os linux "${IMAGE_NAME}${1}" "${IMAGE_NAME}${1}-amd64"
   buildah manifest add --arch arm64 --os linux "${IMAGE_NAME}${1}" "${IMAGE_NAME}${1}-arm64"
   buildah manifest inspect "${IMAGE_NAME}${1}"

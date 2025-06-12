@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -151,6 +151,7 @@ else
       -e PROJECT_URL="${PROJECT_URL}" \
       -e PROJECT_VENDOR="${PROJECT_VENDOR}" \
       -e PROJECT_DESCRIPTION="${PROJECT_DESCRIPTION}" \
+      -e P4_CHANGELIST="${P4_CHANGELIST}" \
       -e HTTP_PROXY="${HTTP_PROXY}" -e HTTPS_PROXY="${HTTPS_PROXY}" -e NO_PROXY="${NO_PROXY}" \
       -e http_proxy="${http_proxy}" -e https_proxy="${https_proxy}" -e no_proxy="${no_proxy}" \
       --name buildah \

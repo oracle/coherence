@@ -128,8 +128,11 @@
     <graalvm.base.image.name.amd>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.amd>
     <graalvm.base.image.name.arm>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.arm>
     <graalvm.image.skip>false</graalvm.image.skip>
-    <!-- The prefix of the Java download URL (this URL does not have the arch specific part on the end, that is created by the build script) -->
-    <java.ea.base.url>https://download.oracle.com/java/21/latest/jdk-21</java.ea.base.url>
+    <!--
+    The prefix of the Java download URL for the Coherence images
+    (this URL does not have the O/S and architecture specific part on the end of the URL, that is created by the build script)
+     -->
+    <java.ea.base.url>https://download.oracle.com/java/24/latest/jdk-24</java.ea.base.url>
     <!-- default ports configured in the image -->
     <docker.port.grpc>1408</docker.port.grpc>
     <docker.port.extend>20000</docker.port.extend>

@@ -79,6 +79,12 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-testing-support</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-bedrock-testing-support</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
@@ -321,6 +327,10 @@
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
+                     <PROJECT_URL>${project.url}</PROJECT_URL>
+                     <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
+                     <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                     <P4_CHANGELIST>${project.build.number}</P4_CHANGELIST>
                      <DOCKER_REGISTRY>${env.DOCKER_REGISTRY}</DOCKER_REGISTRY>
                      <DOCKER_USERNAME>${env.DOCKER_USERNAME}</DOCKER_USERNAME>
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
@@ -381,6 +391,7 @@
                      <PROJECT_URL>${project.url}</PROJECT_URL>
                      <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
                      <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
+                     <P4_CHANGELIST>${project.build.number}</P4_CHANGELIST>
                    </environmentVariables>
                  </configuration>
                </execution>

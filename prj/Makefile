@@ -66,7 +66,7 @@ docker-push: ## Push the Coherence image (does not rebuild Coherence image)
 
 .PHONY: docker-push-no-graal
 docker-push-no-graal: ## Push the Coherence images without including Graal (does not rebuild Coherence image)
-	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu -Dgraal.image.skip=true $(ARGS)
+	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu -Dgraalvm.image.skip=true $(ARGS)
 
 .PHONY: pof
 pof: ## Dump the POF config information
