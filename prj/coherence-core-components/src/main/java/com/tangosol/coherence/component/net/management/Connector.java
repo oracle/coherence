@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,8 +12,6 @@ package com.tangosol.coherence.component.net.management;
 
 import com.tangosol.coherence.component.application.console.Coherence;
 import com.tangosol.coherence.component.net.Cluster;
-import com.tangosol.coherence.component.net.management.Gateway;
-import com.tangosol.coherence.component.net.management.Model;
 import com.tangosol.coherence.component.net.management.listenerHolder.LocalHolder;
 import com.tangosol.coherence.component.net.management.listenerHolder.RemoteHolder;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
@@ -478,6 +476,10 @@ public class Connector
         
             // publish it to all Management service members
             jmxPublishConnector(null);
+            }
+        else
+            {
+            setJmxListenAddresses(Collections.emptyList());
             }
         }
     
@@ -1320,7 +1322,7 @@ public class Connector
             }
         while (nPort != 0 && ++nPort <= nPortMax);
         
-        _trace("Could not start JMXConnectorServer on " + sAddr + ":" + nPort + "\n" + eLast.getMessage(), 1);
+        _trace("Could not start JMXConnectorServer on " + sAddr + ":" + --nPort + "\n" + (eLast == null ? "" : eLast.getMessage()), 1);
         
         return null;
         }
