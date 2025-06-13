@@ -218,7 +218,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <netty.version>4.1.118.Final</netty.version>
-    <opentelemetry.version>1.50.0</opentelemetry.version>
+    <opentelemetry.version>1.51.0</opentelemetry.version>
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
     <!-- only used for testing -->
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
