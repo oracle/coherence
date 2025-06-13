@@ -90,46 +90,46 @@
     <moditect.jdeps.coverage.args>-v</moditect.jdeps.coverage.args>
 
     <!-- plugin dependency versions -->
-     <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
-     <maven.assembly.plugin.version>3.6.0</maven.assembly.plugin.version>
-     <maven.build.helper.plugin.version>1.8</maven.build.helper.plugin.version>
-     <maven.bundle.plugin.version>5.1.1</maven.bundle.plugin.version>
-     <maven.clean.plugin.version>3.2.0</maven.clean.plugin.version>
-     <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
-     <maven.dependency.plugin.version>3.3.0</maven.dependency.plugin.version>
-     <maven.dependency-check.plugin.version>12.1.0</maven.dependency-check.plugin.version>
-     <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
-     <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
-     <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
-     <maven.enforcer.plugin.version>3.1.0</maven.enforcer.plugin.version>
-     <maven.exec.plugin.version>3.1.0</maven.exec.plugin.version>
-     <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
-     <maven.failsafe.plugin.version>3.1.2</maven.failsafe.plugin.version>
-     <maven.frontend.plugin.version>1.15.0</maven.frontend.plugin.version>
-     <maven.gmaven.plugin.version>2.1.0</maven.gmaven.plugin.version>
-     <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
-     <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
-     <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
-     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
-     <maven.jandex.plugin.version>3.1.2</maven.jandex.plugin.version>
-     <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
-     <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
-     <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
-     <maven.moditect.plugin.version>1.0.0-RC3</maven.moditect.plugin.version>
-     <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
-     <maven.plugin.api.version>3.9.2</maven.plugin.api.version>
-     <maven.plugin.plugin.version>3.8.1</maven.plugin.plugin.version>
-     <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
-     <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
-     <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
-     <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
-     <maven.site.plugin.version>3.9.0</maven.site.plugin.version>
-     <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
-     <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
-     <maven.animalsniffer.plugin.version>1.18</maven.animalsniffer.plugin.version>
-     <nexus.staging.maven.plugin.version>1.6.13</nexus.staging.maven.plugin.version>
-     <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
-     <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
+    <maven.antrun.plugin.version>1.8</maven.antrun.plugin.version>
+    <maven.assembly.plugin.version>3.6.0</maven.assembly.plugin.version>
+    <maven.build.helper.plugin.version>1.8</maven.build.helper.plugin.version>
+    <maven.bundle.plugin.version>5.1.1</maven.bundle.plugin.version>
+    <maven.clean.plugin.version>3.2.0</maven.clean.plugin.version>
+    <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
+    <maven.dependency.plugin.version>3.3.0</maven.dependency.plugin.version>
+    <maven.dependency-check.plugin.version>12.1.0</maven.dependency-check.plugin.version>
+    <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
+    <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
+    <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
+    <maven.enforcer.plugin.version>3.1.0</maven.enforcer.plugin.version>
+    <maven.exec.plugin.version>3.1.0</maven.exec.plugin.version>
+    <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
+    <maven.failsafe.plugin.version>3.1.2</maven.failsafe.plugin.version>
+    <maven.frontend.plugin.version>1.15.0</maven.frontend.plugin.version>
+    <maven.gmaven.plugin.version>2.1.0</maven.gmaven.plugin.version>
+    <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
+    <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
+    <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
+    <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
+    <maven.jandex.plugin.version>3.1.2</maven.jandex.plugin.version>
+    <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
+    <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
+    <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
+    <maven.moditect.plugin.version>1.0.0-RC3</maven.moditect.plugin.version>
+    <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
+    <maven.plugin.api.version>3.9.2</maven.plugin.api.version>
+    <maven.plugin.plugin.version>3.8.1</maven.plugin.plugin.version>
+    <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
+    <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
+    <maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+    <maven.shade.plugin.version>3.4.1</maven.shade.plugin.version>
+    <maven.site.plugin.version>3.9.0</maven.site.plugin.version>
+    <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
+    <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
+    <maven.animalsniffer.plugin.version>1.18</maven.animalsniffer.plugin.version>
+    <maven.central.publishing.plugin.version>0.7.0</maven.central.publishing.plugin.version>
+    <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
+    <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.3.2</asciidoctor.diagram.version>
