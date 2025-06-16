@@ -9,8 +9,6 @@ package security;
 
 import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.LocalPlatform;
-import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
-import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.callables.IsCoherenceRunning;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
@@ -27,7 +25,6 @@ import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
-import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -110,37 +107,60 @@ public class CertSecuritySingleStoreTests
             }
         else
             {
-            // Start the cluster with two storage/proxy members
-            CoherenceClusterBuilder builder = new CoherenceClusterBuilder()
-                    .with(s_commonOptions.asArray())
-                    .include(2, CoherenceClusterMember.class,
-                            ClassName.of(SecureCoherence.class),
+            // Start the first storage/proxy member
+            OptionsByType options1 = OptionsByType.of(s_commonOptions)
+                    .addAll(ClassName.of(SecureCoherence.class),
                             LocalStorage.enabled(),
-                            MemberName.withDiscriminator("member"),
+                            MemberName.of("member-1"),
                             SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
-                            SystemProperty.of("coherence.security.login.password", s_keyAndCertSet.storePasswordString()),
+                            SystemProperty.of("coherence.security.keystore.password", s_keyAndCertSet.storePasswordString()),
+                            SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
                             SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
                             SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
                             SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
-                            DisplayName.of("storage"),
-                            RoleName.of("storage"),
-                            StabilityPredicate.none());
+                            DisplayName.of("storage-1"),
+                            RoleName.of("storage"));
 
-            s_cluster = builder.build();
+            s_storage1 = LocalPlatform.get().launch(CoherenceClusterMember.class, options1.asArray());
 
-            for (CoherenceClusterMember member : s_cluster)
-                {
-                Eventually.assertDeferred(() -> member.invoke(IsCoherenceRunning.instance()), is(true));
-                }
+            // Start the second storage/proxy member
+            OptionsByType options2 = OptionsByType.of(s_commonOptions)
+                    .addAll(ClassName.of(SecureCoherence.class),
+                            LocalStorage.enabled(),
+                            MemberName.of("member-2"),
+                            SystemProperty.of("coherence.security.keystore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                            SystemProperty.of("coherence.security.keystore.password", s_keyAndCertSet.storePasswordString()),
+                            SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
+                            SystemProperty.of("coherence.security.truststore", s_keyAndCertSet.getP12Keystore().getAbsolutePath()),
+                            SystemProperty.of("coherence.security.truststore.password", s_keyAndCertSet.storePasswordString()),
+                            SystemProperty.of("coherence.security.permissions", s_urlPerm.getFile()),
+                            DisplayName.of("storage-2"),
+                            RoleName.of("storage"));
+
+            // ensure member 1 is running before starting member-2
+            Eventually.assertDeferred(s_storage1::isCoherenceRunning, is(true));
+
+            s_storage2 = LocalPlatform.get().launch(CoherenceClusterMember.class, options2.asArray());
+
+            // ensure both members start
+            Eventually.assertDeferred(() -> s_storage1.invoke(IsCoherenceRunning.instance()), is(true));
+            Eventually.assertDeferred(() -> s_storage2.invoke(IsCoherenceRunning.instance()), is(true));
+            // they should have formed a cluster
+            Eventually.assertDeferred(() -> s_storage1.getClusterSize(), is(2));
+            Eventually.assertDeferred(() -> s_storage2.getClusterSize(), is(2));
             }
         }
 
     @AfterClass
     public static void tearDown()
         {
-        if (s_cluster != null)
+        if (s_storage1 != null)
             {
-            s_cluster.close();
+            s_storage1.close();
+            }
+        if (s_storage2 != null)
+            {
+            s_storage2.close();
             }
         }
 
@@ -293,7 +313,9 @@ public class CertSecuritySingleStoreTests
 
     protected static KeyTool.KeyAndCert s_keyAndCertMissing;
 
-    protected static CoherenceCluster s_cluster;
+    protected  static CoherenceClusterMember s_storage1;
+
+    protected  static CoherenceClusterMember s_storage2;
 
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(CertSecuritySingleStoreTests.class);
