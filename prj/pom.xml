@@ -705,7 +705,7 @@
     <maven.source.plugin.version>2.2.1</maven.source.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.7</maven.animalsniffer.plugin.version>
-    <nexus.staging.maven.plugin.version>1.6.7</nexus.staging.maven.plugin.version>
+    <maven.central.publishing.plugin.version>0.7.0</maven.central.publishing.plugin.version>
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.0.2</asciidoctor.diagram.version>
@@ -1068,15 +1068,17 @@
           </configuration>
         </plugin>
 
-        <!-- nexus-staging-maven-plugin -->
+        <!-- central-publishing-maven-plugin -->
         <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>${nexus.staging.maven.plugin.version}</version>
+          <groupId>org.sonatype.central</groupId>
+          <artifactId>central-publishing-maven-plugin</artifactId>
+          <version>${maven.central.publishing.plugin.version}</version>
           <extensions>true</extensions>
           <configuration>
-            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-            <skipLocalStaging>true</skipLocalStaging>
+            <publishingServerId>central</publishingServerId>
+            <skipPublishing>true</skipPublishing>
+            <autoPublish>true</autoPublish>
+            <waitUntil>published</waitUntil>
           </configuration>
         </plugin>
 
@@ -1770,14 +1772,17 @@
             </executions>
           </plugin>
 
+          <!-- central-publishing-maven-plugin -->
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${maven.central.publishing.plugin.version}</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+              <publishingServerId>central</publishingServerId>
+              <skipPublishing>true</skipPublishing>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
             </configuration>
           </plugin>
         </plugins>
