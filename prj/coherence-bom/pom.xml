@@ -111,7 +111,6 @@
     <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
 
     <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
-    <nexus.staging.maven.plugin.version>1.6.13</nexus.staging.maven.plugin.version>
   </properties>
 
   <dependencyManagement>
@@ -346,16 +345,14 @@
           </plugin>
 
           <plugin>
-            <groupId>org.sonatype.plugins</groupId>
-            <artifactId>nexus-staging-maven-plugin</artifactId>
-            <version>${nexus.staging.maven.plugin.version}</version>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>${maven.central.publishing.plugin.version}</version>
             <extensions>true</extensions>
             <configuration>
-              <serverId>ossrh</serverId>
-              <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-              <autoReleaseAfterClose>false</autoReleaseAfterClose>
-              <skipNexusStagingDeployMojo>${maven.deploy.skip}</skipNexusStagingDeployMojo>
-              <skipLocalStaging>true</skipLocalStaging>
+              <publishingServerId>central</publishingServerId>
+              <autoPublish>true</autoPublish>
+              <waitUntil>published</waitUntil>
             </configuration>
           </plugin>
         </plugins>
