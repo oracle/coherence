@@ -126,6 +126,9 @@ public class CertSecurityTests
                         DisplayName.of("storage-2"),
                         RoleName.of("storage"));
 
+        // ensure member 1 is running before starting member-2
+        Eventually.assertDeferred(s_storage1::isCoherenceRunning, is(true));
+
         s_storage2 = LocalPlatform.get().launch(CoherenceClusterMember.class, options2.asArray());
 
         // ensure both members start
