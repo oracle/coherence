@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8253,7 +8253,10 @@ public class ReadWriteBackingMap
         public boolean isEvictable(
                 ConfigurableCacheMap.Entry cacheEntry)
             {
-            return m_queueWrite.accelerateEntryRipe((Binary) cacheEntry.getKey());
+            WriteQueue writeQueue = m_queueWrite;
+
+            // COH-32208 - return false if writeQueue is null; writeQueue may be null if the RWBM is being released, e.g. truncate()
+            return writeQueue == null ? false : writeQueue.accelerateEntryRipe((Binary) cacheEntry.getKey());
             }
         };
 
