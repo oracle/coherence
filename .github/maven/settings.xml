@@ -2,6 +2,11 @@
 
   <servers>
     <server>
+      <id>central</id>
+      <username>${env.MAVEN_USER}</username>
+      <password>${env.MAVEN_PASSWORD}</password>
+    </server>
+    <server>
       <id>ossrh</id>
       <username>${env.MAVEN_USER}</username>
       <password>${env.MAVEN_PASSWORD}</password>
