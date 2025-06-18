@@ -127,7 +127,6 @@
     <maven.source.plugin.version>3.3.0</maven.source.plugin.version>
     <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
     <maven.animalsniffer.plugin.version>1.18</maven.animalsniffer.plugin.version>
-    <maven.central.publishing.plugin.version>0.8.0</maven.central.publishing.plugin.version>
     <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
     <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
 
@@ -1573,16 +1572,6 @@
               <!--suppress UnresolvedMavenProperty -->
               <suppressionFile>${top.parent.basedir}/etc/dependency-check-suppression.xml</suppressionFile>
             </suppressionFiles>
-          </configuration>
-        </plugin>
-
-        <plugin>
-          <groupId>org.sonatype.central</groupId>
-          <artifactId>central-publishing-maven-plugin</artifactId>
-          <version>${maven.central.publishing.plugin.version}</version>
-          <extensions>true</extensions>
-          <configuration>
-            <publishingServerId>central</publishingServerId>
           </configuration>
         </plugin>
       </plugins>
