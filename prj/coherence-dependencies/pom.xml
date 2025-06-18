@@ -37,19 +37,6 @@
     <url>https://github.com/oracle/coherence</url>
   </scm>
 
-  <distributionManagement>
-    <snapshotRepository>
-      <id>ossrh</id>
-      <name>Coherence Snapshot Repository</name>
-      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-    </snapshotRepository>
-    <repository>
-      <id>ossrh</id>
-      <name>Coherence Release Repository</name>
-      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-    </repository>
-  </distributionManagement>
-
   <properties>
     <!--  this module should not be published -->
     <maven.deploy.skip>true</maven.deploy.skip>
@@ -1406,18 +1393,6 @@
               <arg>loopback</arg>
             </gpgArguments>
             -->
-          </configuration>
-        </plugin>
-
-        <!-- nexus-staging-maven-plugin -->
-        <plugin>
-          <groupId>org.sonatype.plugins</groupId>
-          <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>${nexus.staging.maven.plugin.version}</version>
-          <extensions>true</extensions>
-          <configuration>
-            <skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
-            <skipLocalStaging>true</skipLocalStaging>
           </configuration>
         </plugin>
 
