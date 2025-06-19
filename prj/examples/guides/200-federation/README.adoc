@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2024 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2025 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -10,37 +10,54 @@
 
 == Federation
 
-This guide walks through the steps to use Coherence Federation by using Coherence Query Language (CohQL)
-to insert, update and remove data in Federated clusters.
-
-Federated caching federates cache data asynchronously across multiple geographically dispersed clusters.
-Cached data is federated across clusters to provide redundancy, off-site backup, and multiple points
-of access for application users in different geographical locations.
+This guide walks through the steps to use Coherence Federation to federate cache data asynchronously between two Coherence clusters.
+Federation is typically used across multiple geographically dispersed clusters to provide redundancy, off-site backup, and multiple points
+of access for application users in different locations.
 
 Federated caching supports multiple federation topologies. These include: active-active, active-passive, hub-spoke,
 and central-federation. The topologies define common federation strategies between clusters and support a wide variety of use cases.
 Custom federation topologies can also be created as required.
 
-Federated caching provides applications with the ability to accept, reject, or modify cache entries being stored
-locally or remotely. Conflict resolution is application specific
-to allow the greatest amount of flexibility when defining federation rules.
+**Connecting Clusters**
 
-NOTE: Federation is only available when using Coherence Grid Edition (GE) 12.2.1.4.X and above, and is not available in the open-source
+When configuring the connection between clusters, there are two methods:
+
+1. Specify the Coherence Name Service (or cluster port) of one or more cluster members in the destination cluster. Destination members are automatically discovered and connected to. This method is easiest to configure, but not always practical with load balancer or firewall in between clsuters.
+2. Specify a host and port of a destination cluster load balancer, which will load balance across specified hosts and ports on the designation cluster.
+
+In this example we will use the first method by running two clusters on the same host, with different cluster ports, for simplicity of setup.
+
+NOTE: We are only federating a single service. If you wish to federate multiple services, the section on <<mutliple-services,multiple services>> for more information on this.
+
+This example starts `ClusterA` on cluster port 7574 and `ClusterB` on port 7575 as shown in the diagram below:
+
+image::federation.png[width=80%]
+
+Notes - when using Name Service lookup
+
+1. On initial connection to destination cluster from any member, the destination Name Service is contacted to lookup an address to connect to
+2. Once the address of a federated service on one of the members has been provided, the source member communicates directly to the destination member's address to send data
+
+In scenarios where you require Federation across data centres and through firewalls or load balancers, you must specify the address of
+a load balancer. See <<load-balancer-setup,here>> for more information on this example.
+
+Federation is only available when using Coherence Grid Edition (GE) 12.2.1.4.X and above, and is not available in the open-source
 Coherence Community Edition (CE).
 
-NOTE: As Coherence Grid Edition JAR's and not available in Maven central, to build and run
+NOTE: As Coherence Grid Edition JAR's is not available in Maven central, to build and run
 this example you, must first install the Coherence JAR into your Maven Repository from your
-local Grid Edition Install. See <<building,here>> for instructions on how to complete this.
+local Grid Edition Install. See <<installing-coherence,here>> for instructions on how to complete this.
 
 === Table of Contents
 
 * <<what-you-will-build,What You Will Build>>
 * <<what-you-need,What You Need>>
-* <<building,Building the Example Code>>
-* <<review-the-initial-project, Review the Project>>
-** <<maven, Maven Configuration>>
-** <<cache-config, Federation Configuration>>
-* <<run-the-example, Build and Run the Example>>
+* <<installing-coherence,Installing Coherence>>
+* <<cache-config, Review the Federation Configuration>>
+* <<run-the-example, Start Cache servers and CohQL>>
+* <<run-the-example-2, Run the Example>>
+* <<load-balancer-setup, Using Federation with a Load Balancer>>
+* <<mutliple-services, Federating Multiple Services>>
 * <<summary, Summary>>
 * <<see-also, See Also>>
 
@@ -49,23 +66,19 @@ local Grid Edition Install. See <<building,here>> for instructions on how to com
 
 You will review the operational and cache configuration required to set up Federated Coherence clusters and carry out the following:
 
-1. Start one or more cache servers for `PrimaryCluster`
-2. Start one or more cache servers for `SecondaryCluster`
-3. Start a `CohQL` session for `PrimaryCluster`
-4. Start a `CohQL` session for `SecondaryCluster`
+1. Start one or more cache servers for `ClusterA`
+2. Start one or more cache servers for `ClusterB`
+3. Start a `CohQL` session for `ClusterA`
+4. Start a `CohQL` session for `ClusterB`
 5. Carry out various data operations on each cluster and observe the data being replicated
 
-The default configuration for this example runs the following clusters:
+Rather than running using Maven, we will start individual cache servers using the command line so you can
+get a better idea of how federation works.
 
-1. `PrimaryCluster` on 127.0.0.1:7574
-2. `SecondaryCluster` on 127.0.0.1:7575
+We will start the clusters in this example using the following ports.
 
-You can change these hosts/ports by changing the following in the `pom.xml`:
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=ports]
-----
+1. `ClusterA` on 127.0.0.1:7574
+2. `ClusterB` on 127.0.0.1:7575
 
 NOTE: If you wish to know more about Coherence Federation, please see the
 {commercial-docs-base-url}/administer/federating-caches-clusters.html[Coherence Documentation].
@@ -77,91 +90,37 @@ NOTE: If you wish to know more about Coherence Federation, please see the
 :java_version: 17
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
-[#building]
-==== Building the Example Code
+[#installing-coherence]
+==== Installing Coherence
 
 **Important**
 
 Because Coherence Federation is only available in Grid Edition, you must carry out the following changes to the project before building and running:
 
-1. Update the `coherence.version` property in your `pom.xml` and `gradle.properties` to the Coherence Grid Edition version you are going to use.
-2. Change the `coherence.group.id` in the above files to `com.oracle.coherence`.
-3. Install Coherence Grid Edition into your local Maven repository by running the following:
+1. Download the Coherence Grid Edition Release from https://www.oracle.com/au/middleware/technologies/coherence-downloads.html[the Oracle website]
+2. Install Coherence locally using the instructions in the {commercial-docs-base-url}/install/installing-oracle-coherence-java.html[Coherence Documentation]
+3. Add Coherence Grid Edition into your local Maven repository by running the following:
 +
-This example assumes you have Coherence 14.1.1. Please adjust for your Coherence version.
+This example assumes you have Coherence 14.1.2. Please adjust for your Coherence version and set the `COHERENCE_HOME` environment variable to the `coherence` directory of your install.
++
+Linux/ MacOS
 +
 [source,bas,indent=0]
 ----
 mvn install:install-file -Dfile=$COHERENCE_HOME/lib/coherence.jar \
-    -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/14.1.1/coherence.14.1.1.pom
+    -DpomFile=$COHERENCE_HOME/plugins/maven/com/oracle/coherence/coherence/14.1.2/coherence.14.1.2.pom
 ----
-
-Whenever you are asked to build the code, please refer to the instructions below.
-
-include::../../internal/includes/simple-build.adoc[tag=text]
-
-[#review-the-initial-project]
-=== Review the Project
-
-[#maven]
-==== Maven Configuration
-
-The initial project is a Coherence project and imports the `coherence-bom` and `coherence-dependencies`
-POMs as shown below:
-
-[source,xml,indent=0]
++
+Windows
++
+[source,bas,indent=0]
 ----
-include::pom.xml[tag=deps1]
-----
-
-The `coherence` library is also included:
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=deps2]
-----
-
-We also define a number of profiles to run the `DefaultCacheServer` for each cluster and `CohQL` for each cluster.
-
-* <<primary-storage,primary-storage - Runs a DefaultCacheServer for the PrimaryCluster>>
-* <<primary-cohql,primary-cohql - Runs a CohQL session for the PrimaryCluster>>
-* <<secondary-storage,secondary-storage - Runs a DefaultCacheServer for the SecondaryCluster>>
-* <<secondary-cohql,secondary-cohql - Runs a CohQL session for the SecondaryCluster>>
-
-[#primary-storage]
-*primary-storage* - Runs a `DefaultCacheServer` for the `PrimaryCluster`
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=primary-storage]
-----
-
-[#primary-cohql]
-*primary-cohql* - Runs a `CohQL` session for the `PrimaryCluster`
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=primary-cohql]
-----
-
-[#secondary-storage]
-*secondary-storage* - Runs a `DefaultCacheServer` for the `SecondaryCluster`
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=secondary-storage]
-----
-
-[#secondary-cohql]
-*primary-cohql* - Runs a `CohQL` session for the `SecondaryCluster`
-
-[source,xml,indent=0]
-----
-include::pom.xml[tag=secondary-cohql]
+mvn install:install-file -Dfile=%COHERENCE_HOME%\lib\coherence.jar ^
+    -DpomFile=%COHERENCE_HOME%\plugins\maven\com\oracle\coherence\coherence\14.1.2\coherence.14.1.2.pom
 ----
 
 [#cache-config]
-==== Federation Configuration
+==== Review the Federation Configuration
 
 Federated caching is configured using Coherence configuration files and requires no changes to application code.
 
@@ -191,157 +150,481 @@ include::src/main/resources/federation-cache-config.xml[tag=mapping]
 include::src/main/resources/tangosol-coherence-override.xml[tag=mapping]
 ----
 +
-<1> `PrimaryCluster` participant with its host and port for the cluster Name Service
-<2> `SecondaryCluster` participant with its host and port for the cluster Name Service
+<1> `ClusterA` participant with its host and port for the cluster Name Service - 127.0.0.1:7574
+<2> `ClusterB` participant with its host and port for the cluster Name Service - 127.0.0.1:7575
 <3> Topology that defines an `active-active` configuration between clusters. This is the default and not strictly required.
 
+NOTE: System properties are for the guides internal integration tests and can be ignored.
 
 [#run-the-example]
+=== Start Cache servers and CohQL
+
+NOTE: As mentioned previously, this example is not run via Maven or Gradle, but via running the `java` via the command line
+so that you can see exactly how federation works.
+
+1. Set the following environment variables in each terminal or command window you open, and ensure you change to the `src/main/resources` directory.
++
+Linux/MacOS
++
+[source,bash]
+----
+export COHERENCE_VERSION=14.1.2-0-0
+export COH_JAR=~/.m2/repository/com/oracle/coherence/coherence/$COHERENCE_VERSION/coherence-$COHERENCE_VERSION.jar
+----
++
+Windows
++
+[source,command]
+----
+set COHERENCE_VERSION=14.1.2-0-0
+set COH_JAR=%USERPROFILE%\.m2\repository\com\oracle\coherence\coherence\%COHERENCE_VERSION%\coherence-%COHERENCE_VERSION%.jar
+----
+
+2. Start a Coherence server for `ClusterA` in a separate terminal
++
+Linux/MacOS
++
+[source,bash]
+----
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
+----
++
+Windows
++
+[source,bash]
+----
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  ^
+    -Dcoherence.override=tangosol-coherence-override.xml ^
+    -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
+----
++
+Explanation of system properties:
++
+- `-Dcoherence.wka=127.0.0.1` - Uses the loopback adapter for the cluster, only for development
+- `-Dcoherence.clusterport=7574` - Defines the coherence cluster port
+- `-Dcoherence.cluster=ClusterA` - Defines the cluster name
+- `-Dcoherence.override` - override file to define the participants
+- `-Dcoherence.cacheconfig=federation-cache-config.xml` - cache configuration
+
+3. Start a Coherence server for `ClusterB` in a separate terminal
++
+Linux/MacOS
++
+[source,bash]
+----
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
+----
++
+Windows
++
+[source,bash]
+----
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  ^
+    -Dcoherence.override=tangosol-coherence-override.xml ^
+    -Dcoherence.cacheconfig=federation-cache-config.xml com.tangosol.net.Coherence
+----
+
+4. Start a CohQL session for `ClusterA` in a separate terminal
++
+Linux/MacOS
++
+[source,bash]
+----
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml \
+    -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
+----
++
+Windows
++
+[source,bash]
+----
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7574 -Dcoherence.cluster=ClusterA  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml \
+    -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
+----
+
+5. Start a CohQL session for `ClusterB` in a separate terminal
++
+Linux/MacOS
++
+[source,bash]
+----
+java -cp $COH_JAR:. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml \
+    -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
+----
++
+Windows
++
+[source,bash]
+----
+java -cp %COH_JAR%;. -Dcoherence.wka=127.0.0.1 -Dcoherence.clusterport=7575 -Dcoherence.cluster=ClusterB  \
+    -Dcoherence.override=tangosol-coherence-override.xml \
+    -Dcoherence.cacheconfig=federation-cache-config.xml \
+    -Dcoherence.distributed.localstorage=false com.tangosol.coherence.dslquery.QueryPlus
+----
+
+[#run-the-example-2]
 === Run the Example
-
-After you have built the project as described earlier in this document you can run via Maven or Gradle.
-
-==== Maven
-
-1. Start a DefaultCache server for the primary and secondary clusters in separate terminals.
-+
-[source,bash]
-----
-./mvnw exec:exec -P primary-storage
-----
-+
-and
-+
-[source,bash]
-----
-./mvnw exec:exec -P secondary-storage
-----
-
-2. Start a CohQL session for the primary and secondary clusters in separate terminals.
-+
-[source,bash]
-----
-./mvnw exec:java -P primary-cohql
-----
-+
-and
-+
-[source,bash]
-----
-./mvnw exec:java -P secondary-cohql
-----
-
-==== Gradle
-
-1. Start a DefaultCache server for the primary and secondary clusters in separate terminals.
-+
-[source,bash]
-----
-./gradlew runServerPrimary
-----
-+
-and
-+
-[source,bash]
-----
-./gradlew runServerSecondary
-----
-
-2. Start a CohQL session for the primary and secondary clusters in separate terminals.
-+
-[source,bash]
-----
-./gradlew runCohQLPrimary --console=plain
-----
-+
-and
-+
-[source,bash]
-----
-./gradlew runCohQLSecondary --console=plain
-----
-
-==== Run the following commands to exercise Federation
 
 1. In each of the `CohQL` sessions, run the following command to verify the caches are empty in each cluster:
 +
 [source,bash]
 ----
-CohQL> select count() from test
-Results
+select count() from 'test'
+----
++
+.Output
+[source,bash]
+----
 0
 ----
 
-2. In the first (PrimaryCluster) `CohQL` session, add an entry to the cache `test`:
+2. In the first (ClusterA) `CohQL` session, add an entries to the cache `test`:
 +
 [source,bash]
 ----
-CohQL> insert into test key(1) value("Tim")
-
-CohQL> select key(), value() from test
+insert into 'test' key(1) value('Tim')
+----
++
+[source,bash]
+----
+insert into 'test' key(2) value('John')
+----
++
+[source,bash]
+----
+select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
 Results
 [1, "Tim"]
+[2, "John"]
 ----
++
+NOTE: After the data has been inserted, it will be asynchronously queued for replication to cluster `ClusterB`. This is done automatically
+by Federation and no intervention is required by the developer or user. It will be sent almost immediately if the destination cluster is available.
+If there are many updates to send, they will be queued in order and sent efficiently as batches if possible.
 
-3. In the second (SecondaryCluster) `CohQL` session, verify the entry was sent from the PrimaryCluster and
-then update the name to `Timothy`. As the clusters are `active-active`, the changes will be sent back to the primary cluster.
+
+3. In the second (ClusterB) `CohQL` session, verify the entries were sent from the ClusterA and then update the name to `Timothy` for key(1). As the clusters are `active-active`, the changes will be sent back to the primary cluster.
 +
 [source,bash]
 ----
-CohQL> select key(), value() from test
+CohQL> select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
 Results
 [1, "Tim"]
-
-CohQL> update 'test' set value() = "Timothy"
-Results
-1: true
-
-CohQL> select key(), value() from test
-Results
-[1, "Timothy"]
+[2, "John"]
 ----
-
-4. In the first (PrimaryCluster) `CohQL` session, verify the entry was changed via the change in the `SecondaryCluster`, then delete the entry and confirm it was deleted in the `SecondaryCluster`
 +
 [source,bash]
 ----
-CohQL> select key(), value() from test
-Results
-[1, "Timothy"]
-
-CohQL> update 'test' set value() = "Timothy"
+update 'test' set value() = "Timothy" where key() = 1
+----
++
+.Output
+[source,bash]
+----
 Results
 1: true
-
-CohQL> select key(), value() from test
+----
++
+[source,bash]
+----
+select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
 Results
 [1, "Timothy"]
-
-CohQL> delete from test
-Results
-
-CohQL> select key(), value() from test
-Results
+[2, "John"]
 ----
 
-5. Continue experimenting:
+4. In the first (ClusterA) `CohQL` session, verify the entry was changed via the change in the `ClusterB`, then delete the entry and confirm it was deleted in the `ClusterB`
++
+[source,bash]
+----
+select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
+Results
+[1, "Timothy"]
+[2, "John"]
+----
++
+[source,bash]
+----
+delete from 'test' where key() = 1
+----
++
+.Output
+[source,bash]
+----
+Results
+----
++
+[source,bash]
+----
+select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
+Result
+[2, "John"]
+----
+
+5. In the second (ClusterB) `CohQL` session verify the entry has been deleted
++
+[source,bash]
+----
+select key(), value() from 'test'
+----
++
+.Output
+[source,bash]
+----
+Result
+[2, "John"]
+----
+
+6. Continue experimenting
++
+**Add More Data**
 +
 You can continue to experiment by inserting, updating or removing data using various `CohQL` commands.
 +
 For detailed information on how to use CohQL, please visit the chapter
 link:{commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
 in the Coherence reference guide.
-
-6. Monitor Federation
 +
-If you want to monitor Federation, you can do this via the Coherence VisualVM Plugin.
+**Start a second cache server on either cluster**
++
+Use the commands above to start a second cache server on either of the clusters.
+
+7. Monitor Federation
++
+If you want to monitor Federation you do this via the Coherence VisualVM Plugin.
++
 See https://github.com/oracle/coherence-visualvm#install[here]
 for how to install the Plugin if you have `VisualVM` already, otherwise visit https://visualvm.github.io/[https://visualvm.github.io/] to download
 and install `VisualVM`.
 +
-Once you have installed the plugin, you can click on one of the `DefaultCacheServer` process, and you will see the `Federation` tab as shown below:
+Once you have installed the plugin, you can click on one of the `Coherence` process, and you will see the `Federation` tab as shown below:
 +
 image::visualvm-federation.png[width=80%]
++
+There are other options outlined below for monitoring Federation:
++
+- https://github.com/oracle/coherence-cli[Coherence CLI]
+- https://docs.coherence.community/coherence-operator/docs/latest/docs/metrics/010_overview[Grafana Dashboards from the Coherence Operator]
+
+[#load-balancer-setup]
+=== Using Federation with a Load Balancer
+
+In this example we have used a simplified Federation setup using the Name Service to demonstrate the capabilities. In most cases
+you will need to send data to another data centre via either a load balancer and/or through a firewall.
+
+This requires a couple of changes to the setup we have configured for this example.
+
+1. A load balancer on either side needs to be configured on a specified host and chosen cluster port, e.g. 40000 in our case.
+2. The participant addresses needs to be set to this load balancer IP and port
+3. The cache configuration must be updated to a specific listen port for federation
+
+This setup is shown below:
+
+image::federation-lbr.png[width=80%]
+
+See below for the changes required, excluding the load balancer setup.
+
+1. Create a load balancer on each site to load balance across the federation port 40000 on all back-end storage-enabled members for that cluster.
+
+2. Update the `tangosol-coherence-override.xml`, and add each of the cluster's respective load balancer IP address and a port you are going use for federation. We have chosen 40000, in this example.
++
+We have updated each of the `<paticipant>` entries for the clusters below.
++
+[source,xml]
+----
+<participants>
+  <participant>
+    <name>ClusterA</name>
+    <remote-addresses>
+      <socket-address>
+        <address>ClusterA-load-balancer-ip</address>  <!--1-->
+        <port>40000</port>  <!--2-->
+      </socket-address>
+    </remote-addresses>
+  </participant>
+  <participant>
+    <name>ClusterB</name>
+    <remote-addresses>
+      <socket-address>
+        <address>ClusterB-load-balancer-ip</address>  <!--3-->
+        <port>40000</port>  <!--4-->
+      </socket-address>
+    </remote-addresses>
+  </participant>
+</participants>
+----
+<1> ClusterA load balancer IP
+<2> ClusterA port, 40000
+<3> ClusterB load balancer IP
+<4> ClusterB port, 40000
+
+3. Update the `federated-cache-config.xml` and add the `<address-provider>` element in the `<federated-scheme>` to specify a port for the member to listen on for federation.
++
+[source,xml]
+----
+<federated-scheme>
+  <scheme-name>federated</scheme-name>
+  <service-name>FederatedPartitionedCache</service-name>
+  <backing-map-scheme>
+    <local-scheme>
+      <unit-calculator>BINARY</unit-calculator>
+    </local-scheme>
+  </backing-map-scheme>
+  <autostart>true</autostart>
+  <address-provider>
+    <local-address>
+      <address/> <!--1-->
+      <port>40000</port>  <!--2-->
+    </local-address>
+  </address-provider>
+  <topologies>
+    <topology>
+      <name>MyTopology</name>
+    </topology>
+  </topologies>
+</federated-scheme>
+----
+<1> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
+<2> Local port to listen on. This is the port that will be redirected to by the load balancer.
++
+NOTE: This will ensure that the member starts federation on a specify port, instead of using and ephemeral port. This
+fixed port can then be load balanced to by the load balancer.
+
+[#mutliple-services]
+=== Federating Multiple Services
+
+If you are using the Name Service method, then there are no changes required, but if you are using a load balancer, then you will need to do the following:
+
+1. Add a second port on your load balancers, e.g. 40001, which will across the federation port 40001 on all back-end storage-enabled members for that cluster.
+
+2. Update the `tangosol-coherence-override.xml`, and add each of the cluster's respective load balancer IP address **and each port** you are going use for federation. We have chosen 40000, in this example.
++
+We have updated each of the `<paticipant>` entries for the clusters below.
++
+[source,xml]
+----
+<participants>
+  <participant>
+    <name>ClusterA</name>
+    <remote-addresses>
+      <socket-address>
+        <address>ClusterA-load-balancer-ip</address>  <!--1-->
+        <port>40000</port>  <!--2-->
+      </socket-address>
+      <socket-address>
+        <address>ClusterA-load-balancer-ip</address>  <!--3-->
+        <port>40001</port>  <!--4-->
+      </socket-address>
+    </remote-addresses>
+  </participant>
+  <participant>
+    <name>ClusterB</name>
+    <remote-addresses>
+      <socket-address>
+        <address>ClusterB-load-balancer-ip</address>
+        <port>40000</port>
+      </socket-address>
+      <socket-address>
+        <address>ClusterB-load-balancer-ip</address>
+        <port>40001</port>
+      </socket-address>
+    </remote-addresses>
+  </participant>
+</participants>
+----
+<1> ClusterA load balancer IP
+<2> ClusterA port, 40000 (first service)
+<3> ClusterA load balancer IP
+<4> ClusterA port, 40001 (second service)
+
+
+3. Update the `federated-cache-config.xml` and add an additional `<address-provider>` element in the `<federated-scheme>` to specify a port for the member to listen on for the second service.
++
+[source,xml]
+----
+<federated-scheme>
+  <scheme-name>federated</scheme-name>
+  <service-name>FederatedPartitionedCache</service-name>
+  <backing-map-scheme>
+    <local-scheme>
+      <unit-calculator>BINARY</unit-calculator>
+    </local-scheme>
+  </backing-map-scheme>
+  <autostart>true</autostart>
+  <address-provider>
+    <local-address>
+      <address/> <!--1-->
+      <port>40000</port>  <!--2-->
+    </local-address>
+  </address-provider>
+  <topologies>
+    <topology>
+      <name>MyTopology</name>
+    </topology>
+  </topologies>
+</federated-scheme>
+
+<federated-scheme>
+  <scheme-name>federated2</scheme-name>
+  <service-name>FederatedPartitionedCache2</service-name>
+  <backing-map-scheme>
+    <local-scheme>
+      <unit-calculator>BINARY</unit-calculator>
+    </local-scheme>
+  </backing-map-scheme>
+  <autostart>true</autostart>
+  <address-provider>
+    <local-address>
+      <address/> <!--3-->
+      <port>40001</port>  <!--4-->
+    </local-address>
+  </address-provider>
+  <topologies>
+    <topology>
+      <name>MyTopology</name>
+    </topology>
+  </topologies>
+</federated-scheme>
+----
+<1> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
+<2> Local port to listen on for `FederatedPartitionedCache` service . This is the port that will be redirected to by the load balancer.
+<3> Optional local address to listen on, defaults to 0.0.0.0 or all addresses if not specified
+<4> Local port to listen on for `FederatedPartitionedCache2` service . This is the port that will be redirected to by the load balancer.
 
 [#summary]
 === Summary
@@ -354,3 +637,4 @@ to insert, update and remove data in Federated clusters.
 
 * {commercial-docs-base-url}/administer/federating-caches-clusters.html[Federation Documentation]
 * {commercial-docs-base-url}/develop-applications/using-coherence-query-language.html#GUID-C0D082B1-FA62-4899-A043-4345156E6641[Using Coherence Query Language]
+* https://docs.coherence.community/coherence-operator/docs/latest/examples/100_federation/README[Detailed Federation example using the Coherence Operator on Oracle's Cloud Infrastructure (OCI)]
