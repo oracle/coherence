@@ -42,15 +42,12 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-    <!-- tag::ports[] -->
     <primary.cluster.host>127.0.0.1</primary.cluster.host>
     <primary.cluster.port>7574</primary.cluster.port>
     <secondary.cluster.host>127.0.0.1</secondary.cluster.host>
     <secondary.cluster.port>7575</secondary.cluster.port>
-    <!-- end::ports[] -->
   </properties>
 
-  <!-- tag::deps1[] -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -62,15 +59,12 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  <!-- end::deps1[] -->
 
   <dependencies>
-    <!-- tag::deps2[] -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
     </dependency>
-    <!-- end::deps2[] -->
 
     <dependency>
       <groupId>org.jline</groupId>
@@ -102,181 +96,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-  <profiles>
-    <!-- tag::primary-storage[] -->
-    <profile>
-      <id>primary-storage</id>
-      <activation>
-        <property>
-          <name>primary-storage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${maven.exec.plugin.version}</version>
-            <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument><classpath/>
-                <argument>-Dcoherence.cacheconfig=federation-cache-config.xml</argument>
-                <argument>-Dcoherence.log.level=3</argument>
-                <argument>-Xmx512m</argument>
-                <argument>-Xms512m</argument>
-                <argument>-Dcoherence.log.level=3</argument>
-                <argument>-Dprimary.cluster.port=${primary.cluster.port}</argument>
-                <argument>-Dsecondary.cluster.port=${secondary.cluster.port}</argument>
-                <argument>-Dprimary.cluster.host=${primary.cluster.host}</argument>
-                <argument>-Dsecondary.cluster.host=${secondary.cluster.host}</argument>
-                <argument>-Dcoherence.wka=${primary.cluster.host}</argument>
-                <argument>-Dcoherence.cluster=PrimaryCluster</argument>
-                <argument>-Dcoherence.clusterport=${primary.cluster.port}</argument>
-                <argument>com.tangosol.net.DefaultCacheServer</argument>
-              </arguments>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- end::primary-storage[] -->
-
-    <!-- tag::secondary-storage[] -->
-    <profile>
-      <id>secondary-storage</id>
-      <activation>
-        <property>
-          <name>secondary-storage</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${maven.exec.plugin.version}</version>
-            <configuration>
-              <executable>java</executable>
-              <arguments>
-                <argument>-classpath</argument>
-                <classpath/>
-                <argument>-Dcoherence.cacheconfig=federation-cache-config.xml</argument>
-                <argument>-Dcoherence.log.level=3</argument>
-                <argument>-Xmx512m</argument>
-                <argument>-Xms512m</argument>
-                <argument>-Dcoherence.log.level=3</argument>
-                <argument>-Dprimary.cluster.port=${primary.cluster.port}</argument>
-                <argument>-Dsecondary.cluster.port=${secondary.cluster.port}</argument>
-                <argument>-Dprimary.cluster.host=${primary.cluster.host}</argument>
-                <argument>-Dsecondary.cluster.host=${secondary.cluster.host}</argument>
-                <argument>-Dcoherence.wka=${secondary.cluster.host}</argument>
-                <argument>-Dcoherence.cluster=SecondaryCluster</argument>
-                <argument>-Dcoherence.clusterport=${secondary.cluster.port}</argument>
-                <argument>com.tangosol.net.DefaultCacheServer</argument>
-              </arguments>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- end::secondary-storage[] -->
-
-    <!-- tag::primary-cohql[] -->
-    <profile>
-      <id>primary-cohql</id>
-      <activation>
-        <property>
-          <name>primary-cohql</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${maven.exec.plugin.version}</version>
-            <configuration>
-              <systemProperties>
-                <property>
-                  <key>coherence.cacheconfig</key>
-                  <value>federation-cache-config.xml</value>
-                </property>
-                <property>
-                  <key>coherence.cluster</key>
-                  <value>PrimaryCluster</value>
-                </property>
-                <property>
-                  <key>coherence.wka</key>
-                  <value>${primary.cluster.host}</value>
-                </property>
-                <property>
-                  <key>coherence.clusterport</key>
-                  <value>${primary.cluster.port}</value>
-                </property>
-                <property>
-                  <key>coherence.distributed.localstorage</key>
-                  <value>false</value>
-                </property>
-              </systemProperties>
-              <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- end::primary-cohql[] -->
-
-    <!-- tag::secondary-cohql[] -->
-    <profile>
-      <id>secondary-cohql</id>
-      <activation>
-        <property>
-          <name>secondary-cohql</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <version>${maven.exec.plugin.version}</version>
-            <configuration>
-              <systemProperties>
-                <property>
-                  <key>coherence.cacheconfig</key>
-                  <value>federation-cache-config.xml</value>
-                </property>
-                <property>
-                  <key>coherence.log.level</key>
-                  <value>3</value>
-                </property>
-                <property>
-                  <key>coherence.cluster</key>
-                  <value>SecondaryCluster</value>
-                </property>
-                <property>
-                  <key>coherence.wka</key>
-                  <value>${secondary.cluster.host}</value>
-                </property>
-                <property>
-                  <key>coherence.clusterport</key>
-                  <value>${secondary.cluster.port}</value>
-                </property>
-                <property>
-                  <key>coherence.distributed.localstorage</key>
-                  <value>false</value>
-                </property>
-              </systemProperties>
-              <mainClass>com.tangosol.coherence.dslquery.QueryPlus</mainClass>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <!-- end::secondary-cohql[] -->
-  </profiles>
 
   <build>
     <plugins>

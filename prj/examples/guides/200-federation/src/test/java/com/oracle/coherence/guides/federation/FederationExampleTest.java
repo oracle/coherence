@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -61,9 +61,9 @@ public class FederationExampleTest {
         int primaryClusterPort   = availablePortIteratorWKA.next();
         int secondaryClusterPort = availablePortIteratorWKA.next();
 
-        OptionsByType primaryClusterOptions = createCacheServerOptions("PrimaryCluster", primaryClusterPort, primaryClusterPort,
+        OptionsByType primaryClusterOptions = createCacheServerOptions("ClusterA", primaryClusterPort, primaryClusterPort,
                 secondaryClusterPort);
-        OptionsByType secondaryClusterOptions = createCacheServerOptions("SecondaryCluster", secondaryClusterPort,
+        OptionsByType secondaryClusterOptions = createCacheServerOptions("ClusterB", secondaryClusterPort,
                 primaryClusterPort,
                 secondaryClusterPort);
 
@@ -96,8 +96,8 @@ public class FederationExampleTest {
         ncPrimary.clear();
         ncSecondary.clear();
 
-        assertEquals(ncPrimary.size(), 0);
-        assertEquals(ncSecondary.size(), 0);
+        assertEquals(0, ncPrimary.size());
+        assertEquals(0, ncSecondary.size());
 
         Map<Integer, String> buffer = new HashMap<>();
         for (int i = 0; i < COUNT; i++) {
@@ -106,7 +106,7 @@ public class FederationExampleTest {
 
         // Add data to primary cluster
         ncPrimary.putAll(buffer);
-        assertEquals(ncPrimary.size(), COUNT);
+        assertEquals(COUNT, ncPrimary.size());
 
         // wait for data to reach secondary
         Eventually.assertDeferred(ncSecondary::size, is(COUNT));
@@ -119,7 +119,7 @@ public class FederationExampleTest {
 
     protected static OptionsByType createCacheServerOptions(String clusterName, int clusterPort,
                                                             int federationPortPrimary, int federationPortSecondary) {
-        String        hostName      = LocalPlatform.get().getLoopbackAddress().getHostAddress();
+        String        hostName      = "127.0.0.1";
         OptionsByType optionsByType = OptionsByType.empty();
 
         optionsByType.addAll(JMXManagementMode.ALL,
@@ -131,10 +131,8 @@ public class FederationExampleTest {
                 Logging.at(3),
                 ClusterName.of(clusterName),
                 ClusterPort.of(clusterPort),
-                SystemProperty.of("primary.cluster.port", Integer.toString(federationPortPrimary)),
-                SystemProperty.of("secondary.cluster.port", Integer.toString(federationPortSecondary)),
-                SystemProperty.of("primary.cluster.host", hostName),
-                SystemProperty.of("secondary.cluster.host", hostName));
+                SystemProperty.of("test.primary.cluster.port", Integer.toString(federationPortPrimary)),
+                SystemProperty.of("test.secondary.cluster.port", Integer.toString(federationPortSecondary)));
 
         return optionsByType;
     }
