@@ -324,6 +324,43 @@ public class HnswIndex<K, V>
         return m_extractor.extract(v);
         }
 
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public boolean equals(Object o)
+        {
+        if (this == o)
+            {
+            return true;
+            }
+        if (o == null || getClass() != o.getClass())
+            {
+            return false;
+            }
+        HnswIndex<?, ?> hnswIndex = (HnswIndex<?, ?>) o;
+        return Objects.equals(m_extractor, hnswIndex.m_extractor);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(m_extractor);
+        }
+
+    public String toString()
+        {
+        return "HnswIndex{" +
+               "extractor=" + m_extractor +
+               ", dimension=" + m_nDimension +
+               ", spaceName='" + m_sSpaceName + '\'' +
+               ", maxElements=" + m_cMaxElements +
+               ", M=" + m_nM +
+               ", efConstr=" + m_nEfConstr +
+               ", efSearch=" + m_nEfSearch +
+               ", randomSeed=" + m_nRandomSeed +
+               '}';
+        }
+
     // ----- Evolvable interface --------------------------------------------
 
     @Override
@@ -464,6 +501,12 @@ public class HnswIndex<K, V>
         public Comparator<Vector<float[]>> getComparator()
             {
             return null;
+            }
+
+        @Override
+        public long getUnits()
+            {
+            return f_index.getIndexSize();
             }
 
         @Override

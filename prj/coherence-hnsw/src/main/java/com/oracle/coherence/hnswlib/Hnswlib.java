@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -84,6 +84,15 @@ public interface Hnswlib
      * @return number of items that can be inserted into the index.
      */
     int getMaxIndexLength(Pointer index);
+
+    /**
+     * Retrieve the index size in bytes.
+     *
+     * @param index - JNA pointer reference of the index.
+     *
+     * @return the index size in bytes.
+     */
+    int getIndexSize(Pointer index);
 
     /**
      * Resize the index.

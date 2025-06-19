@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -201,6 +201,10 @@ public:
         });
     }
 
+    int get_index_size() const {
+        return appr_alg->indexFileSize();
+    }
+
     void resize_index(size_t new_size) {
         appr_alg->resizeIndex(new_size);
     }
@@ -263,6 +267,14 @@ EXTERN_C DLLEXPORT int getIndexLength(Index<float>* index) {
 
 EXTERN_C DLLEXPORT int getMaxIndexLength(Index<float>* index) {
     return index->get_max_elements();
+}
+
+EXTERN_C DLLEXPORT int getIndexSize(Index<float>* index) {
+    if (index->appr_alg) {
+        return index->get_index_size();
+    } else {
+        return 0;
+    }
 }
 
 EXTERN_C DLLEXPORT void resizeIndex(Index<float>* index, int maxNumberOfElements) {
