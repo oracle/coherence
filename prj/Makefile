@@ -151,7 +151,7 @@ coherence-hnsw/src/main/resources/libhnswlib-aarch64.so: $(HNSW_HDR_FILES) $(HNS
 hnsw-linux-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.so
 
 coherence-hnsw/src/main/resources/libhnswlib-x86-64.so: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
-    ifeq ($(UNAME_S),Linux)
+    ifeq ($(OS_NAME),Linux)
     ifeq ($(OS_ARCH),amd64)
 		echo "Building HNSW library for Linux x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.so"
 		mkdir -p $(HNSW_LIB_DIR) || true
