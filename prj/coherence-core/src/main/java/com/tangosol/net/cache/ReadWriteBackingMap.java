@@ -8265,7 +8265,10 @@ public class ReadWriteBackingMap
         public boolean isEvictable(
                 ConfigurableCacheMap.Entry cacheEntry)
             {
-            return m_queueWrite.accelerateEntryRipe((Binary) cacheEntry.getKey());
+            WriteQueue writeQueue = m_queueWrite;
+
+            // COH-32208 - return false if writeQueue is null; writeQueue may be null if the RWBM is being released, e.g. truncate()
+            return writeQueue == null ? false : writeQueue.accelerateEntryRipe((Binary) cacheEntry.getKey());
             }
         };
 
