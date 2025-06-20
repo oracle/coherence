@@ -1,11 +1,15 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
+
+import com.oracle.coherence.ai.BitVector;
+import com.oracle.coherence.ai.Float32Vector;
+import com.oracle.coherence.ai.Int8Vector;
 
 import com.oracle.coherence.common.base.Logger;
 
@@ -27,6 +31,7 @@ import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.extractor.MultiExtractor;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1204,7 +1209,8 @@ public class SimpleMapIndex
                 {
                 return CalculatorState.FIXED;
                 }
-            if (clz == String.class || clz == Binary.class)
+            if (clz == String.class || clz == Binary.class || clz == BitSet.class ||
+                clz == BitVector.class || clz == Int8Vector.class || clz == Float32Vector.class)
                 {
                 return CalculatorState.STANDARD;
                 }

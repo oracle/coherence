@@ -50,6 +50,11 @@ import java.lang.reflect.Modifier;
 * <li>String</li>
 * <li>Time</li>
 * <li>Timestamp</li>
+* <li>Binary</li>
+* <li>BitSet</li>
+* <li>BitVector</li>
+* <li>Int8Vector</li>
+* <li>Float32Vector</li>
 * </ul>
 * <p>
 * If either the key or value object is not one of these types, an exception will
