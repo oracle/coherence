@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1919,6 +1919,10 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>936</type-id>
       <class-name>com.oracle.coherence.ai.search.SimpleQueryResult</class-name>
+    </user-type>
+    <user-type>
+      <type-id>937</type-id>
+      <class-name>com.oracle.coherence.ai.index.BinaryQuantIndex</class-name>
     </user-type>
 
     <!-- java.time (940 - 949) -->

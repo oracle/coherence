@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,11 +7,15 @@
 
 package com.tangosol.net.cache;
 
+import com.oracle.coherence.ai.BitVector;
+import com.oracle.coherence.ai.Float32Vector;
+import com.oracle.coherence.ai.Int8Vector;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ClassHelper;
 
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +26,6 @@ import java.lang.management.RuntimeMXBean;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-
 
 /**
 * A UnitCalculator implementation that weighs a cache entry based upon the
@@ -164,6 +167,26 @@ public class SimpleMemoryCalculator
             cb = SIZE_BINARY
                + padMemorySize(SIZE_BASIC_OBJECT + 4 + ((Binary) o).length());
             }
+        else if (clz.equals(Float32Vector.class))
+            {
+            cb = SIZE_FLOAT32VECTOR
+               + padMemorySize(SIZE_BASIC_OBJECT + 4 + 4*((Float32Vector) o).dimensions());
+            }
+        else if (clz.equals(Int8Vector.class))
+            {
+            cb = SIZE_INT8VECTOR
+               + padMemorySize(SIZE_BASIC_OBJECT + 4 + ((Int8Vector) o).dimensions());
+            }
+        else if (clz.equals(BitVector.class))
+            {
+            cb = SIZE_BITVECTOR +
+               + padMemorySize(SIZE_BASIC_OBJECT + 4 + 8*ceilDiv(((BitVector) o).get().size(), 64));
+            }
+        else if (clz.equals(BitSet.class))
+            {
+            cb = SIZE_BITSET +
+               + padMemorySize(SIZE_BASIC_OBJECT + 4 + 8*ceilDiv(((BitSet) o).size(), 64));
+            }
         else if (clz.isArray())
             {
             int   cElements  = Array.getLength(o);
@@ -269,7 +292,7 @@ public class SimpleMemoryCalculator
     *
     * @return the input, rounded up to the nearest multiple of 8
     */
-    protected static int padMemorySize(int cb)
+    public static int padMemorySize(int cb)
         {
         return (int) pad(cb, 8L);
         }
@@ -286,7 +309,7 @@ public class SimpleMemoryCalculator
     * @return the number of bytes required to store an instance of the given
     *         class, including its non-static members
     */
-    protected static int calculateShallowSize(Class clz)
+    public static int calculateShallowSize(Class clz)
         {
         if (clz == null)
             {
@@ -396,6 +419,50 @@ public class SimpleMemoryCalculator
 
         return 4;
         }
+
+    /**
+     * Returns the smallest (closest to negative infinity) {@code int} value
+     * that is greater than or equal to the algebraic quotient. There is one
+     * special case: if the dividend is
+     * {@linkplain Integer#MIN_VALUE Integer.MIN_VALUE} and the divisor is
+     * {@code -1}, then integer overflow occurs and the result is equal to
+     * {@code Integer.MIN_VALUE}.
+     * <p>
+     * Normal integer division operates under the round to zero rounding mode
+     * (truncation).  This operation instead acts under the round toward
+     * positive infinity (ceiling) rounding mode. The ceiling rounding mode
+     * gives different results from truncation when the exact quotient is not an
+     * integer and is positive.
+     * <ul>
+     *   <li>If the signs of the arguments are different, the results of
+     *       {@code ceilDiv} and the {@code /} operator are the same.  <br>
+     *       For example, {@code ceilDiv(-4, 3) == -1} and {@code (-4 / 3) == -1}.</li>
+     *   <li>If the signs of the arguments are the same, {@code ceilDiv}
+     *       returns the smallest integer greater than or equal to the quotient
+     *       while the {@code /} operator returns the largest integer less
+     *       than or equal to the quotient.
+     *       They differ if and only if the quotient is not an integer.<br>
+     *       For example, {@code ceilDiv(4, 3) == 2},
+     *       whereas {@code (4 / 3) == 1}.
+     *   </li>
+     * </ul>
+     *
+     * @param x the dividend
+     * @param y the divisor
+     *
+     * @return the smallest (closest to negative infinity) {@code int} value
+     *         that is greater than or equal to the algebraic quotient.
+     *
+     * @throws ArithmeticException if the divisor {@code y} is zero
+     */
+    private static int ceilDiv(int x, int y) {
+        final int q = x / y;
+        // if the signs are the same and modulo not zero, round up
+        if ((x ^ y) >= 0 && (q * y != x)) {
+            return q + 1;
+        }
+        return q;
+    }
 
     // ----- unit test ------------------------------------------------------
 
@@ -539,6 +606,26 @@ public class SimpleMemoryCalculator
     public static final int SIZE_BINARY;
 
     /**
+    * The minimum size (in bytes) of a {@link Float32Vector} object.
+    */
+    public static final int SIZE_FLOAT32VECTOR;
+
+    /**
+    * The minimum size (in bytes) of a {@link Int8Vector} object.
+    */
+    public static final int SIZE_INT8VECTOR;
+
+    /**
+    * The minimum size (in bytes) of a {@link BitVector} object.
+    */
+    public static final int SIZE_BITVECTOR;
+
+    /**
+    * The minimum size (in bytes) of a {@link BitSet} object.
+    */
+    public static final int SIZE_BITSET;
+
+    /**
     * The minimum size (in bytes) of an {@link LocalCache.Entry} object.
     */
     public static final int SIZE_ENTRY;
@@ -556,7 +643,7 @@ public class SimpleMemoryCalculator
     /**
     * The unaligned size of the simplest object.
     */
-    protected static final int SIZE_BASIC_OBJECT;
+    public static final int SIZE_BASIC_OBJECT;
 
     static
         {
@@ -622,8 +709,12 @@ public class SimpleMemoryCalculator
 
         MAP_FIXED_SIZES = Collections.unmodifiableMap(map);
 
-        SIZE_STRING = calculateShallowSize(String.class);
-        SIZE_BINARY = calculateShallowSize(Binary.class);
-        SIZE_ENTRY  = calculateShallowSize(LocalCache.Entry.class);
+        SIZE_STRING        = calculateShallowSize(String.class);
+        SIZE_BINARY        = calculateShallowSize(Binary.class);
+        SIZE_BITSET        = calculateShallowSize(BitSet.class);
+        SIZE_BITVECTOR     = calculateShallowSize(BitVector.class) + SIZE_BITSET;
+        SIZE_INT8VECTOR    = calculateShallowSize(Int8Vector.class);
+        SIZE_FLOAT32VECTOR = calculateShallowSize(Float32Vector.class);
+        SIZE_ENTRY         = calculateShallowSize(LocalCache.Entry.class);
         }
     }

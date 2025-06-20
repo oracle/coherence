@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
 import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.cache.SimpleMemoryCalculator;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
@@ -33,6 +34,7 @@ import com.tangosol.util.ValueExtractor;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectSortedMap;
 import it.unimi.dsi.fastutil.ints.IntIterator;
+
 import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
@@ -50,6 +52,12 @@ import java.util.Set;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
+
+import static com.tangosol.net.cache.SimpleMemoryCalculator.SIZE_BASIC_OBJECT;
+import static com.tangosol.net.cache.SimpleMemoryCalculator.SIZE_OBJECT_REF;
+import static com.tangosol.net.cache.SimpleMemoryCalculator.calculateShallowSize;
+import static com.tangosol.net.cache.SimpleMemoryCalculator.padMemorySize;
 
 /**
  * An {@link VectorIndexExtractor} to create a {@link VectorIndex} using binary quantization of vectors.
@@ -132,10 +140,6 @@ public class BinaryQuantIndex<K, V, T>
             {
             return false;
             }
-        if (!super.equals(o))
-            {
-            return false;
-            }
         BinaryQuantIndex<?, ?, ?> that = (BinaryQuantIndex<?, ?, ?>) o;
         return Objects.equals(f_extractor, that.f_extractor);
         }
@@ -143,7 +147,7 @@ public class BinaryQuantIndex<K, V, T>
     @Override
     public int hashCode()
         {
-        return Objects.hash(super.hashCode(), f_extractor);
+        return Objects.hash(f_extractor);
         }
 
     @Override
@@ -244,6 +248,12 @@ public class BinaryQuantIndex<K, V, T>
             }
 
         @Override
+        public long getUnits()
+            {
+            return m_cUnits.get();
+            }
+
+        @Override
         public void insert(Map.Entry<? extends K, ? extends V> entry)
             {
             Vector<?> v = InvocableMapHelper.extractFromEntry(f_extractor, entry);
@@ -252,7 +262,11 @@ public class BinaryQuantIndex<K, V, T>
                 Object oKey = entry instanceof BinaryEntry
                               ? ((BinaryEntry<?, ?>) entry).getBinaryKey()
                               : entry.getKey();
-                f_mapIndex.put((K) oKey, v.binaryQuant().get());
+                BitSet value = v.binaryQuant().get();
+                f_mapIndex.put((K) oKey, value);
+
+                long cUnits = ENTRY_OVERHEAD + CALC.sizeOf(oKey) + CALC.sizeOf(value);
+                m_cUnits.addAndGet(cUnits);
                 }
             }
 
@@ -266,6 +280,8 @@ public class BinaryQuantIndex<K, V, T>
                               ? ((BinaryEntry<?, ?>) entry).getBinaryKey()
                               : entry.getKey();
                 f_mapIndex.put((K) oKey, v.binaryQuant().get());
+                // no need to update units, as key is the same, and values are
+                // guaranteed to have the same size
                 }
             else
                 {
@@ -279,7 +295,10 @@ public class BinaryQuantIndex<K, V, T>
             Object oKey = entry instanceof BinaryEntry
                           ? ((BinaryEntry<?, ?>) entry).getBinaryKey()
                           : entry.getKey();
-            f_mapIndex.remove((K) oKey);
+            Object oldValue = f_mapIndex.remove((K) oKey);
+
+            long cUnits = ENTRY_OVERHEAD + CALC.sizeOf(oKey) + CALC.sizeOf(oldValue);
+            m_cUnits.addAndGet(-cUnits);
             }
 
         @Override
@@ -329,6 +348,23 @@ public class BinaryQuantIndex<K, V, T>
                    : Arrays.copyOfRange(aResults, 0, cAdded);
             }
 
+        // ----- constants --------------------------------------------------
+
+        /**
+        * UnitCalculator used to estimate the cost of a value.
+        */
+        protected SimpleMemoryCalculator CALC = new SimpleMemoryCalculator();
+
+        /**
+        * The memory cost of a ConcurrentHashMap used as the index.
+        */
+        protected static final int MAP_OVERHEAD = calculateShallowSize(ConcurrentHashMap.class);
+
+        /**
+        * The memory cost of creating ConcurrentHashMap.Node.
+        */
+        protected static final int ENTRY_OVERHEAD = padMemorySize(SIZE_BASIC_OBJECT + 3 * SIZE_OBJECT_REF + 4);
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -340,6 +376,11 @@ public class BinaryQuantIndex<K, V, T>
          * The index of cache keys to bit vectors.
          */
         private final ConcurrentMap<K, BitSet> f_mapIndex = new ConcurrentHashMap<>();
+
+        /**
+         * The number of units (bytes) used by this index,
+         */
+        private AtomicLong m_cUnits = new AtomicLong(calculateShallowSize(BinaryQuantMapIndex.class) + MAP_OVERHEAD);
         }
 
     // ----- data members ---------------------------------------------------
