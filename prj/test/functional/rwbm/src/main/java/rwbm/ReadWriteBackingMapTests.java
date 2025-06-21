@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,7 +42,6 @@ import com.tangosol.util.Converter;
 import com.tangosol.util.Daemon;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
-import com.tangosol.util.Filters;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.InvocableMap;
 
@@ -2124,7 +2123,7 @@ public class ReadWriteBackingMapTests
     @Test
     public void testCacheStoreExpireOnPutWithWriteThrough()
         {
-        testCacheStoreExpire("dist-rwbm-wt-bin", 1000, false);
+        testCacheStoreExpire("dist-rwbm-wt-bin", EXPIRY_MILLIS, false);
         }
 
     /**
@@ -2133,7 +2132,7 @@ public class ReadWriteBackingMapTests
     @Test
     public void testCacheStoreExpireOnPutAllWithWriteThrough()
         {
-        testCacheStoreExpire("dist-rwbm-wt-bin", 1000, true);
+        testCacheStoreExpire("dist-rwbm-wt-bin", EXPIRY_MILLIS, true);
         }
 
     /**
@@ -2142,8 +2141,8 @@ public class ReadWriteBackingMapTests
     @Test
     public void testCacheStoreExpireOnPutWithWriteBehind()
         {
-        testCacheStoreExpire("dist-rwbm-wb-bin", 1000, false);
-        testCacheStoreExpire("dist-rwbm-wb-bin-remove", 1000, false);
+        testCacheStoreExpire("dist-rwbm-wb-bin", EXPIRY_MILLIS, false);
+        testCacheStoreExpire("dist-rwbm-wb-bin-remove", EXPIRY_MILLIS, false);
         }
 
     /**
@@ -2152,8 +2151,8 @@ public class ReadWriteBackingMapTests
     @Test
     public void testCacheStoreExpireOnPutAllWithWriteBehind()
         {
-        testCacheStoreExpire("dist-rwbm-wb-bin", 1000, true);
-        testCacheStoreExpire("dist-rwbm-wb-bin-remove", 1000, true);
+        testCacheStoreExpire("dist-rwbm-wb-bin", EXPIRY_MILLIS, true);
+        testCacheStoreExpire("dist-rwbm-wb-bin-remove", EXPIRY_MILLIS, true);
         }
 
     private void testCacheStoreExpire(String sCacheName, long cExpiryMillis, boolean fUsePutAll)
@@ -2763,8 +2762,8 @@ public class ReadWriteBackingMapTests
     @Test
     public void testExpiringProcessor()
         {
-        testExpiringProcessor("dist-rwbm-wt-bin", 1000);
-        testExpiringProcessor("dist-rwbm-wb-bin", 1000);
+        testExpiringProcessor("dist-rwbm-wt-bin", EXPIRY_MILLIS);
+        testExpiringProcessor("dist-rwbm-wb-bin", EXPIRY_MILLIS);
         }
 
     private void testExpiringProcessor(String sCacheName, long cExpiry)
@@ -4110,6 +4109,11 @@ public class ReadWriteBackingMapTests
     * The file name of the default cache configuration file used by this test.
     */
     public static String FILE_CFG_CACHE = "rwbm-cache-config.xml";
+
+    /**
+     * The default expiry time.
+     */
+    public static final int EXPIRY_MILLIS = 2000;
 
     // ----- data members ---------------------------------------------------
 
