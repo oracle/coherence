@@ -24281,7 +24281,7 @@ public abstract class PartitionedService
                 setSnapshotToRecover(input.readUTF());
                 }
 
-            if (getService().isVersionCompatible(OwnershipResponse::isLazyOpenCompatible))
+            if (getService().isVersionCompatible(getFromMember(), OwnershipResponse::isLazyOpenCompatible))
                 {
                 int cSize = input.readInt();
                 String[] asGUIDToClean = new String[cSize];
@@ -24510,7 +24510,7 @@ public abstract class PartitionedService
                 output.writeUTF(sSnapshot);
                 }
 
-            if (getService().isVersionCompatible(OwnershipResponse::isLazyOpenCompatible))
+            if (getService().isVersionCompatible(getToMemberSet(), OwnershipResponse::isLazyOpenCompatible))
                 {
                 String[] asInvalidGUIDs = getInvalidPersistentIds();
                 int cSize = asInvalidGUIDs == null ? 0 : asInvalidGUIDs.length;
