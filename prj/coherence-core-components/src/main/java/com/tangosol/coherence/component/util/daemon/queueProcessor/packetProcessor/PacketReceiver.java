@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@
 // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.packetProcessor.PacketReceiver
 
 package com.tangosol.coherence.component.util.daemon.queueProcessor.packetProcessor;
+
+import com.oracle.coherence.common.io.BufferManager;
 
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.Message;
@@ -21,8 +23,6 @@ import com.tangosol.coherence.component.net.packet.messagePacket.Sequel;
 import com.tangosol.coherence.component.net.packet.notifyPacket.Ack;
 import com.tangosol.coherence.component.net.packet.notifyPacket.Request;
 import com.tangosol.coherence.component.util.WindowedArray;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.packetProcessor.PacketPublisher;
-import com.oracle.coherence.common.io.BufferManager;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.io.nio.ByteBufferReadBuffer;
 import com.tangosol.net.internal.PacketComparator;
@@ -31,6 +31,8 @@ import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
+import com.tangosol.util.SparseArray;
+
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
@@ -334,40 +336,47 @@ public abstract class PacketReceiver
         // import java.util.Iterator;
         
         BufferManager mgr = getBufferManager();
-        
-        for (Iterator iter = member.getMessagePile().iterator(); iter.hasNext();)
+
+        SparseArray messagePile = member.getMessagePile();
+        if (messagePile != null)
             {
-            Object o = iter.next();
-            if (o instanceof LongArray) // all we have are sequel packets
+            for (Iterator iter = member.getMessagePile().iterator(); iter.hasNext(); )
                 {
-                for (Iterator iterPacket = ((LongArray) o).iterator(); iterPacket.hasNext(); )
+                Object o = iter.next();
+                if (o instanceof LongArray) // all we have are sequel packets
                     {
-                    mgr.release(((MessagePacket) iterPacket.next()).getByteBuffer());
+                    for (Iterator iterPacket = ((LongArray) o).iterator(); iterPacket.hasNext(); )
+                        {
+                        mgr.release(((MessagePacket) iterPacket.next()).getByteBuffer());
+                        }
                     }
+                // else o instanceof Message; handled below
                 }
-            // else o instanceof Message; handled below
+            member.setMessagePile(null);
             }
-        member.setMessagePile(null);
         
         WindowedArray la = member.getMessageIncoming();
-        for (long li = la.getFirstIndex(), le = la.getLastIndex(); li <= le; li = la.getFirstIndex())
+        if (la != null)
             {
-            Message msg = (Message) la.remove(li);
-            if (msg == null)
+            for (long li = la.getFirstIndex(), le = la.getLastIndex(); li <= le; li = la.getFirstIndex())
                 {
-                break; // signifies that the remainder or the indexes must be null
-                }
-        
-            for (int i = 0, c = msg.getMessagePartCount(); i < c; ++i)
-                {
-                MessagePacket packet = msg.getPacket(i);
-                if (packet != null)
+                Message msg = (Message) la.remove(li);
+                if (msg == null)
                     {
-                    mgr.release(packet.getByteBuffer());
+                    break; // signifies that the remainder or the indexes must be null
+                    }
+
+                for (int i = 0, c = msg.getMessagePartCount(); i < c; ++i)
+                    {
+                    MessagePacket packet = msg.getPacket(i);
+                    if (packet != null)
+                        {
+                        mgr.release(packet.getByteBuffer());
+                        }
                     }
                 }
+            member.setMessageIncoming(null);
             }
-        member.setMessageIncoming(null);
         }
     
     /**
@@ -1104,7 +1113,7 @@ public abstract class PacketReceiver
                 // sequel Packets can "find their way home"
                 laPile.set(lFromMsgId, msg);
                 }
-        
+
             // check for completed Messages in the array
             if (lToMsgId == lMsgFirst)
                 {            
