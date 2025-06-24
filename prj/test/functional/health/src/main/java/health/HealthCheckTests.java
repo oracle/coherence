@@ -82,9 +82,9 @@ public class HealthCheckTests
     @Test
     void shouldBeHealthySingleMember()
         {
-        LocalPlatform    platform       = LocalPlatform.get();
-        Capture<Integer> nHealthPort    = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> managementPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform       = LocalPlatform.get();
+        Integer       nHealthPort    = platform.getAvailablePorts().next();
+        Integer       managementPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember ignored = platform.launch(CoherenceClusterMember.class,
                                                        ClassName.of(Coherence.class),
@@ -109,9 +109,9 @@ public class HealthCheckTests
     @Test
     public void shouldBeHealthyMultipleMembers() throws Exception
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                 ClassName.of(Coherence.class),
@@ -133,6 +133,8 @@ public class HealthCheckTests
                     DisplayName.of("Storage-1"),
                     SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
                 {
+                Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
+                Eventually.assertDeferred(() -> isServiceOneRunning(app2), is(true));
 
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_STARTED), is(200));
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort2, HealthCheck.PATH_STARTED), is(200));
@@ -156,9 +158,9 @@ public class HealthCheckTests
     @Test
     public void shouldBeHealthyWhenStorageDisabled()
         {
-        LocalPlatform    platform       = LocalPlatform.get();
-        Capture<Integer> nHealthPort    = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> managementPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform       = LocalPlatform.get();
+        Integer       nHealthPort    = platform.getAvailablePorts().next();
+        Integer       managementPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember ignored = platform.launch(CoherenceClusterMember.class,
                                                        ClassName.of(Coherence.class),
@@ -183,11 +185,11 @@ public class HealthCheckTests
     @Test
     public void shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence()
         {
-        File             buildDir    = MavenProjectFileUtils.ensureTestOutputFolder(getClass(), "shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence");
-        File             activeDir   = new File(buildDir, "persistence");
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        File          buildDir     = MavenProjectFileUtils.ensureTestOutputFolder(getClass(), "shouldBeStatusHAMultipleMembersStorageEnabledAndDisabledActivePersistence");
+        File          activeDir    = new File(buildDir, "persistence");
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         activeDir.mkdirs();
         activeDir.deleteOnExit();
@@ -227,9 +229,9 @@ public class HealthCheckTests
     @Test
     public void shouldBeStatusHAMultipleMemberDifferentServices()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -265,9 +267,9 @@ public class HealthCheckTests
     @Test
     public void shouldBeStatusHAMultipleMemberWithBackupCountTwoIgnoringService()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -306,8 +308,8 @@ public class HealthCheckTests
     @Test
     public void shouldSuspendAllServicesSingleMember()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
                                                    ClassName.of(Coherence.class),
@@ -344,9 +346,9 @@ public class HealthCheckTests
     @Test
     public void shouldSuspendAllServicesMultipleMembers()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -401,8 +403,8 @@ public class HealthCheckTests
     @Test
     public void shouldSuspendSpecifiedServicesSingleMember()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
                                                    ClassName.of(Coherence.class),
@@ -438,8 +440,8 @@ public class HealthCheckTests
     @Test
     public void shouldResumeSpecifiedServicesSingleMember()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> httpPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
                                                    ClassName.of(Coherence.class),
@@ -476,9 +478,9 @@ public class HealthCheckTests
     @Test
     public void shouldNotSuspendServicesWithDifferentRoles()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -529,9 +531,9 @@ public class HealthCheckTests
     @Test
     public void shouldNotSuspendStorageDisabledServices()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -582,9 +584,9 @@ public class HealthCheckTests
     @Test
     public void shouldNotSuspendNonPersistentServices()
         {
-        LocalPlatform    platform     = LocalPlatform.get();
-        Capture<Integer> nHealthPort1 = new Capture<>(platform.getAvailablePorts());
-        Capture<Integer> nHealthPort2 = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort1 = platform.getAvailablePorts().next();
+        Integer       nHealthPort2 = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app1 = platform.launch(CoherenceClusterMember.class,
                                                     ClassName.of(Coherence.class),
@@ -631,8 +633,8 @@ public class HealthCheckTests
     @Test
     public void shouldNotResumeExcludedServices()
         {
-        LocalPlatform    platform   = LocalPlatform.get();
-        Capture<Integer> nHealthPort = new Capture<>(platform.getAvailablePorts());
+        LocalPlatform platform    = LocalPlatform.get();
+        Integer       nHealthPort = platform.getAvailablePorts().next();
 
         try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
                                                    ClassName.of(Coherence.class),
@@ -673,7 +675,7 @@ public class HealthCheckTests
 
     // ----- helper methods -------------------------------------------------
 
-    public int httpRequest(Capture<Integer> nPort, String sRequest)
+    public int httpRequest(Integer nPort, String sRequest)
         {
         try
             {
@@ -689,7 +691,7 @@ public class HealthCheckTests
             }
         }
 
-    public HttpResponse doHttpRequest(Capture<Integer> nPort, String sRequest) throws Exception
+    public HttpResponse doHttpRequest(Integer nPort, String sRequest) throws Exception
         {
         if (!sRequest.startsWith("/"))
             {
@@ -698,7 +700,7 @@ public class HealthCheckTests
 
         HttpRequest request = HttpRequest.newBuilder()
               .GET()
-              .uri(URI.create("http://127.0.0.1:" + nPort.get() + sRequest))
+              .uri(URI.create("http://127.0.0.1:" + nPort + sRequest))
               .build();
 
         HttpResponse<byte[]> response = m_client.send(request, HttpResponse.BodyHandlers.ofByteArray());
