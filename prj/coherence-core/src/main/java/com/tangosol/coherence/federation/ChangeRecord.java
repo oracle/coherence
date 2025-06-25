@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -185,6 +185,18 @@ public interface ChangeRecord<K, V>
      * @since 12.2.1.4.1
      */
     boolean isSynthetic();
+
+    /**
+     * Determine whether the change is part of a ReplicateAll operation.
+     * <p>
+     * Note: This method is only relevant for REPLICATING and COMMITTING_REMOTE events.
+     *       It will always return false for COMMITTING_LOCAL events.
+     *
+     * @return true if it is part of a ReplicateAll; false otherwise
+     *
+     * @since 14.1.2.0.4
+     */
+    boolean isReplicateAll();
 
     /**
      * Represents the key, value and name of the {@link Participant} from
