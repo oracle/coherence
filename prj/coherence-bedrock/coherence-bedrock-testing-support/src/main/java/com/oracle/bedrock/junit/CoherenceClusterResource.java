@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -79,7 +79,7 @@ public class CoherenceClusterResource
 
 
     @Override
-    protected void before() throws Throwable
+    public void before() throws Throwable
         {
         if (launchDefinitions.isEmpty())
             {
@@ -100,7 +100,7 @@ public class CoherenceClusterResource
 
 
     @Override
-    protected void after()
+    public void after()
         {
         // clean up the sessions
         synchronized (f_mapCCF)
