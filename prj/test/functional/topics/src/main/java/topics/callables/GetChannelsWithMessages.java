@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package topics.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
 import com.tangosol.net.Coherence;
@@ -31,14 +32,17 @@ public class GetChannelsWithMessages
     @Override
     public Set<Integer> call() throws Exception
         {
+        Logger.info("Invoking GetChannelsWithMessages");
         Session          session = Coherence.getInstance().getSession();
         NamedTopic<?>    topic   = session.getTopic(m_sTopicName);
-        PagedTopicCaches caches  = new PagedTopicCaches(m_sTopicName, (PagedTopicService) topic.getService());
+        PagedTopicCaches caches  = new PagedTopicCaches(m_sTopicName, (PagedTopicService) topic.getService(), false);
 
-        return caches.Pages.keySet()
+        Set<Integer> set = caches.Pages.keySet()
                 .stream()
                 .map(Page.Key::getChannelId)
                 .collect(Collectors.toSet());
+        Logger.info("Invoked GetChannelsWithMessages, result=" + set);
+        return set;
         }
     
     private final String m_sTopicName;

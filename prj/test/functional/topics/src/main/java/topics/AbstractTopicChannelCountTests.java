@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
+import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
@@ -35,6 +36,8 @@ import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -72,12 +75,45 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 @SuppressWarnings({"resource", "unchecked"})
 public abstract class AbstractTopicChannelCountTests
     {
+    @BeforeClass
+    public static void setup()
+        {
+        System.setProperty(LocalStorage.PROPERTY, "false");
+        }
+
+    @Before
+    public void startCluster() throws Throwable
+        {
+        if (m_cluster != null)
+            {
+            m_cluster.getCluster().close();
+            }
+
+        m_cluster = new CoherenceClusterResource()
+                .with(ClusterName.of(m_testWatcher.getMethodName()),
+                        Logging.atMax(),
+                        LocalHost.only(),
+                        WellKnownAddress.loopback(),
+                        IPv4Preferred.yes())
+                .include(STORAGE_MEMBER_COUNT,
+                        CoherenceClusterMember.class,
+                        CacheConfig.of(CACHE_CONFIG_FILE),
+                        SystemProperty.of(PROP_CHANNELS, STORAGE_CHANNEL_COUNT),
+                        DisplayName.of("Storage"),
+                        RoleName.of("storage"),
+                        JmxFeature.enabled(),
+                        m_testLogs.builder());
+
+        m_cluster.before();
+        }
+
     @After
     public void cleanup()
         {
         Cluster cluster = CacheFactory.getCluster();
         CacheFactory.shutdown();
         Eventually.assertDeferred(cluster::isRunning, is(false));
+        m_cluster.after();
         }
 
     @Test
@@ -852,20 +888,5 @@ public abstract class AbstractTopicChannelCountTests
     @Rule(order = 1)
     public TestName m_testWatcher = new TestName();
 
-    @Rule(order = 2)
-    public CoherenceClusterResource m_cluster =
-            new CoherenceClusterResource()
-                    .with(ClusterName.of(m_testWatcher.getMethodName()),
-                          Logging.atMax(),
-                          LocalHost.only(),
-                          WellKnownAddress.loopback(),
-                          IPv4Preferred.yes())
-                    .include(STORAGE_MEMBER_COUNT,
-                             CoherenceClusterMember.class,
-                             CacheConfig.of(CACHE_CONFIG_FILE),
-                             SystemProperty.of(PROP_CHANNELS, STORAGE_CHANNEL_COUNT),
-                             DisplayName.of("Storage"),
-                             RoleName.of("storage"),
-                             JmxFeature.enabled(),
-                             m_testLogs.builder());
+    public CoherenceClusterResource m_cluster;
     }
