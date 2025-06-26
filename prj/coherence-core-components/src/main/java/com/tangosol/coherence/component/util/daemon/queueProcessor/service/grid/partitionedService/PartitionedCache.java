@@ -23346,21 +23346,17 @@ public class PartitionedCache
          */
         public Storage.EntryStatus[] lockEntries(Storage storage, com.tangosol.util.Binary[] aKeys, int cSize)
             {
-            // import com.tangosol.util.Binary;
-            // import com.tangosol.util.LiteMap;
-            // import java.util.Map;
-            
-            Map                  mapStorage   = getStorageStatusMap(); // <Storage, Map<BinKey, $EntryStatus>>
-            Map                  mapKeyStatus = (Map) mapStorage.get(storage);
-            PartitionedCache              service      = getService();
+            Map                                  mapStorage   = getStorageStatusMap(); // <Storage, Map<BinKey, $EntryStatus>>
+            Map                                  mapKeyStatus = (Map) mapStorage.get(storage);
+            PartitionedCache                     service      = getService();
             PartitionedCache.ResourceCoordinator coordinator  = service.getResourceCoordinator();
-            Storage.EntryStatus[]       aStatus      = new Storage.EntryStatus[cSize];
-            
+            List<Storage.EntryStatus>            lStatus      = new ArrayList<>();
+
             if (mapKeyStatus == null)
                 {
                 mapStorage.put(storage, mapKeyStatus = new LiteMap());
                 }
-            
+
             for (int i = 0; i < cSize; i++)
                 {
                 Binary binKey = aKeys[i];
@@ -23368,16 +23364,21 @@ public class PartitionedCache
                 service.lockKey(storage, binKey, false);
             
                 Storage.EntryStatus status = coordinator.getStatus(storage, binKey);
-                _assert(status != null && status.getBinaryEntry() == null);
-            
+                if (status == null || status.getBinaryEntry() != null)
+                    {
+                    _trace("Status invalid while locking entry; skipping key", 1);
+                    // skip, soft assert; this could happen during shutdown with concurrent requests
+                    continue;
+                    }
+
                 mapKeyStatus.put(binKey, status);
             
                 status.setBinaryEntry(storage.instantiateBinaryEntry(binKey, null, false));
-            
-                aStatus[i] = status;
+
+                lStatus.add(status);
                 }
             
-            return aStatus;
+            return lStatus.toArray(new Storage.EntryStatus[lStatus.size()]);
             }
         
         /**
