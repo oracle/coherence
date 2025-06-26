@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -82,8 +82,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 
@@ -376,8 +374,8 @@ public class LocalNamedTopicTests
         CacheService     service = (CacheService) topic.getService();
         NamedCache<?, ?> cacheSubscribers = service.ensureCache(PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(m_sSerializer), null);
 
-        Eventually.assertThat(cacheSubscribers.getCacheName() + " should be empty",
-                              invoking(cacheSubscribers).isEmpty(), is(true));
+        Eventually.assertDeferred(cacheSubscribers.getCacheName() + " should be empty",
+                cacheSubscribers::isEmpty, is(true));
         }
 
     @Test

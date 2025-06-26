@@ -37,7 +37,6 @@ import com.tangosol.io.Serializer;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-import com.tangosol.io.pof.reflect.SimplePofPath;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
@@ -72,19 +71,11 @@ import com.tangosol.net.topic.TopicPublisherException;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.Extractors;
+import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ImmutableArrayList;
 import com.tangosol.util.ValueExtractor;
-
-import com.tangosol.util.extractor.ChainedExtractor;
-import com.tangosol.util.extractor.IdentityExtractor;
-import com.tangosol.util.extractor.PofExtractor;
-import com.tangosol.util.extractor.UniversalExtractor;
-
-import com.tangosol.util.filter.EqualsFilter;
-import com.tangosol.util.filter.GreaterEqualsFilter;
-import com.tangosol.util.filter.GreaterFilter;
-import com.tangosol.util.filter.LessFilter;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -313,9 +304,9 @@ public abstract class AbstractNamedTopicTests
         Session session    = getSession();
         String  sTopicName = ensureTopicName();
 
-        try (Subscriber<String> subscriberD   = session.createSubscriber(sTopicName, withFilter(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "d")));
-             Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, withFilter(new GreaterFilter<>(IdentityExtractor.INSTANCE(), "a")));
-             Subscriber<String> subscriberLen = session.createSubscriber(sTopicName, withFilter(new GreaterFilter<>(String::length, 1))))
+        try (Subscriber<String> subscriberD   = session.createSubscriber(sTopicName, withFilter(Filters.greater(Extractors.identity(), "d")));
+             Subscriber<String> subscriberA   = session.createSubscriber(sTopicName, withFilter(Filters.greater(Extractors.identity(), "a")));
+             Subscriber<String> subscriberLen = session.createSubscriber(sTopicName, withFilter(Filters.greater(String::length, 1))))
             {
             try (Publisher<String> publisher = session.createPublisher(sTopicName))
                 {
@@ -1651,11 +1642,12 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-3");
 
+        Filter<Customer> filterGE   = Filters.greaterEqual(Extractors.extract("id"), 12);
+        Filter<Customer> filterLess = Filters.less(Extractors.extract("id"), 12);
+
         try (Publisher<Customer>  publisher     = topic.createPublisher();
-             Subscriber<Customer> subscriberD   = topic.createSubscriber(completeOnEmpty(),
-                     withFilter(new GreaterEqualsFilter<>(new UniversalExtractor<>("id"), 12)));
-             Subscriber<Customer> subscriberA   = topic.createSubscriber(completeOnEmpty(),
-                     withFilter(new LessFilter<>(new UniversalExtractor<>("id"), 12))))
+             Subscriber<Customer> subscriberD   = topic.createSubscriber(completeOnEmpty(), withFilter(filterGE));
+             Subscriber<Customer> subscriberA   = topic.createSubscriber(completeOnEmpty(), withFilter(filterLess)))
             {
             List<Customer> list = new ArrayList<>();
 
@@ -1779,19 +1771,19 @@ public abstract class AbstractNamedTopicTests
         {
         NamedTopic<Customer> topic = ensureCustomerTopic(m_sSerializer + "-customer-7");
 
-        try (Publisher<Customer>  publisher          = topic.createPublisher();
-             Subscriber<Customer> subscriberMA       = topic.createSubscriber(completeOnEmpty(),
-                    withFilter(new EqualsFilter<>(new ChainedExtractor<>("getAddress.getState"), "MA")));
-            Subscriber<Address> subscriberMAAddress = topic.createSubscriber(withConverter(Customer::getAddress),
-                completeOnEmpty(),
-                withFilter(new EqualsFilter(new ChainedExtractor("getAddress.getState"), "MA"))))
+        ValueExtractor<Customer, String> chainedExtractor = Extractors.chained("address", "state");
+        ValueExtractor<Customer, String> pofExtractor     = Extractors.fromPof(String.class, CustomerPof.ADDRESS, AddressPof.STATE);
+        Filter                           filter           = Filters.equal(chainedExtractor, "MA");
+
+        try (Publisher<Customer>  publisher         = topic.createPublisher();
+             Subscriber<Customer> subscriberMA      = topic.createSubscriber(completeOnEmpty(), withFilter(filter));
+            Subscriber<Address> subscriberMAAddress = topic.createSubscriber(withFilter(filter),
+                    withConverter(ValueExtractor.of(Customer::getAddress)), completeOnEmpty()))
             {
-            ValueExtractor extractor = m_sSerializer.equals("pof") ?
-                    new PofExtractor(String.class, new SimplePofPath(new int[] {CustomerPof.ADDRESS, AddressPof.STATE})) :
-                    new ChainedExtractor(new UniversalExtractor("address"), new UniversalExtractor("state"));
+            ValueExtractor extractor = m_sSerializer.equals("pof") ? pofExtractor : chainedExtractor;
 
             Subscriber<Customer> subscriberCA = topic.createSubscriber(completeOnEmpty(),
-                    withFilter(new EqualsFilter<>(extractor, "CA")));
+                    withFilter(Filters.equal(extractor, "CA")));
 
             List<Customer> list = new ArrayList<>();
             for (int i = 0; i < 25; i++)
@@ -1886,7 +1878,7 @@ public abstract class AbstractNamedTopicTests
                 {
                 PagedTopicCaches               caches    = new PagedTopicCaches(t.getName(), (PagedTopicService) t.getTopicService(), false);
                 ValueExtractor<Page, Integer>  extractor = Page::getReferenceCount;
-                Set<Map.Entry<Page.Key, Page>> entries   = caches.Pages.entrySet(new EqualsFilter(extractor, 2));
+                Set<Map.Entry<Page.Key, Page>> entries   = caches.Pages.entrySet(Filters.equal(extractor, 2));
                 return entries.stream().map(Map.Entry::getValue).map(Page::getPreviousPartitionPage).collect(Collectors.toList());
                 });
 
@@ -4695,38 +4687,47 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldManuallyAllocateChannelsForSubscriberGroup() throws Exception
         {
-        NamedTopic<String> topic    = ensureTopic();
-        int                cChannel = topic.getChannelCount();
-        String             sGroup   = ensureGroupName();
+        NamedTopic<String> topic         = ensureTopic();
+        int                cChannel      = topic.getChannelCount();
+        String             sGroup        = ensureGroupName();
+        int                nChannelCount = 17;
 
-        assertThat(cChannel, is(17));
+        int[] anChannelsOne = new int[]{0, 1, 5, 9};
+
+        assertThat(cChannel, is(nChannelCount));
 
         topic.ensureSubscriberGroup(sGroup);
 
-        try (Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin());
-             Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(0, 1, 5, 9)))
+        try (Publisher<String>            publisher     = topic.createPublisher(OrderBy.roundRobin());
+             NamedTopicSubscriber<String> subscriberOne = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(anChannelsOne)))
             {
+            long cNotifyBeforeOne;
+
             for (int i = 0; i < cChannel; i++)
                 {
                 publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
                 }
 
-            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(4));
-            assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+            Eventually.assertDeferred(() -> subscriberOne.getChannels().length, is(anChannelsOne.length));
+            assertThat(subscriberOne.getChannels(), is(anChannelsOne));
 
             // subscriber one should have received one message for each of its channels
             verify(subscriberOne, cChannel, 1);
 
-            try (Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup), completeOnEmpty()))
+            try (NamedTopicSubscriber<String> subscriberTwo = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroup), completeOnEmpty()))
                 {
-                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(13));
+                Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(nChannelCount - anChannelsOne.length));
                 assertThat(subscriberTwo.getChannels(), is(new int[]{2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16}));
-                assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+                assertThat(subscriberOne.getChannels(), is(anChannelsOne));
+
+                cNotifyBeforeOne = subscriberOne.getNotify();
 
                 for (int i = 0; i < cChannel; i++)
                     {
                     publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
                     }
+
+                Eventually.assertDeferred(subscriberOne::getNotify, is(cNotifyBeforeOne + anChannelsOne.length));
 
                 // we have published another set of messages
                 // subscriber two should have received TWO messages for each of its channels
@@ -4734,18 +4735,25 @@ public abstract class AbstractNamedTopicTests
                 // subscriber one should have received one message for each of its channels
                 verify(subscriberOne, cChannel, 1);
 
-                try (Subscriber<String> subscriberThree = topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(3, 12, 13)))
+                int[] anChannelThree = new int[]{3, 12, 13};
+                int cChannelsTwo;
+
+                try (Subscriber<String> subscriberThree = topic.createSubscriber(inGroup(sGroup), completeOnEmpty(), subscribeTo(anChannelThree)))
                     {
-                    Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(3));
-                    Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(10));
-                    assertThat(subscriberThree.getChannels(), is(new int[]{3, 12, 13}));
+                    Eventually.assertDeferred(() -> subscriberThree.getChannels().length, is(anChannelThree.length));
+                    Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(nChannelCount - anChannelsOne.length - anChannelThree.length));
+                    assertThat(subscriberThree.getChannels(), is(anChannelThree));
                     assertThat(subscriberTwo.getChannels(), is(new int[]{2, 4, 6, 7, 8, 10, 11, 14, 15, 16}));
-                    assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+                    assertThat(subscriberOne.getChannels(), is(anChannelsOne));
+
+                    cNotifyBeforeOne = subscriberOne.getNotify();
 
                     for (int i = 0; i < cChannel; i++)
                         {
                         publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
                         }
+
+                    Eventually.assertDeferred(subscriberOne::getNotify, is(cNotifyBeforeOne + anChannelsOne.length));
 
                     // we have published another set of messages
                     // subscriber three should have received one message for each of its channels
@@ -4759,12 +4767,16 @@ public abstract class AbstractNamedTopicTests
                 // subscriber three closed
                 Eventually.assertDeferred(() -> subscriberTwo.getChannels().length, is(13));
                 assertThat(subscriberTwo.getChannels(), is(new int[]{2, 3, 4, 6, 7, 8, 10, 11, 12, 13, 14, 15, 16}));
-                assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+                assertThat(subscriberOne.getChannels(), is(anChannelsOne));
+
+                cNotifyBeforeOne = subscriberOne.getNotify();
 
                 for (int i = 0; i < cChannel; i++)
                     {
                     publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
                     }
+
+                Eventually.assertDeferred(subscriberOne::getNotify, is(cNotifyBeforeOne + anChannelsOne.length));
 
                 // we have published another set of messages
                 // subscriber two should have received one message for each of its channels
@@ -4773,13 +4785,17 @@ public abstract class AbstractNamedTopicTests
                 verify(subscriberOne, cChannel, 1);
                 }
 
+            cNotifyBeforeOne = subscriberOne.getNotify();
+
             // subscriber two closed
-            assertThat(subscriberOne.getChannels(), is(new int[]{0, 1, 5, 9}));
+            assertThat(subscriberOne.getChannels(), is(anChannelsOne));
 
             for (int i = 0; i < cChannel; i++)
                 {
                 publisher.publish("Message-" + i).get(1, TimeUnit.MINUTES);
                 }
+
+            Eventually.assertDeferred(subscriberOne::getNotify, is(cNotifyBeforeOne + 4));
 
             // we have published another set of messages
             // subscriber one should have received one message for each of its channels
