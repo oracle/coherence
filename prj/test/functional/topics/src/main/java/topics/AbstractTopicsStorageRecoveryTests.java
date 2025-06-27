@@ -22,6 +22,7 @@ import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
+import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
@@ -51,9 +52,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestName;
 import topics.callables.GetTopicServiceName;
-import topics.callables.ResumeService;
-import topics.callables.SuspendService;
 
+import javax.management.MBeanInfo;
+import javax.management.MBeanServerConnection;
+import javax.management.ObjectName;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.File;
@@ -84,7 +86,7 @@ import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
  * enabled and is removed via a clean shutdown (as would happen in k8s
  * using the operator).
  */
-@SuppressWarnings("CallToPrintStackTrace")
+@SuppressWarnings({"CallToPrintStackTrace", "resource"})
 public abstract class AbstractTopicsStorageRecoveryTests
     {
     @Before
@@ -350,8 +352,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
             // Suspend the services - we do this via the storage member like the Operator would
             Logger.info(">>>>  Suspending service " + sServiceName + " published=" + cPublished.get());
-            Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
-            assertThat(fSuspended, is(true));
+            suspendService(sServiceName);
             Logger.info(">>>> Suspended service " + sServiceName + " published=" + cPublished.get());
 
             // shutdown the storage members
@@ -368,10 +369,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
             // The cache service should still be suspended so resume it via a storage member like the operator would
             Logger.info(">>>> Resuming service " + sServiceName + " published=" + cPublished.get());
-            member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-            Boolean fResumed = member.invoke(new ResumeService(sServiceName));
-            assertThat(fResumed, is(true));
+            resumeService(sServiceName);
             Logger.info(">>>> Resumed service " + sServiceName + " published=" + cPublished.get());
             Logger.info(">>>> Awake. published=" + cPublished.get());
 
@@ -396,7 +394,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
             {
             CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
             assertThat(member, is(notNullValue()));
-            member.submit(new ResumeService(sServiceName)).get(1, TimeUnit.MINUTES);
+            resumeService(sServiceName);
             CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
             }
         }
@@ -429,8 +427,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
             
             // Suspend the services - we do this via the storage member like the Operator would
             Logger.info(">>>>  Suspending service " + sServiceName);
-            Boolean fSuspended = member.invoke(new SuspendService(sServiceName));
-            assertThat(fSuspended, is(true));
+            suspendService(sServiceName);
             Logger.info(">>>> Suspended service " + sServiceName);
 
             // futures should not be completed
@@ -455,10 +452,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
             // The topics cache service should still be suspended so resume it via a storage member like the operator would
             Logger.info(">>>> Resuming service " + sServiceName);
-            member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-            Boolean fResumed = member.invoke(new ResumeService(sServiceName));
-            assertThat(fResumed, is(true));
+            resumeService(sServiceName);
             Logger.info(">>>> Resumed service " + sServiceName);
 
             // futures should not be completed
@@ -500,6 +494,37 @@ public abstract class AbstractTopicsStorageRecoveryTests
         }
 
     // ----- helper methods -------------------------------------------------
+
+    protected void suspendService(String sServiceName) throws Exception
+        {
+        CoherenceCluster       cluster    = s_storageCluster;
+        CoherenceClusterMember member     = cluster.getAny();
+        JmxFeature             jmxFeature = member.get(JmxFeature.class);
+        assertThat(jmxFeature, is(notNullValue()));
+
+        MBeanServerConnection connection = jmxFeature.getDeferredJMXConnector().get().getMBeanServerConnection();
+        ObjectName            objectName = new ObjectName("Coherence:type=Cluster");
+        MBeanInfo             info       = connection.getMBeanInfo(objectName);
+        assertThat(info, is(notNullValue()));
+
+        connection.invoke(objectName, "suspendService", new Object[]{sServiceName}, new String[]{"java.lang.String"});
+        }
+
+    protected void resumeService(String sServiceName) throws Exception
+        {
+        CoherenceCluster       cluster    = s_storageCluster;
+        CoherenceClusterMember member     = cluster.getAny();
+        JmxFeature             jmxFeature = member.get(JmxFeature.class);
+        assertThat(jmxFeature, is(notNullValue()));
+
+        MBeanServerConnection connection = jmxFeature.getDeferredJMXConnector().get().getMBeanServerConnection();
+        ObjectName            objectName = new ObjectName("Coherence:type=Cluster");
+        MBeanInfo             info       = connection.getMBeanInfo(objectName);
+        assertThat(info, is(notNullValue()));
+
+        connection.invoke(objectName, "resumeService", new Object[]{sServiceName}, new String[]{"java.lang.String"});
+        }
+
 
     protected void restartCluster()
         {
@@ -549,6 +574,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
                                                         Logging.atMax(),
                                                         JMXManagementMode.ALL,
                                                         DisplayName.of(sMethodName + '-' + suffix),
+                                                        JmxFeature.enabled(),
                                                         s_testLogs.builder());
 
         builder.with(ClusterName.of(sMethodName),
@@ -661,7 +687,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
     @ClassRule
     public static TestLogs s_testLogs = new TestLogs(TopicsRecoveryTests.class);
 
-    protected static CoherenceCluster s_storageCluster;
+    protected static volatile CoherenceCluster s_storageCluster;
 
     /**
      * A JUnit rule that will cause the test to fail if it runs too long.
