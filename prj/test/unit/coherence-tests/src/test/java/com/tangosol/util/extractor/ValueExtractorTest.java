@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.extractor;
 
+import com.tangosol.coherence.reporter.extractor.KeyExtractor;
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
-import com.tangosol.util.extractor.PofExtractor;
-import com.tangosol.util.extractor.ReflectionExtractor;
 
 import data.Trade;
 
@@ -105,5 +105,19 @@ public class ValueExtractorTest
 
         Method voidReturnType = Object.class.getMethod("wait");
         assertThrows(IllegalArgumentException.class, () -> ValueExtractor.forMethod(voidReturnType));
+        }
+
+    @Test
+    public void testNullValueExtractorGetCanonicalName()
+        {
+        NullImplementation.NullValueExtractor extractor = new NullImplementation.NullValueExtractor();
+        assertEquals(extractor.getCanonicalName(), null);
+        }
+
+    @Test
+    public void testReporterKeyExtractorGetCanonicalName()
+        {
+        KeyExtractor keyExtractor = new KeyExtractor("foo");
+        assertEquals(keyExtractor.getCanonicalName(), "foo");
         }
     }
