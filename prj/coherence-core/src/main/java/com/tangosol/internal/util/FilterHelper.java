@@ -7,8 +7,6 @@
 
 package com.tangosol.internal.util;
 
-import com.tangosol.internal.util.invoke.Lambdas;
-
 import com.tangosol.util.ValueExtractor;
 
 /**
@@ -37,10 +35,8 @@ public final class FilterHelper
      */
     public static <T, E> String getExtractorName(ValueExtractor<T, E> extractor)
         {
-        String sName          = Lambdas.isLambda(extractor) ? extractor.getCanonicalName() : null;
-        String sCanonicalName = extractor.getCanonicalName();
+        String sName = extractor.getCanonicalName();
 
-        return sName != null ? sName :
-                sCanonicalName != null ? sCanonicalName : extractor.toString();
+        return sName == null ? extractor.toString() : sName;
         }
     }
