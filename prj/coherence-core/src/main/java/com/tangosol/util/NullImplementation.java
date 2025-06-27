@@ -1511,6 +1511,19 @@ public class NullImplementation
             return "NullValueExtractor";
             }
 
+        /**
+        * Return the canonical name for this extractor.
+        * Override {@link ValueExtractor#getCanonicalName()} method as an optimization since that
+        * method assumes it is only working with lambdas.
+        *
+        * @return null
+        */
+        @Override
+        public String getCanonicalName()
+            {
+            return null;
+            }
+
         // ----- ExternalizableLite interface ---------------------------
 
         /**
