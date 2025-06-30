@@ -79,6 +79,8 @@ message InitRequest {
     optional int64 heartbeat = 7;
     // The optional client UUID (usually from Coherence clients that have a local Member UUID).
     optional bytes clientUuid = 8;
+    // The client's member identity
+    optional ClientMemberIdentity identity = 9;
 }
 
 // The response to an InitRequest
@@ -95,4 +97,35 @@ message InitResponse {
     int32 proxyMemberId = 5;
     // The proxy member UUID
     bytes proxyMemberUuid = 6;
+}
+
+message ClientMemberIdentity {
+    // The name of the cluster with which this member is associated.
+    optional string clusterName = 1;
+    // The Member's machine Id. This identifier should be the same for Members that are on
+    // the same physical machine, and ideally different for Members that are on different
+    // physical machines.
+    int32 machineId = 2;
+    // The configured name for the Machine (such as a host name) in which this Member resides.
+    // This name is used for logging purposes and to differentiate among multiple servers,
+    // and may be used as the basis for determining the MachineId property.
+    optional string machineName = 3;
+    // The configured name for the Member. This name is used for logging purposes and
+    // to differentiate among Members running within a particular process.
+    optional string memberName = 4;
+    // The member priority
+    int32 priority = 5;
+    // The configured name for the Process (such as a JVM) in which this Member resides.
+    // This name is used for logging purposes and to differentiate among multiple processes on a a single machine.
+    optional string processName = 6;
+    // The configured name for the Rack (such as a physical rack, cage or blade frame) in which
+    // this Member resides. This name is used for logging purposes and to differentiate among multiple
+    // racks within a particular data center, for example.
+    optional string rackName = 7;
+    // The configured name for the Site (such as a data center) in which this Member resides.
+    // This name is used for logging purposes and to differentiate among multiple geographic sites.
+    optional string siteName = 8;
+    // The configured role name for the Member. This role is completely definable by the application,
+    // and can be used to determine what Members to use for specific purposes.
+    optional string roleName = 9;
 }

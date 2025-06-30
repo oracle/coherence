@@ -26,6 +26,7 @@ import com.tangosol.io.Serializer;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
+import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.NearCache;
 import com.tangosol.net.cache.TypeAssertion;
@@ -268,26 +269,21 @@ public class CacheServiceProxy
     // From interface: com.tangosol.net.CacheService
     public com.tangosol.net.NamedCache ensureCache(String sName, ClassLoader loader)
         {
-        // import com.tangosol.net.cache.TypeAssertion;
-        
-        return ensureTypedCache(sName, loader, TypeAssertion.WITHOUT_TYPE_CHECKING);
+        return ensureTypedCache(sName, loader, TypeAssertion.WITHOUT_TYPE_CHECKING, null);
+        }
+
+    public com.tangosol.net.NamedCache ensureCache(String sName, ClassLoader loader, Member member)
+        {
+        return ensureTypedCache(sName, loader, TypeAssertion.WITHOUT_TYPE_CHECKING, member);
         }
     
-    protected com.tangosol.net.NamedCache ensureTypedCache(String sName, ClassLoader loader, com.tangosol.net.cache.TypeAssertion assertion)
+    protected com.tangosol.net.NamedCache ensureTypedCache(String sName, ClassLoader loader, TypeAssertion assertion)
         {
-        // import com.tangosol.coherence.config.scheme.ViewScheme;
-        // import com.tangosol.internal.util.collection.ConvertingNamedCache;
-        // import com.tangosol.io.Serializer;
-        // import com.tangosol.net.CacheFactory;
-        // import com.tangosol.net.ConfigurableCacheFactory;
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.cache.NearCache;
-        // import com.tangosol.net.CacheService;
-        // import com.tangosol.net.DistributedCacheService;
-        // import com.tangosol.net.ExtensibleConfigurableCacheFactory as com.tangosol.net.ExtensibleConfigurableCacheFactory;
-        // import com.tangosol.util.ExternalizableHelper;
-        // import com.tangosol.util.NullImplementation;
-        
+        return ensureTypedCache(sName, loader, assertion, null);
+        }
+
+    protected com.tangosol.net.NamedCache ensureTypedCache(String sName, ClassLoader loader, TypeAssertion assertion, Member member)
+        {
         ConfigurableCacheFactory ccf = getCacheFactory();
         
         if (!isPassThroughEnabled())
@@ -364,7 +360,7 @@ public class CacheServiceProxy
                 else
                     {
                     ExternalizableHelper.reportIncompatibleSerializers(cache,
-                            getServiceName(), serializerThis);
+                            getServiceName(), serializerThis, member);
                     }
                 }
             }

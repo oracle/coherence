@@ -32,6 +32,7 @@ import com.oracle.coherence.grpc.client.common.GrpcRemoteService;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.HeartbeatMessage;
 
+import com.oracle.coherence.grpc.messages.proxy.v1.ClientMemberIdentity;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitResponse;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
@@ -44,6 +45,7 @@ import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.Member;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
 
@@ -75,6 +77,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * The version 1 {@link GrpcConnection} implementation.
@@ -584,12 +588,26 @@ public class GrpcConnectionV1
                     observer = LockingStreamObserver.ensureLockingObserver(
                             SafeStreamObserver.ensureSafeObserver(stub.subChannel(this)));
 
+                    Member member = f_service.getCluster().getLocalMember();
+                    ClientMemberIdentity.Builder identityBuilder = ClientMemberIdentity.newBuilder()
+                            .setMachineId(member.getMachineId())
+                            .setPriority(member.getPriority());
+
+                    setIfNotNull(member::getClusterName, identityBuilder::setClusterName);
+                    setIfNotNull(member::getMachineName, identityBuilder::setMachineName);
+                    setIfNotNull(member::getMemberName, identityBuilder::setMemberName);
+                    setIfNotNull(member::getProcessName, identityBuilder::setProcessName);
+                    setIfNotNull(member::getRackName, identityBuilder::setRackName);
+                    setIfNotNull(member::getSiteName, identityBuilder::setSiteName);
+                    setIfNotNull(member::getRoleName, identityBuilder::setRoleName);
+
                     InitRequest request = InitRequest.newBuilder()
                             .setScope(f_sScope)
                             .setFormat(m_serializer.getName())
                             .setProtocol(m_sProtocol)
                             .setProtocolVersion(m_dependencies.getVersion())
                             .setSupportedProtocolVersion(m_dependencies.getSupportedVersion())
+                            .setIdentity(identityBuilder.build())
                             .build();
 
                     ResponseHandler<ProxyResponse> handler = new ResponseHandler<>();
@@ -638,6 +656,15 @@ public class GrpcConnectionV1
                 }
             }
         return observer;
+        }
+
+    private <T> void setIfNotNull(Supplier<T> supplier, Consumer<T> consumer)
+        {
+        T t = supplier.get();
+        if (t != null)
+            {
+            consumer.accept(t);
+            }
         }
 
     protected void assertInit()

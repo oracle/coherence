@@ -49,6 +49,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
@@ -57,6 +58,7 @@ import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
@@ -399,8 +401,10 @@ public class NamedCacheProxyProtocol
                 }
             while (cacheId == 0 || m_aProxy.get(cacheId) != null || m_destroyedIds.contains(cacheId));
 
-            NamedCache<?, ?> cache      = m_proxy.ensureCache(request.getCache(), null);
-            NamedCacheProxy  cacheProxy = new NamedCacheProxy();
+            GrpcConnection<?> connection = (GrpcConnection<?>) m_proxy.getChannel().getConnection();
+            Member            member     = connection.getMember();
+            NamedCache<?, ?>  cache      = m_proxy.ensureCache(request.getCache(), null, member);
+            NamedCacheProxy   cacheProxy = new NamedCacheProxy();
             cacheProxy.setNamedCache(cache);
             cacheProxy.setCacheId(cacheId);
             cacheProxy.addMapListener(new CacheListener(cacheId));
