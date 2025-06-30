@@ -59,14 +59,15 @@ After sending the `InitRequest` the client must wait until it receives the `Init
 
 The `InitRequest` has the following fields:
            
-| Name                       | Type     | Description                                                                                                                                                            |
-|----------------------------|----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `scope`                    | `string` | The scope name to use to obtain a `Session` on the proxy server.                                                                                                       |
-| `format`                   | `string` | The serialization format being used by the client. This must be a format supported by the proxy server, e.g. `"java"`, `"pof"`, `"json"`, etc.                         |
-| `protocol`                 | `string` | The name of the message protocol that the client intends to use this stream for. This must obviously correspond to one of the protocols supported by the proxy server. |
-| `protocolVersion`          | `string` | The version of the protocol that the client wants to use, typically the highest version of the protocol supported by the client.                                       |
-| `supportedProtocolVersion` | `string` | The minimum version of the protocol that the client can support.                                                                                                       |
-| `heartbeat`                | `int64`  | An optional field that allows a client to specify how frequently the proxy should send a `Heartbeat` message.                                                          |
+| Name                       | Type                   | Description                                                                                                                                                            |
+|----------------------------|------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `scope`                    | `string`               | The scope name to use to obtain a `Session` on the proxy server.                                                                                                       |
+| `format`                   | `string`               | The serialization format being used by the client. This must be a format supported by the proxy server, e.g. `"java"`, `"pof"`, `"json"`, etc.                         |
+| `protocol`                 | `string`               | The name of the message protocol that the client intends to use this stream for. This must obviously correspond to one of the protocols supported by the proxy server. |
+| `protocolVersion`          | `string`               | The version of the protocol that the client wants to use, typically the highest version of the protocol supported by the client.                                       |
+| `supportedProtocolVersion` | `string`               | The minimum version of the protocol that the client can support.                                                                                                       |
+| `heartbeat`                | `int64`                | An optional field that allows a client to specify how frequently the proxy should send a `Heartbeat` message.                                                          |
+| `identity`                 | `ClientMemberIdentity` | An optional field that allows a client to specify information about its identity. This will be used on the proxy to build a `Member` representing the client.          |
 
 After receiving an `InitRequest` message from the client, the proxy server will initialise the stream to be able to receive messages for the requested protocol. If the protocol is not supported on the server, or the version on the server is not at least equivalent to the client's `supportedProtocolVersion`, then the server will close the stream by calling `onError`.
 

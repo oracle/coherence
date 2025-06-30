@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -834,10 +834,14 @@ public class Member
      */
     public void configure(com.tangosol.net.MemberIdentity identity, java.net.InetAddress addr)
         {
-        // import com.tangosol.util.Base;
-        // import com.oracle.coherence.common.net.InetAddresses;
-        // import java.net.UnknownHostException;
-        
+        configure(identity, addr, 0);
+        }
+
+    /**
+     * Used to configure an announce member
+     */
+    public void configure(com.tangosol.net.MemberIdentity identity, java.net.InetAddress addr, int nPort)
+        {
         try
             {
             setAddress(addr == null ? InetAddresses.getLocalHost() : addr);
@@ -856,6 +860,7 @@ public class Member
         setMemberName(identity.getMemberName());
         setRoleName(identity.getRoleName());
         setPriority(identity.getPriority());
+        setPort(nPort);
         }
     
     protected void configure(com.tangosol.util.UUID uid)

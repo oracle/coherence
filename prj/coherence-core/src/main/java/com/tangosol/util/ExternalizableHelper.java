@@ -54,6 +54,7 @@ import com.tangosol.io.pof.RawDate;
 import com.tangosol.io.pof.RawDateTime;
 import com.tangosol.io.pof.RawTime;
 
+import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
@@ -4429,8 +4430,25 @@ public abstract class ExternalizableHelper
     public static void reportIncompatibleSerializers(NamedCache cache,
             String sService, Serializer serializer)
         {
-        Logger.warn("The serializer used by cache \"" + cache.getCacheName() + "\" ("
-             + cache.getCacheService().getSerializer() + ") is incompatible with the"
+        reportIncompatibleSerializers(cache, sService, serializer, null);
+        }
+
+    /**
+     * Log the message explaining the serializer incompatibility between the
+     * specified cache and a service.
+     *
+     * @param cache      the NamedCache reference
+     * @param sService   the service name
+     * @param serializer the serializer used by the service
+     */
+    public static void reportIncompatibleSerializers(NamedCache cache,
+            String sService, Serializer serializer, Member member)
+        {
+        String sMember = member == null ? "" : " for client " + member;
+
+        Logger.warn("The serializer used by cache \"" + cache.getName() + "\" ("
+             + cache.getService().getSerializer() + ")" + sMember
+             + " is incompatible with the"
              + " serializer configured for service \""
              + sService + "\" (" + serializer
              + "); therefore, cached keys and values will be"

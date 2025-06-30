@@ -18,6 +18,7 @@ import com.oracle.coherence.grpc.GrpcServiceProtocol;
 import com.oracle.coherence.grpc.LockingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
+import com.oracle.coherence.grpc.WrapperMemberIdentity;
 import com.oracle.coherence.grpc.messages.common.v1.Complete;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.HeartbeatMessage;
@@ -28,11 +29,13 @@ import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
+import com.tangosol.internal.net.cluster.DefaultMemberIdentity;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 
+import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
@@ -43,6 +46,7 @@ import io.grpc.stub.StreamObserver;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
@@ -87,6 +91,7 @@ public class ProxyServiceChannel
      */
     protected ProxyServiceChannel(GrpcService service, StreamObserver<ProxyResponse> observer, Supplier<Member> memberSupplier)
         {
+        f_remoteAddress = ProxyServiceInterceptor.getRemoteAddress();
         f_service        = service;
         f_observer       = SafeStreamObserver.ensureSafeObserver(LockingStreamObserver.ensureLockingObserver(observer));
         f_memberSupplier = Objects.requireNonNullElse(memberSupplier, () -> CacheFactory.getCluster().getLocalMember());
@@ -272,7 +277,20 @@ public class ProxyServiceChannel
 
             int nVersion = getSupportedVersion(request);
             m_clzRequest = m_protocol.getRequestType();
-            m_clientUUID = createClientUUID();
+
+            com.tangosol.coherence.component.net.Member memberClient = new com.tangosol.coherence.component.net.Member();
+
+            InetAddress address = null;
+            int nPort = 0;
+            if (f_remoteAddress instanceof InetSocketAddress)
+                {
+                address = ((InetSocketAddress) f_remoteAddress).getAddress();
+                nPort = ((InetSocketAddress) f_remoteAddress).getPort();
+                }
+
+            memberClient.configure(new WrapperMemberIdentity(request.getIdentity()), address, nPort);
+            m_connection.setMember(memberClient);
+            m_clientUUID = memberClient.getUuid();
 
             long                     nIdObserver = m_protocol.getObserverId(nId, request);
             ForwardingStreamObserver observer    = new ForwardingStreamObserver(nIdObserver);
@@ -306,8 +324,7 @@ public class ProxyServiceChannel
      */
     private UUID createClientUUID()
         {
-        SocketAddress address = ProxyServiceInterceptor.getRemoteAddress();
-        if (address instanceof InetSocketAddress inetSocketAddress)
+        if (f_remoteAddress instanceof InetSocketAddress inetSocketAddress)
             {
             return new UUID(
                     SafeClock.INSTANCE.getSafeTimeMillis(),
@@ -543,6 +560,11 @@ public class ProxyServiceChannel
      * The {@link Supplier} tp use to obtain the local {@link Member}.
      */
     private final Supplier<Member> f_memberSupplier;
+
+    /**
+     * The remote address of the client.
+     */
+    private final SocketAddress f_remoteAddress;
 
     /**
      * The {@link UUID} of the client.

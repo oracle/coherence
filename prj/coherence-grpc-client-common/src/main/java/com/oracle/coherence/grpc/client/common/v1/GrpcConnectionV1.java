@@ -27,9 +27,11 @@ import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.oracle.coherence.grpc.client.common.BaseGrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 
+import com.oracle.coherence.grpc.client.common.GrpcRemoteService;
 import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.common.v1.HeartbeatMessage;
 
+import com.oracle.coherence.grpc.messages.proxy.v1.ClientMemberIdentity;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitResponse;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
@@ -42,11 +44,14 @@ import com.tangosol.internal.util.Daemons;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.Coherence;
+import com.tangosol.net.Member;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.util.SafeClock;
+import com.tangosol.util.ServiceEvent;
+import com.tangosol.util.ServiceListener;
 import com.tangosol.util.UUID;
 
 import io.grpc.Channel;
@@ -71,6 +76,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * The version 1 {@link GrpcConnection} implementation.
@@ -87,7 +94,7 @@ public class GrpcConnectionV1
      *
      * @throws NullPointerException if the expected response type is {@code null}
      */
-    public GrpcConnectionV1(Dependencies dependencies, Class<? extends Message> type)
+    public GrpcConnectionV1(GrpcRemoteService<?> service, Dependencies dependencies, Class<? extends Message> type)
         {
         RemoteGrpcServiceDependencies serviceDependencies = dependencies.getServiceDependencies();
 
@@ -100,6 +107,11 @@ public class GrpcConnectionV1
         f_requestTimeout     = serviceDependencies.getRequestTimeoutMillis();
         f_nHeartbeatInterval = serviceDependencies.getHeartbeatInterval();
         f_fHeartbeatAck      = serviceDependencies.isRequireHeartbeatAck();
+        f_service            = service;
+        if (service != null)
+            {
+            service.addServiceListener(f_serviceListener);
+            }
         }
 
     @Override
@@ -129,6 +141,12 @@ public class GrpcConnectionV1
 
     public void closeInternal(Throwable closeWithError)
         {
+        GrpcRemoteService<?> service = f_service;
+        if (service != null)
+            {
+            service.removeServiceListener(f_serviceListener);
+            }
+
         Throwable error = closeWithError == null
                 ? new RequestIncompleteException("Channel was closed")
                 : closeWithError;
@@ -524,12 +542,26 @@ public class GrpcConnectionV1
                     observer = LockingStreamObserver.ensureLockingObserver(
                             SafeStreamObserver.ensureSafeObserver(stub.subChannel(this)));
 
+                    Member member = f_service.getCluster().getLocalMember();
+                    ClientMemberIdentity.Builder identityBuilder = ClientMemberIdentity.newBuilder()
+                            .setMachineId(member.getMachineId())
+                            .setPriority(member.getPriority());
+
+                    setIfNotNull(member::getClusterName, identityBuilder::setClusterName);
+                    setIfNotNull(member::getMachineName, identityBuilder::setMachineName);
+                    setIfNotNull(member::getMemberName, identityBuilder::setMemberName);
+                    setIfNotNull(member::getProcessName, identityBuilder::setProcessName);
+                    setIfNotNull(member::getRackName, identityBuilder::setRackName);
+                    setIfNotNull(member::getSiteName, identityBuilder::setSiteName);
+                    setIfNotNull(member::getRoleName, identityBuilder::setRoleName);
+
                     InitRequest request = InitRequest.newBuilder()
                             .setScope(f_sScope)
                             .setFormat(m_serializer.getName())
                             .setProtocol(m_sProtocol)
                             .setProtocolVersion(m_dependencies.getVersion())
                             .setSupportedProtocolVersion(m_dependencies.getSupportedVersion())
+                            .setIdentity(identityBuilder.build())
                             .build();
 
                     ResponseHandler<ProxyResponse> handler = new ResponseHandler<>();
@@ -578,6 +610,15 @@ public class GrpcConnectionV1
                 }
             }
         return observer;
+        }
+
+    private <T> void setIfNotNull(Supplier<T> supplier, Consumer<T> consumer)
+        {
+        T t = supplier.get();
+        if (t != null)
+            {
+            consumer.accept(t);
+            }
         }
 
     protected void assertInit()
@@ -721,6 +762,33 @@ public class GrpcConnectionV1
         private final HeartbeatMessage f_message;
         }
 
+    // ----- inner class RemoteServiceListener ------------------------------
+
+    protected class RemoteServiceListener
+            implements ServiceListener
+        {
+        @Override
+        public void serviceStarting(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStarted(ServiceEvent evt)
+            {
+            }
+
+        @Override
+        public void serviceStopping(ServiceEvent evt)
+            {
+            close();
+            }
+
+        @Override
+        public void serviceStopped(ServiceEvent evt)
+            {
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -811,7 +879,7 @@ public class GrpcConnectionV1
     /**
      * The underlying gRPC {@link Channel}
      */
-    private Channel m_channel;
+    private final Channel m_channel;
 
     /**
      * The request timeout to apply.
@@ -826,7 +894,7 @@ public class GrpcConnectionV1
     /**
      * A flag to indicate whether the server should send ack responses for heart beat messages.
      */
-    private boolean f_fHeartbeatAck;
+    private final boolean f_fHeartbeatAck;
 
     /**
      * The count of heartbeat acks received.
@@ -842,4 +910,14 @@ public class GrpcConnectionV1
      * The timestamp of the last heart beat message.
      */
     private long m_nLastHeartbeatTime;
+
+    /**
+     * The parent {@link GrpcRemoteService}.
+     */
+    private final GrpcRemoteService<?> f_service;
+
+    /**
+     * The listener for the parent remote service.
+     */
+    private final RemoteServiceListener f_serviceListener = new RemoteServiceListener();
     }

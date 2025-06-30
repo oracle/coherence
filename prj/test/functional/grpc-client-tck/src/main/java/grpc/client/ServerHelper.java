@@ -164,7 +164,7 @@ public final class ServerHelper
                     = new GrpcConnection.DefaultDependencies(NamedCacheProtocol.PROTOCOL_NAME, serviceDeps,
                     m_channel, m_nProtocolVersion, m_nProtocolVersion, serializer);
 
-            connection = GrpcRemoteService.connect(connectionDeps, NamedCacheResponse.class,
+            connection = GrpcRemoteService.connect(null, connectionDeps, NamedCacheResponse.class,
                     GrpcConnectionV0.SERVICE_VERSION);
             }
 
