@@ -1411,10 +1411,10 @@ public abstract class AbstractNamedTopicTests
             }
 
         // Everything should be cleaned up
-        Eventually.assertDeferred(caches.Subscriptions::size, is(0));
-        Eventually.assertDeferred(caches.Subscribers::size, is(0));
-        Eventually.assertDeferred(caches.Pages::size, is(lessThanOrEqualTo(1)));
-        Eventually.assertDeferred(caches.Data::size, is(0));
+        Eventually.assertDeferred("Subscriptions cache should be empty", caches.Subscriptions::size, is(0));
+        Eventually.assertDeferred("Subscribers cache should be empty", caches.Subscribers::size, is(0));
+        Eventually.assertDeferred("Pages cache should be empty", caches.Pages::size, is(lessThanOrEqualTo(1)));
+        Eventually.assertDeferred("Data cache should be empty", caches.Data::size, is(0));
         }
 
     @Test
