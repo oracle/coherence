@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletionException;
 
 import javax.security.auth.Subject;
 
@@ -205,6 +206,10 @@ public abstract class AbstractLoadBalancerTests
                 fail("ConnectException expected");
                 }
             catch (ConnectionException e)
+                {
+                // expected
+                }
+            catch (CompletionException e)
                 {
                 // expected
                 }

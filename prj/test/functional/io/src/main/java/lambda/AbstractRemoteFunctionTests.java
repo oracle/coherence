@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import com.tangosol.util.WrapperException;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.SystemPropertyIsolation;
 
+import java.util.concurrent.CompletionException;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -165,6 +166,25 @@ abstract public class AbstractRemoteFunctionTests
             assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
             assertFalse(m_fIncludeTestClassInServerClasspath);
             }
+        catch (CompletionException e)
+            {
+            Exception ee = (Exception) e.getCause();
+            e.printStackTrace();
+            if (ee instanceof WrapperException)
+                {
+                assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+                assertFalse(m_fIncludeTestClassInServerClasspath);
+                }
+            else if (ee instanceof PortableException)
+                {
+                assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+                assertFalse(m_fIncludeTestClassInServerClasspath);
+                }
+            else
+                {
+                throw e;
+                }
+            }
         finally
             {
             stopCacheServer(sServerName);
@@ -205,6 +225,23 @@ abstract public class AbstractRemoteFunctionTests
             {
             e.printStackTrace();
             assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+            }
+        catch (CompletionException e)
+            {
+            Exception ee = (Exception) e.getCause();
+            ee.printStackTrace();
+            if (ee instanceof WrapperException)
+                {
+                assertTrue(sKindLambdaInvoke + " lamdba invocation failed unexpectedly: " + e, m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+                }
+            else if (ee instanceof PortableException)
+                {
+                assertTrue(m_fPOF == true && m_fServerDynamicLambdasDisabled && !m_fIncludeTestClassInServerClasspath);
+                }
+            else
+                {
+                throw e;
+                }
             }
         finally
             {
