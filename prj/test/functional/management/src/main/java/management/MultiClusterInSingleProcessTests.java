@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,7 @@ public class MultiClusterInSingleProcessTests
         String sJava = System.getProperty("java.version");
         Assume.assumeThat("Skipping test on Java 19 and higher",
                           VersionUtils.compare(sJava, "19"), is(lessThan(0)));
+        System.setProperty("com.oracle.coherence.common.internal.util.HeapDump.dir", ".");
 
         String sClusterNames = CLUSTER_NAME + ",Foo";
         startTestCluster(MultiCluster.class,
