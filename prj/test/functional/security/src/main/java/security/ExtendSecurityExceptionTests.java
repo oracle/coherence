@@ -16,12 +16,15 @@ import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.coherence.component.net.extend.RemoteService;
 import com.tangosol.coherence.component.util.SafeService;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.util.GetExtendPort;
+
+import java.util.concurrent.CompletionException;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import com.oracle.coherence.testing.util.GetExtendPort;
 
 import java.security.PrivilegedExceptionAction;
 
@@ -113,6 +116,11 @@ public class ExtendSecurityExceptionTests
             }
         catch (Exception ee)
             {
+            if (ee instanceof CompletionException)
+                {
+                ee = (Exception) ee.getCause();
+                }
+
             if (ee instanceof ConnectionException
                     && ee.getCause() instanceof PortableException)
                 {

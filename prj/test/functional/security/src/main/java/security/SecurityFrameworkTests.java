@@ -16,6 +16,8 @@ import com.tangosol.net.security.Security;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.util.Properties;
+import java.util.concurrent.CompletionException;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -94,6 +96,10 @@ public class SecurityFrameworkTests
             }
         catch (Exception e)
             {
+            if (e instanceof CompletionException)
+                {
+                e = (Exception) e.getCause();
+                }
             assertTrue(e instanceof SecurityException);
             }
 
@@ -126,6 +132,10 @@ public class SecurityFrameworkTests
             }
         catch (Exception e)
             {
+            if (e instanceof CompletionException)
+                {
+                e = (Exception) e.getCause();
+                }
             assertTrue(e instanceof SecurityException);
             }
         }
