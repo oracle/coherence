@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,6 +40,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import java.util.concurrent.CompletionException;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
@@ -214,6 +216,11 @@ public class ReadOnlyExtendTests
             getNamedCache().destroy();
             }
         catch (PortableException e)
+            {
+            // expected
+            return;
+            }
+        catch (CompletionException e)
             {
             // expected
             return;
