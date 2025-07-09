@@ -35,6 +35,7 @@
       <proxy-service-name>ConcurrentProxy</proxy-service-name>
       <initiator-config>
         <tcp-initiator>
+          <socket-provider system-property="coherence.concurrent.extend.socketprovider"/>
           <remote-addresses>
             <socket-address>
               <address system-property="coherence.concurrent.extend.address"/>
