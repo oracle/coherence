@@ -150,6 +150,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/json/target/j
 grant codeBase "file:${oracle.coherence.lib}/../../-" {
   permission java.io.FilePermission "${user.home}/.ssh/config", "read";
   permission java.io.FilePermission "${java.io.tmpdir}/-", "read,write,delete";
+  permission java.io.FilePermission "${oracle.coherence.lib}/../../test/functional/management/-", "read,write,delete";
   permission java.lang.RuntimePermission "accessDeclaredMembers";
   permission java.lang.RuntimePermission "accessUserInformation";
   permission java.net.SocketPermission "*", "connect,resolve";
