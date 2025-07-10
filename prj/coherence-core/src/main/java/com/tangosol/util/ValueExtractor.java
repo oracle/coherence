@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -108,7 +108,18 @@ public interface ValueExtractor<T, E>
     @Override
     default String getCanonicalName()
         {
+        try
+            {
+            // assumes only ValueExtractor lambda.
+            // non-lambda subclasses that do not extend AbstractExtractor are
+            // expected to override this default method.
         return Lambdas.getValueExtractorCanonicalName(this);
+        }
+        catch (IllegalArgumentException | IllegalStateException e)
+            {
+            // Non lambda cases. ValueExtractor implementation failed to override getCanonicalName.
+            return null;
+            }
         }
 
     // ----- Function interface ---------------------------------------------

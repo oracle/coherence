@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -1484,6 +1484,19 @@ public class NullImplementation
         public String toString()
             {
             return "NullValueExtractor";
+            }
+
+        /**
+        * Return the canonical name for this extractor.
+        * Override {@link ValueExtractor#getCanonicalName()} method as an optimization since that
+        * method assumes it is only working with lambdas.
+        *
+        * @return null
+        */
+        @Override
+        public String getCanonicalName()
+            {
+            return null;
             }
 
         // ----- ExternalizableLite interface ---------------------------
