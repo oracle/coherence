@@ -58,8 +58,10 @@ public class SecurityManagerWrapperImpl
                 {
                 return AccessController.doPrivileged(action);
                 }
+
+            Subject subject = getCurrentSubject();
             return AccessController.doPrivileged((PrivilegedAction<T>) () ->
-                    Subject.callAs(getCurrentSubject(), action::run));
+                    Subject.callAs(subject, action::run));
             }
         return action.run();
         }
@@ -73,8 +75,10 @@ public class SecurityManagerWrapperImpl
                 {
                 return AccessController.doPrivileged(action);
                 }
+
+            Subject subject = getCurrentSubject();
             return AccessController.doPrivileged((PrivilegedAction<T>) () ->
-                    Subject.callAs(getCurrentSubject(), action::run));
+                    Subject.callAs(subject, action::run));
             }
         return action.run();
         }
@@ -90,8 +94,9 @@ public class SecurityManagerWrapperImpl
                 }
             else
                 {
+                Subject subject = getCurrentSubject();
                 AccessController.doPrivileged((PrivilegedAction) () ->
-                        Subject.callAs(getCurrentSubject(), action::run));
+                        Subject.callAs(subject, action::run));
                 }
             }
         else
@@ -109,8 +114,9 @@ public class SecurityManagerWrapperImpl
                 {
                 return AccessController.doPrivileged(action);
                 }
+            Subject subject = getCurrentSubject();
             return AccessController.doPrivileged((PrivilegedAction<T>) () ->
-                    Subject.callAs(getCurrentSubject(), action::run));
+                    Subject.callAs(subject, action::run));
             }
         return fallback.get();
         }
@@ -122,8 +128,10 @@ public class SecurityManagerWrapperImpl
             {
             return AccessController.doPrivileged(action);
             }
+
+        Subject subject = getCurrentSubject();
         return AccessController.doPrivileged((PrivilegedAction<T>) () ->
-                Subject.callAs(getCurrentSubject(), action::run));
+                Subject.callAs(subject, action::run));
         }
 
     @Override
@@ -133,8 +141,10 @@ public class SecurityManagerWrapperImpl
             {
             return AccessController.doPrivileged(action);
             }
+
+        Subject subject = getCurrentSubject();
         return AccessController.doPrivileged((PrivilegedExceptionAction<T>) () ->
-                Subject.callAs(getCurrentSubject(), action::run));
+                Subject.callAs(subject, action::run));
         }
 
     @Override
