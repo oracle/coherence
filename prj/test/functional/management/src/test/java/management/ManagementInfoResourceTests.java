@@ -172,6 +172,7 @@ public class ManagementInfoResourceTests
         propsServer1.setProperty("coherence.management.http", "inherit");
         propsServer1.setProperty("coherence.management.http.override-port", "0");
         propsServer1.setProperty("coherence.management.readonly", Boolean.toString(isReadOnly()));
+        propsServer1.setProperty("com.oracle.coherence.common.internal.util.HeapDump.dir", ".");
 
         try
             {
