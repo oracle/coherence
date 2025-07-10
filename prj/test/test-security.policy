@@ -7,7 +7,7 @@
 // system property to the location of this security policy file. You must also
 // set the "oracle.coherence.lib" system property to the location of your Coherence
 // installation. Additionally, you need to grant some permissions to your
-// application code by setting the "app.lib" property and changing the minimum
+// application code by setting the "app.lib" property eand changing the minimum
 // permission set outlined below.
 //
 // For example:
@@ -24,6 +24,10 @@
 // single equals sign (=) and not two equals signs (==) when setting the
 // java.security.policy system property.
 //
+
+grant {
+  permission javax.security.auth.AuthPermission "getSubject";
+  };
 
 grant codeBase "file:${oracle.coherence.lib}/coherence-${test.project.version}.jar" {
   permission com.tangosol.net.security.LocalPermission "*";
