@@ -11,6 +11,7 @@ package com.tangosol.util;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.security.SecurityManagerWrapperImpl;
 
 import java.security.CodeSource;
@@ -96,10 +97,12 @@ public class Unsafe
 
             }
 
-        CodeSource srcUnsafe   = Unsafe.class.getProtectionDomain().getCodeSource();
-        CodeSource srcCaller   = clzCaller.getProtectionDomain().getCodeSource();
-        CodeSource srcSecurity = SecurityManagerWrapperImpl.class.getProtectionDomain().getCodeSource();
-        if (Base.equals(srcCaller, srcUnsafe) || Base.equals(srcCaller, srcSecurity))
+        CodeSource srcUnsafe    = Unsafe.class.getProtectionDomain().getCodeSource();
+        CodeSource srcCaller    = clzCaller.getProtectionDomain().getCodeSource();
+        CodeSource srcSecurity  = SecurityHelper.class.getProtectionDomain().getCodeSource();
+        CodeSource srcSecurity2 = SecurityManagerWrapperImpl.class.getProtectionDomain().getCodeSource();
+        if (Base.equals(srcCaller, srcUnsafe) || Base.equals(srcCaller, srcSecurity)
+            || Base.equals(srcCaller, srcSecurity2))
             {
             return INSTANCE;
             }
