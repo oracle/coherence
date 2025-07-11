@@ -1579,7 +1579,7 @@
             <failBuildOnAnyVulnerability>false</failBuildOnAnyVulnerability>
             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
             <nvdValidForHours>48</nvdValidForHours>
-            <nvdApiKey>${env.MY_NVD_API_KEY}</nvdApiKey>
+            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
             <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
             <excludes>
               <!-- Exclude stuff we do not deploy -->
