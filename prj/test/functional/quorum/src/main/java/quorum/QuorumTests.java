@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -76,8 +76,6 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 import com.oracle.coherence.testing.TestInfrastructureHelper;
 
 import data.Trade;
-
-import java.util.concurrent.CompletionException;
 
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -1933,11 +1931,22 @@ public class QuorumTests
             }
         catch (ConnectionException e)
             {
-            validateConnectionException(e, fAllowed);
-            }
-        catch (CompletionException e)
-            {
-            validateConnectionException((ConnectionException) e.getCause(), fAllowed);
+            azzert(!fAllowed, "Extend client connections are allowed, but an exception was thrown: "
+                   + e + "\n" + printStackTrace(e));
+            Throwable cause = e.getCause();
+            while (cause != null)
+                {
+                if (cause instanceof RequestPolicyException)
+                    {
+                    break;
+                    }
+                cause = cause.getCause();
+                }
+            if (!fAllowed)
+                {
+                azzert(cause instanceof RequestPolicyException,
+                       "Expected cause to be instanceof RequestPolicyException, but was: " + e.getCause().toString());
+                }
             }
         }
 
@@ -2317,29 +2326,6 @@ public class QuorumTests
 
         props.put("coherence.service.startup.timeout", "15000");
         return props;
-        }
-
-    /**
-     * Validate the ConnectionException.
-     */
-    protected void validateConnectionException(ConnectionException e, boolean fAllowed)
-        {
-        azzert(!fAllowed, "Extend client connections are allowed, but an exception was thrown: "
-                + e + "\n" + printStackTrace(e));
-        Throwable cause = e.getCause();
-        while (cause != null)
-            {
-            if (cause instanceof RequestPolicyException)
-                {
-                break;
-                }
-            cause = cause.getCause();
-            }
-        if (!fAllowed)
-            {
-            azzert(cause instanceof RequestPolicyException,
-                    "Expected cause to be instanceof RequestPolicyException, but was: " + e.getCause().toString());
-            }
         }
 
     // ----- data members ---------------------------------------------------
