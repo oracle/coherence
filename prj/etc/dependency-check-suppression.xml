@@ -522,4 +522,16 @@
     <cve>CVE-2022-33879</cve>
   </suppress>
 
+  <!-- Added for poi-ooxml-5.3.0.jar which is a 4th party dependency of
+  dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.0-beta2
+  used in examples -->
+  <suppress>
+    <notes><![CDATA[
+    file name: poi-ooxml-5.3.0.jar
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.poi/poi\-ooxml@.*$</packageUrl>
+    <cpe>cpe:2.3:a:apache:poi</cpe>
+    <cve>CVE-2025-31672</cve>
+  </suppress>
+
 </suppressions>
