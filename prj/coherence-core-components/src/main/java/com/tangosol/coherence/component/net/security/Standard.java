@@ -269,7 +269,7 @@ public class Standard
             {
             try
                 {
-                validateSubject(sService, subject);
+                validateSubject(sService, subject, false);
                 fValid = true;
                 }
             catch (SecurityException ex)
@@ -289,7 +289,7 @@ public class Standard
         
         if (!fValid)
             {
-            validateSubject(sService, subject);
+            validateSubject(sService, subject, true);
             }
         
         // TODO: leave the audit trail?
@@ -680,10 +680,18 @@ public class Standard
      */
     protected void validateSubject(String sService, javax.security.auth.Subject subject)
         {
-        // import com.tangosol.net.security.AccessController as com.tangosol.net.security.AccessController;
-        // import java.util.Map;
-        // import javax.security.auth.Subject;
-        
+        validateSubject(sService, subject, true);
+        }
+
+    /**
+     * Prevent a security hole when a caller would construct a Subject object
+    * with a Principal object that have a high security clearance, but provide
+    * a valid cerificate representing a low security clearance Principal. The
+    * very first validated subject becomes assosiated with the specified
+    * service.
+     */
+    protected void validateSubject(String sService, javax.security.auth.Subject subject, boolean fLog)
+        {
         Map mapValid = getValidSubjects();
         
         if (!mapValid.containsKey(subject))
@@ -699,7 +707,10 @@ public class Standard
                 }
             catch (Exception e)
                 {
-                _trace("Failed to verify the subject: " + subject + " due to: " + e.getMessage(), 3);
+                if (fLog)
+                    {
+                    _trace("Failed to verify the subject: " + subject + " due to: " + e.getMessage(), 3);
+                    }
                 throw new SecurityException("Failed to verify the subject");
                 }
             }
