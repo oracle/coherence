@@ -274,7 +274,7 @@
     <bytebuddy.version>1.17.5</bytebuddy.version>
     <mock.server.version>5.15.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.7-SNAPSHOT</oracle.bedrock.version>
     <testcontainers.version>1.21.0</testcontainers.version>
 
     <!-- commercial test dependency versions -->
