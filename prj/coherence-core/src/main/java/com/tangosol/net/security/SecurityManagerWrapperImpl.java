@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  * @author Jonathan Knight 25/01/2025
  */
 @SuppressWarnings("removal")
-public class SecurityManagerWrapperImpl
+class SecurityManagerWrapperImpl
         implements SecurityManagerWrapper
     {
     SecurityManagerWrapperImpl()
@@ -71,7 +71,7 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
-            return AccessController.doPrivileged(action);
+            AccessController.doPrivileged(action);
             }
         return action.run();
         }
@@ -83,10 +83,7 @@ public class SecurityManagerWrapperImpl
             {
             AccessController.doPrivileged(action);
             }
-        else
-            {
-            fallback.run();
-            }
+        fallback.run();
         }
 
     @Override

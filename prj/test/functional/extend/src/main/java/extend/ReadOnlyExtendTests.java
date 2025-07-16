@@ -41,8 +41,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import java.util.concurrent.CompletionException;
-
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -216,11 +214,6 @@ public class ReadOnlyExtendTests
             getNamedCache().destroy();
             }
         catch (PortableException e)
-            {
-            // expected
-            return;
-            }
-        catch (CompletionException e)
             {
             // expected
             return;
