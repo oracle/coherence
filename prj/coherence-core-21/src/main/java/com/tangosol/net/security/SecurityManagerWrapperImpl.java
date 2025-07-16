@@ -9,8 +9,6 @@ package com.tangosol.net.security;
 
 import javax.security.auth.Subject;
 
-import java.lang.reflect.Method;
-
 import java.security.AccessController;
 import java.security.Permission;
 import java.security.PrivilegedAction;
@@ -22,11 +20,14 @@ import java.util.function.Supplier;
 /**
  * A wrapper to handle the removal of Java's SecurityManger class.
  * <p>
- * This class is here to allow for pre-Java24 code that still uses a SecurityManager
- * or AccessController to work. There post-Java24 version of this class is in
- * the coherence-core-24 module and is built into the multi-release coherence.jar.
+ * This is a Java21 version of this class in the coherence-core-21
+ * module and is built into the multi-release coherence.jar.
  *
- * @author Jonathan Knight 25/01/2025
+ * Note, In case of Exception, Subject.callAs() wraps the Exception
+ * returned by action::run with the java.util.concurrent.CompletionException.
+ *
+ * @author Jonathan Knight, lh 26/06/2025
+ * @since 14.1.2.0.4
  */
 @SuppressWarnings("removal")
 public class SecurityManagerWrapperImpl
@@ -39,15 +40,7 @@ public class SecurityManagerWrapperImpl
     @Override
     public Subject getCurrentSubject()
         {
-        try
-            {
-            return (currentMethod != null) ? (Subject) currentMethod.invoke(null, (Object[]) null) :
-                    Subject.getSubject(AccessController.getContext());
-            }
-        catch (Exception ignore)
-            {
-            }
-        return null;
+        return Subject.current();
         }
 
     @Override
@@ -61,7 +54,14 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
-            return AccessController.doPrivileged(action);
+            if (action instanceof DoAsAction)
+                {
+                return AccessController.doPrivileged(action);
+                }
+
+            Subject subject = getCurrentSubject();
+            return AccessController.doPrivileged((PrivilegedAction<T>) () ->
+                    Subject.callAs(subject, action::run));
             }
         return action.run();
         }
@@ -71,7 +71,14 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
-            return AccessController.doPrivileged(action);
+            if (action instanceof DoAsAction)
+                {
+                return AccessController.doPrivileged(action);
+                }
+
+            Subject subject = getCurrentSubject();
+            return AccessController.doPrivileged((PrivilegedExceptionAction<T>) () ->
+                    Subject.callAs(subject, action::run));
             }
         return action.run();
         }
@@ -81,7 +88,16 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
-            AccessController.doPrivileged(action);
+            if (action instanceof DoAsAction)
+                {
+                AccessController.doPrivileged(action);
+                }
+            else
+                {
+                Subject subject = getCurrentSubject();
+                AccessController.doPrivileged((PrivilegedAction) () ->
+                        Subject.callAs(subject, action::run));
+                }
             }
         else
             {
@@ -94,7 +110,13 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
-            return AccessController.doPrivileged(action);
+            if (action instanceof DoAsAction)
+                {
+                return AccessController.doPrivileged(action);
+                }
+            Subject subject = getCurrentSubject();
+            return AccessController.doPrivileged((PrivilegedAction<T>) () ->
+                    Subject.callAs(subject, action::run));
             }
         return fallback.get();
         }
@@ -102,13 +124,27 @@ public class SecurityManagerWrapperImpl
     @Override
     public <T> T doPrivileged(PrivilegedAction<T> action)
         {
-        return AccessController.doPrivileged(action);
+        if (action instanceof DoAsAction)
+            {
+            return AccessController.doPrivileged(action);
+            }
+
+        Subject subject = getCurrentSubject();
+        return AccessController.doPrivileged((PrivilegedAction<T>) () ->
+                Subject.callAs(subject, action::run));
         }
 
     @Override
     public <T> T doPrivileged(PrivilegedExceptionAction<T> action) throws PrivilegedActionException
         {
-        return AccessController.doPrivileged(action);
+        if (action instanceof DoAsAction)
+            {
+            return AccessController.doPrivileged(action);
+            }
+
+        Subject subject = getCurrentSubject();
+        return AccessController.doPrivileged((PrivilegedExceptionAction<T>) () ->
+                Subject.callAs(subject, action::run));
         }
 
     @Override
@@ -127,24 +163,6 @@ public class SecurityManagerWrapperImpl
                 {
                 security.checkPermission(permission);
                 }
-            }
-        }
-
-    // ----- data members ---------------------------------------------------
-
-    static Method currentMethod = null;
-
-    static
-        {
-        Class<?> c;
-        try
-            {
-            c             = Class.forName("javax.security.auth.Subject");
-            currentMethod = c.getMethod("current", (Class<?>[]) null);
-            }
-        catch (Exception ignore)
-            {
-            // pre-JDK23
             }
         }
     }

@@ -142,6 +142,7 @@
       <service-name>ConcurrentProxy</service-name>
       <acceptor-config>
         <tcp-acceptor>
+          <socket-provider system-property="coherence.concurrent.extend.socketprovider"/>
           <local-address>
             <address system-property="coherence.concurrent.extend.address"/>
             <port system-property="coherence.concurrent.extend.port"/>
