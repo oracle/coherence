@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -296,7 +296,7 @@ public abstract class AbstractDistEntryProcessorTests
             AsynchronousProcessor[] aAsync = new AsynchronousProcessor[COUNT];
             for (int i = 0; true; i++)
                 {
-                EntryProcessor proc = new UpdaterProcessor((ValueUpdater) null,
+                EntryProcessor proc = new UpdateProcessorForBacklog((ValueUpdater) null,
                     Integer.valueOf(Base.getRandom().nextInt()));
                 AsynchronousProcessor async = new AsynchronousProcessor(proc, i);
 
@@ -327,6 +327,7 @@ public abstract class AbstractDistEntryProcessorTests
 
                     if (async.checkBacklog(contNormal))
                         {
+                        m_fBackLogAnnounced = true;
                         log("Backlog announced " + i);
 
                         async.flush();
@@ -663,5 +664,53 @@ public abstract class AbstractDistEntryProcessorTests
             return ctx.getBackingMapEntry(binKey).getValue();
             }
         }
+
+    /**
+     * An UpdaterProcessor that ensures backlog.
+     */
+    public static class UpdateProcessorForBacklog<K, V, T>
+            extends UpdaterProcessor<K, V, T>
+        {
+        /**
+         * Default constructor (necessary for the ExternalizableLite interface).
+         */
+        public UpdateProcessorForBacklog()
+            {
+            }
+
+        public UpdateProcessorForBacklog(ValueUpdater<V, T> updater, T value)
+            {
+            super(updater, value);
+            }
+
+        @Override
+        public Boolean process(InvocableMap.Entry<K, V> entry)
+            {
+            ValueUpdater<V, T> updater = m_updater;
+   
+            // if there isn't backlog, sleep to slow down 
+            if (!m_fBackLogAnnounced)
+                {
+                Base.sleep(100);
+                }
+
+            if (updater == null)
+                {
+                //NOTE: a possibly unsafe cast from T to V
+                entry.setValue((V) m_value, false);
+                }
+            else if (entry.isPresent())
+                {
+                entry.update(updater, m_value);
+                }
+            else
+                {
+                return Boolean.FALSE;
+                }
+            return Boolean.TRUE;
+            }
+        }
+
+    private static boolean m_fBackLogAnnounced = false;
     }
 

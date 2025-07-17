@@ -11,7 +11,7 @@ package com.tangosol.util;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.net.security.SecurityHelper;
+import com.tangosol.net.security.SecurityManagerWrapperImpl;
 
 import java.security.CodeSource;
 
@@ -62,7 +62,7 @@ public class Unsafe
             {
             String sClassName = aStack[i].getClassName();
             // skip frames pertinent to use of Unsafe within a security block
-            if (!sClassName.startsWith("java.security"))
+            if (!sClassName.startsWith("java.security") && !sClassName.startsWith("javax.security"))
                 {
                 sCallingClass = sClassName;
                 break;
@@ -98,7 +98,7 @@ public class Unsafe
 
         CodeSource srcUnsafe   = Unsafe.class.getProtectionDomain().getCodeSource();
         CodeSource srcCaller   = clzCaller.getProtectionDomain().getCodeSource();
-        CodeSource srcSecurity = SecurityHelper.getCodeSource();
+        CodeSource srcSecurity = SecurityManagerWrapperImpl.class.getProtectionDomain().getCodeSource();
         if (Base.equals(srcCaller, srcUnsafe) || Base.equals(srcCaller, srcSecurity))
             {
             return INSTANCE;

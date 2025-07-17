@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletionException;
 
 import javax.security.auth.Subject;
 
@@ -205,6 +206,10 @@ public abstract class AbstractLoadBalancerTests
                 fail("ConnectException expected");
                 }
             catch (ConnectionException e)
+                {
+                // expected
+                }
+            catch (CompletionException e)
                 {
                 // expected
                 }
