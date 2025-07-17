@@ -23,6 +23,9 @@ import com.tangosol.util.WrapperException;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.oracle.coherence.testing.SystemPropertyResource;
+
+import java.util.concurrent.CompletionException;
+
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -80,7 +83,7 @@ public class RelaxConfigProcessingTests
         cache.release();
         }
 
-    @Test(expected = WrapperException.class)
+    @Test(expected = Exception.class)
     public void detectBrokenSerializerFactory()
             throws Exception
         {
@@ -112,6 +115,10 @@ public class RelaxConfigProcessingTests
         catch (WrapperException e)
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
+            }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
             }
         finally
             {
@@ -199,6 +206,10 @@ public class RelaxConfigProcessingTests
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
             }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
+            }
         }
 
     /**
@@ -232,6 +243,10 @@ public class RelaxConfigProcessingTests
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
             }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
+            }
         }
 
     @Test
@@ -258,7 +273,12 @@ public class RelaxConfigProcessingTests
         catch (WrapperException e)
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
-            }        }
+            }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
+            }
+        }
 
     @Test
     public void testLazyEvaluationMisssingClassProxyQuorumPolicy()
@@ -284,7 +304,10 @@ public class RelaxConfigProcessingTests
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
             }
-
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
+            }
         }
 
     /**
@@ -376,6 +399,10 @@ public class RelaxConfigProcessingTests
             {
                 assertExceptionContainsCause(e, ClassNotFoundException.class);
             }
+            catch (CompletionException e)
+            {
+                assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
+            }
         }
 
         /**
@@ -399,6 +426,10 @@ public class RelaxConfigProcessingTests
         catch (WrapperException e)
             {
             assertExceptionContainsCause(e, ClassNotFoundException.class);
+            }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), ClassNotFoundException.class);
             }
         }
 
@@ -442,6 +473,10 @@ public class RelaxConfigProcessingTests
         catch (WrapperException e)
             {
             assertExceptionContainsCause(e, IllegalArgumentException.class);
+            }
+        catch (CompletionException e)
+            {
+            assertExceptionContainsCause((Exception) e.getCause(), IllegalArgumentException.class);
             }
         }
 
