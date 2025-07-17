@@ -1,0 +1,29 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Invoke
+children:
+  - name: extend.Invoke.post
+    children:
+      - name: extend.Invoke.process
+        children:
+          - name: extend.Invoke.receive
+            children:
+              - name: extend.Invoke.execute
+                children:
+                  - name: cache.Invoke
+                    children:
+                      - name: Invoke.request
+                        children:
+                          - name: Invoke.dispatch
+                            children:
+                              - name: Invoke.process
+                                children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

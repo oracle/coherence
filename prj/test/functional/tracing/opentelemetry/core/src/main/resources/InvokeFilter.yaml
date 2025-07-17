@@ -1,0 +1,31 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: extend.InvokeFilter.post
+children:
+  - name: extend.InvokeFilter.process
+    children:
+      - name: extend.InvokeFilter.receive
+        children:
+          - name: extend.InvokeFilter.execute
+            children:
+              - name: InvokeFilter.request
+                children:
+                  - name: InvokeFilter.dispatch
+                    children:
+                      - name: InvokeFilter.process
+                        children: []
+              - name: InvokeFilter.request
+                children:
+                  - name: InvokeFilter.dispatch
+                    children:
+                      - name: InvokeFilter.process
+                        children: []
+          - name: extend.PartialResponse.post
+            children:
+              - name: extend.PartialResponse.receive
+                children:
+                  - name: extend.PartialResponse.execute
+                    children: []

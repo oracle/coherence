@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,19 @@
 
 package com.tangosol.coherence.component.net.extend;
 
+import com.tangosol.internal.tracing.SpanContext;
+import com.tangosol.internal.tracing.TracingHelper;
+
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+
 import com.tangosol.net.messaging.Channel;
+
+import com.tangosol.util.LiteMap;
+
+import java.io.IOException;
+
+import java.util.Map;
 
 /**
  * Base definition of a Message component.
@@ -53,6 +65,13 @@ public abstract class Message
      * @see com.tangosol.io.Evolvable#getFutureData
      */
     private transient com.tangosol.util.Binary __m_FutureData;
+
+    /**
+     * The tracing {@link SpanContext}.
+     *
+     * @since 15.1.1.0
+     */
+    private transient SpanContext __m_TracingSpanContext;
     
     /**
      * Property ImplVersion
@@ -180,7 +199,21 @@ public abstract class Message
         {
         return __m_ImplVersion;
         }
-    
+
+    /**
+     * Returns the tracing {@link SpanContext}, if any, associated
+     * with this message.
+     *
+     * @return the tracing {@link SpanContext}, if any, associated
+     *         with this message
+     *
+     * @since 15.1.1.0
+     */
+    public SpanContext getTracingSpanContext()
+        {
+        return __m_TracingSpanContext;
+        }
+
     // From interface: com.tangosol.net.messaging.Message
     public int getTypeId()
         {
@@ -265,10 +298,70 @@ public abstract class Message
         {
         __m_ImplVersion = nVersion;
         }
-    
+
+    /**
+     * Sets the tracing {@link SpanContext} associated with this
+     * message.
+     *
+     * @param tracingSpanContext the tracing {@link SpanContext}
+     *
+     * @since 15.1.1.0
+     */
+    public void setTracingSpanContext(SpanContext tracingSpanContext)
+        {
+        this.__m_TracingSpanContext = tracingSpanContext;
+        }
+
     // From interface: com.tangosol.io.pof.EvolvablePortableObject
     public void writeExternal(com.tangosol.io.pof.PofWriter out)
             throws java.io.IOException
         {
+        }
+
+    /**
+     * This method will write the tracing data, if any, to the given
+     * {@link PofWriter}.
+     *
+     * @param pofWriter  the {@link PofWriter}
+     * @param nProp      the index the tracing data is being written to
+     *                   within the {@link PofWriter}
+     *
+     * @throws IOException if an error occurs writing the tracing data
+     *
+     * @since 15.1.1.0
+     */
+    protected void writeTracing(PofWriter pofWriter, int nProp)
+            throws IOException
+        {
+        SpanContext ctxSpan    = getTracingSpanContext();
+        Map         mapSpanCtx = null;
+
+        if (!TracingHelper.isNoop(ctxSpan))
+            {
+            mapSpanCtx = TracingHelper.getTracer().inject(ctxSpan);
+            }
+
+        pofWriter.writeMap(nProp, mapSpanCtx);
+        }
+
+    /**
+     * Reads the tracing data from the given {@link PofReader}.
+     *
+     * @param pofReader  the {@link PofReader}
+     * @param nProp      the index to read within the {@link PofWriter}
+     *                   to obtain the tracing data
+     *
+     * @throws IOException if an error occurs writing tracing data
+     *
+     * @since 15.1.1.0
+     */
+    protected void readTracing(PofReader pofReader, int nProp)
+            throws IOException
+        {
+        Map mapSpanCtx = pofReader.readMap(nProp, new LiteMap());
+        if (!mapSpanCtx.isEmpty())
+            {
+            setTracingSpanContext(TracingHelper.getTracer().extract(mapSpanCtx));
+            }
         }
     }

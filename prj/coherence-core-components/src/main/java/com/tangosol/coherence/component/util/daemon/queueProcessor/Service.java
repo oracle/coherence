@@ -11,14 +11,15 @@
 package com.tangosol.coherence.component.util.daemon.queueProcessor;
 
 import com.tangosol.coherence.component.net.Security;
+import com.tangosol.coherence.component.net.extend.Message;
 import com.tangosol.coherence.component.net.message.RequestMessage;
-import com.tangosol.coherence.component.util.daemon.queueProcessor.Logger;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
@@ -3227,8 +3228,24 @@ public abstract class Service
 
                 if (TracingHelper.isEnabled())
                     {
+                    Span        spanParent = getParentTracingSpan();
+                    SpanContext ctxParent  = null;
+
+                    if (spanParent == null)
+                        {
+                        Runnable task = getTask();
+                        if (task instanceof Message message)
+                            {
+                            ctxParent = message.getTracingSpanContext();
+                            }
+                        }
+                    else
+                        {
+                        ctxParent = spanParent.getContext();
+                        }
+
                     span  = ((Service) get_Module()).newTracingSpan("process", getTask())
-                            .setParent(getParentTracingSpan())
+                            .setParent(ctxParent)
                             .startSpan();
                     scope = TracingHelper.getTracer().withSpan(span);
                     }

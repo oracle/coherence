@@ -27,6 +27,7 @@ public class JmxConfigurationIT
     protected Properties getDefaultProperties()
         {
         Properties props = super.getDefaultProperties();
+        props.setProperty("coherence.wka",     "127.0.0.1");
         props.setProperty("otel.service.name", getClass().getName());
 
         return props;

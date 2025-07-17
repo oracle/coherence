@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,6 +137,7 @@ public class OpenTelemetrySpan
         f_span.end();
         }
 
+    @Override
     public SpanContext getContext()
         {
         return f_spanContext;
@@ -144,6 +145,7 @@ public class OpenTelemetrySpan
 
     // ----- NoopAware interface --------------------------------------------
 
+    @Override
     public boolean isNoop()
         {
         return f_fNoop;
@@ -151,6 +153,7 @@ public class OpenTelemetrySpan
 
     // ----- Wrapper interface ----------------------------------------------
 
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T underlying()
         {

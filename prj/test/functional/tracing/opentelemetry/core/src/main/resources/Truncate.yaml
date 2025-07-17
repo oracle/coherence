@@ -1,0 +1,33 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Truncate
+children:
+  - name: extend.Clear.post
+    children:
+      - name: extend.Clear.process
+        children:
+          - name: extend.Clear.receive
+            children:
+              - name: extend.Clear.execute
+                children:
+                  - name: cache.Truncate
+                    children:
+                      - name: Clear.request
+                        children:
+                          - name: Clear.dispatch
+                            children:
+                              - name: DispatcherInterceptorEvent.process
+                                children: []
+                              - name: Config.request
+                                children:
+                                  - name: Config.process
+                                    children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,8 +17,6 @@ import java.util.List;
 
 import java.util.concurrent.TimeUnit;
 
-import opentelemetry.core.CacheOperationsTracingIT;
-
 import opentelemetry.core.TestingUtils;
 
 import org.junit.Ignore;
@@ -34,52 +32,31 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @since 24.03
  */
 public class GrpcTracingIT
-        extends CacheOperationsTracingIT
     {
     // ----- test methods ---------------------------------------------------
 
     @Test
     @Ignore
-    @Override
     public void shouldBeDisabledByDefault()
         {
-        super.shouldBeDisabledByDefault();
         }
 
     @Test
     @Ignore
-    @Override
     public void testGetTracing()
         {
         }
 
     @Test
     @Ignore
-    @Override
     public void testRemoveTracing()
         {
         }
 
     @Test
     @Ignore
-    @Override
     public void testPutTracing()
         {
-        final Session client = createSession();
-        runTest(() ->
-                runCacheOperation(
-                        () -> client.getCache("dist").put("1", "1"),
-                        "PUT",
-                        () ->
-                            {
-                            List<Span> listAllSpans = TestingUtils.waitForAllSpans(m_collectorServer);
-
-                            // validate client spans
-                            List<Span> listExpected = TestingUtils.getSpans(listAllSpans, new String[] {
-                                    "Invoke.request", "Invoke.dispatch", "Invoke.process",
-                                    "coherence.NamedCacheService/put", "PUT"});
-                            assertThat(listExpected.size(), is(6));
-                        }));
         }
 
     // ----- helper methods -------------------------------------------------

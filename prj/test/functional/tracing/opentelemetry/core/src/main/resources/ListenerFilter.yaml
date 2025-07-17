@@ -1,0 +1,30 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.AddFilteredMapListener
+children:
+  - name: cache.AddFilteredMapListener
+    children:
+      - name: extend.ListenerFilter.post
+        children:
+          - name: extend.ListenerFilter.process
+            children:
+              - name: extend.ListenerFilter.receive
+                children:
+                  - name: extend.ListenerFilter.execute
+                    children:
+                      - name: cache.AddFilteredMapListener
+                        children:
+                          - name: Listener.request
+                            children:
+                              - name: Listener.dispatch
+                                children:
+                                  - name: Listener.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+

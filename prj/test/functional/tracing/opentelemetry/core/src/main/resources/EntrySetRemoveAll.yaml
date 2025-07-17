@@ -1,0 +1,33 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.EntrySet
+children:
+  - name: cache.EntrySet.RemoveAll
+    children:
+      - name: extend.RemoveAll.post
+        children:
+          - name: extend.RemoveAll.process
+            children:
+              - name: extend.RemoveAll.receive
+                children:
+                  - name: extend.RemoveAll.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                                        children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []

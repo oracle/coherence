@@ -257,10 +257,10 @@ public class Message
     
     /**
      * Property TracingSpanContext
+     * <p>
+     * The tracing {@link SpanContext}.
      *
-     * The OpenTracing SpanContext.
-     * 
-     * @since 14.4.1.0
+     * @since 14.1.1.0
      */
     private com.tangosol.internal.tracing.SpanContext __m_TracingSpanContext;
     
@@ -778,9 +778,9 @@ public class Message
     // Accessor for the property "TracingSpanContext"
     /**
      * Getter for property TracingSpanContext.<p>
-    * The OpenTracing SpanContext.
-    * 
-    * @since 14.4.1.0
+     * The OpenTracing {@link SpanContext}.
+     *
+     * @since 14.1.1.0
      */
     public com.tangosol.internal.tracing.SpanContext getTracingSpanContext()
         {
@@ -1664,9 +1664,9 @@ public class Message
     // Accessor for the property "TracingSpanContext"
     /**
      * Setter for property TracingSpanContext.<p>
-    * The OpenTracing SpanContext.
-    * 
-    * @since 14.4.1.0
+     * The OpenTracing {@link SpanContext}.
+     *
+     * @since 14.1.1.0
      */
     public void setTracingSpanContext(com.tangosol.internal.tracing.SpanContext contextSpan)
         {
@@ -1820,7 +1820,7 @@ public class Message
     
     /**
      * This should be called by Message serialization methods in order to
-    * propgate tracing information.
+    * propagate tracing information.
     * 
     * @since 14.1.1.0
      */

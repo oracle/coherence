@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -255,17 +255,9 @@ public abstract class AbstractJmxConfigurationIT
      */
     protected void checkTracingStatusOnMember(CoherenceClusterMember member, boolean fExpectedStatus)
         {
-        try
-            {
-            Eventually.assertDeferred(() -> member.invoke(
+        Eventually.assertDeferred(() -> member.invoke(
                 (RemoteCallable<Boolean>) TracingHelper::isEnabled),
                                   is(fExpectedStatus));
-            }
-        catch (AssertionError e)
-            {
-            heapdump(member);
-            throw e;
-            }
         }
 
     /**
@@ -277,15 +269,7 @@ public abstract class AbstractJmxConfigurationIT
      */
     protected void checkTracingJMXAttribute(MBeanServer server, CoherenceClusterMember member, float fExpectedValue)
         {
-        try
-            {
-            Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member), is(fExpectedValue));
-            }
-        catch (AssertionError e)
-            {
-            heapdump(member);
-            throw e;
-            }
+        Eventually.assertDeferred(() -> getTracingConfigurationForMember(server, member), is(fExpectedValue));
         }
 
     /**

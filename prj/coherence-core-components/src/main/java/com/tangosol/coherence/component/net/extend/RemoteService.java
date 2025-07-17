@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@
 
 package com.tangosol.coherence.component.net.extend;
 
-import com.tangosol.coherence.component.net.extend.Channel;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameService;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
@@ -24,6 +23,7 @@ import com.tangosol.internal.net.service.extend.remote.RemoteServiceDependencies
 import com.tangosol.internal.net.service.peer.initiator.DefaultTcpInitiatorDependencies;
 import com.tangosol.internal.net.service.peer.initiator.InitiatorDependencies;
 import com.tangosol.internal.net.service.peer.initiator.TcpInitiatorDependencies;
+import com.tangosol.internal.tracing.Span;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CompositeSocketAddressProvider;
 import com.tangosol.net.Member;
@@ -206,7 +206,25 @@ public abstract class RemoteService
             }
         return clz;
         }
-    
+
+    // ----- SpanDecorator interface ----------------------------------------
+
+    @Override
+    public Span.Builder decorate(Span.Builder spanBuilder)
+        {
+        Span.Builder bldSpan     = com.tangosol.net.Service.super.decorate(spanBuilder);
+        Member       memberLocal = getCluster().getLocalMember();
+
+        if (memberLocal.isRemoteClient())
+            {
+            com.tangosol.net.messaging.Channel channel = getChannel();
+            channel.decorate(spanBuilder);
+            channel.getConnection().decorate(spanBuilder);
+            }
+
+        return bldSpan;
+        }
+
     //++ getter for autogen property _Module
     /**
      * This is an auto-generated method that returns the global [design time]

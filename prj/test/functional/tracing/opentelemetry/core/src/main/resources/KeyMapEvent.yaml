@@ -1,0 +1,39 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Put
+children:
+  - name: extend.Put.post
+    children:
+      - name: extend.Put.process
+        children:
+          - name: extend.Put.receive
+            children:
+              - name: extend.Put.execute
+                children:
+                  - name: cache.Put
+                    children:
+                      - name: Put.request
+                        children:
+                          - name: Put.dispatch
+                            children:
+                              - name: Put.process
+                                children:
+                                  - name: MapEvent.dispatch
+                                    children:
+                                      - name: CacheEvent.process
+                                        children:
+                                          - name: extend.MapEvent.post
+                                            children:
+                                              - name: extend.MapEvent.receive
+                                                children:
+                                                  - name: extend.MapEvent.execute
+                                                    children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

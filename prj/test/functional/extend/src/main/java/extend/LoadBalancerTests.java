@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,7 +13,9 @@ import com.oracle.coherence.common.net.InetSocketAddress32;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.coherence.common.net.SocketProvider;
+
 import com.tangosol.coherence.component.net.extend.connection.TcpConnection;
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
 
@@ -25,6 +27,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.SocketProviderFactory;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -335,8 +338,8 @@ public class LoadBalancerTests
     * Constants.
     */
     private static final byte[] PING_REQUEST        = new byte[] {7, 0, 3, 0, 0, 66, 0, 64};
-    private static final byte[] PING_RESPONSE       = new byte[] {9, 0, 4, 3, 0, 66, 0, 3, 100, 64};
+    private static final byte[] PING_RESPONSE       = new byte[] {9, 0, 4, 4, 0, 66, 0, 3, 100, 64};
     private static final byte[] PING_QUERY_REQUEST  = new byte[] {7, 0, 3, 0, 0, 66, 1, 64};
-    private static final byte[] PING_QUERY_RESPONSE = new byte[] {29, 0, 4, 3, 0, 66, 1, 2, 106, 4,
+    private static final byte[] PING_QUERY_RESPONSE = new byte[] {29, 0, 4, 4, 0, 66, 1, 2, 106, 4,
             85, 1, 78, 15, 49, 50, 55, 46, 48, 46, 48, 46, 49, 58, 49, 49, 49, 55, 53, 64};
     }

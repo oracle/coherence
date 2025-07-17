@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.Logger;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.tracing.Scope;
+import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.net.ActionPolicy;
@@ -42,6 +43,7 @@ import com.tangosol.util.Listeners;
 import com.tangosol.util.LiteMap;
 import com.tangosol.util.LiteSet;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.PagedIterator;
 import com.tangosol.util.SimpleEnumerator;
@@ -1070,34 +1072,18 @@ public class BinaryMap
      */
     public void dispatch(PartitionedCache.MapEvent msgEvent)
         {
-        // import Component.Net.Member as com.tangosol.coherence.component.net.Member;
-        // import Component.Util.CacheEvent as com.tangosol.coherence.component.util.CacheEvent;
-        // import com.tangosol.internal.tracing.Scope;
-        // import com.tangosol.internal.tracing.SpanContext;
-        // import com.tangosol.internal.tracing.TracingHelper;
-        // import com.tangosol.net.cache.CacheEvent;
-        // import com.tangosol.net.cache.CacheEvent$TransformationState as com.tangosol.net.cache.CacheEvent.TransformationState;
-        // import com.tangosol.util.Binary;
-        // import com.tangosol.util.Filter;
-        // import com.tangosol.util.Listeners;
-        // import com.tangosol.util.LiteSet;
-        // import com.tangosol.util.LongArray;
-        // import com.tangosol.util.MapListenerSupport as com.tangosol.util.MapListenerSupport;
-        // import com.tangosol.util.MapListenerSupport$FilterEvent as com.tangosol.util.MapListenerSupport.FilterEvent;
-        // import java.util.Iterator;
-
-        int         nEventType  = msgEvent.getEventType() & PartitionedCache.MapEvent.EVT_TYPE_MASK;
-        Binary      binKey      = msgEvent.getKey();
-        boolean     fSynthetic  = msgEvent.isSynthetic();
-        boolean     fExpired    = msgEvent.isExpired();
-        boolean     fPriming    = msgEvent.isPriming();
-        long[]      alFilterId  = msgEvent.getFilterId();
-        int         cFilters    = alFilterId == null ? 0 : alFilterId.length;
-        int         iPartition  = msgEvent.getPartition();
-        com.tangosol.util.MapListenerSupport     support     = getListenerSupport();
-        SpanContext spanContext = msgEvent.getTracingSpanContext();
-        PartitionedCache     service     = getService();
-        CacheEvent event;
+        int                nEventType  = msgEvent.getEventType() & PartitionedCache.MapEvent.EVT_TYPE_MASK;
+        Binary             binKey      = msgEvent.getKey();
+        boolean            fSynthetic  = msgEvent.isSynthetic();
+        boolean            fExpired    = msgEvent.isExpired();
+        boolean            fPriming    = msgEvent.isPriming();
+        long[]             alFilterId  = msgEvent.getFilterId();
+        int                cFilters    = alFilterId == null ? 0 : alFilterId.length;
+        int                iPartition  = msgEvent.getPartition();
+        MapListenerSupport support     = getListenerSupport();
+        SpanContext        spanContext = msgEvent.getTracingSpanContext();
+        PartitionedCache   service     = getService();
+        CacheEvent         event;
 
         // collect key based listeners; note: key is null for versioned events
         Listeners listeners = msgEvent.isTransformed() || binKey == null
@@ -1138,7 +1124,7 @@ public class BinaryMap
             {
             // collect filter based listeners
             LongArray laFilters  = getFilterArray();
-            LiteSet setFilters = new LiteSet();
+            LiteSet   setFilters = new LiteSet();
             for (int i = 0; i < cFilters; i++)
                 {
                 long lFilterId = alFilterId[i];
@@ -1202,24 +1188,38 @@ public class BinaryMap
             }
         else
             {
-            PartitionedCache svc        = getService();
-            com.tangosol.coherence.component.net.Member  memberFrom = msgEvent.getFromMember();
-            Scope scope      = TracingHelper.isEnabled()
-                               ? TracingHelper.getTracer().withSpan(svc.newTracingSpan("dispatch", msgEvent)
-                                                                            .withAssociation("follows_from", spanContext)
-                                                                            .withMetadata("member.source",
-                                                                                          Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue())
-                                                                            .startSpan())
-                               : null;
+            PartitionedCache svc             = getService();
+            Member           memberFrom      = msgEvent.getFromMember();
+            boolean          fTracingEnabled = TracingHelper.isEnabled();
+            Span             span            = null;
+            Scope            scope           = null;
+
+            if (fTracingEnabled)
+                {
+                SpanContext  ctx     = msgEvent.getTracingSpanContext();
+                Span.Builder builder = svc.newTracingSpan("dispatch", msgEvent)
+                        .withMetadata("member.source",
+                                      Long.valueOf(memberFrom == null ? -1 : memberFrom.getId()).longValue());
+
+                if (!TracingHelper.isNoop(ctx))
+                    {
+                    builder.setParent(ctx);
+                    }
+
+                span  = builder.startSpan();
+                scope = TracingHelper.getTracer().withSpan(span);
+                }
+
             try
                 {
                 com.tangosol.coherence.component.util.CacheEvent.dispatchSafe(event, listeners, svc.ensureEventDispatcher().getQueue());
                 }
             finally
                 {
-                if (scope != null)
+                if (fTracingEnabled)
                     {
                     scope.close();
+                    span.end();
                     }
                 }
             }

@@ -18436,6 +18436,22 @@ public class PartitionedCache
             super.setRequestTimeout(ldtTimeout);
             }
 
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
+            }
+
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$ContainsKeyRequest$Poll
         
         /**
@@ -29728,6 +29744,22 @@ public class PartitionedCache
 
             ((PartitionedCache) getService()).onMapEvent(this);
             }
+
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
+            }
         }
 
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$MemberWelcome
@@ -33554,6 +33586,22 @@ public class PartitionedCache
         public void setRequestTimeout(long ldtTimeout)
             {
             super.setRequestTimeout(ldtTimeout);
+            }
+
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
             }
 
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$PutAllRequest$Poll
@@ -40221,6 +40269,22 @@ public class PartitionedCache
             super.setRequestTimeout(ldtTimeout);
             }
 
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
+            }
+
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$SizeRequest$Poll
         
         /**
@@ -40798,6 +40862,22 @@ public class PartitionedCache
         public boolean preprocess()
             {
             return false;
+            }
+
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+
+            readTracing(input);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+
+            writeTracing(output);
             }
 
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$StorageConfirmRequest$Poll

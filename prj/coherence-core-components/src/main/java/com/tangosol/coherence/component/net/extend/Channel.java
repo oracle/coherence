@@ -13,6 +13,10 @@ package com.tangosol.coherence.component.net.extend;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.security.AccessAdapter;
 import com.tangosol.internal.net.security.AccessAdapterPrivilegedAction;
+import com.tangosol.internal.tracing.Scope;
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.SpanContext;
+import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.pof.PofBufferReader;
@@ -353,7 +357,15 @@ public class Channel
             throw new ConnectionException("channel is closed", getConnection());
             }
         }
-    
+
+    // ----- SpanDecorator interface ----------------------------------------
+
+    @Override // @since 15.1.1.0
+    public Span.Builder decorate(Span.Builder spanBuilder)
+        {
+        return spanBuilder.withMetadata("channel.id", getId());
+        }
+
     /**
      * Calculate the default timeout in milliseconds for the given Request.
     * 
@@ -623,67 +635,92 @@ public class Channel
      */
     protected void execute(com.tangosol.net.messaging.Message message)
         {
-        // import com.tangosol.internal.net.security.AccessAdapter;
-        // import com.tangosol.internal.net.security.AccessAdapterPrivilegedAction;
-        // import com.tangosol.net.messaging.Channel$Receiver as com.tangosol.net.messaging.Channel.Receiver;
-        // import com.tangosol.net.messaging.Request;
-        // import com.tangosol.net.messaging.Response;
-        // import java.security.PrivilegedAction;
-        // import javax.security.auth.Subject;
-        
-        com.tangosol.net.messaging.Channel.Receiver receiver;
-        if (message instanceof Response)
+        boolean fTracing = isTracingEnabled(message);
+        Span    span     = null;
+        Scope   scope    = null;
+
+        if (fTracing)
             {
-            // solicited Message
-            receiver = null;
-            }
-        else
-            {
-            // unsolicited Message
-            receiver = getReceiver();
-            }
-        
-        // execute the Message in the context of the Channel's Subject;
-        // since the doAs() cost is relatively high, we avoid that call
-        // in the most common case when neither the Channel nor the proxy service
-        // has associated Subjects
-        
-        AccessAdapter adapter = getAccessAdapter();
-        
-        if (isSecureContext() || adapter != null)
-            {
-            Channel.MessageAction action = new Channel.MessageAction();
-            action.setMessage(message);
-            action.setReceiver(receiver);
-        
-            Subject subject = getSubject();
-        
-            if (isLegacyPromotion())
+            // cast is safe if block is executing
+            com.tangosol.coherence.component.net.extend.Message msgExtend =
+                    (com.tangosol.coherence.component.net.extend.Message) message;
+
+            SpanContext ctx = msgExtend.getTracingSpanContext();
+            Span.Builder builder = newTracingSpan("execute", msgExtend);
+
+            if (!TracingHelper.isNoop(ctx))
                 {
-                // backward compatible behavior: don't check if the subject is null. if null,
-                // the proxy service subject will be used, effectively promoting the null
-                // to the proxy service subject
-                Subject.doAs(subject, action);
+                builder.setParent(span);
+                }
+
+            span = builder.startSpan();
+            scope = TracingHelper.getTracer().withSpan(span);
+            }
+
+        try
+            {
+            com.tangosol.net.messaging.Channel.Receiver receiver;
+            if (message instanceof Response)
+                {
+                // solicited Message
+                receiver = null;
                 }
             else
                 {
-                // Use empty subject if the received subject is null
-                subject = subject == null ? getEmptySubject() : subject;
-        
-                Subject.doAs(subject, adapter == null
-                    ? (PrivilegedAction) action
-                    : new AccessAdapterPrivilegedAction(adapter, subject, action));
+                // unsolicited Message
+                receiver = getReceiver();
                 }
-            }
-        else
-            {
-            if (receiver == null)
+
+            // execute the Message in the context of the Channel's Subject;
+            // since the doAs() cost is relatively high, we avoid that call
+            // in the most common case when neither the Channel nor the proxy service
+            // has associated Subjects
+
+            AccessAdapter adapter = getAccessAdapter();
+
+            if (isSecureContext() || adapter != null)
                 {
-                message.run();
+                Channel.MessageAction action = new Channel.MessageAction();
+                action.setMessage(message);
+                action.setReceiver(receiver);
+
+                Subject subject = getSubject();
+
+                if (isLegacyPromotion())
+                    {
+                    // backward compatible behavior: don't check if the subject is null. if null,
+                    // the proxy service subject will be used, effectively promoting the null
+                    // to the proxy service subject
+                    Subject.doAs(subject, action);
+                    }
+                else
+                    {
+                    // Use empty subject if the received subject is null
+                    subject = subject == null ? getEmptySubject() : subject;
+
+                    Subject.doAs(subject, adapter == null
+                                          ? (PrivilegedAction) action
+                                          : new AccessAdapterPrivilegedAction(adapter, subject, action));
+                    }
                 }
             else
                 {
-                receiver.onMessage(message);
+                if (receiver == null)
+                    {
+                    message.run();
+                    }
+                else
+                    {
+                    receiver.onMessage(message);
+                    }
+                }
+            }
+        finally
+            {
+            if (fTracing)
+                {
+                scope.close();
+                span.end();
                 }
             }
         }
@@ -908,6 +945,23 @@ public class Channel
         
         com.tangosol.net.messaging.Connection connection = getConnection();
         return connection == null ? null : (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) connection.getConnectionManager();
+        }
+
+    /**
+     * Determines if tracing is enabled for the given message type.
+     * This will return {@code true} iff tracing is enabled and the given
+     * message extends {@link com.tangosol.coherence.component.net.extend.Message}.
+     *
+     * @param message the message to check
+     *
+     * @return {@code true} iff tracing is enabled and the given
+     *         message extends {@link com.tangosol.coherence.component.net.extend.Message}
+     *
+     * @since 15.1.1.0
+     */
+    protected boolean isTracingEnabled(Message message)
+        {
+        return TracingHelper.isEnabled() && message instanceof com.tangosol.coherence.component.net.extend.Message;
         }
     
     // Declared at the super level
@@ -1281,6 +1335,18 @@ public class Channel
         _assert(sClass != null);
         return false;
         }
+
+    protected Span.Builder newTracingSpan(String sStage, Object op)
+        {
+        com.tangosol.net.messaging.Connection      connection = getConnection();
+        com.tangosol.internal.tracing.Span.Builder bldSpan    = TracingHelper.newSpan(sStage, op)
+                .withMetadata(com.tangosol.internal.tracing.Span.Type.COMPONENT.key(), getConnectionManager().getServiceName());
+
+        decorate(bldSpan);
+        connection.decorate(bldSpan);
+
+        return bldSpan;
+        }
     
     // Declared at the super level
     /**
@@ -1373,49 +1439,92 @@ public class Channel
      */
     protected void post(com.tangosol.net.messaging.Message message)
         {
-        // import com.tangosol.net.messaging.Request;
-        // import com.tangosol.net.messaging.Request$Status as com.tangosol.net.messaging.Request.Status;
-        // import com.tangosol.net.messaging.Response;
-        // import com.tangosol.util.Base;
-        
-        boolean fEnter;
-        if (message instanceof Response)
+        boolean fTracing = isTracingEnabled(message);
+        Span    span     = null;
+        Scope   scope    = null;
+
+        if (fTracing)
             {
-            _assert(isActiveThread(),
-                    "can only send a response while executing within a channel");
-            fEnter = false;
-            }
-        else
-            {
-            fEnter = true;
-            }
-        
-        if (fEnter)
-            {
-            gateEnter();
-            }
-        try
-            {
-            message.setChannel(this);
-            getConnectionManager().post(message);
-            }
-        catch (Throwable e)
-            {
-            if (message instanceof Request)
+            // cast is safe if block is executing
+            com.tangosol.coherence.component.net.extend.Message msgExtend =
+                    (com.tangosol.coherence.component.net.extend.Message) message;
+
+            SpanContext  ctxParent = msgExtend.getTracingSpanContext();
+            Span.Builder builder   = newTracingSpan("post", msgExtend);
+
+            if (!TracingHelper.isNoop(ctxParent))
                 {
-                com.tangosol.net.messaging.Request.Status status = ((Request) message).getStatus();
-                if (status != null)
+                builder.setParent(span);
+                }
+            else if (msgExtend instanceof Response)
+                {
+                Span spanActive = TracingHelper.getActiveSpan();
+                if (!TracingHelper.isNoop(spanActive))
                     {
-                    status.cancel(e);
+                    builder.setParent(spanActive.getContext());
                     }
                 }
-            throw Base.ensureRuntimeException(e);
+
+            span  = builder.startSpan();
+            scope = TracingHelper.getTracer().withSpan(span);
+            msgExtend.setTracingSpanContext(span.getContext());
+            }
+
+        try
+            {
+            boolean fEnter;
+            if (message instanceof Response)
+                {
+                _assert(isActiveThread(),
+                        "can only send a response while executing within a channel");
+                fEnter = false;
+                }
+            else
+                {
+                fEnter = true;
+                }
+
+            if (fEnter)
+                {
+                gateEnter();
+                }
+            try
+                {
+                message.setChannel(this);
+                getConnectionManager().post(message);
+                }
+            catch (Throwable e)
+                {
+                if (message instanceof Request)
+                    {
+                    com.tangosol.net.messaging.Request.Status status = ((Request) message).getStatus();
+                    if (status != null)
+                        {
+                        status.cancel(e);
+                        }
+                    }
+
+                if (fTracing)
+                    {
+                    TracingHelper.augmentSpanWithErrorDetails(span, true, e);
+                    }
+
+                throw Base.ensureRuntimeException(e);
+                }
+            finally
+                {
+                if (fEnter)
+                    {
+                    gateExit();
+                    }
+                }
             }
         finally
             {
-            if (fEnter)
+            if (fTracing)
                 {
-                gateExit();
+                scope.close();
+                span.end();
                 }
             }
         }
@@ -1426,157 +1535,192 @@ public class Channel
     * 
     * @param message  the Message
     * 
-    * @see Peer#send
+    * @see com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer#send
      */
     public void receive(com.tangosol.net.messaging.Message message)
         {
-        // import Component.Net.Extend.Connection as Connection;
-        // import Component.Net.Extend.Message.Request$Status as com.tangosol.coherence.component.net.extend.message.Request.Status;
-        // import com.tangosol.net.messaging.ConnectionException;
-        // import com.tangosol.net.messaging.Request;
-        // import com.tangosol.net.messaging.Response;
-        // import com.tangosol.util.ClassHelper;
-        // import com.tangosol.util.LongArray;
-        
-        _assert(message != null);
-        
-        try
+        boolean fTracing = isTracingEnabled(message);
+        Span    span     = null;
+        Scope   scope    = null;
+
+        if (fTracing)
             {
-            gateEnter();
-            }
-        catch (ConnectionException e)
-            {
-            // ignore: the Channel or Connection is closed or closing
-            return;
-            }
-        try
-            {
-            if (message instanceof Request)
+            // cast is safe if block is executing
+            com.tangosol.coherence.component.net.extend.Message msgExtend =
+                    (com.tangosol.coherence.component.net.extend.Message) message;
+
+            SpanContext  ctx         = msgExtend.getTracingSpanContext();
+            Span.Builder builder     = newTracingSpan("receive", msgExtend);
+            Span         spanCurrent = TracingHelper.getActiveSpan();
+
+            if (spanCurrent != null)
                 {
-                Request request = (Request) message;
-                try
-                    {
-                    execute(message);
-                    }
-                catch (RuntimeException e)
-                    {
-                    Response response = request.ensureResponse();
-                    _assert(response != null);
-                    
-                    // see Request#isIncoming and #run
-                    if (request.getStatus() == null)
-                        {
-                        // report the exception and send it back to the peer
-                        if (_isTraceEnabled(5))
-                            {
-                            _trace("An exception occurred while processing a "
-                                    + ClassHelper.getSimpleName(message.getClass())
-                                    + " for Service="
-                                    + getConnectionManager().getServiceName()
-                                    + ": " + getStackTrace(e), 5);
-                            }
-                        }
-        
-                    response.setFailure(true);
-                    response.setResult(e);
-                    }
-        
-                Response response = request.ensureResponse();
-                _assert(response != null);
-                response.setRequestId(request.getId());
-        
-                send(response);
+                builder.setParent(spanCurrent.getContext());
                 }
-            else if (message instanceof Response)
+            else if (!TracingHelper.isNoop(ctx))
                 {
-                Response  response = (Response) message;
-                LongArray laStatus = getRequestArray();
-                long      lId      = response.getRequestId();
-        
-                com.tangosol.coherence.component.net.extend.message.Request.Status status;
-                synchronized (laStatus)
+                builder.setParent(ctx);
+                }
+
+            span  = builder.startSpan();
+            scope = TracingHelper.getTracer().withSpan(span);
+            }
+
+        try
+            {
+            _assert(message != null);
+
+            try
+                {
+                gateEnter();
+                }
+            catch (ConnectionException e)
+                {
+                // ignore: the Channel or Connection is closed or closing
+                return;
+                }
+            try
+                {
+                if (message instanceof Request)
                     {
-                    status = (com.tangosol.coherence.component.net.extend.message.Request.Status) laStatus.get(lId);
-                    }
-        
-                if (status == null)
-                    {
-                    // ignore unsolicited Responses
-                    }
-                else
-                    {
+                    Request request = (Request) message;
                     try
                         {
-                        execute(response);
-                        if (response.isFailure())
+                        execute(message);
+                        }
+                    catch (RuntimeException e)
+                        {
+                        Response response = request.ensureResponse();
+                        _assert(response != null);
+
+                        // see Request#isIncoming and #run
+                        if (request.getStatus() == null)
                             {
-                            Object oResult = response.getResult();
-        
-                            // cancel the com.tangosol.coherence.component.net.extend.message.Request.Status 
-                            if (oResult instanceof Throwable)
+                            // report the exception and send it back to the peer
+                            if (_isTraceEnabled(5))
                                 {
-                                status.cancel((Throwable) oResult);
+                                _trace("An exception occurred while processing a "
+                                       + ClassHelper.getSimpleName(message.getClass())
+                                       + " for Service="
+                                       + getConnectionManager().getServiceName()
+                                       + ": " + getStackTrace(e), 5);
+                                }
+                            }
+
+                        response.setFailure(true);
+                        response.setResult(e);
+                        }
+
+                    Response response = request.ensureResponse();
+                    _assert(response != null);
+                    response.setRequestId(request.getId());
+
+                    send(response);
+                    }
+                else if (message instanceof Response)
+                    {
+                    Response response = (Response) message;
+                    LongArray laStatus = getRequestArray();
+                    long lId = response.getRequestId();
+
+                    com.tangosol.coherence.component.net.extend.message.Request.Status status;
+                    synchronized (laStatus)
+                        {
+                        status = (com.tangosol.coherence.component.net.extend.message.Request.Status) laStatus.get(lId);
+                        }
+
+                    if (status == null)
+                        {
+                        // ignore unsolicited Responses
+                        }
+                    else
+                        {
+                        try
+                            {
+                            execute(response);
+                            if (response.isFailure())
+                                {
+                                Object oResult = response.getResult();
+
+                                // cancel the com.tangosol.coherence.component.net.extend.message.Request.Status
+                                if (oResult instanceof Throwable)
+                                    {
+                                    status.cancel((Throwable) oResult);
+                                    }
+                                else
+                                    {
+                                    status.cancel(new RuntimeException(
+                                            String.valueOf(oResult)));
+                                    }
                                 }
                             else
                                 {
-                                status.cancel(new RuntimeException(
-                                        String.valueOf(oResult)));
+                                status.setResponse(response);
                                 }
                             }
-                        else
+                        catch (Throwable e)
                             {
-                            status.setResponse(response);
-                            }
-                        }
-                    catch (Throwable e)
-                        {
-                        status.cancel(e);
-                        if (e instanceof Error)
-                            {
-                            throw (Error) e;
+                            status.cancel(e);
+                            if (e instanceof Error)
+                                {
+                                throw (Error) e;
+                                }
                             }
                         }
                     }
+                else
+                    {
+                    execute(message);
+                    }
                 }
-            else
+            catch (Throwable e)
                 {
-                execute(message);
+                if (fTracing)
+                    {
+                    TracingHelper.augmentSpanWithErrorDetails(span, true, e);
+                    }
+
+                Connection connection = (Connection) getConnection();
+
+                // see Acceptor#onServiceStopped and Initiator#onServiceStopped
+                if (!connection.isCloseOnExit() || !Thread.currentThread().isInterrupted())
+                    {
+                    _trace(e, "Caught an unhandled exception while processing a "
+                              + ClassHelper.getSimpleName(message.getClass())
+                              + " for Service=" + getConnectionManager().getServiceName());
+                    }
+
+                if (getId() == 0)
+                    {
+                    connection.setCloseOnExit(true);
+                    connection.setCloseNotify(true);
+                    connection.setCloseThrowable(e);
+                    }
+                else
+                    {
+                    setCloseOnExit(true);
+                    setCloseNotify(true);
+                    setCloseThrowable(e);
+                    }
+
+                // propagate fatal error
+                if (e instanceof Error)
+                    {
+                    throw (Error) e;
+                    }
                 }
-            }
-        catch (Throwable e)
-            {
-            Connection connection = (Connection) getConnection();
-        
-            // see Acceptor#onServiceStopped and Initiator#onServiceStopped
-            if (!connection.isCloseOnExit() || !Thread.currentThread().isInterrupted())
+            finally
                 {
-                _trace(e, "Caught an unhandled exception while processing a "
-                        + ClassHelper.getSimpleName(message.getClass())
-                        + " for Service=" + getConnectionManager().getServiceName());
-                }
-        
-            if (getId() == 0)
-                {
-                connection.setCloseOnExit(true);
-                connection.setCloseNotify(true);
-                connection.setCloseThrowable(e);
-                }
-            else
-                {
-                setCloseOnExit(true);
-                setCloseNotify(true);
-                setCloseThrowable(e);
-                }
-        
-            // propagate fatal error
-            if (e instanceof Error)
-                {
-                throw (Error) e;
+                gateExit();
                 }
             }
         finally
             {
-            gateExit();
+            if (fTracing)
+                {
+                scope.close();
+                span.end();
+                }
             }
         }
     

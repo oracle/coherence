@@ -1,0 +1,29 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.ContainsValue
+children:
+  - name: extend.ContainsValue.post
+    children:
+      - name: extend.ContainsValue.process
+        children:
+          - name: extend.ContainsValue.receive
+            children:
+              - name: extend.ContainsValue.execute
+                children:
+                  - name: cache.ContainsValue
+                    children:
+                      - name: ContainsValue.request
+                        children:
+                          - name: ContainsValue.dispatch
+                            children:
+                              - name: ContainsValue.process
+                                children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

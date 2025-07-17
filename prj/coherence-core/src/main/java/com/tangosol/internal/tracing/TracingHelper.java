@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@ import com.tangosol.net.Member;
 
 import com.tangosol.util.Base;
 
-import java.io.Serializable;
+import java.io.Closeable;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -197,6 +197,23 @@ public final class TracingHelper
         }
 
     /**
+     * When called, the given span will be made active.  This will
+     * return the started {@link Span} and it's associated {@link Scope}
+     * within a {@link SpanAndScope} instance.
+     *
+     * @param span the span to start
+     *
+     * @return the {@link SpanAndScope} containing the started {@link Span}
+     *         and it's associated {@link Scope}
+     *
+     * @since 15.1.1.0
+     */
+    public static SpanAndScope startSpan(Span span)
+        {
+        return new SpanAndScope(span, TracingHelper.getTracer().withSpan(span));
+        }
+
+    /**
      * Augments the specified {@link Span} with details related to the provided {@link Throwable}.
      *
      * @param span      the {@link Span} to augment
@@ -213,7 +230,7 @@ public final class TracingHelper
                 {
                 span.setMetadata("error", true);
                 }
-            span.log(new HashMap<String, Serializable>(5)
+            span.log(new HashMap<>(5)
                 {{
                 put("event",        "error");
                 put("error.object", t);
@@ -262,18 +279,21 @@ public final class TracingHelper
     /**
      * Return a {@link Span.Builder} for the specified stage and operation.
      *
-     * @param sStage  the stage of the operation
-     * @param op      the operation
+     * @param sStage       the stage of the operation
+     * @param op           the operation
+     * @param auxMetadata  optional metadata that may be provided
+     *                     to possibly be encoded into the new {@link Span}
      *
      * @return the {@link Span.Builder builder}
      */
     @SuppressWarnings("unused")
-    public static Span.Builder newSpan(String sStage, Object op)
+    public static Span.Builder newSpan(String sStage, Object op, Object... auxMetadata)
         {
         if (isEnabled())
             {
-            String sOpClass = null;
-            String sOpName;
+            String  sOpClass = null;
+            String  sOpName;
+            boolean fExtend = false;
 
             if (op == null)
                 {
@@ -305,6 +325,12 @@ public final class TracingHelper
                     {
                     sOpName += ('.' + sStage);
                     }
+
+                if (EXTEND_MESSAGE.isAssignableFrom(clz))
+                    {
+                    fExtend = true;
+                    sOpName = EXTEND_TRACE_PREFIX + sOpName;
+                    }
                 }
 
             Span.Builder builder = newSpan(sOpName);
@@ -315,7 +341,7 @@ public final class TracingHelper
                 }
 
             builder = builder.withMetadata("span.kind",
-                                           sStage == null || !sStage.equals("request")
+                                           (sStage == null || !sStage.equals("request")) && !fExtend
                                                ? "server"
                                                : "client");
 
@@ -466,11 +492,10 @@ public final class TracingHelper
                 {
                 return true;
                 }
-            if (!(o instanceof ConditionalSpanBuilder))
+            if (!(o instanceof ConditionalSpanBuilder that))
                 {
                 return false;
                 }
-            ConditionalSpanBuilder that = (ConditionalSpanBuilder) o;
             return m_fIgnoreActiveSpan == that.m_fIgnoreActiveSpan
                    && Base.equals(m_delegate, that.m_delegate);
             }
@@ -498,15 +523,79 @@ public final class TracingHelper
         protected Span.Builder m_delegate;
 
         /**
-         * Flag indicating if {@link #setNoParent()} ()} has been called.
+         * Flag indicating if {@link #setNoParent()} has been called.
          */
         protected boolean m_fIgnoreActiveSpan;
         }
+
+    // ----- inner class: SpanAndScope --------------------------------------
+
+    /**
+     * Simple type to encapsulate and close the given {@link Span}
+     * and {@link Scope}.
+     *
+     * @param span   the {@link Span}
+     * @param scope  the {@link Span} {@link Scope}
+     *
+     * @since 15.1.1.0
+     */
+    public record SpanAndScope(Span span, Scope scope)
+            implements Closeable
+        {
+        @Override
+        public void close()
+            {
+            if (scope != null)
+                {
+                scope.close();
+                }
+
+            if (span != null)
+                {
+                span.end();
+                }
+            }
+
+        /**
+         * Static {@code no-op} instance that may be used when tracing is
+         * not enabled.
+         */
+        public static final SpanAndScope NOOP = new SpanAndScope(null , null);
+        }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * Class reference to {@code com.tangosol.coherence.component.net.extend.Message}
+     * to check if a given message is an Extend message.
+     *
+     * @since 15.1.1.0
+     */
+    private static final Class<?> EXTEND_MESSAGE;
+    static
+        {
+        try
+            {
+            EXTEND_MESSAGE = Class.forName("com.tangosol.coherence.component.net.extend.Message");
+            }
+        catch (ClassNotFoundException e)
+            {
+            // this shouldn't be possible ...
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Prefix that will be applied to traces related to extend.
+     *
+     * @since 15.1.1.0
+     */
+    private static final String EXTEND_TRACE_PREFIX = "extend.";
 
     // ----- data members ---------------------------------------------------
 
     /**
      * Singleton no-op {@link TracingShim} instance.
      */
-    protected static TracingShim m_tracingShim = TracingShim.Noop.INSTANCE;
+    private static TracingShim m_tracingShim = TracingShim.Noop.INSTANCE;
     }

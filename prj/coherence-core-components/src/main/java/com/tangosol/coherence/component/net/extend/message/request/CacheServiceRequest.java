@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -212,6 +212,12 @@ public abstract class CacheServiceRequest
         super.readExternal(in);
         
         setCacheName(in.readString(1));
+
+        // COH-25612
+        if (getImplVersion() > 1)
+            {
+            readTracing(in, 2);
+            }
         }
     
     // Accessor for the property "CacheName"
@@ -279,5 +285,11 @@ public abstract class CacheServiceRequest
         super.writeExternal(out);
         
         out.writeString(1, getCacheName());
+
+        // COH-25612
+        if (getImplVersion() > 1)
+            {
+            writeTracing(out, 2);
+            }
         }
     }

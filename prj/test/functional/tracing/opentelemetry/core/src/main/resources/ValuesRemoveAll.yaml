@@ -1,0 +1,285 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Values
+children:
+  - name: cache.Values.RemoveAll
+    children:
+      - name: extend.Size.post
+        children:
+          - name: extend.Size.process
+            children:
+              - name: extend.Size.receive
+                children:
+                  - name: extend.Size.execute
+                    children:
+                      - name: cache.Size
+                        children:
+                          - name: Size.request
+                            children:
+                              - name: Size.dispatch
+                                children:
+                                  - name: Size.process
+                                    children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []
+      - name: extend.Query.post
+        children:
+          - name: extend.Query.process
+            children:
+              - name: extend.Query.receive
+                children:
+                  - name: extend.Query.execute
+                    children:
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                                    children: []
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                          - name: cache.FilteredKeySet.IsEmpty
+                            children: []
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                                    children: []
+                          - name: cache.FilteredKeySet.Size
+                            children: []
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                  - name: extend.PartialResponse.post
+                    children:
+                      - name: extend.PartialResponse.receive
+                        children:
+                          - name: extend.PartialResponse.execute
+                            children: []
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                                    children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                                        children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []
+      - name: extend.Query.post
+        children:
+          - name: extend.Query.process
+            children:
+              - name: extend.Query.receive
+                children:
+                  - name: extend.Query.execute
+                    children:
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                                    children: []
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                          - name: cache.FilteredKeySet.IsEmpty
+                            children: []
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                                    children: []
+                          - name: cache.FilteredKeySet.Size
+                            children: []
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.Next
+                                children: []
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                                children: []
+                  - name: extend.PartialResponse.post
+                    children:
+                      - name: extend.PartialResponse.receive
+                        children:
+                          - name: extend.PartialResponse.execute
+                            children: []
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                                    children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                                    children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                                    children: [ ]
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: [ ]
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                                    children: [ ]
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: [ ]

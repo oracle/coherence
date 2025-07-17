@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ package com.tangosol.coherence.component.net.extend.messageFactory;
 import com.tangosol.coherence.component.net.extend.RemoteNamedCache;
 import com.tangosol.coherence.component.net.extend.proxy.MapListenerProxy;
 import com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
@@ -33,6 +35,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.KeyAssociatedFilter;
 import com.tangosol.util.filter.LimitFilter;
 import com.tangosol.util.filter.PartitionedFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -469,8 +472,14 @@ public class NamedCacheFactory
             // import com.tangosol.util.InvocableMap$EntryAggregator as com.tangosol.util.InvocableMap.EntryAggregator;
             
             super.readExternal(in);
-            
+
             setAggregator((com.tangosol.util.InvocableMap.EntryAggregator) in.readObject(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -502,8 +511,14 @@ public class NamedCacheFactory
                 throws java.io.IOException
             {
             super.writeExternal(out);
-            
+
             out.writeObject(2, getAggregator());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$AggregateAllRequest$Status
@@ -824,6 +839,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setAggregator((com.tangosol.util.InvocableMap.EntryAggregator) in.readObject(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -857,6 +878,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeObject(2, getAggregator());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$AggregateFilterRequest$Status
@@ -1133,6 +1160,12 @@ public class NamedCacheFactory
                 {
                 setTruncate(in.readBoolean(1));
                 }
+
+            // COH-25612
+            if (nVersion > 11)
+                {
+                readTracing(in, 2);
+                }
             }
         
         // Accessor for the property "Truncate"
@@ -1155,6 +1188,12 @@ public class NamedCacheFactory
             if (nVersion > 5)
                 {
                 out.writeBoolean(1, isTruncate());
+                }
+
+            // COH-25612
+            if (nVersion > 11)
+                {
+                writeTracing(out, 2);
                 }
             }
 
@@ -1398,6 +1437,30 @@ public class NamedCacheFactory
             response.setResult(Boolean.valueOf(cache.keySet().containsAll(getKeySet())));
             }
 
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
+            }
+
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContainsAllRequest$Status
         
         /**
@@ -1636,6 +1699,30 @@ public class NamedCacheFactory
             _assert(cache != null);
             
             response.setResult(Boolean.valueOf(cache.containsKey(getKey())));
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContainsKeyRequest$Status
@@ -1915,6 +2002,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setValue(in.readObject(1));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
             }
         
         // Accessor for the property "Value"
@@ -1934,6 +2027,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeObject(1, getValue());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
             
             // release state
             setValue(null);
@@ -2179,6 +2278,30 @@ public class NamedCacheFactory
             response.setResult(cache.getAll(getKeySet()));
             }
 
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
+            }
+
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$GetAllRequest$Status
         
         /**
@@ -2401,7 +2524,31 @@ public class NamedCacheFactory
             {
             return TYPE_ID;
             }
-        
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
         // Declared at the super level
         /**
          * Called when the Request is run.
@@ -2769,6 +2916,12 @@ public class NamedCacheFactory
             setExtractor((ValueExtractor) in.readObject(2));
             setOrdered(in.readBoolean(3));
             setComparator((Comparator) in.readObject(4));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 5);
+                }
             }
         
         // Accessor for the property "Add"
@@ -2824,6 +2977,12 @@ public class NamedCacheFactory
             out.writeObject(2, getExtractor());
             out.writeBoolean(3, isOrdered());
             out.writeObject(4, getComparator());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 5);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$IndexRequest$Status
@@ -3144,6 +3303,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setProcessor((com.tangosol.util.InvocableMap.EntryProcessor) in.readObject(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -3153,7 +3318,7 @@ public class NamedCacheFactory
             // import com.tangosol.util.InvocableMap$EntryProcessor as com.tangosol.util.InvocableMap.EntryProcessor;
             
             com.tangosol.util.InvocableMap.EntryProcessor processor = getProcessor();
-            
+
             if (processor instanceof PriorityTask)
                 {
                 ((PriorityTask) processor).runCanceled(fAbandoned);
@@ -3175,8 +3340,14 @@ public class NamedCacheFactory
                 throws java.io.IOException
             {
             super.writeExternal(out);
-            
+
             out.writeObject(2, getProcessor());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeAllRequest$Status
@@ -3655,6 +3826,12 @@ public class NamedCacheFactory
             
             setProcessor((com.tangosol.util.InvocableMap.EntryProcessor) in.readObject(2));
             setCookie(in.readBinary(3));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 4);
+                }
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -3701,6 +3878,12 @@ public class NamedCacheFactory
             
             out.writeObject(2, getProcessor());
             out.writeBinary(3, getCookie());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 4);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeFilterRequest$Status
@@ -4020,6 +4203,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setProcessor((com.tangosol.util.InvocableMap.EntryProcessor) in.readObject(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -4053,6 +4242,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeObject(2, getProcessor());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeRequest$Status
@@ -4484,6 +4679,12 @@ public class NamedCacheFactory
                 {
                 setPriming(in.readBoolean(6));
                 }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 7);
+                }
             }
         
         // Accessor for the property "Add"
@@ -4557,6 +4758,12 @@ public class NamedCacheFactory
             if (getImplVersion() > 5)
                 {
                 out.writeBoolean(6, isPriming());
+                }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 7);
                 }
             }
 
@@ -4985,6 +5192,12 @@ public class NamedCacheFactory
                 {
                 setPriming(in.readBoolean(5));
                 }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 6);
+                }
             }
         
         // Accessor for the property "Add"
@@ -5046,6 +5259,12 @@ public class NamedCacheFactory
             if (getImplVersion() > 5)
                 {
                 out.writeBoolean(5, isPriming());
+                }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 6);
                 }
             }
 
@@ -5399,6 +5618,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setTimeoutMillis(in.readLong(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // Accessor for the property "TimeoutMillis"
@@ -5419,6 +5644,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeLong(2, getTimeoutMillis());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$LockRequest$Status
@@ -5914,6 +6145,12 @@ public class NamedCacheFactory
                 {
                 setExpired(in.readBoolean(9));
                 }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 10);
+                }
             }
         
         // Declared at the super level
@@ -6121,6 +6358,12 @@ public class NamedCacheFactory
                 {
                 out.writeBoolean(9, isExpired());
                 }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 10);
+                }
             }
         }
 
@@ -6248,6 +6491,30 @@ public class NamedCacheFactory
                 com.tangosol.util.MapEvent evtDeleted = new com.tangosol.util.MapEvent(cache, com.tangosol.util.MapEvent.ENTRY_DELETED, null, null, null);
                 // dispatch the event to the listeners, which are all synchronous (hence the null Queue)
                 com.tangosol.coherence.component.util.CacheEvent.dispatchSafe(evtDeleted, listeners, null /*Queue*/);
+                }
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 0);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 0);
                 }
             }
         }
@@ -6405,6 +6672,12 @@ public class NamedCacheFactory
                 setFilter((Filter) in.readObject(7));
                 setFilterCookie(in.readObject(8));
                 }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 9);
+                }
             }
         
         // Declared at the super level
@@ -6445,6 +6718,12 @@ public class NamedCacheFactory
                 {
                 out.writeObject(7, getFilter());
                 out.writeObject(8, getFilterCookie());
+                }
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 9);
                 }
             }
         }
@@ -6641,6 +6920,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setMap(in.readMap(1, new HashMap()));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
             }
         
         // Accessor for the property "Map"
@@ -6660,6 +6945,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeMap(1, getMap());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
             
             // release state
             setMap(null);
@@ -6905,6 +7196,30 @@ public class NamedCacheFactory
 
             response.setResult(cache.isReady());
             }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 1);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 1);
+                }
+            }
         }
 
     // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$PutRequest
@@ -7137,6 +7452,12 @@ public class NamedCacheFactory
             setValue(in.readObject(2));
             setExpiryDelay(in.readLong(3));
             setReturnRequired(in.readBoolean(4));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 5);
+                }
             }
         
         // Accessor for the property "ExpiryDelay"
@@ -7179,6 +7500,12 @@ public class NamedCacheFactory
             out.writeObject(2, getValue());
             out.writeLong(3, getExpiryDelay());
             out.writeBoolean(4, isReturnRequired());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 5);
+                }
             
             // release state
             setValue(null);
@@ -7620,7 +7947,6 @@ public class NamedCacheFactory
                     responsePartial.setFilter(filter);
                     responsePartial.setFilterCookie(oCookie);
                     }
-            
                 return;
                 }
             
@@ -7732,6 +8058,12 @@ public class NamedCacheFactory
             setKeysOnly(in.readBoolean(2));
             setCookie(in.readBinary(3));
             setFilterCookie(in.readObject(4));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 5);
+                }
             }
         
         // Accessor for the property "Cookie"
@@ -7778,6 +8110,12 @@ public class NamedCacheFactory
             out.writeBoolean(2, isKeysOnly());
             out.writeBinary(3, getCookie());
             out.writeObject(4, getFilterCookie());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 5);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$QueryRequest$Status
@@ -8018,6 +8356,30 @@ public class NamedCacheFactory
             _assert(cache != null);
             
             response.setResult(Boolean.valueOf(cache.keySet().removeAll(getKeySet())));
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$RemoveAllRequest$Status
@@ -8293,6 +8655,12 @@ public class NamedCacheFactory
             super.readExternal(in);
             
             setReturnRequired(in.readBoolean(2));
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 3);
+                }
             }
         
         // Accessor for the property "ReturnRequired"
@@ -8313,6 +8681,12 @@ public class NamedCacheFactory
             super.writeExternal(out);
             
             out.writeBoolean(2, isReturnRequired());
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 3);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$RemoveRequest$Status
@@ -8513,6 +8887,30 @@ public class NamedCacheFactory
             {
             // no-op
             }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 6);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 6);
+                }
+            }
         }
 
     // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$SizeRequest
@@ -8663,6 +9061,30 @@ public class NamedCacheFactory
             _assert(cache != null);
             
             response.setResult(Base.makeInteger(cache.size()));
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 1);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 1);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$SizeRequest$Status
@@ -8937,6 +9359,30 @@ public class NamedCacheFactory
                 }
             
             response.setResult(Boolean.valueOf(fUnlocked));
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                readTracing(in, 2);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 11)
+                {
+                writeTracing(out, 2);
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$UnlockRequest$Status

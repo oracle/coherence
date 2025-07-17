@@ -1,0 +1,29 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.KeySet
+children:
+  - name: cache.KeySet.ContainsAll
+    children:
+      - name: extend.ContainsAll.post
+        children:
+          - name: extend.ContainsAll.process
+            children:
+              - name: extend.ContainsAll.receive
+                children:
+                  - name: extend.ContainsAll.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.ContainsAll
+                            children:
+                              - name: ContainsAll.request
+                                children: []
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+                            children: []

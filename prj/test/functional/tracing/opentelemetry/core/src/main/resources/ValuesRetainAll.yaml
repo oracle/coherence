@@ -1,0 +1,264 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Values
+children:
+  - name: cache.Values.RetainAll
+    children:
+      - name: extend.Query.post
+        children:
+          - name: extend.Query.process
+            children:
+              - name: extend.Query.receive
+                children:
+                  - name: extend.Query.execute
+                    children:
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                          - name: cache.FilteredKeySet.IsEmpty
+                      - name: cache.FilteredKeySet
+                        children:
+                          - name: PartitionedQuery.request
+                            children:
+                              - name: PartitionedQuery.dispatch
+                                children:
+                                  - name: PartitionedQuery.process
+                          - name: cache.FilteredKeySet.Size
+                          - name: cache.FilteredKeySet.Iterator
+                            children:
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                              - name: cache.FilteredKeySet.Iterator.Next
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                              - name: cache.FilteredKeySet.Iterator.Next
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                              - name: cache.FilteredKeySet.Iterator.Next
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                              - name: cache.FilteredKeySet.Iterator.Next
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                              - name: cache.FilteredKeySet.Iterator.Next
+                              - name: cache.FilteredKeySet.Iterator.HasNext
+                  - name: extend.PartialResponse.post
+                    children:
+                      - name: extend.PartialResponse.receive
+                        children:
+                          - name: extend.PartialResponse.execute
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Get.post
+        children:
+          - name: extend.Get.process
+            children:
+              - name: extend.Get.receive
+                children:
+                  - name: extend.Get.execute
+                    children:
+                      - name: cache.Get
+                        children:
+                          - name: Get.request
+                            children:
+                              - name: Get.dispatch
+                                children:
+                                  - name: Get.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute
+      - name: extend.Remove.post
+        children:
+          - name: extend.Remove.process
+            children:
+              - name: extend.Remove.receive
+                children:
+                  - name: extend.Remove.execute
+                    children:
+                      - name: cache.KeySet
+                        children:
+                          - name: cache.KeySet.Remove
+                            children:
+                              - name: Remove.request
+                                children:
+                                  - name: Remove.dispatch
+                                    children:
+                                      - name: Remove.process
+                  - name: extend.Response.post
+                    children:
+                      - name: extend.Response.receive
+                        children:
+                          - name: extend.Response.execute

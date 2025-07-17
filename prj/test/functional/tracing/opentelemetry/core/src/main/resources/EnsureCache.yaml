@@ -1,0 +1,49 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: extend.EnsureCache.post
+children:
+  - name: extend.EnsureCache.process
+    children:
+      - name: extend.EnsureCache.receive
+        children:
+          - name: extend.EnsureCache.execute
+            children:
+              - name: StorageId.request
+                children:
+                  - name: StorageId.process
+                    children:
+                      - name: StorageId.request
+                        children:
+                          - name: StorageId.process
+                            children:
+                              - name: Config.request
+                                children:
+                                  - name: Config.process
+                                    children: []
+                              - name: DispatcherInterceptorEvent.process
+                                children: []
+              - name: StorageConfirm.request
+                children:
+                  - name: StorageConfirm.dispatch
+                    children: []
+              - name: extend.CreateChannel.post
+                children:
+                  - name: extend.CreateChannel.receive
+                    children:
+                      - name: extend.CreateChannel.execute
+                        children: []
+                      - name: extend.Response.post
+                        children:
+                          - name: extend.Response.receive
+                            children:
+                              - name: extend.Response.execute
+                                children: []
+          - name: extend.Response.post
+            children:
+              - name: extend.Response.receive
+                children:
+                  - name: extend.Response.execute
+                    children: []

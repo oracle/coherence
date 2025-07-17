@@ -12,6 +12,7 @@ package com.tangosol.coherence.component.util.safeService;
 
 import com.tangosol.coherence.component.net.Security;
 import com.tangosol.coherence.component.util.SafeNamedCache;
+import com.tangosol.internal.tracing.Span;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.security.SecurityHelper;
@@ -165,7 +166,15 @@ public class SafeCacheService
         {
         return __mapChildren;
         }
-    
+
+    // ----- SpanDecorator interface ----------------------------------------
+
+    @Override // @since 15.1.1.0
+    public Span.Builder decorate(Span.Builder spanBuilder)
+        {
+        return getService().decorate(spanBuilder);
+        }
+
     //++ com.tangosol.net.CacheService integration
     // Access optimization
     // properties integration

@@ -1,0 +1,33 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.KeysInvokeAll
+children:
+  - name: extend.InvokeAll.post
+    children:
+      - name: extend.InvokeAll.process
+        children:
+          - name: extend.InvokeAll.receive
+            children:
+              - name: extend.InvokeAll.execute
+                children:
+                  - name: cache.KeysInvokeAll
+                    children:
+                      - name: InvokeAll.request
+                        children:
+                          - name: InvokeAll.dispatch
+                            children:
+                              - name: InvokeJob.process
+                                children: []
+                              - name: InvokeJob.process
+                                children: []
+                              - name: InvokeJob.process
+                                children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

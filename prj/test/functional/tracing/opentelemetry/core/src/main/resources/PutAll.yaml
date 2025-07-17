@@ -1,0 +1,53 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.PutAll
+children:
+  - name: extend.PutAll.post
+    children:
+    - name: extend.PutAll.process
+      children:
+        - name: extend.PutAll.receive
+          children:
+            - name: extend.PutAll.execute
+              children:
+                - name: cache.PutAll
+                  children:
+                  - name: PutAll.request
+                    children:
+                      - name: PutAll.dispatch
+                        children:
+                          - name: PutAll.process
+                            children: []
+                  - name: PutAll.request
+                    children:
+                      - name: PutAll.dispatch
+                        children:
+                          - name: PutAll.process
+                            children: []
+                  - name: PutAll.request
+                    children:
+                      - name: PutAll.dispatch
+                        children:
+                          - name: PutAll.process
+                            children: []
+                  - name: PutAll.request
+                    children:
+                      - name: PutAll.dispatch
+                        children:
+                          - name: PutAll.process
+                            children: []
+                  - name: PutAll.request
+                    children:
+                      - name: PutAll.dispatch
+                        children:
+                          - name: PutAll.process
+                            children: []
+            - name: extend.Response.post
+              children:
+                - name: extend.Response.receive
+                  children:
+                    - name: extend.Response.execute
+                      children: []

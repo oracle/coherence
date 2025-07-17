@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.net;
 
+
+import com.tangosol.internal.tracing.SpanDecorator;
 
 import com.tangosol.io.Serializer;
 
@@ -24,7 +26,8 @@ import java.util.function.IntPredicate;
 * @since Coherence 1.1
 */
 public interface Service
-        extends com.tangosol.util.Service
+        extends com.tangosol.util.Service,
+                SpanDecorator
     {
     /**
     * Return the Cluster object that this Service is a part of.

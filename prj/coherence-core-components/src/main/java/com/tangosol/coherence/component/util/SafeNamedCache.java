@@ -13,6 +13,10 @@ package com.tangosol.coherence.component.util;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
 import com.oracle.coherence.common.base.NonBlocking;
 import com.oracle.coherence.common.base.Timeout;
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.TracingAware;
+import com.tangosol.internal.tracing.TracingHelper;
+import com.tangosol.internal.tracing.TracingHelper.SpanAndScope;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.listener.VersionAwareListeners;
 import com.tangosol.net.CacheService;
@@ -35,9 +39,11 @@ import com.tangosol.util.MapListener;
 import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MapTriggerListener;
 import com.tangosol.util.ValueExtractor;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import javax.security.auth.Subject;
@@ -296,7 +302,19 @@ public class SafeNamedCache
         }
     public void addIndex(com.tangosol.util.ValueExtractor extractor, boolean fOrdered, java.util.Comparator comparator)
         {
-        addIndex$Router(prepareExtractor(extractor), fOrdered, comparator);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.AddIndex");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            addIndex$Router(prepareExtractor(extractor), fOrdered, comparator);
+            }
         }
     private Object aggregate$Router(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
@@ -304,11 +322,21 @@ public class SafeNamedCache
         }
     public Object aggregate(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
-        // import com.tangosol.net.NamedCache;
-        
-        NamedCache cache = getNonblockingCache(agent);
-        
-        return cache == null ? aggregate$Router(filter, agent) : cache.aggregate(filter, agent);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredAggregate");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            NamedCache cache = getNonblockingCache(agent);
+
+            return cache == null ? aggregate$Router(filter, agent) : cache.aggregate(filter, agent);
+            }
         }
     private Object aggregate$Router(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
@@ -316,83 +344,331 @@ public class SafeNamedCache
         }
     public Object aggregate(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {
-        // import com.tangosol.net.NamedCache;
-        
-        NamedCache cache = getNonblockingCache(agent);
-        
-        return cache == null ? aggregate$Router(collKeys, agent) : cache.aggregate(collKeys, agent);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysAggregate");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            NamedCache cache = getNonblockingCache(agent);
+
+            return cache == null ? aggregate$Router(collKeys, agent) : cache.aggregate(collKeys, agent);
+            }
         }
     public void clear()
         {
-        getRunningNamedCache().clear();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Clear");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().clear();
+            }
+
         }
     public Object compute(Object key, com.tangosol.util.function.Remote.BiFunction function)
         {
-        return getRunningNamedCache().compute(key, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Compute");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().compute(key, function);
+            }
         }
     public Object compute(Object oKey, java.util.function.BiFunction function)
         {
-        return getRunningNamedCache().compute(oKey, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Compute");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().compute(oKey, function);
+            }
         }
     public Object computeIfAbsent(Object key, com.tangosol.util.function.Remote.Function function)
         {
-        return getRunningNamedCache().computeIfAbsent(key, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ComputeIfAbsent");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().computeIfAbsent(key, function);
+            }
         }
     public Object computeIfAbsent(Object oKey, java.util.function.Function function)
         {
-        return getRunningNamedCache().computeIfAbsent(oKey, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ComputeIfAbsent");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().computeIfAbsent(oKey, function);
+            }
         }
     public Object computeIfPresent(Object key, com.tangosol.util.function.Remote.BiFunction function)
         {
-        return getRunningNamedCache().computeIfPresent(key, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ComputeIfPresent");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().computeIfPresent(key, function);
+            }
         }
     public Object computeIfPresent(Object oKey, java.util.function.BiFunction function)
         {
-        return getRunningNamedCache().computeIfPresent(oKey, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ComputeIfPresent");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().computeIfPresent(oKey, function);
+            }
         }
     public boolean containsKey(Object oKey)
         {
-        return getRunningNamedCache().containsKey(oKey);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ContainsKey");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().containsKey(oKey);
+            }
         }
     public boolean containsValue(Object oValue)
         {
-        return getRunningNamedCache().containsValue(oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ContainsValue");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().containsValue(oValue);
+            }
         }
     public java.util.Set entrySet()
         {
-        return getRunningNamedCache().entrySet();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.EntrySet");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Set setValues = getRunningNamedCache().entrySet();
+
+            if (setValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.EntrySet", spanAndScope.span());
+                }
+
+            return setValues;
+            }
         }
     public java.util.Set entrySet(com.tangosol.util.Filter filter)
         {
-        return getRunningNamedCache().entrySet(filter);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredEntrySet");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Set setValues = getRunningNamedCache().entrySet(filter);
+
+            if (setValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.FilteredEntrySet", spanAndScope.span());
+                }
+
+            return setValues;
+            }
         }
     public java.util.Set entrySet(com.tangosol.util.Filter filter, java.util.Comparator comparator)
         {
-        return getRunningNamedCache().entrySet(filter, comparator);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredEntrySet");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Set setValues = getRunningNamedCache().entrySet(filter, comparator);
+
+            if (setValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.FilteredEntrySet", spanAndScope.span());
+                }
+
+            return setValues;
+            }
         }
     public void forEach(com.tangosol.util.Filter filter, java.util.function.BiConsumer action)
         {
-        getRunningNamedCache().forEach(filter, action);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredForEach");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().forEach(filter, action);
+            }
         }
     public void forEach(java.util.Collection collKeys, java.util.function.BiConsumer action)
         {
-        getRunningNamedCache().forEach(collKeys, action);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysForEach");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().forEach(collKeys, action);
+            }
         }
     public void forEach(java.util.function.BiConsumer consumer)
         {
-        getRunningNamedCache().forEach(consumer);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ForEach");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().forEach(consumer);
+            }
         }
     public Object get(Object oKey)
         {
-        return getRunningNamedCache().get(oKey);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Get");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().get(oKey);
+            }
         }
     public java.util.Map getAll(java.util.Collection col)
         {
-        return getRunningNamedCache().getAll(col);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.GetAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().getAll(col);
+            }
         }
     public Object getOrDefault(Object oKey, Object oValue)
         {
-        return getRunningNamedCache().getOrDefault(oKey, oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.GetOrDefault");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().getOrDefault(oKey, oValue);
+            }
         }
     private Object invoke$Router(Object oKey, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
@@ -400,11 +676,21 @@ public class SafeNamedCache
         }
     public Object invoke(Object oKey, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
-        // import com.tangosol.net.NamedCache;
-        
-        NamedCache cache = getNonblockingCache(agent);
-        
-        return cache == null ? invoke$Router(oKey, agent) : cache.invoke(oKey, agent);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Invoke");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            NamedCache cache = getNonblockingCache(agent);
+
+            return cache == null ? invoke$Router(oKey, agent) : cache.invoke(oKey, agent);
+            }
         }
     private java.util.Map invokeAll$Router(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
@@ -412,11 +698,21 @@ public class SafeNamedCache
         }
     public java.util.Map invokeAll(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
-        // import com.tangosol.net.NamedCache;
-        
-        NamedCache cache = getNonblockingCache(agent);
-        
-        return cache == null ? invokeAll$Router(filter, agent) : cache.invokeAll(filter, agent);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredInvokeAll");
+                        spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            NamedCache cache = getNonblockingCache(agent);
+
+            return cache == null ? invokeAll$Router(filter, agent) : cache.invokeAll(filter, agent);
+            }
         }
     private java.util.Map invokeAll$Router(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
@@ -424,23 +720,83 @@ public class SafeNamedCache
         }
     public java.util.Map invokeAll(java.util.Collection collKeys, com.tangosol.util.InvocableMap.EntryProcessor agent)
         {
-        // import com.tangosol.net.NamedCache;
-        
-        NamedCache cache = getNonblockingCache(agent);
-        
-        return cache == null ? invokeAll$Router(collKeys, agent) : cache.invokeAll(collKeys, agent);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysInvokeAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            NamedCache cache = getNonblockingCache(agent);
+
+            return cache == null ? invokeAll$Router(collKeys, agent) : cache.invokeAll(collKeys, agent);
+            }
         }
     public boolean isEmpty()
         {
-        return getRunningNamedCache().isEmpty();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.IsEmpty");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().isEmpty();
+            }
         }
     public java.util.Set keySet()
         {
-        return getRunningNamedCache().keySet();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeySet");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Set setKeys = getRunningNamedCache().keySet();
+
+            if (setKeys instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.KeySet", spanAndScope.span());
+                }
+
+            return setKeys;
+            }
         }
     public java.util.Set keySet(com.tangosol.util.Filter filter)
         {
-        return getRunningNamedCache().keySet(filter);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredKeySet");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Set setKeys = getRunningNamedCache().keySet(filter);
+
+            if (setKeys instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.FilteredKeySet", spanAndScope.span());
+                }
+
+            return setKeys;
+            }
         }
     public boolean lock(Object oKey)
         {
@@ -452,35 +808,131 @@ public class SafeNamedCache
         }
     public Object merge(Object key, Object value, com.tangosol.util.function.Remote.BiFunction function)
         {
-        return getRunningNamedCache().merge(key, value, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Merge");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().merge(key, value, function);
+            }
         }
     public Object merge(Object oKey, Object oValue, java.util.function.BiFunction function)
         {
-        return getRunningNamedCache().merge(oKey, oValue, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Merge");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().merge(oKey, oValue, function);
+            }
         }
     public Object put(Object oKey, Object oValue)
         {
-        return getRunningNamedCache().put(oKey, oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Put");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().put(oKey, oValue);
+            }
         }
     public Object put(Object oKey, Object oValue, long cMillis)
         {
-        return getRunningNamedCache().put(oKey, oValue, cMillis);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Put");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().put(oKey, oValue, cMillis);
+            }
         }
     public void putAll(java.util.Map map)
         {
-        getRunningNamedCache().putAll(map);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.PutAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().putAll(map);
+            }
         }
     public Object putIfAbsent(Object oKey, Object oValue)
         {
-        return getRunningNamedCache().putIfAbsent(oKey, oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.PutIfAbsent");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().putIfAbsent(oKey, oValue);
+            }
         }
     public Object remove(Object oKey)
         {
-        return getRunningNamedCache().remove(oKey);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Remove");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().remove(oKey);
+            }
         }
     public boolean remove(Object oKey, Object oValue)
         {
-        return getRunningNamedCache().remove(oKey, oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Remove");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().remove(oKey, oValue);
+            }
         }
     private void removeIndex$Router(com.tangosol.util.ValueExtractor extractor)
         {
@@ -488,63 +940,243 @@ public class SafeNamedCache
         }
     public void removeIndex(com.tangosol.util.ValueExtractor extractor)
         {
-        removeIndex$Router(prepareExtractor(extractor));
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.RemoveIndex");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            removeIndex$Router(prepareExtractor(extractor));
+            }
         }
     public Object replace(Object oKey, Object oValue)
         {
-        return getRunningNamedCache().replace(oKey, oValue);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Replace");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().replace(oKey, oValue);
+            }
         }
     public boolean replace(Object oKey, Object oValueOld, Object oValueNew)
         {
-        return getRunningNamedCache().replace(oKey, oValueOld, oValueNew);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Replace");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().replace(oKey, oValueOld, oValueNew);
+            }
         }
     public void replaceAll(com.tangosol.util.Filter filter, com.tangosol.util.function.Remote.BiFunction function)
         {
-        getRunningNamedCache().replaceAll(filter, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredReplaceAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().replaceAll(filter, function);
+            }
         }
     public void replaceAll(com.tangosol.util.function.Remote.BiFunction function)
         {
-        getRunningNamedCache().replaceAll(function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ReplaceAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().replaceAll(function);
+            }
         }
     public void replaceAll(java.util.Collection collKeys, com.tangosol.util.function.Remote.BiFunction function)
         {
-        getRunningNamedCache().replaceAll(collKeys, function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysReplaceAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().replaceAll(collKeys, function);
+            }
         }
     public void replaceAll(java.util.function.BiFunction function)
         {
-        getRunningNamedCache().replaceAll(function);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.ReplaceAll");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().replaceAll(function);
+            }
         }
     public int size()
         {
-        return getRunningNamedCache().size();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Size");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().size();
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream()
         {
-        return getRunningNamedCache().stream();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Stream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream();
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream(com.tangosol.util.Filter filter)
         {
-        return getRunningNamedCache().stream(filter);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredStream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream(filter);
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream(com.tangosol.util.Filter filter, com.tangosol.util.ValueExtractor extractor)
         {
-        return getRunningNamedCache().stream(filter, extractor);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredStream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream(filter, extractor);
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream(com.tangosol.util.ValueExtractor extractor)
         {
-        return getRunningNamedCache().stream(extractor);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Stream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream(extractor);
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream(java.util.Collection collKeys)
         {
-        return getRunningNamedCache().stream(collKeys);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysStream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream(collKeys);
+            }
         }
     public com.tangosol.util.stream.RemoteStream stream(java.util.Collection collKeys, com.tangosol.util.ValueExtractor extractor)
         {
-        return getRunningNamedCache().stream(collKeys, extractor);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.KeysStream");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            return getRunningNamedCache().stream(collKeys, extractor);
+            }
         }
     public void truncate()
         {
-        getRunningNamedCache().truncate();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Truncate");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            getRunningNamedCache().truncate();
+            }
         }
     public boolean unlock(Object oKey)
         {
@@ -552,20 +1184,78 @@ public class SafeNamedCache
         }
     public java.util.Collection values()
         {
-        return getRunningNamedCache().values();
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.Values");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Collection colValues = getRunningNamedCache().values();
+
+            if (colValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.Values", spanAndScope.span());
+                }
+
+            return colValues;
+            }
         }
     public java.util.Collection values(com.tangosol.util.Filter filter)
         {
-        return getRunningNamedCache().values(filter);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredValues");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Collection colValues = getRunningNamedCache().values(filter);
+
+            if (colValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.FilteredValues", spanAndScope.span());
+                }
+
+            return colValues;
+            }
         }
     public java.util.Collection values(com.tangosol.util.Filter filter, java.util.Comparator comparator)
         {
-        return getRunningNamedCache().values(filter, comparator);
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
+            {
+            Span.Builder builder      = newTracingSpan("cache.FilteredValues");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
+            }
+
+        try (final SpanAndScope sas = spanAndScope)
+            {
+            Collection colValues = getRunningNamedCache().values(filter, comparator);
+
+            if (colValues instanceof TracingAware tracingAware)
+                {
+                tracingAware.setParentSpan("cache.FilteredValues", spanAndScope.span());
+                }
+
+            return colValues;
+            }
         }
     //-- com.tangosol.net.NamedCache integration
     
     // From interface: com.tangosol.net.NamedCache
-    public void addMapListener(com.tangosol.util.MapListener listener)
+    public void
+    addMapListener(com.tangosol.util.MapListener listener)
         {
         // import com.tangosol.util.Filter;
         
@@ -575,67 +1265,74 @@ public class SafeNamedCache
     // From interface: com.tangosol.net.NamedCache
     public void addMapListener(com.tangosol.util.MapListener listener, com.tangosol.util.Filter filter, boolean fLite)
         {
-        // import com.tangosol.internal.util.listener.VersionAwareListeners;
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.partition.VersionAwareMapListener;
-        // import com.tangosol.util.MapListenerSupport;
-        // import com.tangosol.util.MapListenerSupport$SynchronousListener as com.tangosol.util.MapListenerSupport.SynchronousListener;
-        // import com.tangosol.util.MapTriggerListener;
-        
-        if (listener == this)
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
             {
-            NamedCache cache = getRunningNamedCache();
-            try
-                {
-                cache.addMapListener(listener, filter, fLite);
-                }
-            catch (RuntimeException e)
-                {
-                if (cache != null && cache.isActive() &&
-                        cache.getCacheService().isRunning())
-                    {
-                    throw e;
-                    }
-                // NamedCache has been invalidated
-                }
+            Span.Builder builder      = newTracingSpan(filter == null
+                                                           ? "cache.AddMapListener"
+                                                           : "cache.AddFilteredMapListener");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
             }
-        else if (listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener ||
-                 listener instanceof MapTriggerListener)
+
+        try (final SpanAndScope sas = spanAndScope)
             {
-            getRunningNamedCache().addMapListener(listener, filter, fLite);
-            }
-        else if (listener != null)
-            {
-            MapListenerSupport support = getListenerSupport();    
-        
-            boolean fRegister = false;
-            synchronized (support)
+            if (listener == this)
                 {
-                listener = VersionAwareListeners.createListener(listener);
-        
-                fRegister = support.addListenerWithCheck(listener, filter, fLite);
-                }
-        
-            if (fRegister)
-                {
+                NamedCache cache = getRunningNamedCache();
                 try
                     {
-                    if (listener.isVersionAware())
-                        {
-                        getTloListenerVersions().set(
-                            ((VersionAwareMapListener) listener).getVersions());
-                        }
-        
-                    addMapListener(this, filter, fLite);
+                    cache.addMapListener(listener, filter, fLite);
                     }
                 catch (RuntimeException e)
                     {
-                    getListenerSupport().removeListener(listener, filter);
-                    throw e;
+                    if (cache != null && cache.isActive() &&
+                        cache.getCacheService().isRunning())
+                        {
+                        throw e;
+                        }
+                    // NamedCache has been invalidated
                     }
-                finally
+                }
+            else if (listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener ||
+                     listener instanceof MapTriggerListener)
+                {
+                getRunningNamedCache().addMapListener(listener, filter, fLite);
+                }
+            else if (listener != null)
+                {
+                MapListenerSupport support = getListenerSupport();
+
+                boolean fRegister = false;
+                synchronized (support)
                     {
-                    getTloListenerVersions().remove();
+                    listener = VersionAwareListeners.createListener(listener);
+
+                    fRegister = support.addListenerWithCheck(listener, filter, fLite);
+                    }
+
+                if (fRegister)
+                    {
+                    try
+                        {
+                        if (listener.isVersionAware())
+                            {
+                            getTloListenerVersions().set(
+                                    ((VersionAwareMapListener) listener).getVersions());
+                            }
+
+                        addMapListener(this, filter, fLite);
+                        }
+                    catch (RuntimeException e)
+                        {
+                        getListenerSupport().removeListener(listener, filter);
+                        throw e;
+                        }
+                    finally
+                        {
+                        getTloListenerVersions().remove();
+                        }
                     }
                 }
             }
@@ -644,71 +1341,78 @@ public class SafeNamedCache
     // From interface: com.tangosol.net.NamedCache
     public void addMapListener(com.tangosol.util.MapListener listener, Object oKey, boolean fLite)
         {
-        // import com.tangosol.internal.util.listener.VersionAwareListeners;
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.net.partition.VersionAwareMapListener;
-        // import com.tangosol.util.MapListenerSupport;
-        // import com.tangosol.util.MapListenerSupport$SynchronousListener as com.tangosol.util.MapListenerSupport.SynchronousListener;
-        
-        if (listener == this)
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
             {
-            NamedCache cache = getRunningNamedCache();
-            try
-                {
-                cache.addMapListener(listener, oKey, fLite);
-                }
-            catch (RuntimeException e)
-                {
-                if (cache != null && cache.isActive() &&
-                        cache.getCacheService().isRunning())
-                    {
-                    throw e;
-                    }
-                // NamedCache has been invalidated
-                }
+            Span.Builder builder      = newTracingSpan("cache.AddKeyMapListener");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
             }
-        else if (listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener)
+
+        try (final SpanAndScope sas = spanAndScope)
             {
-            getRunningNamedCache().addMapListener(listener, oKey, fLite);
-            }
-        else if (listener != null)
-            {
-            MapListenerSupport support = getListenerSupport();
-        
-            boolean fRegister = false;
-            synchronized (support)
+
+            if (listener == this)
                 {
-                listener = VersionAwareListeners.createListener(listener);
-        
-                fRegister = support.addListenerWithCheck(listener, oKey, fLite);
-                }
-        
-            if (fRegister)
-                {
+                NamedCache cache = getRunningNamedCache();
                 try
                     {
-                    if (listener.isVersionAware())
-                        {
-                        getTloListenerVersions().set(
-                            ((VersionAwareMapListener) listener).getVersions());
-                        }
-                    addMapListener(this, oKey, fLite);
+                    cache.addMapListener(listener, oKey, fLite);
                     }
                 catch (RuntimeException e)
                     {
-                    getListenerSupport().removeListener(listener, oKey);
-                    throw e;
-                    }
-                finally
-                    {
-                    getTloListenerVersions().remove();
+                    if (cache != null && cache.isActive() &&
+                        cache.getCacheService().isRunning())
+                        {
+                        throw e;
+                        }
+                    // NamedCache has been invalidated
                     }
                 }
-            // TODO hraja: if a listener is already registered that 'covers' this
-            //      key we need to consider where lVersion is:
-            //        -2) replay all MapEvents on the server
-            //        -1) current version and all future mapevents (priming)
-            //         0) plain register
+            else if (listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener)
+                {
+                getRunningNamedCache().addMapListener(listener, oKey, fLite);
+                }
+            else if (listener != null)
+                {
+                MapListenerSupport support = getListenerSupport();
+
+                boolean fRegister = false;
+                synchronized (support)
+                    {
+                    listener = VersionAwareListeners.createListener(listener);
+
+                    fRegister = support.addListenerWithCheck(listener, oKey, fLite);
+                    }
+
+                if (fRegister)
+                    {
+                    try
+                        {
+                        if (listener.isVersionAware())
+                            {
+                            getTloListenerVersions().set(
+                                    ((VersionAwareMapListener) listener).getVersions());
+                            }
+                        addMapListener(this, oKey, fLite);
+                        }
+                    catch (RuntimeException e)
+                        {
+                        getListenerSupport().removeListener(listener, oKey);
+                        throw e;
+                        }
+                    finally
+                        {
+                        getTloListenerVersions().remove();
+                        }
+                    }
+                // TODO hraja: if a listener is already registered that 'covers' this
+                //      key we need to consider where lVersion is:
+                //        -2) replay all MapEvents on the server
+                //        -1) current version and all future mapevents (priming)
+                //         0) plain register
+                }
             }
         }
     
@@ -758,25 +1462,35 @@ public class SafeNamedCache
     // From interface: com.tangosol.net.NamedCache
     public void destroy()
         {
-        // import Component.Util.SafeService.SafeCacheService;
-        
-        SafeCacheService safeservice = getSafeCacheService();
-        SafeCluster      safecluster = safeservice.getSafeCluster();
-        
-        releaseListeners();
-        
-        safeservice.destroyCache(this);
-        
-        ensureGlobalLock();
-        try
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
             {
-            setDestroyed(true);
-            setReleased(true);
-            setInternalNamedCache(null);
+            Span.Builder builder      = newTracingSpan("cache.Destroy");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
             }
-        finally
+
+        try (final SpanAndScope sas = spanAndScope)
             {
-            unlockGlobal();
+            SafeCacheService safeservice = getSafeCacheService();
+            SafeCluster      safecluster = safeservice.getSafeCluster();
+
+            releaseListeners();
+
+            safeservice.destroyCache(this);
+
+            ensureGlobalLock();
+            try
+                {
+                setDestroyed(true);
+                setReleased(true);
+                setInternalNamedCache(null);
+                }
+            finally
+                {
+                unlockGlobal();
+                }
             }
         }
     
@@ -1457,46 +2171,54 @@ public class SafeNamedCache
     public void removeMapListener(com.tangosol.util.MapListener listener)
         {
         // import com.tangosol.util.Filter;
-        
+
         removeMapListener(listener, (Filter) null);
         }
     
     // From interface: com.tangosol.net.NamedCache
     public void removeMapListener(com.tangosol.util.MapListener listener, com.tangosol.util.Filter filter)
         {
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.util.MapListener;
-        // import com.tangosol.util.MapListenerSupport;
-        // import com.tangosol.util.MapListenerSupport$SynchronousListener as com.tangosol.util.MapListenerSupport.SynchronousListener;
-        // import com.tangosol.util.MapTriggerListener;
-        
-        if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener ||
-                                listener instanceof MapTriggerListener)
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
             {
-            NamedCache cache = getInternalNamedCache();
-            try
-                {
-                cache.removeMapListener(listener, filter);
-                }
-            catch (RuntimeException e)
-                {
-                if (cache != null && cache.isActive() &&
-                        cache.getCacheService().isRunning())
-                    {
-                    throw e;
-                    }
-                // NamedCache has been invalidated
-                }
+            Span.Builder builder      = newTracingSpan(filter == null
+                                                           ? "cache.RemoveMapListener"
+                                                           : "cache.RemoveFilteredMapListener");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
             }
-        else if (listener != null)
+
+        try (final SpanAndScope sas = spanAndScope)
             {
-            MapListenerSupport support = getListenerSupport();
-        
-            boolean fUnregister = support.removeListenerWithCheck(listener, filter);
-            
-            if (fUnregister)
+            if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener ||
+                listener instanceof MapTriggerListener)
                 {
-                removeMapListener(this, filter);
+                NamedCache cache = getInternalNamedCache();
+                try
+                    {
+                    cache.removeMapListener(listener, filter);
+                    }
+                catch (RuntimeException e)
+                    {
+                    if (cache != null && cache.isActive() &&
+                        cache.getCacheService().isRunning())
+                        {
+                        throw e;
+                        }
+                    // NamedCache has been invalidated
+                    }
+                }
+            else if (listener != null)
+                {
+                MapListenerSupport support = getListenerSupport();
+
+                boolean fUnregister = support.removeListenerWithCheck(listener, filter);
+
+                if (fUnregister)
+                    {
+                    removeMapListener(this, filter);
+                    }
                 }
             }
         }
@@ -1504,37 +2226,44 @@ public class SafeNamedCache
     // From interface: com.tangosol.net.NamedCache
     public void removeMapListener(com.tangosol.util.MapListener listener, Object oKey)
         {
-        // import com.tangosol.net.NamedCache;
-        // import com.tangosol.util.MapListener;
-        // import com.tangosol.util.MapListenerSupport;
-        // import com.tangosol.util.MapListenerSupport$SynchronousListener as com.tangosol.util.MapListenerSupport.SynchronousListener;
-        
-        if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener)
+        boolean      fTracing     = TracingHelper.isEnabled();
+        SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+        if (fTracing)
             {
-            NamedCache cache = getInternalNamedCache();
-            try
-                {
-                cache.removeMapListener(listener, oKey);
-                }
-            catch (RuntimeException e)
-                {
-                if (cache != null && cache.isActive() &&
-                        cache.getCacheService().isRunning())
-                    {
-                    throw e;
-                    }
-                // NamedCache has been invalidated
-                }
+            Span.Builder builder      = newTracingSpan("cache.RemoveKeyMapListener");
+                         spanAndScope = TracingHelper.startSpan(builder.startSpan());
             }
-        else if (listener != null)
+
+        try (final SpanAndScope sas = spanAndScope)
             {
-            MapListenerSupport support = getListenerSupport();
-        
-            boolean fUnregister = support.removeListenerWithCheck(listener, oKey);
-            
-            if (fUnregister)
+            if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener)
                 {
-                removeMapListener(this, oKey);
+                NamedCache cache = getInternalNamedCache();
+                try
+                    {
+                    cache.removeMapListener(listener, oKey);
+                    }
+                catch (RuntimeException e)
+                    {
+                    if (cache != null && cache.isActive() &&
+                        cache.getCacheService().isRunning())
+                        {
+                        throw e;
+                        }
+                    // NamedCache has been invalidated
+                    }
+                }
+            else if (listener != null)
+                {
+                MapListenerSupport support = getListenerSupport();
+
+                boolean fUnregister = support.removeListenerWithCheck(listener, oKey);
+
+                if (fUnregister)
+                    {
+                    removeMapListener(this, oKey);
+                    }
                 }
             }
         }
@@ -2084,5 +2813,28 @@ public class SafeNamedCache
             {
             ((SafeNamedCache) get_Module()).unlock();
             }
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Creates a new {@link Span.Builder} to create spans for
+     * {@code SafeNamedCache}.
+     *
+     * @param sOp  the tracing operation
+     *
+     * @return a new {@link Span.Builder}
+     *
+     * @since 15.1.1.0
+     */
+    protected Span.Builder newTracingSpan(String sOp)
+        {
+        CacheService service     = getCacheService();
+        Span.Builder bldSpan     = TracingHelper.newSpan(sOp, null)
+                .withMetadata(Span.Type.COMPONENT.key(), service.getInfo().getServiceName())
+                .withMetadata("span.kind", "client")
+                .withMetadata("cache.name", getCacheName());
+
+        return service.decorate(bldSpan);
         }
     }

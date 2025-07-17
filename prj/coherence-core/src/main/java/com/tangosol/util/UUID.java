@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.NotActiveException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 import java.net.InetAddress;
+
 import java.util.Random;
 
 
@@ -452,7 +454,20 @@ public final class UUID
     */
     public String toString()
         {
-        return toHexEscape(toByteArray());
+        String sToString = m_sToString;
+        if (sToString == null)
+            {
+            synchronized (this)
+                {
+                sToString = m_sToString;
+                if (m_sToString == null)
+                    {
+                    m_sToString = sToString = toHexEscape(toByteArray());
+                    }
+                }
+            }
+
+        return sToString;
         }
 
     /**
@@ -999,4 +1014,11 @@ public final class UUID
     * Cache the hash. Only zero pending deserialization or generation.
     */
     private transient volatile int m_nHash;
+
+    /**
+     * Cached result of calling {@link #toString()}.
+     *
+     * @since 15.1.1.0
+     */
+    private transient volatile String m_sToString;
     }

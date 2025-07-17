@@ -272,13 +272,13 @@
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
     <mockito.version>5.17.0</mockito.version>
     <bytebuddy.version>1.17.5</bytebuddy.version>
-    <mock.server.version>5.15.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
     <testcontainers.version>1.21.0</testcontainers.version>
 
     <!-- commercial test dependency versions -->
     <jol.version>0.17</jol.version>
+    <wiremock.version>3.13.1</wiremock.version>
   </properties>
 
   <dependencyManagement>
@@ -827,23 +827,13 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
         <version>${mockito.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
-	  <dependency>
-        <groupId>org.mock-server</groupId>
-        <artifactId>mockserver-netty-no-dependencies</artifactId>
-        <version>${mock.server.version}</version>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-junit-jupiter</artifactId>
+        <version>${mockito.version}</version>
+        <scope>test</scope>
       </dependency>
-
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-core</artifactId>
@@ -921,6 +911,13 @@
         <artifactId>parsson-media</artifactId>
         <version>${parsson-media.version}</version>
       </dependency>
+
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock</artifactId>
+        <version>${wiremock.version}</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 

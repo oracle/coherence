@@ -1,0 +1,47 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: extend.Index.post
+children:
+  - name: extend.Index.process
+    children:
+      - name: extend.Index.receive
+        children:
+          - name: extend.Index.execute
+            children:
+              - name: Index.request
+                children:
+                  - name: Index.dispatch
+                    children:
+                      - name: UpdateIndex.request
+                        children:
+                          - name: UpdateIndex.dispatch
+                            children:
+                              - name: UpdateIndex.process
+                                children: []
+                      - name: UpdateIndex.request
+                        children:
+                          - name: UpdateIndex.dispatch
+                            children:
+                              - name: UpdateIndex.process
+                                children: []
+                      - name: UpdateIndex.request
+                        children:
+                          - name: UpdateIndex.dispatch
+                            children:
+                              - name: UpdateIndex.process
+                                children: []
+                      - name: UpdateIndex.request
+                        children:
+                          - name: UpdateIndex.dispatch
+                            children:
+                              - name: UpdateIndex.process
+                                children: []
+          - name: extend.Response.post
+            children:
+              - name: extend.Response.receive
+                children:
+                  - name: extend.Response.execute
+                    children: []

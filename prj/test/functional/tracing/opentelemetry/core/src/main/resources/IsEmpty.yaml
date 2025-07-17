@@ -1,0 +1,29 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.IsEmpty
+children:
+  - name: extend.Size.post
+    children:
+      - name: extend.Size.process
+        children:
+          - name: extend.Size.receive
+            children:
+              - name: extend.Size.execute
+                children:
+                  - name: cache.Size
+                    children:
+                      - name: Size.request
+                        children:
+                          - name: Size.dispatch
+                            children:
+                              - name: Size.process
+                                children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []

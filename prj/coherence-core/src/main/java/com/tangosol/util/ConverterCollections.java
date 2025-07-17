@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,12 @@ import com.oracle.coherence.common.base.Holder;
 import com.oracle.coherence.common.base.NaturalHasher;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+
+import com.tangosol.internal.tracing.Span;
+import com.tangosol.internal.tracing.TracingAware;
+import com.tangosol.internal.tracing.TracingHelper;
+import com.tangosol.internal.tracing.TracingHelper.SpanAndScope;
+
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.io.Serializer;
@@ -671,7 +677,27 @@ public abstract class ConverterCollections
         return (from) -> converter2.convert(converter1.convert(from));
         }
 
+    // ----- helper methods -------------------------------------------------
 
+    /**
+     * Constructs a new {@link Span.Builder} for use with the various
+     * converter collection types.
+     *
+     * @param sName       the parent span name
+     * @param spanParent  the parent {@link Span}
+     * @param sOp         the converter collection operation
+     *
+     * @return a new {@link Span.Builder}
+     *
+     * @since 15.1.1.0
+     */
+    protected static Span.Builder newSpan(String sName, Span spanParent, String sOp)
+        {
+        Span.Builder bldSpan = TracingHelper.newSpan(sName + '.' + sOp);
+
+        return bldSpan.withMetadata("span.kind", "client")
+                       .setParent(spanParent);
+        }
 
     // ----- inner class: ConverterEnumerator -------------------------------
 
@@ -684,7 +710,7 @@ public abstract class ConverterCollections
      *
      */
     public static class ConverterEnumerator<F, T>
-            implements Enumeration<T>, Iterator<T>
+            implements Enumeration<T>, Iterator<T>, TracingAware
         {
         // ----- constructors -----------------------------------------------
 
@@ -738,6 +764,14 @@ public abstract class ConverterCollections
             this(Arrays.<F> asList((F[]) aoItem).iterator(), conv);
             }
 
+        // ----- TraceAware interface ---------------------------------------
+
+        @Override
+        public void setParentSpan(String sSpanName, Span spanParent)
+            {
+            m_sSpanName  = sSpanName;
+            m_spanParent = spanParent;
+            }
 
         // ----- Enumeration interface --------------------------------------
 
@@ -771,7 +805,19 @@ public abstract class ConverterCollections
          */
         public boolean hasNext()
             {
-            return m_iter.hasNext();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "HasNext");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return m_iter.hasNext();
+                }
             }
 
         /**
@@ -781,7 +827,19 @@ public abstract class ConverterCollections
          */
         public T next()
             {
-            return m_conv.convert(m_iter.next());
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Next");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return m_conv.convert(m_iter.next());
+                }
             }
 
         /**
@@ -789,7 +847,19 @@ public abstract class ConverterCollections
          */
         public void remove()
             {
-            m_iter.remove();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Remove");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                m_iter.remove();
+                }
             }
 
 
@@ -804,6 +874,16 @@ public abstract class ConverterCollections
          * Converter to convert each item.
          */
         protected Converter<F, T> m_conv;
+
+        /**
+         * The parent {@link Span}, if any.
+         */
+        protected Span m_spanParent;
+
+        /**
+         * The name of the parent {@link Span}.
+         */
+        protected String m_sSpanName;
         }
 
     // ----- inner class: ConverterCollection -------------------------------
@@ -817,7 +897,7 @@ public abstract class ConverterCollections
      *
      */
     public static class ConverterCollection<F, T>
-            implements Collection<T>, Serializable
+            implements Collection<T>, Serializable, TracingAware
         {
         // ----- constructors -----------------------------------------------
 
@@ -837,6 +917,14 @@ public abstract class ConverterCollections
             m_convDown = convDown;
             }
 
+        // ----- TracingAware -----------------------------------------------
+
+        @Override
+        public void setParentSpan(String sSpanName, Span spanParent)
+            {
+            m_sSpanName  = sSpanName;
+            m_spanParent = spanParent;
+            }
 
         // ----- Collection interface ---------------------------------------
 
@@ -846,7 +934,19 @@ public abstract class ConverterCollections
         @Override
         public int size()
             {
-            return getCollection().size();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Size");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getCollection().size();
+                }
             }
 
         /**
@@ -855,7 +955,19 @@ public abstract class ConverterCollections
         @Override
         public boolean isEmpty()
             {
-            return getCollection().isEmpty();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "IsEmpty");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getCollection().isEmpty();
+                }
             }
 
         /**
@@ -865,21 +977,33 @@ public abstract class ConverterCollections
         @Override
         public boolean contains(Object o)
             {
-            Converter<T, F> converterDown = getConverterDown();
-            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
                 {
-                for (F value : getCollection())
-                    {
-                    if (Objects.equals(o, getConverterUp().convert(value)))
-                        {
-                        return true;
-                        }
-                    }
-                return false;
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Contains");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
                 }
-            else
+
+            try (SpanAndScope ss = spanAndScope)
                 {
-                return getCollection().contains(converterDown.convert((T) o));
+                Converter<T, F> converterDown = getConverterDown();
+                if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                    {
+                    for (F value : getCollection())
+                        {
+                        if (Objects.equals(o, getConverterUp().convert(value)))
+                            {
+                            return true;
+                            }
+                        }
+                    return false;
+                    }
+                else
+                    {
+                    return getCollection().contains(converterDown.convert((T) o));
+                    }
                 }
             }
 
@@ -889,8 +1013,26 @@ public abstract class ConverterCollections
         @Override
         public Iterator<T> iterator()
             {
-            return instantiateIterator(getCollection().iterator(),
-                    getConverterUp());
+            Span         spanParent    = m_spanParent;
+            SpanAndScope spanAndScope  = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan       = newSpan(m_sSpanName, spanParent, "Iterator");
+                             spanAndScope  = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                Iterator<T> iterator = instantiateIterator(getCollection().iterator(), getConverterUp());
+
+                if (iterator instanceof TracingAware tracingAware)
+                    {
+                    tracingAware.setParentSpan(m_sSpanName + ".Iterator", ss.span());
+                    }
+
+                return iterator;
+                }
             }
 
         /**
@@ -930,7 +1072,19 @@ public abstract class ConverterCollections
         @Override
         public boolean remove(Object o)
             {
-            return getCollection().remove(getConverterDown().convert((T) o));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Remove");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getCollection().remove(getConverterDown().convert((T) o));
+                }
             }
 
         /**
@@ -940,24 +1094,36 @@ public abstract class ConverterCollections
         @Override
         public boolean containsAll(Collection<?> col)
             {
-            Converter<T, F> converterDown = getConverterDown();
-            if (converterDown == NullImplementation.NullConverter.INSTANCE)
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
                 {
-                for (Object oValue : col)
-                    {
-                    if (!contains(oValue))
-                        {
-                        return false;
-                        }
-                    }
-                return true;
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "ContainsAll");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
                 }
-            else
+
+            try (SpanAndScope ss = spanAndScope)
                 {
-                return getCollection().containsAll(
-                        instantiateCollection((Collection<T>) col,
-                                              getConverterDown(),
-                                              getConverterUp()));
+                Converter<T, F> converterDown = getConverterDown();
+                if (converterDown == NullImplementation.NullConverter.INSTANCE)
+                    {
+                    for (Object oValue : col)
+                        {
+                        if (!contains(oValue))
+                            {
+                            return false;
+                            }
+                        }
+                    return true;
+                    }
+                else
+                    {
+                    return getCollection().containsAll(
+                            instantiateCollection((Collection<T>) col,
+                                                  getConverterDown(),
+                                                  getConverterUp()));
+                    }
                 }
             }
 
@@ -981,10 +1147,23 @@ public abstract class ConverterCollections
         @Override
         public boolean removeAll(Collection<?> col)
             {
-            return getCollection().removeAll(
-                    instantiateCollection((Collection<T>) col,
-                    getConverterDown(),
-                    getConverterUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan = newSpan(m_sSpanName, spanParent, "RemoveAll");
+                spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getCollection().removeAll(
+                        instantiateCollection((Collection<T>) col,
+                        getConverterDown(),
+                        getConverterUp()));
+                }
+
             }
 
         /**
@@ -994,10 +1173,22 @@ public abstract class ConverterCollections
         @Override
         public boolean retainAll(Collection<?> col)
             {
-            return getCollection().retainAll(
-                    instantiateCollection((Collection<T>) col,
-                    getConverterDown(),
-                    getConverterUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan = newSpan(m_sSpanName, spanParent, "RetainAll");
+                spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getCollection().retainAll(
+                        instantiateCollection((Collection<T>) col,
+                        getConverterDown(),
+                        getConverterUp()));
+                }
             }
 
         /**
@@ -1006,7 +1197,19 @@ public abstract class ConverterCollections
         @Override
         public void clear()
             {
-            getCollection().clear();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan = newSpan(m_sSpanName, spanParent, "Clear");
+                spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                getCollection().clear();
+                }
             }
 
 
@@ -1073,9 +1276,11 @@ public abstract class ConverterCollections
          */
         public void invalidate()
             {
-            m_col      = null;
-            m_convUp   = null;
-            m_convDown = null;
+            m_col        = null;
+            m_convUp     = null;
+            m_convDown   = null;
+            m_spanParent = null;
+            m_sSpanName  = null;
             }
 
 
@@ -1166,6 +1371,20 @@ public abstract class ConverterCollections
          * The Converter from this Collection to the underlying Collection.
          */
         protected Converter<T, F> m_convDown;
+
+        /**
+         * The parent {@link Span}, if any.
+         *
+         * @since 15.1.1.0
+         */
+        protected Span m_spanParent;
+
+        /**
+         * The name of the parent {@link Span}.
+         *
+         * @since 15.1.1.0
+         */
+        protected String m_sSpanName;
         }
 
 
@@ -3471,7 +3690,7 @@ public abstract class ConverterCollections
      * @param <TV> the type that the values should be converted to
      */
     public static class ConverterEntrySet<FK, TK, FV, TV>
-            implements Set<Map.Entry<TK, TV>>, Serializable
+            implements Set<Map.Entry<TK, TV>>, Serializable, TracingAware
         {
         // ----- constructors -----------------------------------------------
 
@@ -3501,6 +3720,14 @@ public abstract class ConverterCollections
             m_convValDown = convValDown;
             }
 
+        // ----- TracingAware interface -------------------------------------
+
+        @Override
+        public void setParentSpan(String sSpanName, Span spanParent)
+            {
+            m_sSpanName  = sSpanName;
+            m_spanParent = spanParent;
+            }
 
         // ----- Set interface ----------------------------------------------
 
@@ -3510,7 +3737,19 @@ public abstract class ConverterCollections
         @Override
         public int size()
             {
-            return getEntrySet().size();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Size");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().size();
+                }
             }
 
         /**
@@ -3519,7 +3758,19 @@ public abstract class ConverterCollections
         @Override
         public boolean isEmpty()
             {
-            return getEntrySet().isEmpty();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "IsEmpty");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().isEmpty();
+                }
             }
 
         /**
@@ -3529,11 +3780,23 @@ public abstract class ConverterCollections
         @Override
         public boolean contains(Object o)
             {
-            return getEntrySet().contains(
-                    new ConverterCollections.ConverterEntry<TK, FK, TV, FV>((Map.Entry<TK, TV>) o,
-                            getConverterKeyDown(),
-                            getConverterValueDown(),
-                            getConverterValueUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Contains");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().contains(
+                        new ConverterCollections.ConverterEntry<>((Map.Entry<TK, TV>) o,
+                                getConverterKeyDown(),
+                                getConverterValueDown(),
+                                getConverterValueUp()));
+                }
             }
 
         /**
@@ -3542,7 +3805,26 @@ public abstract class ConverterCollections
         @Override
         public Iterator<Map.Entry<TK, TV>> iterator()
             {
-            return wrapIterator(getEntrySet().iterator());
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Iterator");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                Iterator iterator = wrapIterator(getEntrySet().iterator());
+
+                if (iterator instanceof TracingAware tracingAware)
+                    {
+                    tracingAware.setParentSpan(m_sSpanName + ".Iterator", ss.span());
+                    }
+
+                return iterator;
+                }
             }
 
         /**
@@ -3610,11 +3892,23 @@ public abstract class ConverterCollections
         @Override
         public boolean remove(Object o)
             {
-            Map.Entry<TK, TV> entry = (Map.Entry<TK, TV>) o;
-            return getEntrySet().remove(
-                    new AbstractMap.SimpleEntry<FK, FV>(
-                    getConverterKeyDown().convert(entry.getKey()),
-                    getConverterValueDown().convert(entry.getValue())));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Remove");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                Map.Entry<TK, TV> entry = (Map.Entry<TK, TV>) o;
+                return getEntrySet().remove(
+                        new AbstractMap.SimpleEntry<>(
+                                getConverterKeyDown().convert(entry.getKey()),
+                                getConverterValueDown().convert(entry.getValue())));
+                }
             }
 
         /**
@@ -3624,9 +3918,21 @@ public abstract class ConverterCollections
         @Override
         public boolean containsAll(Collection<?> col)
             {
-            return getEntrySet().containsAll(
-                    instantiateEntrySet((Collection<Entry<TK, TV>>) col, getConverterKeyDown(),
-                            getConverterKeyUp(), getConverterValueDown(), getConverterValueUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "ContainsAll");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().containsAll(
+                        instantiateEntrySet((Collection<Entry<TK, TV>>) col, getConverterKeyDown(),
+                                            getConverterKeyUp(), getConverterValueDown(), getConverterValueUp()));
+                }
             }
 
         /**
@@ -3645,10 +3951,22 @@ public abstract class ConverterCollections
         @Override
         public boolean removeAll(Collection<?> col)
             {
-            return getEntrySet().removeAll(
-                    instantiateEntrySet((Collection<Entry<TK, TV>>) col,
-                            getConverterKeyDown(), getConverterKeyUp(),
-                            getConverterValueDown(), getConverterValueUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "RemoveAll");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().removeAll(
+                        instantiateEntrySet((Collection<Entry<TK, TV>>) col,
+                                            getConverterKeyDown(), getConverterKeyUp(),
+                                            getConverterValueDown(), getConverterValueUp()));
+                }
             }
 
         /**
@@ -3658,12 +3976,24 @@ public abstract class ConverterCollections
         @Override
         public boolean retainAll(Collection<?> col)
             {
-            return getEntrySet().retainAll(
-                    instantiateEntrySet((Collection<Entry<TK, TV>>) col,
-                    getConverterKeyDown(),
-                    getConverterKeyUp(),
-                    getConverterValueDown(),
-                    getConverterValueUp()));
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "RemoveAll");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                return getEntrySet().retainAll(
+                        instantiateEntrySet((Collection<Entry<TK, TV>>) col,
+                                            getConverterKeyDown(),
+                                            getConverterKeyUp(),
+                                            getConverterValueDown(),
+                                            getConverterValueUp()));
+                }
             }
 
         /**
@@ -3672,7 +4002,19 @@ public abstract class ConverterCollections
         @Override
         public void clear()
             {
-            getEntrySet().clear();
+            Span         spanParent   = m_spanParent;
+            SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+            if (!TracingHelper.isNoop(spanParent))
+                {
+                Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Clear");
+                             spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                }
+
+            try (SpanAndScope ss = spanAndScope)
+                {
+                getEntrySet().clear();
+                }
             }
 
 
@@ -3872,20 +4214,28 @@ public abstract class ConverterCollections
          * A Map Entry Iterator that converts the key and value types.
          */
         protected class ConverterIterator
-                implements Iterator<Map.Entry<TK, TV>>
+                implements Iterator<Map.Entry<TK, TV>>, TracingAware
             {
             // ----- constructors -------------------------------------------
 
             /**
              * Constructor.
              *
-             * @param iter  the Iterator to wrap
+             * @param iter the Iterator to wrap
              */
             public ConverterIterator(Iterator<Map.Entry<FK, FV>> iter)
                 {
                 m_iter = iter;
                 }
 
+            // ----- TraceAware interface ---------------------------------------
+
+            @Override
+            public void setParentSpan(String sSpanName, Span spanParent)
+                {
+                m_sSpanName  = sSpanName;
+                m_spanParent = spanParent;
+                }
 
             // ----- Iterator interface -------------------------------------
 
@@ -3895,7 +4245,19 @@ public abstract class ConverterCollections
             @Override
             public boolean hasNext()
                 {
-                return getIterator().hasNext();
+                Span         spanParent   = m_spanParent;
+                SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+                if (!TracingHelper.isNoop(spanParent))
+                    {
+                    Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "HasNext");
+                                 spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                    }
+
+                try (SpanAndScope ss = spanAndScope)
+                    {
+                    return getIterator().hasNext();
+                    }
                 }
 
             /**
@@ -3904,7 +4266,19 @@ public abstract class ConverterCollections
             @Override
             public Map.Entry<TK, TV> next()
                 {
-                return wrapEntry(getIterator().next());
+                Span spanParent = m_spanParent;
+                SpanAndScope spanAndScope = SpanAndScope.NOOP;
+
+                if (!TracingHelper.isNoop(spanParent))
+                    {
+                    Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Next");
+                                 spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                    }
+
+                try (SpanAndScope ss = spanAndScope)
+                    {
+                    return wrapEntry(getIterator().next());
+                    }
                 }
 
             /**
@@ -3913,17 +4287,28 @@ public abstract class ConverterCollections
             @Override
             public void remove()
                 {
-                getIterator().remove();
-                }
+                Span spanParent = m_spanParent;
+                SpanAndScope spanAndScope = SpanAndScope.NOOP;
 
+                if (!TracingHelper.isNoop(spanParent))
+                    {
+                    Span.Builder bldSpan      = newSpan(m_sSpanName, spanParent, "Remove");
+                                 spanAndScope = TracingHelper.startSpan(bldSpan.startSpan());
+                    }
+
+                try (SpanAndScope ss = spanAndScope)
+                    {
+                    getIterator().remove();
+                    }
+                }
 
             // ----- accessors ----------------------------------------------
 
             /**
-            * Return the underlying Iterator.
-            *
-            * @return the underlying Iterator
-            */
+             * Return the underlying Iterator.
+             *
+             * @return the underlying Iterator
+             */
             public Iterator<Map.Entry<FK, FV>> getIterator()
                 {
                 return m_iter;
@@ -3936,6 +4321,20 @@ public abstract class ConverterCollections
              * The underlying Iterator.
              */
             protected final Iterator<Map.Entry<FK, FV>> m_iter;
+
+            /**
+             * The parent {@link Span}, if any.
+             *
+             * @since 15.1.1.0
+             */
+            protected Span m_spanParent;
+
+            /**
+             * The name of the parent {@link Span}.
+             *
+             * @since 15.1.1.0
+             */
+            protected String m_sSpanName;
             }
 
 
@@ -4021,6 +4420,20 @@ public abstract class ConverterCollections
          * The Converter used to pass values down to the Entry Set.
          */
         protected final Converter<TV, FV> m_convValDown;
+
+        /**
+         * The parent {@link Span}, if any.
+         *
+         * @since 15.1.1.0
+         */
+        protected Span m_spanParent;
+
+        /**
+         * The name of the parent {@link Span}.
+         *
+         * @since 15.1.1.0
+         */
+        protected String m_sSpanName;
         }
 
 

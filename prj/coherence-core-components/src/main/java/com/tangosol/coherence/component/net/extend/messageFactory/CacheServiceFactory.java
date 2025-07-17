@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,10 +14,13 @@ import com.tangosol.coherence.component.net.extend.protocol.NamedCacheProtocol;
 import com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Service;
 import com.tangosol.net.messaging.ConnectionManager;
+import java.io.IOException;
 import java.net.URI;
 
 /**
@@ -755,6 +758,30 @@ public class CacheServiceFactory
         public int getTypeId()
             {
             return TYPE_ID;
+            }
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            super.readExternal(in);
+
+            // COH-25612
+            if (getImplVersion() > 1)
+                {
+                readTracing(in, 6);
+                }
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            super.writeExternal(out);
+
+            // COH-25612
+            if (getImplVersion() > 1)
+                {
+                writeTracing(out, 6);
+                }
             }
         
         // Declared at the super level

@@ -27,6 +27,8 @@ import com.tangosol.io.WrapperBufferOutput;
 import com.tangosol.io.WrapperDataInputStream;
 import com.tangosol.io.WrapperDataOutputStream;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
 import com.tangosol.license.LicenseException;
 import com.tangosol.net.Guardian;
 import com.tangosol.net.Member;
@@ -3782,6 +3784,30 @@ public abstract class Peer
                 __m_Subject = subject;
                 }
 
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
+                }
+
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$AcceptChannel$Status
             
             /**
@@ -4212,6 +4238,12 @@ public abstract class Peer
                 
                 setChannelId(in.readInt(1));
                 setIdentityToken(in.readByteArray(2));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 3);
+                    }
                 }
             
             // Accessor for the property "ChannelId"
@@ -4300,6 +4332,12 @@ public abstract class Peer
                 
                 out.writeInt(1, getChannelId());
                 out.writeByteArray(2, getIdentityToken());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 3);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$AcceptChannelRequest$Status
@@ -4488,7 +4526,31 @@ public abstract class Peer
                 {
                 return this.get_Parent().get_Parent();
                 }
-            
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 6);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 6);
+                    }
+                }
+
             // Declared at the super level
             public int getTypeId()
                 {
@@ -4783,6 +4845,30 @@ public abstract class Peer
             public void setNotify(boolean fNotify)
                 {
                 __m_Notify = fNotify;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CloseChannel$Status
@@ -5112,6 +5198,30 @@ public abstract class Peer
             public void setNotify(boolean fNotify)
                 {
                 __m_Notify = fNotify;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CloseConnection$Status
@@ -5487,6 +5597,30 @@ public abstract class Peer
                 __m_Receiver = receiver;
                 }
 
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
+                }
+
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CreateChannel$Status
             
             /**
@@ -5741,6 +5875,30 @@ public abstract class Peer
                 {
                 __m_ReadBuffer = rb;
                 }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 0);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 0);
+                    }
+                }
             }
 
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$NotifyChannelClosed
@@ -5899,6 +6057,12 @@ public abstract class Peer
                 
                 setChannelId(in.readInt(0));
                 setCause((Throwable) in.readObject(1));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 2);
+                    }
                 }
             
             // Declared at the super level
@@ -5948,6 +6112,12 @@ public abstract class Peer
                 
                 out.writeInt(0, getChannelId());
                 out.writeObject(1, getCause());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 2);
+                    }
                 }
             }
 
@@ -6078,6 +6248,12 @@ public abstract class Peer
                 super.readExternal(in);
                 
                 setCause((Throwable) in.readObject(0));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
                 }
             
             // Declared at the super level
@@ -6112,6 +6288,12 @@ public abstract class Peer
                 super.writeExternal(out);
                 
                 out.writeObject(0, getCause());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
             }
 
@@ -6221,6 +6403,30 @@ public abstract class Peer
             public int getTypeId()
                 {
                 return TYPE_ID;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 0);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 0);
+                    }
                 }
             
             // Declared at the super level
@@ -6342,6 +6548,30 @@ public abstract class Peer
             public int getTypeId()
                 {
                 return TYPE_ID;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 0);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 0);
+                    }
                 }
             
             // Declared at the super level
@@ -6606,6 +6836,30 @@ public abstract class Peer
             public int getTypeId()
                 {
                 return TYPE_ID;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
             
             // Declared at the super level
@@ -7156,6 +7410,12 @@ public abstract class Peer
                 setProtocolName(in.readString(1));
                 setReceiverName(in.readString(2));
                 setIdentityToken(in.readByteArray(3));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 4);
+                    }
                 }
             
             // Accessor for the property "IdentityToken"
@@ -7242,6 +7502,12 @@ public abstract class Peer
                 out.writeString(1, getProtocolName());
                 out.writeString(2, getReceiverName());
                 out.writeByteArray(3, getIdentityToken());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 4);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenChannelRequest$Status
@@ -7435,6 +7701,30 @@ public abstract class Peer
             public int getTypeId()
                 {
                 return TYPE_ID;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 6);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 6);
+                    }
                 }
             
             // Declared at the super level
@@ -7678,6 +7968,30 @@ public abstract class Peer
             public void setSubject(javax.security.auth.Subject subject)
                 {
                 __m_Subject = subject;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenConnection$Status
@@ -8116,6 +8430,12 @@ public abstract class Peer
                 setMember((Member) in.readObject(5));
                 setClusterName(in.readString(6));
                 setServiceName(in.readString(7));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 8);
+                    }
                 }
             
             // Accessor for the property "ClientId"
@@ -8223,6 +8543,12 @@ public abstract class Peer
                 out.writeObject(5, getMember());
                 out.writeString(6, getClusterName());
                 out.writeString(7, getServiceName());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 8);
+                    }
                 }
 
             // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenConnectionRequest$Status
@@ -8426,6 +8752,12 @@ public abstract class Peer
                 super.readExternal(in);
                 
                 setProtocolVersionMap(in.readMap(6, null));
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 7);
+                    }
                 }
             
             // Accessor for the property "ProtocolVersionMap"
@@ -8447,6 +8779,12 @@ public abstract class Peer
                 super.writeExternal(out);
                 
                 out.writeMap(6, getProtocolVersionMap());
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 7);
+                    }
                 }
             }
 
@@ -8580,6 +8918,30 @@ public abstract class Peer
             public int getTypeId()
                 {
                 return TYPE_ID;
+                }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 1);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 1);
+                    }
                 }
             
             // Declared at the super level
@@ -8801,6 +9163,30 @@ public abstract class Peer
                 {
                 return TYPE_ID;
                 }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 6);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 6);
+                    }
+                }
             
             // Declared at the super level
             public void run()
@@ -8917,6 +9303,30 @@ public abstract class Peer
                 {
                 return TYPE_ID;
                 }
+
+            @Override
+            public void readExternal(PofReader in) throws IOException
+                {
+                super.readExternal(in);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    readTracing(in, 6);
+                    }
+                }
+
+            @Override
+            public void writeExternal(PofWriter out) throws IOException
+                {
+                super.writeExternal(out);
+
+                // COH-25612
+                if (getImplVersion() > 3)
+                    {
+                    writeTracing(out, 6);
+                    }
+                }
             
             // Declared at the super level
             public void run()
@@ -8973,7 +9383,7 @@ public abstract class Peer
             // state initialization: public and protected properties
             try
                 {
-                setVersionCurrent(3);
+                setVersionCurrent(4);
                 setVersionSupported(2);
                 }
             catch (java.lang.Exception e)

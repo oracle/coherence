@@ -1,0 +1,51 @@
+# Copyright (c) 2025, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+
+name: cache.Destroy
+children:
+  - name: extend.CloseChannel.post
+    children:
+      - name: extend.CloseChannel.receive
+        children:
+          - name: extend.CloseChannel.execute
+            children:
+              - name: extend.NotifyChannelClosed.post
+                children:
+                  - name: extend.NotifyChannelClosed.receive
+                    children:
+                      - name: extend.NotifyChannelClosed.execute
+                        children:
+                          - name: cache.RemoveMapListener
+                            children: []
+          - name: extend.Response.post
+            children:
+              - name: extend.Response.receive
+                children:
+                  - name: extend.Response.execute
+                    children: []
+  - name: extend.DestroyCache.post
+    children:
+      - name: extend.DestroyCache.process
+        children:
+          - name: extend.DestroyCache.receive
+            children:
+              - name: extend.DestroyCache.execute
+                children:
+                  - name: cache.Destroy
+                    children:
+                      - name: StorageId.request
+                        children:
+                          - name: StorageId.process
+                            children:
+                              - name: Config.request
+                                children:
+                                  - name: Config.process
+                                    children: []
+              - name: extend.Response.post
+                children:
+                  - name: extend.Response.receive
+                    children:
+                      - name: extend.Response.execute
+                        children: []
