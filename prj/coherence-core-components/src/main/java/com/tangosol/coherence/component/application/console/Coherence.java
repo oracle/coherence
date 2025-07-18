@@ -116,6 +116,9 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.MemoryUsage;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -142,6 +145,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
@@ -4748,6 +4752,12 @@ public class Coherence
         String sOsVersion      = System.getProperty("os.version");
         String sOsArchitecture = System.getProperty("os.arch");
 
+        String sProcessors     = String.valueOf(Runtime.getRuntime().availableProcessors());
+
+        MemoryUsage memUsage   = Optional.ofNullable(ManagementFactory.getMemoryMXBean())
+                .map(MemoryMXBean::getHeapMemoryUsage)
+                .orElse(null);
+
         StringBuilder sb = new StringBuilder("\n\n");
 
         sb.append("java.version: " + sJavaVersion).append('\n')
@@ -4766,11 +4776,19 @@ public class Coherence
           .append("Java Virtual Machine:").append('\n')
           .append("- java.vm.name: " + sVmName).append('\n')
           .append("- java.vm.vendor: " + sVmVendor).append('\n')
-          .append("- java.vm.version: " + sVmVersion).append('\n')
+          .append("- java.vm.version: " + sVmVersion).append('\n');
 
-          .append("Java Runtime Environment:").append('\n')
+        if (memUsage != null)
+            {
+            sb.append("Java Heap Size:").append('\n')
+              .append("- Xms (min): ").append(Base.toMemorySizeString(memUsage.getInit())).append('\n')
+              .append("- Xmx (max): ").append(Base.toMemorySizeString(memUsage.getMax())).append('\n');
+            }
+
+          sb.append("Java Runtime Environment:").append('\n')
           .append("- java.runtime.name: " + sRtName).append('\n')
           .append("- java.runtime.version: " + sRtVersion).append('\n')
+          .append("- available processors: ").append(sProcessors).append('\n')
 
           .append("Operating System:").append('\n')
           .append("- os.name: " + sOsName).append('\n')
