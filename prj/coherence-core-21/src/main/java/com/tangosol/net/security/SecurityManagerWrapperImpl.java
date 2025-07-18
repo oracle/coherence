@@ -77,7 +77,7 @@ public class SecurityManagerWrapperImpl
                 }
 
             Subject subject = getCurrentSubject();
-            return AccessController.doPrivileged((PrivilegedAction<T>) () ->
+            return AccessController.doPrivileged((PrivilegedExceptionAction<T>) () ->
                     Subject.callAs(subject, action::run));
             }
         return action.run();
