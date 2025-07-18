@@ -9,17 +9,21 @@ package com.oracle.bedrock.runtime.coherence;
 
 import com.oracle.bedrock.OptionsByType;
 
+import com.oracle.bedrock.runtime.MetaClass;
 import com.oracle.bedrock.runtime.Platform;
 
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.LocalJavaApplicationLauncher;
 import com.oracle.bedrock.runtime.java.LocalProcessBuilder;
 
+import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
 
 import com.oracle.bedrock.runtime.options.Executable;
 
 import com.oracle.bedrock.table.Table;
+
+import java.util.Arrays;
 
 /**
  * A specialized Java application launcher for launching a native image.
@@ -36,6 +40,18 @@ public class LocalNativeImageLauncher<A extends JavaApplication>
         {
         }
 
+
+//    @Override
+//    public A launch(Platform      platform,
+//                    MetaClass<A> metaClass,
+//                    OptionsByType optionsByType) {
+//    Arrays.stream(optionsByType.asArray()).forEach(System.out::println);
+//
+//    System.out.println("CLASS=" + optionsByType.get(ClassName.class).getName());
+//
+//    return super.launch(platform, metaClass, optionsByType);
+//    }
+
     @Override
     protected String getJavaExecutableName(JavaHome javaHome, Executable executable, Table diagnosticsTable)
         {
@@ -45,13 +61,6 @@ public class LocalNativeImageLauncher<A extends JavaApplication>
     @Override
     protected void processClasspath(Platform platform, OptionsByType optionsByType, OptionsByType launchOptions,
             LocalProcessBuilder processBuilder, Table diagnosticsTable)
-        {
-        // Nothing to do for native images
-        }
-
-    @Override
-    protected void processApplicationLauncherClassName(LocalProcessBuilder processBuilder, OptionsByType launchOptions,
-            Table diagnosticsTable)
         {
         // Nothing to do for native images
         }

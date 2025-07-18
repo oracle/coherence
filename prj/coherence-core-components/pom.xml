@@ -42,6 +42,11 @@
       <scope>provided</scope>
     </dependency>
 
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>graal-sdk</artifactId>
+    </dependency>
+
     <!-- JCA -->
     <dependency>
       <groupId>jakarta.resource</groupId>

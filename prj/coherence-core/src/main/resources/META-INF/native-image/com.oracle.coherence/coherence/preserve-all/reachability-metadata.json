@@ -1,0 +1,254 @@
+{
+  "reflection": [
+    {
+      "type": "boolean[]"
+    },
+    {
+      "type": "byte[]",
+      "serializable": true
+    },
+    {
+      "type": "char[]"
+    },
+    {
+      "type": "javax.management.ImmutableDescriptor",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanAttributeInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanAttributeInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanConstructorInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanFeatureInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanNotificationInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanNotificationInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanOperationInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanOperationInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanParameterInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanParameterInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanServerBuilder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "javax.management.ObjectName",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.StandardEmitterMBean"
+    },
+    {
+      "type": "javax.management.openmbean.ArrayType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.CompositeData"
+    },
+    {
+      "type": "javax.management.openmbean.CompositeDataSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.CompositeData[]"
+    },
+    {
+      "type": "javax.management.openmbean.CompositeType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.OpenMBeanAttributeInfoSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.OpenMBeanOperationInfoSupport"
+    },
+    {
+      "type": "javax.management.openmbean.OpenType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.SimpleType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.TabularData"
+    },
+    {
+      "type": "javax.management.openmbean.TabularDataSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.TabularType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.remote.JMXServiceURL",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServer"
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServerImpl_Skel"
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServerImpl_Stub",
+      "serializable": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.rmi.server.RemoteRef"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "jdk.management.VirtualThreadSchedulerMXBean"
+    },
+    {
+      "type": "jdk.management.jfr.ConfigurationInfo"
+    },
+    {
+      "type": "jdk.management.jfr.EventTypeInfo"
+    },
+    {
+      "type": "jdk.management.jfr.FlightRecorderMXBean"
+    },
+    {
+      "type": "jdk.management.jfr.FlightRecorderMXBeanImpl"
+    },
+    {
+      "type": "jdk.management.jfr.RecordingInfo"
+    },
+    {
+      "type": "jdk.management.jfr.SettingDescriptorInfo"
+    },
+    {
+      "type": "long[]"
+    },
+    {
+      "type": "oracle.dms.context.DMSContextManager"
+    },
+    {
+      "type": "short[]"
+    },
+    {
+      "type": "sun.management.ClassLoadingImpl"
+    },
+    {
+      "type": "sun.management.CompilationImpl"
+    },
+    {
+      "type": "sun.management.LazyCompositeData",
+      "serializable": true
+    },
+    {
+      "type": "sun.management.ManagementFactoryHelper$1"
+    },
+    {
+      "type": "sun.management.ManagementFactoryHelper$PlatformLoggingImpl"
+    },
+    {
+      "type": "sun.management.MemoryImpl"
+    },
+    {
+      "type": "sun.management.MemoryManagerImpl"
+    },
+    {
+      "type": "sun.management.MemoryPoolImpl"
+    },
+    {
+      "type": "sun.management.RuntimeImpl"
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    },
+    {
+      "type": "sun.rmi.transport.DGCImpl_Skel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.rmi.transport.DGCImpl_Stub",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.rmi.server.RemoteRef"
+          ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+  ]
+}

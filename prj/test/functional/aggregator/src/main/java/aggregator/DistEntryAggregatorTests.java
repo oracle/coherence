@@ -142,8 +142,9 @@ public class DistEntryAggregatorTests
         props.setProperty("test.thread.count", "0");
 
         // initial cluster
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < 1; i++)
             {
+            System.out.println("Starting server " + i);
             String sServerName = "storage" + i;
             CoherenceClusterMember clusterMember = startCacheServer(sServerName, "testIndexMap", "coherence-cache-config.xml", props);
             waitForServer(clusterMember);

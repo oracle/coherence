@@ -512,6 +512,32 @@
       </properties>
     </profile>
 
+    <!-- native image creation -->
+    <profile>
+      <id>native</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <mainClass>${mainClass}</mainClass>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>copyright</id>
       <activation>
@@ -1166,7 +1192,7 @@
 
     <repository>
       <id>snapshots-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
       <releases>
         <enabled>false</enabled>
       </releases>
@@ -1216,7 +1242,7 @@
     <!-- required for custom Moditect plugin -->
     <pluginRepository>
       <id>snapshots-repo</id>
-      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <url>https://central.sonatype.com/repository/maven-snapshots</url>
       <releases>
         <enabled>false</enabled>
       </releases>

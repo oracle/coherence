@@ -888,10 +888,7 @@ public abstract class AbstractTestInfrastructure
             optionsByType.add(ClassPath.of(sClassPath));
             }
 
-        String[] defaultJvmOpts = new String[] { "-server",
-                "-XX:+HeapDumpOnOutOfMemoryError",
-                "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
-                "-XX:+ExitOnOutOfMemoryError" };
+        String[] defaultJvmOpts = new String[0];
 
         Freeforms jvmOptions = System.getProperty("test.jvm.options") != null
                 ? new Freeforms(new Freeform(defaultJvmOpts),
