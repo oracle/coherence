@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -207,20 +207,43 @@ public class AbstractMetricsFunctionalTest extends AbstractFunctionalTest
     // Must be public - used in Eventually.assertThat()
     public long getCacheMetric(int port, String metricName, Map<String, String> tags) throws Exception
         {
+        return getCacheMetric(port, metricName, tags, false);
+        }
+    /**
+     * Scrapes prometheus end point for value of metric value having
+     * metric tag <code>name</code> of <code>cacheName</code>.
+     *
+     * @param port       prometheus end point port
+     * @param metricName prometheus metric name
+     * @param tags       only match metric with these tag name/values.
+     * @param aggregate  iff true aggregate value over multiple metric instances
+     *
+     * @return long value of metric
+     *
+     * @throws Exception if the request fails
+     */
+    // Must be public - used in Eventually.assertThat()
+    public long getCacheMetric(int port, String metricName, Map<String, String> tags, boolean aggregate) throws Exception
+        {
         List<Map<String, Object>> list = getMetrics(port, metricName, tags);
 
-        if (list.size() > 0)
+        if (!aggregate && !list.isEmpty())
             {
-            Map<String, Object> map    = list.get(0);
-            Object              oValue = map.get("value");
-
-            if (oValue instanceof Number)
-                {
-                return ((Number) oValue).longValue();
-                }
+            list.subList(1, list.size()).clear();
             }
 
-        return -1;
+        boolean metricFound = false;
+        long value = 0;
+        for(Map<String, Object> map : list)
+            {
+            Object oValue = map.get("value");
+            if (oValue instanceof Number)
+                {
+                value += ((Number) oValue).longValue();
+                metricFound = true;
+                }
+            }
+        return metricFound ? value : -1;
         }
 
     // ----- data members ---------------------------------------------------
