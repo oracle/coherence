@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package metrics;
@@ -285,10 +285,10 @@ public class ExtendMetricsTests
                 Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, tags), is(100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 currentMetric = "Coherence.Connection.TotalMessagesSent";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 currentMetric = "Coherence.Connection.TotalMessagesReceived";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 validateMetricRegistry();
                 }
@@ -415,6 +415,24 @@ public class ExtendMetricsTests
      */
     private long getCacheMetric(String metric, Map<String, String> tags, boolean debug) throws Exception
         {
+        return getCacheMetric(metric, tags, debug, false);
+        }
+
+    /**
+     * Sum <code>metric</code> value for cache <code>cacheName</code> across
+     * all cache servers in the cluster.
+     *
+     * @param metric     the Prometheus metric
+     * @param tags       tag name and value to require for match
+     * @param debug      iff true log debug message
+     * @param aggregate  iff true aggregate value over multiple metric instances
+     * @return           cluster wide metric value
+     *
+     * @throws IOException if the request fails
+     */
+    // Must be public - used in Eventually.assertThat
+    public long getCacheMetric(String metric, Map<String, String> tags, boolean debug, boolean aggregate) throws Exception
+        {
         long result = 0L;
         for (int port : cacheServerMetricsPorts)
             {
@@ -422,7 +440,7 @@ public class ExtendMetricsTests
                 {
                 continue;
                 }
-            long partialResult = getCacheMetric(port, metric, tags);
+            long partialResult = getCacheMetric(port, metric, tags, aggregate);
             if (debug)
                 {
                 System.out.println("Metric " + metric + " tags.name=" + tags.get("name") + "partial value=" + partialResult + " from port " + port);
