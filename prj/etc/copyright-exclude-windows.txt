@@ -1,6 +1,9 @@
 coherence-grpc-proxy\src\test\proto\route_guide.proto
 coherence-grpc-proxy\src\test\java\com\oracle\coherence\grpc\proxy\routeguide\
+coherence-grpc\docs\
 coherence-http-netty\src\main\java\com\tangosol\coherence\http\netty\NettyInputStream.java
+coherence-hnsw\src\main\cpp\bindings.cpp
+coherence-hnsw\src\main\cpp\hnswlib\
 coherence-javadoc\src\main\javadoc\resources\
 coherence-json\src\main\java\com\oracle\coherence\io\json\genson\
 coherence-json\src\test\java\com\oracle\coherence\io\json\genson\
