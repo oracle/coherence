@@ -186,6 +186,8 @@
     grpc.version ???
     This is not always possible if we need to bump versions for CVE's
     -->
+    <!-- Force use of a higher version of gson to get CVE fixes -->
+    <gson.version>2.13.1</gson.version>
     <helidon.version>2.6.11</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
@@ -404,6 +406,13 @@
         <version>${helidon.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- gson -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
       </dependency>
 
       <!-- jackson -->
