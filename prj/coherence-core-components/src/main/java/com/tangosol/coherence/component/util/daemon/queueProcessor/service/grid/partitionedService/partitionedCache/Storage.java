@@ -9986,7 +9986,10 @@ public class Storage
                     Binary binKey   = (Binary) entry.getKey();
                     Binary binValue = (Binary) entry.getValue();
 
-                    store.store(lCacheId, binKey, binValue, oToken);
+                    store.store(lCacheId,
+                                binKey,
+                                mapCCM == null ? binValue : ExternalizableHelper.encodeExpiry(binValue, ((ConfigurableCacheMap.Entry) entry).getExpiryMillis()),
+                                oToken);
                     }
                 }
             else
@@ -9999,7 +10002,10 @@ public class Storage
                     Binary binKey   = (Binary) iterKeys.next();
                     Binary binValue = (Binary) mapResource.get(binKey);
 
-                    store.store(lCacheId, binKey, binValue, oToken);
+                    store.store(lCacheId,
+                                binKey,
+                                mapCCM == null ? binValue : ExternalizableHelper.encodeExpiry(binValue, mapCCM.getCacheEntry(binKey).getExpiryMillis()),
+                                oToken);
                     }
                 }
             }
