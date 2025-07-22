@@ -247,10 +247,10 @@
     <hamcrest-2.version>3.0</hamcrest-2.version>
     <junit.version>4.13.2</junit.version>
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
-    <mockito.version>5.17.0</mockito.version>
+    <mockito.version>5.18.0</mockito.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>6.0.4</oracle.bedrock.version>
-    <testcontainers.version>1.21.0</testcontainers.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
     <jol.version>0.17</jol.version>
