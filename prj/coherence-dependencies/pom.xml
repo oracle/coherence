@@ -273,7 +273,7 @@
     <junit.version>4.13.2</junit.version>
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
     <mockito.version>5.18.0</mockito.version>
-    <bytebuddy.version>1.17.5</bytebuddy.version>
+    <bytebuddy.version>1.17.6</bytebuddy.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
     <testcontainers.version>1.21.3</testcontainers.version>
