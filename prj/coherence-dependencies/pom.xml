@@ -197,7 +197,7 @@
 
     <helidon.sitegen.version>2.3.7</helidon.sitegen.version>
     <hsqldb.version>2.7.4</hsqldb.version>
-    <groovy.version>4.0.26</groovy.version>
+    <groovy.version>4.0.27</groovy.version>
     <jackson.version>2.19.0</jackson.version>
     <jackson.databind.version>2.19.0</jackson.databind.version>
     <jacoco.version>0.8.13</jacoco.version>
@@ -265,12 +265,12 @@
     <hamcrest-2.version>3.0</hamcrest-2.version>
     <junit.version>4.13.2</junit.version>
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
-    <mockito.version>5.17.0</mockito.version>
+    <mockito.version>5.18.0</mockito.version>
     <bytebuddy.version>1.17.5</bytebuddy.version>
     <mock.server.version>5.15.0</mock.server.version>
     <objenesis.version>2.2</objenesis.version>
     <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
-    <testcontainers.version>1.21.0</testcontainers.version>
+    <testcontainers.version>1.21.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
     <jol.version>0.17</jol.version>
