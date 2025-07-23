@@ -154,7 +154,7 @@
     <eclipselink.version>3.0.4</eclipselink.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon microprofile -->
     <eclipse.mp.metrics.version>5.1.2</eclipse.mp.metrics.version>
-    <fastutil.version>8.5.14</fastutil.version>
+    <fastutil.version>8.5.16</fastutil.version>
     <felix.version>6.0.4</felix.version>
     <glassfish.el.version>4.0.2</glassfish.el.version>
     <google-error-prone.version>2.3.3</google-error-prone.version>
