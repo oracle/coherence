@@ -761,7 +761,7 @@ public abstract class AbstractSimplePersistenceTests
                 {
                 Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
-                startCacheServer(sServer + "-" +  i     , getProjectName(), getCacheConfigPath(), props);
+                startCacheServer(sServer + "-" + i      , getProjectName(), getCacheConfigPath(), props);
                 startCacheServer(sServer + "-" + (i + 1), getProjectName(), getCacheConfigPath(), props);
 
                 Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
