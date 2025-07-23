@@ -183,6 +183,13 @@
         <version>${opentracing.jaeger.version}</version>
       </dependency>
 
+      <!-- gson -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
+      </dependency>
+
       <!-- oui -->
       <dependency>
         <groupId>com.oracle.cie</groupId>
@@ -716,6 +723,8 @@
     <com.oracle.ipc.version>12.1.4-150528</com.oracle.ipc.version>
     <felix.version>6.0.3</felix.version>
     <graal.version>19.1.1</graal.version>
+    <!-- Force use of a higher version of gson to get CVE fixes -->
+    <gson.version>2.13.1</gson.version>
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
     <jackson.version>2.15.0</jackson.version>
     <jackson.databind.version>2.15.0</jackson.databind.version>
