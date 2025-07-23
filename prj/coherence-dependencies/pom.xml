@@ -171,7 +171,7 @@
     typically matching the patch component of the GraalVM image tag above (ie. 21.0.4 => 23.1.4)
     -->
     <graalvm.version>24.2.1</graalvm.version>
-    <grpc.version>1.65.1</grpc.version>
+    <grpc.version>1.73.0</grpc.version>
     <!--
     This is a workaround for the fact that newer versions of the gRPC ProtoBuf compiler do not work on
     Oracle Linux 7 so the builds fail in RQ and Jenkins.
@@ -179,7 +179,7 @@
     are stuck on this version.
     This is only used for gRPC code generation at build time, it is not a runtime dependency.
      -->
-    <grpc.protoc.version>1.62.2</grpc.protoc.version>
+    <grpc.protoc.version>1.73.0</grpc.protoc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
