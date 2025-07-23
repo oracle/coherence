@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
@@ -36,7 +36,8 @@
       <service-name>DistributedCachePersistence</service-name>
       <thread-count-min system-property="test.threads">0</thread-count-min>
       <backing-map-scheme>
-        <transient>{transient false}</transient>
+        <partitioned system-property="test.partitioned.backingmap">false</partitioned>
+          <transient>{transient false}</transient>
         <local-scheme/>
       </backing-map-scheme>
       <persistence>

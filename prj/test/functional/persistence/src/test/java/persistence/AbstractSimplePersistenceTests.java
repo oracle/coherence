@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -31,6 +31,7 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
+import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PartitionedService;
@@ -231,6 +232,174 @@ public abstract class AbstractSimplePersistenceTests
         {
         testBasicSnapshot("testPassiveSnapshot"+ getPersistenceManagerName(), "simple-persistent", false);
         }
+
+    /**
+     * Tests the saving and recovery of data with TTL through snapshots
+     */
+    @Test
+    public void testSnapshotRecoveryWithTTL()
+            throws IOException, MBeanException
+        {
+        testTTLSnapshotRecovery("ttlSnapshotRecovery" + getPersistenceManagerName(), "simple-persistent", false);
+        }
+
+    /**
+     * Tests the saving and recovery of data with TTL through snapshots with partitioned backing map
+     */
+    @Test
+    public void testSnapshotRecoveryWithTTLPartitioned()
+            throws IOException, MBeanException
+        {
+        testTTLSnapshotRecovery("ttlSnapshotRecoveryPartitioned" + getPersistenceManagerName(), "simple-persistent", true);
+        }
+
+    /**
+     * Tests the saving and recovery of data with TTL
+     */
+    @Test
+    public void testRecoveryWithTTL()
+            throws IOException, MBeanException
+        {
+        testTTLRecovery("ttlRecovery" + getPersistenceManagerName(), "simple-persistent");
+        }
+
+    /**
+     * Tests the saving and recovery of data with TTL through snapshots
+     */
+    public void testTTLSnapshotRecovery(String sServer, String sPersistentCache, boolean fPart)
+            throws IOException, MBeanException
+        {
+        File fileSnapshot = FileHelper.createTempDir();
+        File fileTrash    = FileHelper.createTempDir();
+
+        Properties props = new Properties();
+        props.setProperty("test.persistence.mode", "on-demand");
+        props.setProperty("test.persistence.active.dir", "");
+        props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
+        props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+        props.setProperty("test.partitioned.backingmap", fPart ? "true" : "false");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
+        props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("test.threads", "1");
+
+        final NamedCache        cache    = getNamedCache(sPersistentCache);
+        DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
+        String                  sService = service.getInfo().getServiceName();
+
+        startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
+        startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
+
+        Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+        waitForBalanced(service);
+
+        PersistenceTestHelper      helper = new PersistenceTestHelper();
+
+        try
+            {
+            // add a bunch of data with TTL
+            final long ttl        = 10_000L;
+            final int  nCacheSize = 100;
+
+            for (int i = 0; i < nCacheSize; i++)
+                {
+                cache.put(i, i, ttl);
+                }
+
+            helper.createSnapshot(sService, "snapshot-A-TTL");
+            assertEquals(nCacheSize, cache.size());
+            Base.sleep(ttl + 2_000L);
+            assertEquals(0, cache.size());
+
+            helper.recoverSnapshot(sService, "snapshot-A-TTL");
+
+            // Cache should actually already be expired but wait some more
+            Base.sleep(ttl + 2_000L);
+
+            // cache should have been expired
+            assertEquals(0, cache.size());
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+
+            FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
+        }
+
+    /**
+     * Tests the saving and recovery of data with TTL
+     */
+    public void testTTLRecovery(String sServer, String sPersistentCache)
+            throws IOException, MBeanException
+        {
+        File fileActive   = FileHelper.createTempDir();
+        File fileSnapshot = FileHelper.createTempDir();
+        File fileTrash    = FileHelper.createTempDir();
+
+        Properties props = new Properties();
+        props.setProperty("test.persistence.mode", "active");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
+        props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
+        props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
+        props.setProperty("coherence.distribution.2server", "false");
+
+        final NamedCache        cache    = getNamedCache(sPersistentCache);
+        DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
+        Cluster                 cluster  = service.getCluster();
+        String                  sService = service.getInfo().getServiceName();
+
+        startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
+        startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
+
+        Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+        waitForBalanced(service);
+
+        try
+            {
+            // add a bunch of data with TTL
+            final long ttl        = 10_000L;
+            final int  nCacheSize = 100;
+
+            for (int i = 0; i < nCacheSize; i++)
+                {
+                cache.put(i, i, ttl);
+                }
+
+            assertEquals(nCacheSize, cache.size());
+
+            stopCacheServer(sServer + "-1");
+            stopCacheServer(sServer + "-2");
+
+            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(0));
+
+            startCacheServer(sServer + "-restarted-1", getProjectName(), getCacheConfigPath(), props);
+            startCacheServer(sServer + "-restarted-2", getProjectName(), getCacheConfigPath(), props);
+
+            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+            waitForBalanced(service);
+
+            // Cache should actually already be expired but wait some more
+            Base.sleep(ttl + 2_000L);
+
+            // cache should have been expired
+            assertEquals(0, cache.size());
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+
+            FileHelper.deleteDirSilent(fileActive);
+            FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
+        }
+
 
     /**
      * Tests the create and recover snapshot functionality.
