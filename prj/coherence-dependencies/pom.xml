@@ -251,7 +251,7 @@
     <oracle.db.version>11.2.0.3.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.7</parsson-media.version>
-    <protobuf.version>3.25.5</protobuf.version>
+    <protobuf.version>4.31.1</protobuf.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <slf4j.version>1.7.36</slf4j.version>
