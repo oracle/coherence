@@ -53,7 +53,6 @@ public class CoherenceClusterResource
 
         // establish default java process options
         this.commonOptionsByType.add(Headless.enabled());
-        this.commonOptionsByType.add(HotSpot.Mode.SERVER);
 
         // establish default bedrock options
         this.commonOptionsByType.add(Console.system());

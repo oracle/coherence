@@ -885,7 +885,12 @@ public abstract class AbstractTestInfrastructure
             optionsByType.add(ClassPath.of(sClassPath));
             }
 
-        String[] defaultJvmOpts = new String[] { "-server",
+        String sVendor = System.getProperty("java.vendor.version", "");
+        boolean fGraal = sVendor.contains("Graal");
+
+        String[] defaultJvmOpts = fGraal
+                ? new String[0]
+                : new String[] {
                 "-XX:+HeapDumpOnOutOfMemoryError",
                 "-XX:HeapDumpPath=" + System.getProperty("test.project.dir") + File.separatorChar + "target",
                 "-XX:+ExitOnOutOfMemoryError" };
