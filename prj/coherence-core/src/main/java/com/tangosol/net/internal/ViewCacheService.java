@@ -323,8 +323,14 @@ public class ViewCacheService
                 {
                 if (m_fInitialized)
                     {
-                    getInterceptorRegistry().unregisterEventInterceptor(
-                        EVENT_INTERCEPTOR_PREFIX + getService().getInfo().getServiceName());
+                    InterceptorRegistry registry = getInterceptorRegistry();
+                    // may be null if this method is called while the service is stopping
+                    if (registry != null)
+                        {
+                        registry.unregisterEventInterceptor(
+                                EVENT_INTERCEPTOR_PREFIX + getService().getInfo().getServiceName());
+                        }
+
                     f_mapCaches.clear();
 
                     m_fInitialized = false;
@@ -482,7 +488,24 @@ public class ViewCacheService
      */
     protected InterceptorRegistry getInterceptorRegistry()
         {
-        return getCacheService().getBackingMapManager().getCacheFactory().getInterceptorRegistry();
+        CacheService             service = getCacheService();
+        BackingMapManager        manager;
+        ConfigurableCacheFactory cacheFactory;
+
+        if (service != null)
+            {
+            manager = service.getBackingMapManager();
+            if (manager != null)
+                {
+                cacheFactory = manager.getCacheFactory();
+                if (cacheFactory != null)
+                    {
+                    return cacheFactory.getInterceptorRegistry();
+                    }
+                }
+            }
+
+        return null;
         }
 
     // ----- inner class: CacheSyncEventInterceptor -------------------------
