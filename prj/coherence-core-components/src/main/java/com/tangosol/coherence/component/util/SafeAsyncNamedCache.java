@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -460,11 +460,8 @@ public class SafeAsyncNamedCache
     
     public com.tangosol.net.AsyncNamedCache ensureRunningNamedCache()
         {
-        // import com.tangosol.net.AsyncNamedCache;
-        // import com.tangosol.net.NamedCache;
-        
         AsyncNamedCache asyncCache  = getInternalNamedCache();
-        NamedCache      cache       = asyncCache.getNamedCache();
+        NamedCache      cache       = asyncCache == null ? null : asyncCache.getNamedCache();
         SafeService     serviceSafe = getSafeCacheService();
         
         if (serviceSafe == null || !serviceSafe.isRunning() ||
@@ -480,7 +477,7 @@ public class SafeAsyncNamedCache
             try
                 {
                 asyncCache  = getInternalNamedCache();
-                cache       = asyncCache.getNamedCache();
+                cache       = asyncCache == null ? null : asyncCache.getNamedCache();
                 serviceSafe = getSafeCacheService();
                 if (serviceSafe == null || !serviceSafe.isRunning() ||
                     cache == null || !cache.isActive() || !isStarted())
