@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -4913,38 +4913,7 @@ public class ClusterService
                 SparseArray sa = new SparseArray(); // all known license UIDs keyed by CRC checksum
         
                 byte[] ab = null;
-                if (cl != null)
-                    {
-                    for (int i = 0, cNames = asName.length; i < cNames; ++i)
-                        {
-                        try
-                            {
-                            InputStream in = cl.getResourceAsStream(toString(asName[i]));
-                            if (in != null)
-                                {
-                                ab = Base.read(in);
-                                n ^= Base.toCrc(ab);
-        
-                                if (i == 8)
-                                    {
-                                    // parse UID / CRC list
-                                    com.tangosol.io.ReadBuffer.BufferInput bufin = new Binary(ab).getBufferInput();
-                                    while (bufin.available() > 0)
-                                        {
-                                        sa.set(bufin.readPackedInt(), new UID(bufin));
-                                        }
-                                    }
-                                }
-                            }
-                        catch (Throwable e)
-                            {
-                            // one or more files have been tampered with
-                            n -= getBroadcastRepeatMillis();
-                            iInv |= 0x1;
-                            }
-                        }
-                    }
-        
+
                 // get the licenses from the application object
                 XmlElement xmlAll = app.getServiceConfig("$License");
         
