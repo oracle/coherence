@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.client.common.topics.GrpcSubscriberConnector;
 import com.tangosol.coherence.component.util.safeNamedTopic.SafeSubscriberConnector;
 import com.tangosol.coherence.config.Config;
@@ -291,6 +292,7 @@ public class GrpcTopicTests
                             WellKnownAddress.of("127.0.0.1"),
                             JMXManagementMode.ALL,
                             IPv4Preferred.yes(),
+                            SystemProperty.of(GrpcService.PROP_LOG_MESSAGES, System.getProperty(GrpcService.PROP_LOG_MESSAGES)),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
                             SystemProperty.of("coherence.management.remote", "true"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),

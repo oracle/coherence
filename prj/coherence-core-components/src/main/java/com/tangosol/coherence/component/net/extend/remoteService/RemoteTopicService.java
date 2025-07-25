@@ -591,7 +591,7 @@ public class RemoteTopicService
 
         connection.acceptChannel(uri, getContextClassLoader(), subscriberChannel, subject);
 
-        return new RemoteSubscriber<>(sTopicName, subscriberChannel, subscriberId, groupId);
+        return new RemoteSubscriber<>(sTopicName, subscriberChannel, subscriberId, groupId, optionSet.isSimple());
         }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -61,9 +61,15 @@ public class ConverterReceiveResult
         }
 
     @Override
+    public int getChannel()
+        {
+        return f_result.getChannel();
+        }
+
+    @Override
     public Object writeReplace() throws ObjectStreamException
         {
-        return new SimpleReceiveResult(getElements(), getRemainingElementCount(), getStatus());
+        return new SimpleReceiveResult(getElements(), getChannel(), getRemainingElementCount(), getStatus());
         }
 
     // ----- inner class: ConverterElement ----------------------------------

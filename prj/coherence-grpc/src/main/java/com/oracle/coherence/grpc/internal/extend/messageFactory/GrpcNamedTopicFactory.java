@@ -23,7 +23,9 @@ import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.MessageHelper;
 import com.oracle.coherence.grpc.TopicHelper;
 
+import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest;
 import com.tangosol.coherence.component.net.extend.message.GrpcMessageWrapper;
+import com.tangosol.coherence.component.net.extend.message.Response;
 import com.tangosol.coherence.component.net.extend.messageFactory.GrpcMessageFactory;
 
 import com.oracle.coherence.grpc.internal.extend.message.response.BoolValueResponse;
@@ -101,6 +103,7 @@ public class GrpcNamedTopicFactory
         __mapChildren.put("EnsureSubscriptionRequest", GrpcEnsureSubscriptionRequest.class);
         __mapChildren.put("GetOwnedChannelsRequest", GrpcGetOwnedChannelsRequest.class);
         __mapChildren.put("ReceiveRequest", GrpcReceiveRequest.class);
+        __mapChildren.put("SimpleReceiveRequest", GrpcSimpleReceiveRequest.class);
         __mapChildren.put("PeekRequest", GrpcPeekRequest.class);
         __mapChildren.put("CommitRequest", GrpcCommitRequest.class);
         __mapChildren.put("IsCommitedRequest", GrpcIsCommitedRequest.class);
@@ -143,6 +146,7 @@ public class GrpcNamedTopicFactory
             case IsPositionCommitted -> createMessage(TYPE_ID_IS_COMMITTED);
             case PeekAtPosition -> createMessage(TYPE_ID_PEEK);
             case Receive -> createMessage(TYPE_ID_RECEIVE);
+            case SimpleReceive -> createMessage(TYPE_ID_SIMPLE_RECEIVE);
             case SeekSubscriber -> createMessage(TYPE_ID_SEEK);
             case CommitPosition -> createMessage(TYPE_ID_COMMIT);
             default -> throw new IllegalArgumentException("Unsupported request type: " + request.getType());
@@ -508,8 +512,37 @@ public class GrpcNamedTopicFactory
         public void setProtoMessage(Any any, Serializer serializer)
             {
             com.oracle.coherence.grpc.messages.topic.v1.ReceiveRequest request = MessageHelper.unpack(any, com.oracle.coherence.grpc.messages.topic.v1.ReceiveRequest.class);
-            setChannel(request.getChannel());
+            setTopicChannel(request.getChannel());
             setMaxElements(request.getMaxMessages());
+            }
+
+        @Override
+        public GrpcResponse getResponse()
+            {
+            return (GrpcResponse) super.getResponse();
+            }
+        }
+
+    // ----- inner class: GrpcReceiveRequest --------------------------------
+
+    /**
+     * The gRPC {@link GrpcSimpleReceiveRequest} which wraps a protobuf request.
+     */
+    public static class GrpcSimpleReceiveRequest
+            extends SimpleReceiveRequest
+            implements GrpcMessageWrapper
+        {
+        public GrpcSimpleReceiveRequest()
+            {
+            setResponse(new GrpcReceiveResponse());
+            }
+
+        @Override
+        public void setProtoMessage(Any any, Serializer serializer)
+            {
+            com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest request = MessageHelper.unpack(any, com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest.class);
+            int                  cMaxMessages = request.getMaxMessages();
+            setMaxElements(Math.max(1, cMaxMessages));
             }
 
         @Override
@@ -553,7 +586,8 @@ public class GrpcNamedTopicFactory
             ReceiveResponse.Builder builder = ReceiveResponse.newBuilder()
                     .setHeadPosition(TopicHelper.toProtobufPosition(result.getHead()))
                     .setRemainingValues(result.getRemainingElementCount())
-                    .setStatus(status);
+                    .setStatus(status)
+                    .setChannel(result.getChannel());
 
             for (Binary binary : result.getElements())
                 {

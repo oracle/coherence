@@ -1026,6 +1026,24 @@ public interface Subscriber<V>
         CompletableFuture<CommitResult> commitAsync();
         }
 
+    // ----- inner interface BinaryElement ----------------------------------
+
+    /**
+     * A subscriber {@link Element} that allows access to the raw binary.
+     *
+     * @param <V>  the type of the element value
+     */
+    interface BinaryElement<V>
+            extends Element<V>
+        {
+        /**
+         * Obtain the raw binary value received.
+         *
+         * @return  the raw binary value received.
+         */
+        Binary getRawBinary();
+        }
+
     // ----- inner class: CommitResult --------------------------------------
 
     /**

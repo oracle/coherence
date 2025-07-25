@@ -1351,13 +1351,13 @@ public class PagedTopicPartition
             {
             // the subscriber requested a channel that does not exist
             // the subscriber may have an incorrect channel count
-            return PollProcessor.Result.notAllocated(0);
+            return PollProcessor.Result.notAllocated(nChannel,0);
             }
 
         if (!entrySubscription.isPresent() || entrySubscription.getValue() == null)
             {
             // the subscriber is unknown, but we're allowing that as the client should handle it
-            return PollProcessor.Result.unknownSubscriber();
+            return PollProcessor.Result.unknownSubscriber(nChannel);
             }
 
         PagedTopicSubscription pagedTopicSubscription = getPagedTopicSubscription(entrySubscription);
@@ -1367,7 +1367,7 @@ public class PagedTopicPartition
         if (cChannel != cChannelActual)
             {
             // the channel count has changed to force the subscriber to reconnect, which will refresh allocations
-            return PollProcessor.Result.unknownSubscriber();
+            return PollProcessor.Result.unknownSubscriber(nChannel);
             }
 
         // Get the subscription
@@ -1380,7 +1380,7 @@ public class PagedTopicPartition
         if (!Objects.equals(owner, subscriberId))
             {
             // the subscriber does not own this channel, it should not have got here, but it probably had out of date state
-            return PollProcessor.Result.notAllocated(Integer.MAX_VALUE);
+            return PollProcessor.Result.notAllocated(nChannel, Integer.MAX_VALUE);
             }
 
         if (!Objects.equals(subscriberId, subscription.getChannelOwner(nChannel)))
@@ -1395,7 +1395,7 @@ public class PagedTopicPartition
         if (lPage == Page.NULL_PAGE)
             {
             // subscriber tried to poll a page that is before the first ever head
-            return PollProcessor.Result.exhausted(subscription);
+            return PollProcessor.Result.exhausted(nChannel, subscription);
             }
 
         Page          page           = peekPage(nChannel, lPage); // we'll later enlist but only if we've exhausted the page
@@ -1410,7 +1410,7 @@ public class PagedTopicPartition
             // We should have previously exhausted and detached from this page, we can't just fall through
             // as the page has already been detached we can't allow a double detach
             checkForPageCleanup(entrySubscription, lPage, page);
-            return PollProcessor.Result.exhausted(subscription);
+            return PollProcessor.Result.exhausted(nChannel, subscription);
             }
 
         if (lPage == lPageCommitted)
@@ -1423,7 +1423,7 @@ public class PagedTopicPartition
                 // We should have previously exhausted and detached from this page, we can't just fall through
                 // as the page has already been detached we can't allow a double detach
                 checkForPageCleanup(entrySubscription, lPage, page);
-                return PollProcessor.Result.exhausted(subscription);
+                return PollProcessor.Result.exhausted(nChannel, subscription);
                 }
             }
 
@@ -1438,12 +1438,12 @@ public class PagedTopicPartition
                 // the client is making a blind request, or
                 // we'd previously exhausted and detached from this page, we can't just fall through
                 // as the page has already been detached we can't allow a double detach
-                return PollProcessor.Result.exhausted(subscription);
+                return PollProcessor.Result.exhausted(nChannel, subscription);
                 }
             }
         else if (lPage < lPageThis) // read from fully consumed page
             {
-            return PollProcessor.Result.exhausted(subscription);
+            return PollProcessor.Result.exhausted(nChannel, subscription);
             }
         else // otherwise lPage > lPageThis; first poll from page, start at the beginning
             {
@@ -1454,7 +1454,7 @@ public class PagedTopicPartition
                 page = ensurePage(nChannel, enlistPageEntry(nChannel, lPage));
                 if (page == null)
                     {
-                    return PollProcessor.Result.exhausted(subscription);
+                    return PollProcessor.Result.exhausted(nChannel, subscription);
                     }
                 }
 
@@ -1548,7 +1548,7 @@ public class PagedTopicPartition
                 subscription.setPage(lPageNext);
                 subscription.setPosition(0);
                 }
-            result = new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, nPos, listValues, subscription.getSubscriptionHead());
+            result = new PollProcessor.Result(nChannel, PollProcessor.Result.EXHAUSTED, nPos, listValues, subscription.getSubscriptionHead());
             }
         else
             {
@@ -1571,7 +1571,7 @@ public class PagedTopicPartition
                 // make sure the tail is set to the "latest" tail from the enlisted page
                 nPosTail = nPosTailLatest;
                 }
-            result = new PollProcessor.Result(nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
+            result = new PollProcessor.Result(nChannel, nPosTail - nPos + 1, nPos, listValues, subscription.getSubscriptionHead());
             }
 
         SubscriberGroupId subscriberGroupId = keySubscription.getGroupId();

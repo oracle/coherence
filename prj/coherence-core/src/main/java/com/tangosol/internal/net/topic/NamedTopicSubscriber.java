@@ -1852,6 +1852,10 @@ public class NamedTopicSubscriber<V>
      */
     protected void ensureConnected()
         {
+        if (f_connector.isSimple())
+            {
+            return;
+            }
         if (isActive() && m_nState != STATE_CONNECTED)
             {
             try (Sentry<?> ignored = f_gate.close())
@@ -2812,7 +2816,17 @@ public class NamedTopicSubscriber<V>
         return new CommittableElement(binary, nChannel);
         }
 
-// ----- inner class: WithIdentifier ------------------------------------
+    /**
+     * Return the {@link ValueConverter} used to convert values to and from binary.
+     *
+     * @return the {@link ValueConverter} used to convert values to and from binary
+     */
+    public ValueConverter<V> getValueConverter()
+        {
+        return f_converter;
+        }
+
+    // ----- inner class: WithIdentifier ------------------------------------
 
     /**
      * An {@link Option} that provides a human-readable name to a {@link NamedTopicSubscriber}.
@@ -2976,6 +2990,16 @@ public class NamedTopicSubscriber<V>
             SubscribeTo subscribeTo = get(SubscribeTo.class);
             return subscribeTo == null ? SubscribeTo.AUTO.getChannels() : subscribeTo.getChannels();
             }
+
+        /**
+         * Return {@code true} if the simple subscriber API should be used.
+         *
+         * @return {@code true} if the simple subscriber API should be used
+         */
+        public boolean isSimple()
+            {
+            return get(SimpleSubscriberOption.class) != null;
+            }
         }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -2992,7 +3016,7 @@ public class NamedTopicSubscriber<V>
      * that makes it committable.
      */
     protected class CommittableElement
-        implements Element<V>
+        implements BinaryElement<V>
         {
         // ----- constructors -----------------------------------------------
 
@@ -3003,6 +3027,7 @@ public class NamedTopicSubscriber<V>
          */
         protected CommittableElement(Binary binValue, int nChannel)
             {
+            f_binRaw   = binValue;
             m_element  = PageElement.fromBinary(binValue, f_converter::fromBinary);
             f_nChannel = nChannel;
             }
@@ -3019,7 +3044,13 @@ public class NamedTopicSubscriber<V>
             return m_element;
             }
 
-        // ----- Element methods --------------------------------------------
+        // ----- BinaryElement methods --------------------------------------
+
+        @Override
+        public Binary getRawBinary()
+            {
+            return f_binRaw;
+            }
 
         @Override
         public V getValue()
@@ -3091,6 +3122,8 @@ public class NamedTopicSubscriber<V>
         public static final int EMPTY = -1;
 
         // ----- data members -----------------------------------------------
+
+        private final Binary f_binRaw;
 
         /**
          * The wrapped element.
@@ -4205,16 +4238,6 @@ public class NamedTopicSubscriber<V>
      * The converter to use to convert binary values.
      */
     protected final ValueConverter<V> f_converter;
-
-//    /**
-//     * The unique identifier for this {@link NamedTopicSubscriber}'s subscriber group.
-//     */
-//    protected long m_subscriptionId;
-
-//    /**
-//     * The subscriber's connection timestamp.
-//     */
-//    protected volatile long m_connectionTimestamp;
 
     /**
      * The {@link Gate} controlling access to the channel operations.

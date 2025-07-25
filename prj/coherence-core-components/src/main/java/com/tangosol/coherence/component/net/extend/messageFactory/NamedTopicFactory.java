@@ -25,6 +25,7 @@ import com.tangosol.coherence.component.net.extend.message.request.TopicSubscrib
 
 import com.tangosol.coherence.component.net.extend.proxy.TopicPublisherProxy;
 
+import com.tangosol.coherence.component.net.extend.proxy.TopicSubscriberProxy;
 import com.tangosol.internal.net.topic.NamedTopicPublisher;
 import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.PublishResult;
@@ -38,6 +39,8 @@ import com.tangosol.internal.net.topic.SubscriberConnector.SubscriberEvent;
 import com.tangosol.internal.net.topic.TopicSubscription;
 
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
+
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -63,8 +66,10 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
@@ -100,6 +105,7 @@ public class NamedTopicFactory
     public static final int TYPE_ID_SEEK = 23;
     public static final int TYPE_ID_HEARTBEAT = 24;
     public static final int TYPE_ID_SUBSCRIBER_EVENT = 25;
+    public static final int TYPE_ID_SIMPLE_RECEIVE = 26;
 
     static
         {
@@ -121,6 +127,7 @@ public class NamedTopicFactory
         __mapChildren.put("GetSubscriptionRequest", GetSubscriptionRequest.class);
         __mapChildren.put("GetOwnedChannelsRequest", GetOwnedChannelsRequest.class);
         __mapChildren.put("ReceiveRequest", ReceiveRequest.class);
+        __mapChildren.put("SimpleReceiveRequest", SimpleReceiveRequest.class);
         __mapChildren.put("PeekRequest", PeekRequest.class);
         __mapChildren.put("CommitRequest", CommitRequest.class);
         __mapChildren.put("IsCommitedRequest", IsCommitedRequest.class);
@@ -683,14 +690,28 @@ public class NamedTopicFactory
         @Override
         protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
             {
-            ConnectedSubscriber<Binary> subscriber = getSubscriber();
+            try
+                {
+                TopicSubscriberProxy proxy = (TopicSubscriberProxy) getChannel().getReceiver();
+                if (proxy.isSimple())
+                    {
+                    throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+                    }
 
-            Position[] aHead = subscriber.getConnector()
-                    .initialize(subscriber, m_fForceReconnect, m_fReconnect, m_fDisconnected);
+                ConnectedSubscriber<Binary> subscriber = getSubscriber();
 
-            long       lSubscriptionId = subscriber.getSubscriptionId();
-            long       nTimestamp      = subscriber.getConnectionTimestamp();
-            response.setResult(new Object[]{lSubscriptionId, nTimestamp, aHead});
+                Position[] aHead = subscriber.getConnector()
+                        .initialize(subscriber, m_fForceReconnect, m_fReconnect, m_fDisconnected);
+
+                long       lSubscriptionId = subscriber.getSubscriptionId();
+                long       nTimestamp      = subscriber.getConnectionTimestamp();
+                response.setResult(new Object[]{lSubscriptionId, nTimestamp, aHead});
+                }
+            catch (UnsupportedOperationException e)
+                {
+                response.setFailure(true);
+                response.setResult(e);
+                }
             }
 
         @Override
@@ -753,11 +774,24 @@ public class NamedTopicFactory
         @Override
         protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
             {
-            ConnectedSubscriber<Binary> subscriber = getSubscriber();
+            try
+                {
+                TopicSubscriberProxy proxy = (TopicSubscriberProxy) getChannel().getReceiver();
+                if (proxy.isSimple())
+                    {
+                    throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+                    }
 
-            boolean f = subscriber.getConnector()
-                    .ensureSubscription(subscriber, m_subscriptionId, m_fForceReconnect);
-            response.setResult(f);
+                ConnectedSubscriber<Binary> subscriber = getSubscriber();
+                boolean f = subscriber.getConnector()
+                        .ensureSubscription(subscriber, m_subscriptionId, m_fForceReconnect);
+                response.setResult(f);
+                }
+            catch (Exception e)
+                {
+                response.setFailure(true);
+                response.setResult(e);
+                }
             }
 
         @Override
@@ -812,11 +846,25 @@ public class NamedTopicFactory
         @Override
         protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
             {
-            ConnectedSubscriber<Binary> subscriber = getSubscriber();
-            _assert(subscriber != null);
-            //noinspection DataFlowIssue
-            TopicSubscription subscription = subscriber.getConnector().getSubscription(subscriber, m_lSubscriptionId);
-            response.setResult(subscription);
+            try
+                {
+                TopicSubscriberProxy proxy = (TopicSubscriberProxy) getChannel().getReceiver();
+                if (proxy.isSimple())
+                    {
+                    throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+                    }
+
+                ConnectedSubscriber<Binary> subscriber = getSubscriber();
+                _assert(subscriber != null);
+                //noinspection DataFlowIssue
+                TopicSubscription subscription = subscriber.getConnector().getSubscription(subscriber, m_lSubscriptionId);
+                response.setResult(subscription);
+                }
+            catch (UnsupportedOperationException e)
+                {
+                response.setFailure(true);
+                response.setResult(e);
+                }
             }
 
         @Override
@@ -906,9 +954,14 @@ public class NamedTopicFactory
             super(sName, compParent, fInit);
             }
 
-        public void setChannel(int nChannel)
+        public void setTopicChannel(int nChannel)
             {
             m_nChannel = nChannel;
+            }
+
+        public int getTopicChannel()
+            {
+            return m_nChannel;
             }
 
         public void setMaxElements(int cMaxElements)
@@ -925,17 +978,45 @@ public class NamedTopicFactory
         @Override
         protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
             {
+            TopicSubscriberProxy proxy = (TopicSubscriberProxy) getChannel().getReceiver();
             ConnectedSubscriber<Binary> subscriber = getSubscriber();
-            CompletableFuture<Void>     future     = new CompletableFuture<>();
-            subscriber.receive(m_nChannel, m_cMaxElements, new Handler(future, response)).join();
+
+            if (proxy.isSimple())
+                {
+                throw new UnsupportedOperationException("Channel specific receive requests are not supported" +
+                        "for simple subscribers");
+                }
+            subscriber.receive(m_nChannel, m_cMaxElements, new Handler(response)).join();
             }
 
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            super.readExternal(in);
+            m_nChannel     = in.readInt(10);
+            m_cMaxElements = in.readInt(11);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            super.writeExternal(out);
+            out.writeInt(10, m_nChannel);
+            out.writeInt(11, m_cMaxElements);
+            }
+
+        // ----- inner class: Handler ---------------------------------------
+
+        /**
+         * A subscriber receive method response handler.
+         */
         protected class Handler
                 implements SubscriberConnector.ReceiveHandler
             {
-            public Handler(CompletableFuture<Void> future, com.tangosol.coherence.component.net.extend.message.Response response)
+            public Handler(com.tangosol.coherence.component.net.extend.message.Response response)
                 {
-                f_future   = future;
                 f_response = response;
                 }
 
@@ -957,7 +1038,10 @@ public class NamedTopicFactory
                     else
                         {
                         result = new SimpleReceiveResult(result.getElements(),
-                                result.getRemainingElementCount(), result.getStatus(), head);
+                                channel.getId(),
+                                result.getRemainingElementCount(),
+                                result.getStatus(),
+                                head);
                         }
 
                     continuation.onContinue();
@@ -977,14 +1061,84 @@ public class NamedTopicFactory
                     f_response.setFailure(true);
                     f_response.setResult(t);
                     }
-                f_future.complete(null);
                 }
 
             // ----- data members -------------------------------------------
 
-            private final CompletableFuture<Void> f_future;
-
             com.tangosol.coherence.component.net.extend.message.Response f_response;
+            }
+        }
+
+    // ----- inner class: ReceiveRequest ------------------------------------
+
+    /**
+     * A subscriber request to receive messages from a topic.
+     */
+    public static class SimpleReceiveRequest
+            extends TopicSubscriberRequest
+        {
+        /**
+         * The maximum number of elements to return.
+         */
+        private int m_cMaxElements;
+
+        public SimpleReceiveRequest()
+            {
+            this(null, null, true);
+            }
+
+        public SimpleReceiveRequest(String sName, Component compParent, boolean fInit)
+            {
+            super(sName, compParent, fInit);
+            }
+
+        public void setMaxElements(int cMaxElements)
+            {
+            m_cMaxElements = cMaxElements;
+            }
+
+        @Override
+        public int getTypeId()
+            {
+            return TYPE_ID_SIMPLE_RECEIVE;
+            }
+
+        @Override
+        protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
+            {
+            TopicSubscriberProxy proxy = (TopicSubscriberProxy) getChannel().getReceiver();
+            ConnectedSubscriber<Binary> subscriber = getSubscriber();
+
+            if (proxy.isSimple())
+                {
+                subscriber.receive(m_cMaxElements)
+                        .handle((list, err) ->
+                            {
+                            if (err == null)
+                                {
+                                Queue<Binary> elements = new LinkedList<>();
+                                int nChannel = 0;
+                                for (Subscriber.Element<?> element : list)
+                                    {
+                                    nChannel = element.getChannel();
+                                    elements.add(((Subscriber.BinaryElement<?>) element).getRawBinary());
+                                    }
+                                response.setResult(new SimpleReceiveResult(elements, nChannel,
+                                        0, ReceiveResult.Status.Success, PagedPosition.EMPTY_POSITION));
+                                }
+                            else
+                                {
+                                response.setResult(err);
+                                response.setFailure(true);
+                                }
+                            return null;
+                            })
+                        .join();
+                }
+            else
+                {
+                throw new UnsupportedOperationException("Simple receive requests are only supported for simple subscribers");
+                }
             }
 
         @Override
@@ -992,7 +1146,6 @@ public class NamedTopicFactory
                 throws IOException
             {
             super.readExternal(in);
-            m_nChannel     = in.readInt(10);
             m_cMaxElements = in.readInt(11);
             }
 
@@ -1001,7 +1154,6 @@ public class NamedTopicFactory
                 throws IOException
             {
             super.writeExternal(out);
-            out.writeInt(10, m_nChannel);
             out.writeInt(11, m_cMaxElements);
             }
         }

@@ -53,11 +53,12 @@ public class RemoteSubscriber<V>
      * @param remoteChannel  the channel to connect to the proxy server
      * @param subscriberId   the subscriber identifier
      * @param groupId        the subscriber group identifier
+     * @param fSimple        {@code true} if this subscriber is using the simple API
      */
     public RemoteSubscriber(String sTopicName, RemoteSubscriberChannel<V> remoteChannel,
-            SubscriberId subscriberId, SubscriberGroupId groupId)
+            SubscriberId subscriberId, SubscriberGroupId groupId, boolean fSimple)
         {
-        super(sTopicName, subscriberId, groupId);
+        super(sTopicName, subscriberId, groupId, fSimple);
         f_remoteChannel = Objects.requireNonNull(remoteChannel);
         remoteChannel.setSubscriber(this);
         }
@@ -78,6 +79,11 @@ public class RemoteSubscriber<V>
     @Override
     public Position[] initialize(ConnectedSubscriber<V> subscriber, boolean fForceReconnect, boolean fReconnect, boolean fDisconnected)
         {
+        if (f_fSimple)
+            {
+            throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+            }
+
         Object[] aoResult = f_remoteChannel.send(NamedTopicFactory.TYPE_ID_INITIALIZE_SUBSCRIPTION, NamedTopicFactory.InitializeSubscriptionRequest.class,
                 request ->
                     {
@@ -99,6 +105,10 @@ public class RemoteSubscriber<V>
     @Override
     public boolean ensureSubscription(ConnectedSubscriber<V> subscriber, long subscriptionId, boolean fForceReconnect)
         {
+        if (f_fSimple)
+            {
+            throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+            }
         return f_remoteChannel.send(NamedTopicFactory.TYPE_ID_ENSURE_SUBSCRIPTION, NamedTopicFactory.EnsureSubscriptionRequest.class,
                 request ->
                     {
@@ -137,7 +147,7 @@ public class RemoteSubscriber<V>
         {
         return f_remoteChannel.send(NamedTopicFactory.TYPE_ID_RECEIVE, NamedTopicFactory.ReceiveRequest.class, request ->
             {
-            request.setChannel(nChannel);
+            request.setTopicChannel(nChannel);
             request.setMaxElements(cMaxElements);
             });
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.internal.net.topic;
 
+import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
@@ -28,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Jonathan Knight  2024.11.26
  */
 public class ConverterSubscriberElement<F, T>
-        implements Subscriber.Element<T>
+        implements Subscriber.BinaryElement<T>
     {
     /**
      * Create a {@link ConverterSubscriberElement}.
@@ -43,6 +45,14 @@ public class ConverterSubscriberElement<F, T>
         f_element   = element;
         f_convUp    = convUp;
         f_convBinUp = convBinUp;
+        }
+
+    @Override
+    public Binary getRawBinary()
+        {
+        PagedPosition position = (PagedPosition) f_element.getPosition();
+        return PageElement.toBinary(f_element.getChannel(), position.getPage(), position.getOffset(),
+                f_element.getTimestamp().getEpochSecond(), (Binary) getValue());
         }
 
     @Override

@@ -157,6 +157,16 @@ enum TopicServiceRequestType {
     // The message should be a ChannelAndPosition
     // The response will be a CommitResponse
     CommitPosition = 25;
+    // Called to ensure a simple subscriber.
+    // Must be the first message called prior to any other subscriber requests.
+    // The message field must be an EnsureSubscriberRequest.
+    // The response will contain the Subscriber Id and an EnsureSubscriberResponse
+    // message in the response field.
+    EnsureSimpleSubscriber = 26;
+    // Receive values from a simple subscriber.
+    // The message should be a SimpleReceiveRequest.
+    // The response will be a ReceiveResponse.
+    SimpleReceive = 27;
 }
 
 // A request to perform an operation on a remote NamedTopic.
@@ -393,6 +403,22 @@ message EnsureSubscriberRequest {
     repeated int32 channels = 6;
 }
 
+// A request to ensure a specific simple subscriber.
+message EnsureSimpleSubscriberRequest {
+    // The name of the topic.
+    string topic = 1;
+    // the optional name of the subscriber group
+    optional string subscriberGroup = 2;
+    // an optional Filter to filter received messages
+    optional bytes filter = 3;
+    // an optional ValueExtractor to convert received messages
+    optional bytes extractor = 4;
+    // True to return an empty value if the topic is empty
+    bool completeOnEmpty = 5;
+    // The channels to allocate to this subscriber (invalid channels will be ignored)
+    repeated int32 channels = 6;
+}
+
 enum SubscriberEventType {
     // An unknown type.
     // This request type is not used, it is here as enums must have a zero value,
@@ -495,6 +521,12 @@ message ReceiveRequest {
     optional int32 maxMessages = 2;
 }
 
+message SimpleReceiveRequest {
+    // The maximum number of messages to return.
+    // If not set (or <= 0) a single messages will be returned.
+    optional int32 maxMessages = 2;
+}
+
 // The status of a receive response.
 enum ReceiveStatus {
     // The receive request was successful.
@@ -516,6 +548,8 @@ message ReceiveResponse {
     TopicPosition headPosition = 3;
     // The count of the remaining values.
     int32 remainingValues = 4;
+    // The channel the messages are from
+    int32 channel = 5;
 }
 
 // A request to seek (reposition) one or more channels.

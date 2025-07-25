@@ -72,6 +72,7 @@ public class TopicServiceFactory
     public static final int TYPE_ID_ENSURE_SUBSCRIBER = 9;
     public static final int TYPE_ID_DESTROY_PUBLISHER = 10;
     public static final int TYPE_ID_DESTROY_SUBSCRIBER = 11;
+    public static final int TYPE_ID_ENSURE_SIMPLE_SUBSCRIBER = 12;
 
     private static ListMap<String, Class<?>> __mapChildren;
 
@@ -91,6 +92,7 @@ public class TopicServiceFactory
         __mapChildren.put("GetSubscriberGroupsRequest", GetSubscriberGroupsRequest.class);
         __mapChildren.put("EnsurePublisherRequest", EnsurePublisherRequest.class);
         __mapChildren.put("EnsureSubscriberRequest", EnsureSubscriberRequest.class);
+        __mapChildren.put("EnsureSimpleSubscriberRequest", EnsureSimpleSubscriberRequest.class);
         __mapChildren.put("Response", TopicsResponse.class);
         }
 
@@ -159,7 +161,6 @@ public class TopicServiceFactory
             {
             TopicService       service = getTopicService();
             NamedTopic<Object> topic   = service.ensureTopic(getTopicName(), null);
-            //service.destroyTopic(topic);
             topic.destroy();
             response.setResult(Boolean.TRUE);
             }
@@ -539,7 +540,7 @@ public class TopicServiceFactory
      * A request to ensure a subscriber.
      */
     @SuppressWarnings({"unchecked"})
-    public static class EnsureSubscriberRequest
+    public abstract static class BaseEnsureSubscriberRequest
             extends NewChannelRequest
         {
         /**
@@ -585,16 +586,8 @@ public class TopicServiceFactory
          */
         private int[] m_anChannel;
 
-        // ----- constructors ---------------------------------------------------
-
-        public EnsureSubscriberRequest()
+        protected BaseEnsureSubscriberRequest()
             {
-            }
-
-        @Override
-        public int getTypeId()
-            {
-            return TYPE_ID_ENSURE_SUBSCRIBER;
             }
 
         @Override
@@ -638,6 +631,11 @@ public class TopicServiceFactory
             Channel    channel    = getChannel();
             Connection connection = channel.getConnection();
             Member     member     = topic.getTopicService().getCluster().getLocalMember();
+            boolean    fSimple    = isSimple();
+
+            Subscriber.Option complete = m_fCompleteOnEmpty || fSimple
+                    ? Subscriber.CompleteOnEmpty.enabled()
+                    : Subscriber.Option.nullOption();
 
             Subscriber.Option[] options = new Subscriber.Option[]
                     {
@@ -647,8 +645,8 @@ public class TopicServiceFactory
                             : Subscriber.Option.nullOption(),
                     Subscriber.withFilter(m_filter),
                     Subscriber.withConverter(m_extractor),
-                    m_fCompleteOnEmpty ? Subscriber.CompleteOnEmpty.enabled() : Subscriber.Option.nullOption(),
                     Subscriber.subscribeTo(m_anChannel),
+                    complete,
                     };
 
             ConnectedSubscriber<Binary> subscriber
@@ -658,6 +656,7 @@ public class TopicServiceFactory
             proxy.setSubscriber(subscriber);
             proxy.setNamedTopic(topic);
             proxy.setTransferThreshold(getTransferThreshold());
+            proxy.setSimple(fSimple);
 
             ConnectionManager manager = connection.getConnectionManager();
             if (manager instanceof Peer)
@@ -697,6 +696,13 @@ public class TopicServiceFactory
             m_anChannel = anChannel;
             }
 
+        /**
+         * Return {@code true} if the client is using the simple subscriber API.
+         *
+         * @return {@code true} if the client is using the simple subscriber API
+         */
+        public abstract boolean isSimple();
+
         @Override
         public void readExternal(PofReader in) throws IOException
             {
@@ -718,6 +724,56 @@ public class TopicServiceFactory
             out.writeBoolean(12, m_fCompleteOnEmpty);
             out.writeString(13, m_sSubscriberGroup);
             out.writeIntArray(14, m_anChannel);
+            }
+        }
+
+    // ----- inner class: EnsureSubscriberRequest ---------------------------
+
+    /**
+     * A request to ensure a subscriber.
+     */
+    public static class EnsureSubscriberRequest
+            extends BaseEnsureSubscriberRequest
+        {
+        public EnsureSubscriberRequest()
+            {
+            }
+
+        @Override
+        public int getTypeId()
+            {
+            return TYPE_ID_ENSURE_SUBSCRIBER;
+            }
+
+        @Override
+        public boolean isSimple()
+            {
+            return false;
+            }
+        }
+
+    // ----- inner class: EnsureSubscriberRequest ---------------------------
+
+    /**
+     * A request to ensure a simple subscriber.
+     */
+    public static class EnsureSimpleSubscriberRequest
+            extends BaseEnsureSubscriberRequest
+        {
+        public EnsureSimpleSubscriberRequest()
+            {
+            }
+
+        @Override
+        public int getTypeId()
+            {
+            return TYPE_ID_ENSURE_SIMPLE_SUBSCRIBER;
+            }
+
+        @Override
+        public boolean isSimple()
+            {
+            return true;
             }
         }
 

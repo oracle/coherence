@@ -146,6 +146,12 @@ public class SafeSubscriberConnector<V>
         }
 
     @Override
+    public boolean isSimple()
+        {
+        return ensureRunningConnector().isSimple();
+        }
+
+    @Override
     public boolean ensureSubscription(ConnectedSubscriber<V> subscriber, long subscriptionId, boolean fForceReconnect)
         {
         return ensureRunningConnector().ensureSubscription(subscriber, subscriptionId, fForceReconnect);

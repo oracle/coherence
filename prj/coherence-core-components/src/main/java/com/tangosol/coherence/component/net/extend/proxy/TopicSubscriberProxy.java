@@ -72,6 +72,11 @@ public class TopicSubscriberProxy
      */
     private int m_nProxyId;
 
+    /**
+     * A flag indicating that this subscriber proxy is using a simple subscriber API.
+     */
+    private boolean m_fSimple;
+
     // ----- constructors ---------------------------------------------------
 
     public TopicSubscriberProxy()
@@ -358,6 +363,26 @@ public class TopicSubscriberProxy
     public void setTransferThreshold(long lThreshold)
         {
         m_transferThreshold = lThreshold;
+        }
+
+    /**
+     * Return {@code true} if this proxy is using the simple subscriber API.
+     *
+     * @return {@code true} if this proxy is using the simple subscriber API
+     */
+    public boolean isSimple()
+        {
+        return m_fSimple;
+        }
+
+    /**
+     * Set the flag to indicate that this proxy is using the simple subscriber API.
+     *
+     * @param fSimple  {@code true} if this proxy is using the simple subscriber API
+     */
+    public void setSimple(boolean fSimple)
+        {
+        m_fSimple = fSimple;
         }
 
     @Override

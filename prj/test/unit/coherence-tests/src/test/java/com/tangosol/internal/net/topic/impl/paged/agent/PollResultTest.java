@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,7 +30,7 @@ public class PollResultTest
         {
         ConfigurablePofContext serializer  = new ConfigurablePofContext("coherence-pof-config.xml");
         LinkedList<Binary>     list        = new LinkedList<>();
-        PollProcessor.Result   toSerialize = new PollProcessor.Result(0, 0, list,0L);
+        PollProcessor.Result   toSerialize = new PollProcessor.Result(0, 0, 0, list,0L);
 
         list.add(ExternalizableHelper.toBinary("Foo", serializer));
         list.add(ExternalizableHelper.toBinary("Bar", serializer));
@@ -50,7 +50,7 @@ public class PollResultTest
     @Test
     public void shouldReturnEmptyListIfConstructedWithNullList()
         {
-        PollProcessor.Result pollResult = new PollProcessor.Result(0, 0, null,0L);
+        PollProcessor.Result pollResult = new PollProcessor.Result(0, 0, 0, null,0L);
         Queue<Binary>        elements   = pollResult.getElements();
 
         assertThat(elements, is(notNullValue()));

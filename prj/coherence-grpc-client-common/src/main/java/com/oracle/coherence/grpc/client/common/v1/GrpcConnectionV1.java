@@ -554,7 +554,7 @@ public class GrpcConnectionV1
             ProxyRequest request = builder.build();
             if (GrpcService.LOG_MESSAGES)
                 {
-                Logger.info( "GrpcConnectionV1: Sending request: " + request);
+                Logger.info( "GrpcConnectionV1: Sending request: " + request + " wrapping message: " + message);
                 }
             sender.onNext(request);
             }

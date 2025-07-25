@@ -42,12 +42,15 @@ public abstract class BaseRemoteSubscriber<V>
      * @param sTopicName    the topic name
      * @param subscriberId  the subscriber identifier
      * @param groupId       the subscriber group identifier
+     * @param fSimple       {@code true} if this subscriber is using the simple API
      */
-    protected BaseRemoteSubscriber(String sTopicName, SubscriberId subscriberId, SubscriberGroupId groupId)
+    protected BaseRemoteSubscriber(String sTopicName, SubscriberId subscriberId,
+            SubscriberGroupId groupId, boolean fSimple)
         {
         f_sTopicName        = sTopicName;
         f_subscriberId      = subscriberId;
         f_subscriberGroupId = groupId;
+        f_fSimple           = fSimple;
         }
 
     @Override
@@ -221,6 +224,12 @@ public abstract class BaseRemoteSubscriber<V>
             }
         }
 
+    @Override
+    public boolean isSimple()
+        {
+        return f_fSimple;
+        }
+
     // ----- helper methods -------------------------------------------------
 
     /**
@@ -354,6 +363,11 @@ public abstract class BaseRemoteSubscriber<V>
      * The subscriber group identifier.
      */
     protected final SubscriberGroupId f_subscriberGroupId;
+
+    /**
+     * A flag to indicate this subscriber is using the simple API.
+     */
+    protected boolean f_fSimple;
 
     /**
      * The daemon to use to complete async tasks.

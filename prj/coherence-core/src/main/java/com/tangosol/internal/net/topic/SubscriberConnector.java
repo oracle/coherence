@@ -24,6 +24,7 @@ import com.tangosol.util.ValueExtractor;
 
 import java.time.Instant;
 
+import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
@@ -325,6 +326,13 @@ public interface SubscriberConnector<V>
      */
     void close();
 
+    /**
+     * Return {@code true} if this connector is using the simple API.
+     *
+     * @return {@code true} if this connector is using the simple API
+     */
+    boolean isSimple();
+
     // ----- inner interface: Factory ---------------------------------------
 
     /**
@@ -349,6 +357,33 @@ public interface SubscriberConnector<V>
      */
     interface ConnectedSubscriber<V>
         {
+        /**
+         * Receive a batch of {@link Subscriber.Element elements} from the topic.
+         * <p>
+         * The {@code cMessage} parameter specifies the maximum number of elements to receive in the batch. The subscriber
+         * may return fewer elements than the {@code cMessage} parameter; this does not signify that the topic is empty.
+         * <p>
+         * If there is no value available then the future will complete according to the {@link Subscriber.CompleteOnEmpty} option used
+         * to create the {@link Subscriber}.
+         * <p>
+         * If the poll of the topic returns nothing (i.e. the topic was empty and {@link Subscriber.CompleteOnEmpty}) is true then the
+         * {@link java.util.function.Consumer} will not be called.
+         * <p>
+         * The {@link CompletableFuture futures} returned from calls to {@code receive} are completed sequentially.
+         * If the methods used to handle completion in application code block this will block completions of
+         * subsequent futures. This is to maintain ordering of consumption of completed futures.
+         * If the application code handles {@link CompletableFuture future} completion using the asynchronous methods
+         * of {@link CompletableFuture} (i.e. handling is handed off to another thread) this could cause out of order
+         * consumption as received values are consumed on different threads.
+         *
+         * @param cBatch  the maximum number of elements to receive in the batch
+         *
+         * @return a future which can be used to access the result of this completed operation
+         *
+         * @throws IllegalStateException if the {@link Subscriber} is closed
+         */
+        CompletableFuture<List<Subscriber.Element<V>>> receive(int cBatch);
+
         /**
          * Close the connected subscriber.
          */

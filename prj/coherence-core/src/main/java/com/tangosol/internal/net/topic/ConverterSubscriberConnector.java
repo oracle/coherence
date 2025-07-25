@@ -277,6 +277,12 @@ public class ConverterSubscriberConnector<F, T>
         f_connector.close();
         }
 
+    @Override
+    public boolean isSimple()
+        {
+        return f_connector.isSimple();
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

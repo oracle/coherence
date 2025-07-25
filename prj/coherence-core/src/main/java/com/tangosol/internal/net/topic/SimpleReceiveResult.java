@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,25 +50,27 @@ public class SimpleReceiveResult
      * @param cRemaining  the number of remaining elements
      * @param status      the status of the poll operation
      */
-    public SimpleReceiveResult(Queue<Binary> elements, int cRemaining, Status status)
+    public SimpleReceiveResult(Queue<Binary> elements, int nChannel, int cRemaining, Status status)
         {
-        this(elements, cRemaining, status, null);
+        this(elements, nChannel, cRemaining, status, null);
         }
 
     /**
      * Create a {@link SimpleReceiveResult}.
      *
      * @param elements    the elements polled from the topic
+     * @param nChannel    the channel the elements were received from
      * @param cRemaining  the number of remaining elements
      * @param status      the status of the poll operation
      * @param head        the channel head position
      */
-    public SimpleReceiveResult(Queue<Binary> elements, int cRemaining, Status status, Position head)
+    public SimpleReceiveResult(Queue<Binary> elements, int nChannel, int cRemaining, Status status, Position head)
         {
         m_elements   = elements;
         m_cRemaining = Math.max(cRemaining, 0);
         m_status     = status;
         m_head       = head;
+        m_nChannel   = nChannel;
         }
 
     @Override
@@ -101,12 +103,22 @@ public class SimpleReceiveResult
         }
 
     @Override
+    public int getChannel()
+        {
+        return m_nChannel;
+        }
+
+    @Override
     public void readExternal(PofReader in) throws IOException
         {
         m_elements   = in.readCollection(0, new LinkedList<>());
         m_cRemaining = in.readInt(1);
         m_status     = in.readObject(2);
         m_head       = in.readObject(3);
+        if (getDataVersion() > 0)
+            {
+            m_nChannel = in.readInt(4);
+            }
         }
 
     @Override
@@ -116,6 +128,7 @@ public class SimpleReceiveResult
         out.writeInt(1, m_cRemaining);
         out.writeObject(2, m_status);
         out.writeObject(3, m_head);
+        out.writeInt(4, m_nChannel);
         }
 
     @Override
@@ -126,6 +139,7 @@ public class SimpleReceiveResult
         m_cRemaining = in.readInt();
         m_status     = ExternalizableHelper.readObject(in);
         m_head       = ExternalizableHelper.readObject(in);
+        m_nChannel   = in.readInt();
         }
 
     @Override
@@ -135,13 +149,15 @@ public class SimpleReceiveResult
         out.writeInt(m_cRemaining);
         ExternalizableHelper.writeObject(out, m_status);
         ExternalizableHelper.writeObject(out, m_head);
+        out.writeInt(m_nChannel);
         }
 
     @Override
     public String toString()
         {
         return "SimpleReceiveResult{" +
-                " elements=" + m_elements.size() +
+                " channel=" + m_nChannel +
+                ", elements=" + m_elements.size() +
                 ", remaining=" + m_cRemaining +
                 ", status=" + m_status +
                 ", head=" + m_head +
@@ -153,7 +169,7 @@ public class SimpleReceiveResult
     /**
      * The POF implementation version of this class.
      */
-    public static final int POF_IMPL_VERSION = 0;
+    public static final int POF_IMPL_VERSION = 1;
 
     /**
      * The elements polled from the topic.
@@ -174,4 +190,9 @@ public class SimpleReceiveResult
      * The channel head position.
      */
     private Position m_head;
+
+    /**
+     * The topic channel;
+     */
+    private int m_nChannel;
     }

@@ -30,6 +30,7 @@ import com.oracle.coherence.grpc.messages.topic.v1.EnsureChannelCountRequest;
 
 import com.oracle.coherence.grpc.messages.topic.v1.EnsurePublisherRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.EnsurePublisherResponse;
+import com.oracle.coherence.grpc.messages.topic.v1.EnsureSimpleSubscriberRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.EnsureSubscriberRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.EnsureSubscriberResponse;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicServiceRequest;
@@ -72,7 +73,6 @@ import io.grpc.ClientInterceptors;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 
-import java.util.Arrays;
 import java.util.Set;
 
 import java.util.concurrent.TimeoutException;
@@ -545,11 +545,27 @@ public class GrpcRemoteTopicService
 
     public <V, U> SubscriberConnector<U> ensureSubscriber(GrpcNamedTopicConnector<?> connector, Subscriber.Option<? super V, U>[] options)
         {
-        String                         sTopicName = connector.getName();
-        TopicServiceGrpcConnection     connection = createSubscriberConnection();
-        EnsureSubscriberRequest.Builder builder   = EnsureSubscriberRequest.newBuilder();
+        NamedTopicSubscriber.OptionSet<?, ?> optionSet  = NamedTopicSubscriber.optionsFrom(options);
+        boolean                              fSimple    = optionSet.isSimple();
+        String                               sTopicName = connector.getName();
+        TopicServiceGrpcConnection           connection = createSubscriberConnection();
 
-        NamedTopicSubscriber.OptionSet<?, ?> optionSet = NamedTopicSubscriber.optionsFrom(options);
+        TopicServiceResponse response = fSimple
+                ? createSimpleSubscriberRequest(sTopicName, optionSet, connection)
+                : createSubscriberRequest(sTopicName, optionSet, connection);
+
+        EnsureSubscriberResponse ensureResponse = connection.unpackMessage(response, EnsureSubscriberResponse.class);
+        SubscriberId             subscriberId   = TopicHelper.fromProtobufSubscriberId(ensureResponse);
+        SubscriberGroupId        groupId        = TopicHelper.fromProtobufSubscriberGroupId(ensureResponse);
+        int                      proxyId        = ensureResponse.getProxyId();
+
+        return new GrpcSubscriberConnector<>(connector, proxyId, connection, sTopicName, subscriberId, groupId, fSimple);
+        }
+
+    private TopicServiceResponse createSubscriberRequest(String sTopicName,
+            NamedTopicSubscriber.OptionSet<?, ?> optionSet, TopicServiceGrpcConnection connection)
+        {
+        EnsureSubscriberRequest.Builder builder   = EnsureSubscriberRequest.newBuilder();
 
         optionSet.getSubscriberGroupName().ifPresent(builder::setSubscriberGroup);
         optionSet.getFilter().ifPresent(f -> builder.setFilter(BinaryHelper.toByteString(f, m_serializer)));
@@ -561,14 +577,27 @@ public class GrpcRemoteTopicService
             builder.addAllChannels(IntStream.of(anChannel).boxed().collect(Collectors.toList()));
             }
 
-        EnsureSubscriberRequest  request        = builder.setTopic(sTopicName).build();
-        TopicServiceResponse     response       = connection.send(0, TopicServiceRequestType.EnsureSubscriber, request);
-        EnsureSubscriberResponse ensureResponse = connection.unpackMessage(response, EnsureSubscriberResponse.class);
-        SubscriberId             subscriberId   = TopicHelper.fromProtobufSubscriberId(ensureResponse);
-        SubscriberGroupId        groupId        = TopicHelper.fromProtobufSubscriberGroupId(ensureResponse);
-        int                      proxyId        = ensureResponse.getProxyId();
+        EnsureSubscriberRequest request = builder.setTopic(sTopicName).build();
+        return connection.send(0, TopicServiceRequestType.EnsureSubscriber, request);
+        }
 
-        return new GrpcSubscriberConnector<>(connector, proxyId, connection, sTopicName, subscriberId, groupId);
+    private TopicServiceResponse createSimpleSubscriberRequest(String sTopicName,
+            NamedTopicSubscriber.OptionSet<?, ?> optionSet, TopicServiceGrpcConnection connection)
+        {
+        EnsureSimpleSubscriberRequest.Builder builder = EnsureSimpleSubscriberRequest.newBuilder();
+
+        optionSet.getSubscriberGroupName().ifPresent(builder::setSubscriberGroup);
+        optionSet.getFilter().ifPresent(f -> builder.setFilter(BinaryHelper.toByteString(f, m_serializer)));
+        optionSet.getExtractor().ifPresent(e -> builder.setExtractor(BinaryHelper.toByteString(e, m_serializer)));
+
+        int[] anChannel = optionSet.getSubscribeTo();
+        if (anChannel != null && anChannel.length > 0)
+            {
+            builder.addAllChannels(IntStream.of(anChannel).boxed().collect(Collectors.toList()));
+            }
+
+        EnsureSimpleSubscriberRequest request = builder.setTopic(sTopicName).build();
+        return connection.send(0, TopicServiceRequestType.EnsureSimpleSubscriber, request);
         }
 
     // ----- immer class Listener -------------------------------------------

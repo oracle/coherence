@@ -37,6 +37,7 @@ import com.oracle.coherence.grpc.messages.topic.v1.ReceiveResponse;
 import com.oracle.coherence.grpc.messages.topic.v1.SeekRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.SeekResponse;
 import com.oracle.coherence.grpc.messages.topic.v1.SeekedPositions;
+import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicElement;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicServiceRequestType;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicServiceResponse;
@@ -97,12 +98,13 @@ public class GrpcSubscriberConnector<V>
      * @param sTopicName   the topic name
      * @param subscriberId the subscriber identifier
      * @param groupId      the subscriber group identifier
+     * @param fSimple      {@code true} if the subscriber is using the simple API
      */
     public GrpcSubscriberConnector(GrpcNamedTopicConnector<?> connector, int proxyId,
                                    TopicServiceGrpcConnection connection, String sTopicName, SubscriberId subscriberId,
-                                   SubscriberGroupId groupId)
+                                   SubscriberGroupId groupId, boolean fSimple)
         {
-        super(sTopicName, subscriberId, groupId);
+        super(sTopicName, subscriberId, groupId, fSimple);
         f_connector  = connector;
         f_nProxyId   = proxyId;
         f_connection = connection;
@@ -144,6 +146,11 @@ public class GrpcSubscriberConnector<V>
     @Override
     public Position[] initialize(ConnectedSubscriber<V> subscriber, boolean fForceReconnect, boolean fReconnect, boolean fDisconnected)
         {
+        if (f_fSimple)
+            {
+            throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+            }
+
         InitializeSubscriptionRequest request = InitializeSubscriptionRequest.newBuilder()
                 .setDisconnected(fDisconnected)
                 .setForceReconnect(fForceReconnect)
@@ -163,6 +170,11 @@ public class GrpcSubscriberConnector<V>
     @Override
     public boolean ensureSubscription(ConnectedSubscriber<V> subscriber, long subscriptionId, boolean fForceReconnect)
         {
+        if (f_fSimple)
+            {
+            throw new UnsupportedOperationException("this method is not supported for a simple subscriber");
+            }
+
         EnsureSubscriptionRequest request = EnsureSubscriptionRequest.newBuilder()
                 .setSubscriptionId(subscriptionId)
                 .setForceReconnect(fForceReconnect)
@@ -188,18 +200,48 @@ public class GrpcSubscriberConnector<V>
     @Override
     protected SimpleReceiveResult receiveInternal(int nChannel, Position headPosition, long lVersion, int cMaxElements)
         {
-        ReceiveRequest request = ReceiveRequest.newBuilder()
-                .setChannel(nChannel)
-                .setMaxMessages(cMaxElements)
-                .build();
+        if (f_fSimple)
+            {
+            throw new UnsupportedOperationException("Method should not be called when using the simple API");
+            }
+        return receiveInternal(nChannel, cMaxElements);
+        }
 
-        CompletableFuture<SimpleReceiveResult> future = poll(TopicServiceRequestType.Receive, request, ReceiveResponse.class)
-                .thenApply(this::onReceiveResponse);
+    public SimpleReceiveResult receive(int cMaxElements)
+        {
+        if (!f_fSimple)
+            {
+            throw new UnsupportedOperationException("Method should not be called when not using the simple API");
+            }
+        return receiveInternal(-1, cMaxElements);
+        }
+
+    protected SimpleReceiveResult receiveInternal(int nChannel, int cMaxElements)
+        {
+        CompletableFuture<ReceiveResponse> future;
+        if (f_fSimple)
+            {
+            SimpleReceiveRequest request = SimpleReceiveRequest.newBuilder()
+                    .setMaxMessages(cMaxElements)
+                    .build();
+
+            future = poll(TopicServiceRequestType.SimpleReceive, request, ReceiveResponse.class);
+            }
+        else
+            {
+            ReceiveRequest request = ReceiveRequest.newBuilder()
+                    .setChannel(nChannel)
+                    .setMaxMessages(cMaxElements)
+                    .build();
+
+            future = poll(TopicServiceRequestType.Receive, request, ReceiveResponse.class);
+            }
 
         long cMillis = getRequestTimeoutMillis();
         try
             {
-            return future.get(cMillis, TimeUnit.MILLISECONDS);
+            return future.thenApply(this::onReceiveResponse)
+                    .get(cMillis, TimeUnit.MILLISECONDS);
             }
         catch (ExecutionException e)
             {
@@ -230,13 +272,12 @@ public class GrpcSubscriberConnector<V>
             case UNRECOGNIZED -> throw new IllegalArgumentException("Unknown subscriber status: " + response.getStatus());
             };
 
-
         Queue<Binary> elements = response.getValuesList()
                 .stream()
                 .map(BinaryHelper::toBinary)
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        return new SimpleReceiveResult(elements, response.getRemainingValues(), status, head);
+        return new SimpleReceiveResult(elements, response.getChannel(), response.getRemainingValues(), status, head);
         }
 
     @Override

@@ -236,6 +236,12 @@ public class PagedTopicSubscriberConnector<V>
         }
 
     @Override
+    public boolean isSimple()
+        {
+        return false;
+        }
+
+    @Override
     public void closeSubscription(ConnectedSubscriber<V> subscriber, boolean fDestroyed)
         {
         State state = m_state;

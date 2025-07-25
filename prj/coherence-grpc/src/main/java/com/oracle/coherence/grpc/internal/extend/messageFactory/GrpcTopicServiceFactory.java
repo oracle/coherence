@@ -82,6 +82,7 @@ public class GrpcTopicServiceFactory
         __mapChildren.put("EnsurePublisherRequest", GrpcEnsurePublisherRequest.class);
         __mapChildren.put("DestroyPublisherRequest", GrpcDestroyPublisherRequest.class);
         __mapChildren.put("EnsureSubscriberRequest", GrpcEnsureSubscriberRequest.class);
+        __mapChildren.put("EnsureSimpleSubscriberRequest", GrpcEnsureSimpleSubscriberRequest.class);
         __mapChildren.put("DestroySubscriberRequest", GrpcDestroySubscriberRequest.class);
         __mapChildren.put("Response", TopicsResponse.class);
         }
@@ -103,6 +104,7 @@ public class GrpcTopicServiceFactory
             case EnsurePublisher -> createMessage(TYPE_ID_ENSURE_PUBLISHER);
             case DestroyPublisher -> createMessage(TYPE_ID_DESTROY_PUBLISHER);
             case EnsureSubscriber -> createMessage(TYPE_ID_ENSURE_SUBSCRIBER);
+            case EnsureSimpleSubscriber -> createMessage(TYPE_ID_ENSURE_SIMPLE_SUBSCRIBER);
             case DestroySubscriber -> createMessage(TYPE_ID_DESTROY_SUBSCRIBER);
             case EnsureChannelCount -> createMessage(TYPE_ID_ENSURE_CHANNEL_COUNT);
             case GetChannelCount -> createMessage(TYPE_ID_CHANNEL_COUNT);
@@ -334,6 +336,56 @@ public class GrpcTopicServiceFactory
             {                                                                                       
             com.oracle.coherence.grpc.messages.topic.v1.EnsureSubscriberRequest request
                     = MessageHelper.unpack(any, com.oracle.coherence.grpc.messages.topic.v1.EnsureSubscriberRequest.class);
+
+            setTopicName(request.getTopic());
+            setSubscriberGroup(request.getSubscriberGroup());
+            setCompleteOnEmpty(request.getCompleteOnEmpty());
+
+            List<Integer> listChannel = request.getChannelsList();
+            if (!listChannel.isEmpty())
+                {
+                setChannels(listChannel.stream().mapToInt(Integer::intValue).toArray());
+                }
+
+            if (request.hasFilter())
+                {
+                Filter<?> filter = BinaryHelper.fromByteString(request.getFilter(), serializer);
+                setFilter(filter);
+                }
+            if (request.hasExtractor())
+                {
+                ValueExtractor<?, ?> extractor = BinaryHelper.fromByteString(request.getExtractor(), serializer);
+                setExtractor(extractor);
+                }
+            setResponse(new GrpcEnsureSubscriberResponse());
+            }
+
+        @Override
+        public GrpcResponse getResponse()
+            {
+            return (GrpcResponse) super.getResponse();
+            }
+        }
+
+    // ----- inner class: GrpcEnsureSubscriberRequest -----------------------
+
+    /**
+     * The gRPC {@link EnsureSimpleSubscriberRequest} request which wraps a protobuf request.
+     */
+    public static class GrpcEnsureSimpleSubscriberRequest
+            extends EnsureSimpleSubscriberRequest
+            implements GrpcMessageWrapper
+        {
+        public GrpcEnsureSimpleSubscriberRequest()
+            {
+            m_fAutoAccept = true;
+            }
+
+        @Override
+        public void setProtoMessage(Any any, Serializer serializer)
+            {
+            com.oracle.coherence.grpc.messages.topic.v1.EnsureSimpleSubscriberRequest request
+                    = MessageHelper.unpack(any, com.oracle.coherence.grpc.messages.topic.v1.EnsureSimpleSubscriberRequest.class);
 
             setTopicName(request.getTopic());
             setSubscriberGroup(request.getSubscriberGroup());
