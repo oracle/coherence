@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -107,9 +107,9 @@ public class ConverterNamedMapQueue<FK, FV, TK, TV>
         }
 
     @Override
-    public long append(TV t)
+    public long append(TV t, long cMillis)
         {
-        return f_queue.append(getConverterDown().convert(t));
+        return f_queue.append(getConverterDown().convert(t), cMillis);
         }
 
     @Override
@@ -159,7 +159,19 @@ public class ConverterNamedMapQueue<FK, FV, TK, TV>
     @Override
     public boolean offer(TV t)
         {
-        return f_queue.offer(getConverterDown().convert(t));
+        return offer(t, EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offer(TV t, long nTTL)
+        {
+        return f_queue.offer(getConverterDown().convert(t), nTTL);
+        }
+
+    @Override
+    public boolean add(TV t, long nTTL)
+        {
+        return f_queue.offer(getConverterDown().convert(t), nTTL);
         }
 
     @Override

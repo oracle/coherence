@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,9 +26,9 @@ public class ConverterNamedMapDeque<KF, F, KT, T>
         }
 
     @Override
-    public long prepend(T t)
+    public long prepend(T t, long cMillis)
         {
-        return f_deque.prepend(getConverterDown().convert(t));
+        return f_deque.prepend(getConverterDown().convert(t), cMillis);
         }
 
     @Override
@@ -38,9 +38,21 @@ public class ConverterNamedMapDeque<KF, F, KT, T>
         }
 
     @Override
+    public void addFirst(T t, long cMillis)
+        {
+        f_deque.addFirst(getConverterDown().convert(t), cMillis);
+        }
+
+    @Override
     public void addLast(T t)
         {
         f_deque.addLast(getConverterDown().convert(t));
+        }
+
+    @Override
+    public void addLast(T t, long cMillis)
+        {
+        f_deque.addLast(getConverterDown().convert(t), cMillis);
         }
 
     @Override
@@ -50,9 +62,21 @@ public class ConverterNamedMapDeque<KF, F, KT, T>
         }
 
     @Override
+    public boolean offerFirst(T t, long cMillis)
+        {
+        return f_deque.offerFirst(getConverterDown().convert(t), cMillis);
+        }
+
+    @Override
     public boolean offerLast(T t)
         {
         return f_deque.offerLast(getConverterDown().convert(t));
+        }
+
+    @Override
+    public boolean offerLast(T t, long cMillis)
+        {
+        return f_deque.offerLast(getConverterDown().convert(t), cMillis);
         }
 
     @Override
@@ -119,6 +143,12 @@ public class ConverterNamedMapDeque<KF, F, KT, T>
     public void push(T t)
         {
         f_deque.push(getConverterDown().convert(t));
+        }
+
+    @Override
+    public void push(T t, long cMillis)
+        {
+        f_deque.push(getConverterDown().convert(t), cMillis);
         }
 
     @Override

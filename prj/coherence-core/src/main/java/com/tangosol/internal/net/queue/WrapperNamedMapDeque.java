@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,9 +45,9 @@ public class WrapperNamedMapDeque<K extends QueueKey, E>
         }
 
     @Override
-    public long prepend(E e)
+    public long prepend(E e, long cMillis)
         {
-        return f_delegate.prepend(e);
+        return f_delegate.prepend(e, cMillis);
         }
 
     @Override
@@ -57,9 +57,21 @@ public class WrapperNamedMapDeque<K extends QueueKey, E>
         }
 
     @Override
+    public void addFirst(E e, long cMillis)
+        {
+        f_delegate.addFirst(e, cMillis);
+        }
+
+    @Override
     public void addLast(E e)
         {
         f_delegate.addLast(e);
+        }
+
+    @Override
+    public void addLast(E e, long cMillis)
+        {
+        f_delegate.addLast(e, cMillis);
         }
 
     @Override
@@ -69,9 +81,21 @@ public class WrapperNamedMapDeque<K extends QueueKey, E>
         }
 
     @Override
+    public boolean offerFirst(E e, long cMillis)
+        {
+        return f_delegate.offerFirst(e, cMillis);
+        }
+
+    @Override
     public boolean offerLast(E e)
         {
         return f_delegate.offerLast(e);
+        }
+
+    @Override
+    public boolean offerLast(E e, long cMillis)
+        {
+        return f_delegate.offerLast(e, cMillis);
         }
 
     @Override
@@ -138,6 +162,12 @@ public class WrapperNamedMapDeque<K extends QueueKey, E>
     public void push(E e)
         {
         f_delegate.push(e);
+        }
+
+    @Override
+    public void push(E e, long cMillis)
+        {
+        f_delegate.push(e, cMillis);
         }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,11 +15,13 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
 
+import com.tangosol.net.NamedQueue;
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -74,12 +76,14 @@ public class QueueOfferTailProcessor
      * @param binElement      the element to be added to the queue
      * @param version         the version of the bucket
      * @param nMaxBucketSize  the maximum number of elements that can be held by a bucket
+     * @param nTTL            the expiry delay for the value
      */
-    public QueueOfferTailProcessor(Binary binElement, QueueVersionInfo version, int nMaxBucketSize)
+    public QueueOfferTailProcessor(Binary binElement, QueueVersionInfo version, int nMaxBucketSize, long nTTL)
         {
         m_binElement     = Objects.requireNonNull(binElement);
         m_bucketVersion  = version;
         m_nMaxBucketSize = nMaxBucketSize;
+        m_nTTL           = nTTL;
         }
 
     // ----- InvocableMap.EntryProcessor implementation ---------------------
@@ -126,6 +130,7 @@ public class QueueOfferTailProcessor
             if (bucket.increaseBytesUsed(nSize))
                 {
                 elementEntry.updateBinaryValue(m_binElement);
+                elementEntry.asBinaryEntry().expire(m_nTTL);
                 bucket.setTail(tailId);
                 nResult = QueueOfferResult.RESULT_SUCCESS;
                 }
@@ -174,6 +179,15 @@ public class QueueOfferTailProcessor
         m_nMaxBucketSize = in.readInt(0);
         m_bucketVersion  = in.readObject(1);
         m_binElement     = in.readBinary(2);
+        int nVersion = getDataVersion();
+        if (nVersion > 0)
+            {
+            m_nTTL = in.readLong(3);
+            }
+        else
+            {
+            m_nTTL = NamedQueue.EXPIRY_DEFAULT;
+            }
         }
 
     @Override
@@ -183,6 +197,7 @@ public class QueueOfferTailProcessor
         out.writeInt(0, m_nMaxBucketSize);
         out.writeObject(1, m_bucketVersion);
         out.writeBinary(2, m_binElement);
+        out.writeLong(3, m_nTTL);
         }
 
     // ----- ExternalizableLite methods -------------------------------------
@@ -193,6 +208,7 @@ public class QueueOfferTailProcessor
         m_nMaxBucketSize = ExternalizableHelper.readInt(in);
         m_bucketVersion  = ExternalizableHelper.readObject(in);
         m_binElement     = ExternalizableHelper.readObject(in);
+        m_nTTL = in.readLong();
         }
 
     @Override
@@ -201,6 +217,7 @@ public class QueueOfferTailProcessor
         ExternalizableHelper.writeInt(out, m_nMaxBucketSize);
         ExternalizableHelper.writeObject(out, m_bucketVersion);
         ExternalizableHelper.writeObject(out, m_binElement);
+        out.writeLong(m_nTTL);
         }
 
 
@@ -209,22 +226,31 @@ public class QueueOfferTailProcessor
     /**
      * The POF evolvable implementation version.
      */
-    public static final int POF_IMPL_VERSION = 0;
+    public static final int POF_IMPL_VERSION = 1;
 
     // ----- data members ---------------------------------------------------
 
     /**
      * The element to be added to the bucket
      */
+    @JsonbProperty("element")
     protected Binary m_binElement;
 
     /**
      * The maximum size of the bucket elements
      */
+    @JsonbProperty("maxBucketSize")
     protected int m_nMaxBucketSize;
 
     /**
      * The version of the bucket
      */
+    @JsonbProperty("bucketVersion")
     protected QueueVersionInfo m_bucketVersion;
+
+    /**
+     * The expiry delay for the value.
+     */
+    @JsonbProperty("ttl")
+    private long m_nTTL;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -119,7 +119,7 @@ public class BinaryPagedNamedQueue
         }
 
     @Override
-    protected QueueOfferResult offerToTailInternal(Binary binary)
+    protected QueueOfferResult offerToTailInternal(Binary binary, long nTTL)
         {
         if (binary == null)
             {
@@ -127,7 +127,7 @@ public class BinaryPagedNamedQueue
             }
 
         int                         tailBucketId = m_queueInfo.getTailBucketId();
-        InvocableMap.EntryProcessor processor    = instantiateTailOfferProcessor(binary, m_queueInfo);
+        InvocableMap.EntryProcessor processor    = instantiateTailOfferProcessor(binary, m_queueInfo, nTTL);
         Binary                      binKey       = m_converterKeyToInternal.convert(tailBucketId);
         Binary                      binResult    = (Binary) m_bucketCache.invoke(binKey, processor);
         QueueOfferResult            result       = (QueueOfferResult) m_converterValueFromInternal.convert(binResult);
@@ -212,11 +212,11 @@ public class BinaryPagedNamedQueue
         return InitialiseQueueInfoProcessor.INSTANCE;
         }
 
-    protected QueueOfferTailProcessor instantiateTailOfferProcessor(com.tangosol.util.Binary binElement, QueueInfo queueInfo)
+    protected QueueOfferTailProcessor instantiateTailOfferProcessor(Binary binElement, QueueInfo queueInfo, long nTTL)
         {
         QueueVersionInfo version    = queueInfo.getVersion();
         int              bucketSize = queueInfo.getBucketSize();
-        return new QueueOfferTailProcessor(binElement, version, bucketSize);
+        return new QueueOfferTailProcessor(binElement, version, bucketSize, nTTL);
         }
 
     protected QueuePollPeekHeadProcessor instantiatePollPeekHeadProcessor(boolean fPoll, QueueVersionInfo version)

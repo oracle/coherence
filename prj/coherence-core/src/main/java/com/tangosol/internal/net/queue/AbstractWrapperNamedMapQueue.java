@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -120,9 +120,9 @@ public abstract class AbstractWrapperNamedMapQueue<K extends QueueKey, E, D exte
         }
 
     @Override
-    public long append(E e)
+    public long append(E e, long cMillis)
         {
-        return f_delegate.append(e);
+        return f_delegate.append(e, cMillis);
         }
 
     @Override
@@ -152,7 +152,13 @@ public abstract class AbstractWrapperNamedMapQueue<K extends QueueKey, E, D exte
     @Override
     public boolean offer(E e)
         {
-        return f_delegate.offer(e);
+        return offer(e, EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offer(E e, long nTTL)
+        {
+        return f_delegate.offer(e, nTTL);
         }
 
     @Override
@@ -219,6 +225,12 @@ public abstract class AbstractWrapperNamedMapQueue<K extends QueueKey, E, D exte
     public boolean add(E e)
         {
         return f_delegate.add(e);
+        }
+
+    @Override
+    public boolean add(E e, long nTTL)
+        {
+        return f_delegate.add(e, nTTL);
         }
 
     @Override

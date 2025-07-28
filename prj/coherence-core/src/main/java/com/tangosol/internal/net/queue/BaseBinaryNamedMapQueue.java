@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.QueueService;
+import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.queue.MutableQueueStatistics;
 import com.tangosol.net.queue.QueueStatistics;
 import com.tangosol.util.Binary;
@@ -132,6 +133,12 @@ public abstract class BaseBinaryNamedMapQueue
         }
 
     @Override
+    public boolean add(Binary e, long nTTL)
+        {
+        return offer(e, nTTL);
+        }
+
+    @Override
     public boolean addAll(Collection<? extends Binary> c)
         {
         assertNotSameCollection(c, "This collection cannot be added to itself or the same underlying cache");
@@ -160,10 +167,10 @@ public abstract class BaseBinaryNamedMapQueue
         }
 
     @Override
-    public long append(Binary e)
+    public long append(Binary e, long cMillis)
         {
         assertNotNull(e);
-        QueueOfferResult result = offerToTailInternal(e);
+        QueueOfferResult result = offerToTailInternal(e, cMillis);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
         if (fSuccess)
             {
@@ -179,7 +186,13 @@ public abstract class BaseBinaryNamedMapQueue
     @Override
     public boolean offer(Binary e)
         {
-        long id = append(e);
+        return offer(e, EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offer(Binary e, long nTTL)
+        {
+        long id = append(e, nTTL);
         return id >= 0L;
         }
 
@@ -271,7 +284,7 @@ public abstract class BaseBinaryNamedMapQueue
         return new CacheQueueService(cacheService);
         }
 
-    protected abstract QueueOfferResult offerToTailInternal(Binary e);
+    protected abstract QueueOfferResult offerToTailInternal(Binary e, long nTTL);
 
     protected abstract QueuePollResult pollFromHeadInternal();
 

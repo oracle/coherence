@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,9 +8,9 @@
 package com.tangosol.net.queue;
 
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedQueue;
 import com.tangosol.net.QueueService;
 
-import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -170,10 +170,99 @@ public class WrapperNamedDeque<E>
         }
 
     @Override
-    public long prepend(E e)
+    public long prepend(E e, long cMillis)
         {
         Deque<E> deque = getDeque();
-        return deque.offerFirst(e) ?  0L : Long.MIN_VALUE;
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return deque.offerFirst(e) ?  0L : Long.MIN_VALUE;
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            return ((NamedDeque<E>) deque).prepend(e, cMillis);
+            }
+        throw new UnsupportedOperationException("prepend with expiry is not supported in deque type "
+                + deque.getClass().getName());
+        }
+
+    @Override
+    public void addFirst(E e, long cMillis)
+        {
+        Deque<E> deque = getDeque();
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            deque.addFirst(e);
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            ((NamedDeque<E>) deque).addFirst(e, cMillis);
+            }
+        throw new UnsupportedOperationException("addFirst with expiry is not supported in deque type "
+                + deque.getClass().getName());
+        }
+
+    @Override
+    public void addLast(E e, long cMillis)
+        {
+        Deque<E> deque = getDeque();
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            deque.addLast(e);
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            ((NamedDeque<E>) deque).addLast(e, cMillis);
+            }
+        throw new UnsupportedOperationException("addLast with expiry is not supported in deque type "
+                + deque.getClass().getName());
+        }
+
+    @Override
+    public boolean offerFirst(E e, long cMillis)
+        {
+        Deque<E> deque = getDeque();
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return deque.offerFirst(e);
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            return ((NamedDeque<E>) deque).offerFirst(e, cMillis);
+            }
+        throw new UnsupportedOperationException("offerFirst with expiry is not supported in deque type "
+                + deque.getClass().getName());
+        }
+
+    @Override
+    public boolean offerLast(E e, long cMillis)
+        {
+        Deque<E> deque = getDeque();
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return deque.offerLast(e);
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            return ((NamedDeque<E>) deque).offerLast(e, cMillis);
+            }
+        throw new UnsupportedOperationException("offerLast with expiry is not supported in deque type "
+                + deque.getClass().getName());
+        }
+
+    @Override
+    public void push(E e, long cMillis)
+        {
+        Deque<E> deque = getDeque();
+        if (cMillis == NamedQueue.EXPIRY_DEFAULT)
+            {
+            deque.push(e);
+            }
+        else if (deque instanceof NamedDeque<E>)
+            {
+            ((NamedDeque<E>) deque).push(e, cMillis);
+            }
+        throw new UnsupportedOperationException("push with expiry is not supported in deque type "
+                + deque.getClass().getName());
         }
 
     // ----- Object methods -------------------------------------------------

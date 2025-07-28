@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.tangosol.net;
 
+import com.tangosol.net.cache.CacheMap;
 import com.tangosol.net.queue.QueueStatistics;
 import com.tangosol.util.ObservableCollection;
 
@@ -71,5 +72,68 @@ public interface NamedQueue<E>
      *
      * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
      */
-    long append(E e);
+    default long append(E e)
+        {
+        return append(e, EXPIRY_DEFAULT);
+        }
+
+    /**
+     * Insert an element to the tail this {@link NamedQueue}.
+     *
+     * @param e        the element to insert
+     * @param cMillis  the number of milliseconds until the queue entry will
+     *                 expire, also referred to as the entry's "time to live";
+     *                 pass {@link #EXPIRY_DEFAULT} to use the queue's default
+     *                 time-to-live setting; pass {@link #EXPIRY_NEVER} to
+     *                 indicate that the queue entry should never expire; this
+     *                 milliseconds value is <b>not</b> a date/time value, such
+     *                 as is returned from System.currentTimeMillis()
+     *
+     * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
+     */
+    boolean offer(E e, long cMillis);
+
+    /**
+     * Insert an element to the tail this {@link NamedQueue}.
+     *
+     * @param e        the element to insert
+     * @param cMillis  the number of milliseconds until the queue entry will
+     *                 expire, also referred to as the entry's "time to live";
+     *                 pass {@link #EXPIRY_DEFAULT} to use the queue's default
+     *                 time-to-live setting; pass {@link #EXPIRY_NEVER} to
+     *                 indicate that the queue entry should never expire; this
+     *                 milliseconds value is <b>not</b> a date/time value, such
+     *                 as is returned from System.currentTimeMillis()
+     *
+     * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
+     */
+    boolean add(E e, long cMillis);
+
+    /**
+     * Insert an element to the tail this {@link NamedQueue}.
+     *
+     * @param e        the element to insert
+     * @param cMillis  the number of milliseconds until the queue entry will
+     *                 expire, also referred to as the entry's "time to live";
+     *                 pass {@link #EXPIRY_DEFAULT} to use the queue's default
+     *                 time-to-live setting; pass {@link #EXPIRY_NEVER} to
+     *                 indicate that the queue entry should never expire; this
+     *                 milliseconds value is <b>not</b> a date/time value, such
+     *                 as is returned from System.currentTimeMillis()
+     *
+     * @return the identifier for the inserted element, or {@link Long#MIN_VALUE} if the element could not be inserted
+     */
+    long append(E e, long cMillis);
+
+    /**
+     * A special time-to-live value that can be passed to indicate that the
+     * queue default expiry should be used.
+     */
+    long EXPIRY_DEFAULT = CacheMap.EXPIRY_DEFAULT;
+
+    /**
+     * A special time-to-live value that can be passed to indicate that the
+     * queue entry should never expire.
+     */
+    long EXPIRY_NEVER   = CacheMap.EXPIRY_NEVER;
     }

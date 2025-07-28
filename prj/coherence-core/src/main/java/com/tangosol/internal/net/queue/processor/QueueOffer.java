@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.net.cache.CacheMap;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
@@ -50,22 +51,27 @@ public class QueueOffer<E>
      * Create a {@link QueueOffer}.
      *
      * @param oValue  the value to offer to the queue
+     * @param nTTL    the expiry delay for the value
      */
-    public QueueOffer(E oValue)
+    public QueueOffer(E oValue, long nTTL)
         {
         m_oValue = oValue;
         m_binary = null;
+        m_nTTL   = nTTL;
         }
 
     /**
      * Create a {@link QueueOffer}.
      *
-     * @param binary   the {@link Binary} value to offer to the queue
+     * @param binary  the {@link Binary} value to offer to the queue
+     * @param nTTL    the expiry delay for the value
+     *
      */
-    public QueueOffer(Binary binary)
+    public QueueOffer(Binary binary, long nTTL)
         {
         m_oValue = null;
         m_binary = binary;
+        m_nTTL   = nTTL;
         }
 
     @Override
@@ -73,9 +79,9 @@ public class QueueOffer<E>
         {
         if (entry.getKey().getId() < 0)
             {
-            return offerToHead(entry.asBinaryEntry(), m_binary, m_oValue);
+            return offerToHead(entry.asBinaryEntry(), m_binary, m_oValue, m_nTTL);
             }
-        return offerToTail(entry.asBinaryEntry(), m_binary, m_oValue);
+        return offerToTail(entry.asBinaryEntry(), m_binary, m_oValue, m_nTTL);
         }
 
     // ----- EvolvablePortableObject methods --------------------------------
@@ -91,6 +97,15 @@ public class QueueOffer<E>
         {
         m_binary = in.readBinary(0);
         m_oValue = in.readObject(1);
+        int nVersion = getDataVersion();
+        if (nVersion > 1)
+            {
+            m_nTTL = in.readLong(2);
+            }
+        else
+            {
+            m_nTTL = CacheMap.EXPIRY_DEFAULT;
+            }
         }
 
     @Override
@@ -98,6 +113,7 @@ public class QueueOffer<E>
         {
         out.writeBinary(0, m_binary);
         out.writeObject(1, m_oValue);
+        out.writeLong(2, m_nTTL);
         }
 
     // ----- ExternalizableLite methods -------------------------------------
@@ -107,6 +123,7 @@ public class QueueOffer<E>
         {
         m_binary = ExternalizableHelper.readObject(in);
         m_oValue = ExternalizableHelper.readObject(in);
+        m_nTTL   = in.readLong();
         }
 
     @Override
@@ -114,6 +131,7 @@ public class QueueOffer<E>
         {
         ExternalizableHelper.writeObject(out, m_binary);
         ExternalizableHelper.writeObject(out, m_oValue);
+        out.writeLong(m_nTTL);
         }
 
     // ----- data members ---------------------------------------------------
@@ -121,7 +139,7 @@ public class QueueOffer<E>
     /**
      * The {@link EvolvablePortableObject} implementation version.
      */
-    public static final int IMPL_VERSION = 1;
+    public static final int IMPL_VERSION = 2;
 
     /**
      * The binary value to offer.
@@ -134,4 +152,10 @@ public class QueueOffer<E>
      */
     @JsonbProperty("value")
     private E m_oValue;
+
+    /**
+     * The expiry delay for the value.
+     */
+    @JsonbProperty("ttl")
+    private long m_nTTL;
     }

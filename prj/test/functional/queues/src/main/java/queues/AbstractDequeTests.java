@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedDeque;
+import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,12 +24,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 @SuppressWarnings({"rawtypes", "unchecked"})
 public abstract class AbstractDequeTests<DequeType extends NamedDeque>
@@ -65,8 +68,8 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         assertThat(nId2, is(greaterThan(Long.MIN_VALUE)));
         assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
 
-        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
-        int            nHash = deque.getQueueNameHash();
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        int                      nHash = deque.getQueueNameHash();
 
         QueueKey queueKey1 = new QueueKey(nHash, nId1);
         QueueKey queueKey2 = new QueueKey(nHash, nId2);
@@ -75,6 +78,52 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         assertThat(cache.get(queueKey1), is(sValue1));
         assertThat(cache.get(queueKey2), is(sValue2));
         assertThat(cache.get(queueKey3), is(sValue3));
+
+        long expiry1 = cache.invoke(queueKey1, AbstractQueueTests::getEntryExpiry);
+        long expiry2 = cache.invoke(queueKey2, AbstractQueueTests::getEntryExpiry);
+        long expiry3 = cache.invoke(queueKey3, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry1, is(NamedQueue.EXPIRY_NEVER));
+        assertThat(expiry2, is(NamedQueue.EXPIRY_NEVER));
+        assertThat(expiry3, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPrependToQueueWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue1 = "message-1";
+        String    sValue2 = "message-2";
+        String    sValue3 = "message-3";
+        long      ttl     = TimeUnit.MINUTES.toMillis(10);
+        long      start   = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        long nId1 = deque.prepend(sValue1, ttl);
+        long nId2 = deque.prepend(sValue2, ttl);
+        long nId3 = deque.prepend(sValue3, ttl);
+        assertThat(nId1, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId2, is(greaterThan(Long.MIN_VALUE)));
+        assertThat(nId3, is(greaterThan(Long.MIN_VALUE)));
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        int                      nHash = deque.getQueueNameHash();
+
+        QueueKey queueKey1 = new QueueKey(nHash, nId1);
+        QueueKey queueKey2 = new QueueKey(nHash, nId2);
+        QueueKey queueKey3 = new QueueKey(nHash, nId3);
+
+        assertThat(cache.get(queueKey1), is(sValue1));
+        assertThat(cache.get(queueKey2), is(sValue2));
+        assertThat(cache.get(queueKey3), is(sValue3));
+
+        long expiry1 = cache.invoke(queueKey1, AbstractQueueTests::getEntryExpiry);
+        long expiry2 = cache.invoke(queueKey2, AbstractQueueTests::getEntryExpiry);
+        long expiry3 = cache.invoke(queueKey3, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry1, is(greaterThanOrEqualTo(ttl - diff)));
+        assertThat(expiry2, is(greaterThanOrEqualTo(ttl - diff)));
+        assertThat(expiry3, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
     // ----- test addFirst() method ---------------------------------------------------
@@ -88,7 +137,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         deque.addFirst(sValue);
 
-        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -101,6 +150,39 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAddFirstToDequeWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        deque.addFirst(sValue, ttl);
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
 
@@ -144,7 +226,7 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         deque.addLast(sValue);
 
-        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -157,6 +239,39 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAddLastToDequeWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        deque.addLast(sValue, ttl);
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -196,9 +311,10 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         {
         DequeType deque  = getNewCollection(sSerializer);
         String    sValue = "message-1";
+
         assertThat(deque.offerFirst(sValue), is(true));
 
-        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -211,6 +327,39 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldOfferFirstToDequeWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        assertThat(deque.offerFirst(sValue, ttl), is(true));
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -250,9 +399,10 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         {
         DequeType deque  = getNewCollection(sSerializer);
         String    sValue = "message-1";
+
         assertThat(deque.offerLast(sValue), is(true));
 
-        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
         assertThat(cache.size(), is(1));
 
         Object oKey = cache.keySet().iterator().next();
@@ -265,6 +415,39 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
 
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldOfferLastToDequeWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        assertThat(deque.offerLast(sValue, ttl), is(true));
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -993,6 +1176,95 @@ public abstract class AbstractDequeTests<DequeType extends NamedDeque>
         assertThat(deque.isEmpty(), is(true));
         assertThat(cache.isEmpty(), is(true));
         assertThat(deque.peekLast(), is(nullValue()));
+        }
+
+    // ----- test push() method ---------------------------------------------
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPushToDeque(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+
+        deque.push(sValue);
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        assertThat(expiry, is(NamedQueue.EXPIRY_NEVER));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPushToDequeWithExpiry(String sSerializer)
+        {
+        DequeType deque  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+
+        deque.push(sValue, ttl);
+
+        NamedMap<Object, Object> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey = cache.keySet().iterator().next();
+        assertThat(oKey, is(instanceOf(QueueKey.class)));
+
+        QueueKey queueKey = (QueueKey) oKey;
+        int      nHash    = deque.getQueueNameHash();
+        assertThat(queueKey.getHash(), is(nHash));
+        assertThat(queueKey.getAssociatedKey(), is(nHash));
+
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
+        }
+
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldPushToDequeInOrder(String sSerializer)
+        {
+        DequeType deque    = getNewCollection(sSerializer);
+        String    sPrefix  = "message-";
+        int       cMessage = 100;
+
+        for (int i = 0; i < cMessage; i++)
+            {
+            String sValue = sPrefix + i;
+            deque.push(sValue);
+            }
+
+        NamedMap<?, ?> cache = getCollectionCache(deque.getName());
+        assertThat(cache.size(), is(cMessage));
+
+        TreeSet<QueueKey> setKey = (TreeSet<QueueKey>) new TreeSet<>(cache.keySet());
+        assertThat(setKey.size(), is(cMessage));
+
+        int i = cMessage - 1;
+        for (QueueKey key : setKey)
+            {
+            String sExpected = sPrefix + i;
+            assertThat(cache.get(key), is(sExpected));
+            i--;
+            }
         }
 
     // ----- test removeFirstOccurrence() method ---------------------------------------------------

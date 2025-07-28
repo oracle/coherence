@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -82,9 +82,9 @@ public class BinaryNamedMapDeque
     // ----- NamedDeque methods ---------------------------------------------
 
     @Override
-    public long prepend(Binary e)
+    public long prepend(Binary e, long cMillis)
         {
-        QueueOfferResult result = offerToHeadInternal(e);
+        QueueOfferResult result = offerToHeadInternal(e, cMillis);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
         if (fSuccess)
             {
@@ -100,7 +100,13 @@ public class BinaryNamedMapDeque
     @Override
     public void addFirst(Binary e)
         {
-        QueueOfferResult result  = offerToHeadInternal(e);
+        addFirst(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public void addFirst(Binary e, long cMillis)
+        {
+        QueueOfferResult result  = offerToHeadInternal(e, cMillis);
         int              nStatus = result.getResult();
         if (nStatus == QueueOfferResult.RESULT_FAILED_CAPACITY)
             {
@@ -113,7 +119,13 @@ public class BinaryNamedMapDeque
     @Override
     public void addLast(Binary e)
         {
-        QueueOfferResult result  = offerToTailInternal(e);
+        addLast(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public void addLast(Binary e, long cMillis)
+        {
+        QueueOfferResult result  = offerToTailInternal(e, cMillis);
         int              nStatus = result.getResult();
         if (nStatus == QueueOfferResult.RESULT_FAILED_CAPACITY)
             {
@@ -126,7 +138,13 @@ public class BinaryNamedMapDeque
     @Override
     public boolean offerFirst(Binary e)
         {
-        QueueOfferResult result = offerToHeadInternal(e);
+        return offerFirst(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offerFirst(Binary e, long cMillis)
+        {
+        QueueOfferResult result = offerToHeadInternal(e, cMillis);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
         if (fSuccess)
             {
@@ -143,6 +161,12 @@ public class BinaryNamedMapDeque
     public boolean offerLast(Binary e)
         {
         return offer(e);
+        }
+
+    @Override
+    public boolean offerLast(Binary e, long cMillis)
+        {
+        return offer(e, cMillis);
         }
 
     @Override
@@ -265,6 +289,12 @@ public class BinaryNamedMapDeque
         }
 
     @Override
+    public void push(Binary e, long cMillis)
+        {
+        addFirst(e, cMillis);
+        }
+
+    @Override
     public Binary pop()
         {
         return removeFirst();
@@ -278,10 +308,10 @@ public class BinaryNamedMapDeque
 
     // ----- helper methods -------------------------------------------------
 
-    protected QueueOfferResult offerToHeadInternal(Binary e)
+    protected QueueOfferResult offerToHeadInternal(Binary e, long nTTL)
         {
         long             lStart    = System.nanoTime();
-        QueueOffer       processor = new QueueOffer<>(e);
+        QueueOffer       processor = new QueueOffer<>(e, nTTL);
         Binary           binKey    = m_converterKeyToInternal.convert(m_keyHead.randomHead());
         Binary           binary    = (Binary) m_cache.invoke(binKey, processor);
         QueueOfferResult result    = (QueueOfferResult) m_converterValueFromInternal.convert(binary);

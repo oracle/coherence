@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -129,10 +129,11 @@ public abstract class AbstractQueueProcessor<K, V, R>
      * @param entry   the entry the processor is being invoked against
      * @param binary  the {@link Binary} value to offer
      * @param oValue  the Object value to offer
+     * @param nTTL    the expiry delay for the value
      *
      * @return the {@link QueueOfferResult result} of the operation
      */
-    public QueueOfferResult offerToTail(BinaryEntry<QueueKey, ?> entry, Binary binary, Object oValue)
+    public QueueOfferResult offerToTail(BinaryEntry<QueueKey, ?> entry, Binary binary, Object oValue, long nTTL)
         {
         BackingMapContext context     = entry.getBackingMapContext();
         Binary            binaryValue = ensureBinaryValue(context, binary, oValue);
@@ -160,6 +161,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             }
 
         entryTail.updateBinaryValue(binaryValue);
+        entryTail.expire(nTTL);
         return new QueueOfferResult(keyNext.getId(), QueueOfferResult.RESULT_SUCCESS);
         }
 
@@ -169,10 +171,11 @@ public abstract class AbstractQueueProcessor<K, V, R>
      * @param entry   the entry the processor is being invoked against
      * @param binary  the {@link Binary} value to offer
      * @param oValue  the Object value to offer
+     * @param nTTL    the expiry delay for the value
      *
      * @return the {@link QueueOfferResult result} of the operation
      */
-    public QueueOfferResult offerToHead(BinaryEntry<QueueKey, ?> entry, Binary binary, Object oValue)
+    public QueueOfferResult offerToHead(BinaryEntry<QueueKey, ?> entry, Binary binary, Object oValue, long nTTL)
         {
         BackingMapContext context     = entry.getBackingMapContext();
         Binary            binaryValue = ensureBinaryValue(context, binary, oValue);
@@ -200,6 +203,7 @@ public abstract class AbstractQueueProcessor<K, V, R>
             }
 
         entryHead.updateBinaryValue(binaryValue);
+        entryHead.expire(nTTL);
         return new QueueOfferResult(keyPrev.getId(), QueueOfferResult.RESULT_SUCCESS);
         }
 

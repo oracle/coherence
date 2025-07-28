@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -161,15 +161,57 @@ public class WrapperNamedQueue<E>
         }
 
     @Override
-    public boolean offer(E e)
+    public boolean add(E e, long nTTL)
         {
-        return getQueue().offer(e);
+        Queue<E> queue = getQueue();
+        if (nTTL == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return queue.add(e);
+            }
+        else if (queue instanceof NamedQueue<?>)
+            {
+            return ((NamedQueue<E>) queue).add(e, nTTL);
+            }
+        throw new UnsupportedOperationException("add with expiry is not supported in queue type "
+                + queue.getClass().getName());
         }
 
     @Override
-    public long append(E e)
+    public boolean offer(E e)
         {
-        return getQueue().offer(e) ? getQueue().size() : Long.MIN_VALUE;
+        return offer(e, EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offer(E e, long nTTL)
+        {
+        Queue<E> queue = getQueue();
+        if (nTTL == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return queue.offer(e);
+            }
+        else if (queue instanceof NamedQueue<?>)
+            {
+            return ((NamedQueue<E>) queue).offer(e, nTTL);
+            }
+        throw new UnsupportedOperationException("offer with expiry is not supported in queue type "
+                + queue.getClass().getName());
+        }
+
+    @Override
+    public long append(E e, long nTTL)
+        {
+        Queue<E> queue = getQueue();
+        if (nTTL == NamedQueue.EXPIRY_DEFAULT)
+            {
+            return queue.offer(e) ? queue.size() : Long.MIN_VALUE;
+            }
+        else if (queue instanceof NamedQueue<?>)
+            {
+            return ((NamedQueue<E>) queue).append(e, nTTL);
+            }
+        throw new UnsupportedOperationException("append with expiry is not supported in queue type "
+                + queue.getClass().getName());
         }
 
     @Override

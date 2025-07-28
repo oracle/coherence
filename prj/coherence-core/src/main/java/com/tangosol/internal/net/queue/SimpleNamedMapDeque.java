@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,9 +55,9 @@ public class SimpleNamedMapDeque<E>
     // ----- NamedDeque methods ---------------------------------------------
 
     @Override
-    public long prepend(E e)
+    public long prepend(E e, long cMillis)
         {
-        QueueOfferResult result = offerToHeadInternal(e);
+        QueueOfferResult result = offerToHeadInternal(e, cMillis);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
         if (fSuccess)
             {
@@ -73,7 +73,13 @@ public class SimpleNamedMapDeque<E>
     @Override
     public void addFirst(E e)
         {
-        QueueOfferResult result  = offerToHeadInternal(e);
+        addFirst(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public void addFirst(E e, long cMillis)
+        {
+        QueueOfferResult result  = offerToHeadInternal(e, cMillis);
         int              nStatus = result.getResult();
         if (nStatus == QueueOfferResult.RESULT_FAILED_CAPACITY)
             {
@@ -86,7 +92,13 @@ public class SimpleNamedMapDeque<E>
     @Override
     public void addLast(E e)
         {
-        QueueOfferResult result  = offerToTailInternal(e);
+        addLast(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public void addLast(E e, long cMillis)
+        {
+        QueueOfferResult result  = offerToTailInternal(e, cMillis);
         int              nStatus = result.getResult();
         if (nStatus == QueueOfferResult.RESULT_FAILED_CAPACITY)
             {
@@ -99,7 +111,13 @@ public class SimpleNamedMapDeque<E>
     @Override
     public boolean offerFirst(E e)
         {
-        QueueOfferResult result = offerToHeadInternal(e);
+        return offerFirst(e, NamedQueue.EXPIRY_DEFAULT);
+        }
+
+    @Override
+    public boolean offerFirst(E e, long cMillis)
+        {
+        QueueOfferResult result = offerToHeadInternal(e, cMillis);
         boolean fSuccess = result.getResult() == QueueOfferResult.RESULT_SUCCESS;
         if (fSuccess)
             {
@@ -116,6 +134,12 @@ public class SimpleNamedMapDeque<E>
     public boolean offerLast(E e)
         {
         return offer(e);
+        }
+
+    @Override
+    public boolean offerLast(E e, long cMillis)
+        {
+        return offer(e, cMillis);
         }
 
     @Override
@@ -239,6 +263,12 @@ public class SimpleNamedMapDeque<E>
         }
 
     @Override
+    public void push(E e, long cMillis)
+        {
+        addFirst(e, cMillis);
+        }
+
+    @Override
     public E pop()
         {
         return removeFirst();
@@ -252,10 +282,10 @@ public class SimpleNamedMapDeque<E>
 
     // ----- helper methods -------------------------------------------------
 
-    protected QueueOfferResult offerToHeadInternal(E e)
+    protected QueueOfferResult offerToHeadInternal(E e, long nTTL)
         {
         long             lStart    = System.nanoTime();
-        QueueOffer<E>    processor = new QueueOffer<>(e);
+        QueueOffer<E>    processor = new QueueOffer<>(e, nTTL);
         QueueOfferResult result    = m_cache.invoke(m_keyHead.randomHead(), processor);
         long             lEnd      = System.nanoTime();
         m_statistics.offered(lEnd - lStart);

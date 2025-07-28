@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -43,6 +43,7 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
+import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 
 @SuppressWarnings({"rawtypes", "unchecked", "MismatchedQueryAndUpdateOfCollection"})
@@ -156,6 +157,50 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         Object oKey   = cache.keySet().iterator().next();
         Object oValue = cache.get(oKey);
         assertThat(oValue, is(sValue));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldOfferToQueueWithExpiry(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+        assertThat(queue.offer(sValue, ttl), is(true));
+
+        NamedMap<Object, Object> cache = getCollectionCache(queue.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey   = cache.keySet().iterator().next();
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldAddToQueueWithExpiry(String sSerializer)
+        {
+        QueueType queue  = getNewCollection(sSerializer);
+        String    sValue = "message-1";
+        long      ttl    = TimeUnit.MINUTES.toMillis(10);
+        long      start  = System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1);
+        assertThat(queue.add(sValue, ttl), is(true));
+
+        NamedMap<Object, Object> cache = getCollectionCache(queue.getName());
+        assertThat(cache.size(), is(1));
+
+        Object oKey   = cache.keySet().iterator().next();
+        Object oValue = cache.get(oKey);
+        assertThat(oValue, is(sValue));
+
+        long expiry = cache.invoke(oKey, AbstractQueueTests::getEntryExpiry);
+        long diff = System.currentTimeMillis() - start;
+        assertThat(expiry, is(greaterThanOrEqualTo(ttl - diff)));
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -444,6 +489,47 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    public void shouldNotPollExpiredValues(String sSerializer) throws Exception
+        {
+        long nTTL = TimeUnit.SECONDS.toMillis(2);
+        int  cMsg = 50;
+
+        QueueType queue = getNewCollection(sSerializer);
+        for (int i = 0; i < cMsg; i++)
+            {
+            String sElement1 = "message-" + i;
+            assertThat(queue.offer(sElement1), is(true));
+            String sElement2 = "message-" + i + "-expired";
+            assertThat(queue.offer(sElement2, nTTL), is(true));
+            }
+
+        Thread.sleep(nTTL * 2);
+
+        for (int i = 0; i < cMsg; i++)
+            {
+            String sElement = "message-" + i;
+            assertThat(queue.poll(), is(sElement));
+            }
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldNotPeekExpiredValues(String sSerializer) throws Exception
+        {
+        long nTTL = TimeUnit.SECONDS.toMillis(2);
+
+        QueueType queue = getNewCollection(sSerializer);
+        String sElement1 = "message-expired";
+        assertThat(queue.offer(sElement1, nTTL), is(true));
+        String sElement2 = "message";
+        assertThat(queue.offer(sElement2), is(true));
+
+        Thread.sleep(nTTL * 2);
+        assertThat(queue.poll(), is(sElement2));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
     public void shouldOfferPeekAndPoll(String sSerializer)
         {
         QueueType queue = getNewCollection(sSerializer);
@@ -676,6 +762,11 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         }
 
     // ----- helper methods -------------------------------------------------
+
+    public static long getEntryExpiry(InvocableMap.Entry<Object, Object> entry)
+        {
+        return entry.asBinaryEntry().getExpiry();
+        }
 
     protected boolean isSameNamedMap(NamedMap<?, ?> mapThis, NamedMap<?, ?> mapOther)
         {
