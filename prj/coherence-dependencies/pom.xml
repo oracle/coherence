@@ -254,7 +254,7 @@
     <protobuf.version>4.31.1</protobuf.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
-    <slf4j.version>1.7.36</slf4j.version>
+    <slf4j.version>2.0.17</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
 
     <!-- lucene -->
