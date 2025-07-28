@@ -22,6 +22,8 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <bedrockUseModules>false</bedrockUseModules>
+    <moditect.skip>true</moditect.skip>
     <module.name>com.oracle.coherence.testing.tracing.jaeger</module.name>
   </properties>
 
