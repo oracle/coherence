@@ -38,6 +38,7 @@ import com.oracle.coherence.grpc.messages.topic.v1.SeekRequest;
 import com.oracle.coherence.grpc.messages.topic.v1.SeekResponse;
 import com.oracle.coherence.grpc.messages.topic.v1.SeekedPositions;
 import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest;
+import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveResponse;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicElement;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicServiceRequestType;
 import com.oracle.coherence.grpc.messages.topic.v1.TopicServiceResponse;
@@ -66,6 +67,7 @@ import java.time.Instant;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.SortedSet;
@@ -218,14 +220,15 @@ public class GrpcSubscriberConnector<V>
 
     protected SimpleReceiveResult receiveInternal(int nChannel, int cMaxElements)
         {
-        CompletableFuture<ReceiveResponse> future;
+        CompletableFuture<SimpleReceiveResult> future;
         if (f_fSimple)
             {
             SimpleReceiveRequest request = SimpleReceiveRequest.newBuilder()
                     .setMaxMessages(cMaxElements)
                     .build();
 
-            future = poll(TopicServiceRequestType.SimpleReceive, request, ReceiveResponse.class);
+            future = poll(TopicServiceRequestType.SimpleReceive, request, SimpleReceiveResponse.class)
+                            .thenApply(this::onSimpleReceiveResponse);
             }
         else
             {
@@ -234,14 +237,14 @@ public class GrpcSubscriberConnector<V>
                     .setMaxMessages(cMaxElements)
                     .build();
 
-            future = poll(TopicServiceRequestType.Receive, request, ReceiveResponse.class);
+            future = poll(TopicServiceRequestType.Receive, request, ReceiveResponse.class)
+                            .thenApply(this::onReceiveResponse);
             }
 
         long cMillis = getRequestTimeoutMillis();
         try
             {
-            return future.thenApply(this::onReceiveResponse)
-                    .get(cMillis, TimeUnit.MILLISECONDS);
+            return future.get(cMillis, TimeUnit.MILLISECONDS);
             }
         catch (ExecutionException e)
             {
@@ -277,7 +280,27 @@ public class GrpcSubscriberConnector<V>
                 .map(BinaryHelper::toBinary)
                 .collect(Collectors.toCollection(LinkedList::new));
 
-        return new SimpleReceiveResult(elements, response.getChannel(), response.getRemainingValues(), status, head);
+        return new SimpleReceiveResult(elements, response.getRemainingValues(), status, head);
+        }
+
+    protected SimpleReceiveResult onSimpleReceiveResponse(SimpleReceiveResponse response)
+        {
+        ReceiveResult.Status status = switch (response.getStatus())
+            {
+            case ReceiveSuccess -> ReceiveResult.Status.Success;
+            case ChannelExhausted -> ReceiveResult.Status.Exhausted;
+            case ChannelNotAllocatedChannel -> ReceiveResult.Status.NotAllocatedChannel;
+            case UnknownSubscriber -> ReceiveResult.Status.UnknownSubscriber;
+            case UNRECOGNIZED -> throw new IllegalArgumentException("Unknown subscriber status: " + response.getStatus());
+            };
+
+        List<TopicElement> elements = response.getValuesList();
+
+        Queue<Binary> binaries = elements.stream()
+                .map(TopicHelper::fromProtobufTopicElement)
+                .collect(Collectors.toCollection(LinkedList::new));
+
+        return new SimpleReceiveResult(binaries, 0, status);
         }
 
     @Override

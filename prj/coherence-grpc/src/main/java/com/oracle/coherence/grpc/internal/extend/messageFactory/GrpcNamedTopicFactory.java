@@ -23,9 +23,9 @@ import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.MessageHelper;
 import com.oracle.coherence.grpc.TopicHelper;
 
-import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveRequest;
+import com.oracle.coherence.grpc.messages.topic.v1.SimpleReceiveResponse;
+import com.oracle.coherence.grpc.messages.topic.v1.TopicElement;
 import com.tangosol.coherence.component.net.extend.message.GrpcMessageWrapper;
-import com.tangosol.coherence.component.net.extend.message.Response;
 import com.tangosol.coherence.component.net.extend.messageFactory.GrpcMessageFactory;
 
 import com.oracle.coherence.grpc.internal.extend.message.response.BoolValueResponse;
@@ -58,6 +58,7 @@ import com.tangosol.internal.net.topic.SeekResult;
 
 import com.tangosol.internal.net.topic.SimpleReceiveResult;
 
+import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.topic.Position;
@@ -534,7 +535,7 @@ public class GrpcNamedTopicFactory
         {
         public GrpcSimpleReceiveRequest()
             {
-            setResponse(new GrpcReceiveResponse());
+            setResponse(new GrpcSimpleReceiveResponse());
             }
 
         @Override
@@ -586,12 +587,55 @@ public class GrpcNamedTopicFactory
             ReceiveResponse.Builder builder = ReceiveResponse.newBuilder()
                     .setHeadPosition(TopicHelper.toProtobufPosition(result.getHead()))
                     .setRemainingValues(result.getRemainingElementCount())
-                    .setStatus(status)
-                    .setChannel(result.getChannel());
+                    .setStatus(status);
 
             for (Binary binary : result.getElements())
                 {
                 builder.addValues(BinaryHelper.toByteString(binary));
+                }
+
+            return builder.build();
+            }
+        }
+
+    // ----- inner class: GrpcReceiveResponseRequest ------------------------
+
+    /**
+     * The response for a {@link GrpcSimpleReceiveRequest} request.
+     */
+    public static class GrpcSimpleReceiveResponse
+            extends GrpcResponse
+        {
+        public GrpcSimpleReceiveResponse()
+            {
+            }
+
+        @Override
+        public Message getProtoResponse()
+            {
+            Object oResult = getResult();
+            if (oResult instanceof Throwable)
+                {
+                return ErrorsHelper.createErrorMessage((Throwable) oResult, m_serializer);
+                }
+
+            SimpleReceiveResult result = (SimpleReceiveResult) oResult;
+
+            ReceiveStatus status = switch (result.getStatus())
+                {
+                case Success -> ReceiveStatus.ReceiveSuccess;
+                case Exhausted -> ReceiveStatus.ChannelExhausted;
+                case NotAllocatedChannel -> ReceiveStatus.ChannelNotAllocatedChannel;
+                case UnknownSubscriber -> ReceiveStatus.UnknownSubscriber;
+                };
+
+            SimpleReceiveResponse.Builder builder = SimpleReceiveResponse.newBuilder()
+                    .setStatus(status);
+
+            for (Binary binary : result.getElements())
+                {
+                TopicElement element = TopicHelper.toProtobufTopicElement(PageElement.fromBinary(binary, m_serializer));
+                builder.addValues(element);
                 }
 
             return builder.build();

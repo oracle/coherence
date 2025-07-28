@@ -145,19 +145,17 @@ public class PollProcessor
         /**
          * Create a {@link Result}.
          *
-         * @param nChannel            the channel the result is for
          * @param cElementsRemaining  true iff the target page has been exhausted
          * @param nNext               the index of the next element in the page
          * @param queueElements       the elements to return in this result
          * @param lHead               the initial head page for the subscription
          */
-        public Result(int nChannel, int cElementsRemaining, int nNext, Queue<Binary> queueElements, long lHead)
+        public Result(int cElementsRemaining, int nNext, Queue<Binary> queueElements, long lHead)
             {
             m_cElementsRemaining = cElementsRemaining;
             m_nNext              = nNext;
             m_queueElements      = queueElements == null ? new LinkedList<>() : queueElements;
             m_lSubscriptionHead  = lHead;
-            m_nChannel           = nChannel;
             }
 
         // ----- accessor methods -----------------------------------------------
@@ -205,12 +203,6 @@ public class PollProcessor
             return m_queueElements == null ? new LinkedList<>() : m_queueElements;
             }
 
-        @Override
-        public int getChannel()
-            {
-            return m_nChannel;
-            }
-
         /**
          * Return the subscription head page.
          *
@@ -228,7 +220,7 @@ public class PollProcessor
          */
         public ReceiveResult toSimpleResult()
             {
-            return new SimpleReceiveResult(m_queueElements, m_nChannel, m_cElementsRemaining, getStatus());
+            return new SimpleReceiveResult(m_queueElements, m_cElementsRemaining, getStatus());
             }
 
         /**
@@ -240,7 +232,7 @@ public class PollProcessor
          */
         public ReceiveResult toSimpleResult(Position head)
             {
-            return new SimpleReceiveResult(m_queueElements, m_nChannel, m_cElementsRemaining, getStatus(), head);
+            return new SimpleReceiveResult(m_queueElements, m_cElementsRemaining, getStatus(), head);
             }
 
         // ----- helper methods ---------------------------------------------
@@ -252,9 +244,9 @@ public class PollProcessor
          *
          * @return a new "exhausted" {@link Result}
          */
-        public static Result exhausted(int nChannel, Subscription subscription)
+        public static Result exhausted(Subscription subscription)
             {
-            return new PollProcessor.Result(nChannel, PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null, subscription.getSubscriptionHead());
+            return new PollProcessor.Result(PollProcessor.Result.EXHAUSTED, Integer.MAX_VALUE, null, subscription.getSubscriptionHead());
             }
 
         /**
@@ -262,9 +254,9 @@ public class PollProcessor
          *
          * @return a new "unknown subscriber" {@link Result}
          */
-        public static Result unknownSubscriber(int nChannel)
+        public static Result unknownSubscriber()
             {
-            return new PollProcessor.Result(nChannel, PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null, Page.NULL_PAGE);
+            return new PollProcessor.Result(PollProcessor.Result.UNKNOWN_SUBSCRIBER, 0, null, Page.NULL_PAGE);
             }
 
         /**
@@ -274,9 +266,9 @@ public class PollProcessor
          *
          * @return a new "not allocated channel" {@link Result}
          */
-        public static Result notAllocated(int nChannel, int nNext)
+        public static Result notAllocated(int nNext)
             {
-            return new PollProcessor.Result(nChannel, PollProcessor.Result.NOT_ALLOCATED_CHANNEL, nNext, null, Page.NULL_PAGE);
+            return new PollProcessor.Result(PollProcessor.Result.NOT_ALLOCATED_CHANNEL, nNext, null, Page.NULL_PAGE);
             }
 
         // ----- EvolvablePortableObject interface --------------------------
@@ -373,11 +365,6 @@ public class PollProcessor
          * The head page for the subscription.
          */
         private long m_lSubscriptionHead = Page.NULL_PAGE;
-
-        /**
-         * The channel the result is for.
-         */
-        private int m_nChannel;
         }
 
     // ----- constants ------------------------------------------------------
@@ -385,7 +372,7 @@ public class PollProcessor
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 4;
+    public static final int DATA_VERSION = 3;
 
     // ----- data members ---------------------------------------------------
 

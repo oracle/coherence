@@ -38,6 +38,7 @@ import com.tangosol.internal.net.topic.SimplePublishResult;
 import com.tangosol.internal.net.topic.SimplePublisherStatus;
 import com.tangosol.internal.net.topic.SubscriberConnector;
 
+import com.tangosol.internal.net.topic.impl.paged.model.PageElement;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
@@ -48,6 +49,7 @@ import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 
+import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.SimpleLongArray;
 import com.tangosol.util.UUID;
@@ -659,5 +661,22 @@ public abstract class TopicHelper
                            .setPosition(toProtobufPosition(element.getPosition()))
                            .setValue(BinaryHelper.toByteString(element.getBinaryValue()))
                            .build();
+        }
+
+    /**
+     * Convert a protobuf {@link TopicElement} to a binary {@link PageElement}.
+     *
+     * @param element  the {@link TopicElement} to convert
+     *
+     * @return the binary {@link PageElement}
+     */
+    public static Binary fromProtobufTopicElement(TopicElement element)
+        {
+        PagedPosition position  = (PagedPosition) fromProtobufPosition(element.getPosition());
+        Timestamp     timestamp = element.getTimestamp();
+        Instant       instant   = Instant.ofEpochSecond(timestamp.getSeconds(), timestamp.getNanos());
+
+        return PageElement.toBinary(element.getChannel(), position.getPage(),
+                position.getOffset(), instant.getEpochSecond(), BinaryHelper.toBinary(element.getValue()));
         }
     }

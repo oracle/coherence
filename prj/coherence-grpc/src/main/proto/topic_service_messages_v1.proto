@@ -539,6 +539,7 @@ enum ReceiveStatus {
     UnknownSubscriber = 3;
 }
 
+// A response from a ReceiveRequest
 message ReceiveResponse {
     // The status of the receive result.
     ReceiveStatus status = 1;
@@ -548,8 +549,14 @@ message ReceiveResponse {
     TopicPosition headPosition = 3;
     // The count of the remaining values.
     int32 remainingValues = 4;
-    // The channel the messages are from
-    int32 channel = 5;
+}
+
+// A response from a SimpleReceiveRequest
+message SimpleReceiveResponse {
+    // The status of the receive result.
+    ReceiveStatus status = 1;
+    // The elements received from the channel.
+    repeated TopicElement values = 2;
 }
 
 // A request to seek (reposition) one or more channels.

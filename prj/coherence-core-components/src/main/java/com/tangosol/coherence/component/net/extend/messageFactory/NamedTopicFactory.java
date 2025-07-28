@@ -1038,10 +1038,7 @@ public class NamedTopicFactory
                     else
                         {
                         result = new SimpleReceiveResult(result.getElements(),
-                                channel.getId(),
-                                result.getRemainingElementCount(),
-                                result.getStatus(),
-                                head);
+                                result.getRemainingElementCount(), result.getStatus(), head);
                         }
 
                     continuation.onContinue();
@@ -1117,13 +1114,11 @@ public class NamedTopicFactory
                             if (err == null)
                                 {
                                 Queue<Binary> elements = new LinkedList<>();
-                                int nChannel = 0;
                                 for (Subscriber.Element<?> element : list)
                                     {
-                                    nChannel = element.getChannel();
                                     elements.add(((Subscriber.BinaryElement<?>) element).getRawBinary());
                                     }
-                                response.setResult(new SimpleReceiveResult(elements, nChannel,
+                                response.setResult(new SimpleReceiveResult(elements,
                                         0, ReceiveResult.Status.Success, PagedPosition.EMPTY_POSITION));
                                 }
                             else

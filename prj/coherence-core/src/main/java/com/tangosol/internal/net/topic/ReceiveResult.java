@@ -40,13 +40,6 @@ public interface ReceiveResult
     Status getStatus();
 
     /**
-     * Return the channel that the messages are for.
-     *
-     * @return the channel that the messages are for
-     */
-    int getChannel();
-
-    /**
      * The status of a receive operations.
      */
     enum Status
