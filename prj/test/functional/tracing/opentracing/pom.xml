@@ -23,6 +23,8 @@
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <module.name>testing.tracing.opentracing</module.name>
+    <bedrockUseModules>false</bedrockUseModules>
+    <moditect.skip>true</moditect.skip>
   </properties>
 
   <dependencies>
