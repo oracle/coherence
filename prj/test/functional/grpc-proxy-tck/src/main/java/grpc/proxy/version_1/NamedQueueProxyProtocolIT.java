@@ -27,6 +27,7 @@ import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueRequestT
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponse;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponseType;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueType;
+import com.oracle.coherence.grpc.messages.concurrent.queue.v1.OfferRequest;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.QueueOfferResult;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
@@ -559,6 +560,52 @@ public class NamedQueueProxyProtocolIT
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")
+    public void shouldOfferToTailWithExpiry(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String             sQueueName = newQueueName();
+        NamedQueue<String> queue      = ensureEmptyQueue(sScope, sQueueName);
+
+        queue.clear();
+
+        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel  = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+        int queueId = ensureQueue(channel, observer, sQueueName);
+
+        ByteString bytesOne = toByteString("value-1", serializer);
+        ByteString bytesTwo = toByteString("value-2", serializer);
+
+        long cMillis = 2000;
+
+        OfferRequest requestOne = OfferRequest.newBuilder()
+                .setValue(bytesOne)
+                .setTtl(cMillis)
+                .build();
+
+        OfferRequest requestTwo = OfferRequest.newBuilder()
+                .setValue(bytesTwo)
+                .setTtl(NamedQueue.EXPIRY_NEVER)
+                .build();
+
+        NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.ExtendedOfferTail, requestOne);
+        QueueOfferResult   result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.getSucceeded(), is(true));
+
+        response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.ExtendedOfferTail, requestTwo);
+        result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.getSucceeded(), is(true));
+
+        Thread.sleep(cMillis + 1000);
+
+        assertThat(queue.poll(), is("value-2"));
+        assertThat(queue.poll(), is(nullValue()));
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
     public void shouldOfferToHead(String ignored, Serializer serializer, String sScope) throws Exception
         {
         String             sQueueName = newQueueName();
@@ -587,6 +634,53 @@ public class NamedQueueProxyProtocolIT
 
         assertThat(queue.poll(), is("value-2"));
         assertThat(queue.poll(), is("value-1"));
+        }
+
+
+    @ParameterizedTest(name = "{index} serializer={0} scope={2}")
+    @MethodSource("serializers")
+    public void shouldOfferToHeadWithExpiry(String ignored, Serializer serializer, String sScope) throws Exception
+        {
+        String             sQueueName = newQueueName();
+        NamedDeque<String> queue      = ensureEmptyDeque(sScope, sQueueName);
+
+        queue.clear();
+
+        TestStreamObserver<ProxyResponse> observer = new TestStreamObserver<>();
+        StreamObserver<ProxyRequest>      channel  = openChannel(observer);
+
+        init(channel, observer, serializer, sScope);
+        int queueId = ensureDeque(channel, observer, sQueueName);
+
+        ByteString bytesOne = toByteString("value-1", serializer);
+        ByteString bytesTwo = toByteString("value-2", serializer);
+
+        long cMillis = 2000;
+
+        OfferRequest requestOne = OfferRequest.newBuilder()
+                .setValue(bytesOne)
+                .setTtl(NamedQueue.EXPIRY_NEVER)
+                .build();
+
+        OfferRequest requestTwo = OfferRequest.newBuilder()
+                .setValue(bytesTwo)
+                .setTtl(cMillis)
+                .build();
+
+        NamedQueueResponse response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.ExtendedOfferHead, requestOne);
+        QueueOfferResult   result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.getSucceeded(), is(true));
+
+        response = sendQueueRequest(channel, observer, queueId, NamedQueueRequestType.ExtendedOfferHead, requestTwo);
+        result   = unpackAny(response, NamedQueueResponse::getMessage, QueueOfferResult.class);
+        assertThat(result, is(notNullValue()));
+        assertThat(result.getSucceeded(), is(true));
+
+        Thread.sleep(cMillis + 1000);
+
+        assertThat(queue.poll(), is("value-1"));
+        assertThat(queue.poll(), is(nullValue()));
         }
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")

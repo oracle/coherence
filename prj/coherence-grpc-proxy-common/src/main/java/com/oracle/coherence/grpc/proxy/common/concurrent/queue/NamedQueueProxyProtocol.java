@@ -22,6 +22,7 @@ import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponse
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueResponseType;
 
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.NamedQueueType;
+import com.oracle.coherence.grpc.messages.concurrent.queue.v1.OfferRequest;
 import com.oracle.coherence.grpc.messages.concurrent.queue.v1.QueueOfferResult;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.proxy.common.BaseCacheServiceProxyProtocol;
@@ -139,6 +140,12 @@ public class NamedQueueProxyProtocol
                     break;
                 case OfferHead:
                     onOfferHead(queueId, request, observer);
+                    break;
+                case ExtendedOfferTail:
+                    onExtendedOfferTail(queueId, request, observer);
+                    break;
+                case ExtendedOfferHead:
+                    onExtendedOfferHead(queueId, request, observer);
                     break;
                 case PollHead:
                     onPollHead(queueId, observer);
@@ -349,10 +356,24 @@ public class NamedQueueProxyProtocol
 
     protected void onOfferTail(int queueId, NamedQueueRequest request, StreamObserver<NamedQueueResponse> observer)
         {
-        NamedQueue<Binary> queue  = assertQueue(queueId);
-        Binary             binary = unpackBinary(request);
+        Binary binary = unpackBinary(request);
+        onOfferTail(queueId, binary, NamedQueue.EXPIRY_DEFAULT, observer);
+        }
 
-        long    id       = queue.append(binary);
+    protected void onExtendedOfferTail(int queueId, NamedQueueRequest request, StreamObserver<NamedQueueResponse> observer)
+        {
+        OfferRequest offerRequest = unpack(request, OfferRequest.class);
+        Binary       binary       = BinaryHelper.toBinary(offerRequest.getValue());
+        long         nTTL         = Math.max(NamedQueue.EXPIRY_NEVER, offerRequest.getTtl());
+
+        onOfferTail(queueId, binary, nTTL, observer);
+        }
+
+    protected void onOfferTail(int queueId, Binary binary, long nTTL, StreamObserver<NamedQueueResponse> observer)
+        {
+        NamedQueue<Binary> queue  = assertQueue(queueId);
+
+        long    id       = queue.append(binary, nTTL);
         boolean fSuccess = id != Long.MIN_VALUE;
 
         QueueOfferResult result = QueueOfferResult.newBuilder()
@@ -364,10 +385,24 @@ public class NamedQueueProxyProtocol
 
     protected void onOfferHead(int queueId, NamedQueueRequest request, StreamObserver<NamedQueueResponse> observer)
         {
-        NamedDeque<Binary> queue  = assertDeque(queueId);
-        Binary             binary = unpackBinary(request);
+        Binary binary = unpackBinary(request);
+        onOfferHead(queueId, binary, NamedQueue.EXPIRY_DEFAULT, observer);
+        }
 
-        long    id       = queue.prepend(binary);
+    protected void onExtendedOfferHead(int queueId, NamedQueueRequest request, StreamObserver<NamedQueueResponse> observer)
+        {
+        OfferRequest offerRequest = unpack(request, OfferRequest.class);
+        Binary       binary       = BinaryHelper.toBinary(offerRequest.getValue());
+        long         nTTL         = Math.max(NamedQueue.EXPIRY_NEVER, offerRequest.getTtl());
+
+        onOfferHead(queueId, binary, nTTL, observer);
+        }
+
+    protected void onOfferHead(int queueId, Binary binary, long nTTL, StreamObserver<NamedQueueResponse> observer)
+        {
+        NamedDeque<Binary> queue  = assertDeque(queueId);
+
+        long    id       = queue.prepend(binary, nTTL);
         boolean fSuccess = id != Long.MIN_VALUE;
 
         QueueOfferResult result = QueueOfferResult.newBuilder()

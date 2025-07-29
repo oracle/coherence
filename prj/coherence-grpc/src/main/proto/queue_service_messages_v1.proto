@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -98,6 +98,20 @@ enum NamedQueueRequestType {
     // The message field should not be set.
     // The response will contain the Queue Id and an Int32Value in the response field.
     Size = 12;
+    // Add a value to the tail of a Queue.
+    // The message field must contain a OfferRequest that contains the
+    // serialized value and other attributes.
+    // The response will contain the Queue Id and a QueueOfferResult containing the
+    // result of the offer operation.
+    ExtendedOfferTail = 13;
+    // Add a value to the head of a Deque.
+    // This method is only supported for a double ended Deque.
+    // The queue type used to ensure the queue must have been a Deque
+    // The message field must contain a OfferRequest that contains the
+    // serialized value and other attributes.
+    // The response will contain the Queue Id and a QueueOfferResult containing the
+    // result of the offer operation.
+    ExtendedOfferHead = 14;
 }
 
 // A request to perform an operation on a remote NamedQueue.
@@ -173,4 +187,16 @@ message QueueOfferResult {
   // An int64 value representing an index into the queue
   // where the element was added.
   int64 index = 2;
+}
+
+// A request to offer a value to a queue.
+message OfferRequest {
+    // The serialized value to offer to the queue.
+    bytes value = 1;
+    // The number of milliseconds until the queue entry will
+    // expire, also referred to as the entry's "time to live";
+    // pass zero (0) to use the queue's default
+    // time-to-live setting; pass minus one (-1) to
+    // indicate that the queue entry should never expire
+    int64 ttl = 2;
 }
