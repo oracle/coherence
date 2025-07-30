@@ -5118,6 +5118,32 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/destroy": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Destroy Cache",
+        "description": "Use this endpoint to destroy a specific cache.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/destroy POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/clear": {
       "post": {
         "tags": [
@@ -6142,6 +6168,29 @@
         "summary": "Truncate Cache",
         "description": "Use this endpoint to truncate a specific cache.",
         "operationId": "/management/coherence/cluster/storage/{cacheName}/truncate POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
+    "/management/coherence/cluster/storage/{cacheName}/destroy": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Destroy Cache",
+        "description": "Use this endpoint to destroy a specific cache.",
+        "operationId": "/management/coherence/cluster/storage/{cacheName}/destroy POST",
         "produces": [
           "application/json"
         ],

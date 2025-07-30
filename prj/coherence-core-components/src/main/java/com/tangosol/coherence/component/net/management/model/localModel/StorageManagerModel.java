@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -781,6 +781,21 @@ public class StorageManagerModel
                 {
                 NamedCache cache = service.ensureCache(storage.getCacheName(), null);
                 cache.truncate();
+                }
+            }
+        }
+
+    public void destroyCache()
+        {
+        checkReadOnly("destroyCache");
+        Storage storage = get_Storage();
+        if (storage != null)
+            {
+            PartitionedCache service = storage.getService();
+            if (service != null)
+                {
+                NamedCache cache = service.ensureCache(storage.getCacheName(), null);
+                cache.destroy();
                 }
             }
         }

@@ -2326,6 +2326,7 @@ public abstract class AbstractManagementResource
     public static final String OPTIONS            = "options";
     public static final String CACHE              = "cache";
     public static final String TRUNCATE           = "truncate";
+    public static final String DESTROY            = "destroy";
     public static final String CLEAR              = "clear";
     public static final String DESCRIPTION        = "description";
 
