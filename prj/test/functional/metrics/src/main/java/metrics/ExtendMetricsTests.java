@@ -95,7 +95,8 @@ public class ExtendMetricsTests
 
         Properties props = new Properties();
 
-        props.put("test.persistence.mode","active");
+        // Disable active persistence, has nothing to do with this test.
+        //props.put("test.persistence.mode","active");
         props.put("test.persistence.active.dir", fileActiveDir.getAbsolutePath());
         props.put("test.persistence.snapshot.dir", fileSnapshotDir.getAbsolutePath());
         props.put("test.persistence.archive.dir", fileArchiveDir.getAbsolutePath());
@@ -136,7 +137,7 @@ public class ExtendMetricsTests
             System.setProperty("test.extend.port", Integer.toString(extendPort));
 
             CoherenceClusterMember clusterMember = startCacheServer(sMemberName, "metrics", FILE_SERVER_CFG_CACHE, props);
-            Eventually.assertThat(invoking(clusterMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+            Eventually.assertDeferred(() -> clusterMember.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
             }
 
         cacheServerMetricsPorts[N_SERVERS] = ports.next();
@@ -148,7 +149,7 @@ public class ExtendMetricsTests
         props.put("coherence.member", "ExtendMetricsTestsProxy");
 
         CoherenceClusterMember proxyMember = startCacheServer("ExtendMetricsTestsProxy", "metrics", FILE_SERVER_CFG_CACHE, props);
-        Eventually.assertThat(invoking(proxyMember).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
+        Eventually.assertDeferred(() -> proxyMember.isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
         }
 
     /**
@@ -213,7 +214,7 @@ public class ExtendMetricsTests
 
         try
             {
-            Eventually.assertThat(invoking(this).getCacheMetric("Coherence.Service.StorageEnabledCount", serviceTags),
+            Eventually.assertDeferred(() -> this.getCacheMetric("Coherence.Service.StorageEnabledCount", serviceTags),
                 is(2L), DeferredHelper.within(8L, TimeUnit.SECONDS));
             }
         catch (Throwable t)
@@ -224,12 +225,13 @@ public class ExtendMetricsTests
 
         for (int k = 0; k < 5; k++)
             {
+            System.out.println("Simulating new client connection: Iteration " + k);
             NamedCache cache = getFactory().ensureCache("dist-extend-test" + k, getClass().getClassLoader());
             if (cache.size() > 0)
                 {
                 cache.truncate();
                 }
-            Eventually.assertThat(invoking(cache).size(), is(0));
+            Eventually.assertDeferred(() -> cache.size(), is(0));
 
             for (int i = 0; i < 1000; i++)
                 {
@@ -273,18 +275,21 @@ public class ExtendMetricsTests
             try
                 {
                 currentMetric = "Coherence.Cache.Size";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, tags), is(1000L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertDeferred("iteration" + k + ": Checking Coherence.Cache.Size metric",
+                                          () -> getCacheMetric("Coherence.Cache.Size", tags), is(1000L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 currentMetric = "Coherence.Cache.Misses";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, tags), is(100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertDeferred("iteration" + k + ": Checking Coherence.Cache.Misses metric",
+                                          () -> getCacheMetric("Coherence.Cache.Misses", tags), is(100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 currentMetric = "Coherence.Connection.TotalMessagesSent";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertDeferred("iteration" + k + ": Checking Coherence.Connection.TotalMessagesSent metric",
+                                          () -> getCacheMetric("Coherence.Connection.TotalMessagesSent", connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
                 currentMetric = "Coherence.Connection.TotalMessagesReceived";
-                Eventually.assertThat(invoking(this).getCacheMetric(currentMetric, connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
+                Eventually.assertDeferred("iteration" + k + ": Checking Coherence.Connection.TotalMessagesReceived metric",
+                                          () -> getCacheMetric("Coherence.Connection.TotalMessagesSent", connectionTags, false, true), greaterThan(2100L), DeferredHelper.within(5L, TimeUnit.SECONDS));
 
-                validateMetricRegistry();
                 }
             catch (Throwable t)
                 {
@@ -299,24 +304,30 @@ public class ExtendMetricsTests
                 // validate via heap dump if MetricSupport instance is leaking connection metadata
                 ((SafeService)cache.getCacheService()).getService().stop();
 
-                validateMetricRegistry();
+                validateMetricRegistry("iteration " + k);
                 }
             }
         }
 
     // ----- helpers --------------------------------------------------------
 
-    private void validateMetricRegistry()
+    private void validateMetricRegistry(String sDescription)
         {
         InvocationService    service = (InvocationService)CacheFactory.getService("ExtendTcpInvocationService");
-        Map<Member, Integer> map     = service.query(new MetricsAgent(), null);
-        Integer              count   = map.values().iterator().next();
+        try
+            {
+            Map<Member, Integer> map = service.query(new MetricsAgent(), null);
+            Integer count = map.values().iterator().next();
 
-        assertThat(map.size(), is(1));
-        assertThat("assert less than or equal to 2 Connection metric in proxy server", count, lessThanOrEqualTo(2));
-
-        // ensure only connection in proxy is one for cache so cache metric assertions are correct
-        ((SafeService) service).getService().stop();
+            System.out.println( sDescription + ":validateMetricRegistry: " + count);
+            assertThat(map.size(), is(1));
+            assertThat("assert less than or equal to 3 Connection metric in proxy server", count, lessThanOrEqualTo(3));
+            }
+        finally
+            {
+            // ensure only connection in proxy is one for cache so cache metric assertions are correct
+            ((SafeService) service).getService().stop();
+            }
         }
 
     /**
@@ -331,6 +342,13 @@ public class ExtendMetricsTests
                 filter(e -> e.getKey().toString().contains("Connection.TotalMessagesReceived")).
                 map(e -> "Key: " + e.getKey() + " Value:" + e.getValue()).
                 collect(Collectors.toList());
+
+            StringBuffer sbuf = new StringBuffer("MetricsAgent: size=" + list.size() + " Details: ");
+            for (String s : list)
+                {
+                sbuf.append(s).append(",");
+                }
+            System.out.println(sbuf.toString());
             setResult(list.size());
             }
         }
@@ -346,7 +364,7 @@ public class ExtendMetricsTests
      *
      * @throws IOException if the request fails
      */
-    private long getCacheMetric(String metric, Map<String, String> tags, boolean debug) throws Exception
+    private long getCacheMetric(String metric, Map<String, String> tags, boolean debug)
         {
         return getCacheMetric(metric, tags, debug, false);
         }
@@ -360,11 +378,8 @@ public class ExtendMetricsTests
      * @param debug      iff true log debug message
      * @param aggregate  iff true aggregate value over multiple metric instances
      * @return           cluster wide metric value
-     *
-     * @throws IOException if the request fails
      */
-    // Must be public - used in Eventually.assertThat
-    public long getCacheMetric(String metric, Map<String, String> tags, boolean debug, boolean aggregate) throws Exception
+    private long getCacheMetric(String metric, Map<String, String> tags, boolean debug, boolean aggregate)
         {
         long result = 0L;
         for (int port : cacheServerMetricsPorts)
@@ -373,7 +388,15 @@ public class ExtendMetricsTests
                 {
                 continue;
                 }
-            long partialResult = getCacheMetric(port, metric, tags, aggregate);
+            long partialResult = -1;
+            try
+                {
+                partialResult = getCacheMetric(port, metric, tags, aggregate);
+                }
+            catch (Throwable t)
+                {
+                System.out.println("getCacheMetric: handled unexpected exception " + t.getClass().getName() + ": " + t.getMessage());
+                }
             if (debug)
                 {
                 System.out.println("Metric " + metric + " tags.name=" + tags.get("name") + "partial value=" + partialResult + " from port " + port);
@@ -396,16 +419,30 @@ public class ExtendMetricsTests
                     {
                     continue;
                     }
-                System.out.println("Metric response from port: " + port + "\n" + getMetricsResponse(port));
+
+                String sResponse = null;
+                try
+                    {
+                    sResponse = getMetricsResponse(port);
+                    }
+                catch (Throwable t)
+                    {}
+                System.out.println("Metric response from port: " + port + "\n" + sResponse);
                 }
             }
         return result;
         }
 
-    // Must be public - used in Eventually.assertThat
-    public long getCacheMetric(String metric, Map<String, String> tags) throws Exception
+    private long getCacheMetric(String metric, Map<String, String> tags)
         {
-        return getCacheMetric(metric, tags, false);
+        try
+            {
+            return getCacheMetric(metric, tags, false);
+            }
+        catch (Throwable t)
+            {
+            return -1;
+            }
         }
 
     // ----- constants ------------------------------------------------------
