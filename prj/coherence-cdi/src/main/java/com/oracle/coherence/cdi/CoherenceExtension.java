@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -195,20 +195,21 @@ public class CoherenceExtension
         for (AnnotatedMethodConfigurator<? super T> methodConfigurator : methods)
             {
             AnnotatedMethod<? super T> method = methodConfigurator.getAnnotated();
-            if (method.getAnnotation(CacheGet.class) != null)
+            Object annotation;
+            if ((annotation = method.getAnnotation(CacheGet.class)) != null)
                 {
                 String interceptorKey = makeInterceptorKey(method);
-                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method, annotation));
                 }
-            if (method.getAnnotation(CacheAdd.class) != null)
+            if ((annotation = method.getAnnotation(CacheAdd.class)) != null)
                 {
                 String interceptorKey = makeInterceptorKey(method);
-                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method, annotation));
                 }
-            if (method.getAnnotation(CachePut.class) != null)
+            if ((annotation = method.getAnnotation(CachePut.class)) != null)
                 {
                 String interceptorKey      = makeInterceptorKey(method);
-                MethodInterceptorInfo info = createInterceptorInfo(annotatedType, method);
+                MethodInterceptorInfo info = createInterceptorInfo(annotatedType, method, annotation);
                 if (info.getValueParameterIndex() == null)
                     {
                     throw new IllegalStateException("@CacheValue annotation is missing on a parameter on @CachePut method " + interceptorKey);
@@ -218,7 +219,7 @@ public class CoherenceExtension
             if (method.getAnnotation(CacheRemove.class) != null)
                 {
                 String interceptorKey = makeInterceptorKey(method);
-                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method));
+                m_mapInterceptorCache.put(interceptorKey, createInterceptorInfo(annotatedType, method, null));
                 }
             }
         }
@@ -250,19 +251,19 @@ public class CoherenceExtension
      *
      * @return the captured metadata
      */
-    private MethodInterceptorInfo createInterceptorInfo(Annotated annotatedType, AnnotatedMethod<?> method)
+    private MethodInterceptorInfo createInterceptorInfo(Annotated annotatedType, AnnotatedMethod<?> method, Object annotation)
         {
         String                     cacheNameDef        = CdiHelpers.cacheName(annotatedType, method);
         String                     sessionNameDef      = CdiHelpers.sessionName(annotatedType, method);
         Function<Object[], Object> cacheKeyFunction    = CdiHelpers.cacheKeyFunction(method);
         Integer                    valueParameterIndex = CdiHelpers.annotatedParameterIndex(method.getParameters(), CacheValue.class);
-        return new MethodInterceptorInfo(cacheNameDef, sessionNameDef, cacheKeyFunction, valueParameterIndex);
+        return new MethodInterceptorInfo(cacheNameDef, sessionNameDef, cacheKeyFunction, valueParameterIndex, annotation);
         }
 
     /**
      * A class that stores necessary method related data for caching interceptors.
      */
-    static class MethodInterceptorInfo
+     static class MethodInterceptorInfo
         {
 
         /**
@@ -273,12 +274,13 @@ public class CoherenceExtension
          * @param cacheKeyFunction     the cache key function
          * @param valueParameterIndex  the parameter index of the cache value
          */
-        MethodInterceptorInfo(String cacheName, String sessionName, Function<Object[], Object> cacheKeyFunction, Integer valueParameterIndex)
+        MethodInterceptorInfo(String cacheName, String sessionName, Function<Object[], Object> cacheKeyFunction, Integer valueParameterIndex, Object annotation)
             {
             m_cacheName           = cacheName;
             m_cacheKeyFunction    = cacheKeyFunction;
             m_sessionName         = sessionName;
             m_valueParameterIndex = valueParameterIndex;
+            m_annotation          = annotation;
             }
 
         /**
@@ -321,6 +323,11 @@ public class CoherenceExtension
             return m_valueParameterIndex;
             }
 
+        public Object getAnnotation()
+            {
+            return m_annotation;
+            }
+
         /**
          * The name of the cache.
          */
@@ -340,6 +347,8 @@ public class CoherenceExtension
          * The parameter index of the cache value.
          */
         private final Integer m_valueParameterIndex;
+
+        private final Object m_annotation;
         }
 
     /**

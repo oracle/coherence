@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package cdi;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.cdi.CacheAdd;
 import com.oracle.coherence.cdi.CacheGet;
@@ -40,6 +42,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 @ExtendWith(WeldJunit5Extension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -167,6 +170,13 @@ public class ResponseCachingIT
 
         assertThat(bean.getWithKey("X", "five"), is(cachedValue34));
         assertThat(bean.getGetWithKeyCounter(), is(2));
+
+        final String cachedValueY6 = String.format(messageFormat, "Y", "six");
+        assertThat(getCache.get("Y"), is(nullValue()));
+        assertThat(bean.getWithKey("Y", "six"), is(cachedValueY6));
+        assertThat(bean.getGetWithKeyCounter(), is(3));
+        assertThat(getCache.get("Y"), is(cachedValueY6));
+        Eventually.assertDeferred(() -> putCache.get("Y"), is(nullValue()));
         }
 
     @Test
@@ -232,6 +242,13 @@ public class ResponseCachingIT
         assertThat(bean.getPutWithKeyCounter(), is(4));
         assertThat(putCache.get("one"), is("three"));
         assertThat(putCache.size(), is(2));
+
+        final String cachedValue509 = String.format(messageFormat, "five", "nine");
+        assertThat(bean.putWithKeyTtl("five", "ignore", "nine"), is(cachedValue509));
+        assertThat(bean.getPutWithKeyCounter(), is(5));
+        assertThat(putCache.get("five"), is("nine"));
+        assertThat(putCache.size(), is(3));
+        Eventually.assertDeferred(() -> putCache.get("five"), is(nullValue()));
         }
 
     @Test
@@ -271,6 +288,13 @@ public class ResponseCachingIT
         assertThat(addCache.size(), is(1));
         assertThat(bean.getAddWithKeyCounter(), is(2));
         assertThat(addCache.get(key), is(cachedValue34));
+
+        final String cachedValue56 = "Value for key K is five-six";
+        assertThat(bean.addWithKeyTtl(key, "five", "six"), is(cachedValue56));
+        assertThat(bean.getAddWithKeyCounter(), is(3));
+        assertThat(addCache.size(), is(1));
+        assertThat(addCache.get(key), is(cachedValue56));
+        Eventually.assertDeferred(() -> addCache.get(key), is(nullValue()));
         }
 
     @Test
@@ -367,6 +391,13 @@ public class ResponseCachingIT
             return String.format("Test message for key %s is %s", key, arg);
             }
 
+        @CacheGet
+        public String getWithKeyTtl(@CacheKey String key, String arg)
+            {
+            getGetWithKeyCounter++;
+            return String.format("Test message for key %s is %s", key, arg);
+            }
+
         private int getWithoutParamsCounter;
 
         private int getGetWithParamsCounter;
@@ -411,6 +442,13 @@ public class ResponseCachingIT
             return String.format("Value for key %s is %s", key, value);
             }
 
+        @CachePut(ttl = 1500)
+        public String putWithKeyTtl(@CacheKey String key, String second, @CacheValue String value)
+            {
+            getPutWithKeyCounter++;
+            return String.format("Value for key %s is %s", key, value);
+            }
+
         int getPutWithParamsCounter()
             {
             return getPutWithParamsCounter;
@@ -443,6 +481,13 @@ public class ResponseCachingIT
 
         @CacheAdd
         public String addWithKey(@CacheKey String key, String first, String second)
+            {
+            getAddWithKeyCounter++;
+            return String.format("Value for key %s is %s-%s", key, first, second);
+            }
+
+        @CacheAdd(ttl = 1500)
+        public String addWithKeyTtl(@CacheKey String key, String first, String second)
             {
             getAddWithKeyCounter++;
             return String.format("Value for key %s is %s-%s", key, first, second);
