@@ -542,8 +542,8 @@ public class SimpleMapIndex
                     // (COH-7206)
                     removeInverseMapping(NO_VALUE, oKey, ensureCollection(oIxValueNew));
                     }
-                else if (m_fSplitCollection && oIxValueOld instanceof Collection ||
-                        oIxValueOld instanceof Object[])
+                else if (m_fSplitCollection && (oIxValueOld instanceof Collection ||
+                        oIxValueOld instanceof Object[]))
                     {
                     // Note: it's important to only remove the elements that are no longer
                     //       present in the new value (see COH-7206)
@@ -645,8 +645,8 @@ public class SimpleMapIndex
         // if the extracted value has been already "known", substitute
         // the one we just extracted with a previously extracted one
         // to avoid having multiple copies of equivalent values
-        if (m_fSplitCollection && oIxValue instanceof Collection
-                || oIxValue instanceof Object[])
+        if (m_fSplitCollection && (oIxValue instanceof Collection
+                || oIxValue instanceof Object[]))
             {
             oIxValue = addInverseCollectionMapping(mapInverse, oIxValue, oKey);
             }
