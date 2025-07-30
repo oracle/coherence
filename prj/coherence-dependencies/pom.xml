@@ -215,7 +215,7 @@
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <oracle.db.version>23.3.0.23.09</oracle.db.version>
-    <protobuf.version>3.25.5</protobuf.version>
+    <protobuf.version>4.31.1</protobuf.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <slf4j.version>1.7.36</slf4j.version>
