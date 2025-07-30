@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1952,7 +1952,13 @@ public abstract class XmlHelper extends Base
                 continue;
                 }
 
-            String sName   = xmlOver.getName();
+            String  sName          = xmlOver.getName();
+            boolean fAllowMultiple = false;
+
+            if (sName.compareToIgnoreCase("address") == 0 && xmlOver.getParent().getName().compareToIgnoreCase("well-known-addresses") == 0)
+                {
+                fAllowMultiple = true;
+                }
             Object oAttrId = sIdAttrName == null ?
                 xmlOver.getAttributeMap() : xmlOver.getAttribute(sIdAttrName);
 
@@ -1964,7 +1970,7 @@ public abstract class XmlHelper extends Base
                     {
                     Object oAttrTest = sIdAttrName == null ?
                         xmlTest.getAttributeMap() : xmlTest.getAttribute(sIdAttrName);
-                    if (equals(oAttrTest, oAttrId))
+                    if (!fAllowMultiple && equals(oAttrTest, oAttrId))
                         {
                         throw new UnsupportedOperationException(
                             "Override element is not unique:\n" + xmlOver);
