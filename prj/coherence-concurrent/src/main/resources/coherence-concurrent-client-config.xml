@@ -27,6 +27,11 @@
       <scheme-name>concurrent-remote</scheme-name>
       <service-name>RemoteConcurrentProxy</service-name>
       <proxy-service-name>ConcurrentProxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <socket-provider system-property="coherence.concurrent.extend.socketprovider"/>
+        </tcp-initiator>
+      </initiator-config>
     </remote-cache-scheme>
 
     <remote-cache-scheme>
