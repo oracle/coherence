@@ -76,7 +76,8 @@ test/functional/http-jetty/
 test/functional/http-simple/
 test/functional/jpa/
 test/functional/json/src/test/java/com/oracle/io/json/json/JsonSerializerStaticLambdasTest
-test/functional/logging/src/test/java/org/slf4j/
+test/functional/logging/src/test/java/logging/impl/DebugLogger.java
+test/functional/logging/src/test/java/logging/impl/DebugLoggerFactory.java
 test/functional/rest-grizzly/
 test/functional/rest-jetty/
 test/functional/rest-simple/
