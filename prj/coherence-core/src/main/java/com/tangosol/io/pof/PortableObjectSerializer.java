@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -77,7 +77,7 @@ public class PortableObjectSerializer
                     + " user type to a POF stream: type-id=" + m_nTypeId
                     + (sClass == null ? "" : ", class-name=" + sClass)
                     + (sActual == null ? "" : ", actual class-name=" + sActual)
-                    + ", exception=" + e);
+                    + ", exception=" + e, e);
             }
 
         // set the version identifier
@@ -129,7 +129,7 @@ public class PortableObjectSerializer
                     "An exception occurred instantiating a PortableObject"
                     + " user type from a POF stream: type-id=" + m_nTypeId
                     + (sClass == null ? "" : ", class-name=" + sClass)
-                    + ", exception=\n" + e);
+                    + ", exception=\n" + e, e);
             }
 
         initialize(portable, in);
