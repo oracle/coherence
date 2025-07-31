@@ -188,6 +188,8 @@
     parrson-media.version ??
     This is not always possible if we need to bump versions for CVE's
     -->
+    <!-- Force use of a higher version of gson to get CVE fixes -->
+    <gson.version>2.13.1</gson.version>
     <!-- When running tests with Java 21 we will use Helidon 4 -->
     <helidon.version.4>4.2.3</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
@@ -453,6 +455,13 @@
         <version>${helidon.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- gson -->
+      <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>${gson.version}</version>
       </dependency>
 
       <!-- hsqldb -->
