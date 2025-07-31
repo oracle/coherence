@@ -752,7 +752,7 @@
     <opentracing.jaeger.version>1.8.1</opentracing.jaeger.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <servlet.version>3.1.0</servlet.version>
-    <slf4j.version>1.7.26</slf4j.version>
+    <slf4j.version>2.0.17</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
 
     <!-- test dependency versions -->

@@ -18,7 +18,7 @@ import org.junit.Test;
 
 import org.slf4j.LoggerFactory;
 
-import org.slf4j.helpers.DebugLogger;
+import logging.impl.DebugLogger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;

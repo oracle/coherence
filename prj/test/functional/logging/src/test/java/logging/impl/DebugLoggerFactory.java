@@ -22,46 +22,33 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  */
-package org.slf4j.impl;
+package logging.impl;
 
-import org.slf4j.IMarkerFactory;
-import org.slf4j.MarkerFactory;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-import org.slf4j.helpers.BasicMarkerFactory;
+import org.slf4j.ILoggerFactory;
+import org.slf4j.Logger;
 
-import org.slf4j.spi.MarkerFactoryBinder;
 
 /**
- * 
- * The binding of {@link MarkerFactory} class with an actual instance of 
- * {@link IMarkerFactory} is performed using information returned by this class. 
+ * DebugLoggerFactory is an trivial implementation of {@link
+ * ILoggerFactory} which returns instances of DebugLogger.
  * 
  * @author Jason Howes
  */
-public class StaticMarkerBinder implements MarkerFactoryBinder {
-  /**
-   * The unique instance of this class.
-   */
-  public static final StaticMarkerBinder SINGLETON = new StaticMarkerBinder();
-  
-  final IMarkerFactory markerFactory = new BasicMarkerFactory();
-  
-  private StaticMarkerBinder() {
+public class DebugLoggerFactory implements ILoggerFactory {
+  public DebugLoggerFactory() {
   }
   
-  /**
-   * Currently this method always returns an instance of 
-   * {@link BasicMarkerFactory}.
-   */
-  public IMarkerFactory getMarkerFactory() {
-    return markerFactory;
+  public Logger getLogger(String name) {
+    Logger logger = m_mapLogger.get(name);
+    if (logger == null) {
+      m_mapLogger.putIfAbsent(name, new DebugLogger(name));
+      logger = m_mapLogger.get(name);
+    }
+    return logger;
   }
-  
-  /**
-   * Currently, this method returns the class name of
-   * {@link BasicMarkerFactory}.
-   */
-  public String getMarkerFactoryClassStr() {
-    return BasicMarkerFactory.class.getName();
-  }
+    
+  private static final ConcurrentMap<String, Logger> m_mapLogger = new ConcurrentHashMap<String, Logger>();
 }
