@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package org.slf4j.impl;
+package logging.impl;
 
 import org.slf4j.IMarkerFactory;
 import org.slf4j.MarkerFactory;
