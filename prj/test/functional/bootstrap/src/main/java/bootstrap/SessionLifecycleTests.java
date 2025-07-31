@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package bootstrap;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
@@ -17,8 +18,10 @@ import com.tangosol.net.events.annotation.LifecycleEvents;
 import com.tangosol.net.events.annotation.SessionLifecycleEvents;
 import com.tangosol.net.events.application.LifecycleEvent;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,15 @@ public class SessionLifecycleTests
         System.setProperty("coherence.ttl", "0");
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.cluster", "CoherenceBootstrapTests");
+        }
+
+    @BeforeEach
+    public void setupTest(TestInfo info)
+        {
+        System.err.println(">>>> Starting test " + info.getDisplayName());
+
+        m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
+        System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
         }
 
     @AfterEach
@@ -291,4 +303,8 @@ public class SessionLifecycleTests
 
         final Map<String, List<LifecycleEvent.Type>> f_events = new ConcurrentHashMap<>();
         }
+
+    // ----- data members ---------------------------------------------------
+
+    private static int m_nClusterPort;
     }
