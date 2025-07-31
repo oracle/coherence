@@ -15,7 +15,7 @@ import com.oracle.bedrock.deferred.PermanentlyUnavailableException;
 import com.oracle.bedrock.deferred.TemporarilyUnavailableException;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.options.JavaHome;
-import com.oracle.bedrock.runtime.java.profiles.RemoteDebugging;
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.ApplicationConsole;
@@ -44,6 +44,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.bedrock.Jdk;
 import com.oracle.coherence.testing.bedrock.CoverageProfile;
+import com.oracle.coherence.testing.junit.CaptureTestClass;
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 
@@ -51,6 +52,7 @@ import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheFactoryBuilder;
 import com.tangosol.net.CacheService;
@@ -819,7 +821,8 @@ public abstract class AbstractTestInfrastructure
             return application;
             }
 
-        FileWriter         writer  = new FileWriter(new File(ensureOutputDir(sProject), sServer + ".out"));
+        File               fileOut = ensureOutputDir(sProject);
+        FileWriter         writer  = new FileWriter(new File(fileOut, sServer + ".out"));
         ApplicationConsole console = new FileWriterApplicationConsole(writer);
 
         out(createMessageHeader() + " >>>>>>> Starting cache server: " + sServer);
@@ -850,8 +853,7 @@ public abstract class AbstractTestInfrastructure
      */
     public static void ensureRunningService(String sServerName, String sServiceName)
         {
-        Eventually.assertThat(invoking(findApplication(sServerName)).
-            isServiceRunning(sServiceName), is(true));
+        Eventually.assertDeferred(() -> findApplication(sServerName).isServiceRunning(sServiceName), is(true));
         }
 
     protected static OptionsByType createCacheServerOptions(String sClass)
@@ -1215,7 +1217,13 @@ public abstract class AbstractTestInfrastructure
     */
     public static File ensureOutputDir(String sProject)
         {
-        if (sProject == null || sProject.length() == 0)
+        Class<?> clazz = m_testWatcher.getgetTestClass();
+        if (clazz != null)
+            {
+            return MavenProjectFileUtils.ensureTestOutputFolder(clazz, null);
+            }
+
+        if (sProject == null || sProject.isEmpty())
             {
             throw new IllegalArgumentException("Missing required project name");
             }
@@ -1730,7 +1738,7 @@ public abstract class AbstractTestInfrastructure
      * Return a thread dump of the invoking member.
      */
     protected static class RemoteThreadDump
-            implements RemoteCallable<String>
+            implements RemoteCallable<String>, ExternalizableLite
         {
 
         // ----- RemoteCallable methods -------------------------------------
@@ -1784,6 +1792,9 @@ public abstract class AbstractTestInfrastructure
      */
     @ClassRule
     public static SystemPropertyIsolation s_systemPropertyIsolation = new SystemPropertyIsolation();
+
+    @ClassRule
+    public static CaptureTestClass m_testWatcher = new CaptureTestClass();
 
     @Rule
     public TestName m_testName = new TestName();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,7 @@ import data.Person;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -119,8 +120,9 @@ public class UnavailableTimeTests
             props.put("coherence.log.level", "8");
             props.put("coherence.distributed.partition.events", "log");
 
-            String sServerName = "storage1";
-            CoherenceClusterMember clusterMember1 = startCacheServer(sServerName, "UnavailableTimeLogging", "", props);
+            String                 sServerName            = "storage1";
+            String                 sProject               = "UnavailableTimeLogging";
+            CoherenceClusterMember clusterMember1         = startCacheServer(sServerName, sProject, "", props);
             waitForServer(clusterMember1);
             waitForBalanced(cache.getCacheService());
 
@@ -145,12 +147,11 @@ public class UnavailableTimeTests
 
             // check logs on other side, make sure primary_transfer_in kicked in
             List<String> lLogLines = null;
+            File         dirOut    = ensureOutputDir(sProject);
             try
                 {
                 lLogLines = Files.readAllLines(
-                    Paths.get(System.getProperty("test.project.dir") +
-                            File.separatorChar +
-                            "target/test-output/functional" +
+                    Paths.get(dirOut.getAbsolutePath() +
                             File.separatorChar +
                             sServerName +
                             ".out"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,8 @@ import static org.junit.Assert.assertTrue;
 public class PofMisconfiguredRestTests
         extends DefaultPofRestTests
     {
+    public static final String PROJECT = "rest";
+
     // ----- test lifecycle -------------------------------------------------
 
     @BeforeClass
@@ -44,7 +46,7 @@ public class PofMisconfiguredRestTests
 
         props.put("test.pof.config", "rest/rest-misconfigured-pof-config.xml");
 
-        CoherenceClusterMember clusterMember = startCacheServer("PofMisconfiguredRestTests", "rest", FILE_SERVER_CFG_CACHE, props);
+        CoherenceClusterMember clusterMember = startCacheServer("PofMisconfiguredRestTests", PROJECT, FILE_SERVER_CFG_CACHE, props);
         Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
         }
 
@@ -53,10 +55,11 @@ public class PofMisconfiguredRestTests
         {
         stopCacheServer("PofMisconfiguredRestTests", true);
 
+        File fileOut = ensureOutputDir(PROJECT);
         // validate in server log that there are large number of "unknown user type" for rest types
-        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
+        validateLogMessages(new File(fileOut, "PofMisconfiguredRestTests.out"),
                             "unknown user type", 50);
-        validateLogMessages(System.getProperty("test.project.dir"), "target/test-output/functional/PofMisconfiguredRestTests.out",
+        validateLogMessages(new File(fileOut, "PofMisconfiguredRestTests.out"),
                             "unknown user type: com.tangosol.coherence.rest.util.StaticContent", 16);
         }
 
@@ -437,11 +440,10 @@ public class PofMisconfiguredRestTests
 
     // ----- helpers --------------------------------------------------------
 
-    public static void validateLogMessages(String sDir, String sServerLogFilename, String sLogContains, int cCount)
+    public static void validateLogMessages(File fileServerOut, String sLogContains, int cCount)
             throws IOException
         {
-        File           fileServerOut = new File(sDir, sServerLogFilename);
-        int            i             = 0;
+        int i = 0;
 
         try (FileReader     fileReader = new FileReader(fileServerOut);
              BufferedReader reader     = new BufferedReader(fileReader))
