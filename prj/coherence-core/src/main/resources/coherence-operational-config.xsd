@@ -3336,7 +3336,7 @@
 
                 Legal values are true or false.
 
-                Default value is true.
+                Default value is false.
 
                 Used in: cluster-config
             </xsd:documentation>

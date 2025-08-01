@@ -2721,7 +2721,7 @@ public class DefaultClusterDependencies
 
     /**
      * Specifies whether using virtual threads is enabled.
-     * Default is true.
+     * Default is false.
      */
-    private boolean m_fVirtualThreadsEnabled = true;
+    private boolean m_fVirtualThreadsEnabled = false;
     }

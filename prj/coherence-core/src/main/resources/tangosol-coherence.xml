@@ -1061,7 +1061,7 @@ to find specific notes on changes suggested for production use.
       <thread-count-min system-property="coherence.common.pool.min.threads"/>
     </common-daemon-pool>
 
-    <virtual-threads-enabled system-property="coherence.virtualthreads.enabled">true</virtual-threads-enabled>
+    <virtual-threads-enabled system-property="coherence.virtualthreads.enabled">false</virtual-threads-enabled>
   </cluster-config>
 
   <logging-config>
