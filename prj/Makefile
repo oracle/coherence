@@ -54,7 +54,7 @@ buildah: ## Run Buildah (does not rebuild Coherence jars)
 
 .PHONY: docker-no-graal
 docker-no-graal: ## Build the Coherence images without including Graal (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraal.image.skip=true $(ARGS)
+	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraalvm.image.skip=true $(ARGS)
 
 .PHONY: docker-test
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
