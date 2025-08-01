@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1264,6 +1264,11 @@ public class DatagramTest
                         // reset value to -1 so that it will not be retransmitted
                         writeLong(aBytes, aAtomicAcks[i].getAndSet(-1), 16);
 
+                        // write the packet sequence number (iIter) into offset 24 of the payload
+                        // the listener reads this as `nCurrent` to track m_nMin/m_nMax for sent packet count
+                        // without this, the listener reads garbage, inflating m_nMax and breaking metrics
+                        writeLong(aBytes, iIter, 24);
+
                         socket.send(packet);
                         ++cTxPackets;
                         ++cThisReportTxPackets;
@@ -2053,7 +2058,7 @@ public class DatagramTest
         protected long          m_nMin;
         protected long          m_nMax;
         protected long          m_nNext;
-        protected int           m_cOutOfOrder;
+        protected long          m_cOutOfOrder;
         protected int           m_cTotalOutOfOrderOffset;
         protected long          m_cBytesReceived;
         protected long          m_cGaps;
