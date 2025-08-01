@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -114,7 +114,7 @@ public class DefaultServiceFailurePolicyTests
         props.put("coherence.shutdownhook", sShutdownHook);
 
         startCacheServer(sServer,
-                         "guardian", "coherence-cache-config.xml",
+                PROJECT, "coherence-cache-config.xml",
                          props, true, null);
         try
             {
@@ -158,8 +158,7 @@ public class DefaultServiceFailurePolicyTests
             if (fHang)
                 {
                 Eventually.assertDeferred("validate halting message in server log", () ->
-                    containsLogMessage(System.getProperty("test.project.dir"),
-                                       "target/test-output/functional/" + sServer + ".out",
+                    containsLogMessage(sServer + ".out",
                                        "Oracle Coherence <Error>:  Failed to exit gracefully after " + sTimeoutMillis + " millis, halting process"),
                                           is(true));
                 }
@@ -279,10 +278,10 @@ public class DefaultServiceFailurePolicyTests
 
     // ----- helpers --------------------------------------------------------
 
-    public static boolean containsLogMessage(String sDir, String sServerLogFilename, String sLogContains)
+    public static boolean containsLogMessage(String sServerLogFilename, String sLogContains)
         {
-        File fileServerOut = new File(sDir, sServerLogFilename);
-        int            i   = 0;
+        File dirOut        = ensureOutputDir(PROJECT);
+        File fileServerOut = new File(dirOut, sServerLogFilename);
 
         try (FileReader fileReader = new FileReader(fileServerOut);
              BufferedReader reader = new BufferedReader(fileReader))
@@ -301,4 +300,8 @@ public class DefaultServiceFailurePolicyTests
         catch (IOException ignore) {}
         return false;
         }
+
+    // ----- data members ---------------------------------------------------
+
+    public static final String PROJECT = "guardian";
     }
