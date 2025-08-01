@@ -12,7 +12,7 @@
 // both they serve a purpose, and the docs will look wrong if it is removed.
 == Overview
 
-Learn about the features, enhancements, and changes made in Oracle Coherence CE since release 22.06.
+Learn about the features, enhancements, and changes made in Oracle Coherence  CE {version-coherence}.
 
 [PILLARS]
 ====
@@ -21,27 +21,6 @@ Learn about the features, enhancements, and changes made in Oracle Coherence CE 
 [icon=fa-rocket,link=docs/core/02_topics.adoc]
 --
 Explore various Topics management improvements.
---
-
-[CARD]
-.Virtual Threads Support
-[icon=fa-random,link=docs/core/06_virtual_threads.adoc]
---
-Use Java 21 virtual threads within Coherence.
---
-
-[CARD]
-.Vector DB
-[icon=fa-database,link=docs/core/08_vector_db.adoc]
---
-Use Coherence as a Vector Database.
---
-
-[CARD]
-.Query and Trace Recorder Improvements
-[icon=fa-database,link=docs/core/10_filter_descriptions.adoc]
---
-Improvements in displaying filters in Query and Trace Recorder.
 --
 
 ====
