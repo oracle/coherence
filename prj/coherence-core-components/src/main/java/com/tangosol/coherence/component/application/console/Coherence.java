@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.application.console;
 
+import com.oracle.coherence.common.base.Formatting;
 import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -4797,9 +4798,14 @@ public class Coherence
 
         if (memUsage != null)
             {
+            long   nInit = memUsage.getInit();
+            String sInit = nInit <= 0 ? "Unknown" : Formatting.toMemorySizeString(nInit);
+            long   nMax  = memUsage.getMax();
+            String sMax  = nMax <= 0 ? "Unknown" : Formatting.toMemorySizeString(nMax);
+
             sb.append("Java Heap Size:").append('\n')
-              .append("- Xms (min): ").append(Base.toMemorySizeString(memUsage.getInit())).append('\n')
-              .append("- Xmx (max): ").append(Base.toMemorySizeString(memUsage.getMax())).append('\n');
+                    .append("- Xms (min): ").append(sInit).append('\n')
+                    .append("- Xmx (max): ").append(sMax).append('\n');
             }
 
           sb.append("Java Runtime Environment:").append('\n')
