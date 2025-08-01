@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package com.oracle.bedrock.runtime.coherence.callables;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.Coherence;
 
 import java.util.Set;
@@ -17,7 +18,7 @@ import java.util.Set;
  * {@link Coherence} instance is running.
  */
 public class IsCoherenceRunning
-        implements RemoteCallable<Boolean>
+        implements RemoteCallable<Boolean>, ExternalizableLite
     {
     /**
      * Constructs an {@link IsCoherenceRunning} for the
@@ -45,13 +46,13 @@ public class IsCoherenceRunning
      */
     public IsCoherenceRunning(Set<String> setName)
         {
-        if (setName.isEmpty())
+        if (setName == null || setName.isEmpty())
             {
-            m_setName = Set.of(Coherence.DEFAULT_NAME);
+            m_asName = DEFAULT_NAMES;
             }
         else
             {
-            m_setName = setName;
+            m_asName = setName.toArray(String[]::new);
             }
         }
 
@@ -59,7 +60,7 @@ public class IsCoherenceRunning
     @Override
     public Boolean call()
         {
-        for (String sName : m_setName)
+        for (String sName : m_asName)
             {
             Coherence coherence = Coherence.getInstance(sName);
             if (coherence != null)
@@ -98,8 +99,10 @@ public class IsCoherenceRunning
 
     // ----- data members ---------------------------------------------------
 
+    private static final String[] DEFAULT_NAMES = new String[]{Coherence.DEFAULT_NAME};
+
     /**
      * The names of the {@link Coherence} instances.
      */
-    private final Set<String> m_setName;
+    private final String[] m_asName;
     }

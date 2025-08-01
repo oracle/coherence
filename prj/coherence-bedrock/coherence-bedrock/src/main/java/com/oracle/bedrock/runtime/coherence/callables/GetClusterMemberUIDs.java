@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence.callables;
@@ -12,9 +12,10 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 import com.tangosol.util.UID;
 
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
+@SuppressWarnings("unchecked")
 public class GetClusterMemberUIDs
         implements RemoteCallable<Set<UID>>
     {
@@ -30,7 +31,7 @@ public class GetClusterMemberUIDs
             }
         else
             {
-            TreeSet<UID> memberUIDs = new TreeSet<UID>();
+            Set<UID> memberUIDs = new HashSet<>();
 
             Set<Member> memberSet = cluster.getMemberSet();
 
