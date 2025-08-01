@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.bedrock.runtime.coherence.callables;
@@ -16,9 +16,9 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DefaultConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.run.xml.XmlElement;
+import com.tangosol.util.ImmutableArrayList;
 
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +29,7 @@ public class GetAutoStartServiceNames
     public Set<String> call() throws Exception
         {
         ConfigurableCacheFactory configurableCacheFactory = CacheFactory.getConfigurableCacheFactory();
+        Set<String> serviceNames = new HashSet<>();
 
         if (configurableCacheFactory instanceof DefaultConfigurableCacheFactory)
             {
@@ -38,8 +39,6 @@ public class GetAutoStartServiceNames
             XmlElement xmlCacheConfig = cacheFactory.getConfig();
 
             Map<String, XmlElement> serviceSchemes = cacheFactory.collectServiceSchemes(xmlCacheConfig);
-
-            HashSet<String> serviceNames = new HashSet<>();
 
             for (String serviceName : serviceSchemes.keySet())
                 {
@@ -53,7 +52,7 @@ public class GetAutoStartServiceNames
                     }
                 }
 
-            return serviceNames;
+            return new ImmutableArrayList(serviceNames);
             }
         else if (configurableCacheFactory instanceof ExtensibleConfigurableCacheFactory)
             {
@@ -68,8 +67,6 @@ public class GetAutoStartServiceNames
                 }
             else
                 {
-                LinkedHashSet<String> serviceNames = new LinkedHashSet<>();
-
                 for (ServiceScheme serviceScheme : cacheConfig.getServiceSchemeRegistry())
                     {
                     if (serviceScheme.isAutoStart())
@@ -90,7 +87,7 @@ public class GetAutoStartServiceNames
                         }
                     }
 
-                return serviceNames;
+                return new ImmutableArrayList(serviceNames);
                 }
             }
         else
