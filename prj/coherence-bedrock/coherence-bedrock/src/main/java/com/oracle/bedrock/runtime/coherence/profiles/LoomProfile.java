@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,15 @@ public class LoomProfile
         if (property == null)
             {
             optionsByType.add(SystemProperty.of(PROPERTY_ENABLED, m_fEnabled));
+            }
+        else
+            {
+            Object value = property.getValue();
+            if (value == null || String.valueOf(value).isBlank())
+                {
+                value = "false";
+                }
+            optionsByType.add(SystemProperty.of(PROPERTY_ENABLED, value));
             }
         }
 
