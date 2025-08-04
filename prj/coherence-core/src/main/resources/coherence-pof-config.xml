@@ -1630,6 +1630,10 @@ descriptor: pof-config.xsd.
       <type-id>791</type-id>
       <class-name>com.tangosol.internal.net.queue.paged.ClearQueueProcessor</class-name>
     </user-type>
+    <user-type>
+      <type-id>792</type-id>
+      <class-name>com.tangosol.internal.net.queue.processor.MaybePagedQueueProcessor</class-name>
+    </user-type>
 
     <!-- com.tangosol.coherence.rest package (800-820) -->
     <!-- defined in coherence-rest-pof-config.xml within coherence-rest.jar -->
