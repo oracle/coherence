@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.util.Binary;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.opentest4j.TestAbortedException;
 import queues.ExtendClientDequeTests;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
@@ -63,6 +64,20 @@ public class ExtendClientBlockingDequeTests<QueueType extends NamedBlockingDeque
     public NamedMap<Binary, Binary> getCollectionBinaryCache(String sName)
         {
         return super.getCollectionBinaryCache(Queues.QUEUE_CACHE_PREFIX + sName);
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldFailToEnsureIncompatibleQueue(String sSerializer) throws Exception
+        {
+        throw new TestAbortedException("Test skipped for Concurrent");
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldEnsureCompatibleQueue(String sSerializer)
+        {
+        throw new TestAbortedException("Test skipped for Concurrent");
         }
 
     @Test

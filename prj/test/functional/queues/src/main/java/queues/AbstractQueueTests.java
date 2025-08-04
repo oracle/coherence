@@ -9,20 +9,26 @@ package queues;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Randoms;
+import com.tangosol.coherence.config.scheme.PagedQueueScheme;
 import com.tangosol.coherence.config.scheme.SimpleDequeScheme;
+import com.tangosol.internal.net.queue.NamedMapDeque;
+import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.QueuePageIterator;
 import com.tangosol.internal.net.queue.extractor.QueueKeyExtractor;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.NamedDeque;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;
 import com.tangosol.net.cache.ConfigurableCacheMap;
+import com.tangosol.util.ConverterCollections;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ObservableMap;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -45,6 +51,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SuppressWarnings({"rawtypes", "unchecked", "MismatchedQueryAndUpdateOfCollection"})
 public abstract class AbstractQueueTests<QueueType extends NamedQueue>
@@ -65,6 +72,72 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         return (QueueType) SimpleDequeScheme.INSTANCE.realize(sName, session);
         }
 
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldFailToEnsureIncompatibleQueue(String sSerializer) throws Exception
+        {
+        QueueType queue   = getNewCollection(sSerializer);
+        String    sName   = queue.getName();
+        Session   session = getSession();
+
+        QueueType underlying = queue;
+        if (underlying instanceof ConverterCollections.ConverterCollection<?,?>)
+            {
+            underlying = (QueueType) ((ConverterCollections.ConverterCollection)queue).getCollection();
+            }
+
+        if (underlying instanceof PagedQueue<?>)
+            {
+            // cannot ensure a simple queue of the same name
+            assertThrows(IllegalStateException.class, () -> SimpleDequeScheme.INSTANCE.realize(sName, session));
+            }
+        else if (underlying instanceof NamedDeque<?>)
+            {
+            // cannot ensure a paged queue of the same name
+            assertThrows(IllegalStateException.class, () -> PagedQueueScheme.INSTANCE.realize(sName, session));
+            }
+        else // must be NamedQueue
+            {
+            // cannot ensure a paged queue of the same name
+            assertThrows(IllegalStateException.class, () -> PagedQueueScheme.INSTANCE.realize(sName, session));
+            }
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldEnsureCompatibleQueue(String sSerializer)
+        {
+        QueueType queue   = getNewCollection(sSerializer);
+        String    sName   = queue.getName();
+        Session   session = getSession();
+
+        QueueType underlying = queue;
+        if (underlying instanceof ConverterCollections.ConverterCollection<?,?>)
+            {
+            underlying = (QueueType) ((ConverterCollections.ConverterCollection)queue).getCollection();
+            }
+
+        NamedQueue<?> queue2;
+        if (underlying instanceof PagedQueue<?>)
+            {
+            queue2 = PagedQueueScheme.INSTANCE.realize(sName, session);
+            assertThat(queue2.getName(), is(sName));
+            assertThat(queue2, is(instanceOf(PagedQueue.class)));
+            }
+        else if (underlying instanceof NamedDeque<?>)
+            {
+            queue2 = SimpleDequeScheme.INSTANCE.realize(sName, session);
+            assertThat(queue2.getName(), is(sName));
+            assertThat(queue2, is(instanceOf(NamedDeque.class)));
+            }
+        else // must be NamedQueue
+            {
+            queue2 = SimpleDequeScheme.INSTANCE.realize(sName, session);
+            assertThat(queue2.getName(), is(sName));
+            assertThat(queue2, is(instanceOf(NamedQueue.class)));
+            }
+        }
 
     // ----- test add() method ----------------------------------------------
 
@@ -239,7 +312,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     public void shouldRemoveFromEmptyQueue(String sSerializer)
         {
         QueueType queue = getNewCollection(sSerializer);
-        Assertions.assertThrows(NoSuchElementException.class, queue::remove);
+        assertThrows(NoSuchElementException.class, queue::remove);
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -257,7 +330,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
         assertThat(queue.isEmpty(), is(true));
         assertThat(cache.isEmpty(), is(true));
 
-        Assertions.assertThrows(NoSuchElementException.class, queue::remove);
+        assertThrows(NoSuchElementException.class, queue::remove);
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
@@ -283,7 +356,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
 
         assertThat(queue.isEmpty(), is(true));
         assertThat(cache.isEmpty(), is(true));
-        Assertions.assertThrows(NoSuchElementException.class, queue::remove);
+        assertThrows(NoSuchElementException.class, queue::remove);
         }
 
     // ----- test poll() method ---------------------------------------------
@@ -348,7 +421,7 @@ public abstract class AbstractQueueTests<QueueType extends NamedQueue>
     public void shouldGetElementFromEmptyQueue(String sSerializer)
         {
         QueueType queue = getNewCollection(sSerializer);
-        Assertions.assertThrows(NoSuchElementException.class, queue::element);
+        assertThrows(NoSuchElementException.class, queue::element);
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")

@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent;
-
-import com.oracle.coherence.common.base.Classes;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
 
@@ -28,17 +26,13 @@ import com.tangosol.internal.net.queue.NamedMapBlockingQueue;
 import com.tangosol.internal.net.queue.NamedMapDeque;
 
 import com.tangosol.internal.net.queue.NamedMapQueue;
-import com.tangosol.internal.net.queue.PagedQueue;
 import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
-import com.tangosol.io.ClassLoaderAware;
 
 import com.tangosol.net.Coherence;
-import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedBlockingDeque;
 import com.tangosol.net.NamedBlockingQueue;
-import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Session;

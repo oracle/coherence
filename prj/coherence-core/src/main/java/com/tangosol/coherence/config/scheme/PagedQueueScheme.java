@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,13 +11,11 @@ import com.oracle.coherence.common.util.MemorySize;
 import com.oracle.coherence.common.util.Options;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.builder.NamedEventInterceptorBuilder;
-import com.tangosol.coherence.config.builder.UnitCalculatorBuilder;
 
 import com.tangosol.coherence.config.unit.Units;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.Expression;
 import com.tangosol.config.expression.LiteralExpression;
-import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.config.injection.SimpleInjector;
@@ -25,7 +23,6 @@ import com.tangosol.config.injection.SimpleInjector;
 import com.tangosol.internal.net.queue.DefaultPagedQueueDependencies;
 import com.tangosol.internal.net.queue.NamedMapQueue;
 import com.tangosol.internal.net.queue.PagedQueue;
-import com.tangosol.internal.net.queue.model.QueueKey;
 import com.tangosol.internal.net.queue.paged.BinaryPagedNamedQueue;
 import com.tangosol.internal.net.queue.paged.PagedNamedQueue;
 import com.tangosol.internal.net.queue.paged.PagedQueueKey;
@@ -39,6 +36,7 @@ import com.tangosol.net.NamedCollection;
 import com.tangosol.net.NamedQueue;
 import com.tangosol.net.Service;
 import com.tangosol.net.QueueService;
+import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
 import com.tangosol.net.cache.NearCache;
@@ -53,8 +51,7 @@ import java.util.List;
  */
 @SuppressWarnings("rawtypes")
 public class PagedQueueScheme
-        extends DistributedScheme
-        implements NamedQueueScheme<NamedMapQueue>
+        extends AbstractQueueScheme<NamedMapQueue>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -130,6 +127,12 @@ public class PagedQueueScheme
     // ----- ServiceScheme methods ------------------------------------------
 
     @Override
+    public NamedMapQueue realize(String sName, Session session)
+        {
+        return realize(sName, session, null);
+        }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <V> NamedMapQueue<?, V> realize(ValueTypeAssertion<V> typeConstraint, ParameterResolver resolver, Dependencies deps)
         {
@@ -141,7 +144,7 @@ public class PagedQueueScheme
         String sQueueName = deps.getCacheName();
         if (NullImplementation.getClassLoader().equals(deps.getClassLoader()))
             {
-            pagedQueue = (NamedMapQueue) new BinaryPagedNamedQueue(sQueueName, eccf);
+            pagedQueue = new BinaryPagedNamedQueue(sQueueName, eccf);
             }
         else
             {
@@ -151,6 +154,7 @@ public class PagedQueueScheme
                 // optimize out the NearCache as we do not do plain gets for a queue
                 cache = ((NearCache<PagedQueueKey, V>) cache).getBackCache();
                 }
+            assertMaybePagedQueue(sQueueName, cache);
             pagedQueue = new PagedNamedQueue<>(sQueueName, cache);
             }
         return pagedQueue;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,8 +35,7 @@ import com.tangosol.net.cache.NearCache;
  */
 @SuppressWarnings("rawtypes")
 public class SimpleDequeScheme
-        extends DistributedScheme
-        implements NamedQueueScheme<NamedMapDeque>
+        extends AbstractQueueScheme<NamedMapDeque>
     {
     // ----- constructors ---------------------------------------------------
 
@@ -92,6 +91,7 @@ public class SimpleDequeScheme
             // optimize out the NearCache as we do not do plain gets for a queue
             cache = ((NearCache<QueueKey, ?>) cache).getBackCache();
             }
+        assertMaybeSimpledQueue(sQueueName, cache);
         return new SimpleNamedMapDeque<>(sQueueName, cache);
         }
 
