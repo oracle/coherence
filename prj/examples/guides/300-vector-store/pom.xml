@@ -17,7 +17,7 @@
     <name>Coherence Guides - Vector Store</name>
 
     <properties>
-        <revision>25.09-SNAPSHOT</revision>
+        <revision>15.1.1-0-0-SNAPSHOT</revision>
 
         <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
         <version.lib.coherence>${project.version}</version.lib.coherence>
