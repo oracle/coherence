@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2123,6 +2123,12 @@ public class ServiceModel
             if (service instanceof SafeProxyService)
                 {
                 service = ((SafeProxyService) service).getService();
+                }
+            // the service is likely null because it failed to start and
+            // there should already be error log messages for the startup failure
+            if (service == null)
+                {
+                return false;
                 }
             ProxyService       proxyService = (ProxyService) service;
             ConnectionAcceptor acceptor     = proxyService.getAcceptor();
