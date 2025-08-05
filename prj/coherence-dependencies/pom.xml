@@ -276,7 +276,7 @@
     <mockito.version>5.18.0</mockito.version>
     <bytebuddy.version>1.17.6</bytebuddy.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>7.0.6</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.8</oracle.bedrock.version>
     <testcontainers.version>1.21.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
