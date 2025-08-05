@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,7 +32,6 @@ import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.net.partition.KeyAssociator;
 import com.tangosol.net.partition.PartitionAwareBackingMap;
-import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -56,6 +55,7 @@ import com.tangosol.util.extractor.IndexAwareExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
 
+import com.tangosol.util.filter.NotEqualsFilter;
 import com.tangosol.util.processor.*;
 
 import common.AbstractRollingRestartTest;
@@ -691,6 +691,58 @@ public class IndexIntegrityTests
             public void run()
                 {
                 assertEquals(0, getNamedCache(getCacheName0()).size());
+                }
+            });
+        }
+
+    /**
+     * Regression test for COH-32699
+     */
+    @Test
+    public void testCoh32699()
+        {
+        doSingleServerTest("IdxTestCoh32699", new Runnable()
+            {
+            public void run()
+                {
+                NamedCache cache = getNamedCache(getCacheName0());
+
+                IndexAwareExtractor ext = new IndexAwareExtractor()
+                    {
+                    public MapIndex createIndex(boolean fOrdered, Comparator comparator, Map mapIndex,
+                                                BackingMapContext ctx)
+                        {
+                        MapIndex index = new SimpleMapIndex(this, false, null, ctx)
+                            {
+                            public boolean isPartial()
+                                {
+                                return true;
+                                }
+                            };
+                        mapIndex.put(this, index);
+                        return index;
+                        }
+
+                    public MapIndex destroyIndex(Map mapIndex)
+                        {
+                        return (MapIndex) mapIndex.remove(this);
+                        }
+
+                    public Object extract(Object oTarget)
+                        {
+                        return oTarget;
+                        }
+                    };
+
+                cache.addIndex(ext, false, null);
+
+                cache.put("key1", "value1");
+                cache.put("key2", null);
+                assertEquals(cache.keySet(new NotEqualsFilter(ext, "nothere")).size(), 2);
+                Set keys = cache.keySet(new NotEqualsFilter(ext, null));
+                assertTrue(keys.contains("key1") && keys.size() == 1);
+
+                validateIndex(cache);
                 }
             });
         }
