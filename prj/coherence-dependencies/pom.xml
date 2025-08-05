@@ -1061,32 +1061,63 @@
                       props.setProperty("root.path", sDevRoot);
                       }
 
-                  // project version properties 20.06 | 20.06.1
-                  matcher = project.version =~ /^(\d+)\.(\d+)\.*(\d*)-*(.*)/
+                  // project version properties
+                  matcher = project.version =~ /^(\d+)\.(\d+)\.(\d+)-(\d+)-(\d+)(.*)/
                   assert matcher.matches()
 
                   // version components
-                  result = matcher.toMatchResult()
-                  major = result.group(1)
-                  minor = result.group(2)
-                  micro = result.group(3)
+                  result       = matcher.toMatchResult()
+                  major        = result.group(1)
+                  minor        = result.group(2)
+                  service      = result.group(3)
+                  patchset     = result.group(4)
+                  patch        = result.group(5)
+                  qualifier    = result.group(6)
+                  number       = props.getProperty("project.build.number")
+                  next         = Integer.parseInt(service) + 1
+                  nextPatchSet = Integer.parseInt(patchset) + 1
 
-                  // determine next release version
-                  pattern      = DateTimeFormatter.ofPattern("uu.MM")
-                  release      = YearMonth.parse(major + "." + minor, pattern)
-                  nextRelease  = release.plusMonths(6)
+                  props.setProperty("project.version.major", major)
+                  props.setProperty("project.version.minor", minor)
+                  props.setProperty("project.version.service", service)
+                  props.setProperty("project.version.patchset", patchset)
 
-                  props.setProperty("project.version.official",
-                          major + "." + minor + (micro ? "." + micro : ""))
-
+                  // next version string (M.m.s-p-Pq)
                   props.setProperty("project.version.next",
-                          nextRelease.format(pattern) + ".0")
+                          "${major}.${minor}.${next}-${patchset}-${patch}${qualifier}")
 
+                  // distribution version string (M.m.s.p.Pb[build #])
+                  props.setProperty("project.version.dist",
+                          "${major}.${minor}.${service}.${patchset}.${patch}b${number}")
+
+                  // official version string (M.m.s.p.P)
+                  props.setProperty("project.version.official",
+                          "${major}.${minor}.${service}.${patchset}.${patch}")
+
+                  // base release version string (M.m.s.p.0)
+                  //  - used for generating post GA carbs and opatch files
+                  props.setProperty("project.version.base.release",
+                          "${major}.${minor}.${service}.${patchset}.0")
+
+                  // release version string (M.m.s-p-P)
+                  props.setProperty("project.version.release",
+                          "${major}.${minor}.${service}-${patchset}-${patch}")
+
+                  // short version string (M.m.s)
                   props.setProperty("project.version.short",
-                          major + "." + minor)
+                          "${major}.${minor}.${service}")
 
+                  // short next version string (M.m.s)
                   props.setProperty("project.version.next.short",
-                          nextRelease.format(pattern))
+                          "${major}.${minor}.${next}")
+
+                  // 4 digit patchset version (M.m.s-p)
+                  props.setProperty("project.version.patchset.release",
+                          "${major}.${minor}.${service}-${patchset}")
+
+                  // 4 digit next patchset version (M.m.s-p)
+                  props.setProperty("project.version.patchset.next.release",
+                          "${major}.${minor}.${service}-${nextPatchSet}")
 
                   // project metadata properties
                   desc = ""

@@ -54,9 +54,6 @@
   </dependencyManagement>
 
   <properties>
-    <!-- version prefix used for cluster compatibility -->
-    <project.version.prefix>15.0.0</project.version.prefix>
-
     <!-- The groupId of the Coherence product -->
     <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
 
