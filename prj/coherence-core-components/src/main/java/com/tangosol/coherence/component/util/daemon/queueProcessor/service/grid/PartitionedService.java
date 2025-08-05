@@ -121,6 +121,9 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_25;
 import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_21;
@@ -28980,11 +28983,43 @@ public abstract class PartitionedService
                 msgRequest.setSnapshotName(null);
                 msgRequest.setFailed(true);    // this ensures we get list of failed snapshots
 
-                String[] asNames = (String[]) service.poll(msgRequest);
-                setSnapshotFailures(asNames);
-                return asNames;
+                String[] failedSnapshots = reconcileValidatedSnapshots((String[]) service.poll(msgRequest));
+                setSnapshotFailures(failedSnapshots);
+                return failedSnapshots;
                 }
 
+            private String[] reconcileValidatedSnapshots(String[] asNames)
+                {
+                if (asNames == null)
+                    {
+                    return null;
+                    }
+                Set<String>              failedSnapshots   = new HashSet<>();
+                Map<String, Set<String>> snapPartitionsMap = new HashMap<>();
+                Pattern p = Pattern.compile("^(?<name>.+?)~~~\\[(?<partitions>(?:(?:\\d+-[0-9a-f]+-[0-9a-f]+-\\d+),?)+)\\]$");
+                for (String snapshot : asNames)
+                    {
+                    Matcher m = p.matcher(snapshot);
+                    if (m.matches())
+                        {
+                        snapPartitionsMap.computeIfAbsent(m.group("name"), s -> new HashSet())
+                                .addAll(Arrays.stream(m.group("partitions").split(","))
+                                                .collect(Collectors.toSet()));
+                        }
+                    else
+                        {
+                        // snapshot name w/o validated partition names
+                        failedSnapshots.add(snapshot);
+                        }
+                    }
+                int partitionCount = getService().getPartitionCount();
+                List<String> failures = snapPartitionsMap.entrySet().stream()
+                        .filter(entry -> entry.getValue().size() != partitionCount)
+                        .map(Map.Entry::getKey)
+                        .toList();
+                failedSnapshots.addAll(failures);
+                return failedSnapshots.toArray(new String[failedSnapshots.size()]);
+                }
             /**
              * Return a Map<Integer, String[]> where the key is the member id
             * and the value is the list of stores that are known by all members
