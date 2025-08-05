@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -63,12 +63,13 @@ public class CacheAddInterceptor
             throw new IllegalStateException("Method interceptor data not ready in CDI extension for method " + ctxInvocation.getMethod());
             }
 
-        Session                    session = getSession(mi.sessionName());
-        NamedCache<Object, Object> cache   = session.getCache(mi.cacheName());
-        Object                     oKey    = mi.cacheKeyFunction().apply(ctxInvocation.getParameters());
-        Object                     oValue  = ctxInvocation.proceed();
+        Session                    session    = getSession(mi.sessionName());
+        NamedCache<Object, Object> cache      = session.getCache(mi.cacheName());
+        Object                     oKey       = mi.cacheKeyFunction().apply(ctxInvocation.getParameters());
+        Object                     oValue     = ctxInvocation.proceed();
+        CacheAdd                   annotation = (CacheAdd) mi.getAnnotation();
 
-        cache.put(oKey, oValue);
+        cache.put(oKey, oValue, annotation.ttl());
         return oValue;
         }
     }
