@@ -35,6 +35,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 
+import com.oracle.bedrock.testsupport.deferred.Concurrently;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -154,6 +155,7 @@ import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.DESCRIPTION;
+import static com.tangosol.internal.management.resources.AbstractManagementResource.DESTROY;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
@@ -3894,6 +3896,72 @@ public abstract class BaseManagementInfoResourceTests
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
             Eventually.assertDeferred(cache::size, is(1));
+            return null;
+            });
+        }
+
+    @Test
+    public void testDestroyCache()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            // fill a cache
+            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
+            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
+            cache.clear();
+            for (int i = 0; i < 10; ++i)
+                {
+                cache.put(i, binValue);
+                }
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Concurrently.assertThat(0,
+                                (Function<Object, Integer>) o ->
+                                    {
+                                    Base.sleep(3000);
+                                    return getBaseTarget().path(STORAGE).path(CACHE_NAME).path(DESTROY).request().post(null).getStatus();
+                                    },
+                                is(Response.Status.OK.getStatusCode()));
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Assert.assertEquals(10, cache.size());
+            Eventually.assertDeferred(cache::isDestroyed, is(true));
+            return null;
+            });
+        }
+
+    @Test
+    public void testReadOnlyDestroyCache()
+        {
+        // only run when read-only management is enabled
+        Assume.assumeTrue(isReadOnly());
+        final String CACHE_NAME = CLEAR_CACHE_NAME;
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            cache.clear();
+            cache.put("key", "value");
+            return null;
+            });
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        Eventually.assertDeferred(
+                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(DESTROY).request().post(null).getStatus(),
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
+
+        f_inClusterInvoker.accept(f_sClusterName, null, () ->
+            {
+            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
+            Assert.assertEquals(1, cache.size());
+            Assert.assertFalse(cache.isDestroyed());
             return null;
             });
         }

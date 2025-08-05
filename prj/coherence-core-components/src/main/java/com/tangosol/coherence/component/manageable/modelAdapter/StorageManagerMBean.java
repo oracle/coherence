@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -483,6 +483,18 @@ public class StorageManagerMBean
                 null,
                 });
             }
+        // behavior destroyCache()
+            {
+            mapInfo.put("destroyCache()", new Object[]
+                {
+                "Completely destroys the specified collection across the cluster. All references in the entire cluster to this collection will be invalidated, the collection data will be cleared, and all internal resources will be released.",
+                "destroyCache",
+                "V",
+                new String[] {},
+                new String[] {},
+                null,
+                });
+            }
         // behavior size()
             {
             mapInfo.put("size()", new Object[]
@@ -873,6 +885,18 @@ public class StorageManagerMBean
      * subscribers of the execution of this operation.
      */
     public void truncateCache()
+        {
+        }
+
+    /**
+     * Destroys cache.<p>
+     * Release and destroy this instance of NamedCollection. <p>
+     * <b>Warning:</b> This method is used to completely destroy the specified
+     * collection across the cluster. All references in the entire cluster to this
+     * collection will be invalidated, the collection data will be cleared, and all
+     * internal resources will be released.
+     */
+    public void destroyCache()
         {
         }
 

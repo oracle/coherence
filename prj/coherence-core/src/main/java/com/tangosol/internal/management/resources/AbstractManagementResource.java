@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2326,6 +2326,7 @@ public abstract class AbstractManagementResource
     public static final String OPTIONS            = "options";
     public static final String CACHE              = "cache";
     public static final String TRUNCATE           = "truncate";
+    public static final String DESTROY            = "destroy";
     public static final String CLEAR              = "clear";
     public static final String DESCRIPTION        = "description";
 

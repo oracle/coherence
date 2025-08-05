@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2025 Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,7 @@ public class StorageManagerResource
 
         router.addPost(sPathRoot + "/" + CLEAR, this::clearCache);
         router.addPost(sPathRoot + "/" + TRUNCATE, this::truncateCache);
+        router.addPost(sPathRoot + "/" + DESTROY, this::destroyCache);
         router.addPost(sPathRoot + "/" + RESET_STATS, this::resetStatistics);
         router.addGet(sPathRoot  + "/" + PARTITION_STATS, this::reportPartitionStats);
         }
@@ -154,6 +155,21 @@ public class StorageManagerResource
         String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
         QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
         return executeMBeanOperation(request, queryBuilder, "truncateCache", null, null);
+        }
+
+    /**
+     * Call "destroyCache" operation on StorageManagerMBean for all members.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the response object
+     */
+    public Response destroyCache(HttpRequest request)
+        {
+        String       sCacheName   = request.getFirstPathParameter(CACHE_NAME);
+        String       sServiceName = request.getPathParameters().getFirst(SERVICE_NAME);
+        QueryBuilder queryBuilder = getQuery(request, sCacheName, sServiceName);
+        return executeMBeanOperation(request, queryBuilder, "destroyCache", null, null);
         }
 
     // ----- AbstractManagementResource methods ------------------------------
