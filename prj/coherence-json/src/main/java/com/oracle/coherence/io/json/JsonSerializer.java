@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -322,12 +322,19 @@ public class JsonSerializer
             catch (Throwable thrown)
                 {
                 Logger.err("JSON DEBUG: Failed to deserialize " + new String(abData), thrown);
-                throw Base.ensureRuntimeException(thrown);
+                throw new IOException("Failed to deserialize json for class " + clazz.getName(), thrown);
                 }
             }
         else
             {
-            return f_genson.deserialize(new InputStreamReader(stream), clazz);
+            try
+                {
+                return f_genson.deserialize(new InputStreamReader(stream), clazz);
+                }
+            catch (Exception e)
+                {
+                throw new IOException("Failed to deserialize json for class " + clazz.getName(), e);
+                }
             }
         }
 

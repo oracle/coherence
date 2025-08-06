@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -71,6 +71,7 @@ import org.junit.BeforeClass;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -523,8 +524,9 @@ class JsonSerializerTest
                                            "\"}").getBytes(StandardCharsets.UTF_8);
         buf.write(0, bytes);
 
-        assertThrows(JsonBindingException.class, () ->
+        IOException thrown = assertThrows(IOException.class, () ->
                 serializer.deserialize(buf.getReadBuffer().getBufferInput()));
+        assertThat(thrown.getCause(), is(instanceOf(JsonBindingException.class)));
         }
 
     @Test

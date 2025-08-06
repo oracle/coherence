@@ -960,7 +960,7 @@ public abstract class AbstractSparseArray<V>
     * An AVL tree node. This class is used only within the AbstractSparseArray
     * class and its derivations.
     */
-    protected abstract static class Node<V>
+    public abstract static class Node<V>
             implements Cloneable, Serializable
         {
         // ----- Node<V> methods -----------------------------------------------

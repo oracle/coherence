@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * http://oss.oracle.com/licenses/upl.
@@ -14,9 +14,13 @@ import com.tangosol.io.ByteArrayReadBuffer;
 
 import com.tangosol.util.Base;
 
+import java.io.IOException;
 import java.io.ObjectInputFilter;
 import org.junit.jupiter.api.Test;
 
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
@@ -40,6 +44,7 @@ public class TestDeserializationNoTypeReferenceSerialFilterTest
                                                        builder -> builder.setEnforceTypeAliases(false),
                                                        false);
 
-        assertThrows(JsonBindingException.class, () -> serializer.deserialize(buf.getBufferInput()));
+        IOException thrown = assertThrows(IOException.class, () -> serializer.deserialize(buf.getBufferInput()));
+        assertThat(thrown.getCause(), is(instanceOf(JsonBindingException.class)));
         }
     }

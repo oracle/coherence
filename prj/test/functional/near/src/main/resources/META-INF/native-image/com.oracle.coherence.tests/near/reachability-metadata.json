@@ -1,0 +1,28 @@
+{
+  "reflection": [
+    {
+      "type": "near.PutAgent",
+      "serializable": true
+    },
+    {
+      "type": "near.PutAgent",
+      "serializable": true
+    },
+    {
+      "type": "near.PutAllAgent",
+      "serializable": true
+    },
+    {
+      "type": "near.ContentionPutAllAgent",
+      "serializable": true
+    },
+    {
+      "type": "near.NearCacheTests",
+      "serializable": true
+    },
+    {
+      "type": "near.NearCacheWithCaffeineFrontMapTests",
+      "serializable": true
+    }
+  ]
+}

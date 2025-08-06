@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
@@ -76,6 +77,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import java.math.BigDecimal;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 
@@ -204,7 +206,7 @@ import static org.junit.Assert.assertTrue;
  * In general, if we only want to assert that an attribute value is set
  * (not the default -1), but not what the value is, then use asserts
  * similar to the following:
- *
+ * <p>
  * assertThat(((Number) mapResponse.get("requestTotalCount")).intValue(), greaterThanOrEqualTo(0));
  * assertThat(Long.parseLong(mapResponse.get("requestTotalCount").toString()), greaterThanOrEqualTo(0L));
  *
@@ -213,17 +215,17 @@ import static org.junit.Assert.assertTrue;
  * @author jk 2022.01.25
  * @author gh 2022.05.13
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked", "rawtypes", "resource", "ConstantValue", "OptionalGetWithoutIsPresent", "SameParameterValue"})
 public abstract class BaseManagementInfoResourceTests
     {
     // ----- constructors ---------------------------------------------------
 
-    public BaseManagementInfoResourceTests()
+    protected BaseManagementInfoResourceTests()
         {
         this(CLUSTER_NAME, BaseManagementInfoResourceTests::invokeInCluster);
         }
 
-    public BaseManagementInfoResourceTests(String sClusterName, InClusterInvoker inClusterInvoker)
+    protected BaseManagementInfoResourceTests(String sClusterName, InClusterInvoker inClusterInvoker)
         {
         f_sClusterName     = sClusterName;
         f_inClusterInvoker = inClusterInvoker;
@@ -415,12 +417,19 @@ public abstract class BaseManagementInfoResourceTests
                 {
                 target   = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(mbean);
                 response = target.request().get();
-                assertThat("unexpected response for Mgmt over REST API "
-                        + getBaseTarget().getUri().toString() + "/" + MEMBERS + "/" + memberId
-                        + "/platform/" + mbean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                String sTypeValue = (String) mapResponse.get("type");
-                assertThat(sTypeValue, is("HEAP"));
+                if (NativeImageProfile.isEnabled())
+                    {
+                    assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                    }
+                else
+                    {
+                    assertThat("unexpected response for Mgmt over REST API "
+                            + getBaseTarget().getUri().toString() + "/" + MEMBERS + "/" + memberId
+                            + "/platform/" + mbean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                    mapResponse = readEntity(target, response);
+                    String sTypeValue = (String) mapResponse.get("type");
+                    assertThat(sTypeValue, is("HEAP"));
+                    }
                 }
             }
         }
@@ -482,9 +491,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info("Executing Management over REST request to URL: " + target.getUri().toString());
 
             Response response = target.request().get();
-            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            Map mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled())
+                {
+                assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                Map mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -503,6 +519,8 @@ public abstract class BaseManagementInfoResourceTests
         List   listMemberIds = (List) objListMemberIds;
         Object memberId      = listMemberIds.get(0);
 
+        Set<String> setNativeFail = Set.of("compressedClassSpace", "metaSpace");
+
         for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_URL_TO_MBEAN_QUERY.keySet())
             {
             target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
@@ -510,9 +528,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info(target.getUri().toString());
 
             response = target.request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled() && setNativeFail.contains(platformMBean))
+                {
+                assertThat("Failed for " + platformMBean, response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat("Failed for " + platformMBean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -540,9 +565,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info(target.getUri().toString());
 
             response = target.request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled())
+                {
+                assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -901,6 +933,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testMemberDumpHeap()
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Skipping test when running GraalVM native image", NativeImageProfile.isEnabled());
 
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
@@ -1040,6 +1073,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
@@ -1108,6 +1142,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
@@ -1147,6 +1182,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         String   sJfr1    = s_dirJFR.getAbsolutePath() + File.separator + "foo1.jfr";
         String   sJfr2    = s_dirJFR.getAbsolutePath() + File.separator + "foo2.jfr";
@@ -1245,6 +1281,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         MBeanServerConnection mBeanServer;
         ObjectName            oName;
@@ -3243,7 +3280,7 @@ public abstract class BaseManagementInfoResourceTests
                     {
                     cache.put(i, i);
                     }
-                assertThat(cache.size(), greaterThan(00));
+                assertThat(cache.size(), greaterThan(0));
                 return null;
                 });
 
@@ -3300,9 +3337,12 @@ public abstract class BaseManagementInfoResourceTests
             ensureServiceStatusIdle();
 
             // damage snapshot
-            List<File> subfolders = Arrays.stream(Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged").toFile()
-                                                          .listFiles(file -> file.isDirectory() && !file.getName().startsWith("."))).toList();
-            int i = 0;
+            Path path = Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged");
+            assertThat(path, is(notNullValue()));
+            File[] files = path.toFile().listFiles(file -> file.isDirectory() && !file.getName().startsWith("."));
+            assertThat(files, is(notNullValue()));
+            List<File> subfolders = Arrays.stream(files).toList();
+            int        i          = 0;
             for(File subfolder : subfolders)
                 {
                 if (i++ % 2 == 0)
@@ -4074,7 +4114,7 @@ public abstract class BaseManagementInfoResourceTests
      *
      * @param sType either "archives" or "snapshots"
      *
-     * @return the list of snapshots
+     * @return the set of snapshots
      */
     private Set<String> getSnapshotsInternal(String sType)
         {
@@ -4346,7 +4386,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
-    // only validate response values agasint specified cache name
+    // only validate response values against specified cache name
     private void testCachesResponse(WebTarget target, Response response, String sCacheName)
         {
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -4507,7 +4547,7 @@ public abstract class BaseManagementInfoResourceTests
     protected String encodeValue(String sValue)
             throws UnsupportedEncodingException
         {
-        return URLEncoder.encode(sValue, StandardCharsets.UTF_8.toString());
+        return URLEncoder.encode(sValue, StandardCharsets.UTF_8);
         }
 
     /**
@@ -4875,6 +4915,7 @@ public abstract class BaseManagementInfoResourceTests
 
     protected static Void popluateCaches()
         {
+        System.err.println("**** Populating cache...");
         NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
         Binary     binValue = Randoms.getRandomBinary(1024, 1024);
 
@@ -5204,7 +5245,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     protected static final long REMOTE_MODEL_PAUSE_DURATION = 128L + /*buffer*/ 16L;
 
-    protected static final Boolean s_bTestJdk11 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 10;
+    protected static final Boolean s_bTestJdk11 = Integer.parseInt(System.getProperty("java.version").split("[-.]")[0]) > 10;
 
     /**
      * The number of attributes to check for.
@@ -5249,7 +5290,7 @@ public abstract class BaseManagementInfoResourceTests
 
     private final MapJsonBodyHandler f_jsonHandler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
 
-    interface InClusterInvoker
+    public interface InClusterInvoker
         {
         void accept(String clusterName, String member, RemoteCallable<Void> callable);
         }

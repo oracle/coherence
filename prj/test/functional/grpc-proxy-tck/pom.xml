@@ -133,6 +133,11 @@
         </executions>
       </plugin>
 
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
 
       <plugin>
         <groupId>com.oracle.coherence.moditect</groupId>

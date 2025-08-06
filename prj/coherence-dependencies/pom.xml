@@ -106,7 +106,7 @@
     <maven.flatten.plugin.version>1.2.2</maven.flatten.plugin.version>
     <maven.failsafe.plugin.version>3.1.2</maven.failsafe.plugin.version>
     <maven.frontend.plugin.version>1.15.0</maven.frontend.plugin.version>
-    <maven.gmaven.plugin.version>2.1.0</maven.gmaven.plugin.version>
+    <maven.gmaven.plugin.version>4.2.1</maven.gmaven.plugin.version>
     <maven.gmaven.providerSelection.version>1.8</maven.gmaven.providerSelection.version>
     <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
     <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
@@ -130,6 +130,11 @@
     <maven.central.publishing.plugin.version>0.7.0</maven.central.publishing.plugin.version>
     <maven.protobuf.plugin.version>0.6.1</maven.protobuf.plugin.version>
     <maven.groovy.plugin.version>2.1.1</maven.groovy.plugin.version>
+
+    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+    <skip.native.build>false</skip.native.build>
+    <skip.native.tests>false</skip.native.tests>
+
 
     <!-- library dependency versions -->
     <asciidoctor.diagram.version>2.3.2</asciidoctor.diagram.version>
@@ -461,6 +466,13 @@
         <artifactId>js</artifactId>
         <version>${graalvm.version}</version>
         <type>pom</type>
+      </dependency>
+
+      <!-- required for native image building -->
+      <dependency>
+        <groupId>org.graalvm.sdk</groupId>
+        <artifactId>graal-sdk</artifactId>
+        <version>${graalvm.version}</version>
       </dependency>
 
       <!-- Helidon -->
@@ -957,6 +969,26 @@
                     <phase>process-classes</phase>
                 </execution>
             </executions>
+        </plugin>
+
+        <plugin>
+          <groupId>org.graalvm.buildtools</groupId>
+          <artifactId>native-maven-plugin</artifactId>
+          <version>${native.maven.plugin.version}</version>
+          <extensions>true</extensions>
+          <executions>
+            <execution>
+              <id>generate-resource-config</id>
+              <goals>
+                <goal>generateResourceConfig</goal>
+              </goals>
+              <phase>prepare-package</phase>
+              <configuration>
+                <isDetectionEnabled>true</isDetectionEnabled>
+                <outputDirectory>${project.build.outputDirectory}/META-INF/native-image/com.oracle.coherence/${project.artifactId}</outputDirectory>
+              </configuration>
+            </execution>
+          </executions>
         </plugin>
 
         <plugin>

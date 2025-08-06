@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,9 +21,8 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.isIn;
+import static org.hamcrest.collection.IsIn.in;
 import static org.junit.Assert.*;
 
 import java.io.Serializable;
@@ -36,6 +35,7 @@ import java.util.Arrays;
 *
 * @author gg  2011.05.17
 */
+@SuppressWarnings({"rawtypes", "unchecked", "resource"})
 public class SessionBackingMapTests
         extends AbstractFunctionalTest
     {
@@ -83,13 +83,13 @@ public class SessionBackingMapTests
             }
 
         SessionLocalBackingMap mapBacking = SessionLocalHelper.getBackingMap(cache);
-        assertTrue("No storage for "+ cache.getCacheName(), mapBacking != null);
+        assertNotNull("No storage for " + cache.getCacheName(), mapBacking);
 
         // retrieve data using the backing map
         for (int i = 0; i < 20; i++)
             {
             Integer I = (Integer) mapBacking.getObject(i);
-            assertTrue(I + "!=" + i, I.intValue() == i);
+            assertEquals(I + "!=" + i, I.intValue(), i);
             }
 
         // update data using the backing map
@@ -98,7 +98,7 @@ public class SessionBackingMapTests
             mapBacking.putObject(i, i*i);
 
             Integer I = (Integer) mapBacking.getObject(i);
-            assertTrue(I + "!=" + i*i, I.intValue() == i*i);
+            assertEquals(I + "!=" + i * i, I.intValue(), i * i);
             }
         }
 
@@ -120,7 +120,7 @@ public class SessionBackingMapTests
         for (int i = 0; i < 20; i++)
             {
             Integer I = (Integer) SessionLocalHelper.get(cache, i);
-            assertTrue(I + "!=" + i, I.intValue() == i);
+            assertEquals(I + "!=" + i, I.intValue(), i);
             }
 
         // update data using the backing map
@@ -129,7 +129,7 @@ public class SessionBackingMapTests
             SessionLocalHelper.put(cache, i, i*i);
 
             Integer I = (Integer) SessionLocalHelper.get(cache, i);
-            assertTrue(I + "!=" + i*i, I.intValue() == i*i);
+            assertEquals(I + "!=" + i * i, I.intValue(), i * i);
             }
         }
 
@@ -149,7 +149,7 @@ public class SessionBackingMapTests
             Member             member  = service.getCluster().getLocalMember();
 
             // wait for some re-distribution
-            Eventually.assertThat(invoking(service).getOwnedPartitions(member).cardinality(), isIn(Arrays.asList(128, 129)));
+            Eventually.assertDeferred(() -> service.getOwnedPartitions(member).cardinality(), is(in(Arrays.asList(128, 129))));
 
             // put some data through the front door
             for (int i = 0; i < 20; i++)
@@ -167,7 +167,7 @@ public class SessionBackingMapTests
                 session = (Session) SessionLocalHelper.get(cache, i);
                 if (!session.m_fLocal)
                     {
-                    assertFalse("local put failed", service.getKeyOwner(i).equals(member));
+                    assertNotEquals("local put failed", service.getKeyOwner(i), member);
                     }
                 }
 

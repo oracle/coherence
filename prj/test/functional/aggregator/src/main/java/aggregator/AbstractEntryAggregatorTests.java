@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ package aggregator;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.NamedCache;
@@ -154,7 +155,7 @@ public abstract class AbstractEntryAggregatorTests
         Cluster cluster = CacheFactory.ensureCluster();
         int     nSize   = 1 + getCacheServerCount();
 
-        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(nSize));
+        Eventually.assertDeferred(() -> cluster.getMemberSet().size(), is(nSize));
         }
 
     // ----- test methods ---------------------------------------------------
@@ -276,7 +277,7 @@ public abstract class AbstractEntryAggregatorTests
         assertEquals(setExpected, setResult);
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
@@ -308,7 +309,7 @@ public abstract class AbstractEntryAggregatorTests
         assertTrue("Result=" + oResult, equals(oResult, 5.5D));
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
@@ -914,14 +915,14 @@ public abstract class AbstractEntryAggregatorTests
                 sExpectedMin.equals(personMin.getFirstName()));
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
     * Comparator used for testing ComparableMax and ComparableMin
     */
-    private static class FirstNameComparator
-            implements Comparator, Serializable
+    public static class FirstNameComparator
+            implements Comparator, ExternalizableLite
         {
         public int compare(Object o1, Object o2)
             {
@@ -1045,7 +1046,7 @@ public abstract class AbstractEntryAggregatorTests
             }
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
@@ -1097,7 +1098,7 @@ public abstract class AbstractEntryAggregatorTests
         assertEquals("Person2", results.get(2));
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
@@ -1265,7 +1266,7 @@ public abstract class AbstractEntryAggregatorTests
             }
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     /**
@@ -1330,7 +1331,7 @@ public abstract class AbstractEntryAggregatorTests
         assertArrayEquals("Result=" + Arrays.toString(oResult), aoTop10, oResult);
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
 
@@ -1352,11 +1353,11 @@ public abstract class AbstractEntryAggregatorTests
         assertTrue("empty", F.booleanValue());
 
         cache.clear();
-        Eventually.assertThat(cache.size(), is(0));
+        Eventually.assertDeferred(cache::size, is(0));
         }
 
     public static class NotEmptyAggregator
-            implements InvocableMap.ParallelAwareAggregator
+            implements InvocableMap.ParallelAwareAggregator, ExternalizableLite
         {
         public Object aggregateResults(Collection collResults)
             {

@@ -115,6 +115,12 @@
         <artifactId>maven-bundle-plugin</artifactId>
       </plugin>
 
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
+
       <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>

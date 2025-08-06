@@ -1,0 +1,60 @@
+{
+  "reflection": [
+     {
+      "type": "java.time.Ser",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.AbstractClusteredRemoteCountDownLatchIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.AbstractClusteredRemoteSemaphoreExtendIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.AbstractClusteredRemoteSemaphoreExtendProxyIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.AbstractClusteredRemoteSemaphoreIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.ClusteredRemoteCountDownLatchIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.ClusteredRemoteSemaphoreExtendIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.ClusteredRemoteSemaphoreExtendProxyIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.ClusteredRemoteSemaphoreIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.ExtendClientBootstrapTests",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.PofClusteredRemoteCountDownLatchIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.PofClusteredRemoteSemaphoreExtendIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.PofClusteredRemoteSemaphoreExtendProxyIT",
+      "serializable": true
+    },
+     {
+      "type": "concurrent.PofClusteredRemoteSemaphoreIT",
+      "serializable": true
+    }
+  ]
+}

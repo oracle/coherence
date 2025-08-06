@@ -1,0 +1,8 @@
+{
+  "reflection": [
+     {
+      "type": "cache.SessionBackingMapTests$Session",
+      "serializable": true
+    }
+  ]
+}

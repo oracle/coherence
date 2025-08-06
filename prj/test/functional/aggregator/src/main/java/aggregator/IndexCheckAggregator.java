@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package aggregator;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -14,11 +15,14 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,10 +31,14 @@ import java.util.List;
 import java.util.Map;
 
 public class IndexCheckAggregator
-        implements InvocableMap.StreamingAggregator, PortableObject
+        implements InvocableMap.StreamingAggregator, ExternalizableLite, PortableObject
     {
     private String getterString;
     private List getterList = new ArrayList();
+
+    public IndexCheckAggregator()
+        {
+        }
 
     public IndexCheckAggregator(String sMethod)
         {
@@ -122,6 +130,18 @@ public class IndexCheckAggregator
     public void writeExternal(PofWriter pofWriter) throws IOException
         {
         pofWriter.writeString(0, getterString);
+        }
+
+    @Override
+    public void readExternal(DataInput in) throws IOException
+        {
+        getterString = ExternalizableHelper.readSafeUTF(in);
+        }
+
+    @Override
+    public void writeExternal(DataOutput out) throws IOException
+        {
+        ExternalizableHelper.writeSafeUTF(out, getterString);
         }
     }
 

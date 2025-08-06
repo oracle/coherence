@@ -1,0 +1,52 @@
+{
+  "reflection": [
+     {
+      "type": "filter.DomainObject",
+      "serializable": true
+    },
+     {
+      "type": "filter.TestPerson",
+      "serializable": true
+    },
+     {
+      "type": "filter.PartitionedCacheServiceIsBalanced",
+      "serializable": true
+    },
+     {
+      "type": "filter.DistMultiFilterTests$CustomFilter",
+      "serializable": true
+    },
+     {
+      "type": "filter.IndexTests$BadFilter",
+      "serializable": true
+    },
+     {
+      "type": "filter.IndexTests$EveryOtherTimeExtractor",
+      "serializable": true
+    },
+     {
+      "type": "filter.IndexTests$EvenIntFilter",
+      "serializable": true
+    },
+     {
+      "type": "filter.IndexTests$UpdateAgent",
+      "serializable": true
+    },
+     {
+      "type": "filter.QueryRecordReporterTests$Movie",
+      "serializable": true
+    },
+     {
+      "type": "filter.QueryRecordReporterTests$Person",
+      "serializable": true
+    },
+     {
+      "type": "filter.nestinglevel1.nestinglevel2.nestinglevel3.IntegerToStringPersonKeyExtractor",
+      "serializable": true
+    },
+     {
+      "type": "filter.nestinglevel1.nestinglevel2.nestinglevel3.StringToIntegerPersonAddressZipExtractor",
+      "serializable": true
+    }
+  ]
+}

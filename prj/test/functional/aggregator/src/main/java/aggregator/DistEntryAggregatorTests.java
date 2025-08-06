@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,20 +9,24 @@ package aggregator;
 
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+
 import com.tangosol.net.NamedCache;
-import com.tangosol.util.Filter;
+
 import com.tangosol.util.InvocableMap;
 
-import com.tangosol.util.NullImplementation;
 import com.tangosol.util.aggregator.DoubleSum;
-import com.tangosol.util.extractor.IdentityExtractor;
+
 import com.tangosol.util.extractor.ReflectionExtractor;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
+
 import data.Trade;
-import java.util.Collections;
+
 import java.util.Properties;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -141,9 +145,12 @@ public class DistEntryAggregatorTests
         Properties props = new Properties();
         props.setProperty("test.thread.count", "0");
 
+        int clusterSize = 4;
+
         // initial cluster
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < clusterSize; i++)
             {
+            System.out.println("Starting server " + i);
             String sServerName = "storage" + i;
             CoherenceClusterMember clusterMember = startCacheServer(sServerName, "testIndexMap", "coherence-cache-config.xml", props);
             waitForServer(clusterMember);
@@ -179,7 +186,7 @@ public class DistEntryAggregatorTests
             }
 
         // reset test
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < clusterSize; i++)
             {
             String sServerName = "storage" + i;
             stopCacheServer(sServerName);
