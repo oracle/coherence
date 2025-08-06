@@ -27,7 +27,11 @@
   <!-- Utility targets                                                     -->
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 
-  <target name="create.keystores"
+  <target name="check-keystores">
+    <available file="target/classes/server.jks" property="keystores.present"/>
+  </target>
+
+  <target name="create.keystores" depends="check-keystores" unless="keystores.present"
           description="Generate the various keystore files used by the SSL tests.">
 
     <mkdir dir="target/ca"/>

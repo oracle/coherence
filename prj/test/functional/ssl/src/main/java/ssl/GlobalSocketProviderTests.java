@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
@@ -236,25 +237,32 @@ public class GlobalSocketProviderTests
                 assertThat(member.invoke(new IsSecureProxy()), is(true));
                 }
 
-            System.setProperty(PROP_METRICS_ENABLED, "false");
-            System.setProperty("coherence.extend.address", "127.0.0.1");
-            System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
+//            if (!NativeImageProfile.isEnabled())
+//                {
+                // Because of the way the certs are generated using an Ant script this test fails
+                // when running with native image because the Ant script runs again after the native
+                // image has built overwriting the certs, so the native image contains different certs
+                // to those being used by this client.
+                System.setProperty(PROP_METRICS_ENABLED, "false");
+                System.setProperty("coherence.extend.address", "127.0.0.1");
+                System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
 
-            Coherence coherence = Coherence.client().start().get(5, TimeUnit.MINUTES);
-            Session session = coherence.getSession();
-            try (NamedCache<String, String> cache = session.getCache("nameservice-test"))
-                {
-                String value = new UUID().toString();
-                cache.put("key-1", value);
-                assertThat(cache.get("key-1"), is(value));
-                }
+                Coherence coherence = Coherence.client().start().get(5, TimeUnit.MINUTES);
+                Session session = coherence.getSession();
+                try (NamedCache<String, String> cache = session.getCache("nameservice-test"))
+                    {
+                    String value = new UUID().toString();
+                    cache.put("key-1", value);
+                    assertThat(cache.get("key-1"), is(value));
+                    }
 
-            try (NamedCache<String, String> cache = session.getCache("fixed-test"))
-                {
-                String value = new UUID().toString();
-                cache.put("key-1", value);
-                assertThat(cache.get("key-1"), is(value));
-                }
+                try (NamedCache<String, String> cache = session.getCache("fixed-test"))
+                    {
+                    String value = new UUID().toString();
+                    cache.put("key-1", value);
+                    assertThat(cache.get("key-1"), is(value));
+                    }
+//                }
             }
         }
 
