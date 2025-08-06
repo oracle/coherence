@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io;
 
@@ -842,6 +842,20 @@ public class FileHelper
             {
             return cleanFileName.substring(0, index);
             }
+        }
+
+    /**
+     * Return true if the specified directory is empty.
+     *
+     * @param  fileDir the directory to check
+     *
+     * @return true if the directory is empty
+     */
+    public static boolean isEmpty(File fileDir)
+        {
+        File[] afile = fileDir.listFiles();
+
+        return fileDir.isDirectory() && (afile == null || afile.length == 0);
         }
 
     // ----- static helper classes ------------------------------------------

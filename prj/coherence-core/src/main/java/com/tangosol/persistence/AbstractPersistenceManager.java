@@ -39,6 +39,7 @@ import com.tangosol.net.GuardSupport;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.NullImplementation;
+import com.tangosol.util.SimpleMapEntry;
 
 import java.io.DataInputStream;
 import java.io.DataOutput;
@@ -53,7 +54,10 @@ import java.io.StreamCorruptedException;
 import java.nio.channels.FileLock;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -569,17 +573,26 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             throw new IllegalArgumentException("snapshot must have at least one GUID");
             }
 
-        String sGUID = asGUIDs[0];
-        int    nVersion;
-        int    cPartitions;
+        int      nVersion;
+        int      cPartitions;
+        FileLock fileLock    = null;
+        String   sGUID       = null;
 
         PersistentStore<ReadBuffer> store = null;
 
         try
             {
+            Map.Entry<String, FileLock> entry = pickStore(asGUIDs);
+            fileLock = entry.getValue();
+            sGUID    = entry.getKey();
+
             store = open(sGUID, null);
             cPartitions = CachePersistenceHelper.getPartitionCount(store);
             nVersion    = CachePersistenceHelper.getPersistenceVersion(store);
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
             }
         finally
             {
@@ -587,12 +600,33 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
                 {
                 close(sGUID);
                 }
+            if (fileLock != null)
+                {
+                FileHelper.unlockFile(fileLock);
+                }
             }
 
         OfflinePersistenceInfo info = new OfflinePersistenceInfo(cPartitions, getStorageFormat(),
                 false, asGUIDs, getStorageVersion(), getImplVersion(), nVersion);
 
         return instantiatePersistenceTools(info);
+        }
+
+    private Map.Entry<String, FileLock> pickStore(String[] stores)
+        {
+        Deque<String> candidates = new LinkedList<>(Arrays.asList(stores));
+        String guid;
+        while((guid = candidates.poll()) != null)
+            {
+            File lockDir      = getLockDirectory();
+            File lockFile     = new File(lockDir, guid + ".store.lck");
+            FileLock fileLock = FileHelper.lockFile(lockFile);
+            if (fileLock != null)
+                {
+                return new SimpleMapEntry<>(guid, fileLock);
+                }
+            }
+        throw new RuntimeException("all stores are locked");
         }
 
     /**
