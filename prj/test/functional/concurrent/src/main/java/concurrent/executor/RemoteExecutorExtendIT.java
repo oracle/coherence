@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -70,11 +70,11 @@ public class RemoteExecutorExtendIT
                           IPv4Preferred.yes(),
                           logs,
                           ClusterPort.automatic(),
+                          SystemProperty.of("coherence.executor.trace.logging", "true"),
                           SystemProperty.of("coherence.lambdas", "dynamic"),
                           StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
                     .include(1,
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
-                             LocalStorage.enabled(),
-                             Logging.at(9));
+                             LocalStorage.enabled());
     }
