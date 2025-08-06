@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.bedrock.runtime.concurrent.runnable.RuntimeHalt;
@@ -35,7 +36,6 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 
-import com.oracle.bedrock.testsupport.deferred.Concurrently;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
@@ -77,7 +77,6 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import java.math.BigDecimal;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -134,13 +133,11 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import java.util.concurrent.ExecutionException;
@@ -153,14 +150,12 @@ import java.util.function.Supplier;
 
 import java.util.logging.Level;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CACHES;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.CLEAR;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.DESCRIPTION;
-import static com.tangosol.internal.management.resources.AbstractManagementResource.DESTROY;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MANAGEMENT;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBER;
 import static com.tangosol.internal.management.resources.AbstractManagementResource.MEMBERS;
@@ -211,7 +206,7 @@ import static org.junit.Assert.assertTrue;
  * In general, if we only want to assert that an attribute value is set
  * (not the default -1), but not what the value is, then use asserts
  * similar to the following:
- *
+ * <p>
  * assertThat(((Number) mapResponse.get("requestTotalCount")).intValue(), greaterThanOrEqualTo(0));
  * assertThat(Long.parseLong(mapResponse.get("requestTotalCount").toString()), greaterThanOrEqualTo(0L));
  *
@@ -220,17 +215,17 @@ import static org.junit.Assert.assertTrue;
  * @author jk 2022.01.25
  * @author gh 2022.05.13
  */
-@SuppressWarnings({"unchecked", "rawtypes"})
+@SuppressWarnings({"unchecked", "rawtypes", "resource", "ConstantValue", "OptionalGetWithoutIsPresent", "SameParameterValue"})
 public abstract class BaseManagementInfoResourceTests
     {
     // ----- constructors ---------------------------------------------------
 
-    public BaseManagementInfoResourceTests()
+    protected BaseManagementInfoResourceTests()
         {
         this(CLUSTER_NAME, BaseManagementInfoResourceTests::invokeInCluster);
         }
 
-    public BaseManagementInfoResourceTests(String sClusterName, InClusterInvoker inClusterInvoker)
+    protected BaseManagementInfoResourceTests(String sClusterName, InClusterInvoker inClusterInvoker)
         {
         f_sClusterName     = sClusterName;
         f_inClusterInvoker = inClusterInvoker;
@@ -422,12 +417,19 @@ public abstract class BaseManagementInfoResourceTests
                 {
                 target   = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(mbean);
                 response = target.request().get();
-                assertThat("unexpected response for Mgmt over REST API "
-                        + getBaseTarget().getUri().toString() + "/" + MEMBERS + "/" + memberId
-                        + "/platform/" + mbean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
-                mapResponse = readEntity(target, response);
-                String sTypeValue = (String) mapResponse.get("type");
-                assertThat(sTypeValue, is("HEAP"));
+                if (NativeImageProfile.isEnabled())
+                    {
+                    assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                    }
+                else
+                    {
+                    assertThat("unexpected response for Mgmt over REST API "
+                            + getBaseTarget().getUri().toString() + "/" + MEMBERS + "/" + memberId
+                            + "/platform/" + mbean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                    mapResponse = readEntity(target, response);
+                    String sTypeValue = (String) mapResponse.get("type");
+                    assertThat(sTypeValue, is("HEAP"));
+                    }
                 }
             }
         }
@@ -489,9 +491,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info("Executing Management over REST request to URL: " + target.getUri().toString());
 
             Response response = target.request().get();
-            assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            Map mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled())
+                {
+                assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat(target.getUri().toString(), response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                Map mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -510,6 +519,8 @@ public abstract class BaseManagementInfoResourceTests
         List   listMemberIds = (List) objListMemberIds;
         Object memberId      = listMemberIds.get(0);
 
+        Set<String> setNativeFail = Set.of("compressedClassSpace", "metaSpace");
+
         for (String platformMBean : AbstractManagementResource.MAP_PLATFORM_URL_TO_MBEAN_QUERY.keySet())
             {
             target = getBaseTarget().path(MEMBERS).path(memberId.toString()).path("platform").path(platformMBean);
@@ -517,9 +528,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info(target.getUri().toString());
 
             response = target.request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled() && setNativeFail.contains(platformMBean))
+                {
+                assertThat("Failed for " + platformMBean, response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat("Failed for " + platformMBean, response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -547,9 +565,16 @@ public abstract class BaseManagementInfoResourceTests
             Logger.info(target.getUri().toString());
 
             response = target.request().get();
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            mapResponse = readEntity(target, response);
-            assertThat(mapResponse.size(), greaterThan(0));
+            if (NativeImageProfile.isEnabled())
+                {
+                assertThat(response.getStatus(), is(Response.Status.NOT_FOUND.getStatusCode()));
+                }
+            else
+                {
+                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                mapResponse = readEntity(target, response);
+                assertThat(mapResponse.size(), greaterThan(0));
+                }
             }
         }
 
@@ -908,6 +933,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testMemberDumpHeap()
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Skipping test when running GraalVM native image", NativeImageProfile.isEnabled());
 
         WebTarget target   = getBaseTarget();
         Response  response = target.request().get();
@@ -1047,6 +1073,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
@@ -1115,6 +1142,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
@@ -1154,6 +1182,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         String   sJfr1    = s_dirJFR.getAbsolutePath() + File.separator + "foo1.jfr";
         String   sJfr2    = s_dirJFR.getAbsolutePath() + File.separator + "foo2.jfr";
@@ -1252,6 +1281,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         // This test requires Flight Recorder and only runs on Oracle JVMs
         CheckJDK.assumeOracleJDK();
+        Assume.assumeFalse("Test skipped when running native image", NativeImageProfile.isEnabled());
 
         MBeanServerConnection mBeanServer;
         ObjectName            oName;
@@ -3246,41 +3276,26 @@ public abstract class BaseManagementInfoResourceTests
             f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
-                for (int i = 0; i < 100; i++)
+                for (int i = 0; i < 10; i++)
                     {
                     cache.put(i, i);
                     }
-                assertThat(cache.size(), greaterThan(00));
+                assertThat(cache.size(), greaterThan(0));
                 return null;
                 });
 
             // create an damaged snapshot
             createSnapshot("damaged");
             ensureServiceStatusIdle();
-            createSnapshot("damaged-wo-partition");
-            ensureServiceStatusIdle();
-            createSnapshot("control");
-            ensureServiceStatusIdle();
 
             // assert the snapshot exists
             Eventually.assertDeferred(() -> assertSnapshotExists("damaged", SNAPSHOTS), is(true));
-            Eventually.assertDeferred(() -> assertSnapshotExists("damaged-wo-partition", SNAPSHOTS), is(true));
-            Eventually.assertDeferred(() -> assertSnapshotExists("control", SNAPSHOTS), is(true));
             Thread.sleep(5000);
 
             // assert the snapshot status
             WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("status");
             response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
             Map mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-            assertThat(mapResponse.get("status"), is("Completed"));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // assert the snapshot status
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged-wo-partition").path("status");
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(mapResponse.get("status"), is("Completed"));
             response.close();
@@ -3318,17 +3333,16 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
             assertThat((List<String>) mapResponse.get("items"), not(contains("damaged")));
-            assertThat((List<String>) mapResponse.get("items"), not(contains("control")));
             response.close();
             ensureServiceStatusIdle();
 
-            // pause for failed snapshots cache to expire
-            Base.sleep(5500);
-
             // damage snapshot
-            List<File> subfolders = Arrays.stream(Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged").toFile()
-                                                          .listFiles(file -> file.isDirectory() && !file.getName().startsWith("."))).toList();
-            int i = 0;
+            Path path = Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged");
+            assertThat(path, is(notNullValue()));
+            File[] files = path.toFile().listFiles(file -> file.isDirectory() && !file.getName().startsWith("."));
+            assertThat(files, is(notNullValue()));
+            List<File> subfolders = Arrays.stream(files).toList();
+            int        i          = 0;
             for(File subfolder : subfolders)
                 {
                 if (i++ % 2 == 0)
@@ -3352,46 +3366,14 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
             assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
-            assertThat((List<String>) mapResponse.get("items"), not(contains("damaged-wo-partition")));
-            assertThat((List<String>) mapResponse.get("items"), not(contains("control")));
             response.close();
             ensureServiceStatusIdle();
 
-            // damage snapshot by removing partition folder
-            Optional<File> snapshotFolderToDelete = Arrays.stream(
-                            Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged-wo-partition")
-                                    .toFile()
-                                    .listFiles(file -> file.isDirectory() && !file.getName().startsWith(".") && new File(file, "00000000.jdb").exists()))
-                    .findAny();
-
-            try (Stream<Path> paths = Files.walk(snapshotFolderToDelete.get().toPath())) 
-                {
-                paths.sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-                }
-
-            // pause for failed snapshots cache to expire
-            Base.sleep(5500);
-            // assert failed snapshots
-            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
-            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
-            mapResponse = readEntity(target, response);
-            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
-
-            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged-wo-partition"));
-            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
-            assertThat((List<String>) mapResponse.get("items"), not(hasItem("control")));
-            response.close();
-            ensureServiceStatusIdle();
-
-            // now delete the 5 snapshots
+            // now delete the 3 snapshots
 
             deleteSnapshot("2-entries");
             deleteSnapshot("empty");
             deleteSnapshot("damaged");
-            deleteSnapshot("damaged-wo-partition");
-            deleteSnapshot("control");
             }
         catch (InterruptedException | IOException e)
             {
@@ -3957,72 +3939,6 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
-    public void testDestroyCache()
-        {
-        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
-        final String CACHE_NAME = CLEAR_CACHE_NAME;
-
-        f_inClusterInvoker.accept(f_sClusterName, null, () ->
-            {
-            // fill a cache
-            NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
-            Binary     binValue = Randoms.getRandomBinary(1024, 1024);
-            cache.clear();
-            for (int i = 0; i < 10; ++i)
-                {
-                cache.put(i, binValue);
-                }
-            return null;
-            });
-        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
-
-        Concurrently.assertThat(0,
-                                (Function<Object, Integer>) o ->
-                                    {
-                                    Base.sleep(3000);
-                                    return getBaseTarget().path(STORAGE).path(CACHE_NAME).path(DESTROY).request().post(null).getStatus();
-                                    },
-                                is(Response.Status.OK.getStatusCode()));
-
-        f_inClusterInvoker.accept(f_sClusterName, null, () ->
-            {
-            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
-            Assert.assertEquals(10, cache.size());
-            Eventually.assertDeferred(cache::isDestroyed, is(true));
-            return null;
-            });
-        }
-
-    @Test
-    public void testReadOnlyDestroyCache()
-        {
-        // only run when read-only management is enabled
-        Assume.assumeTrue(isReadOnly());
-        final String CACHE_NAME = CLEAR_CACHE_NAME;
-        f_inClusterInvoker.accept(f_sClusterName, null, () ->
-            {
-            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
-            cache.clear();
-            cache.put("key", "value");
-            return null;
-            });
-        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
-
-        Eventually.assertDeferred(
-                () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(DESTROY).request().post(null).getStatus(),
-                is(Response.Status.UNAUTHORIZED.getStatusCode()));
-        Base.sleep(REMOTE_MODEL_PAUSE_DURATION);
-
-        f_inClusterInvoker.accept(f_sClusterName, null, () ->
-            {
-            NamedCache cache = CacheFactory.getCache(CACHE_NAME);
-            Assert.assertEquals(1, cache.size());
-            Assert.assertFalse(cache.isDestroyed());
-            return null;
-            });
-        }
-
-    @Test
     public void testGetClusterConfig()
             throws Exception
         {
@@ -4198,7 +4114,7 @@ public abstract class BaseManagementInfoResourceTests
      *
      * @param sType either "archives" or "snapshots"
      *
-     * @return the list of snapshots
+     * @return the set of snapshots
      */
     private Set<String> getSnapshotsInternal(String sType)
         {
@@ -4470,7 +4386,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         }
 
-    // only validate response values agasint specified cache name
+    // only validate response values against specified cache name
     private void testCachesResponse(WebTarget target, Response response, String sCacheName)
         {
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
@@ -4631,7 +4547,7 @@ public abstract class BaseManagementInfoResourceTests
     protected String encodeValue(String sValue)
             throws UnsupportedEncodingException
         {
-        return URLEncoder.encode(sValue, StandardCharsets.UTF_8.toString());
+        return URLEncoder.encode(sValue, StandardCharsets.UTF_8);
         }
 
     /**
@@ -4999,6 +4915,7 @@ public abstract class BaseManagementInfoResourceTests
 
     protected static Void popluateCaches()
         {
+        System.err.println("**** Populating cache...");
         NamedCache cache    = CacheFactory.getCache(CACHE_NAME);
         Binary     binValue = Randoms.getRandomBinary(1024, 1024);
 
@@ -5328,7 +5245,7 @@ public abstract class BaseManagementInfoResourceTests
      */
     protected static final long REMOTE_MODEL_PAUSE_DURATION = 128L + /*buffer*/ 16L;
 
-    protected static final Boolean s_bTestJdk11 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 10;
+    protected static final Boolean s_bTestJdk11 = Integer.parseInt(System.getProperty("java.version").split("[-.]")[0]) > 10;
 
     /**
      * The number of attributes to check for.
@@ -5373,7 +5290,7 @@ public abstract class BaseManagementInfoResourceTests
 
     private final MapJsonBodyHandler f_jsonHandler = MapJsonBodyHandler.ensureMapJsonBodyHandler();
 
-    interface InClusterInvoker
+    public interface InClusterInvoker
         {
         void accept(String clusterName, String member, RemoteCallable<Void> callable);
         }

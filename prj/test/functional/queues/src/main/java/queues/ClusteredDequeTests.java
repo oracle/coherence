@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedDeque;
 import com.tangosol.net.Session;
 
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -56,6 +57,12 @@ public class ClusteredDequeTests<QueueType extends NamedDeque>
 
         Coherence coherence = Coherence.clusterMember().start().get(5, TimeUnit.MINUTES);
         m_session = coherence.getSession();
+        }
+
+    @AfterAll
+    static void stopCoherence()
+        {
+        Coherence.closeAll();
         }
 
     @Override

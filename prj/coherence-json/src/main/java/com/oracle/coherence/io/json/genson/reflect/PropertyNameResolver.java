@@ -1,15 +1,8 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
- * Copyright 2011-2014 Genson - Cepoi Eugen
- *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not use
- * this file except in compliance with the License.
- *
- * Unless required by applicable law or agreed to in writing, software distributed
- * under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
- * CONDITIONS OF ANY KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations under the License.
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json.genson.reflect;
@@ -96,7 +89,11 @@ public interface PropertyNameResolver {
       String resolvedName = null;
       for (Iterator<PropertyNameResolver> it = components.iterator(); resolvedName == null
         && it.hasNext(); ) {
-        resolvedName = it.next().resolve(parameterIdx, fromConstructor);
+        try {
+          resolvedName = it.next().resolve(parameterIdx, fromConstructor);
+          } catch (Exception e) {
+            throw new RuntimeException("Failed to resolve constructor: " + fromConstructor, e);
+          }
       }
       return resolvedName;
     }
@@ -105,7 +102,11 @@ public interface PropertyNameResolver {
       String resolvedName = null;
       for (Iterator<PropertyNameResolver> it = components.iterator(); resolvedName == null
         && it.hasNext(); ) {
-        resolvedName = it.next().resolve(parameterIdx, fromMethod);
+        try {
+          resolvedName = it.next().resolve(parameterIdx, fromMethod);
+        } catch (Exception e) {
+          throw new RuntimeException("Failed to resolve method: " + fromMethod, e);
+        }
       }
       return resolvedName;
     }
@@ -114,7 +115,11 @@ public interface PropertyNameResolver {
       String resolvedName = null;
       for (Iterator<PropertyNameResolver> it = components.iterator(); resolvedName == null
         && it.hasNext(); ) {
-        resolvedName = it.next().resolve(fromField);
+        try {
+          resolvedName = it.next().resolve(fromField);
+        } catch (Exception e) {
+          throw new RuntimeException("Failed to resolve field: " + fromField, e);
+        }
       }
       return resolvedName;
     }
@@ -123,7 +128,11 @@ public interface PropertyNameResolver {
       String resolvedName = null;
       for (Iterator<PropertyNameResolver> it = components.iterator(); resolvedName == null
         && it.hasNext(); ) {
-        resolvedName = it.next().resolve(fromMethod);
+        try {
+          resolvedName = it.next().resolve(fromMethod);
+        } catch (Exception e) {
+          throw new RuntimeException("Failed to resolve method: " + fromMethod, e);
+        }
       }
       return resolvedName;
     }

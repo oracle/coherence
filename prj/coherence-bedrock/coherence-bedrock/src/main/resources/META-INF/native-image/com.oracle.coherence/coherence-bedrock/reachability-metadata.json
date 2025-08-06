@@ -1,0 +1,28 @@
+{
+  "reflection": [
+     {
+      "type": "java.lang.Number",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Double",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Float",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Integer",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Long",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Short",
+      "serializable": true
+    }
+  ]
+}

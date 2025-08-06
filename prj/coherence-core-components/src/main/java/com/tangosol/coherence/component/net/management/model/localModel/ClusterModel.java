@@ -507,7 +507,7 @@ public class ClusterModel
                 {
                 String sNodeOptions = sOptions;
         
-                if (sOptions.indexOf("filename=") >= 0)
+                if (sOptions.contains("filename="))
                     {
                     sNodeOptions = ensureGlobalFileName(sOptions, nMemberId);
                     }
@@ -517,11 +517,11 @@ public class ClusterModel
                                                new String[]{String[].class.getName()});
                 sResults[i++] = sMember + "->" + sMessage;
                 }
-            catch (Exception ignore)
+            catch (Exception e)
                 {
-                String sMessage = "Flight Recorder operation for node " + nMemberId + ", got exception: " + ignore.getMessage();
-                sResults[i++] = sMember + "->" + sMessage + "\n";
-                _trace(sMessage, 2);
+                String sMessage = "Flight Recorder operation for node " + nMemberId + ", threw an exception";
+                sResults[i++] = sMember + "->" + sMessage + " " + e.getMessage() + "\n";
+                Logger.warn(sMessage, e);
                 }
             }
         

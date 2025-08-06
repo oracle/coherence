@@ -1,0 +1,48 @@
+{
+  "reflection": [
+     {
+      "type": "extractor.ConditionalExtractorTests$APerson",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$Bird",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$Coh3966Extractor",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$Coh3966VerifierProcessor",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$Employee",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$Fish",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$MyAddress",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ConditionalExtractorTests$ReporterIsNotNullFilter",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ExtractorTests$CountingExtractor",
+      "serializable": true
+    },
+     {
+      "type": "extractor.ExtractorTests$Value",
+      "serializable": true
+    },
+     {
+      "type": "extractor.PofExtractorTests$BigDecimalObject",
+      "serializable": true
+    }
+  ]
+}

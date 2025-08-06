@@ -1,0 +1,1244 @@
+{
+  "reflection": [
+    {
+      "type": "boolean[]"
+    },
+    {
+      "type": "byte[]",
+      "serializable": true
+    },
+    {
+      "type": "char[]"
+    },
+    {
+      "type": "double[]"
+    },
+    {
+      "type": "float[]"
+    },
+    {
+      "type": "int[]"
+    },
+    {
+      "type": "java.lang.Boolean",
+      "serializable": true,
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ],
+      "methods": [
+        {
+          "name": "getBoolean",
+          "parameterTypes": [
+            "java.lang.String"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Byte",
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Character",
+      "serializable": true,
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Double",
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Float",
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Integer",
+      "serializable": true,
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ],
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Long",
+      "serializable": true,
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Number",
+      "serializable": true
+    },
+    {
+      "type": "java.lang.Short",
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.String",
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "type": "java.lang.String[]"
+    },
+    {
+      "type": "java.lang.StackTraceElement"
+    },
+    {
+      "type": "java.lang.Thread",
+      "methods": [
+        {
+          "name": "getStackTrace",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Throwable"
+    },
+    {
+      "type": "java.lang.Void",
+      "fields": [
+        {
+          "name": "TYPE"
+        }
+      ]
+    },
+    {
+      "type": "java.lang.Object",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "java.lang.Object[]",
+      "serializable": true
+    },
+    {
+      "type": "java.math.BigDecimal",
+      "serializable": true
+    },
+    {
+      "type": "java.math.BigInteger",
+      "serializable": true
+    },
+    {
+      "type": "java.net.Inet4Address",
+      "serializable": true
+    },
+    {
+      "type": "java.net.Inet6Address",
+      "serializable": true
+    },
+    {
+      "type": "java.net.InetAddress",
+      "serializable": true
+    },
+    {
+      "type": "java.net.InetSocketAddress",
+      "serializable": true
+    },
+    {
+      "type": "java.time.Ser",
+      "serializable": true
+    },
+    {
+      "type": "java.time.chrono.Ser",
+      "serializable": true
+    },
+    {
+      "type": "java.time.zone.Ser",
+      "serializable": true
+    },
+    {
+      "type": "com.oracle.net.Sdp"
+    },
+    {
+      "type": "com.sun.management.GarbageCollectorMXBean",
+      "methods": [
+        {
+          "name": "getLastGcInfo",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.GcInfo",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "com.sun.management.internal.GcInfoBuilder",
+            "long",
+            "long",
+            "long",
+            "java.lang.management.MemoryUsage[]",
+            "java.lang.management.MemoryUsage[]",
+            "java.lang.Object[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.HotSpotDiagnosticMXBean"
+    },
+    {
+      "type": "com.sun.management.OperatingSystemMXBean",
+      "methods": [
+        {
+          "name": "getCommittedVirtualMemorySize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCpuLoad",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFreeMemorySize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFreePhysicalMemorySize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getFreeSwapSpaceSize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProcessCpuLoad",
+          "parameterTypes": []
+        },
+        {
+          "name": "getProcessCpuTime",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSystemCpuLoad",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTotalMemorySize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTotalPhysicalMemorySize",
+          "parameterTypes": []
+        },
+        {
+          "name": "getTotalSwapSpaceSize",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.ThreadMXBean"
+    },
+    {
+      "type": "com.sun.management.UnixOperatingSystemMXBean",
+      "methods": [
+        {
+          "name": "getMaxFileDescriptorCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getOpenFileDescriptorCount",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.VMOption"
+    },
+    {
+      "type": "com.sun.management.internal.DiagnosticCommandArgumentInfo",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "boolean",
+            "boolean",
+            "boolean",
+            "int"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.internal.DiagnosticCommandArgumentInfo[]"
+    },
+    {
+      "type": "com.sun.management.internal.DiagnosticCommandInfo",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.lang.String",
+            "java.lang.String",
+            "java.lang.String",
+            "boolean",
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "com.sun.management.internal.DiagnosticCommandInfo[]"
+    },
+    {
+      "type": "com.sun.management.internal.GarbageCollectorExtImpl"
+    },
+    {
+      "type": "com.sun.management.internal.GcInfoCompositeData",
+      "serializable": true
+    },
+    {
+      "type": "com.sun.management.internal.HotSpotDiagnostic"
+    },
+    {
+      "type": "com.sun.management.internal.HotSpotThreadImpl"
+    },
+    {
+      "type": "com.sun.management.internal.OperatingSystemImpl"
+    },
+    {
+      "type": "com.sun.management.internal.VirtualThreadSchedulerImpls$VirtualThreadSchedulerImpl"
+    },
+    {
+      "type": "com.sun.org.apache.xerces.internal.impl.dv.xs.ExtendedSchemaDVFactoryImpl",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "com.sun.org.apache.xerces.internal.impl.dv.xs.SchemaDVFactoryImpl",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk"
+    },
+    {
+      "type": "io.opentracing.Span"
+    },
+    {
+      "type": "io.opentracing.contrib.tracerresolver.TracerResolver"
+    },
+    {
+      "type": "io.opentracing.noop.NoopSpan"
+    },
+    {
+      "type": "io.opentracing.util.GlobalTracer"
+    },
+    {
+      "type": "java.io.ObjectInputFilter",
+      "methods": [
+        {
+          "name": "checkInput",
+          "parameterTypes": [
+            "java.io.ObjectInputFilter$FilterInfo"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.io.ObjectInputFilter$Config",
+      "methods": [
+        {
+          "name": "getSerialFilter",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSerialFilterFactory",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.io.ObjectInputFilter$FilterInfo"
+    },
+    {
+      "type": "java.io.ObjectInputFilter$Status"
+    },
+    {
+      "type": "java.io.ObjectInputStream",
+      "methods": [
+        {
+          "name": "getObjectInputFilter",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.BufferPoolMXBean"
+    },
+    {
+      "type": "java.lang.management.ClassLoadingMXBean"
+    },
+    {
+      "type": "java.lang.management.CompilationMXBean"
+    },
+    {
+      "type": "java.lang.management.GarbageCollectorMXBean",
+      "methods": [
+        {
+          "name": "getCollectionCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCollectionTime",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.LockInfo"
+    },
+    {
+      "type": "java.lang.management.ManagementFactory",
+      "methods": [
+        {
+          "name": "getPlatformMBeanServer",
+          "parameterTypes": []
+        },
+        {
+          "name": "getRuntimeMXBean",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.MemoryMXBean",
+      "methods": [
+        {
+          "name": "getHeapMemoryUsage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getNonHeapMemoryUsage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getObjectPendingFinalizationCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "isVerbose",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.MemoryManagerMXBean",
+      "methods": [
+        {
+          "name": "getMemoryPoolNames",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "isValid",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.MemoryPoolMXBean",
+      "methods": [
+        {
+          "name": "getCollectionUsage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCollectionUsageThreshold",
+          "parameterTypes": []
+        },
+        {
+          "name": "getCollectionUsageThresholdCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMemoryManagerNames",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPeakUsage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getType",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsageThreshold",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsageThresholdCount",
+          "parameterTypes": []
+        },
+        {
+          "name": "isCollectionUsageThresholdExceeded",
+          "parameterTypes": []
+        },
+        {
+          "name": "isCollectionUsageThresholdSupported",
+          "parameterTypes": []
+        },
+        {
+          "name": "isUsageThresholdExceeded",
+          "parameterTypes": []
+        },
+        {
+          "name": "isUsageThresholdSupported",
+          "parameterTypes": []
+        },
+        {
+          "name": "isValid",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.MemoryUsage",
+      "methods": [
+        {
+          "name": "getCommitted",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInit",
+          "parameterTypes": []
+        },
+        {
+          "name": "getMax",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUsed",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.MonitorInfo"
+    },
+    {
+      "type": "java.lang.management.OperatingSystemMXBean",
+      "methods": [
+        {
+          "name": "getArch",
+          "parameterTypes": []
+        },
+        {
+          "name": "getAvailableProcessors",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSystemLoadAverage",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVersion",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.PlatformLoggingMXBean"
+    },
+    {
+      "type": "java.lang.management.PlatformManagedObject",
+      "methods": [
+        {
+          "name": "getObjectName",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.RuntimeMXBean",
+      "methods": [
+        {
+          "name": "getBootClassPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getClassPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getInputArguments",
+          "parameterTypes": []
+        },
+        {
+          "name": "getLibraryPath",
+          "parameterTypes": []
+        },
+        {
+          "name": "getManagementSpecVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getPid",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSpecName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSpecVendor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSpecVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "getStartTime",
+          "parameterTypes": []
+        },
+        {
+          "name": "getSystemProperties",
+          "parameterTypes": []
+        },
+        {
+          "name": "getUptime",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVmName",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVmVendor",
+          "parameterTypes": []
+        },
+        {
+          "name": "getVmVersion",
+          "parameterTypes": []
+        },
+        {
+          "name": "isBootClassPathSupported",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.lang.management.ThreadInfo"
+    },
+    {
+      "type": "java.rmi.server.RemoteObject",
+      "serializable": true
+    },
+    {
+      "type": "java.rmi.server.RemoteStub",
+      "serializable": true
+    },
+    {
+      "type": "java.security.AlgorithmParametersSpi"
+    },
+    {
+      "type": "java.security.Principal"
+    },
+    {
+      "type": "java.security.interfaces.DSAPrivateKey"
+    },
+    {
+      "type": "java.security.interfaces.DSAPublicKey"
+    },
+    {
+      "type": "java.security.spec.DSAParameterSpec"
+    },
+    {
+      "type": "java.time.DayOfWeek"
+    },
+    {
+      "type": "java.time.Duration"
+    },
+    {
+      "type": "java.time.Instant"
+    },
+    {
+      "type": "java.time.Month"
+    },
+    {
+      "type": "java.time.MonthDay"
+    },
+    {
+      "type": "java.time.Period"
+    },
+    {
+      "type": "java.time.Year"
+    },
+    {
+      "type": "java.time.YearMonth"
+    },
+    {
+      "type": "java.time.ZoneId"
+    },
+    {
+      "type": "java.time.ZoneOffset"
+    },
+    {
+      "type": "java.util.AbstractCollection",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "java.util.AbstractMap",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "java.util.ArrayList",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Arrays",
+      "jniAccessible": true,
+      "methods": [
+        {
+          "name": "asList",
+          "parameterTypes": [
+            "java.lang.Object[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "java.util.Arrays$ArrayList",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableCollection",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableList",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Collections$UnmodifiableRandomAccessList",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Date",
+      "serializable": true
+    },
+    {
+      "type": "java.util.HashMap",
+      "serializable": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.util.LinkedHashMap",
+      "serializable": true
+    },
+    {
+      "type": "java.util.Optional"
+    },
+    {
+      "type": "java.util.OptionalDouble"
+    },
+    {
+      "type": "java.util.OptionalInt"
+    },
+    {
+      "type": "java.util.OptionalLong"
+    },
+    {
+      "type": "java.util.TreeMap",
+      "serializable": true
+    },
+    {
+      "type": "java.util.TreeSet"
+    },
+    {
+      "type": "java.util.UUID"
+    },
+    {
+      "type": "java.util.WeakHashMap",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.util.concurrent.ConcurrentHashMap",
+      "allDeclaredFields": true
+    },
+    {
+      "type": "java.util.concurrent.TimeUnit"
+    },
+    {
+      "type": "java.util.logging.LogManager",
+      "methods": [
+        {
+          "name": "getLoggingMXBean",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.util.logging.LoggingMXBean"
+    },
+    {
+      "type": "java.util.stream.Collector$Characteristics"
+    },
+    {
+      "type": "javax.management.ImmutableDescriptor",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanAttributeInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanAttributeInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanConstructorInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanFeatureInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanNotificationInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanNotificationInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanOperationInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanOperationInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanParameterInfo",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanParameterInfo[]",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.MBeanServerBuilder",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "javax.management.ObjectName",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.StandardEmitterMBean"
+    },
+    {
+      "type": "javax.management.openmbean.ArrayType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.CompositeData"
+    },
+    {
+      "type": "javax.management.openmbean.CompositeDataSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.CompositeData[]"
+    },
+    {
+      "type": "javax.management.openmbean.CompositeType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.OpenMBeanAttributeInfoSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.OpenMBeanOperationInfoSupport"
+    },
+    {
+      "type": "javax.management.openmbean.OpenType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.SimpleType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.TabularData"
+    },
+    {
+      "type": "javax.management.openmbean.TabularDataSupport",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.openmbean.TabularType",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.remote.JMXServiceURL",
+      "serializable": true
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServer"
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServerImpl_Skel"
+    },
+    {
+      "type": "javax.management.remote.rmi.RMIServerImpl_Stub",
+      "serializable": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.rmi.server.RemoteRef"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "javax.security.auth.Subject"
+    },
+    {
+      "type": "jdk.management.VirtualThreadSchedulerMXBean"
+    },
+    {
+      "type": "jdk.management.jfr.ConfigurationInfo"
+    },
+    {
+      "type": "jdk.management.jfr.EventTypeInfo"
+    },
+    {
+      "type": "jdk.management.jfr.FlightRecorderMXBean"
+    },
+    {
+      "type": "jdk.management.jfr.FlightRecorderMXBeanImpl"
+    },
+    {
+      "type": "jdk.management.jfr.RecordingInfo"
+    },
+    {
+      "type": "jdk.management.jfr.SettingDescriptorInfo"
+    },
+    {
+      "type": "lambda.java.util.stream.Stream$findFirst$943B6651B30ADABE6CA68AE4096712C1",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "long[]"
+    },
+    {
+      "type": "oracle.dms.context.DMSContextManager"
+    },
+    {
+      "type": "short[]"
+    },
+    {
+      "type": "sun.management.ClassLoadingImpl"
+    },
+    {
+      "type": "sun.management.CompilationImpl"
+    },
+    {
+      "type": "sun.management.LazyCompositeData",
+      "serializable": true
+    },
+    {
+      "type": "sun.management.ManagementFactoryHelper$1"
+    },
+    {
+      "type": "sun.management.ManagementFactoryHelper$PlatformLoggingImpl"
+    },
+    {
+      "type": "sun.management.MemoryImpl"
+    },
+    {
+      "type": "sun.management.MemoryManagerImpl"
+    },
+    {
+      "type": "sun.management.MemoryPoolImpl"
+    },
+    {
+      "type": "sun.management.RuntimeImpl"
+    },
+    {
+      "type": "sun.management.VMManagementImpl",
+      "jniAccessible": true,
+      "fields": [
+        {
+          "name": "compTimeMonitoringSupport"
+        },
+        {
+          "name": "currentThreadCpuTimeSupport"
+        },
+        {
+          "name": "objectMonitorUsageSupport"
+        },
+        {
+          "name": "otherThreadCpuTimeSupport"
+        },
+        {
+          "name": "remoteDiagnosticCommandsSupport"
+        },
+        {
+          "name": "synchronizerUsageSupport"
+        },
+        {
+          "name": "threadAllocatedMemorySupport"
+        },
+        {
+          "name": "threadContentionMonitoringSupport"
+        }
+      ]
+    },
+    {
+      "type": "sun.reflect.misc.Trampoline",
+      "methods": [
+        {
+          "name": "invoke",
+          "parameterTypes": [
+            "java.lang.reflect.Method",
+            "java.lang.Object",
+            "java.lang.Object[]"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.rmi.transport.DGCImpl_Skel",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.rmi.transport.DGCImpl_Stub",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.rmi.server.RemoteRef"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSA$SHA1withDSA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSAKeyFactory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.DSAParameters",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.NativePRNG",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": [
+            "java.security.SecureRandomParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.SHA",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.X509Factory",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "glob": "META-INF/pof.idx"
+    },
+    {
+      "glob": "cache-factory-builder-config.xml"
+    },
+    {
+      "glob": "cache-factory-config.xml"
+    },
+    {
+      "glob": "coherence-cache-config.xml"
+    },
+    {
+      "glob": "com/tangosol/run/xml/PackageResources_en.properties"
+    },
+    {
+      "glob": "com/tangosol/run/xml/PackageResources_en_US.properties"
+    },
+    {
+      "glob": "custom-mbeans.xml"
+    },
+    {
+      "glob": "management-config.xml"
+    },
+    {
+      "glob": "pof-config.xml"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/security/util/resources/security_en.properties"
+    },
+    {
+      "module": "java.base",
+      "glob": "sun/security/util/resources/security_en_US.properties"
+    },
+    {
+      "module": "java.xml",
+      "glob": "com/sun/org/apache/xerces/internal/impl/xpath/regex/message.properties"
+    },
+    {
+      "module": "java.xml",
+      "glob": "com/sun/org/apache/xerces/internal/impl/xpath/regex/message_en.properties"
+    },
+    {
+      "module": "java.xml",
+      "glob": "com/sun/org/apache/xerces/internal/impl/xpath/regex/message_en_US.properties"
+    },
+    {
+      "module": "jdk.jfr",
+      "glob": "jdk/jfr/internal/query/view.ini"
+    },
+    {
+      "bundle": "com.sun.org.apache.xerces.internal.impl.xpath.regex.message"
+    },
+    {
+      "bundle": "com.tangosol.run.xml.PackageResources"
+    },
+    {
+      "bundle": "sun.security.util.resources.security"
+    }
+  ]
+}

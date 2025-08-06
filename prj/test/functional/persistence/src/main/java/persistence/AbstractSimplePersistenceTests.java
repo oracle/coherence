@@ -274,10 +274,11 @@ public abstract class AbstractSimplePersistenceTests
         {
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
+        File fileActive   = FileHelper.createTempDir();
 
         Properties props = new Properties();
         props.setProperty("test.persistence.mode", "on-demand");
-        props.setProperty("test.persistence.active.dir", "");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.partitioned.backingmap", fPart ? "true" : "false");
@@ -333,6 +334,7 @@ public abstract class AbstractSimplePersistenceTests
             CacheFactory.shutdown();
 
             FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileActive);
             FileHelper.deleteDirSilent(fileTrash);
             }
         }
@@ -937,12 +939,12 @@ public abstract class AbstractSimplePersistenceTests
             throws IOException, MBeanException
         {
         File fileSnapshot = FileHelper.createTempDir();
-        File fileActive   = fActive ? FileHelper.createTempDir() : null;
+        File fileActive   = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
 
         Properties props = new Properties();
         props.setProperty("test.persistence.mode", fActive ? "active" : "on-demand");
-        props.setProperty("test.persistence.active.dir", fActive ? fileActive.getAbsolutePath() : "");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("coherence.management", "all");
@@ -1119,10 +1121,7 @@ public abstract class AbstractSimplePersistenceTests
             stopAllApplications();
             CacheFactory.shutdown();
 
-            if (fActive)
-                {
-                FileHelper.deleteDirSilent(fileActive);
-                }
+            FileHelper.deleteDirSilent(fileActive);
             FileHelper.deleteDirSilent(fileSnapshot);
             FileHelper.deleteDirSilent(fileTrash);
             }
@@ -1193,13 +1192,13 @@ public abstract class AbstractSimplePersistenceTests
             throws IOException, NoSuchMethodException, IllegalAccessException,
                    InvocationTargetException, MBeanException {
         File fileSnapshot = FileHelper.createTempDir();
-        File fileActive   = fActive ? FileHelper.createTempDir() : null;
+        File fileActive   = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
         File fileArchive  = FileHelper.createTempDir();
 
         Properties props = new Properties();
         props.setProperty("test.persistence.mode", fActive ? "active" : "on-demand");
-        props.setProperty("test.persistence.active.dir", fActive ? fileActive.getAbsolutePath() : "");
+        props.setProperty("test.persistence.active.dir",fileActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
@@ -1346,10 +1345,7 @@ public abstract class AbstractSimplePersistenceTests
             stopAllApplications();
             CacheFactory.shutdown();
 
-            if (fActive)
-                {
-                FileHelper.deleteDirSilent(fileActive);
-                }
+            FileHelper.deleteDirSilent(fileActive);
             FileHelper.deleteDirSilent(fileSnapshot);
             FileHelper.deleteDirSilent(fileTrash);
             FileHelper.deleteDirSilent(fileArchive);
@@ -1466,14 +1462,14 @@ public abstract class AbstractSimplePersistenceTests
                    MBeanException, ExecutionException
         {
         File fileSnapshot = FileHelper.createTempDir();
-        File fileActive   = fActive ? FileHelper.createTempDir() : null;
+        File fileActive   = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
         File fileArchive  = FileHelper.createTempDir();
 
         Properties props = new Properties();
 
         props.setProperty("test.persistence.mode", fActive ? "active" : "on-demand");
-        props.setProperty("test.persistence.active.dir", fActive ? fileActive.getAbsolutePath() : "");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.archive.dir", fileArchive.getAbsolutePath());
@@ -1567,11 +1563,8 @@ public abstract class AbstractSimplePersistenceTests
             {
             stopAllApplications();
             CacheFactory.shutdown();
-            if (fActive)
-                {
-                FileHelper.deleteDirSilent(fileActive);
-                }
 
+            FileHelper.deleteDirSilent(fileActive);
             FileHelper.deleteDirSilent(fileSnapshot);
             FileHelper.deleteDirSilent(fileTrash);
             FileHelper.deleteDirSilent(fileArchive);
@@ -1697,10 +1690,11 @@ public abstract class AbstractSimplePersistenceTests
         {
         File fileSnapshot = FileHelper.createTempDir();
         File fileTrash    = FileHelper.createTempDir();
+        File fileActive   = FileHelper.createTempDir();
 
         Properties props = new Properties();
         props.setProperty("test.persistence.mode", "on-demand");
-        props.setProperty("test.persistence.active.dir", "");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("coherence.management", "all");
@@ -1794,6 +1788,7 @@ public abstract class AbstractSimplePersistenceTests
             CacheFactory.shutdown();
 
             FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileActive);
             FileHelper.deleteDirSilent(fileTrash);
             }
         }

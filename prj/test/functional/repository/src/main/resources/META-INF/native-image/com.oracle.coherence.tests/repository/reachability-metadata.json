@@ -1,0 +1,12 @@
+{
+  "reflection": [
+    {
+      "type": "data.repository.Person",
+      "serializable": true
+    },
+    {
+      "type": "data.repository.Gender",
+      "serializable": true
+    }
+  ]
+}

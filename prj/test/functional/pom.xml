@@ -375,5 +375,197 @@
         <module>jvisualvm</module>
       </modules>
     </profile>
+
+      <!-- GraalVM native image -->
+      <profile>
+          <id>native</id>
+          <activation>
+              <activeByDefault>false</activeByDefault>
+          </activation>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.graalvm.buildtools</groupId>
+                      <artifactId>native-maven-plugin</artifactId>
+                      <extensions>true</extensions>
+                      <executions>
+                          <execution>
+                              <id>generate-resource-config</id>
+                              <goals>
+                                  <goal>generateResourceConfig</goal>
+                              </goals>
+                              <phase>prepare-package</phase>
+                              <configuration>
+                                  <isDetectionEnabled>true</isDetectionEnabled>
+                              </configuration>
+                          </execution>
+                          <execution>
+                              <id>build-native</id>
+                              <goals>
+                                  <goal>compile-no-fork</goal>
+                              </goals>
+                              <phase>package</phase>
+                              <configuration>
+                                  <skip>${skip.native.build}</skip>
+                                  <mainClass>com.oracle.bedrock.runtime.java.JavaApplicationRunner</mainClass>
+                                  <quickBuild>true</quickBuild>
+                                  <buildArgs>
+                                      <buildArg>-march=native</buildArg>
+                                      <buildArg>--emit</buildArg>
+                                      <buildArg>build-report</buildArg>
+                                      <buildArg>-J-Xmx45g</buildArg>
+                                      <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
+                                      <buildArg>-H:+UseConservativeUnsafeAccess</buildArg>
+                                      <buildArg>--enable-sbom=false</buildArg>
+                                      <!-- Required for using http e.g. metrics, management, etc... -->
+                                      <buildArg>--enable-http</buildArg>
+                                      <buildArg>--enable-https</buildArg>
+                                      <!-- Required for tests that use JMX -->
+                                      <buildArg>--enable-monitoring=jmxserver,jmxclient,jvmstat</buildArg>
+                                      <!-- Required for tests that add -XX:+HeapDumpOnOutOfMemoryError -->
+                                      <buildArg>--enable-monitoring=heapdump</buildArg>
+                                      <!-- Required for tests that use JFRs, for example, management tests -->
+                                      <buildArg>--enable-monitoring=jfr</buildArg>
+                                      <buildArg>--initialize-at-build-time=org.junit.platform.commons.support.scanning.DefaultClasspathScanner</buildArg>
+                                      <!-- This is to capture a JFR of the native image compiler; it may break tests -->
+                                      <!--                    <buildArg>-J-XX:StartFlightRecording=dumponexit=true</buildArg>-->
+                                  </buildArgs>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+
+      <profile>
+          <id>native-agent</id>
+          <activation>
+              <activeByDefault>false</activeByDefault>
+          </activation>
+          <properties>
+              <agent>true</agent>
+          </properties>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.graalvm.buildtools</groupId>
+                      <artifactId>native-maven-plugin</artifactId>
+                      <extensions>true</extensions>
+                      <configuration>
+                          <agent>
+                              <enabled>true</enabled>
+                              <defaultMode>Standard</defaultMode>
+                              <metadataCopy>
+                                  <!-- you can specify metadataCopy configuration here -->
+                              </metadataCopy>
+                          </agent>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+
+      <profile>
+          <id>native-test</id>
+          <activation>
+              <activeByDefault>false</activeByDefault>
+          </activation>
+          <properties>
+              <moditect.skip>true</moditect.skip>
+          </properties>
+          <dependencies>
+              <dependency>
+                  <groupId>org.junit.jupiter</groupId>
+                  <artifactId>junit-jupiter-params</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>org.junit.platform</groupId>
+                  <artifactId>junit-platform-launcher</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>org.junit.jupiter</groupId>
+                  <artifactId>junit-jupiter-engine</artifactId>
+              </dependency>
+              <dependency>
+                  <groupId>org.junit.vintage</groupId>
+                  <artifactId>junit-vintage-engine</artifactId>
+              </dependency>
+          </dependencies>
+          <build>
+              <plugins>
+                  <!--          <plugin>-->
+                  <!--            <groupId>org.graalvm.buildtools</groupId>-->
+                  <!--            <artifactId>native-maven-plugin</artifactId>-->
+                  <!--            <version>0.11.1-SNAPSHOT</version>-->
+                  <!--            <extensions>true</extensions>-->
+                  <!--            <executions>-->
+                  <!--              <execution>-->
+                  <!--                <id>native-test</id>-->
+                  <!--                <goals>-->
+                  <!--                  <goal>test</goal>-->
+                  <!--                </goals>-->
+                  <!--                <phase>verify</phase>-->
+                  <!--                <configuration>-->
+                  <!--                  <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>-->
+                  <!--                  <quickBuild>true</quickBuild>-->
+                  <!--                  <buildArgs>-->
+                  <!--                    <buildArg>-march=native</buildArg>-->
+                  <!--                    <buildArg>&#45;&#45;emit</buildArg>-->
+                  <!--                    <buildArg>build-report</buildArg>-->
+                  <!--                    <buildArg>-J-Xmx45g</buildArg>-->
+                  <!--                    <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>-->
+                  <!--                    <buildArg>-H:+UseConservativeUnsafeAccess</buildArg>-->
+                  <!--                    <buildArg>-H:+PlatformInterfaceCompatibilityMode</buildArg>-->
+                  <!--                    <buildArg>&#45;&#45;enable-sbom=false</buildArg>-->
+                  <!--                    &lt;!&ndash; Required for tests that use JMX &ndash;&gt;-->
+                  <!--                    <buildArg>&#45;&#45;enable-monitoring=jmxserver,jmxclient</buildArg>-->
+                  <!--                    &lt;!&ndash; Required for tests that add -XX:+HeapDumpOnOutOfMemoryError &ndash;&gt;-->
+                  <!--                    <buildArg>&#45;&#45;enable-monitoring=heapdump</buildArg>-->
+                  <!--                    <buildArg>&#45;&#45;initialize-at-build-time=org.graalvm.junit.platform.JUnitPlatformFeature</buildArg>-->
+                  <!--                    <buildArg>&#45;&#45;initialize-at-build-time=org.graalvm.junit.platform.NativeImageConfigurationImpl</buildArg>-->
+                  <!--                  </buildArgs>-->
+                  <!--                </configuration>-->
+                  <!--              </execution>-->
+                  <!--            </executions>-->
+                  <!--          </plugin>-->
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-surefire-plugin</artifactId>
+                      <version>${maven.surefire.plugin.version}</version>
+                      <configuration>
+                          <!-- All tests are run with failsafe when testing with native image -->
+                          <skip>true</skip>
+                      </configuration>
+                  </plugin>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-failsafe-plugin</artifactId>
+                      <version>${maven.failsafe.plugin.version}</version>
+                      <executions>
+                          <execution>
+                              <goals>
+                                  <goal>integration-test</goal>
+                                  <goal>verify</goal>
+                              </goals>
+                              <configuration>
+                                  <!-- All tests are run with failsafe when testing with native image -->
+                                  <skip>${skip.native.tests}</skip>
+                                  <includes>
+                                      <include>**/*Test.java</include>
+                                      <include>**/*Tests.java</include>
+                                      <include>**/*IT.java</include>
+                                  </includes>
+                                  <systemPropertyVariables>
+                                      <bedrock.profile.native-image>${project.build.directory}/${project.artifactId}</bedrock.profile.native-image>
+                                      <bedrock.profile.native-image.classname>com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile</bedrock.profile.native-image.classname>
+                                  </systemPropertyVariables>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
   </profiles>
 </project>

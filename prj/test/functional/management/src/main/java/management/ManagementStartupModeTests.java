@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,19 +11,18 @@ import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.management.internal.MapProvider;
 import com.tangosol.discovery.NSLookup;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
-import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.management.MBeanHelper;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -55,12 +54,10 @@ import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
+import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Test the various startup modes for the HTTP management server.
@@ -217,8 +214,8 @@ public class ManagementStartupModeTests
                 File fileMember2Log = new File(ensureOutputDir(PROJECT_NAME), SERVER_MEMBERNAME_PREFIX + "-2.out");
 
                 Eventually.assertThat(invoking(this).validateLogFileContainsServerStarted(fileMember2Log), is(true));
-                assertTrue("failed to find log message detecting management over REST proxy address already in use error message in server log",
-                    validateLogFileContainsAddressAlreadyInUse(fileMember2Log, Integer.toString(nPortMgmt)));
+                assertThat("failed to find log message detecting management over REST proxy address already in use error message in server log",
+                    validateLogFileContainsAddressAlreadyInUse(fileMember2Log, Integer.toString(nPortMgmt)), is(true));
                 }
             }
         }
@@ -241,8 +238,8 @@ public class ManagementStartupModeTests
             AbstractFunctionalTest._startup();
             MBeanServer serverJMX = MBeanHelper.findMBeanServer();
             String      attr      = (String) serverJMX.getAttribute(new ObjectName("Coherence:type=ConnectionManager,name=ManagementHttpProxy,nodeId=1"), "HostIP");
-            assertNotNull(attr);
-            assertTrue("Management HTTP port", attr.endsWith(":" + nMgmtPort));
+            assertThat(attr, is(notNullValue()));
+            assertThat("Management HTTP port", attr, endsWith(":" + nMgmtPort));
             }
         finally
             {
@@ -289,30 +286,27 @@ public class ManagementStartupModeTests
             cache = findApplication(sServerName + "-2").getCache(CACHE_NAME);
             cache.put("key2", "value2");
 
-            assertEquals(2, cache.size());
+            assertThat(cache.size(), is(2));
 
             int             nPort = Integer.getInteger("test.multicast.port");
             Collection<URL> col   = NSLookup.lookupHTTPManagementURL(new InetSocketAddress("127.0.0.1", nPort));
 
-            assertEquals(nExpected, col.size());
+            assertThat(col.size(), is(nExpected));
 
             if (nExpected > 0)
                 {
-                CacheFactory.log("URL(s): " + col, CacheFactory.LOG_INFO);
+                Logger.info("URL(s): " + col);
 
                 // sanity check all listeners for data
-                Client client = ClientBuilder.newBuilder()
+                try (Client client = ClientBuilder.newBuilder()
                         .register(MapProvider.class)
-                        .build();
-
-                try (final Closeable clientCloser = client::close)
+                        .build())
                     {
                     for (URL url : col)
                         {
-                        WebTarget target   = client.target(url.toURI());
-                        Response  response = target.path("caches").request().get();
+                        WebTarget target = client.target(url.toURI());
 
-                        try (final Closeable responseCloser = response::close)
+                        try (Response  response = target.path("caches").request().get())
                             {
                             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
                             LinkedHashMap mapResponse = new LinkedHashMap(response.readEntity(LinkedHashMap.class));
