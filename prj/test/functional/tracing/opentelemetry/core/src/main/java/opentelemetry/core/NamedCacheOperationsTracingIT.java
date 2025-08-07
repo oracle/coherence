@@ -870,9 +870,10 @@ public class NamedCacheOperationsTracingIT
             SpanNode    spansActual         = getSpanTree(span, listAssociatedSpans);
             ControlNode expected            = ControlNode.loadFrom(loadGolden(sFile), null);
 
-            assertThat(String.format("Expected Span tree of\n%s received:\n%s",
+            assertThat(String.format("Expected Span tree of\n%s received:\n%s; actual spans: %s",
                                      expected.toStringTree(),
-                                     spansActual.toStringTree()),
+                                     spansActual.toStringTree(),
+                                     listAssociatedSpans),
                        spansActual,
                        is(expected));
             }
