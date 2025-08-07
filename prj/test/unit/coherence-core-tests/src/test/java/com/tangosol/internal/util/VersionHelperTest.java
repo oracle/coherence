@@ -178,4 +178,19 @@ public class VersionHelperTest
         assertThat(nFA12PatchOne, is(greaterThan(nFA12PatchZero)));
         }
 
+    @Test
+    public void shouldCompareTo_15_1_1()
+        {
+        int v1 = VersionHelper.encodeVersion(15, 1, 1, 0, 0);
+
+        int v2 = VersionHelper.encodeVersion(15, 1, 1, 0, 1);
+        assertThat(v2, is(greaterThan(v1)));
+
+        int v3 = VersionHelper.encodeVersion(26, 3, 0);
+        assertThat(v3, is(greaterThan(v1)));
+        assertThat(v3, is(greaterThan(v2)));
+
+        int v4 = VersionHelper.encodeVersion(25, 3, 0);
+        assertThat(v4, is(lessThan(v1)));
+        }
     }
