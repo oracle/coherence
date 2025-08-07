@@ -606,10 +606,19 @@ public class TestingUtils
                 {
                 super.getChildren().sort((o1, o2) ->
                      {
-                     SpanNode spanTree = (SpanNode) o1;
-                     SpanNode spanTree2 = (SpanNode) o2;
+                     SpanNode spanNode1 = (SpanNode) o1;
+                     SpanNode spanNode2 = (SpanNode) o2;
 
-                     return Long.compare(spanTree.f_span.getStartTimeUnixNano(), spanTree2.f_span.getStartTimeUnixNano());
+                     int nComp = Long.compare(spanNode1.f_span.getStartTimeUnixNano(), spanNode2.f_span.getStartTimeUnixNano());
+                     if (nComp == 0)
+                         {
+                         if (spanNode1.getName().endsWith(".post"))
+                             {
+                             return 1;
+                             }
+                         }
+
+                     return nComp;
                      });
                 }
 
