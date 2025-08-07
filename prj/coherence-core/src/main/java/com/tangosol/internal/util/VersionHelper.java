@@ -82,7 +82,11 @@ public class VersionHelper
      */
     public static int getVersionPrefix(int nYear, int nMonth)
         {
-        if (nYear > 23)
+        if (nYear > 25)
+            {
+            return encodeVersion(15, 1, 1, 0, 0);
+            }
+        else if (nYear > 23)
             {
             return encodeVersion(15, 0, 0, 0, 0);
             }
@@ -401,6 +405,11 @@ public class VersionHelper
         }
 
     // ----- constants ------------------------------------------------------
+
+    /**
+     * The encoded 15.1.1.0.0 version.
+     */
+    public static final int VERSION_15_1_1_0_0 = encodeVersion(15, 1, 1, 0, 0);
 
     /**
      * The encoded CE 25.03.0 version.
