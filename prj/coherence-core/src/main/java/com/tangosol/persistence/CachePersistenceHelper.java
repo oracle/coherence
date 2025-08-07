@@ -75,6 +75,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -1206,6 +1209,22 @@ public class CachePersistenceHelper
      */
     public static PersistenceTools getSnapshotPersistenceTools(File dirSnapshot)
         {
+        return getSnapshotPersistenceTools(dirSnapshot, false);
+        }
+
+    /**
+     * Return an implementation specific instance of {@link PersistenceTools} for
+     * the given local snapshot directory.
+     *
+     * @param dirSnapshot  the snapshot directory to get tools for
+     * @param validation   whether to enable snapshot validation
+     *
+     * @return an implementation specific instance of PersistenceTools
+     *
+     * @throws PersistenceException if any errors
+     */
+    public static PersistenceTools getSnapshotPersistenceTools(File dirSnapshot, boolean validation)
+        {
         PersistenceTools tools;
 
         // determine all the valid directories
@@ -1250,7 +1269,7 @@ public class CachePersistenceHelper
 
             if ("BDB".equals(sPersistenceType))
                 {
-                tools = new BerkeleyDBManager(dirSnapshot, null, null).getPersistenceTools();
+                tools = new BerkeleyDBManager(dirSnapshot, null, null, validation).getPersistenceTools();
                 }
             else
                 {
@@ -1721,7 +1740,26 @@ public class CachePersistenceHelper
             File dirSnapshot = new File(dirSnapshots, sName);
             try
                 {
-                getSnapshotPersistenceTools(dirSnapshot).validate();
+                PersistenceTools pt = getSnapshotPersistenceTools(dirSnapshot, true);
+                try 
+                    {
+                    // Using reflection because the PersistenceTools interface wasn't updated,
+                    // and BerkeleyDBManager returns an anonymous class as the PersistenceTools
+                    // implementation, so casting isn't possible.
+                    Method validate = pt.getClass().getMethod("validateWithPartitions");
+                    validate.setAccessible(true);
+                    String[] checkedPartitions = (String[]) validate.invoke(pt);
+                    String validationResult = String.format("%s~~~[%s]", sName, String.join(",", checkedPartitions));
+                    asFailedSnapshots.add(validationResult);
+                    }
+                catch (NoSuchMethodException e)
+                    {
+                    getSnapshotPersistenceTools(dirSnapshot, true).validate();
+                    }
+                catch (InvocationTargetException | IllegalAccessException e)
+                    {
+                    throw Base.ensureRuntimeException(e);
+                    }
                 }
             catch (RuntimeException e)
                 {

@@ -11,6 +11,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.persistence.ConcurrentAccessException;
 import com.oracle.coherence.persistence.FatalAccessException;
 import com.oracle.coherence.persistence.PersistenceException;
+import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
 
 import com.oracle.datagrid.persistence.OfflinePersistenceInfo;
@@ -67,6 +68,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import java.nio.channels.FileLock;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -76,9 +78,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import java.security.PrivilegedAction;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -112,11 +116,28 @@ public class BerkeleyDBManager
      * @throws IOException on error creating the data or trash directory
      */
     public BerkeleyDBManager(File fileData, File fileTrash, String sName)
+            throws IOException 
+        {
+        this(fileData, fileTrash, sName, false);
+        }
+    /**
+     * Create a new BerkeleyDBManager.
+     *
+     * @param fileData   the directory containing the BerkeleyDB environments
+     *                   managed by this BerkeleyDBManager
+     * @param fileTrash  an optional trash directory
+     * @param sName      an optional name to give the new manager
+     * @param validation whether to enable snapshot validation
+     *
+     * @throws IOException if an I/O error occurs while creating the data or trash directory
+     */
+    public BerkeleyDBManager(File fileData, File fileTrash, String sName, boolean validation)
             throws IOException
         {
         super(fileData, fileTrash, sName);
 
         f_fRemoteData = !com.oracle.coherence.common.io.Files.isLocal(fileData);
+        f_validation  = validation;
 
         String sProp = EnvironmentParams.LOG_USE_ODSYNC.getName();
 
@@ -345,55 +366,84 @@ public class BerkeleyDBManager
             @Override
             public void validate()
                 {
-                String[] asFileList      = f_info.getGUIDs();
-                int      nImplVersion    = -1;
-                int      nStorageVersion = -1;
-                File     fileStore ;
+                validateWithPartitions();
+                }
+
+            /**
+             * Validate the available {@link PersistentStore}s under the context of the
+             * associated {@link PersistenceManager} (snapshot or archived snapshot).
+             *
+             * @return  partition names that were successfully validated
+             * 
+             * @throws RuntimeException if the snapshot is invalid
+             */
+            public String[] validateWithPartitions()
+                {
+                String[]     asFileList         = f_info.getGUIDs();
+                int          nImplVersion       = -1;
+                int          nStorageVersion    = -1;
+                File         fileStore;
+                List<String> verifiedPartitions = new ArrayList<>();
 
                 for (String sFileName : asFileList)
                     {
-                    fileStore = new File(f_dirSnapshot, sFileName);
-
-                    if (FileHelper.isEmpty(fileStore))
+                    File     lockDir  = getLockDirectory();
+                    File     lockFile = new File(lockDir, sFileName + ".validation.lck");
+                    FileLock fileLock = FileHelper.lockFile(lockFile);
+                    if (fileLock == null)
                         {
                         continue;
                         }
-
-                    validateBDBEnvironment(fileStore);
-                    validateStoreSealed(sFileName);
-
-                    // validate that the metadata is consistent across all stores
                     try
                         {
-                        Properties props = CachePersistenceHelper.readMetadata(fileStore);
-
-                        int nThisImplVersion    = Integer.valueOf(props.getProperty(CachePersistenceHelper.META_IMPL_VERSION));
-                        int nThisStorageVersion = Integer.valueOf(props.getProperty(CachePersistenceHelper.META_STORAGE_VERSION));
-
-                        if (nImplVersion == -1)
+                        fileStore = new File(f_dirSnapshot, sFileName);
+                        if (FileHelper.isEmpty(fileStore))
                             {
-                            // indicates that we have not yet set the impl version
-                            nImplVersion    = nThisImplVersion;
-                            nStorageVersion = nThisStorageVersion;
+                            verifiedPartitions.add(sFileName);
+                            continue;
                             }
-                        else
+                        validateBDBEnvironment(fileStore);
+                        validateStoreSealed(sFileName);
+
+                        // validate that the metadata is consistent across all stores
+                        try
                             {
-                            // check if current values differ from existing values.
-                            // The process will stop on the first values that do not match
-                            if (nThisImplVersion != nImplVersion || nThisStorageVersion != nStorageVersion)
+                            Properties props = CachePersistenceHelper.readMetadata(fileStore);
+
+                            int nThisImplVersion    = Integer.valueOf(props.getProperty(CachePersistenceHelper.META_IMPL_VERSION));
+                            int nThisStorageVersion = Integer.valueOf(props.getProperty(CachePersistenceHelper.META_STORAGE_VERSION));
+
+                            if (nImplVersion == -1)
                                 {
-                                throw new IllegalStateException(
-                                        "Implementation and storage versions are inconsistent across stores in directory: "
-                                                + f_dirSnapshot.getCanonicalPath());
+                                // indicates that we have not yet set the impl version
+                                nImplVersion    = nThisImplVersion;
+                                nStorageVersion = nThisStorageVersion;
                                 }
+                            else
+                                {
+                                // check if current values differ from existing values.
+                                // The process will stop on the first values that do not match
+                                if (nThisImplVersion != nImplVersion || nThisStorageVersion != nStorageVersion)
+                                    {
+                                    throw new IllegalStateException(
+                                            "Implementation and storage versions are inconsistent across stores in directory: "
+                                            + f_dirSnapshot.getCanonicalPath());
+                                    }
+                                }
+                            verifiedPartitions.add(sFileName);
+                            }
+                        catch (IOException ioe)
+                            {
+                            throw CachePersistenceHelper.ensurePersistenceException(ioe,
+                                    "Unable to read metadata for " + fileStore);
                             }
                         }
-                    catch (IOException ioe)
+                    finally
                         {
-                        throw CachePersistenceHelper.ensurePersistenceException(ioe,
-                                "Unable to read metadata for " + fileStore);
+                        FileHelper.unlockFile(fileLock);
                         }
                     }
+                return verifiedPartitions.toArray(new String[verifiedPartitions.size()]);
                 }
 
             // ----- helpers ---------------------------------------------------------
@@ -456,6 +506,30 @@ public class BerkeleyDBManager
             }
 
         // ----- AbstractPersistentStore methods ----------------------------
+
+        /**
+         * Open this persistent store.<p>
+         * During the snapshot validation this method will ignore ConcurrentAccessException
+         *
+         * @param storeFrom  the PersistenceStore the new store should be based upon
+         *
+         * @return true if the store was created
+         */
+        protected boolean open(PersistentStore<ReadBuffer> storeFrom)
+            {
+            try
+                {
+                return super.open(storeFrom);
+                }
+            catch (PersistenceException e)
+                {
+                if (BerkeleyDBManager.this.f_validation && e instanceof ConcurrentAccessException)
+                    {
+                    return false;
+                    }
+                throw e;
+                }
+            }
 
         @Override
         protected void copyAndOpenInternal(PersistentStore<ReadBuffer> storeFrom)
@@ -1467,6 +1541,11 @@ public class BerkeleyDBManager
     // ----- data members ---------------------------------------------------
 
     /**
+     * True if the snapshot validation is in progress.
+     */
+    protected final boolean f_validation;
+
+    /**
      * True if the data directory is on a remote file system.
      */
     protected final boolean f_fRemoteData;
@@ -1501,7 +1580,7 @@ public class BerkeleyDBManager
 
     /**
      * True if BerkeleyDBStore instances should collect statistics about BDB
-     * performance and maintenance. This option is only recommended for for use
+     * performance and maintenance. This option is only recommended for use
      * as directed by Oracle Support. (Disabled by default)
      */
     protected static final boolean STATS_ENABLED =
@@ -1509,7 +1588,7 @@ public class BerkeleyDBManager
 
     /**
      * True if debug information should be displayed for BDB maintenance operations.
-     * This option is only recommended for for use as directed by Oracle Support.
+     * This option is only recommended for use as directed by Oracle Support.
      * (Disabled by default)
      */
     protected static final boolean MAINTENANCE_DEBUG_ENABLED =
