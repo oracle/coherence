@@ -77,6 +77,7 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -133,11 +134,13 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import java.util.concurrent.ExecutionException;
@@ -150,6 +153,7 @@ import java.util.function.Supplier;
 
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
@@ -3276,7 +3280,7 @@ public abstract class BaseManagementInfoResourceTests
             f_inClusterInvoker.accept(f_sClusterName, null, () ->
                 {
                 NamedCache cache = CacheFactory.getCache(sCacheName);
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 100; i++)
                     {
                     cache.put(i, i);
                     }
@@ -3287,15 +3291,30 @@ public abstract class BaseManagementInfoResourceTests
             // create an damaged snapshot
             createSnapshot("damaged");
             ensureServiceStatusIdle();
+            createSnapshot("damaged-wo-partition");
+            ensureServiceStatusIdle();
+            createSnapshot("control");
+            ensureServiceStatusIdle();
 
             // assert the snapshot exists
             Eventually.assertDeferred(() -> assertSnapshotExists("damaged", SNAPSHOTS), is(true));
+            Eventually.assertDeferred(() -> assertSnapshotExists("damaged-wo-partition", SNAPSHOTS), is(true));
+            Eventually.assertDeferred(() -> assertSnapshotExists("control", SNAPSHOTS), is(true));
             Thread.sleep(5000);
 
             // assert the snapshot status
             WebTarget target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged").path("status");
             response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
             Map mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+            assertThat(mapResponse.get("status"), is("Completed"));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // assert the snapshot status
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(SNAPSHOTS).path("damaged-wo-partition").path("status");
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
             assertThat(mapResponse.get("status"), is("Completed"));
             response.close();
@@ -3333,8 +3352,12 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
             assertThat((List<String>) mapResponse.get("items"), not(contains("damaged")));
+            assertThat((List<String>) mapResponse.get("items"), not(contains("control")));
             response.close();
             ensureServiceStatusIdle();
+
+            // pause for failed snapshots cache to expire
+            Base.sleep(5500);
 
             // damage snapshot
             Path path = Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged");
@@ -3366,14 +3389,46 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
             assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
+            assertThat((List<String>) mapResponse.get("items"), not(contains("damaged-wo-partition")));
+            assertThat((List<String>) mapResponse.get("items"), not(contains("control")));
             response.close();
             ensureServiceStatusIdle();
 
-            // now delete the 3 snapshots
+            // damage snapshot by removing partition folder
+            Optional<File> snapshotFolderToDelete = Arrays.stream(
+                            Paths.get(m_dirSnapshot.getAbsolutePath(), CLUSTER_NAME, FileHelper.toFilename(getScopedServiceName(ACTIVE_SERVICE)), "damaged-wo-partition")
+                                    .toFile()
+                                    .listFiles(file -> file.isDirectory() && !file.getName().startsWith(".") && new File(file, "00000000.jdb").exists()))
+                    .findAny();
+
+            try (Stream<Path> paths = Files.walk(snapshotFolderToDelete.get().toPath())) 
+                {
+                paths.sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+                }
+
+            // pause for failed snapshots cache to expire
+            Base.sleep(5500);
+            // assert failed snapshots
+            target = getBaseTarget().path(SERVICES).path(getScopedServiceName(ACTIVE_SERVICE)).path(PERSISTENCE).path(FAILED_SNAPSHOTS);
+            response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+            mapResponse = readEntity(target, response);
+            assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged-wo-partition"));
+            assertThat((List<String>) mapResponse.get("items"), hasItem("damaged"));
+            assertThat((List<String>) mapResponse.get("items"), not(hasItem("control")));
+            response.close();
+            ensureServiceStatusIdle();
+
+            // now delete the 5 snapshots
 
             deleteSnapshot("2-entries");
             deleteSnapshot("empty");
             deleteSnapshot("damaged");
+            deleteSnapshot("damaged-wo-partition");
+            deleteSnapshot("control");
             }
         catch (InterruptedException | IOException e)
             {
