@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
@@ -270,6 +271,9 @@ public abstract class AbstractRollingPersistenceTests
                 }
 
             NamedCache cache = getNamedCache("rolling-" + sTestPrefix + "data");
+            CacheService cacheService = cache.getCacheService();
+            Eventually.assertDeferred(() -> cacheService.getInfo().getServiceMembers().size(), is(cServers + 1));
+
             cache.truncate();
             Eventually.assertDeferred(() -> cache.size(), is(0));
 
