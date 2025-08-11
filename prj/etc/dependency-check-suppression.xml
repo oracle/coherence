@@ -582,4 +582,14 @@
     <cve>CVE-2025-48924</cve>
   </suppress>
 
+  <!-- Temporary suppression that will we addressed by update to jaxb 4.0.5 version in
+  Helidon 4.3.0 update -->
+  <suppress until="2025-08-21Z">
+    <notes><![CDATA[
+  Temporary suppression for angus-activation 2.0.1 → CVE-2025-7962
+  ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.angus/angus\-activation@.*$</packageUrl>
+    <cpe>cpe:2.3:a:eclipse:jakarta_mail</cpe>
+    <cve>CVE-2025-7962</cve>
+  </suppress>
 </suppressions>
