@@ -27,7 +27,8 @@
     <java.version.release>21</java.version.release>
 
     <!--  this module should be published -->
-    <maven.deploy.skip>false</maven.deploy.skip>
+    <!-- We DO NOT currently deploy the Helidon client as it is not reliable -->
+    <maven.deploy.skip>true</maven.deploy.skip>
   </properties>
 
   <dependencyManagement>
