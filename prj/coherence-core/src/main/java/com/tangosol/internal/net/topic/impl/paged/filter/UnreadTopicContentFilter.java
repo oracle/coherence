@@ -49,7 +49,7 @@ public class UnreadTopicContentFilter
     @SuppressWarnings("unchecked")
     public UnreadTopicContentFilter()
         {
-        super(new ContentKeyExtractor());
+        super(ContentKeyExtractor.INSTANCE);
         }
 
     /**
@@ -62,7 +62,7 @@ public class UnreadTopicContentFilter
     @SuppressWarnings("unchecked")
     public UnreadTopicContentFilter(Map<Integer, Position> mapHeads, Map<Integer, Position> mapTails)
         {
-        super(new ContentKeyExtractor());
+        super(ContentKeyExtractor.INSTANCE);
         m_mapHeads = mapHeads;
         m_mapTails = mapTails;
         }
@@ -155,6 +155,11 @@ public class UnreadTopicContentFilter
             {
             return ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
             }
+
+        /**
+         * A singleton instance of a {@link ContentKeyExtractor}.
+         */
+        public static final ContentKeyExtractor INSTANCE = new ContentKeyExtractor();
         }
 
     // ----- inner class: ContentKeyChannelExtractor ------------------------
@@ -179,6 +184,8 @@ public class UnreadTopicContentFilter
             ContentKey key = ContentKey.fromBinary(((BinaryEntry) entry).getBinaryKey(), true);
             return key.getChannel();
             }
+
+        public static final ContentKeyChannelExtractor INSTANCE = new ContentKeyChannelExtractor();
         }
 
     // ----- data members ---------------------------------------------------

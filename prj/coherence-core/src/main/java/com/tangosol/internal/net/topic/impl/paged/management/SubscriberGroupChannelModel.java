@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,8 @@ import com.tangosol.util.UUID;
 import java.time.Instant;
 
 import java.util.Objects;
+
+import java.util.function.LongSupplier;
 
 /**
  * The MBean model for a channel within a topic subscriber group.
@@ -36,11 +38,13 @@ public class SubscriberGroupChannelModel
      * @param groupId     the subscriber group {@link SubscriberGroupId id}
      * @param nChannel    the channel
      */
-    public SubscriberGroupChannelModel(PagedTopicStatistics statistics, SubscriberGroupId groupId, int nChannel)
+    public SubscriberGroupChannelModel(PagedTopicStatistics statistics, SubscriberGroupId groupId,
+                                       int nChannel, LongSupplier fnRemainingMessages)
         {
-        f_statistics = statistics;
-        f_groupId    = groupId;
-        f_nChannel   = nChannel;
+        f_fnRemainingMessages = Objects.requireNonNull(fnRemainingMessages);
+        f_statistics          = statistics;
+        f_groupId             = groupId;
+        f_nChannel            = nChannel;
         }
 
     /**
@@ -68,7 +72,6 @@ public class SubscriberGroupChannelModel
     @Override
     public long getPolledCount()
         {
-
         return getStatistics().getPolledCount();
         }
 
@@ -185,7 +188,7 @@ public class SubscriberGroupChannelModel
      */
     public long getRemainingUnpolledMessages()
         {
-        return f_statistics.getChannelStatistics(f_nChannel).getPublishedCount() - getPolledCount();
+        return f_fnRemainingMessages.getAsLong();
         }
 
     // ----- helper methods -------------------------------------------------
@@ -216,4 +219,9 @@ public class SubscriberGroupChannelModel
      * The channel this model represents
      */
     private final int f_nChannel;
+
+    /**
+     * The function to use to return the remaining messages for a subscriber group and channel.
+     */
+    private final LongSupplier f_fnRemainingMessages;
     }

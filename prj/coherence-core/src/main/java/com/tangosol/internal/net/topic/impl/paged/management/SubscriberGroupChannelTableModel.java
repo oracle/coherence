@@ -175,11 +175,11 @@ public class SubscriberGroupChannelTableModel
                     .build();
 
     /**
-     * The remaining unpolled messages timestamp attribute.
+     * The remaining unpolled messages attribute.
      */
     protected static final ModelAttribute<SubscriberGroupChannelModel> ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES =
             SimpleModelAttribute.longBuilder("RemainingUnpolledMessages", SubscriberGroupChannelModel.class)
-                    .withDescription("The Remaining Unpolled Messages")
+                    .withDescription("The count of the remaining messages to be polled in this channel after the last committed message")
                     .withFunction(SubscriberGroupChannelModel::getRemainingUnpolledMessages)
                     .metric(true)
                     .build();

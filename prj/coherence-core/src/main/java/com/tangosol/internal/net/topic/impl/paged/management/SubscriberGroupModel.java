@@ -31,6 +31,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import java.util.function.Function;
+import java.util.function.LongSupplier;
 
 /**
  * An MBean model for a {@link NamedTopic}
@@ -47,14 +48,14 @@ public class SubscriberGroupModel
     /**
      * Create a {@link SubscriberGroupModel}.
      *
-     * @param pagedTopicStatistics the topic this model represents
-     * @param groupId              the {@link SubscriberGroupId id} of the subscriber group
-     * @param filter               the filter used to filter messages to be received by subscribers in the group
-     * @param fnConvert            the Function used to convert messages to be received by subscribers in the group
-     * @param service              the topic service
+     * @param pagedTopicStatistics  the topic this model represents
+     * @param groupId               the {@link SubscriberGroupId id} of the subscriber group
+     * @param filter                the filter used to filter messages to be received by subscribers in the group
+     * @param fnConvert             the Function used to convert messages to be received by subscribers in the group
+     * @param service               the topic service
      */
-    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, SubscriberGroupId groupId, Filter<?> filter,
-            Function<?, ?> fnConvert, PagedTopicService service)
+    public SubscriberGroupModel(PagedTopicStatistics pagedTopicStatistics, SubscriberGroupId groupId,
+                                Filter<?> filter, Function<?, ?> fnConvert, PagedTopicService service)
         {
         super(MBEAN_DESCRIPTION);
         f_groupId    = groupId;
@@ -67,7 +68,9 @@ public class SubscriberGroupModel
         int cChannel = service.getChannelCount(pagedTopicStatistics.getTopicName());
         for (int nChannel = 0; nChannel < cChannel; nChannel++)
             {
-            f_aChannel.set(nChannel, new SubscriberGroupChannelModel(f_statistics, groupId, nChannel));
+            final int[]  anChannel   = new int[]{nChannel};
+            LongSupplier fnRemaining = () -> getRemainingMessagesForChannel(anChannel);
+            f_aChannel.set(nChannel, new SubscriberGroupChannelModel(f_statistics, groupId, nChannel, fnRemaining));
             }
 
         // configure the attributes of the MBean
@@ -80,6 +83,7 @@ public class SubscriberGroupModel
         addAttribute(ATTRIBUTE_CHANNEL_TABLE);
         addAttribute(ATTRIBUTE_FILTER);
         addAttribute(ATTRIBUTE_TRANSFORMER);
+        addAttribute(ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES);
 
         // configure the operations of the MBean
         addOperation(OPERATION_DISCONNECT_ALL);
@@ -141,7 +145,9 @@ public class SubscriberGroupModel
                 model = f_aChannel.get(nChannel);
                 if (model == null)
                     {
-                    model = new SubscriberGroupChannelModel(f_statistics, f_groupId, nChannel);
+                    final int[] anChannel = new int[]{nChannel};
+                    LongSupplier fnRemaining = () -> getRemainingMessagesForChannel(anChannel);
+                    model = new SubscriberGroupChannelModel(f_statistics, f_groupId, nChannel, fnRemaining);
                     f_aChannel.set(nChannel, model);
                     }
                 }
@@ -151,6 +157,20 @@ public class SubscriberGroupModel
                 }
             }
         return model;
+        }
+
+    /**
+     * Return the number of messages still to be polled by
+     * this subscriber group. This is a count of the
+     * messages in the topic after the last commit on this
+     * cluster member.
+     *
+     * @return the number of messages still to be polled by
+     *         this subscriber group
+     */
+    protected long getRemainingMessages()
+        {
+        return f_statistics.getRemainingMessages(f_groupId, null);
         }
 
     // ----- PolledMetrics methods ---------------------------------------
@@ -188,6 +208,7 @@ public class SubscriberGroupModel
     /**
      * Force the subscriber group to disconnect all subscribers.
      */
+    @SuppressWarnings("resource")
     protected void disconnectAll(Object[] aoParam)
         {
         new PagedTopicCaches(f_statistics.getTopicName(), f_service, false)
@@ -199,6 +220,11 @@ public class SubscriberGroupModel
     protected SubscriberGroupStatistics getStatistics()
         {
         return f_statistics.getSubscriberGroupStatistics(f_groupId);
+        }
+
+    private long getRemainingMessagesForChannel(int[] anChannel)
+        {
+        return f_statistics.getRemainingMessages(f_groupId, anChannel);
         }
 
     // ----- constants ------------------------------------------------------
@@ -280,6 +306,16 @@ public class SubscriberGroupModel
             SimpleModelAttribute.stringBuilder("Transformer", SubscriberGroupModel.class)
                     .withDescription("The transformer")
                     .withFunction(SubscriberGroupModel::getTransformer)
+                    .build();
+
+    /**
+     * The remaining unpolled messages attribute.
+     */
+    protected static final ModelAttribute<SubscriberGroupModel> ATTRIBUTE_REMAINING_UNPOLLED_MESSAGES =
+            SimpleModelAttribute.longBuilder("RemainingUnpolledMessages", SubscriberGroupModel.class)
+                    .withDescription("The sum across all channels of the remaining messages to be polled after the last committed message")
+                    .withFunction(SubscriberGroupModel::getRemainingMessages)
+                    .metric(true)
                     .build();
 
     /**

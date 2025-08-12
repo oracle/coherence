@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1834,6 +1834,28 @@ public class ExtensibleConfigurableCacheFactory
         protected Map instantiatePartitionedBackingMap(MapBuilder bldrMap, ParameterResolver resolver,
             MapBuilder.Dependencies dependencies, CachingScheme scheme)
             {
+            return instantiatePartitionedBackingMap(bldrMap, resolver, dependencies,
+                    scheme, ObservableSplittingBackingCache::new);
+            }
+
+        /**
+         * Instantiate a partitioned backing map (an instance of {@link ObservableSplittingBackingMap})
+         * using {@link PartitionedBackingMapManager}. If the provided scheme is an instance of
+         * {@link ReadWriteBackingMapScheme}, the internal scheme's map builder is used to build
+         * the backing map.
+         *
+         * @param bldrMap       the {@link MapBuilder} for partitions
+         * @param resolver      the {@link ParameterizedBuilder}
+         * @param dependencies  the {@link Dependencies} for {@link MapBuilder}s
+         * @param scheme        the {@link CachingScheme} of the requested cache
+         * @param fn            a function to create an {@link ObservableSplittingBackingCache}
+         *
+         * @return  partitioned backing map that will provide backing storage for the specified cache
+         */
+        protected Map instantiatePartitionedBackingMap(MapBuilder bldrMap, ParameterResolver resolver,
+            MapBuilder.Dependencies dependencies, CachingScheme scheme,
+            BiFunction<PartitionedBackingMapManager, String, ObservableSplittingBackingCache> fn)
+            {
             ReadWriteBackingMapScheme schemeRwbm = scheme instanceof ReadWriteBackingMapScheme
                                                    ? (ReadWriteBackingMapScheme) scheme : null;
 
@@ -1851,7 +1873,7 @@ public class ExtensibleConfigurableCacheFactory
             // for each partition as needed
             String sName = dependencies.getCacheName();
 
-            ObservableSplittingBackingMap pabm = new ObservableSplittingBackingCache(mgrInner, sName);
+            ObservableSplittingBackingMap pabm = fn.apply(mgrInner, sName);
 
             if (schemeRwbm == null)
                 {

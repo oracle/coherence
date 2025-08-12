@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -6077,6 +6077,36 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Write an array of long numbers to a DataOutput stream.
+     *
+     * @param out  a DataOutput stream to write to
+     * @param al   an array of longs to write
+     *
+     * @throws IOException           if an I/O exception occurs
+     * @throws NullPointerException  if null value is passed
+     *
+     * @since 24.09
+     */
+    public static void writeLongArray(DataOutput out, long[] al)
+            throws IOException
+        {
+        if (out instanceof PofOutputStream)
+            {
+            ((PofOutputStream) out).writeObject(al);
+            }
+        else
+            {
+            int c = al.length;
+            out.writeInt(c);
+
+            for (long l : al)
+                {
+                out.writeLong(l);
+                }
+            }
+        }
+
+    /**
      * Read an array of int numbers from a DataInput stream which
      * use fixed-length 4-byte Big Endian binary format.
      *
@@ -6096,6 +6126,36 @@ public abstract class ExternalizableHelper
                     c < CHUNK_THRESHOLD >> 2
                         ? readIntArray(in, c)
                         : readLargeIntArray(in, c);
+        }
+
+    /**
+     * Write an array of integer numbers to a DataOutput stream.
+     *
+     * @param out  a DataOutput stream to write to
+     * @param ai   an array of ints to write
+     *
+     * @throws IOException           if an I/O exception occurs
+     * @throws NullPointerException  if null value is passed
+     *
+     * @since 24.09
+     */
+    public static void writeIntArray(DataOutput out, int[] ai)
+            throws IOException
+        {
+        if (out instanceof PofOutputStream)
+            {
+            ((PofOutputStream) out).writeObject(ai);
+            }
+        else
+            {
+            int c = ai.length;
+            out.writeInt(c);
+
+            for (int i : ai)
+                {
+                out.writeInt(i);
+                }
+            }
         }
 
     /**

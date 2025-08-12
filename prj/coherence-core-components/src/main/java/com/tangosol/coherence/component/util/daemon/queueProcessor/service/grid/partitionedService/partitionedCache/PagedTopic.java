@@ -32,13 +32,17 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConfigMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicConnector;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicContentPartitionedBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriptionsPartitionedBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor;
+import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.net.topic.impl.paged.model.Usage;
+import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicServiceWithStatistics;
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.io.ReadBuffer;
@@ -73,11 +77,13 @@ import com.tangosol.util.LongArray;
 import com.tangosol.util.TaskDaemon;
 import com.tangosol.util.UUID;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.WrapperException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -136,11 +142,12 @@ import java.util.concurrent.locks.ReentrantLock;
  * 1001  SubscriberIdRequest
  * 1002  SubscriberConfirmRequest
  * 1003  ChannelCountConfirmRequest
+ * 1004  GetRemainingMessagesRequest
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "resource"})
 public class PagedTopic
         extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache
-        implements com.tangosol.net.PagedTopicService
+        implements com.tangosol.net.PagedTopicService, PagedTopicServiceWithStatistics
     {
     // ---- Fields declarations ----
     
@@ -216,21 +223,29 @@ public class PagedTopic
      * 14.1.1.2206.2 and below
      * 22.09.*
      */
-    public static final int TOPIC_API_v0 = 0;
+    public static final int TOPIC_API_v0 = PagedTopicService.TOPIC_API_v0;
 
     /**
      * Topic API version one
      * 14.1.1.2206.3 - 14.1.1.2206.5
      * 23.03.0 - 22.03.1
      */
-    public static final int TOPIC_API_v1 = 1;
+    public static final int TOPIC_API_v1 = PagedTopicService.TOPIC_API_v1;
 
     /**
      * Topic API version two
      * 14.1.1.2206.6 -> and above
      * 23.03.2 and above
      */
-    public static final int TOPIC_API_v2 = 2;
+    public static final int TOPIC_API_v2 = PagedTopicService.TOPIC_API_v2;
+
+    /**
+     * Topic API version two
+     * 15.1.1.0.0 -> and above
+     * 14.1.1.2206.6 -> and above
+     * 23.03.2 and above
+     */
+    public static final int TOPIC_API_v3 = PagedTopicService.TOPIC_API_v3;
 
     /**
      * The encoded 22.06.3 version
@@ -266,6 +281,15 @@ public class PagedTopic
      * The encoded 22.09.2 version
      */
     private static final int VERSION_23_03_2 = MasterMemberSet.encodeVersion(23, 3, 2);
+
+    private static final int VERSION_14_1_2_0_4 = MasterMemberSet.encodeVersion(14, 1, 2, 0, 4);
+
+    private static final int VERSION_22_06_14 = MasterMemberSet.encodeVersion(22, 6, 14);
+
+    /**
+     * The current minimum topics API version across the cluster.
+     */
+    private int m_nCurrentMinAPIVersion = TOPIC_API_v0 - 1;
 
     // Static initializer
     static
@@ -312,6 +336,7 @@ public class PagedTopic
         __mapChildren.put("DistributionRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.DistributionRequest.get_CLASS());
         __mapChildren.put("EnsureChannelCountTask", PagedTopic.EnsureChannelCountTask.get_CLASS());
         __mapChildren.put("GetAllRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.GetAllRequest.get_CLASS());
+        __mapChildren.put("GetRemainingMessagesRequest", PagedTopic.GetRemainingMessagesRequest.class);
         __mapChildren.put("GetRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.GetRequest.get_CLASS());
         __mapChildren.put("IndexRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.IndexRequest.get_CLASS());
         __mapChildren.put("InvocationContext", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.InvocationContext.get_CLASS());
@@ -377,7 +402,7 @@ public class PagedTopic
         __mapChildren.put("SnapshotArchiveRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.SnapshotArchiveRequest.get_CLASS());
         __mapChildren.put("SnapshotListRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotListRequest.get_CLASS());
         __mapChildren.put("SnapshotRequest", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache.SnapshotRequest.get_CLASS());
-        __mapChildren.put("Storage", Storage.get_CLASS());
+        __mapChildren.put("Storage", TopicStorage.class);
         __mapChildren.put("StorageConfirmRequest", StorageConfirmRequest.get_CLASS());
         __mapChildren.put("StorageIdRequest", PagedTopic.StorageIdRequest.get_CLASS());
         __mapChildren.put("SubscriberConfirmRequest", PagedTopic.SubscriberConfirmRequest.get_CLASS());
@@ -564,6 +589,7 @@ public class PagedTopic
         return PagedTopicConfigMap.hasSubscription(getTopicConfigMap(), lSubscription, subscriberId);
         }
     
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected boolean confirmSubscriber(String sTopicName, long lSubscription, com.tangosol.internal.net.topic.impl.paged.model.SubscriberId subscriberId)
         {
         boolean fConfirmed = false;
@@ -680,6 +706,7 @@ public class PagedTopic
             }
         }
     
+    @SuppressWarnings("UnusedReturnValue")
     public boolean destroySubscriptionInternal(long lSubscriptionId)
         {
         // import com.tangosol.net.management.MBeanHelper;
@@ -753,7 +780,27 @@ public class PagedTopic
         {
         return ensureChannelCount(sTopic, cChannel, cChannel);
         }
-    
+
+    @Override
+    public int getRemainingMessages(String sTopic, SubscriberGroupId subscriberGroupId, int... anChannel)
+        {
+        String                sCacheName    = PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopic);
+        Map                   mapRefsBinary = getReferencesBinaryMap();
+        PagedTopic.BinaryMap  mapBinary     = (PagedTopic.BinaryMap) mapRefsBinary.get(sCacheName);
+        Map<Integer, Integer> mapRemaining  = mapBinary.getRemainingMessages(subscriberGroupId, anChannel);
+        return mapRemaining.values().stream().mapToInt(Integer::intValue).sum();
+        }
+
+    @Override
+    public int getLocalRemainingMessages(String sTopic, SubscriberGroupId groupId, int... anChannel)
+        {
+        TopicStorage storageSubs    = (TopicStorage) getStorage(PagedTopicCaches.Names.SUBSCRIPTIONS.cacheNameForTopicName(sTopic));
+        TopicStorage storageContent = (TopicStorage) getStorage(PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sTopic));
+        Map<Integer, PagedPosition> mapCommitted = storageSubs.getRollbackPositions(groupId, anChannel);
+        Map<Integer, Integer>       mapRemain    = storageContent.getRemainingMessages(mapCommitted);
+        return mapRemain.values().stream().mapToInt(Integer::intValue).sum();
+        }
+
     // From interface: com.tangosol.net.PagedTopicService
     @Override
     public int ensureChannelCount(String sTopic, int cRequired, int cChannel)
@@ -1595,7 +1642,26 @@ public class PagedTopic
         {
         return getSubscriptionGraveyard().containsKey(Long.valueOf(lSubscriptionId));
         }
-    
+
+    /**
+     * Check whether any of the members of the service run a version
+     * that precedes the specified one.
+     */
+    public boolean isTopicsApiVersionCompatible(int nVersion)
+        {
+        return isTopicsApiVersionCompatible(getServiceMemberSet(), nVersion);
+        }
+
+    public int getCurrentClusterTopicsApiVersion()
+        {
+        int nVersion = m_nCurrentMinAPIVersion;
+        if (nVersion < TOPIC_API_v0)
+            {
+            nVersion = m_nCurrentMinAPIVersion = getMinimumTopicApiVersion();
+            }
+        return m_nCurrentMinAPIVersion;
+        }
+
     /**
      * Check whether any of the members in the specified MemberSet run a version
      * that precedes the specified one.
@@ -1654,6 +1720,17 @@ public class PagedTopic
         {
         MasterMemberSet memberSet = getClusterMemberSet();
         int             nVersion  = memberSet.getServiceVersionInt(nMemberId);
+        return getTopicsApiVersionFromEncodedVersion(nVersion);
+        }
+
+    private int getTopicsApiVersionFromEncodedVersion(int nVersion)
+        {
+        if (VersionHelper.isVersionCompatible(VersionHelper.VERSION_15_1_1_0_0, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_2_0_4, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_22_06_14, nVersion))
+            {
+            return TOPIC_API_v3;
+            }
 
         if (nVersion < VERSION_22_06_3 || nVersion == VERSION_22_09_0)
             {
@@ -1671,6 +1748,20 @@ public class PagedTopic
         return TOPIC_API_v2;
         }
 
+    protected int getMinimumTopicApiVersion()
+        {
+        int             nMinVersion = Integer.MAX_VALUE;
+        MasterMemberSet members     = getClusterMemberSet();
+
+        for (Iterator iter = members.iterator(); iter.hasNext(); )
+            {
+            Member member      = (Member) iter.next();
+            int    nVersion    = members.getServiceVersionInt(member.getId());
+            int    nApiVersion = getTopicsApiVersionFromEncodedVersion(nVersion);
+            nMinVersion = Math.min(nMinVersion, nApiVersion);
+            }
+        return nMinVersion;
+        }
 
     // Declared at the super level
     /**
@@ -1771,10 +1862,18 @@ public class PagedTopic
         }
 
     @Override
+    public void onNotifyServiceJoined(Member member)
+        {
+        super.onNotifyServiceJoined(member);
+        m_nCurrentMinAPIVersion = getMinimumTopicApiVersion();
+        }
+
+    @Override
     public void onNotifyServiceLeft(Member member)
         {
         super.onNotifyServiceLeft(member);
         cleanupSubscribers();
+        m_nCurrentMinAPIVersion = getMinimumTopicApiVersion();
         }
 
     /**
@@ -2400,11 +2499,10 @@ public class PagedTopic
             {
             ScopedTopicReferenceStore store  = getScopedTopicStore();
             Collection                topics = store.getAll();
-            Iterator                  it     = topics.iterator();
-            
-            while (it.hasNext())
+
+            for (Object o : topics)
                 {
-                NamedTopic topic = (NamedTopic) it.next();
+                NamedTopic topic = (NamedTopic) o;
                 store.releaseTopic(topic);
                 }
             }
@@ -2412,6 +2510,51 @@ public class PagedTopic
             {
             lock.unlock();
             }
+        }
+
+    public void onGetRemainingMessagesRequest(PagedTopic.GetRemainingMessagesRequest msgRequest)
+        {
+        PartitionedCache.PartialValueResponse msgResponse =
+                (PartitionedCache.PartialValueResponse) instantiateMessage("PartialValueResponse");
+        msgResponse.respondTo(msgRequest);
+
+        TopicStorage storageSubs = (TopicStorage) validateRequestForStorage(msgRequest, msgResponse, false);
+        if (storageSubs == null)
+            {
+            return;
+            }
+
+        long lContentId = getCacheId(storageSubs.m_sTopicName, PagedTopicCaches.Names.CONTENT);
+        msgRequest.setCacheId(lContentId);
+        TopicStorage storageContent = (TopicStorage) validateRequestForStorage(msgRequest, msgResponse, false);
+        if (storageContent == null)
+            {
+            return;
+            }
+
+        flushOOBEvents();
+
+        PartitionSet      partMask   = msgRequest.getRequestMaskSafe();
+        PartitionSet      partReject = pinOwnedPartitions(partMask);
+        SubscriberGroupId groupId    = msgRequest.getSubscriberGroupId();
+        int[]             anChannel  = msgRequest.getChannels();
+
+        try
+            {
+            Map<Integer, PagedPosition> mapRollback = storageSubs.getRollbackPositions(groupId, anChannel);
+            Map<Integer, Integer>       mapRemain   = storageContent.getRemainingMessages(mapRollback);
+            msgResponse.setResult(mapRemain);
+            msgResponse.setRejectPartitions(partReject);
+            }
+        catch (Throwable e)
+            {
+            msgResponse.setException(tagException(e));
+            }
+
+        processChanges(msgResponse);
+
+        // lastly, exit the partitions
+        unpinPartitions(partMask);
         }
 
     // ----- inner class ConfigUpdate override ------------------------------
@@ -2714,6 +2857,60 @@ public class PagedTopic
                 }
             }
 
+
+        public Map<Integer, Integer> getRemainingMessages(SubscriberGroupId subscriberGroupId, int... anChannel)
+            {
+            PagedTopic.GetRemainingMessagesRequest msg =
+                    (PagedTopic.GetRemainingMessagesRequest) getService().instantiateMessage("GetRemainingMessagesRequest");
+            msg.setCacheId(getCacheId());
+            msg.setSubscriberGroupId(subscriberGroupId);
+            msg.setChannels(anChannel);
+
+            RequestTimeoutException eTimeout = null;
+            List listResponse;
+            try
+                {
+                listResponse = sendPartitionedRequest(msg, makePartitionSet(), false);
+                }
+            catch (RequestTimeoutException e)
+                {
+                eTimeout     = e;
+                listResponse = (List) e.getPartialResult();
+                if (listResponse == null)
+                    {
+                    throw e;
+                    }
+                }
+
+            Map<Integer, Integer> mapRemaining = new HashMap<>();
+            for (Iterator iter = listResponse.iterator(); iter.hasNext();)
+                {
+                PartitionedCache.PartialValueResponse response = (PartitionedCache.PartialValueResponse) iter.next();
+
+                RuntimeException exception = response.getException();
+                if (exception != null)
+                    {
+                    throw exception;
+                    }
+
+                Object oResult = response.getResult();
+                if (oResult instanceof Map)
+                    {
+                    // should be Map<Integer, Integer>
+                    Map<Integer, Integer> mapResult = (Map<Integer, Integer>) oResult;
+                    mapResult.forEach((nChannel, cRemaining) ->
+                            mapRemaining.compute(nChannel, (k, v) -> (v == null ? 0 : v) + cRemaining));
+                    }
+                }
+
+            if (eTimeout != null)
+                {
+                eTimeout.setPartialResult(mapRemaining);
+                throw eTimeout;
+                }
+            return mapRemaining;
+            }
+
         public TopicDispatcher getTopicDispatcher()
             {
             return __m_dispatcher;
@@ -2723,6 +2920,101 @@ public class PagedTopic
             {
             __m_dispatcher = dispatcher;
             }
+        }
+
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$TopicStorage
+
+    /**
+     * The storage for a paged topic cache.
+     */
+    public static class TopicStorage
+            extends com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage
+        {
+        // Default constructor
+        public TopicStorage()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public TopicStorage(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        @Override
+        public void ensureInitialized(String sName, boolean fRegisterExtents)
+            {
+            m_fContent       = PagedTopicCaches.Names.CONTENT.isA(sName);
+            m_fSubscriptions = PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName);
+            m_sTopicName     = PagedTopicCaches.Names.getTopicName(sName);
+            super.ensureInitialized(sName, fRegisterExtents);
+            }
+
+        /**
+         * Return the rollback positions for the specified channels.
+         * <p>
+         * A rollback position is the position of the next message after the last commit position.
+         * There may not actually be a message at this position.
+         *
+         * @param groupId    the subscriber group to get the committed positions for
+         * @param anChannel  the array of channels to get committed positions for or
+         *                   a {@code null} or empty array to indicate all channels
+         *
+         * @return the rollback positions for the specified channels
+         */
+        public Map<Integer, PagedPosition> getRollbackPositions(SubscriberGroupId groupId, int[] anChannel)
+            {
+            if (m_fSubscriptions)
+                {
+                PagedTopicSubscriptionsPartitionedBackingMap map
+                        = (PagedTopicSubscriptionsPartitionedBackingMap) getBackingMap();
+
+                return map.getRollbackPosition(groupId, anChannel);
+                }
+            return Collections.emptyMap();
+            }
+
+        /**
+         * Return the remaining messages that have positions greater than those specified
+         * for the specified channels.
+         *
+         * @param map  the map of channels and positions
+         *
+         * @return a map of channel to message count for the specified channels
+         */
+        public Map<Integer, Integer> getRemainingMessages(Map<Integer, PagedPosition> map)
+            {
+            if (m_fContent && map != null && !map.isEmpty())
+                {
+                PagedTopicContentPartitionedBackingMap backingMap
+                        = (PagedTopicContentPartitionedBackingMap) getBackingMap();
+                return backingMap.getRemainingMessages(map);
+                }
+            return Collections.emptyMap();
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The name of the topic.
+         */
+        private String m_sTopicName;
+
+        /**
+         * A flag indicating that this storage is for a content cache.
+         */
+        private boolean m_fContent;
+
+        /**
+         * A flag indicating that this storage is for a subscription cache.
+         */
+        private boolean m_fSubscriptions;
         }
 
     // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.PagedTopic$EnsureChannelCountTask
@@ -5324,6 +5616,116 @@ public class PagedTopic
             }
         }
 
+    public static class GetRemainingMessagesRequest
+            extends PartialRequest
+        {
+        private SubscriberGroupId m_groupId;
+
+        private int[] m_anChannel;
+
+        /**
+         * This request's unique message identifier.
+         */
+        public static final int MESSAGE_TYPE = 1004;
+
+        public GetRemainingMessagesRequest()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public GetRemainingMessagesRequest(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        public void __init()
+            {
+            __initPrivate();
+            try
+                {
+                setMessageType(MESSAGE_TYPE);
+                }
+            catch (Exception e)
+                {
+                // re-throw as a runtime exception
+                throw new WrapperException(e);
+                }
+            set_Constructed(true);
+            }
+
+        public SubscriberGroupId getSubscriberGroupId()
+            {
+            return m_groupId;
+            }
+
+        public void setSubscriberGroupId(SubscriberGroupId groupId)
+            {
+            m_groupId = groupId;
+            }
+
+        public int[] getChannels()
+            {
+            return m_anChannel;
+            }
+
+        public void setChannels(int[] anChannel)
+            {
+            m_anChannel = anChannel;
+            }
+
+        public Message cloneMessage()
+            {
+            GetRemainingMessagesRequest msg = (GetRemainingMessagesRequest) super.cloneMessage();
+            msg.setCacheId(getCacheId());
+            msg.setSubscriberGroupId(getSubscriberGroupId());
+            msg.setChannels(getChannels());
+            return msg;
+            }
+
+        @Override
+        public void run()
+            {
+            ((PagedTopic) getService()).onGetRemainingMessagesRequest(this);
+            }
+
+        @Override
+        public void write(WriteBuffer.BufferOutput output) throws IOException
+            {
+            super.write(output);
+            ExternalizableHelper.writeObject(output, m_groupId);
+            int cChannel = m_anChannel == null ? 0 : m_anChannel.length;
+            output.writeInt(cChannel);
+            if (cChannel > 0)
+                {
+                ExternalizableHelper.writeIntArray(output, m_anChannel);
+                }
+            writeTracing(output);
+            }
+
+        @Override
+        public void read(ReadBuffer.BufferInput input) throws IOException
+            {
+            super.read(input);
+            m_groupId   = ExternalizableHelper.readObject(input);
+            int cChannel = input.readInt();
+            if (cChannel > 0)
+                {
+                m_anChannel = ExternalizableHelper.readIntArray(input);
+                }
+            else
+                {
+                m_anChannel = null;
+                }
+            readTracing(input);
+            }
+        }
+
     /**
      * ServiceConfig provides a service-wide configuration map.  All updates to
      * a service config are published service-wide by the configuration
@@ -5415,6 +5817,7 @@ public class PagedTopic
          * ConfigListener is used to receive config map updates for this
          * ServiceConfig.
          */
+        @SuppressWarnings("PatternVariableCanBeUsed")
         public static class ConfigListener
                 extends    PartitionedCache.ServiceConfig.ConfigListener
             {
@@ -5724,7 +6127,7 @@ public class PagedTopic
          * ConfigListener is used to receive config map updates for this
          * ServiceConfig.
          */
-        @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+        @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment", "PatternVariableCanBeUsed"})
         public static class ConfigListener
                 extends    com.tangosol.coherence.component.util.ServiceConfig.ConfigListener
             {

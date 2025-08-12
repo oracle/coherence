@@ -838,6 +838,13 @@ public interface Subscriber<V>
 
     /**
      * Returns the number of remaining messages to be read from the topic for this subscriber.
+     * <p>
+     * This value is a count of messages remaining to be polled after the last committed message.
+     * This value is transitive and could already have changed by another in-flight commit request
+     * immediately after this value is returned.
+     * <p>
+     * Note, getting the remaining messages count is a cluster wide operation as the value is stored
+     * by each member.
      *
      * @return  the number of remaining messages
      */
@@ -845,6 +852,13 @@ public interface Subscriber<V>
 
     /**
      * Returns the number of remaining messages to be read from the topic channel for this subscriber.
+     * <p>
+     * This value is a count of messages remaining to be polled after the last committed message.
+     * This value is transitive and could already have changed by another in-flight commit request
+     * immediately after this value is returned.
+     * <p>
+     * Note, getting the remaining messages count is a cluster wide operation as the value is stored
+     * by each member.
      *
      * @param nChannel  the channel to count remaining messages in
      *
