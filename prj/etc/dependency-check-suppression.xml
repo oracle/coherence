@@ -410,12 +410,12 @@
   <!-- suppression for graalvm icu4j CVE scan error -->
   <suppress>
     <notes><![CDATA[
-    file name: icu4j-23.1.4.jar
+    file name: icu4j-24.2.1.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.graalvm\.shadowed/icu4j@.*$</packageUrl>
     <cpe>cpe:2.3:a:icu-project:international_components_for_unicode</cpe>
     <cpe>cpe:2.3:a:unicode:international_components_for_unicode</cpe>
-    <cpe> cpe:2.3:a:unicode:unicode</cpe>
+    <cpe>cpe:2.3:a:unicode:unicode</cpe>
     <cve>CVE-2014-9654</cve>
     <cve>CVE-2014-9911</cve>
     <cve>CVE-2016-6293</cve>
@@ -435,6 +435,7 @@
     <cve>CVE-2017-15396</cve>
     <cve>CVE-2017-15422</cve>
     <cve>CVE-2020-21913</cve>
+    <cve>CVE-2025-5222</cve>
   </suppress>
 
   <!-- suppress plexus-classworlds, plexus-component-annotations- CVE-2022-4244,
