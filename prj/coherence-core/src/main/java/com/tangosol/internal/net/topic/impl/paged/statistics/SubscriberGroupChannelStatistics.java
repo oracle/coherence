@@ -1,17 +1,18 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.statistics;
 
+import com.oracle.coherence.common.base.TimeHelper;
+
 import com.tangosol.internal.net.metrics.Meter;
+
 import com.tangosol.internal.net.topic.impl.paged.management.PolledMetrics;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
-
-import com.tangosol.util.Base;
 
 import java.util.Objects;
 
@@ -107,8 +108,8 @@ public class SubscriberGroupChannelStatistics
         {
         if (Objects.requireNonNull(head).compareTo(m_head) > 0)
             {
-            m_head = head;
-            m_lastPolledTimestamp = Base.getSafeTimeMillis();
+            m_head                = head;
+            m_lastPolledTimestamp = TimeHelper.getSafeTimeMillis();
             }
         }
 
@@ -139,8 +140,8 @@ public class SubscriberGroupChannelStatistics
      */
     public void onCommitted(PagedPosition committedPosition)
         {
-        m_committedPosition = committedPosition;
-        m_lastCommittedTimestamp = Base.getSafeTimeMillis();
+        m_committedPosition      = committedPosition;
+        m_lastCommittedTimestamp = TimeHelper.getSafeTimeMillis();
         }
 
     /**

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged.model;
 
@@ -31,7 +31,7 @@ import java.io.IOException;
 // because adding fields would affect the "equality"
 // of a key. Used as key in Cache PagedTopicsCaches#CONTENT.
 public class ContentKey
-        implements KeyPartitioningStrategy.PartitionAwareKey
+        implements KeyPartitioningStrategy.PartitionAwareKey, Comparable<ContentKey>
     {
     // ----- constructors ---------------------------------------------------
     /**
@@ -84,6 +84,21 @@ public class ContentKey
     public int getPartitionId()
         {
         return Page.Key.mapPageToPartition(m_nChannel, m_lPage);
+        }
+
+    @Override
+    public int compareTo(ContentKey o)
+        {
+        int nResult = Integer.compare(m_nChannel, o.m_nChannel);
+        if (nResult == 0)
+            {
+            nResult = Long.compare(m_lPage, o.m_lPage);
+            if (nResult == 0)
+                {
+                nResult = Integer.compare(m_nElement, o.m_nElement);
+                }
+            }
+        return nResult;
         }
 
     /**

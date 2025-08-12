@@ -1,14 +1,26 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
 import com.tangosol.config.expression.ParameterResolver;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMap;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicContentBackingMap;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriptionsBackingMap;
+
+import com.tangosol.net.BackingMapManagerContext;
+
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PagedTopicService;
+import com.tangosol.net.TopicService;
+
+import com.tangosol.util.ObservableMap;
+import com.tangosol.util.WrapperObservableMap;
 
 import java.util.Map;
 
@@ -40,9 +52,20 @@ public class PagedTopicStorageScheme
     @Override
     public Map realizeMap(ParameterResolver resolver, Dependencies dependencies)
         {
-        f_schemeTopic.ensureConfiguredService(resolver, dependencies);
+        PagedTopicService service = (PagedTopicService) f_schemeTopic.ensureConfiguredService(resolver, dependencies);
+        ObservableMap     map     = (ObservableMap) super.realizeMap(resolver, dependencies);
+        String            sName   = (String) resolver.resolve("cache-name").getExpression().evaluate(resolver);
 
-        return super.realizeMap(resolver, dependencies);
+        if (PagedTopicCaches.Names.SUBSCRIPTIONS.isA(sName))
+            {
+            BackingMapManagerContext context = ((PagedTopicService) service).getBackingMapManager().getContext();
+            map = new PagedTopicSubscriptionsBackingMap(map, context);
+            }
+        else if (PagedTopicCaches.Names.CONTENT.isA(sName))
+            {
+            map = new PagedTopicContentBackingMap(map);
+            }
+        return map;
         }
 
     @Override

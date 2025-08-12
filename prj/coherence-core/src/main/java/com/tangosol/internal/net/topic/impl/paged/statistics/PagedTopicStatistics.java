@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -37,8 +37,9 @@ public class PagedTopicStatistics
      * @param cChannel    the current channel count
      * @param sTopicName  the name of the topic
      */
-    public PagedTopicStatistics(int cChannel, String sTopicName)
+    public PagedTopicStatistics(PagedTopicServiceWithStatistics service, int cChannel, String sTopicName)
         {
+        m_service    = service;
         m_sTopicName = sTopicName;
         for (int i = 0; i < cChannel; i++)
             {
@@ -159,6 +160,11 @@ public class PagedTopicStatistics
         f_mapSubscriberGroups.removeMapListener(listener);
         }
 
+    public int getRemainingMessages(SubscriberGroupId groupId, int[] anChannel)
+        {
+        return m_service.getLocalRemainingMessages(m_sTopicName, groupId, anChannel);
+        }
+
     // ----- PublishedMetrics methods ---------------------------------------
 
     @Override
@@ -197,6 +203,8 @@ public class PagedTopicStatistics
      * The name of the topic.
      */
     private final String m_sTopicName;
+
+    private final PagedTopicServiceWithStatistics m_service;
 
     /**
      * The channel statistics.
