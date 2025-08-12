@@ -295,7 +295,10 @@
      file name: icu4j-64.2.jar
      ]]></notes>
      <packageUrl regex="true">^pkg:maven/com\.ibm\.icu/icu4j@.*$</packageUrl>
-     <cve>CVE-2020-21913</cve>
+    <cpe>cpe:2.3:a:icu-project:international_components_for_unicode</cpe>
+    <cpe>cpe:2.3:a:unicode:international_components_for_unicode</cpe>
+    <cve>CVE-2020-21913</cve>
+    <cve>CVE-2025-5222</cve>
   </suppress>
 
   <!-- Tomcat - for testing -->
