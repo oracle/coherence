@@ -317,4 +317,16 @@ public class SafePagedTopicService
     public void setTopicBackingMapManager(TopicBackingMapManager manager)
         {
         }
+
+    @Override
+    public int getCurrentClusterTopicsApiVersion()
+        {
+        return getRunningTopicService().getCurrentClusterTopicsApiVersion();
+        }
+
+    @Override
+    public int getRemainingMessages(String sTopic, SubscriberGroupId subscriberGroupId, int... anChannel)
+        {
+        return getRunningTopicService().getRemainingMessages(sTopic, subscriberGroupId, anChannel);
+        }
     }

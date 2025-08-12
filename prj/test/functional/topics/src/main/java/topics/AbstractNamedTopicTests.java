@@ -15,6 +15,8 @@ import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.NonBlocking;
 
+import com.oracle.coherence.io.json.JsonObject;
+import com.oracle.coherence.io.json.JsonSerializer;
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 import com.tangosol.coherence.component.util.SafeNamedTopic;
 import com.tangosol.coherence.component.util.SafeService;
@@ -85,6 +87,10 @@ import java.io.IOException;
 
 import java.io.PrintWriter;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -4420,7 +4426,7 @@ public abstract class AbstractNamedTopicTests
              Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup));
              Publisher<String>  publisher     = topic.createPublisher(OrderBy.roundRobin()))
             {
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < cTotal; i++)
                 {
                 publisher.publish("message-" + i).get(1, TimeUnit.MINUTES);
                 }
@@ -4442,6 +4448,9 @@ public abstract class AbstractNamedTopicTests
             int cTwo = subscriberTwo.getRemainingMessages();
             assertThat(cOne + cTwo, is(cTotal));
 
+            assertRemainingMessagesMetric(topic.getName(), sGroup, cTotal);
+            assertRemainingMessagesPerChannelMetric(topic.getName(), sGroup, mapCount);
+
             for (int nChannel : subscriberOne.getChannels())
                 {
                 assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
@@ -4451,7 +4460,169 @@ public abstract class AbstractNamedTopicTests
                 {
                 assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
                 }
+
+            // read some messages and commit
+            Map<Integer, Integer> mapReceived  = new HashMap<>();
+            Map<Integer, Integer> mapRemaining = new HashMap<>(mapCount);
+            Map<Integer, Subscriber.Element<String>> toCommitOne = new HashMap<>();
+            Map<Integer, Subscriber.Element<String>> toCommitTwo = new HashMap<>();
+            Subscriber.Element<String> elementOne;
+            Subscriber.Element<String> elementTwo;
+
+            int cPoll = 200;
+            for (int i = 0; i < cPoll; i++)
+                {
+                elementOne = subscriberOne.receive().get(1, TimeUnit.MINUTES);
+                toCommitOne.put(elementOne.getChannel(), elementOne);
+                mapReceived.compute(elementOne.getChannel(), (k, v) -> v == null ? 1 : v + 1);
+                mapRemaining.compute(elementOne.getChannel(), (k, v) -> v == null ? 0 : v - 1);
+                elementTwo = subscriberTwo.receive().get(1, TimeUnit.MINUTES);
+                toCommitTwo.put(elementTwo.getChannel(), elementTwo);
+                mapReceived.compute(elementTwo.getChannel(), (k, v) -> v == null ? 1 : v + 1);
+                mapRemaining.compute(elementTwo.getChannel(), (k, v) -> v == null ? 0 : v - 1);
+                }
+
+            // nothing committed yet, so remaining counts should be the same
+            cOne = subscriberOne.getRemainingMessages();
+            cTwo = subscriberTwo.getRemainingMessages();
+            assertThat(cOne + cTwo, is(cTotal));
+
+            assertRemainingMessagesMetric(topic.getName(), sGroup, cTotal);
+            assertRemainingMessagesPerChannelMetric(topic.getName(), sGroup, mapCount);
+
+            for (int nChannel : subscriberOne.getChannels())
+                {
+                assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            for (int nChannel : subscriberTwo.getChannels())
+                {
+                assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapCount.get(nChannel)));
+                }
+
+            // Now commit both subscriber's elements
+            for (Subscriber.Element<String> element : toCommitOne.values())
+                {
+                CommitResult commit = element.commit();
+                assertThat(commit, is(notNullValue()));
+                assertThat(commit.getStatus(), is(CommitResultStatus.Committed));
+                }
+
+            for (Subscriber.Element<String> element : toCommitTwo.values())
+                {
+                CommitResult commit = element.commit();
+                assertThat(commit, is(notNullValue()));
+                assertThat(commit.getStatus(), is(CommitResultStatus.Committed));
+                }
+
+            int cReceived = cPoll * 2; // two subscribers received cPoll messages each
+            cOne = subscriberOne.getRemainingMessages();
+            cTwo = subscriberTwo.getRemainingMessages();
+            int cRemaining = cOne + cTwo;
+            assertThat(cRemaining, is(cTotal - cReceived));
+
+
+            for (int nChannel : subscriberOne.getChannels())
+                {
+                assertThat(subscriberOne.getRemainingMessages(nChannel), is(mapRemaining.get(nChannel)));
+                }
+
+            for (int nChannel : subscriberTwo.getChannels())
+                {
+                assertThat(subscriberTwo.getRemainingMessages(nChannel), is(mapRemaining.get(nChannel)));
+                }
+
+            assertRemainingMessagesMetric(topic.getName(), sGroup, cRemaining);
+            assertRemainingMessagesPerChannelMetric(topic.getName(), sGroup, mapRemaining);
             }
+        }
+
+    protected void assertRemainingMessagesMetric(String sTopic, String sGroup, int cRemaining) throws Exception
+        {
+        int[] anPort = getMetricsPorts();
+        if (anPort != null)
+            {
+            int nValue = 0;
+            for (int nPort : anPort)
+                {
+                String     sURL   = String.format("http://127.0.0.1:%d/metrics/Coherence.PagedTopicSubscriberGroup.RemainingUnpolledMessages", nPort);
+                JsonObject json   = metricsQuery(sURL);
+                JsonObject metric = null;
+
+                List<JsonObject> list   = (List<JsonObject>) json.get("data");
+                for (JsonObject data : list)
+                    {
+                    assertThat(data.get("name"), is("Coherence.PagedTopicSubscriberGroup.RemainingUnpolledMessages"));
+                    JsonObject tags = (JsonObject) data.get("tags");
+                    assertThat(tags, is(notNullValue()));
+                    if (sTopic.equals(tags.get("topic")) && sGroup.equals(tags.get("name")))
+                        {
+                        metric = data;
+                        break;
+                        }
+                    }
+
+                assertThat("Could not find metric for topic " + sTopic + " and group " + sGroup, metric, is(notNullValue()));
+                Object oValue = metric.get("value");
+                assertThat(oValue, is(instanceOf(Integer.class)));
+                nValue += (Integer) oValue;
+                }
+            assertThat(nValue, is(cRemaining));
+            }
+        }
+
+    protected void assertRemainingMessagesPerChannelMetric(String sTopic, String sGroup, Map<Integer, Integer> mapCount) throws Exception
+        {
+        int[] anPort = getMetricsPorts();
+        if (anPort != null)
+            {
+            Map<Integer, Integer> mapMetric = new HashMap<>();
+            for (int nPort : anPort)
+                {
+                String     sURL   = String.format("http://127.0.0.1:%d/metrics/Coherence.PagedTopicSubscriberGroup.Channels.RemainingUnpolledMessages", nPort);
+                JsonObject json   = metricsQuery(sURL);
+
+                List<JsonObject> list   = (List<JsonObject>) json.get("data");
+                for (JsonObject data : list)
+                    {
+                    assertThat(data.get("name"), is("Coherence.PagedTopicSubscriberGroup.Channels.RemainingUnpolledMessages"));
+                    JsonObject tags = (JsonObject) data.get("tags");
+                    assertThat(tags, is(notNullValue()));
+                    if (sTopic.equals(tags.get("topic")) && sGroup.equals(tags.get("name")))
+                        {
+                        Object oValue = data.get("value");
+                        assertThat(oValue, is(instanceOf(Integer.class)));
+                        Object oChannel = tags.get("channel");
+                        assertThat(oChannel, is(notNullValue()));
+                        int nChannel = Integer.parseInt(String.valueOf(oChannel));
+
+                        mapMetric.compute(nChannel, (k, v) ->
+                            {
+                            if (v == null)
+                                {
+                                return (Integer) oValue;
+                                }
+                            return v + (Integer) oValue;
+                            });
+                        }
+                    }
+                }
+
+            assertThat(mapMetric, is(mapCount));
+            }
+        }
+
+    protected JsonObject metricsQuery(String sURL) throws Exception
+        {
+        HttpClient client = HttpClient.newBuilder().build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .GET()
+                .uri(URI.create(sURL + "/.json"))
+                .build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        assertThat(response.statusCode(), is(200));
+        String     sJson  = response.body();
+        return JSON_SERIALIZER.deserialize("{\"data\":" + sJson + "}", JsonObject.class);
         }
 
     @Test
@@ -4663,7 +4834,7 @@ public abstract class AbstractNamedTopicTests
                 }
 
             topic.destroySubscriberGroup(sGroup);
-            assertThat(topic.getRemainingMessages(sGroup), is(0));
+            Eventually.assertDeferred(() -> topic.getRemainingMessages(sGroup), is(0));
 
             try (Subscriber<String> subscriberOne = topic.createSubscriber(inGroup(sGroup));
                  Subscriber<String> subscriberTwo = topic.createSubscriber(inGroup(sGroup)))
@@ -5213,6 +5384,12 @@ public abstract class AbstractNamedTopicTests
         return (R) invocable.getResult();
         }
 
+    protected int[] getMetricsPorts()
+        {
+        return null;
+        }
+
+
     protected abstract Session getSession();
 
     @SuppressWarnings("unused")
@@ -5469,6 +5646,8 @@ public abstract class AbstractNamedTopicTests
 
     // MUST BE STATIC because JUnit creates a new test class per test method
     protected static final AtomicInteger m_nGroup = new AtomicInteger(0);
+
+    private static final JsonSerializer JSON_SERIALIZER = new JsonSerializer();
 
     protected String               m_sSerializer;
     protected boolean              m_fIncompatibleClientSerializer;
