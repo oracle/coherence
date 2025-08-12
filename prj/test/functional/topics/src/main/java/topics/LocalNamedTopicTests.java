@@ -7,6 +7,7 @@
 package topics;
 
 import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
@@ -17,11 +18,12 @@ import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 import com.tangosol.coherence.config.scheme.LocalScheme;
 
 import com.tangosol.config.expression.NullParameterResolver;
-import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicBackingMapManager;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicContentPartitionedBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriptionsPartitionedBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.model.ContentKey;
 
 import com.tangosol.internal.net.topic.impl.paged.model.Page;
@@ -30,6 +32,7 @@ import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.Coherence;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.NamedCache;
@@ -45,14 +48,10 @@ import com.tangosol.net.events.partition.cache.PartitionedCacheDispatcher;
 import com.tangosol.net.partition.ObservableSplittingBackingCache;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber.CompleteOnEmpty;
-import com.tangosol.run.xml.XmlElement;
-import com.tangosol.run.xml.XmlHelper;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.RegistrationBehavior;
-import com.tangosol.util.Resources;
 
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
@@ -63,6 +62,7 @@ import com.oracle.coherence.testing.SystemPropertyIsolation;
 import org.hamcrest.Matchers;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -72,7 +72,6 @@ import org.junit.runner.RunWith;
 
 import org.junit.runners.Parameterized;
 
-import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -125,40 +124,32 @@ public class LocalNamedTopicTests
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
         System.setProperty("coherence.topic.publisher.close.timeout", "2s");
 
-        String      sHost  = LocalPlatform.get().getLoopbackAddress().getHostAddress();
-        ClassLoader loader = Base.getContextClassLoader();
+        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
 
         System.setProperty("coherence.wka", sHost);
         System.setProperty("coherence.localhost", sHost);
+        System.setProperty("coherence.cacheconfig", "topic-cache-config.xml");
+        System.setProperty("coherence.metrics.http.enabled", "true");
 
-        URL urlCacheConfig = Resources.findFileOrResource("topic-cache-config.xml", LocalNamedTopicTests.class.getClassLoader());
+        AvailablePortIterator it = LocalPlatform.get().getAvailablePorts();
+        m_nMetricsPort = it.next();
+        System.setProperty("coherence.metrics.http.port", String.valueOf(m_nMetricsPort));
 
-        if (urlCacheConfig == null)
-            {
-            throw new IllegalStateException("unable to find cache config file: " + "topic-cache-config.xml");
-            }
-
-        XmlElement xml = XmlHelper.loadXml(urlCacheConfig.openStream());
-
-        CacheFactory.getCacheFactoryBuilder().setCacheConfiguration("topic-cache-config.xml", loader, xml);
-        ExtensibleConfigurableCacheFactory.Dependencies deps =
-            ExtensibleConfigurableCacheFactory.DependenciesHelper.newInstance("topic-cache-config.xml");
-
-        try
-            {
-            DefaultCacheServer.getInstance();
-            }
-        catch (IllegalStateException ignored)
-            {
-            ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(deps);
-
-            CacheFactory.getCacheFactoryBuilder().setConfigurableCacheFactory(eccf, "$Default$", loader, true);
-            DefaultCacheServer.start(eccf);
-            m_session = new ConfigurableCacheFactorySession(eccf, loader);
-            }
-
+        Coherence coherence = Coherence.clusterMember().startAndWait();
+        m_session = coherence.getSession();
         }
 
+    @AfterClass
+    public static void closeCoherence()
+        {
+        Coherence.closeAll();
+        }
+
+    @Override
+    protected int[] getMetricsPorts()
+        {
+        return new int[]{m_nMetricsPort};
+        }
 
     @Parameterized.Parameters(name = "serializer={0}")
     public static Collection<Object[]> parameters()
@@ -403,7 +394,18 @@ public class LocalNamedTopicTests
             BackingMapContext   context   = manager.getContext().getBackingMapContext(cacheName);
             ObservableMap<?, ?> map       = context.getBackingMap();
 
-            assertThat(map.getClass().getCanonicalName(), is(ObservableSplittingBackingCache.class.getCanonicalName()));
+            if (names.equals(PagedTopicCaches.Names.SUBSCRIPTIONS))
+                {
+                assertThat(map.getClass().getCanonicalName(), is(PagedTopicSubscriptionsPartitionedBackingMap.class.getCanonicalName()));
+                }
+            else if (names.equals(PagedTopicCaches.Names.CONTENT))
+                {
+                assertThat(map.getClass().getCanonicalName(), is(PagedTopicContentPartitionedBackingMap.class.getCanonicalName()));
+                }
+            else
+                {
+                assertThat(map.getClass().getCanonicalName(), is(ObservableSplittingBackingCache.class.getCanonicalName()));
+                }
             }
         }
 
@@ -744,4 +746,6 @@ public class LocalNamedTopicTests
     // ----- data members ---------------------------------------------------
 
     private static Session m_session;
+
+    private static int m_nMetricsPort;
     }

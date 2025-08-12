@@ -23,6 +23,7 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
 
 import com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription;
 
+import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.net.PagedTopicService;
 import com.tangosol.net.Service;
 
@@ -300,5 +301,17 @@ public class SafePagedTopicService
     @Override
     public void setTopicBackingMapManager(TopicBackingMapManager manager)
         {
+        }
+
+    @Override
+    public int getCurrentClusterTopicsApiVersion()
+        {
+        return getRunningTopicService().getCurrentClusterTopicsApiVersion();
+        }
+
+    @Override
+    public int getRemainingMessages(String sTopic, SubscriberGroupId subscriberGroupId, int... anChannel)
+        {
+        return getRunningTopicService().getRemainingMessages(sTopic, subscriberGroupId, anChannel);
         }
     }

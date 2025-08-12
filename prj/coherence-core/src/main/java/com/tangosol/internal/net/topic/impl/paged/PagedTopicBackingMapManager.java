@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.tangosol.coherence.config.scheme.PagedTopicScheme;
 
 import com.tangosol.config.expression.ParameterResolver;
 
+import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicServiceWithStatistics;
 import com.tangosol.internal.net.topic.impl.paged.statistics.PagedTopicStatistics;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
@@ -149,7 +150,8 @@ public class PagedTopicBackingMapManager
 
     private PagedTopicStatistics createStatistics(PagedTopicDependencies dependencies, String sTopicName)
         {
-        return new PagedTopicStatistics(dependencies.getConfiguredChannelCount(), sTopicName);
+        PagedTopicServiceWithStatistics service = (PagedTopicServiceWithStatistics) getContext().getCacheService();
+        return new PagedTopicStatistics(service, dependencies.getConfiguredChannelCount(), sTopicName);
         }
 
     private PagedTopicStatistics ensureStatistics(String sTopicName)

@@ -166,4 +166,62 @@ public interface PagedTopicService
      * @param listener  the listener to remove
      */
     void removeSubscriptionListener(PagedTopicSubscription.Listener listener);
+
+    /**
+     * Return the number messages remaining in the topic after the last committed message.
+     * <p>
+     * This value is a count of messages remaining to be polled after the last committed message.
+     * If a subscriber has received multiple messages but not committed any of them then the
+     * count of remaining messages will remain unchanged.
+     * <p>
+     * This value is transitive and could already have changed by another in-flight commit request
+     * immediately after this value is returned.
+     * <p>
+     * Note, getting the total remaining messages count is a cluster wide operation as the value is stored
+     * by each member.
+     *
+     * @param sTopic             the name of the topic
+     * @param subscriberGroupId  the subscriber group
+     * @param anChannel          the channels to get the remaining message count from,
+     *                           or specify no channels to return the count for all channels
+     *
+     * @return the number of unread messages
+     */
+    int getRemainingMessages(String sTopic, SubscriberGroupId subscriberGroupId, int... anChannel);
+
+    /**
+     * Return the minimum topics API version supported by the cluster members.
+     *
+     * @return  the minimum topics API version supported by cluster members
+     */
+    int getCurrentClusterTopicsApiVersion();
+
+    /**
+     * Topic API version zero
+     * 14.1.1.2206.2 and below
+     * 22.09.*
+     */
+    int TOPIC_API_v0 = 0;
+
+    /**
+     * Topic API version one
+     * 14.1.1.2206.3 - 14.1.1.2206.5
+     * 23.03.0 - 22.03.1
+     */
+    int TOPIC_API_v1 = 1;
+
+    /**
+     * Topic API version two
+     * 14.1.1.2206.6 -> and above
+     * 23.03.2 and above
+     */
+    int TOPIC_API_v2 = 2;
+
+    /**
+     * Topic API version three
+     * 15.1.1.0.0 -> and above
+     * patch compatible 14.1.2.0.4
+     * patch compatible 14.1.1.2206.14
+     */
+    int TOPIC_API_v3 = 3;
     }

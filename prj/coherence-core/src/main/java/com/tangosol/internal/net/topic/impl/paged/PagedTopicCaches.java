@@ -965,6 +965,16 @@ public class PagedTopicCaches
     @SuppressWarnings("unchecked")
     public int getRemainingMessages(SubscriberGroupId id, int... anChannel)
         {
+        if (f_topicService.getCurrentClusterTopicsApiVersion() >= PagedTopicService.TOPIC_API_v3)
+            {
+            return f_topicService.getRemainingMessages(f_sTopicName, id, anChannel);
+            }
+
+        // if we get here the cluster is running a mixed version with members too old
+        // to use the more efficient remaining messages metric
+        Logger.info("Currently running a mixed version cluster that does not support the more efficient" +
+                " method to calculate remaining messages");
+
         boolean fHasSubscription = Subscriptions.containsKey(new Subscription.Key(0, 0, id));
         if (fHasSubscription || anChannel.length > 0)
             {
@@ -1003,8 +1013,9 @@ public class PagedTopicCaches
                                     .getValueFromInternalConverter().convert(bin)).intValue();
             return fHasSubscription ? count : count + anChannel.length;
             }
+
         // subscriber group does not exist, return the total number of messages
-        return Data.size();
+        return 0;
         }
 
     // ----- object methods -------------------------------------------------

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.partition;
@@ -53,7 +53,18 @@ public class ObservableSplittingBackingCache
     */
     public ObservableSplittingBackingCache(BackingMapManager bmm, String sName)
         {
-        super(new CapacityAwareMap(bmm, sName));
+        this(new CapacityAwareMap(bmm, sName));
+        }
+
+    /**
+     * Create an ObservableSplittingBackingCache that adds ConfigurableCacheMap
+     * functionality to an ObservableSplittingBackingMap.
+     *
+     * @param map  the PartitionAwareBackingMap to delegate to
+     */
+    protected ObservableSplittingBackingCache(PartitionAwareBackingMap map)
+        {
+        super(map);
 
         ((CapacityAwareMap) getPartitionSplittingBackingMap()).bind(this);
 
