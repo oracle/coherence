@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -148,7 +148,7 @@ public class Filters
      */
     public static <T, E> IsNullFilter<T, E> isNull(ValueExtractor<T, E> extractor)
         {
-        return new IsNullFilter<>(extractor);
+        return new IsNullFilter<>(ValueExtractor.of(extractor));
         }
 
     /**
@@ -164,7 +164,7 @@ public class Filters
      */
     public static <T, E> IsNotNullFilter<T, E> isNotNull(ValueExtractor<T, E> extractor)
         {
-        return new IsNotNullFilter<>(extractor);
+        return new IsNotNullFilter<>(ValueExtractor.of(extractor));
         }
 
     /**
@@ -177,7 +177,7 @@ public class Filters
      */
     public static <T> EqualsFilter<T, Boolean> isTrue(ValueExtractor<T, Boolean> extractor)
         {
-        return equal(extractor, true);
+        return equal(ValueExtractor.of(extractor), true);
         }
 
     /**
@@ -190,7 +190,7 @@ public class Filters
      */
     public static <T> EqualsFilter<T, Boolean> isFalse(ValueExtractor<T, Boolean> extractor)
         {
-        return equal(extractor, false);
+        return equal(ValueExtractor.of(extractor), false);
         }
 
     /**
@@ -226,7 +226,7 @@ public class Filters
      */
     public static <T, E> EqualsFilter<T, E> equal(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new EqualsFilter<>(extractor, value);
+        return new EqualsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -243,7 +243,7 @@ public class Filters
      */
     public static <T, E> NotEqualsFilter<T, E> notEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new NotEqualsFilter<>(extractor, value);
+        return new NotEqualsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -262,7 +262,7 @@ public class Filters
      */
     public static <T, E extends Comparable<? super E>> LessFilter<T, E> less(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new LessFilter<>(extractor, value);
+        return new LessFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -281,7 +281,7 @@ public class Filters
      */
     public static <T, E extends Comparable<? super E>> LessEqualsFilter<T, E> lessEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new LessEqualsFilter<>(extractor, value);
+        return new LessEqualsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -300,7 +300,7 @@ public class Filters
      */
     public static <T, E extends Comparable<? super E>> GreaterFilter<T, E> greater(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new GreaterFilter<>(extractor, value);
+        return new GreaterFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -319,7 +319,7 @@ public class Filters
      */
     public static <T, E extends Comparable<? super E>> GreaterEqualsFilter<T, E> greaterEqual(ValueExtractor<T, ? extends E> extractor, E value)
         {
-        return new GreaterEqualsFilter<>(extractor, value);
+        return new GreaterEqualsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -339,7 +339,7 @@ public class Filters
      */
     public static <T, E extends Comparable<? super E>> BetweenFilter<T, E> between(ValueExtractor<T, ? extends E> extractor, E from, E to)
         {
-        return new BetweenFilter<>(extractor, from, to);
+        return new BetweenFilter<>(ValueExtractor.of(extractor), from, to);
         }
 
     /**
@@ -359,7 +359,7 @@ public class Filters
      */
     public static <T, E, C extends Collection<? extends E>> ContainsFilter<T, ?> contains(ValueExtractor<T, C> extractor, E value)
         {
-        return new ContainsFilter<>(extractor, value);
+        return new ContainsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -378,7 +378,7 @@ public class Filters
      */
     public static <T, E> ContainsFilter<T, ?> arrayContains(ValueExtractor<T, E[]> extractor, E value)
         {
-        return new ContainsFilter<>(extractor, value);
+        return new ContainsFilter<>(ValueExtractor.of(extractor), value);
         }
 
     /**
@@ -398,7 +398,7 @@ public class Filters
      */
     public static <T, E, C extends Collection<? extends E>> ContainsAllFilter<T, C> containsAll(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
         {
-        return new ContainsAllFilter<>(extractor, setValues);
+        return new ContainsAllFilter<>(ValueExtractor.of(extractor), setValues);
         }
 
     /**
@@ -419,7 +419,7 @@ public class Filters
     @SafeVarargs
     public static <T, E, C extends Collection<? extends E>> ContainsAllFilter<T, C> containsAll(ValueExtractor<T, C> extractor, E... values)
         {
-        return new ContainsAllFilter<>(extractor, new ImmutableArrayList(values));
+        return new ContainsAllFilter<>(ValueExtractor.of(extractor), new ImmutableArrayList(values));
         }
 
     /**
@@ -438,7 +438,7 @@ public class Filters
      */
     public static <T, E> ContainsAllFilter<T, E[]> arrayContainsAll(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
         {
-        return new ContainsAllFilter<>(extractor, setValues);
+        return new ContainsAllFilter<>(ValueExtractor.of(extractor), setValues);
         }
 
     /**
@@ -458,7 +458,7 @@ public class Filters
     @SafeVarargs
     public static <T, E> ContainsAllFilter<T, E[]> arrayContainsAll(ValueExtractor<T, E[]> extractor, E... values)
         {
-        return new ContainsAllFilter<>(extractor, new ImmutableArrayList(values));
+        return new ContainsAllFilter<>(ValueExtractor.of(extractor), new ImmutableArrayList(values));
         }
 
     /**
@@ -478,7 +478,7 @@ public class Filters
      */
     public static <T, E, C extends Collection<? extends E>> ContainsAnyFilter<T, C> containsAny(ValueExtractor<T, C> extractor, Set<? extends E> setValues)
         {
-        return new ContainsAnyFilter<>(extractor, setValues);
+        return new ContainsAnyFilter<>(ValueExtractor.of(extractor), setValues);
         }
 
     /**
@@ -499,7 +499,7 @@ public class Filters
     @SafeVarargs
     public static <T, E, C extends Collection<? extends E>> ContainsAnyFilter<T, C> containsAny(ValueExtractor<T, C> extractor, E... values)
         {
-        return new ContainsAnyFilter<>(extractor, new ImmutableArrayList(values));
+        return new ContainsAnyFilter<>(ValueExtractor.of(extractor), new ImmutableArrayList(values));
         }
 
     /**
@@ -518,7 +518,7 @@ public class Filters
      */
     public static <T, E> ContainsAnyFilter<T, E[]> arrayContainsAny(ValueExtractor<T, E[]> extractor, Set<? extends E> setValues)
         {
-        return new ContainsAnyFilter<>(extractor, setValues);
+        return new ContainsAnyFilter<>(ValueExtractor.of(extractor), setValues);
         }
 
     /**
@@ -538,7 +538,7 @@ public class Filters
     @SafeVarargs
     public static <T, E> ContainsAnyFilter<T, E[]> arrayContainsAny(ValueExtractor<T, E[]> extractor, E... values)
         {
-        return new ContainsAnyFilter<>(extractor, new ImmutableArrayList(values));
+        return new ContainsAnyFilter<>(ValueExtractor.of(extractor), new ImmutableArrayList(values));
         }
 
     /**
@@ -557,7 +557,7 @@ public class Filters
      */
     public static <T, E> InFilter<T, E> in(ValueExtractor<T, ? extends E> extractor, Set<? extends E> setValues)
         {
-        return new InFilter<>(extractor, setValues);
+        return new InFilter<>(ValueExtractor.of(extractor), setValues);
         }
 
     /**
@@ -577,7 +577,7 @@ public class Filters
     @SafeVarargs
     public static <T, E> InFilter<T, E> in(ValueExtractor<T, ? extends E> extractor, E... values)
         {
-        return new InFilter<>(extractor, new HashSet<>(Arrays.asList(values)));
+        return new InFilter<>(ValueExtractor.of(extractor), new HashSet<>(Arrays.asList(values)));
         }
 
     /**
@@ -592,7 +592,7 @@ public class Filters
      */
     public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern)
         {
-        return like(extractor, sPattern, (char) 0, false);
+        return like(ValueExtractor.of(extractor), sPattern, (char) 0, false);
         }
 
     /**
@@ -608,7 +608,7 @@ public class Filters
      */
     public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape)
         {
-        return like(extractor, sPattern, chEscape, false);
+        return like(ValueExtractor.of(extractor), sPattern, chEscape, false);
         }
 
     /**
@@ -624,7 +624,7 @@ public class Filters
      */
     public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, boolean fIgnoreCase)
         {
-        return like(extractor, sPattern, (char) 0, fIgnoreCase);
+        return like(ValueExtractor.of(extractor), sPattern, (char) 0, fIgnoreCase);
         }
 
     /**
@@ -641,7 +641,7 @@ public class Filters
      */
     public static <T, E> LikeFilter<T, E> like(ValueExtractor<T, E> extractor, String sPattern, char chEscape, boolean fIgnoreCase)
         {
-        return new LikeFilter<>(extractor, sPattern, chEscape, fIgnoreCase);
+        return new LikeFilter<>(ValueExtractor.of(extractor), sPattern, chEscape, fIgnoreCase);
         }
 
     /**
@@ -656,7 +656,7 @@ public class Filters
      */
     public static <T, E> RegexFilter<T, E> regex(ValueExtractor<T, E> extractor, String sRegex)
         {
-        return new RegexFilter<>(extractor, sRegex);
+        return new RegexFilter<>(ValueExtractor.of(extractor), sRegex);
         }
 
     /**
@@ -684,7 +684,7 @@ public class Filters
      */
     public static <T, E> PredicateFilter<T, E> predicate(ValueExtractor<T, ? extends E> extractor, Remote.Predicate<? super E> predicate)
         {
-        return new PredicateFilter<>(extractor, predicate);
+        return new PredicateFilter<>(ValueExtractor.of(extractor), predicate);
         }
 
     /**
