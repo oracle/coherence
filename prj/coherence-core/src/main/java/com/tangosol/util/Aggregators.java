@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -133,7 +133,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
         average(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new DoubleAverage(extractor);
+        return new DoubleAverage(ValueExtractor.of(extractor));
         }
 
     /**
@@ -235,7 +235,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
         doubleMax(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new DoubleMax(extractor);
+        return new DoubleMax(ValueExtractor.of(extractor));
         }
 
     /**
@@ -269,7 +269,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
         doubleMin(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new DoubleMin(extractor);
+        return new DoubleMin(ValueExtractor.of(extractor));
         }
 
     /**
@@ -303,7 +303,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Double>
         doubleSum(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new DoubleSum(extractor);
+        return new DoubleSum(ValueExtractor.of(extractor));
         }
 
     /**
@@ -473,7 +473,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
         longMax(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new LongMax(extractor);
+        return new LongMax(ValueExtractor.of(extractor));
         }
 
     /**
@@ -507,7 +507,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
         longMin(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new LongMin(extractor);
+        return new LongMin(ValueExtractor.of(extractor));
         }
 
     /**
@@ -541,7 +541,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, Long>
         longSum(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new LongSum(extractor);
+        return new LongSum(ValueExtractor.of(extractor));
         }
 
     /**
@@ -643,7 +643,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
         bigDecimalAverage(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new BigDecimalAverage(extractor);
+        return new BigDecimalAverage(ValueExtractor.of(extractor));
         }
 
     /**
@@ -677,7 +677,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
         bigDecimalMax(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new BigDecimalMax(extractor);
+        return new BigDecimalMax(ValueExtractor.of(extractor));
         }
 
     /**
@@ -711,7 +711,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
         bigDecimalMin(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return new BigDecimalMin(extractor);
+        return new BigDecimalMin(ValueExtractor.of(extractor));
         }
 
     /**
@@ -745,7 +745,7 @@ public class Aggregators
     public static <K, V, T> InvocableMap.StreamingAggregator<K, V, ?, BigDecimal>
         bigDecimalSum(ValueExtractor<? super T, ? extends Number> extractor)
         {
-        return  new BigDecimalSum(extractor);
+        return  new BigDecimalSum(ValueExtractor.of(extractor));
         }
 
     /**
@@ -815,7 +815,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
         comparableMax(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return new ComparableMax(extractor);
+        return new ComparableMax(ValueExtractor.of(extractor));
         }
 
     /**
@@ -834,7 +834,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
         comparableMax(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator)
         {
-        return  new ComparableMax(extractor, comparator);
+        return  new ComparableMax(ValueExtractor.of(extractor), comparator);
         }
 
     /**
@@ -893,7 +893,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
         comparableMin(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return new ComparableMin(extractor);
+        return new ComparableMin(ValueExtractor.of(extractor));
         }
 
     /**
@@ -912,7 +912,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> InvocableMap.StreamingAggregator<K, V, ?, R>
         comparableMin(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator)
         {
-        return new ComparableMin(extractor, comparator);
+        return new ComparableMin(ValueExtractor.of(extractor), comparator);
         }
 
     /**
@@ -989,7 +989,7 @@ public class Aggregators
     public static <K, V, T, R> DistinctValues<K, V, T, R>
         distinctValues(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return new DistinctValues<>(extractor);
+        return new DistinctValues<>(ValueExtractor.of(extractor));
         }
 
     /**
@@ -1099,7 +1099,7 @@ public class Aggregators
     public static <K, V, T, E, R> GroupAggregator<K, V, T, E, R>
         grouping(ValueExtractor<? super T, ? extends E> extractor, InvocableMap.EntryAggregator<K, V, R> aggregator)
         {
-        return grouping(extractor, aggregator, null);
+        return grouping(ValueExtractor.of(extractor), aggregator, null);
         }
 
     /**
@@ -1119,11 +1119,11 @@ public class Aggregators
      * @param <R>  the type of the group aggregator result
      */
     public static <K, V, T, E, R> GroupAggregator<K, V, T, E, R>
-        grouping(ValueExtractor<? super T, ? extends E>                     extractor,
+        grouping(ValueExtractor<? super T, ? extends E>                extractor,
                  InvocableMap.EntryAggregator<? super K, ? super V, R> aggregator,
                  Filter                                                filter)
         {
-        return GroupAggregator.createInstance(extractor, aggregator, filter);
+        return GroupAggregator.createInstance(ValueExtractor.of(extractor), aggregator, filter);
         }
 
     /**
@@ -1144,7 +1144,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> TopNAggregator<K, V, T, R>
         topN(ValueExtractor<? super T, ? extends R> extractor, int cResults)
         {
-        return new TopNAggregator<>(extractor, null, cResults);
+        return new TopNAggregator<>(ValueExtractor.of(extractor), null, cResults);
         }
 
     /**
@@ -1164,7 +1164,7 @@ public class Aggregators
     public static <K, V, T, R> TopNAggregator<K, V, T, R>
         topN(ValueExtractor<? super T, ? extends R> extractor, Comparator<? super R> comparator, int cResults)
         {
-        return  new TopNAggregator<>(extractor, comparator, cResults);
+        return  new TopNAggregator<>(ValueExtractor.of(extractor), comparator, cResults);
         }
 
     /**
@@ -1221,7 +1221,7 @@ public class Aggregators
     public static <K, V, T, R extends Comparable<? super R>> ReducerAggregator<K, V, T, R>
         reduce(ValueExtractor<? super T, ? extends R> extractor)
         {
-        return new ReducerAggregator(extractor);
+        return new ReducerAggregator(ValueExtractor.of(extractor));
         }
 
     /**
@@ -1327,6 +1327,6 @@ public class Aggregators
      */
     public static <K, V, T> SimilaritySearch<K, V, T> similaritySearch(ValueExtractor<? super V, ? extends Vector<T>> extractor, Vector<T> vector, int maxResults)
         {
-        return new SimilaritySearch<>(extractor, vector, maxResults);
+        return new SimilaritySearch<>(ValueExtractor.of(extractor), vector, maxResults);
         }
     }
