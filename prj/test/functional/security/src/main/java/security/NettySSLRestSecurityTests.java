@@ -7,9 +7,11 @@
 package security;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import java.util.Properties;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -42,6 +44,7 @@ public class NettySSLRestSecurityTests
     @BeforeClass
     public static void startServer()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         Properties props = new Properties();
         props.setProperty("coherence.override", "tangosol-coherence-override-rsa.xml");
         CoherenceClusterMember clusterMember = startCacheServer("NettySSLRestSecurityTests", "security", FILE_CFG_CACHE_RSA, props);

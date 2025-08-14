@@ -396,7 +396,7 @@
                               </goals>
                               <phase>prepare-package</phase>
                               <configuration>
-                                  <isDetectionEnabled>true</isDetectionEnabled>
+                                  <isDetectionEnabled>false</isDetectionEnabled>
                               </configuration>
                           </execution>
                           <execution>
@@ -424,6 +424,8 @@
                                       <buildArg>--enable-monitoring=jmxserver,jmxclient,jvmstat</buildArg>
                                       <!-- Required for tests that add -XX:+HeapDumpOnOutOfMemoryError -->
                                       <buildArg>--enable-monitoring=heapdump</buildArg>
+                                      <!-- Required to generate thread dumps in a native image -->
+                                      <buildArg>--enable-monitoring=threaddump</buildArg>
                                       <!-- Required for tests that use JFRs, for example, management tests -->
                                       <buildArg>--enable-monitoring=jfr</buildArg>
                                       <buildArg>--initialize-at-build-time=org.junit.platform.commons.support.scanning.DefaultClasspathScanner</buildArg>
@@ -557,6 +559,7 @@
                                       <include>**/*IT.java</include>
                                   </includes>
                                   <systemPropertyVariables>
+                                      <helidon.serialFilter.pattern>*</helidon.serialFilter.pattern>
                                       <bedrock.profile.native-image>${project.build.directory}/${project.artifactId}</bedrock.profile.native-image>
                                       <bedrock.profile.native-image.classname>com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile</bedrock.profile.native-image.classname>
                                   </systemPropertyVariables>

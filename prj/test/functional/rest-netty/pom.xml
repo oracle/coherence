@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,10 @@
   <properties>
     <module.name>rest.netty.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+
+    <!-- Native images tests do not work, but we do not expect anyone to care -->
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>

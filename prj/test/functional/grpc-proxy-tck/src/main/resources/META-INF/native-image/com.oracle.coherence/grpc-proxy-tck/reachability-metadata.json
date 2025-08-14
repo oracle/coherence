@@ -1,0 +1,8 @@
+{
+  "reflection": [
+     {
+      "type": "grpc.proxy.CoherenceRunner",
+      "serializable": true
+    }
+  ]
+}

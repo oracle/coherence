@@ -6,10 +6,12 @@
  */
 package security;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import java.util.Properties;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -40,6 +42,7 @@ public class DefaultRestSecurityTests
     @BeforeClass
     public static void _startup()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         System.setProperty("coherence.override", "security-coherence-override.xml");
         AbstractRestSecurityTests._startup();
         }

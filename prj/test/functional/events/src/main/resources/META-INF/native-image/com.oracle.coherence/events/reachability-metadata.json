@@ -1,0 +1,112 @@
+{
+  "reflection": [
+     {
+      "type": "events.ExtendClientMemberEventTests",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$AddMemberEventMapEntryProcessor",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$ClientMemberListener",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$ExtendClient",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$ExtendClientMemberListener",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$MemberClient",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$ExtendClientMemberListener",
+      "serializable": true
+     },
+     {
+      "type": "events.ExtendClientMemberEventTests$MemberEventResult",
+      "serializable": true
+    },
+    {
+      "type": "events.ExtendClientMemberEventTests$RunUntilExtendClient",
+      "serializable": true
+    },
+    {
+      "type": "events.EntryEventsTests",
+      "serializable": true
+    },
+    {
+      "type": "events.EntryEventsTests$CountingExtractor",
+      "serializable": true
+    },
+    {
+      "type": "events.EventTestHelper$EnsureServiceInvocable",
+      "serializable": true
+    },
+    {
+      "type": "events.ServerEventsTests",
+      "serializable": true
+    },
+    {
+      "type": "events.ServerEventsTests$CustomProcessor",
+      "serializable": true
+    },
+    {
+      "type": "events.TransactionEventTests",
+      "serializable": true
+    },
+    {
+      "type": "events.TransactionEventTests$EvictingProcesser",
+      "serializable": true
+    },
+    {
+      "type": "events.TransactionEventTests$ModAssociator",
+      "serializable": true
+    },
+    {
+      "type": "events.TransactionEventTests$RippleProcessor",
+      "serializable": true
+    },
+    {
+      "type": "events.TransactionEventTests$UnsolicitedPutProcesser",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$ErrorAccumulator",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$ExpectationsHolder",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$ExpectationsInformerInvocable",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$ResetAccumulator",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$Expectations$AbstractExpectation",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$Expectations$CacheEntryExpectation",
+      "serializable": true
+    },
+    {
+      "type": "events.common.AbstractTestInterceptor$Expectations",
+      "serializable": true
+    }
+  ]
+}

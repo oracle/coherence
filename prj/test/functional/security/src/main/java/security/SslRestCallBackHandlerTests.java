@@ -6,10 +6,12 @@
  */
 package security;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import java.util.Properties;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -39,6 +41,7 @@ public class SslRestCallBackHandlerTests
     @BeforeClass
     public static void _startup()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         System.setProperty("java.security.auth.login.config", "login.configRsa");
         System.setProperty("coherence.override", "tangosol-coherence-override-cb.xml");
         System.setProperty("coherence.security.config", "DefaultControllerRsa.xml");
@@ -52,6 +55,7 @@ public class SslRestCallBackHandlerTests
     @BeforeClass
     public static void startServer()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         Properties props = new Properties();
         props.setProperty("coherence.override", "tangosol-coherence-override-rsa.xml");
         CoherenceClusterMember clusterMember = startCacheServer("SslRestCallBackHandlerTests", "security", FILE_CFG_CACHE_RSA, props);

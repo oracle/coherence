@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.coherence.LocalNativeImageLauncher;
 import com.oracle.bedrock.runtime.java.ClassPath;
 
 import com.oracle.bedrock.runtime.java.JavaApplication;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Executable;
 
 /**
@@ -54,8 +55,16 @@ public class NativeImageProfile
     @Override
     public void onLaunching(Platform platform, MetaClass metaClass, OptionsByType options)
         {
-        options.add(Executable.named(f_nativeImage));
-        options.remove(ClassPath.class);
+        if (metaClass instanceof JavaApplication.MetaClass || metaClass instanceof CoherenceClusterMember.MetaClass)
+            {
+            options.add(Executable.named(f_nativeImage));
+            options.remove(ClassPath.class);
+            String serialConfig = System.getProperty("helidon.serialFilter.pattern");
+            if (serialConfig != null && !serialConfig.isBlank())
+                {
+                options.add(SystemProperty.of("helidon.serialFilter.pattern", serialConfig));
+                }
+            }
         }
 
     @Override

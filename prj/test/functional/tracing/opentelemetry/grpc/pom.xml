@@ -25,6 +25,7 @@
     <module.name>testing.tracing.opentelemetry.grpc</module.name>
     <bedrockUseModules>false</bedrockUseModules>
     <moditect.skip>true</moditect.skip>
+    <skip.native.build>false</skip.native.build>
   </properties>
 
   <dependencies>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.testing.tests.streams.AbstractIntStreamTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 
@@ -36,7 +37,11 @@ public class IntStreamTests
         extends AbstractIntStreamTest
     {
     @ClassRule
-    public static CoherenceClusterResource CLUSTER = new LambdaTestCluster();
+    public static TestLogs testLogs = new TestLogs(IntStreamTests.class);
+
+    @ClassRule
+    public static CoherenceClusterResource CLUSTER = new LambdaTestCluster()
+            .with(testLogs);
 
     public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
 

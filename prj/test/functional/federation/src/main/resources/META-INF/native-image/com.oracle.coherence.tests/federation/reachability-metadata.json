@@ -1,0 +1,36 @@
+{
+  "reflection": [
+     {
+      "type": "federation.SequenceOrderValidationTests",
+      "serializable": true
+    },
+     {
+      "type": "federation.SequenceOrderValidationTests$SequenceOrderingAsserter",
+      "serializable": true
+    },
+     {
+      "type": "federation.misc.PofUser",
+      "serializable": true
+    },
+     {
+      "type": "federation.framework.FederatedTestCluster$GetJournalRecordCount",
+      "serializable": true
+    },
+     {
+      "type": "federation.framework.FederatedTestCluster$GetEnvelopeEntryCount",
+      "serializable": true
+    },
+     {
+      "type": "federation.framework.TestHelper$TestName",
+      "serializable": true
+    },
+     {
+      "type": "federation.SyncTests",
+      "serializable": true
+    },
+    {
+      "type": "federation.SyncTests$WrapperArrays",
+      "serializable": true
+    }
+  ]
+}
