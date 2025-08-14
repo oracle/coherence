@@ -1,59 +1,407 @@
 {
   "reflection": [
-     {
+    {
       "type": "java.time.Ser",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.AbstractClusteredRemoteCountDownLatchIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.AbstractClusteredRemoteSemaphoreExtendIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.AbstractClusteredRemoteSemaphoreExtendProxyIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.AbstractClusteredRemoteSemaphoreIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.ClusteredRemoteCountDownLatchIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.ClusteredRemoteSemaphoreExtendIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.ClusteredRemoteSemaphoreExtendProxyIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.ClusteredRemoteSemaphoreIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.ExtendClientBootstrapTests",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.PofClusteredRemoteCountDownLatchIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.PofClusteredRemoteSemaphoreExtendIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.PofClusteredRemoteSemaphoreExtendProxyIT",
       "serializable": true
     },
-     {
+    {
       "type": "concurrent.PofClusteredRemoteSemaphoreIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicBooleanPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicLongPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicBooleanPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicLongPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicStampedReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicMarkableReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicIntegerPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicStampedReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncLocalAtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicMarkableReferencePofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicMarkableReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicIntegerPofTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicLongTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.RemoteAtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicBooleanTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncAtomicIntegerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.AsyncRemoteAtomicReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.atomic.LocalAtomicStampedReferenceTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.config.CustomExecutorFactory",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.config.PofSanityTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.config.NamespaceHandlerTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.config.ConcurrentCacheConfigOverrideTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.RemoteExecutorExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.RemoteExecutorPofIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.AbstractRemoteExecutorTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.RemoteExecutorIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.util.FilteringIteratorTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.executor.subscribers.RecordingSubscriberTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteReadWriteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteReadWriteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteReadWriteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteReadWriteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.RemoteLockTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteReadWriteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteReadWriteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteReadWriteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.ClusteredRemoteReadWriteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.App",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.RemoteReadWriteLockTest",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.AbstractClusteredRemoteLockExtendProxyIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteLockExtendIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.locks.PofClusteredRemoteReadWriteLockIT",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.ClusteredBlockingDequeTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.LocalPagedBlockingQueueTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.ClusteredPagedBlockingQueueTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.LocalBlockingDequeTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.ExtendClientPagedBlockingQueueTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.NamedBlockingQueueTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.ExtendClientBlockingDequeTests",
+      "serializable": true
+    },
+    {
+      "type": "concurrent.queues.NamedBlockingDequeTests",
       "serializable": true
     }
   ]

@@ -454,8 +454,16 @@ public class CoherenceCluster
             {
             for (CoherenceClusterMember member : cluster)
                 {
-                if (!member.invoke(new IsCoherenceRunning(f_setNames)))
+                try
                     {
+                    if (!member.invoke(new IsCoherenceRunning(f_setNames)))
+                        {
+                        return false;
+                        }
+                    }
+                catch (Exception e)
+                    {
+                    e.printStackTrace();
                     return false;
                     }
                 }

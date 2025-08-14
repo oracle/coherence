@@ -7,6 +7,7 @@
 package security;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
@@ -16,6 +17,7 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import javax.net.ssl.HostnameVerifier;
@@ -49,6 +51,7 @@ public class NettyRestSecurityTests
     @BeforeClass
     public static void _startup()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         System.setProperty("coherence.override", "security-coherence-override.xml");
         AbstractRestSecurityTests._startup();
         }
@@ -59,6 +62,7 @@ public class NettyRestSecurityTests
     @BeforeClass
     public static void startServer()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         Properties props = new Properties();
         props.setProperty("coherence.override", "security-coherence-override.xml");
         CoherenceClusterMember clusterMember = startCacheServer("NettyRestSecurityTests", "security", FILE_CFG_CACHE, props);

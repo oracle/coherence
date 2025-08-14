@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilder;
 import com.oracle.bedrock.junit.SessionBuilders;
 
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.testing.tests.streams.AbstractDoubleStreamTest;
 import com.tangosol.net.ConfigurableCacheFactory;
 
@@ -26,6 +27,7 @@ import lambda.framework.LambdaTestCluster;
 import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import remotable.RemotableTests;
 
 import static com.tangosol.net.cache.TypeAssertion.withoutTypeChecking;
 
@@ -37,7 +39,11 @@ public class DoubleStreamTests
         extends AbstractDoubleStreamTest
     {
     @ClassRule
-    public static CoherenceClusterResource CLUSTER = new LambdaTestCluster();
+    public static TestLogs testLogs = new TestLogs(DoubleStreamTests.class);
+
+    @ClassRule
+    public static CoherenceClusterResource CLUSTER = new LambdaTestCluster()
+            .with(testLogs);
 
     public static SessionBuilder MEMBER = SessionBuilders.storageDisabledMember();
 

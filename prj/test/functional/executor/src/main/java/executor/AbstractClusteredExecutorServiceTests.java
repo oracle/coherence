@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1484,13 +1484,13 @@ public abstract class AbstractClusteredExecutorServiceTests
 
             if (jmxFeature != null)
                 {
-                ObjectName          name     = new ObjectName("Coherence:" + ExecutorMBean.EXECUTOR_TYPE
+                ObjectName      name     = new ObjectName("Coherence:" + ExecutorMBean.EXECUTOR_TYPE
                                                               + ExecutorMBean.EXECUTOR_NAME + key + ",*");
-                Set<ObjectInstance> setMBeans = jmxFeature.queryMBeans(name, null);
+                Set<ObjectName> setMBeans = jmxFeature.queryNames(name, null);
 
-                if (setMBeans != null)
+                if (setMBeans != null && !setMBeans.isEmpty())
                     {
-                    name = setMBeans.iterator().next().getObjectName();
+                    name = setMBeans.iterator().next();
 
                     return jmxFeature.getDeferredMBeanProxy(name, ExecutorMBean.class);
                     }

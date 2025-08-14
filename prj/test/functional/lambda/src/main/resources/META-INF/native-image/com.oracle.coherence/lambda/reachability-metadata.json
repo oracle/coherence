@@ -1,0 +1,8 @@
+{
+  "reflection": [
+     {
+      "type": "data.pof.PortablePerson",
+      "serializable": true
+    }
+  ]
+}

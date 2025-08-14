@@ -7,6 +7,7 @@
 
 package grpc.client;
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.ai.DocumentChunk;
@@ -2439,12 +2440,23 @@ public abstract class AbstractGrpcClientIT
         TreeMap<String, Serializer> map = new TreeMap<>();
 
         map.put("", new DefaultSerializer());
-        map.put("json", new JsonSerializer());
 
         OperationalContext ctx = (OperationalContext) CacheFactory.getCluster();
         for (Map.Entry<String, SerializerFactory> entry : ctx.getSerializerMap().entrySet())
             {
-            map.put(entry.getKey(), entry.getValue().createSerializer(loader));
+            Serializer serializer = entry.getValue().createSerializer(loader);
+            if (serializer instanceof JsonSerializer && NativeImageProfile.isEnabled())
+                {
+                // skip json for native image tests
+                continue;
+                }
+            map.put(entry.getKey(), serializer);
+            }
+
+        if (!map.containsKey("json") && !NativeImageProfile.isEnabled())
+            {
+            // if not running native image and JsonSerializer not already added, then add JsonSerializer
+            map.put("json", new JsonSerializer());
             }
 
         return map.entrySet().stream()

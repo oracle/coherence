@@ -1141,6 +1141,37 @@
       ]
     },
     {
+      "type": "java.security.cert.CertPath",
+      "serializable": true,
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "java.security.cert.CertPath$CertPathRep",
+      "serializable": true,
+      "allDeclaredFields": true,
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
+      "type": "sun.security.provider.ConfigFile",
+      "methods": [
+        {
+          "name": "<init>",
+          "parameterTypes": []
+        }
+      ]
+    },
+    {
       "type": "sun.security.provider.DSAParameters",
       "methods": [
         {
@@ -1182,6 +1213,9 @@
   "resources": [
     {
       "glob": "META-INF/pof.idx"
+    },
+    {
+      "glob": "META-INF/helidon/serial-config.properties"
     },
     {
       "glob": "cache-factory-builder-config.xml"

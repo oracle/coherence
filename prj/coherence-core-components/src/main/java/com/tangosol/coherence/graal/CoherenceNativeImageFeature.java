@@ -48,8 +48,11 @@ import com.tangosol.io.pof.PortableException;
 import com.tangosol.io.pof.PortableObject;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 
+import com.tangosol.license.LicensedObject;
 import com.tangosol.net.AbstractInvocable;
+import com.tangosol.net.ClusterPermission;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberIdentityProvider;
 import com.tangosol.net.SessionConfiguration;
 import com.tangosol.net.SessionProvider;
@@ -69,17 +72,27 @@ import com.tangosol.run.xml.PropertyAdapter;
 import com.tangosol.run.xml.XmlSerializable;
 
 import com.tangosol.util.AbstractSparseArray;
+import com.tangosol.util.AnyEvent;
+import com.tangosol.util.CacheCollator;
 import com.tangosol.util.HealthCheck;
 
+import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
+import com.tangosol.util.NullImplementation;
+import com.tangosol.util.SafeHashMap;
+import com.tangosol.util.SimpleLongArray;
+import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.WrapperCollections;
 import com.tangosol.util.WrapperException;
 import com.tangosol.util.extractor.AbstractExtractor;
+import com.tangosol.util.filter.LikeFilter;
+import org.graalvm.nativeimage.hosted.RuntimeProxyCreation;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeResourceAccess;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
 import javax.management.Descriptor;
+import javax.management.MBeanException;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanInfo;
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
@@ -92,12 +105,25 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
+import java.security.Permission;
+import java.security.Principal;
+import java.security.SignedObject;
+import java.security.cert.CertPath;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
 
 /**
@@ -139,8 +165,6 @@ public class CoherenceNativeImageFeature
         ClassLoader imageClassLoader = access.getApplicationClassLoader();
         List<Path>  classPath        = access.getApplicationClassPath();
 
-        // Find all the classes that are Coherence functional interfaces,
-        // basically any class under a Coherence package annotated with @FunctionalInterface
         scan(imageClassLoader, classPath, classInfo ->
             {
             try
@@ -148,11 +172,33 @@ public class CoherenceNativeImageFeature
                 var clazz = Class.forName(classInfo.getName(), false, imageClassLoader);
                 String packageName = clazz.getPackageName();
 
-                if (clazz.isAnnotationPresent(FunctionalInterface.class)
-                        && Serializable.class.isAssignableFrom(clazz)
-                        && (packageName.startsWith("com.oracle.coherence") || packageName.startsWith("com.tangosol")))
+                if (packageName.startsWith("com.oracle.coherence") || packageName.startsWith("com.tangosol"))
                     {
-                    access.registerSubtypeReachabilityHandler(LambdaReachableTypeHandler.INSTANCE, clazz);
+                    // this is a Coherence class
+
+                    // Find all the classes that are Coherence functional interfaces,
+                    // basically any class under a Coherence package annotated with @FunctionalInterface
+                    if (clazz.isAnnotationPresent(FunctionalInterface.class) && Serializable.class.isAssignableFrom(clazz))
+                        {
+                        access.registerSubtypeReachabilityHandler(LambdaReachableTypeHandler.INSTANCE, clazz);
+                        }
+
+                    // Assume any Coherence interface with a name ending MBean needs to be proxied
+                    if (clazz.isInterface() && clazz.getSimpleName().endsWith("MBean"))
+                        {
+                        RuntimeProxyCreation.register(clazz);
+                        }
+
+                    if (Collection.class.isAssignableFrom(clazz) && Serializable.class.isAssignableFrom(clazz))
+                        {
+                        // this is a Coherence serializable collection so register it
+                        RuntimeSerialization.register(clazz);
+                        }
+                    else if (Map.class.isAssignableFrom(clazz) && Serializable.class.isAssignableFrom(clazz))
+                        {
+                        // this is a Coherence serializable map so register it
+                        RuntimeSerialization.register(clazz);
+                        }
                     }
                 }
             catch (ClassNotFoundException | NoClassDefFoundError e)
@@ -171,7 +217,18 @@ public class CoherenceNativeImageFeature
         RuntimeSerialization.register(WrapperException.class);
         RuntimeSerialization.register(ReflectiveOperationException.class);
         RuntimeSerialization.register(InvocationTargetException.class);
+        RuntimeSerialization.register(RejectedExecutionException.class);
+        RuntimeSerialization.register(MBeanException.class);
+
+        RuntimeSerialization.register(LicensedObject.class);
+        RuntimeSerialization.register(Permission.class);
+        registerAllElements(Permission.class);
+        RuntimeSerialization.register(ClusterPermission.class);
+        registerAllElements(ClusterPermission.class);
+        RuntimeSerialization.register(SignedObject.class);
+
         RuntimeSerialization.register(MBeanAccessor.QueryBuilder.ParsedQuery.class);
+        registerAllElements(MBeanAccessor.QueryBuilder.ParsedQuery.class);
 
         RuntimeSerialization.register(BigDecimal.class);
         RuntimeSerialization.register(BigInteger.class);
@@ -181,13 +238,24 @@ public class CoherenceNativeImageFeature
         RuntimeSerialization.register(TreeSet.class);
         RuntimeSerialization.register(TreeMap.class);
 
-        // Coherence may return empty collections from some calls, so
+        RuntimeSerialization.register(SafeHashMap.class);
+        RuntimeSerialization.register(SimpleLongArray.class);
+
+        // Coherence may return collections from some calls, so
         // ensure these classes are registered for serialization
         // just in case the default serializer is in use
+        RuntimeSerialization.register(LinkedList.class);
+        registerAllElements(LinkedList.class);
+        RuntimeSerialization.register(Collections.unmodifiableList(new ArrayList<>()).getClass());
+        registerAllElements(Collections.unmodifiableList(new ArrayList<>()).getClass());
         RuntimeSerialization.register(Collections.EMPTY_LIST.getClass());
         registerAllElements(Collections.EMPTY_LIST.getClass());
+        RuntimeSerialization.register(Collections.unmodifiableMap(new HashMap<>()).getClass());
+        registerAllElements(Collections.unmodifiableMap(new HashMap<>()).getClass());
         RuntimeSerialization.register(Collections.EMPTY_MAP.getClass());
         registerAllElements(Collections.EMPTY_MAP.getClass());
+        RuntimeSerialization.register(Collections.unmodifiableSet(new HashSet<>()).getClass());
+        registerAllElements(Collections.unmodifiableSet(new HashSet<>()).getClass());
         RuntimeSerialization.register(Collections.EMPTY_SET.getClass());
         registerAllElements(Collections.EMPTY_SET.getClass());
 
@@ -259,6 +327,7 @@ public class CoherenceNativeImageFeature
             MapJsonBodyHandler.class,
             MemberIdentityProvider.class,
             MetricsRegistryAdapter.class,
+            MemberEvent.class,
             Model.class,
             NamespaceHandler.class,
             OperationalConfigNamespaceHandler.Extension.class,
@@ -284,19 +353,30 @@ public class CoherenceNativeImageFeature
             AbstractExtractor.class, // <-- Serializable but not Ext'Lite nor POF and some subclasses are not either
             ExternalizableLite.class,
             PortableException.class,
+            Certificate.class,
+            Principal.class,
+            CertPath.class,
+            Component.class,
             LongArray.class,
             AbstractSparseArray.class,
             AbstractSparseArray.Node.class,
             AbstractInvocable.class,
             TopicException.class,
             TopicPublisherException.class,
-            Number.class,
+            MemberEvent.class,
             Model.class,
+            Number.class,
+            PropertyAdapter.class,
+            Listeners.class,
+            AnyEvent.class,
+            NullImplementation.NullSet.class,
+            CacheCollator.class,
             SerializedLambda.class, // lambdas
             MBeanInfo.class, // MBeans
             MBeanFeatureInfo.class, // MBeans
             Descriptor.class, // MBeans
             SerializationSupport.class,
+            SimpleMapEntry.class,
             WrapperCollections.AbstractWrapperCollection.class,
             WrapperCollections.AbstractWrapperEntry.class,
             WrapperCollections.AbstractWrapperMap.class);

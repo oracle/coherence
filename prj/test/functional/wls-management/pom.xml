@@ -22,8 +22,10 @@
 
   <properties>
     <moditect.skip>true</moditect.skip>
-    <skip.native.tests>true</skip.native.tests>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>

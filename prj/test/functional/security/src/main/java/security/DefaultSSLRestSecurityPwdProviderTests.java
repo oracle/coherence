@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,10 @@
 package security;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import org.junit.AfterClass;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -41,6 +43,7 @@ public class DefaultSSLRestSecurityPwdProviderTests
     @BeforeClass
     public static void startServer()
         {
+        Assume.assumeFalse("Coherence REST tests skipped when using native image", NativeImageProfile.isEnabled());
         System.setProperty("coherence.override", "tangosol-coherence-override-pwd-provider.xml");
         CoherenceClusterMember clusterMember = startCacheServer("DefaultSSLRestSecurityPwdProviderTests", "security", FILE_CFG_CACHE_RSA);
         Eventually.assertThat(invoking(clusterMember).isServiceRunning("HttpProxyService"), is(true));

@@ -24,6 +24,10 @@
     <module.name>grpc.proxy.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
+
+    <!-- No tests to run in this module -->
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>

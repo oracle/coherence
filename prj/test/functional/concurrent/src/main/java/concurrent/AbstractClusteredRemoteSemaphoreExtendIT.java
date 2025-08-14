@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -278,8 +278,7 @@ public abstract class AbstractClusteredRemoteSemaphoreExtendIT
             member2.submit(new ClusteredRemoteSemaphoreIT.AcquirePermit(sSemaphoreName, 1, Duration.ofSeconds(5)));
 
             // Kill first member
-            RemoteCallable<Void> exit = new RemoteCallableStaticMethod<>("java.lang.System", "exit", 1);
-            member1.submit(exit);
+            member1.close();
 
             // wait for the permit acquired event from the second member
             listener2.awaitAcquired(Duration.ofMinutes(1));

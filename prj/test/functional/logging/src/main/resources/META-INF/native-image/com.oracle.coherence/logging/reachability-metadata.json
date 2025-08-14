@@ -1,0 +1,36 @@
+{
+  "reflection": [
+     {
+      "type": "logging.AbstractLoggerTests",
+      "serializable": true
+    },
+     {
+      "type": "logging.LogLevelTests",
+      "serializable": true
+    },
+     {
+      "type": "logging.LogLevelTests$IsLogLevelEnabled",
+      "serializable": true
+    },
+     {
+      "type": "logging.LogLevelTests$WriteLogMessage",
+      "serializable": true
+    },
+    {
+      "type": "logging.UnavailableTimeTests",
+      "serializable": true
+    },
+    {
+      "type": "oracle.dms.context.DMSContextManager",
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allPublicMethods": true
+    }
+  ],
+  "bundles": [
+    {
+      "name": "oracle.dms.context.ContextResourceBundle"
+    }
+  ]
+}

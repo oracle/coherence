@@ -27,6 +27,11 @@
 
     <java.version>21</java.version>
     <java.version.release>21</java.version.release>
+
+
+    <!-- No tests to run in this module -->
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>

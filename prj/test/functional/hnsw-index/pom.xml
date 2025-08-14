@@ -25,6 +25,10 @@
     <module.name>hnsw</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <failsafe.max.heap>2g</failsafe.max.heap>
+
+    <!-- Skip tests with native image until JNI is sorted out -->
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>

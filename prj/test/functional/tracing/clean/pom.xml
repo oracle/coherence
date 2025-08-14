@@ -20,6 +20,7 @@
   <name>Coherence Tracing Tests - Clean</name>
 
   <properties>
+    <skip.native.build>false</skip.native.build>
     <moditect.skip>true</moditect.skip>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>

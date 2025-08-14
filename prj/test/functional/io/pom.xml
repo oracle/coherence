@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,10 @@
       ${default.failsafe.modules.argline}
     </failsafe.modules.argline>
     <skip.pof.generation>false</skip.pof.generation>
+
+    <!-- Native images tests do not work due to the use of dynamic lambdas -->
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
   </properties>
 
   <dependencies>
