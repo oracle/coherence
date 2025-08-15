@@ -24,6 +24,7 @@
     <module.name>grpc.client.testing.netty</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
+    <coherence.graalvm.native.loadAllClassesFrom>grpc.client,netty.grpc.client.topic</coherence.graalvm.native.loadAllClassesFrom>
   </properties>
 
   <dependencies>

@@ -26,6 +26,8 @@
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
     <is.not.java.21>false</is.not.java.21>
 
+    <coherence.graalvm.native.loadAllClassesFrom>helidon.grpc.proxy</coherence.graalvm.native.loadAllClassesFrom>
+
     <!-- Currently fails native image testing -->
     <skip.native.build>true</skip.native.build>
     <skip.native.tests>true</skip.native.tests>

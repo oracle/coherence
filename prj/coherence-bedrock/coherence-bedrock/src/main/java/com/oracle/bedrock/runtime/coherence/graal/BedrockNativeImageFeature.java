@@ -44,6 +44,12 @@ public class BedrockNativeImageFeature
         return ANNOTATIONS;
         }
 
+    @Override
+    protected Set<String> getLoadAllClassesFromPackages()
+        {
+        return Set.of("com.oracle.bedrock");
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**

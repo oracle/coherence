@@ -962,7 +962,7 @@ public class LegacyXmlClusterDependencies
             }
         catch (Throwable e)
             {
-            throw new IllegalArgumentException("Error instantiating Filter with name: " + sName);
+            throw new IllegalArgumentException("Error instantiating Filter with name: " + sName, e);
             }
         }
 
