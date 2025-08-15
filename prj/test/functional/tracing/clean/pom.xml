@@ -20,7 +20,6 @@
   <name>Coherence Tracing Tests - Clean</name>
 
   <properties>
-    <skip.native.build>false</skip.native.build>
     <moditect.skip>true</moditect.skip>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
@@ -68,7 +67,13 @@
           <useModulePath>false</useModulePath>
         </configuration>
       </plugin>
-    </plugins>
+
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        </plugin>
+      </plugins>
   </build>
 
   <dependencies>

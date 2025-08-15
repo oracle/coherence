@@ -23,7 +23,7 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-    <coherence.graalvm.native.loadAllClassesFrom>ai_tests</coherence.graalvm.native.loadAllClassesFrom>
+    <coherence.graalvm.native.loadAllClasses>ai_tests</coherence.graalvm.native.loadAllClasses>
   </properties>
 
   <dependencies>
@@ -58,7 +58,17 @@
     </dependency>
   </dependencies>
 
-  <profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.graalvm.buildtools</groupId>
+                <artifactId>native-maven-plugin</artifactId>
+                <extensions>true</extensions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
     <profile>
       <id>stage6</id>
       <properties>

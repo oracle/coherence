@@ -22,7 +22,6 @@
 
   <properties>
     <module.name>testing.tracing</module.name>
-    <skip.native.build>false</skip.native.build>
   </properties>
 
   <dependencies>

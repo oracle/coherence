@@ -25,7 +25,6 @@
     <module.name>testing.tracing.opentelemetry.grpc</module.name>
     <bedrockUseModules>false</bedrockUseModules>
     <moditect.skip>true</moditect.skip>
-    <skip.native.build>false</skip.native.build>
   </properties>
 
   <dependencies>
@@ -50,4 +49,14 @@
       <version>${opentelemetry.grpc.version}</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        </plugin>
+      </plugins>
+  </build>
 </project>

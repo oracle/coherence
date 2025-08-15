@@ -29,10 +29,6 @@
     </profile>
   </profiles>
 
-  <properties>
-      <skip.native.build>true</skip.native.build>
-  </properties>
-
   <modules>
     <module>common</module>
     <module>clean</module>
