@@ -17,17 +17,11 @@ import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
-import java.io.IOException;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-
-import java.util.Comparator;
 
 import java.util.List;
 import java.util.Set;
@@ -36,7 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * A base class for GraalVM native {@link Feature} implementations.
@@ -48,8 +41,8 @@ public abstract class AbstractNativeImageFeature
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access)
         {
-        ClassLoader   imageClassLoader = access.getApplicationClassLoader();
-        List<Path>    classPath        = access.getApplicationClassPath();
+        ClassLoader imageClassLoader = access.getApplicationClassLoader();
+        List<Path>  classPath        = access.getApplicationClassPath();
 
         // Register a reachability handler for all the serializable types
         // which will register any subtypes for serialization
@@ -62,20 +55,37 @@ public abstract class AbstractNativeImageFeature
             access.registerSubtypeReachabilityHandler(SerializableReachableTypeHandler.INSTANCE, clazz);
             }
 
+        Set<String> setPackage = getLoadAllClassesFromPackages();
+        System.out.println("Oracle Coherence: Registering all classes from packages: " + setPackage);
+
         // Find any subtypes of serializable classes on the class path
         // and register them
         scan(imageClassLoader, classPath, classInfo ->
             {
             try
                 {
-                var clazz = Class.forName(classInfo.getName(), false, imageClassLoader);
+                var     clazz       = Class.forName(classInfo.getName(), false, imageClassLoader);
+                boolean fRegistered = false;
+
+                for (String packageName : setPackage)
+                    {
+                    if (classInfo.getPackageName().startsWith(packageName))
+                        {
+                        registerAllElements(clazz);
+                        fRegistered = true;
+                        break;
+                        }
+                    }
+
                 for (Class<?> serializableType : getSerializableTypes())
                     {
                     if (serializableType.isAssignableFrom(clazz))
                         {
-                        logRegistration(serializableType, clazz);
                         RuntimeSerialization.register(clazz);
-                        registerAllElements(clazz);
+                        if (!fRegistered)
+                            {
+                            registerAllElements(clazz);
+                            }
                         break;
                         }
                     }
@@ -106,7 +116,6 @@ public abstract class AbstractNativeImageFeature
                     {
                     if (clazz.getAnnotation(annotation) != null)
                         {
-                        logRegistration(annotation, clazz);
                         registerAllElements(clazz);
                         registered = true;
                         break;
@@ -117,9 +126,8 @@ public abstract class AbstractNativeImageFeature
                     {
                     for (Class<?> handledSuperType : getSupertypes())
                         {
-                        if (!handledSuperType.isAssignableFrom(clazz))
+                        if (handledSuperType.isAssignableFrom(clazz))
                             {
-                            logRegistration(handledSuperType, clazz);
                             registerAllElements(clazz);
                             break;
                             }
@@ -133,17 +141,14 @@ public abstract class AbstractNativeImageFeature
                 // ignore: due to incomplete classpath
                 }
             });
-
-        /* Dump processed elements into Json */
-        if (getProcessedElementsPath() != null)
-            {
-            writeToFile(getProcessedElementsPath(), processedTypes.stream()
-                    .sorted(Comparator.comparing(c -> c.type.getTypeName()))
-                    .map(c -> "{ \"reason\": \"" + c.reason + "\", \"type\": \"" + c.type.getTypeName() + "\" }")
-                    .collect(Collectors.joining(",\n ", "[\n ", "\n]"))
-            );
-            }
         }
+
+    /**
+     * Return the set of package names to register all classes from.
+     *
+     * @return the set of package names to register all classes from
+     */
+    protected abstract Set<String> getLoadAllClassesFromPackages();
 
     /**
      * Return the set of supertypes to register for serialization with all subtypes of these types.
@@ -216,11 +221,6 @@ public abstract class AbstractNativeImageFeature
         RuntimeReflection.register(clazz.getDeclaredFields());
         }
 
-    protected static String getProcessedElementsPath()
-        {
-        return System.getProperty("com.oracle.coherence.graal.processedElementsPath");
-        }
-
     protected static void registerClass(Class<?> clazz)
         {
         /* Register all members: a new API is coming where this is one line */
@@ -259,37 +259,6 @@ public abstract class AbstractNativeImageFeature
             }
         }
 
-    protected static void writeToFile(String filePath, String content)
-        {
-        try
-            {
-            Path path = Paths.get(filePath);
-            if (path.getParent() != null)
-                {
-                Files.createDirectories(path.getParent());
-                }
-            Files.writeString(path, content);
-            }
-        catch (IOException e)
-            {
-            throw new RuntimeException(e);
-            }
-        }
-
-    protected void logRegistration(Class<?> reason, Class<?> clazz)
-        {
-        if (getProcessedElementsPath() != null)
-            {
-            processedTypes.add(new ReasonClass(reason, clazz));
-            }
-        }
-
-    // ----- inner class: ReasonClass ---------------------------------------
-
-    protected record ReasonClass(Class<?> reason, Class<?> type)
-        {
-        }
-
     // ----- inner class: SerializableReachableTypeHandler ------------------
 
     /**
@@ -319,11 +288,4 @@ public abstract class AbstractNativeImageFeature
          */
         protected static final Set<Class<?>> processed = ConcurrentHashMap.newKeySet();
         }
-
-    // ----- data members ---------------------------------------------------
-
-    /**
-     * The types already processed by the feature.
-     */
-    private final Set<ReasonClass> processedTypes = ConcurrentHashMap.newKeySet();
     }

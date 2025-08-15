@@ -26,6 +26,8 @@
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
     <is.not.java.21>false</is.not.java.21>
 
+    <coherence.graalvm.native.loadAllClassesFrom>grpc.proxy,netty.grpc.proxy</coherence.graalvm.native.loadAllClassesFrom>
+
     <java.version>21</java.version>
     <java.version.release>21</java.version.release>
 

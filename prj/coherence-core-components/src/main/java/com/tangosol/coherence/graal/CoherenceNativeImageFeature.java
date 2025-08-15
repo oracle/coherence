@@ -50,8 +50,11 @@ import com.tangosol.io.pof.schema.annotation.PortableType;
 
 import com.tangosol.license.LicensedObject;
 import com.tangosol.net.AbstractInvocable;
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ClusterPermission;
 import com.tangosol.net.Coherence;
+import com.tangosol.net.CompressionFilter;
+import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberIdentityProvider;
 import com.tangosol.net.SessionConfiguration;
@@ -74,18 +77,22 @@ import com.tangosol.run.xml.XmlSerializable;
 import com.tangosol.util.AbstractSparseArray;
 import com.tangosol.util.AnyEvent;
 import com.tangosol.util.CacheCollator;
+import com.tangosol.util.Filter;
 import com.tangosol.util.HealthCheck;
 
+import com.tangosol.util.InvocableMap;
 import com.tangosol.util.Listeners;
 import com.tangosol.util.LongArray;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SimpleLongArray;
 import com.tangosol.util.SimpleMapEntry;
+import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperCollections;
 import com.tangosol.util.WrapperException;
 import com.tangosol.util.extractor.AbstractExtractor;
-import com.tangosol.util.filter.LikeFilter;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import org.graalvm.nativeimage.hosted.RuntimeProxyCreation;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeResourceAccess;
@@ -96,6 +103,8 @@ import javax.management.MBeanException;
 import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanInfo;
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
@@ -103,6 +112,7 @@ import java.lang.invoke.SerializedLambda;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Path;
 
 import java.security.Permission;
@@ -110,8 +120,8 @@ import java.security.Principal;
 import java.security.SignedObject;
 import java.security.cert.CertPath;
 import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -119,10 +129,13 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiConsumer;
 
@@ -159,6 +172,50 @@ public class CoherenceNativeImageFeature
         return ANNOTATIONS;
         }
 
+    protected Set<String> getLoadAllClassesFromPackages()
+        {
+        return loadAllClassesFromPackages;
+        }
+
+    @Override
+    public void duringSetup(DuringSetupAccess access)
+        {
+        addPackageNames(System.getProperty(PROP_PREFIX + PROP_LOAD_ALL_CLASSES));
+
+        ClassLoader imageClassLoader = access.getApplicationClassLoader();
+        List<Path>  classPath        = access.getApplicationClassPath();
+
+        try (ScanResult result = new ClassGraph()
+                .acceptClasspathElementsContainingResourcePath(COHERENCE_NATIVE_IMAGE_PROPERTIES_PATTERN)
+                .overrideClasspath(classPath)
+                .overrideClassLoaders(imageClassLoader)
+                .enableAllInfo()
+                .scan(Runtime.getRuntime().availableProcessors()))
+            {
+            List<URL> urLs = result.getResourcesWithLeafName(COHERENCE_NATIVE_IMAGE_PROPERTIES).getURLs();
+            for (URL url : urLs)
+                {
+                try
+                    {
+                    System.out.println("Oracle Coherence: Loading Coherence native properties " + url);
+                    try (InputStream in = url.openStream())
+                        {
+                        Properties props = new Properties();
+                        props.load(in);
+                        COHERENCE_PROPERTIES.add(props);
+                        addPackageNames(props.getProperty("packages"));
+                        }
+                    }
+                catch (IOException e)
+                    {
+                    throw new RuntimeException("Failed to load Coherence properties from " + url, e);
+                    }
+                }
+            }
+
+
+        }
+
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access)
         {
@@ -174,8 +231,6 @@ public class CoherenceNativeImageFeature
 
                 if (packageName.startsWith("com.oracle.coherence") || packageName.startsWith("com.tangosol"))
                     {
-                    // this is a Coherence class
-
                     // Find all the classes that are Coherence functional interfaces,
                     // basically any class under a Coherence package annotated with @FunctionalInterface
                     if (clazz.isAnnotationPresent(FunctionalInterface.class) && Serializable.class.isAssignableFrom(clazz))
@@ -209,6 +264,11 @@ public class CoherenceNativeImageFeature
 
         super.beforeAnalysis(access);
 
+        // Register main classes
+        registerAllElements(Coherence.class);
+        registerAllElements(DefaultCacheServer.class);
+        registerAllElements(CacheFactory.class);
+
         // Register exceptions
         RuntimeSerialization.register(StackTraceElement.class);
         RuntimeSerialization.register(Throwable.class);
@@ -226,6 +286,9 @@ public class CoherenceNativeImageFeature
         RuntimeSerialization.register(ClusterPermission.class);
         registerAllElements(ClusterPermission.class);
         RuntimeSerialization.register(SignedObject.class);
+
+        //noinspection deprecation
+        registerAllElements(CompressionFilter.class);
 
         RuntimeSerialization.register(MBeanAccessor.QueryBuilder.ParsedQuery.class);
         registerAllElements(MBeanAccessor.QueryBuilder.ParsedQuery.class);
@@ -273,6 +336,18 @@ public class CoherenceNativeImageFeature
             }
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    private void addPackageNames(String packages)
+        {
+        if (packages != null && !packages.isBlank())
+            {
+            Arrays.stream(packages.trim().split(","))
+                    .map(String::trim)
+                    .forEach(loadAllClassesFromPackages::add);
+            }
+        }
+
     // ----- inner class: LambdaReachableTypeHandler ------------------------
 
     public static class LambdaReachableTypeHandler
@@ -308,12 +383,19 @@ public class CoherenceNativeImageFeature
     /**
      * All subclasses of these types will be included.
      */
+    @SuppressWarnings("deprecation")
     public static final Set<Class<?>> SUPERTYPES = Set.of(
             CacheConfigNamespaceHandler.Extension.class,
             Coherence.LifecycleListener.class,
             Component.class,
             DocumentElementPreprocessor.ElementPreprocessor.class,
             DocumentPreprocessor.class,
+            Filter.class,
+            ValueExtractor.class,
+            InvocableMap.EntryAggregator.class,
+            InvocableMap.EntryProcessor.class,
+            InvocableMap.StreamingAggregator.class,
+            InvocableMap.ParallelAwareAggregator.class,
             ElementProcessor.class,
             EnvironmentVariableResolver.class,
             ExternalizableLite.class,
@@ -385,4 +467,21 @@ public class CoherenceNativeImageFeature
      * All types with these annotations will be included.
      */
     public static final Set<Class<? extends Annotation>> ANNOTATIONS = Set.of(PortableType.class);
+
+    public static final String PROP_LOAD_ALL_CLASSES = "loadAllClasses";
+
+    public static final String PROP_PREFIX = "coherence.graalvm.native.";
+
+    public static final String COHERENCE_NATIVE_IMAGE_PROPERTIES = "coherence-native.properties";
+
+    public static final String COHERENCE_NATIVE_IMAGE_PROPERTIES_PATTERN = "META-INF/*/"
+            + COHERENCE_NATIVE_IMAGE_PROPERTIES;
+
+    /**
+     * The list of {@code coherence-native.properties} file loaded.
+     */
+    private final List<Properties> COHERENCE_PROPERTIES = new CopyOnWriteArrayList<>();
+
+    private final SortedSet<String> loadAllClassesFromPackages
+            = new TreeSet<>(Set.of("com.oracle.coherence", "com.tangosol"));
     }

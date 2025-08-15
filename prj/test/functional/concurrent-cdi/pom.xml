@@ -22,6 +22,7 @@
   <properties>
     <module.name>concurrent.cdi.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <coherence.graalvm.native.loadAllClassesFrom>concurrent</coherence.graalvm.native.loadAllClassesFrom>
 
     <!-- Currently fails native image testing -->
     <skip.native.build>true</skip.native.build>

@@ -34,6 +34,7 @@
 
   <properties>
     <dependency-check.skip>true</dependency-check.skip>
+    <coherence.graalvm.native.loadAllClassesFrom>${project.artifactId}</coherence.graalvm.native.loadAllClassesFrom>
     <skip.docs>true</skip.docs>
     <skip.sources>true</skip.sources>
   </properties>
@@ -396,7 +397,7 @@
                               </goals>
                               <phase>prepare-package</phase>
                               <configuration>
-                                  <isDetectionEnabled>false</isDetectionEnabled>
+                                  <isDetectionEnabled>true</isDetectionEnabled>
                               </configuration>
                           </execution>
                           <execution>
@@ -410,13 +411,14 @@
                                   <mainClass>com.oracle.bedrock.runtime.java.JavaApplicationRunner</mainClass>
                                   <quickBuild>true</quickBuild>
                                   <buildArgs>
+                                      <buildArg>-Dcoherence.graalvm.native.loadAllClassesFrom=${coherence.graalvm.native.loadAllClassesFrom}</buildArg>
                                       <buildArg>-march=native</buildArg>
+                                      <buildArg>--future-defaults=all</buildArg>
                                       <buildArg>--emit</buildArg>
                                       <buildArg>build-report</buildArg>
                                       <buildArg>-J-Xmx45g</buildArg>
                                       <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>
                                       <buildArg>-H:+UseConservativeUnsafeAccess</buildArg>
-                                      <buildArg>--enable-sbom=false</buildArg>
                                       <!-- Required for using http e.g. metrics, management, etc... -->
                                       <buildArg>--enable-http</buildArg>
                                       <buildArg>--enable-https</buildArg>
@@ -428,7 +430,6 @@
                                       <buildArg>--enable-monitoring=threaddump</buildArg>
                                       <!-- Required for tests that use JFRs, for example, management tests -->
                                       <buildArg>--enable-monitoring=jfr</buildArg>
-                                      <buildArg>--initialize-at-build-time=org.junit.platform.commons.support.scanning.DefaultClasspathScanner</buildArg>
                                       <!-- This is to capture a JFR of the native image compiler; it may break tests -->
                                       <!--                    <buildArg>-J-XX:StartFlightRecording=dumponexit=true</buildArg>-->
                                   </buildArgs>
