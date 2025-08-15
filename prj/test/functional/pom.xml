@@ -144,7 +144,6 @@
         <module>grpc-proxy-netty-21</module>
         <module>grpc-client-tck</module>
         <module>grpc-client-tck-21</module>
-        <module>grpc-client-helidon</module>
         <module>grpc-client-netty</module>
         <module>grpc-client-netty-21</module>
         <module>guardian</module>

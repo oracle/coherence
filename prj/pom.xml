@@ -401,7 +401,6 @@
         <module>coherence-grpc-proxy-helidon</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-grpc-client-common</module>
-        <module>coherence-grpc-client-helidon</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
         <module>coherence-hnsw</module>
@@ -471,7 +470,6 @@
         <module>coherence-grpc-proxy-helidon</module>
         <module>coherence-grpc-proxy</module>
         <module>coherence-grpc-client-common</module>
-        <module>coherence-grpc-client-helidon</module>
         <module>coherence-java-client</module>
         <module>coherence-concurrent</module>
         <module>coherence-hnsw</module>
