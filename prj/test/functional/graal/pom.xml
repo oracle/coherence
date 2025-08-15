@@ -55,11 +55,16 @@
     </dependency>
   </dependencies>
 
-  <!-- todo: enable once we can use Node and npm in RQ and Jenkins
-             and remove scripts/js from src/resources
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+      </plugin>
 
+  <!-- todo: enable once we can use Node and npm in RQ and Jenkins
+             and remove scripts/js from src/resources
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
@@ -95,10 +100,10 @@
           <workingDirectory>src/main/js</workingDirectory>
         </configuration>
       </plugin>
-
+-->
     </plugins>
   </build>
-  -->
+
   
   <profiles>
     <profile>

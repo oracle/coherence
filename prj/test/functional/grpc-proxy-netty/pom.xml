@@ -24,7 +24,7 @@
     <module.name>netty.grpc.proxy.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
-    <coherence.graalvm.native.loadAllClassesFrom>grpc.proxy,netty.grpc.proxy</coherence.graalvm.native.loadAllClassesFrom>
+    <coherence.graalvm.native.loadAllClasses>grpc.proxy,netty.grpc.proxy</coherence.graalvm.native.loadAllClasses>
   </properties>
 
   <dependencies>
@@ -86,6 +86,12 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
       </plugin>
     </plugins>
   </build>

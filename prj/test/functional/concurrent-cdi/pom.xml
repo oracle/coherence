@@ -22,7 +22,7 @@
   <properties>
     <module.name>concurrent.cdi.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-    <coherence.graalvm.native.loadAllClassesFrom>concurrent</coherence.graalvm.native.loadAllClassesFrom>
+    <coherence.graalvm.native.loadAllClasses>concurrent</coherence.graalvm.native.loadAllClasses>
 
     <!-- Currently fails native image testing -->
     <skip.native.build>true</skip.native.build>
@@ -116,7 +116,13 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>
+
+      <plugin>
+        <groupId>org.graalvm.buildtools</groupId>
+        <artifactId>native-maven-plugin</artifactId>
+        <extensions>true</extensions>
+        </plugin>
+      </plugins>
   </build>
 
   <profiles>
