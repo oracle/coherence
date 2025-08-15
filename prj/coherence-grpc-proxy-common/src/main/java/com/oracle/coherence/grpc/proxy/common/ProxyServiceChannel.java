@@ -31,13 +31,11 @@ import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.GrpcAcceptor;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
-import com.tangosol.internal.net.cluster.DefaultMemberIdentity;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
 
-import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
@@ -196,6 +194,7 @@ public class ProxyServiceChannel
             {
             ErrorsHelper.logIfNotCancelled(t);
             }
+        f_service.removeCloseable(this);
         if (m_connection != null)
             {
             m_connection.close();
