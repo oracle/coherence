@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,8 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
+import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.bedrock.testsupport.junit.TestLogs;
 import com.oracle.coherence.repository.AbstractRepository;
 
 import com.tangosol.coherence.component.util.SafeNamedCache;
@@ -51,8 +53,13 @@ public class RepositoryTests
         extends AbstractRepositoryTests
     {
     @ClassRule
+    public static final TestLogs testLogs = new TestLogs(RepositoryTests.class);
+
+    @ClassRule
     public static CoherenceClusterResource cluster = new CoherenceClusterResource()
-            .include(2, LocalStorage.enabled())
+            .include(2, LocalStorage.enabled(),
+                    DisplayName.of("storage"),
+                    testLogs)
             .with(SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                   LocalHost.only(),
                   SystemProperty.of("coherence.extend.enabled", "true"),

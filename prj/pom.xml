@@ -390,6 +390,7 @@
         <module>coherence-lucene</module>
         <module>coherence-management</module>
         <module>coherence-micrometer</module>
+        <module>coherence-native</module>
         <module>coherence-protobuf</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
@@ -459,6 +460,7 @@
         <module>coherence-lucene</module>
         <module>coherence-management</module>
         <module>coherence-micrometer</module>
+        <module>coherence-native</module>
         <module>coherence-protobuf</module>
         <module>coherence-http-netty</module>
         <module>coherence-rest</module>
@@ -580,6 +582,8 @@
       <id>stage2</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -587,6 +591,8 @@
       <id>stage3</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -594,6 +600,8 @@
       <id>stage4</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -601,6 +609,8 @@
       <id>stage5</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -608,6 +618,8 @@
       <id>stage6</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -615,6 +627,8 @@
       <id>stage7</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -622,6 +636,8 @@
       <id>stage8</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -629,6 +645,8 @@
       <id>stage9</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -636,6 +654,8 @@
       <id>stage10</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -643,6 +663,8 @@
       <id>stage11</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -650,6 +672,8 @@
       <id>stage12</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -660,6 +684,8 @@
       <id>stage13</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -671,6 +697,8 @@
       <properties>
         <project.official>true</project.official>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 

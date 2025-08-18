@@ -20,6 +20,8 @@
   <name>Coherence Protobuf Tests</name>
 
   <properties>
+    <skip.native.build>true</skip.native.build>
+    <skip.native.tests>true</skip.native.tests>
     <module.name>queue.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>

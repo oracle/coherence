@@ -7,6 +7,7 @@
 
 package com.tangosol.coherence.graal;
 
+import com.oracle.coherence.common.base.SimpleHolder;
 import com.oracle.coherence.common.internal.security.SecurityProvider;
 import com.oracle.coherence.common.schema.SchemaExtension;
 import com.oracle.coherence.common.schema.SchemaSource;
@@ -105,6 +106,8 @@ import javax.management.MBeanInfo;
 import javax.management.openmbean.OpenMBeanConstructorInfoSupport;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.NotSerializableException;
+import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 
@@ -203,7 +206,7 @@ public class CoherenceNativeImageFeature
                         Properties props = new Properties();
                         props.load(in);
                         COHERENCE_PROPERTIES.add(props);
-                        addPackageNames(props.getProperty("packages"));
+                        addPackageNames(props.getProperty(PROP_LOAD_ALL_CLASSES));
                         }
                     }
                 catch (IOException e)
@@ -270,15 +273,18 @@ public class CoherenceNativeImageFeature
         registerAllElements(CacheFactory.class);
 
         // Register exceptions
+        RuntimeSerialization.register(ClassNotFoundException.class);
+        RuntimeSerialization.register(Exception.class);
+        RuntimeSerialization.register(InvocationTargetException.class);
+        RuntimeSerialization.register(MBeanException.class);
+        RuntimeSerialization.register(NotSerializableException.class);
+        RuntimeSerialization.register(ObjectStreamException.class);
+        RuntimeSerialization.register(ReflectiveOperationException.class);
+        RuntimeSerialization.register(RejectedExecutionException.class);
+        RuntimeSerialization.register(RuntimeException.class);
         RuntimeSerialization.register(StackTraceElement.class);
         RuntimeSerialization.register(Throwable.class);
-        RuntimeSerialization.register(Exception.class);
-        RuntimeSerialization.register(RuntimeException.class);
         RuntimeSerialization.register(WrapperException.class);
-        RuntimeSerialization.register(ReflectiveOperationException.class);
-        RuntimeSerialization.register(InvocationTargetException.class);
-        RuntimeSerialization.register(RejectedExecutionException.class);
-        RuntimeSerialization.register(MBeanException.class);
 
         RuntimeSerialization.register(LicensedObject.class);
         RuntimeSerialization.register(Permission.class);
@@ -321,6 +327,11 @@ public class CoherenceNativeImageFeature
         registerAllElements(Collections.unmodifiableSet(new HashSet<>()).getClass());
         RuntimeSerialization.register(Collections.EMPTY_SET.getClass());
         registerAllElements(Collections.EMPTY_SET.getClass());
+
+        RuntimeSerialization.register(SimpleHolder.class);
+        registerAllElements(SimpleHolder.class);
+        RuntimeSerialization.register(com.tangosol.util.SimpleHolder.class);
+        registerAllElements(com.tangosol.util.SimpleHolder.class);
 
         registerAllElements(SecurityProvider.class);
         }
@@ -482,6 +493,8 @@ public class CoherenceNativeImageFeature
      */
     private final List<Properties> COHERENCE_PROPERTIES = new CopyOnWriteArrayList<>();
 
-    private final SortedSet<String> loadAllClassesFromPackages
-            = new TreeSet<>(Set.of("com.oracle.coherence", "com.tangosol"));
+    private final SortedSet<String> loadAllClassesFromPackages = new TreeSet<>(
+            Set.of("com.oracle.coherence",
+                    "com.tangosol",
+                    "com.github.benmanes.caffeine.cache"));
     }

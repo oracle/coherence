@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,18 +11,17 @@ package data.pof;
 import java.io.IOException;
 import java.io.Serializable;
 
+import com.oracle.coherence.common.base.Objects;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
-import com.tangosol.util.Base;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlAccessType;
 
 
 @XmlAccessorType(XmlAccessType.PROPERTY)
 public class Address
-        extends Base
         implements PortableObject, Serializable
     {
     public Address()
@@ -112,10 +111,10 @@ public class Address
         if (o instanceof Address)
             {
             Address that = (Address) o;
-            return equals(this.m_sStreet, that.m_sStreet) &&
-                   equals(this.m_sCity,   that.m_sCity)   &&
-                   equals(this.m_sState,  that.m_sState)  &&
-                   equals(this.m_sZip,    that.m_sZip);
+            return Objects.equals(this.m_sStreet, that.m_sStreet) &&
+                   Objects.equals(this.m_sCity,   that.m_sCity)   &&
+                   Objects.equals(this.m_sState,  that.m_sState)  &&
+                   Objects.equals(this.m_sZip,    that.m_sZip);
             }
 
         return false;

@@ -21,6 +21,7 @@
   <name>Coherence HTTP Configuration Tests</name>
 
   <properties>
+    <skip.native.build>true</skip.native.build>
     <module.name>http.config.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>

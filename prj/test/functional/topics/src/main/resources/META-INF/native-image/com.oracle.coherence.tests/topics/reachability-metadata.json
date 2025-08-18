@@ -1,6 +1,10 @@
 {
   "reflection": [
      {
+      "type": "topics.AbstractNamedTopicTests",
+      "serializable": true
+    },
+     {
       "type": "topics.data.Address",
       "serializable": true
     },
