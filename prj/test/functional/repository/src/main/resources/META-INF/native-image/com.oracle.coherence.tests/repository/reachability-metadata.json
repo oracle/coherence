@@ -7,6 +7,10 @@
     {
       "type": "data.repository.Gender",
       "serializable": true
+    },
+    {
+      "type": "java.time.LocalDate",
+      "serializable": true
     }
   ]
 }

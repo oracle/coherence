@@ -30,6 +30,7 @@
   </profiles>
 
   <properties>
+    <skip.native.build>true</skip.native.build>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>
 

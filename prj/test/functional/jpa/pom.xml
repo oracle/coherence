@@ -25,8 +25,41 @@
       <id>stage5</id>
       <properties>
         <skipTests>false</skipTests>
+        <skip.native.build>false</skip.native.build>
+        <skip.native.tests>false</skip.native.tests>
       </properties>
     </profile>
+      <profile>
+          <id>native</id>
+          <properties>
+              <moditect.skip>true</moditect.skip>
+          </properties>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <artifactId>maven-jar-plugin</artifactId>
+                      <executions>
+                          <execution>
+                              <!-- workaround when native image builds turns off modulePath. -->
+                              <id>default-jar</id>
+                              <phase>none</phase>
+                          </execution>
+                      </executions>
+                  </plugin>
+                  <plugin>
+                      <artifactId>maven-install-plugin</artifactId>
+                      <groupId>org.apache.maven.plugins</groupId>
+                      <executions>
+                          <execution>
+                              <id>default-install</id>
+                              <phase>none</phase>
+                          </execution>
+                      </executions>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
   </profiles>
 
   <properties>

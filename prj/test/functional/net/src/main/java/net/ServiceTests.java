@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package net;
 
 
+import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.runtime.java.ClassPath;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -136,6 +137,10 @@ public class ServiceTests
         // This test cannot run with modules enabled
         Assume.assumeFalse("Cannot run this test with Java module path",
                            System.getProperties().containsKey("jdk.module.path"));
+
+        // This test cannot run with in a native image
+        Assume.assumeFalse("Cannot run this test with GraalVM native images",
+                           NativeImageProfile.isEnabled());
 
         try
             {

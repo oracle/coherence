@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -66,6 +66,7 @@ import static com.tangosol.net.topic.Subscriber.ChannelOwnershipListeners.withLi
 import static com.tangosol.net.topic.Subscriber.Name.inGroup;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -774,7 +775,7 @@ public class TopicSubscriberManagementTests
             long                    nId        = subscriber.getId();
             s_mapSubscriber.put(nId, subscriber);
 
-            Eventually.assertDeferred(() -> subscriber.getChannels().length, is(greaterThan(0)));
+            Eventually.assertDeferred(() -> subscriber.getChannels().length, is(not(0)));
 
             return nId;
             }

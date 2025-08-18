@@ -17,6 +17,7 @@ import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
 import org.graalvm.nativeimage.hosted.RuntimeSerialization;
 
+import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -69,24 +70,46 @@ public abstract class AbstractNativeImageFeature
 
                 for (String packageName : setPackage)
                     {
-                    if (classInfo.getPackageName().startsWith(packageName))
+                    if (clazz.getPackageName().startsWith(packageName))
                         {
                         registerAllElements(clazz);
+                        if (Serializable.class.isAssignableFrom(clazz))
+                            {
+                            RuntimeSerialization.register(clazz);
+                            }
                         fRegistered = true;
                         break;
                         }
                     }
 
-                for (Class<?> serializableType : getSerializableTypes())
+                if (!fRegistered)
                     {
-                    if (serializableType.isAssignableFrom(clazz))
+                    for (Class<?> handledSuperType : getSupertypes())
                         {
-                        RuntimeSerialization.register(clazz);
-                        if (!fRegistered)
+                        if (handledSuperType.isAssignableFrom(clazz))
                             {
                             registerAllElements(clazz);
+                            if (Serializable.class.isAssignableFrom(clazz))
+                                {
+                                RuntimeSerialization.register(clazz);
+                                }
+                            fRegistered = true;
+                            break;
                             }
-                        break;
+                        }
+                    }
+
+                if (!fRegistered)
+                    {
+                    for (Class<?> serializableType : getSerializableTypes())
+                        {
+                        if (serializableType.isAssignableFrom(clazz))
+                            {
+                            RuntimeSerialization.register(clazz);
+                            registerAllElements(clazz);
+                            fRegistered = true;
+                            break;
+                            }
                         }
                     }
 
@@ -110,30 +133,14 @@ public abstract class AbstractNativeImageFeature
             try
                 {
                 var clazz = Class.forName(classInfo.getName(), false, imageClassLoader);
-                boolean registered = false;
-
                 for (Class<? extends Annotation> annotation : getAnnotations())
                     {
                     if (clazz.getAnnotation(annotation) != null)
                         {
                         registerAllElements(clazz);
-                        registered = true;
                         break;
                         }
                     }
-
-                if (!registered)
-                    {
-                    for (Class<?> handledSuperType : getSupertypes())
-                        {
-                        if (handledSuperType.isAssignableFrom(clazz))
-                            {
-                            registerAllElements(clazz);
-                            break;
-                            }
-                        }
-                    }
-
                 processClassAfterRegistration(access, clazz);
                 }
             catch (ClassNotFoundException | LinkageError e)
@@ -184,6 +191,9 @@ public abstract class AbstractNativeImageFeature
                 .overrideClasspath(classPath)
                 .overrideClassLoaders(imageClassLoader)
                 .enableAllInfo()
+                .ignoreClassVisibility()
+                .ignoreFieldVisibility()
+                .ignoreMethodVisibility()
                 .scan(Runtime.getRuntime().availableProcessors()))
             {
             scanResult.getAllClasses().forEach(consumer);

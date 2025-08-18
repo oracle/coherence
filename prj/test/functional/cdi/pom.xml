@@ -119,6 +119,8 @@
       <id>stage10</id>
       <properties>
         <skipTests>false</skipTests>
+        <skip.native.build>false</skip.native.build>
+        <skip.native.tests>false</skip.native.tests>
       </properties>
     </profile>
   </profiles>

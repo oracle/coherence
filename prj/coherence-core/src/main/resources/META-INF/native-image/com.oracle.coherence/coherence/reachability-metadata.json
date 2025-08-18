@@ -1208,6 +1208,10 @@
           "parameterTypes": []
         }
       ]
+    },
+    {
+      "type": "com.oracle.svm.core.jdk.UnsupportedFeatureError",
+      "serializable": true
     }
   ],
   "resources": [

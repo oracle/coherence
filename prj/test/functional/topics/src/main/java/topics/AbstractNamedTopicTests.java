@@ -5161,19 +5161,19 @@ public abstract class AbstractNamedTopicTests
     public static void validateTopicMBean(MBeanServer server, String sTypeMBean, String sName, int nMessageSize, int cMessages)
             throws Exception
         {
-        String              elementsCacheName = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sName);
-        boolean             fElementsDefined  = false;
-        Set<ObjectInstance> setMBean          = server.queryMBeans(new ObjectName("Coherence:type=" + sTypeMBean +",*"), null);
-        boolean             fCache            = false;
+        String          elementsCacheName = PagedTopicCaches.Names.CONTENT.cacheNameForTopicName(sName);
+        boolean         fElementsDefined  = false;
+        Set<ObjectName> setMBean          = server.queryNames(new ObjectName("Coherence:type=" + sTypeMBean +",*"), null);
+        boolean         fCache            = false;
 
         for (int attempt = 0; attempt < 5; attempt++)
             {
             int                 cUnits            = 0;
             int                 cSize             = 0;
 
-            for (ObjectInstance inst : setMBean)
+            for (ObjectName objectName : setMBean)
                 {
-                String sNameMBean = inst.getObjectName().toString();
+                String sNameMBean = objectName.toString();
 
                 assertFalse("Topic MetaCache MBean containing prefix " +  PagedTopicCaches.Names.METACACHE_PREFIX + " must not exist: " + sNameMBean,
                         sNameMBean.contains(PagedTopicCaches.Names.METACACHE_PREFIX));
@@ -5183,14 +5183,14 @@ public abstract class AbstractNamedTopicTests
 
                     if (sNameMBean.contains("Cache"))
                         {
-                        assertThat(sNameMBean + " MBean attribute constraint check: MemoryUnits", (boolean) server.getAttribute(inst.getObjectName(), "MemoryUnits"));
+                        assertThat(sNameMBean + " MBean attribute constraint check: MemoryUnits", (boolean) server.getAttribute(objectName, "MemoryUnits"));
 
-                        int  units      = (int) server.getAttribute(inst.getObjectName(),  "Units");
-                        int  unitFactor = (int) server.getAttribute(inst.getObjectName(),  "UnitFactor");
+                        int  units      = (int) server.getAttribute(objectName,  "Units");
+                        int  unitFactor = (int) server.getAttribute(objectName,  "UnitFactor");
 
                         fCache     = true;
                         cUnits     += (units * unitFactor);
-                        cSize      += (int) server.getAttribute(inst.getObjectName(),  "Size");
+                        cSize      += (int) server.getAttribute(objectName,  "Size");
                         }
                     }
                 }

@@ -30,6 +30,7 @@
   </profiles>
 
   <properties>
+    <skip.native.build>true</skip.native.build>
     <module.name>http.netty.tests</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
   </properties>

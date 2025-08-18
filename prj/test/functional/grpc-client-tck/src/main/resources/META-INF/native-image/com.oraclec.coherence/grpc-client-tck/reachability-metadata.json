@@ -1,6 +1,14 @@
 {
   "reflection": [
-     {
+    {
+      "type": "topics.AbstractNamedTopicTests",
+      "serializable": true,
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allPublicMethods": true
+    },
+    {
       "type": "grpc.client.Person",
       "serializable": true,
        "allDeclaredConstructors": true,

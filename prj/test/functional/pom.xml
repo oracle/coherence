@@ -238,6 +238,8 @@
       <id>stage1</id>
       <properties>
         <skipTests>true</skipTests>
+        <skip.native.build>true</skip.native.build>
+        <skip.native.tests>true</skip.native.tests>
       </properties>
     </profile>
 
@@ -384,7 +386,7 @@
           </activation>
           <build>
               <pluginManagement>
-              <plugins>
+                  <plugins>
                       <plugin>
                           <groupId>org.graalvm.buildtools</groupId>
                           <artifactId>native-maven-plugin</artifactId>
@@ -482,68 +484,73 @@
               <moditect.skip>true</moditect.skip>
           </properties>
           <dependencies>
-              <dependency>
-                  <groupId>org.junit.jupiter</groupId>
-                  <artifactId>junit-jupiter-params</artifactId>
-              </dependency>
-              <dependency>
-                  <groupId>org.junit.platform</groupId>
-                  <artifactId>junit-platform-launcher</artifactId>
-              </dependency>
-              <dependency>
-                  <groupId>org.junit.jupiter</groupId>
-                  <artifactId>junit-jupiter-engine</artifactId>
-              </dependency>
-              <dependency>
-                  <groupId>org.junit.vintage</groupId>
-                  <artifactId>junit-vintage-engine</artifactId>
-              </dependency>
+<!--              <dependency>-->
+<!--                  <groupId>org.junit.jupiter</groupId>-->
+<!--                  <artifactId>junit-jupiter-params</artifactId>-->
+<!--              </dependency>-->
+<!--              <dependency>-->
+<!--                  <groupId>org.junit.platform</groupId>-->
+<!--                  <artifactId>junit-platform-launcher</artifactId>-->
+<!--              </dependency>-->
+<!--              <dependency>-->
+<!--                  <groupId>org.junit.jupiter</groupId>-->
+<!--                  <artifactId>junit-jupiter-engine</artifactId>-->
+<!--              </dependency>-->
+<!--              <dependency>-->
+<!--                  <groupId>org.junit.vintage</groupId>-->
+<!--                  <artifactId>junit-vintage-engine</artifactId>-->
+<!--              </dependency>-->
           </dependencies>
           <build>
               <pluginManagement>
                   <plugins>
-<!--                    <plugin>-->
-<!--                      <groupId>org.graalvm.buildtools</groupId>-->
-<!--                      <artifactId>native-maven-plugin</artifactId>-->
-<!--                      <version>0.11.1-SNAPSHOT</version>-->
-<!--                      <extensions>true</extensions>-->
-<!--                      <executions>-->
-<!--                        <execution>-->
-<!--                          <id>native-test</id>-->
-<!--                          <goals>-->
-<!--                            <goal>test</goal>-->
-<!--                          </goals>-->
-<!--                          <phase>verify</phase>-->
-<!--                          <configuration>-->
-<!--                            <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>-->
-<!--                            <quickBuild>true</quickBuild>-->
-<!--                            <skipNativeTests>${skip.native.tests}</skipNativeTests>-->
-<!--                            <buildArgs>-->
-<!--                                <buildArg>-Dcoherence.graalvm.native.loadAllClasses=${coherence.graalvm.native.loadAllClasses}</buildArg>-->
-<!--                                <buildArg>-march=native</buildArg>-->
-<!--                                <buildArg>&#45;&#45;future-defaults=all</buildArg>-->
-<!--                                <buildArg>&#45;&#45;emit</buildArg>-->
-<!--                                <buildArg>build-report</buildArg>-->
-<!--                                <buildArg>-J-Xmx45g</buildArg>-->
-<!--                                <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>-->
-<!--                                <buildArg>-H:+UseConservativeUnsafeAccess</buildArg>-->
-<!--                                &lt;!&ndash; Required for using http e.g. metrics, management, etc... &ndash;&gt;-->
-<!--                                <buildArg>&#45;&#45;enable-http</buildArg>-->
-<!--                                <buildArg>&#45;&#45;enable-https</buildArg>-->
-<!--                                &lt;!&ndash; Required for tests that use JMX &ndash;&gt;-->
-<!--                                <buildArg>&#45;&#45;enable-monitoring=jmxserver,jmxclient,jvmstat</buildArg>-->
-<!--                                &lt;!&ndash; Required for tests that add -XX:+HeapDumpOnOutOfMemoryError &ndash;&gt;-->
-<!--                                <buildArg>&#45;&#45;enable-monitoring=heapdump</buildArg>-->
-<!--                                &lt;!&ndash; Required to generate thread dumps in a native image &ndash;&gt;-->
-<!--                                <buildArg>&#45;&#45;enable-monitoring=threaddump</buildArg>-->
-<!--                                &lt;!&ndash; Required for tests that use JFRs, for example, management tests &ndash;&gt;-->
-<!--                                <buildArg>&#45;&#45;enable-monitoring=jfr</buildArg>-->
-<!--                                &lt;!&ndash; This is to capture a JFR of the native image compiler; it may break tests &ndash;&gt;-->
-<!--                                &lt;!&ndash; <buildArg>-J-XX:StartFlightRecording=dumponexit=true</buildArg>  &ndash;&gt;-->
-<!--                              </buildArgs>-->
-<!--                            </configuration>-->
-<!--                          </execution>-->
-<!--                        </executions>-->
+<!--                      <plugin>-->
+<!--                          <groupId>org.graalvm.buildtools</groupId>-->
+<!--                          <artifactId>native-maven-plugin</artifactId>-->
+<!--                          <version>0.11.1-SNAPSHOT</version>-->
+<!--                          <extensions>true</extensions>-->
+<!--                          <executions>-->
+<!--                              <execution>-->
+<!--                                  <id>native-test</id>-->
+<!--                                  <goals>-->
+<!--                                      <goal>test</goal>-->
+<!--                                  </goals>-->
+<!--                                  <phase>verify</phase>-->
+<!--                                  <configuration>-->
+<!--                                      <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>-->
+<!--                                      <quickBuild>true</quickBuild>-->
+<!--                                      <skipNativeTests>${skip.native.tests}</skipNativeTests>-->
+<!--                                      <environment>-->
+<!--                                          <JAVA_HOME>${java.home}</JAVA_HOME>-->
+<!--                                      </environment>-->
+<!--                                      <buildArgs>-->
+<!--                                          <buildArg>-->
+<!--                                              -Dcoherence.graalvm.native.loadAllClasses=${coherence.graalvm.native.loadAllClasses}-->
+<!--                                          </buildArg>-->
+<!--                                          <buildArg>-march=native</buildArg>-->
+<!--                                          <buildArg>&#45;&#45;future-defaults=all</buildArg>-->
+<!--                                          <buildArg>&#45;&#45;emit</buildArg>-->
+<!--                                          <buildArg>build-report</buildArg>-->
+<!--                                          <buildArg>-J-Xmx45g</buildArg>-->
+<!--                                          <buildArg>-H:+UnlockExperimentalVMOptions</buildArg>-->
+<!--                                          <buildArg>-H:+UseConservativeUnsafeAccess</buildArg>-->
+<!--                                          &lt;!&ndash; Required for using http e.g. metrics, management, etc... &ndash;&gt;-->
+<!--                                          <buildArg>&#45;&#45;enable-http</buildArg>-->
+<!--                                          <buildArg>&#45;&#45;enable-https</buildArg>-->
+<!--                                          &lt;!&ndash; Required for tests that use JMX &ndash;&gt;-->
+<!--                                          <buildArg>&#45;&#45;enable-monitoring=jmxserver,jmxclient,jvmstat</buildArg>-->
+<!--                                          &lt;!&ndash; Required for tests that add -XX:+HeapDumpOnOutOfMemoryError &ndash;&gt;-->
+<!--                                          <buildArg>&#45;&#45;enable-monitoring=heapdump</buildArg>-->
+<!--                                          &lt;!&ndash; Required to generate thread dumps in a native image &ndash;&gt;-->
+<!--                                          <buildArg>&#45;&#45;enable-monitoring=threaddump</buildArg>-->
+<!--                                          &lt;!&ndash; Required for tests that use JFRs, for example, management tests &ndash;&gt;-->
+<!--                                          <buildArg>&#45;&#45;enable-monitoring=jfr</buildArg>-->
+<!--                                          &lt;!&ndash; This is to capture a JFR of the native image compiler; it may break tests &ndash;&gt;-->
+<!--                                          &lt;!&ndash; <buildArg>-J-XX:StartFlightRecording=dumponexit=true</buildArg>  &ndash;&gt;-->
+<!--                                      </buildArgs>-->
+<!--                                  </configuration>-->
+<!--                              </execution>-->
+<!--                          </executions>-->
 <!--                      </plugin>-->
                       <plugin>
                           <groupId>org.apache.maven.plugins</groupId>

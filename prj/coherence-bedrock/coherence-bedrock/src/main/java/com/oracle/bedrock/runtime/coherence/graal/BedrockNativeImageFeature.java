@@ -47,7 +47,7 @@ public class BedrockNativeImageFeature
     @Override
     protected Set<String> getLoadAllClassesFromPackages()
         {
-        return Set.of("com.oracle.bedrock");
+        return Set.of("com.oracle.bedrock", "org.hamcrest");
         }
 
     // ----- data members ---------------------------------------------------

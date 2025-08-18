@@ -22,6 +22,8 @@
 
   <properties>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
+    <skip.native.build>false</skip.native.build>
+    <skip.native.tests>false</skip.native.tests>
   </properties>
 
   <dependencies>

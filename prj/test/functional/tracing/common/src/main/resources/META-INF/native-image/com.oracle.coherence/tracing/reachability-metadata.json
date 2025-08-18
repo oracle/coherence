@@ -1,0 +1,31 @@
+{
+  "reflection": [
+    {
+      "type": "tracing.AbstractCacheOperationsTracingIT",
+      "serializable": true,
+      "allDeclaredFields": true,
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allPublicMethods": true
+    },
+    {
+      "type": "tracing.AbstractTracingIT",
+      "serializable": true,
+      "allDeclaredFields": true,
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allPublicMethods": true
+    },
+    {
+      "type": "tracing.AbstractJmxConfigurationIT",
+      "serializable": true,
+      "allDeclaredFields": true,
+      "allDeclaredConstructors": true,
+      "allPublicConstructors": true,
+      "allDeclaredMethods": true,
+      "allPublicMethods": true
+    }
+  ]
+}

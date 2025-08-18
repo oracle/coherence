@@ -3284,7 +3284,7 @@ public abstract class BaseManagementInfoResourceTests
                     {
                     cache.put(i, i);
                     }
-                assertThat(cache.size(), greaterThan(0));
+                assertThat(cache.isEmpty(), is(false));
                 return null;
                 });
 
