@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -10,14 +10,19 @@ package com.tangosol.net;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.util.VirtualThreads;
+
 import com.tangosol.util.Base;
-import com.tangosol.util.Daemon;
 
 import java.net.InetSocketAddress;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -57,7 +62,9 @@ public class RefreshableAddressProvider
         // populate the initial address list cache
         refreshAddressList();
         // initialize the refresh thread
-        f_daemonRefresh = new RefreshThread(lRefresh);
+        String sName = RefreshableAddressProvider.this.getClass().getName() + ": RefreshThread";
+        f_refreshTask   = new RefreshTask(lRefresh);
+        f_daemonRefresh = VirtualThreads.newMaybeVirtualThreadExecutor(r -> new Thread(r, sName));
         }
 
     /**
@@ -178,53 +185,73 @@ public class RefreshableAddressProvider
     */
     protected void ensureRefreshThread()
         {
-        if (!f_daemonRefresh.isRunning())
+        if (!f_refreshTask.isRunning())
             {
-            f_daemonRefresh.start();
+            f_daemonRefresh.execute(f_refreshTask);
             }
         }
 
 
     // ----- inner class: RefreshThread -------------------------------------
 
-    protected class RefreshThread
-            extends Daemon
+    protected class RefreshTask
+            implements Runnable
         {
         // ----- constructors -----------------------------------------------
 
         /**
-        * Construct a new RefreshThread with the specified refresh interval.
+        * Construct a new RefreshTask with the specified refresh interval.
         *
         * @param lRefresh  the refresh interval
         */
-        protected RefreshThread(long lRefresh)
+        protected RefreshTask(long lRefresh)
             {
-            super(RefreshableAddressProvider.this.getClass().getName() +
-                  ": RefreshThread");
             f_lRefresh = lRefresh;
             }
 
-        /**
-        * {@inheritDoc}
-        */
+        public boolean isRunning()
+            {
+            return m_fRunning;
+            }
+
+        @Override
         public void run()
             {
-            long lRefresh = f_lRefresh;
-            while (!isStopping())
+            if (m_fRunning)
                 {
-                try
+                return;
+                }
+
+            f_lock.lock();
+            try
+                {
+                if (!m_fRunning)
                     {
-                    refreshAddressList();
-                    stop();
+                    m_fRunning = true;
+                    long lRefresh = f_lRefresh;
+                    while (m_fRunning)
+                        {
+                        try
+                            {
+                            refreshAddressList();
+                            m_fRunning = false;
+                            }
+                        catch (Throwable t)
+                            {
+                            err("An exception occurred while refreshing an address list: " +
+                                    "\n" + t.getMessage() +
+                                    "\n" + getStackTrace(t) +
+                                    "\nReducing the refresh rate.");
+                            Base.sleep(lRefresh);
+                            lRefresh = 2 * lRefresh;
+                            }
+                        }
                     }
-                catch (Throwable t)
-                    {
-                    err("An exception occurred while refreshing an address list: " +
-                        "\n" + getStackTrace(t) +
-                        "\nReducing the refresh rate.");
-                    Base.sleep(lRefresh);
-                    lRefresh = 2 * lRefresh;
-                    }
+                }
+            finally
+                {
+                m_fRunning = false;
+                f_lock.unlock();
                 }
             }
 
@@ -234,6 +261,16 @@ public class RefreshableAddressProvider
         * The interval with which to attempt to refresh the address list.
         */
         protected final long f_lRefresh;
+
+        /**
+         * The flag to indicate whether the task is running.
+         */
+        private volatile boolean m_fRunning = false;
+
+        /**
+         * A lock to control running only a single task.
+         */
+        private final Lock f_lock = new ReentrantLock();
         }
 
 
@@ -357,7 +394,15 @@ public class RefreshableAddressProvider
     /**
     * The refresh daemon.
     */
-    protected final Daemon f_daemonRefresh;
+    protected final RefreshTask f_refreshTask;
+
+    /**
+    * The refresh executor.
+    * <p>
+    * This will be a single threaded executor on Java 17 or a
+    * virtual thread per-task on Java 21 or higher.
+    */
+    protected final Executor f_daemonRefresh;
 
     /**
     * An Iterator over the cached set of addresses.
