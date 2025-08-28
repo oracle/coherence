@@ -751,7 +751,10 @@ public abstract class Daemon
         ThreadGroup curThreadGroup = ensureThreadGroup();
         synchronized (curThreadGroup) // ensures that the thread group is not destroyed concurrently
             {
-            ensureThreadGroup();
+            if (curThreadGroup.isDestroyed())
+                {
+                ensureThreadGroup();
+                }
             threadWorker = makeThread(m_threadGroup, worker, null);
             }
 
@@ -782,9 +785,11 @@ public abstract class Daemon
     protected ThreadGroup ensureThreadGroup()
         {
         ThreadGroup threadGroup = m_threadGroup;
-        if (threadGroup == null)
+        if (threadGroup == null || threadGroup.isDestroyed())
             {
             threadGroup = m_threadGroup = new ThreadGroup(getConfiguredName());
+            // Make it a daemon so that it is destroyed automatically.
+            threadGroup.setDaemon(true);
             }
         return threadGroup;
         }

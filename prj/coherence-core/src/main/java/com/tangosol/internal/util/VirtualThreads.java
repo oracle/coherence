@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,10 @@
 package com.tangosol.internal.util;
 
 import com.tangosol.util.Base;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Helper class for virtual threads functionality.
@@ -67,5 +71,19 @@ public class VirtualThreads
     public static boolean isEnabled(String serviceName)
         {
         return false;
+        }
+
+    /**
+     * Returns either a new virtual thread per-task executor on Java 21 or higher
+     * or a single threaded executor if lower than Java 21.
+     *
+     * @param factory  the {@link ThreadFactory} to use if not on Java 21
+     *
+     * @return either a new virtual thread per-task executor on Java 21 or higher
+     *         or a single threaded executor if lower than Java 21.
+     */
+    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
+        {
+        return Executors.newSingleThreadExecutor(factory);
         }
     }

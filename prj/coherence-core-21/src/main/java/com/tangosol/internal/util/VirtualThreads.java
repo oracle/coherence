@@ -13,6 +13,9 @@ import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.security.SecurityHelper;
 
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.function.Function;
 
 /**
@@ -92,6 +95,21 @@ public class VirtualThreads
         return sServiceName == null
                ? isEnabled()
                : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(sServiceName), isEnabled());
+        }
+
+
+    /**
+     * Returns either a new virtual thread per-task executor on Java 21 or higher
+     * or a single threaded executor if lower than Java 21.
+     *
+     * @param factory  the {@link ThreadFactory} to use if not on Java 21
+     *
+     * @return either a new virtual thread per-task executor on Java 21 or higher
+     *         or a single threaded executor if lower than Java 21.
+     */
+    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
+        {
+        return Executors.newVirtualThreadPerTaskExecutor();
         }
 
     // ---- constants -------------------------------------------------------
