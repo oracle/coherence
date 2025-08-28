@@ -9,6 +9,16 @@ package com.tangosol.internal.util;
 
 import com.tangosol.util.Base;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+
 /**
  * Helper class for virtual threads functionality.
  * <p>
@@ -67,5 +77,19 @@ public class VirtualThreads
     public static boolean isEnabled(String serviceName)
         {
         return false;
+        }
+
+    /**
+     * Returns either a new virtual thread per-task executor on Java 21 or higher
+     * or a single threaded executor if lower than Java 21.
+     *
+     * @param factory  the {@link ThreadFactory} to use if not on Java 21
+     *
+     * @return either a new virtual thread per-task executor on Java 21 or higher
+     *         or a single threaded executor if lower than Java 21.
+     */
+    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
+        {
+        return Executors.newSingleThreadExecutor(factory);
         }
     }
