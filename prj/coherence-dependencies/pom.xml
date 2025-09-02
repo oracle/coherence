@@ -177,7 +177,7 @@
     <graal.version>19.3.1</graal.version>
     <!-- the tag of the Graal image at ghcr.io/graalvm/graalvm-ce -->
     <graal.image.tag>ol8-java11-22.1.0</graal.image.tag>
-    <grpc.version>1.73.0</grpc.version>
+    <grpc.version>1.75.0</grpc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -188,7 +188,7 @@
     -->
     <!-- Force use of a higher version of gson to get CVE fixes -->
     <gson.version>2.13.1</gson.version>
-    <helidon.version>2.6.11</helidon.version>
+    <helidon.version>2.6.12</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.3.2</hsqldb.version>
     <jackson.version>2.15.0</jackson.version>
