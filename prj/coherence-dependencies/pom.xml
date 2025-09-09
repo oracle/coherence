@@ -169,7 +169,7 @@
     -->
     <!-- Force use of a higher version of gson to get CVE fixes -->
     <gson.version>2.13.1</gson.version>
-    <helidon.version>2.6.12</helidon.version>
+    <helidon.version>2.6.13</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.7.4</hsqldb.version>
     <groovy.version>4.0.27</groovy.version>
@@ -206,7 +206,7 @@
     <mvel.version>2.4.12.Final</mvel.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.124.Final</netty.version>
+    <netty.version>4.1.127.Final</netty.version>
     <ok.http.version>5.1.0</ok.http.version>
     <opentelemetry.version>1.52.0</opentelemetry.version>
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
