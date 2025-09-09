@@ -176,7 +176,7 @@
     typically matching the patch component of the GraalVM image tag above (ie. 21.0.4 => 23.1.4)
     -->
     <graalvm.version>24.2.1</graalvm.version>
-    <grpc.version>1.73.0</grpc.version>
+    <grpc.version>1.75.0</grpc.version>
     <!--
     This is a workaround for the fact that newer versions of the gRPC ProtoBuf compiler do not work on
     Oracle Linux 7 so the builds fail in RQ and Jenkins.
@@ -184,7 +184,7 @@
     are stuck on this version.
     This is only used for gRPC code generation at build time, it is not a runtime dependency.
      -->
-    <grpc.protoc.version>1.73.0</grpc.protoc.version>
+    <grpc.protoc.version>1.75.0</grpc.protoc.version>
     <!--
     NOTE: changing this version may mean updating other dependencies to match versions that Helidon uses:
     eclipse.mp.config.version
@@ -197,9 +197,9 @@
     <!-- Force use of a higher version of gson to get CVE fixes -->
     <gson.version>2.13.1</gson.version>
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.3.0-M1</helidon.version.4>
+    <helidon.version.4>4.3.0-M2</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
-    <helidon.version.3>3.2.12</helidon.version.3>
+    <helidon.version.3>3.2.15</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
     <helidon.version>${helidon.version.4}</helidon.version>
 
@@ -245,7 +245,7 @@
     <micrometer.version>1.13.4</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <netty.version>4.1.124.Final</netty.version>
+    <netty.version>4.1.127.Final</netty.version>
     <ok.http.version>5.1.0</ok.http.version>
     <opentelemetry.version>1.52.0</opentelemetry.version>
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
