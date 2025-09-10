@@ -533,14 +533,14 @@
       <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcpkix-jdk18on@.*$</packageUrl>
       <vulnerabilityName>CVE-2025-8916</vulnerabilityName>
     </suppress>
-    <!-- Added for tika-core-3.0.0.jar which is a 4th party dependency of
+    <!-- Added for tika-*-3.0.0.jar which is a 4th party dependency of
     Helidon which brings in an older version of Lanchain4J
     -->
     <suppress>
       <notes><![CDATA[
-      file name: tika-core-3.0.0.jar
+      All Apache Tika jar files
       ]]></notes>
-      <packageUrl regex="true">^pkg:maven/org\.apache\.tika/tika-core@.*$</packageUrl>
+      <gav regex="true">org\.apache\.tika:tika.*</gav>
       <cve>CVE-2025-54988</cve>
     </suppress>
 
