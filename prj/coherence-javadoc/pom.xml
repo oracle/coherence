@@ -481,15 +481,15 @@
 
                     <include>com/oracle/coherence/concurrent/atomic/*.java</include>
                     <include>com/oracle/coherence/concurrent/cdi/*.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/RemoteExecutor.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/Result.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/Task.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/TaskCollectors.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/function/Predicates.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/function/PortablePredicate.java</include>
-                    <include>com/oracle/coherence/concurrent/executor/tasks/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/atomic/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/function/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/management/*.java</include>
                     <include>com/oracle/coherence/concurrent/executor/options/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/processors/*.java</include>
                     <include>com/oracle/coherence/concurrent/executor/subscribers/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/tasks/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/util/*.java</include>
+                    <include>com/oracle/coherence/concurrent/executor/*.java</include>
                     <include>com/oracle/coherence/concurrent/locks/*.java</include>
 
                     <include>com/tangosol/coherence/dslquery/*.java</include>
@@ -608,48 +608,11 @@
                     <exclude>com/tangosol/run/xml/XmlToken.java</exclude>
                     <exclude>com/tangosol/run/xml/XmlTokenizer.java</exclude>
 
-                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollectable.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/AbstractCollector.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/AbstractOrchestration.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/AbstractTaskCoordinator.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredAssignment.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredCollectable.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorInfo.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredExecutorService.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredOrchestration.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredProperties.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredRegistration.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskCoordinator.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ClusteredTaskManager.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ComposableContinuation.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ConditionalCollector.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ContinuationService.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionPlan.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategy.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/ExecutionStrategyBuilder.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/MutableExecutionPlan.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/NamedClusteredExecutorService.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/PortableAbstractProcessor.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/PortableCollector.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/RecoveringTask.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/StandardExecutionStrategy.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/TaskExecutorService.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/TaskProperties.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/function/BiPredicates.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/options/CloseExecutor.java</exclude>
-
-                    <exclude>com/oracle/coherence/concurrent/config/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/config/builders/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/config/processors/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/atomic/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/internal/*.java</exclude>
+                    <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/internal/cdi/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/processors/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/subscribers/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/executor/tasks/internal/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/executor/util/*.java</exclude>
-                    <exclude>com/oracle/coherence/concurrent/internal/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/internal/cdi/*.java</exclude>
                     <exclude>com/oracle/coherence/concurrent/locks/internal/*.java</exclude>
 
