@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.performance;
 
@@ -13,6 +13,7 @@ import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Pair;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Timeout;
 import com.tangosol.coherence.performance.psr.Console;
 import com.tangosol.coherence.performance.psr.ConsoleExtended;
@@ -40,11 +41,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -241,17 +242,24 @@ public abstract class AbstractPerformanceTests
         for (CoherenceClusterMember member : members)
             {
             System.err.println("Waiting for " + member.getName() + " to be balanced");
-            Eventually.assertThat(invoking(this).isBalanced(member, status), is(true), within(5, TimeUnit.MINUTES));
+            Eventually.assertDeferred(() -> this.isBalanced(member, status), is(true), within(5, TimeUnit.MINUTES));
             }
         System.err.println("All storage members balanced.");
 
         System.err.println("Waiting for Console to be ready...");
-        Eventually.assertThat(invoking(f_environment).isConsoleReady(), is(true));
+        Eventually.assertDeferred(() -> f_environment.isConsoleReady(), is(true));
         }
 
-    public boolean isBalanced(CoherenceClusterMember member, ServiceStatus status) throws Exception
+    public boolean isBalanced(CoherenceClusterMember member, ServiceStatus status)
         {
-        return member.submit(new IsBalanced(status)).get(1, TimeUnit.MINUTES);
+        try
+            {
+            return member.submit(new IsBalanced(status)).get(1, TimeUnit.MINUTES);
+            }
+        catch (Exception e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
         }
 
 

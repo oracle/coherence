@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,7 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static com.oracle.coherence.tutorials.persistence.NotificationWatcher.waitForRegistration;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -125,7 +124,7 @@ public class PersistenceExampleTest {
 
         invokeOperationWithWait(registry, "createSnapshot", SERVICE_NAME, "snapshot1");
 
-        Eventually.assertThat(invoking(listener).getEventCount(), Matchers.is(2));
+        Eventually.assertDeferred(() -> listener.getEventCount(), Matchers.is(2));
 
         server.removeNotificationListener(mBean, listener);
     }

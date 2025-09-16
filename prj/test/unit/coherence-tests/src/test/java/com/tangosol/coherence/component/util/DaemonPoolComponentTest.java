@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.component.util;
 
@@ -21,7 +21,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
@@ -118,13 +117,13 @@ public class DaemonPoolComponentTest
         // wait for the work to complete and validate the order of execution
         for (TestRunnable task : listWork)
             {
-            Eventually.assertThat(invoking(task).wasExecuted(), is(true));
+            Eventually.assertDeferred(task::wasExecuted, is(true));
 
             assertTrue(task.wasExecutedInOrder());
             }
 
-        Eventually.assertThat("Queue is stuck at " + getBacklog(),
-                              invoking(this).getBacklog(), is(0));
+        Eventually.assertDeferred("Queue is stuck at " + getBacklog(),
+                this::getBacklog, is(0));
 
         try
             {

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
 
@@ -37,7 +37,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import org.mockito.stubbing.Answer;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.*;
@@ -176,7 +175,7 @@ public class DaemonPoolTest
         TestRunnable task = new TestRunnable(0, 4000L);
         pool.add(task);
 
-        Eventually.assertThat(invoking(task).getGuardable(), is(notNullValue()));
+        Eventually.assertDeferred(task::getGuardable, is(notNullValue()));
         guardable = task.getGuardable();
         sleep(1000L);
 
@@ -196,7 +195,7 @@ public class DaemonPoolTest
         TestRunnable task = new TestRunnable(0, 4000L);
         pool.add(task);
 
-        Eventually.assertThat(invoking(task).getGuardable(), is(notNullValue()));
+        Eventually.assertDeferred(task::getGuardable, is(notNullValue()));
         guardable = task.getGuardable();
 
         sleep(1000L);

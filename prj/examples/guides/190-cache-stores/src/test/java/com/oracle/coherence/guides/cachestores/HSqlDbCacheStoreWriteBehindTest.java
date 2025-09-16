@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.cachestores;
 
@@ -18,7 +18,6 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -67,7 +66,7 @@ public class HSqlDbCacheStoreWriteBehindTest
             Base.sleep(15000L);
 
             // Issuing Eventually assertThat in case of heavily loaded machine
-            Eventually.assertThat(invoking(this).getCustomerDBCount(), is(100));
+            Eventually.assertDeferred(this::getCustomerDBCount, is(100));
             // #end::wait[]
         }
         finally {
