@@ -8,6 +8,7 @@
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache;
 
 import com.oracle.coherence.common.base.Blocking;
+import com.oracle.coherence.common.base.TimeHelper;
 import com.oracle.coherence.persistence.PersistentStore;
 import com.tangosol.coherence.component.net.Lease;
 import com.tangosol.coherence.component.net.MemberSet;
@@ -735,6 +736,12 @@ public class Storage
     private static com.tangosol.util.ListMap __mapChildren;
 
     private static final Object[] EMPTY_OBJECT_ARRAY = new Object[0];
+
+    /**
+     * The maximum accepted value used in {#link {@link #scheduleEviction(long)}}.
+     * This equals {@link Long#MAX_VALUE} minus millis in one day
+     */
+    private static final long MAX_EXPIRY = Long.MAX_VALUE - TimeUnit.DAYS.toMillis(1);
 
     // Static initializer
     static
@@ -9065,15 +9072,12 @@ public class Storage
      * Schedule to run the eviction task at specified expiry delay
      * (cExpiryMillis) if no task is currently scheduled.  Cancel the
      * existing task and create a new one if new expiry time is sooner than
-     * previosely scheduled one.
+     * previously scheduled one.
      *
      * @param cExpiryMillis   expiry delay in millis
      */
     public synchronized void scheduleEviction(long cExpiryMillis)
         {
-        // import Component.Util.DaemonPool as com.tangosol.coherence.component.util.DaemonPool;
-        // import com.tangosol.util.Base;
-
         com.tangosol.coherence.component.util.DaemonPool pool = getService().getDaemonPool();
 
         if (!pool.isStarted())
@@ -9091,7 +9095,22 @@ public class Storage
             }
 
         long ldtOldNext = task.getEvictionTime();
-        long ldtNewNext = Base.getSafeTimeMillis() + cExpiryMillis;
+        long ldtNow     = TimeHelper.getSafeTimeMillis();
+        long ldtMax     = MAX_EXPIRY - ldtNow;
+
+        long ldtNewNext;
+        long ldtSchedule;
+
+        if (cExpiryMillis < ldtMax)
+            {
+            ldtNewNext  = ldtNow + cExpiryMillis;
+            ldtSchedule = cExpiryMillis;
+            }
+        else
+            {
+            ldtNewNext  = MAX_EXPIRY;
+            ldtSchedule = MAX_EXPIRY - ldtNow;
+            }
 
         task.setPrune(cExpiryMillis == 0L);
 
