@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -71,8 +70,8 @@ public class FederationExampleTest {
         secondaryMember = platform.launch(CoherenceCacheServer.class, secondaryClusterOptions.asArray());
 
 
-        Eventually.assertThat(invoking(primaryMember).getClusterSize(), is(1));
-        Eventually.assertThat(invoking(secondaryMember).getClusterSize(), is(1));
+        Eventually.assertDeferred(() -> primaryMember.getClusterSize(), is(1));
+        Eventually.assertDeferred(() -> secondaryMember.getClusterSize(), is(1));
     }
 
     @AfterAll

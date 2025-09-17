@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.clientevents;
@@ -28,10 +28,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
@@ -97,9 +95,9 @@ public class ClientEventsTest {
         customers.remove(1);  // <5>
 
         // ensure that we see all events <6>
-        Eventually.assertThat(invoking(mapListener).getInsertCount(), is(2));
-        Eventually.assertThat(invoking(mapListener).getUpdateCount(), is(1));
-        Eventually.assertThat(invoking(mapListener).getRemoveCount(), is(1));
+        Eventually.assertDeferred(mapListener::getInsertCount, is(2));
+        Eventually.assertDeferred(mapListener::getUpdateCount, is(1));
+        Eventually.assertDeferred(mapListener::getRemoveCount, is(1));
 
         customers.removeMapListener(mapListener);
         // #end::testStandardMapListener[]
@@ -107,7 +105,7 @@ public class ClientEventsTest {
         // #tag::testMultiplexingMapListener[]
         Logger.info("*** testMultiplexingMapListener");
         customers.clear();
-        MapListener<Integer, Customer> multiplexingMapListener = new MultiplexingCustomerMapListener(); // <1>
+        MultiplexingCustomerMapListener multiplexingMapListener = new MultiplexingCustomerMapListener(); // <1>
         // Multiplexing MapListener listening on all entries
         customers.addMapListener(multiplexingMapListener);  // <2>
 
@@ -118,7 +116,7 @@ public class ClientEventsTest {
         customers.remove(1);
 
         // ensure that we see all events <4>
-        Eventually.assertThat(invoking((MultiplexingCustomerMapListener) multiplexingMapListener).getCount(), is(3));
+        Eventually.assertDeferred(multiplexingMapListener::getCount, is(3));
 
         customers.removeMapListener(multiplexingMapListener);
         // #end::testMultiplexingMapListener[]
@@ -143,8 +141,8 @@ public class ClientEventsTest {
         customers.clear();
 
         // should only be 1 insert and 1 delete as we are listening on the key  // <7>
-        Eventually.assertThat(invoking(this).getInsertCount(), is(1));
-        Eventually.assertThat(invoking(this).getDeleteCount(), is(1));
+        Eventually.assertDeferred(this::getInsertCount, is(1));
+        Eventually.assertDeferred(this::getDeleteCount, is(1));
 
         // #end::testSimpleMapListener[]
 
@@ -171,10 +169,10 @@ public class ClientEventsTest {
         customers.put(customer4.getId(), customer4);
 
         // ensure that we see all events // <4>
-        Eventually.assertThat(invoking(mapListener).getInsertCount(), is(2));
+        Eventually.assertDeferred(mapListener::getInsertCount, is(2));
         
         // ensure we only receive lite events
-        Eventually.assertThat(invoking(mapListener).getLiteEvents(), is(2));
+        Eventually.assertDeferred(mapListener::getLiteEvents, is(2));
 
         customers.removeMapListener(mapListener, eventFilter);
         // #end::testListenOnQueries[]
@@ -205,8 +203,8 @@ public class ClientEventsTest {
         customers.invoke(2, Processors.update(Customer::setCustomerType, Customer.SILVER));
 
         // ensure that we see all events // <5>
-        Eventually.assertThat(invoking(mapListener).getInsertCount(), is(1));
-        Eventually.assertThat(invoking(mapListener).getUpdateCount(), is(2));
+        Eventually.assertDeferred(mapListener::getInsertCount, is(1));
+        Eventually.assertDeferred(mapListener::getUpdateCount, is(2));
 
         customers.removeMapListener(mapListener, eventFilter);
         // #end::testEventTypes[]

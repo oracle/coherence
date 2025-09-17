@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,7 @@ import com.oracle.bedrock.runtime.remote.DeploymentArtifact;
 import com.oracle.bedrock.runtime.remote.java.options.JavaDeployment;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.util.Capture;
+import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.util.MemorySize;
 import com.tangosol.coherence.performance.psr.Console;
 import com.tangosol.coherence.performance.psr.ConsoleExtended;
@@ -77,9 +78,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
 
 /**
  * @author jk 2015.11.26
@@ -940,8 +939,8 @@ public class PsrPerformanceEnvironment<E extends PsrPerformanceEnvironment>
 
             for (CoherenceClusterMember member : cluster)
                 {
-                Eventually.assertThat(invoking(member).getClusterSize(), is(nSize));
-                Eventually.assertThat(invoking(this).areAllAutoStartServicesRunning(member), is(true));
+                Eventually.assertDeferred(member::getClusterSize, is(nSize));
+                Eventually.assertDeferred(() -> this.areAllAutoStartServicesRunning(member), is(true));
                 }
             }
         catch (Throwable t)
@@ -957,9 +956,16 @@ public class PsrPerformanceEnvironment<E extends PsrPerformanceEnvironment>
         }
 
     // Must be public - used in Eventually.assertThat
-    public boolean areAllAutoStartServicesRunning(CoherenceClusterMember member) throws Exception
+    public boolean areAllAutoStartServicesRunning(CoherenceClusterMember member)
         {
-        return member.submit(new AreAllAutoStartServicesRunning()).get(2, TimeUnit.MINUTES);
+        try
+            {
+            return member.submit(new AreAllAutoStartServicesRunning()).get(2, TimeUnit.MINUTES);
+            }
+        catch (Exception e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
         }
 
     protected void modifySchema(Platform platform, OptionsByType schema)
@@ -1119,7 +1125,7 @@ public class PsrPerformanceEnvironment<E extends PsrPerformanceEnvironment>
             {
             for (CoherenceClusterMember runner : assembly)
                 {
-                Eventually.assertThat(invoking(runner).submit(new RunnerIsRunning()), is(true));
+                Eventually.assertDeferred(() -> runner.submit(new RunnerIsRunning()), is(true));
                 }
             }
 
