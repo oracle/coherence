@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.config.scheme;
 
+import com.tangosol.config.annotation.Injectable;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.service.DefaultViewDependencies;
@@ -22,6 +23,7 @@ import com.tangosol.net.cache.ContinuousQueryCache;
 import com.tangosol.net.internal.ScopedServiceReferenceStore;
 import com.tangosol.net.internal.ViewCacheService;
 
+import com.tangosol.run.xml.XmlElement;
 import com.tangosol.util.Base;
 
 import java.lang.reflect.Method;
@@ -87,9 +89,9 @@ public class ViewScheme
 
         setFrontScheme(NO_SCHEME);
 
-        DistributedScheme schemeBack = new DistributedScheme();
-        schemeBack.setServiceName(getServiceType());
-        setBackScheme(schemeBack);
+        f_defaultBackScheme = new DistributedScheme();
+        f_defaultBackScheme.setServiceName(getServiceType());
+        setBackScheme(f_defaultBackScheme);
         }
 
     // ----- AbstractServiceScheme methods ----------------------------------
@@ -98,6 +100,12 @@ public class ViewScheme
     public String getScopedServiceName()
         {
         return ViewCacheService.KEY_CLUSTER_REGISTRY + '-' + super.getScopedServiceName();
+        }
+
+    @Injectable(".")
+    public DistributedScheme getDefaultBackScheme()
+        {
+        return f_defaultBackScheme;
         }
 
     // ----- ServiceBuilder interface ---------------------------------------
@@ -191,4 +199,11 @@ public class ViewScheme
      * @since 12.2.1.4.19
      */
     private static final Method SAFE_CLUSTER_GET_SCOPED_SERVICE_STORE;
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The default back scheme, if one is not configured.
+     */
+    private final DistributedScheme f_defaultBackScheme;
     }
