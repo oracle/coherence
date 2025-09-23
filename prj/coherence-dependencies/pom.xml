@@ -197,7 +197,7 @@
     <!-- Force use of a higher version of gson to get CVE fixes -->
     <gson.version>2.13.1</gson.version>
     <!-- When running tests with Java 21 we will use Helidon 4 -->
-    <helidon.version.4>4.3.0-M3</helidon.version.4>
+    <helidon.version.4>4.3.0-M4</helidon.version.4>
     <!-- When running tests with Java 17 we will use Helidon 3 (this will be set using the helidon3 profile) -->
     <helidon.version.3>3.2.15</helidon.version.3>
     <!-- This is the property that sets the version used by other modules (we default to Helidon 4) -->
