@@ -1629,6 +1629,8 @@
             <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
             <nvdValidForHours>48</nvdValidForHours>
             <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+            <ossIndexUsername>${env.OSS_INDEX_USERNAME}</ossIndexUsername>
+            <ossIndexPassword>${env.OSS_INDEX_TOKEN}</ossIndexPassword>
             <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
             <excludes>
               <!-- Exclude stuff we do not deploy -->
