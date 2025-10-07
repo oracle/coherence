@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2143,7 +2143,7 @@ public abstract class AbstractGrpcClientIT
         }
 
     @ParameterizedTest(name = "{index} serializer={0}")
-    @MethodSource("serializers")                                                                                                                                                      
+    @MethodSource("serializers")
     @SuppressWarnings("unchecked")
     public void shouldReceiveTruncateAndDeactivationEvent(String sSerializerName, Serializer serializer) throws Exception
         {
@@ -2415,12 +2415,12 @@ public abstract class AbstractGrpcClientIT
 
     protected String createCacheName()
         {
-        return createCacheName("test-cache-");  
+        return createCacheName("test-cache-");
         }
 
     protected String createCacheName(String sPrefix)
         {
-        return sPrefix + "-" + f_cacheId.getAndIncrement(); 
+        return sPrefix + "-" + f_cacheId.getAndIncrement();
         }
 
     protected abstract <K, V> NamedCache<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer);
