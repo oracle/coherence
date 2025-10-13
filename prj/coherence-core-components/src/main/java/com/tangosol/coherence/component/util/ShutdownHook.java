@@ -14,6 +14,9 @@ import com.tangosol.net.security.DoAsAction;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 
+import java.security.PrivilegedAction;
+import java.util.function.Supplier;
+
 /**
  * Abstract runnable component used as a virtual-machine shutdown hook.
  */
@@ -182,8 +185,8 @@ public abstract class ShutdownHook
      */
     public void unregister()
         {
-        SecurityHelper.doIfSecure(new DoAsAction((ShutdownHook.UnregisterAction) _newChild("UnregisterAction")),
-                this::unregisterInternal);
+        Supplier<PrivilegedAction<?>> supplier = () -> new DoAsAction<>((ShutdownHook.UnregisterAction) _newChild("UnregisterAction"));
+        SecurityHelper.doIfSecure(supplier, this::unregisterInternal);
         }
     
     /**

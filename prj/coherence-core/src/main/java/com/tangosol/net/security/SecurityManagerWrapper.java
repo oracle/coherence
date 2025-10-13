@@ -103,7 +103,57 @@ public interface SecurityManagerWrapper
      */
     void doIfSecure(PrivilegedAction<?> action, Runnable fallback);
 
+    /**
+     * Performs the specified PrivilegedAction with privileges enabled if the
+     * JVM is running with a security manager enabled otherwise run the
+     * {@code fallback} runnable.
+     * <p>
+     * The action is performed with all the permissions possessed by the caller's
+     * protection domain. If the action's run method throws an (unchecked) exception,
+     * it will propagate through this method.
+     * Note that any DomainCombiner associated with the current AccessControlContext
+     * will be ignored while the action is performed.
+     *
+     * @param action    a {@link Supplier} to provide the action to be performed.
+     * @param fallback  the {@link Runnable} to execute if the JVM is not running with a security manager
+     */
+    void doIfSecure(Supplier<PrivilegedAction<?>> action, Runnable fallback);
+
+    /**
+     * Performs the specified PrivilegedAction with privileges enabled if the
+     * JVM is running with a security manager enabled otherwise run the
+     * {@code fallback} runnable.
+     * <p>
+     * The action is performed with all the permissions possessed by the caller's
+     * protection domain. If the action's run method throws an (unchecked) exception,
+     * it will propagate through this method.
+     * Note that any DomainCombiner associated with the current AccessControlContext
+     * will be ignored while the action is performed.
+     *
+     * @param action    the action to be performed.
+     * @param fallback  the {@link Supplier} to execute if the JVM is not running with a security manager
+     */
     <T> T doIfSecure(PrivilegedAction<T> action, Supplier<T> fallback);
+
+    <T> T doIfSecureInDoAsAction(PrivilegedAction<T> action, Supplier<T> fallback);
+
+    <T> T doIfSecureInDoAsAction(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback);
+
+    /**
+     * Performs the specified PrivilegedAction with privileges enabled if the
+     * JVM is running with a security manager enabled otherwise run the
+     * {@code fallback} runnable.
+     * <p>
+     * The action is performed with all the permissions possessed by the caller's
+     * protection domain. If the action's run method throws an (unchecked) exception,
+     * it will propagate through this method.
+     * Note that any DomainCombiner associated with the current AccessControlContext
+     * will be ignored while the action is performed.
+     *
+     * @param action    a {@link Supplier} to provide the action to be performed.
+     * @param fallback  the {@link Supplier} to execute if the JVM is not running with a security manager
+     */
+    <T> T doIfSecure(Supplier<PrivilegedAction<T>> action, Supplier<T> fallback);
 
     /**
      * Performs the specified PrivilegedAction with privileges enabled.

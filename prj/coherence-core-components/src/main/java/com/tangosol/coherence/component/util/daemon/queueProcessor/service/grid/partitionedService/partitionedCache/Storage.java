@@ -12942,7 +12942,7 @@ public class Storage
         protected com.tangosol.util.ObservableMap getBackingMapInternal()
             {
             Storage storage = getStorage();
-            return SecurityHelper.doIfSecure(storage.getBackingMapAction(), storage::getBackingMap);
+            return SecurityHelper.doIfSecureInDoAsAction(storage.getBackingMapAction(), storage::getBackingMap);
             }
 
         // From interface: com.tangosol.util.BinaryEntry

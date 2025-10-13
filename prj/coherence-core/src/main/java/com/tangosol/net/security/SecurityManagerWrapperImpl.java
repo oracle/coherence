@@ -90,11 +90,54 @@ public class SecurityManagerWrapperImpl
         }
 
     @Override
+    public void doIfSecure(Supplier<PrivilegedAction<?>> action, Runnable fallback)
+        {
+        if (hasSecurityManager())
+            {
+            AccessController.doPrivileged(action.get());
+            }
+        else
+            {
+            fallback.run();
+            }
+        }
+
+    @Override
     public <T> T doIfSecure(PrivilegedAction<T> action, Supplier<T> fallback)
         {
         if (hasSecurityManager())
             {
             return AccessController.doPrivileged(action);
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(PrivilegedAction<T> action, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            return AccessController.doPrivileged(new DoAsAction<T>(action));
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            return AccessController.doPrivileged(new DoAsAction<T>(supplier.get()));
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecure(Supplier<PrivilegedAction<T>> action, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            return AccessController.doPrivileged(action.get());
             }
         return fallback.get();
         }

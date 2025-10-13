@@ -756,7 +756,7 @@ public class SafeService
      */
     public com.tangosol.util.Service getRunningService()
         {
-        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureServiceAction()), this::ensureRunningService);
+        return SecurityHelper.doIfSecureInDoAsAction(getEnsureServiceAction(), this::ensureRunningService);
         }
     
     // Accessor for the property "SafeCluster"

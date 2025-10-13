@@ -63,7 +63,31 @@ public class SecurityManagerWrapperImpl
         }
 
     @Override
+    public void doIfSecure(Supplier<PrivilegedAction<?>> action, Runnable fallback)
+        {
+        fallback.run();
+        }
+
+    @Override
     public <T> T doIfSecure(PrivilegedAction<T> action, Supplier<T> fallback)
+        {
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(PrivilegedAction<T> action, Supplier<T> fallback)
+        {
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecure(Supplier<PrivilegedAction<T>> action, Supplier<T> fallback)
         {
         return fallback.get();
         }

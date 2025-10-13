@@ -24162,7 +24162,7 @@ public class PartitionedCache
                 Storage storage   = getStorage();
                 Map      mapStatus = (Map) ctx.getStorageStatusMap().get(storage);
 
-                Map mapResource = SecurityHelper.doIfSecure(new DoAsAction(storage.getBackingMapAction()),
+                Map mapResource = SecurityHelper.doIfSecureInDoAsAction(storage.getBackingMapAction(),
                         storage::getBackingMapInternal);
 
                 Storage.EntryStatus status = mapStatus == null ? null : (Storage.EntryStatus) mapStatus.get((Binary) oKey);

@@ -22,7 +22,7 @@ import java.util.function.Supplier;
  * <p>
  * This is a Java21 version of this class in the coherence-core-21
  * module and is built into the multi-release coherence.jar.
- *
+ * <p>
  * Note, In case of Exception, Subject.callAs() wraps the Exception
  * returned by action::run with the java.util.concurrent.CompletionException.
  *
@@ -95,7 +95,30 @@ public class SecurityManagerWrapperImpl
             else
                 {
                 Subject subject = getCurrentSubject();
-                AccessController.doPrivileged((PrivilegedAction) () ->
+                AccessController.doPrivileged((PrivilegedAction<?>) () ->
+                        Subject.callAs(subject, action::run));
+                }
+            }
+        else
+            {
+            fallback.run();
+            }
+        }
+
+    @Override
+    public void doIfSecure(Supplier<PrivilegedAction<?>> supplier, Runnable fallback)
+        {
+        if (hasSecurityManager())
+            {
+            PrivilegedAction<?> action = supplier.get();
+            if (action instanceof DoAsAction)
+                {
+                AccessController.doPrivileged(action);
+                }
+            else
+                {
+                Subject subject = getCurrentSubject();
+                AccessController.doPrivileged((PrivilegedAction<?>) () ->
                         Subject.callAs(subject, action::run));
                 }
             }
@@ -110,6 +133,43 @@ public class SecurityManagerWrapperImpl
         {
         if (hasSecurityManager())
             {
+            if (action instanceof DoAsAction)
+                {
+                return AccessController.doPrivileged(action);
+                }
+            Subject subject = getCurrentSubject();
+            return AccessController.doPrivileged((PrivilegedAction<T>) () ->
+                    Subject.callAs(subject, action::run));
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(PrivilegedAction<T> action, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            return AccessController.doPrivileged(new DoAsAction<>(action));
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecureInDoAsAction(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            return AccessController.doPrivileged(new DoAsAction<>(supplier.get()));
+            }
+        return fallback.get();
+        }
+
+    @Override
+    public <T> T doIfSecure(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        if (hasSecurityManager())
+            {
+            PrivilegedAction<T> action = supplier.get();
             if (action instanceof DoAsAction)
                 {
                 return AccessController.doPrivileged(action);

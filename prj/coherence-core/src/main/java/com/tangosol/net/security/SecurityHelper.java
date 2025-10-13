@@ -57,9 +57,29 @@ public abstract class SecurityHelper
         s_securityManager.doIfSecure(action, fallback);
         }
 
+    public static void doIfSecure(Supplier<PrivilegedAction<?>> action, Runnable fallback)
+        {
+        s_securityManager.doIfSecure(action, fallback);
+        }
+
     public static <T> T doIfSecure(PrivilegedAction<T> action, Supplier<T> fallback)
         {
         return s_securityManager.doIfSecure(action, fallback);
+        }
+
+    public static <T> T doIfSecureInDoAsAction(PrivilegedAction<T> action, Supplier<T> fallback)
+        {
+        return s_securityManager.doIfSecureInDoAsAction(action, fallback);
+        }
+
+    public static <T> T doIfSecureInDoAsAction(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        return s_securityManager.doIfSecureInDoAsAction(supplier, fallback);
+        }
+
+    public static <T> T doIfSecure(Supplier<PrivilegedAction<T>> supplier, Supplier<T> fallback)
+        {
+        return s_securityManager.doIfSecure(supplier, fallback);
         }
 
     public static <T> T doPrivileged(PrivilegedAction<T> action)
