@@ -1154,7 +1154,7 @@ public class SafeNamedCache
      */
     protected com.tangosol.net.NamedCache getRunningNamedCache()
         {
-        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureCacheAction()), this::ensureRunningNamedCache);
+        return SecurityHelper.doIfSecureInDoAsAction(getEnsureCacheAction(), this::ensureRunningNamedCache);
         }
     
     // Accessor for the property "SafeAsyncNamedCache"

@@ -49,10 +49,12 @@ import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.SafeHashSet;
 import java.lang.ref.WeakReference;
+import java.security.PrivilegedAction;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Supplier;
 
 /**
  * Cluster wrapper that never dies, unless explicitely commanded.
@@ -713,7 +715,7 @@ public class SafeCluster
         action.setServiceName(sName);
         action.setServiceType(sType);
 
-        return (Service) SecurityHelper.doIfSecure(new DoAsAction(action), action::run);
+        return (Service) SecurityHelper.doIfSecureInDoAsAction(action, action::run);
         }
     
     // From interface: com.oracle.coherence.common.base.Lockable
@@ -942,7 +944,7 @@ public class SafeCluster
      */
     public com.tangosol.coherence.component.net.Cluster getRunningCluster()
         {
-        return SecurityHelper.doIfSecure(new DoAsAction(getEnsureClusterAction()), this::ensureRunningCluster);
+        return SecurityHelper.doIfSecureInDoAsAction(getEnsureClusterAction(), this::ensureRunningCluster);
         }
     
     // Accessor for the property "ScopedServiceStore"

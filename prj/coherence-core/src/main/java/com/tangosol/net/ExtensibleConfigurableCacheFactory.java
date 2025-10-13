@@ -437,10 +437,9 @@ public class ExtensibleConfigurableCacheFactory
 
         Base.checkNotEmpty(sName, "name");
 
-        PrivilegedAction<NamedTopic> action =
-            () -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
-
-        return SecurityHelper.doPrivileged(new DoAsAction<>(action));
+        return SecurityHelper.hasSecurityManager()
+                ? SecurityHelper.doPrivileged(new DoAsAction<>(() -> ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options)))
+                : ensureCollectionInternal(sName, NamedTopic.class, loader, f_storeTopics, TopicMapping.class, options);
         }
 
     <C extends NamedCollection, M extends TypedResourceMapping, V>
