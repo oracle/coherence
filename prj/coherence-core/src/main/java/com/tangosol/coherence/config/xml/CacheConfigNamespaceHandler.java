@@ -206,6 +206,7 @@ public class CacheConfigNamespaceHandler
 
         odp.addDefaultsDefinition("paged-topic-scheme", CacheFactory.getServiceConfig(TopicService.TYPE_PAGED_TOPIC));
         odp.addDefaultsDefinition("remote-topic-scheme", CacheFactory.getServiceConfig(TopicService.TYPE_REMOTE));
+        odp.addDefaultsDefinition("view-scheme", CacheFactory.getServiceConfig(CacheService.TYPE_DISTRIBUTED));
 
         dep.addElementPreprocessor(odp);
 
