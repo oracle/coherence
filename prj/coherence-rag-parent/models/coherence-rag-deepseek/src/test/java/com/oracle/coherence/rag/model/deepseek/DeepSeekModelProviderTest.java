@@ -6,14 +6,17 @@
  */
 package com.oracle.coherence.rag.model.deepseek;
 
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.internal.json.JsonbProvider;
+import com.tangosol.net.cache.WrapperNamedCache;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import io.helidon.config.ConfigException;
 
+import java.util.HashMap;
 import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,8 +27,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.lang.reflect.Field;
-import java.util.Collections;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -54,14 +55,10 @@ class DeepSeekModelProviderTest
     private DeepSeekModelProvider provider;
 
     @BeforeEach
-    void setUp() throws Exception
+    void setUp()
         {
-        provider = new DeepSeekModelProvider();
-        
-        // Inject mock config using reflection
-        Field configField = DeepSeekModelProvider.class.getDeclaredField("config");
-        configField.setAccessible(true);
-        configField.set(provider, mockConfig);
+        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
+        provider = new DeepSeekModelProvider(mockConfig, jsonConfig);
         }
 
     @Test

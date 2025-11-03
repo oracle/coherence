@@ -33,7 +33,6 @@ import java.util.Set;
  */
 public abstract class AbstractConfig<T>
         extends AbstractEvolvable
-        implements PortableObject
     {
     @JsonbTransient
     public int getDataVersion()
@@ -54,7 +53,7 @@ public abstract class AbstractConfig<T>
      *
      * @param target the object to apply configuration values to (e.g., a POJO or Builder)
      */
-    public void apply(T target)
+    public T apply(T target)
         {
         Map<String, Method> mapSourceProperties = findReadableProperties(this.getClass());
         Map<String, Method> mapTargetProperties = findWritableProperties(target.getClass());
@@ -83,6 +82,8 @@ public abstract class AbstractConfig<T>
                                     .formatted(sName, target.getClass().getName()));
                 }
             }
+
+        return target;
         }
 
     /**

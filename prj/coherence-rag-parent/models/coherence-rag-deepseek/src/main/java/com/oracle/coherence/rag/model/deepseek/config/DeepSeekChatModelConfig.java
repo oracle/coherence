@@ -4,28 +4,26 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.rag.model.openai.config;
+package com.oracle.coherence.rag.model.deepseek.config;
 
 import com.oracle.coherence.rag.config.model.ChatModelConfig;
-
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel.OpenAiChatModelBuilder;
-
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Configuration class for OpenAI chat model.
+ * Configuration class for DeepSeek chat model.
  * <p/>
- * Encapsulates configuration parameters that control how OpenAI chat
+ * Encapsulates configuration parameters that control how DeepSeek chat
  * models are used within the Coherence RAG framework.
  *
  * @author Aleks Seovic  2025.07.13
  * @since 25.09
  */
 @SuppressWarnings("unused")
-public class OpenAiChatModelConfig
+public class DeepSeekChatModelConfig
         extends ChatModelConfig<OpenAiChatModelBuilder>
     {
     // ---- properties ------------------------------------------------------
@@ -47,7 +45,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setOrganizationId(String organizationId)
+    public DeepSeekChatModelConfig setOrganizationId(String organizationId)
         {
         this.organizationId = organizationId;
         return this;
@@ -70,7 +68,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setProjectId(String projectId)
+    public DeepSeekChatModelConfig setProjectId(String projectId)
         {
         this.projectId = projectId;
         return this;
@@ -95,7 +93,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTemperature(Double temperature)
+    public DeepSeekChatModelConfig setTemperature(Double temperature)
         {
         this.temperature = temperature;
         return this;
@@ -118,7 +116,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTopP(Double topP)
+    public DeepSeekChatModelConfig setTopP(Double topP)
         {
         this.topP = topP;
         return this;
@@ -141,7 +139,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStop(List<String> stop)
+    public DeepSeekChatModelConfig setStop(List<String> stop)
         {
         this.stop = stop;
         return this;
@@ -164,7 +162,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMaxTokens(Integer maxTokens)
+    public DeepSeekChatModelConfig setMaxTokens(Integer maxTokens)
         {
         this.maxTokens = maxTokens;
         return this;
@@ -187,7 +185,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMaxCompletionTokens(Integer maxCompletionTokens)
+    public DeepSeekChatModelConfig setMaxCompletionTokens(Integer maxCompletionTokens)
         {
         this.maxCompletionTokens = maxCompletionTokens;
         return this;
@@ -210,7 +208,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setPresencePenalty(Double presencePenalty)
+    public DeepSeekChatModelConfig setPresencePenalty(Double presencePenalty)
         {
         this.presencePenalty = presencePenalty;
         return this;
@@ -233,7 +231,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setFrequencyPenalty(Double frequencyPenalty)
+    public DeepSeekChatModelConfig setFrequencyPenalty(Double frequencyPenalty)
         {
         this.frequencyPenalty = frequencyPenalty;
         return this;
@@ -256,7 +254,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogitBias(Map<String, Integer> logitBias)
+    public DeepSeekChatModelConfig setLogitBias(Map<String, Integer> logitBias)
         {
         this.logitBias = logitBias;
         return this;
@@ -279,7 +277,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setResponseFormat(String responseFormat)
+    public DeepSeekChatModelConfig setResponseFormat(String responseFormat)
         {
         this.responseFormat = responseFormat;
         return this;
@@ -302,7 +300,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStrictJsonSchema(Boolean strictJsonSchema)
+    public DeepSeekChatModelConfig setStrictJsonSchema(Boolean strictJsonSchema)
         {
         this.strictJsonSchema = strictJsonSchema;
         return this;
@@ -325,7 +323,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setSeed(Integer seed)
+    public DeepSeekChatModelConfig setSeed(Integer seed)
         {
         this.seed = seed;
         return this;
@@ -348,7 +346,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setUser(String user)
+    public DeepSeekChatModelConfig setUser(String user)
         {
         this.user = user;
         return this;
@@ -371,7 +369,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStrictTools(Boolean strictTools)
+    public DeepSeekChatModelConfig setStrictTools(Boolean strictTools)
         {
         this.strictTools = strictTools;
         return this;
@@ -394,7 +392,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setParallelToolCalls(Boolean parallelToolCalls)
+    public DeepSeekChatModelConfig setParallelToolCalls(Boolean parallelToolCalls)
         {
         this.parallelToolCalls = parallelToolCalls;
         return this;
@@ -417,7 +415,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStore(Boolean store)
+    public DeepSeekChatModelConfig setStore(Boolean store)
         {
         this.store = store;
         return this;
@@ -440,7 +438,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMetadata(Map<String, String> metadata)
+    public DeepSeekChatModelConfig setMetadata(Map<String, String> metadata)
         {
         this.metadata = metadata;
         return this;
@@ -463,7 +461,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setServiceTier(String serviceTier)
+    public DeepSeekChatModelConfig setServiceTier(String serviceTier)
         {
         this.serviceTier = serviceTier;
         return this;
@@ -486,7 +484,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTimeout(Duration timeout)
+    public DeepSeekChatModelConfig setTimeout(Duration timeout)
         {
         this.timeout = timeout;
         return this;
@@ -509,7 +507,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMaxRetries(Integer maxRetries)
+    public DeepSeekChatModelConfig setMaxRetries(Integer maxRetries)
         {
         this.maxRetries = maxRetries;
         return this;
@@ -532,7 +530,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogRequests(Boolean logRequests)
+    public DeepSeekChatModelConfig setLogRequests(Boolean logRequests)
         {
         this.logRequests = logRequests;
         return this;
@@ -555,7 +553,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogResponses(Boolean logResponses)
+    public DeepSeekChatModelConfig setLogResponses(Boolean logResponses)
         {
         this.logResponses = logResponses;
         return this;
@@ -578,7 +576,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setCustomHeaders(Map<String, String> customHeaders)
+    public DeepSeekChatModelConfig setCustomHeaders(Map<String, String> customHeaders)
         {
         this.customHeaders = customHeaders;
         return this;
@@ -633,7 +631,7 @@ public class OpenAiChatModelConfig
     @Override
     public String toString()
         {
-        return "OpenAiChatModelConfig[" +
+        return "DeepSeekChatModelConfig[" +
                "organizationId=" + organizationId +
                ", projectId=" + projectId +
                ", temperature=" + temperature +

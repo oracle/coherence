@@ -126,7 +126,7 @@ public abstract class AbstractModelSupplier<T>
      */
     public T get(String modelName)
         {
-        return get(ModelName.of(modelName));
+        return modelName == null ? get() : get(ModelName.of(modelName));
         }
 
     /**

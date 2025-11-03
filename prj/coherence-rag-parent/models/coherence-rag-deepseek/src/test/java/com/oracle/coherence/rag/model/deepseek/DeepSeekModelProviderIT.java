@@ -9,6 +9,9 @@ package com.oracle.coherence.rag.model.deepseek;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.internal.json.JsonbProvider;
+import com.tangosol.net.cache.WrapperNamedCache;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -18,6 +21,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.eclipse.microprofile.config.Config;
@@ -25,7 +29,6 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import org.junit.jupiter.api.*;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -101,14 +104,10 @@ class DeepSeekModelProviderIT
         }
 
     @BeforeEach
-    void setUp() throws Exception
+    void setUp()
         {
-        provider = new DeepSeekModelProvider();
-        
-        // Inject test config using reflection
-        Field configField = DeepSeekModelProvider.class.getDeclaredField("config");
-        configField.setAccessible(true);
-        configField.set(provider, new TestConfig());
+        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
+        provider = new DeepSeekModelProvider(new TestConfig(), jsonConfig);
         }
 
     // ---- tests -----------------------------------------------------------

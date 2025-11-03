@@ -6,10 +6,7 @@
  */
 package com.oracle.coherence.rag.internal.json;
 
-import com.oracle.coherence.rag.ModelProvider;
-
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import jakarta.json.bind.Jsonb;
 import jakarta.json.bind.JsonbBuilder;
@@ -17,26 +14,31 @@ import jakarta.json.bind.JsonbConfig;
 
 import jakarta.ws.rs.ext.ContextResolver;
 import jakarta.ws.rs.ext.Provider;
+import java.util.function.Supplier;
 
 @Provider
 @ApplicationScoped
 public class JsonbProvider
-        implements ContextResolver<Jsonb>
+        implements ContextResolver<Jsonb>, Supplier<Jsonb>
     {
     private final Jsonb jsonb;
 
-    @Inject
     public JsonbProvider()
         {
-        JsonbConfig config = new JsonbConfig()
-                .withDeserializers(new StoreConfigDeserializer());
-        // You can add more serializers/deserializers here if needed
+        JsonbConfig config = new JsonbConfig();
+                //.withDeserializers(new StoreConfigDeserializer());
 
         this.jsonb = JsonbBuilder.create(config);
         }
 
     @Override
     public Jsonb getContext(Class<?> type)
+        {
+        return jsonb;
+        }
+
+    @Override
+    public Jsonb get()
         {
         return jsonb;
         }

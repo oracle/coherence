@@ -8,6 +8,11 @@ package com.oracle.coherence.rag.model.ollama;
 
 import com.oracle.coherence.rag.ModelProvider;
 
+import com.oracle.coherence.rag.config.ConfigKey;
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.model.ollama.config.OllamaChatModelConfig;
+import com.oracle.coherence.rag.model.ollama.config.OllamaEmbeddingModelConfig;
+import com.oracle.coherence.rag.model.ollama.config.OllamaStreamingChatModelConfig;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -35,7 +40,7 @@ import org.eclipse.microprofile.config.Config;
  * <p/>
  * Configuration is managed through MicroProfile Config with the following property:
  * <ul>
- * <li>ollama.base.url - Base URL for Ollama service (defaults to http://localhost:11434)</li>
+ * <li>ollama.base.url - Base URL for Ollama service (defaults to {@code http://localhost:11434})</li>
  * </ul>
  * <p/>
  * Example usage:
@@ -63,8 +68,11 @@ public class OllamaModelProvider
     /**
      * Default constructor for CDI initialization.
      */
-    public OllamaModelProvider()
+    @Inject
+    public OllamaModelProvider(Config config, ConfigRepository jsonConfig)
         {
+        this.config = config;
+        this.jsonConfig = jsonConfig;
         }
 
     // ---- ModelProvider interface implementation -------------------------
@@ -86,10 +94,14 @@ public class OllamaModelProvider
     public EmbeddingModel getEmbeddingModel(String sName)
         {
         validateModelName(sName);
-        return OllamaEmbeddingModel.builder()
-                            .baseUrl(ollamaBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OllamaEmbeddingModel.builder()
+                .baseUrl(ollamaBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("embedding:Ollama/" + sName);
+        return jsonConfig.get(key, new OllamaEmbeddingModelConfig())
+                .apply(builder)
+                .build();
         }
 
     /**
@@ -108,10 +120,14 @@ public class OllamaModelProvider
     public ChatModel getChatModel(String sName)
         {
         validateModelName(sName);
-        return OllamaChatModel.builder()
-                            .baseUrl(ollamaBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OllamaChatModel.builder()
+                .baseUrl(ollamaBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("chat:Ollama/" + sName);
+        return jsonConfig.get(key, new OllamaChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     /**
@@ -130,10 +146,14 @@ public class OllamaModelProvider
     public StreamingChatModel getStreamingChatModel(String sName)
         {
         validateModelName(sName);
-        return OllamaStreamingChatModel.builder()
-                            .baseUrl(ollamaBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OllamaStreamingChatModel.builder()
+                .baseUrl(ollamaBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("streamingChat:Ollama/" + sName);
+        return jsonConfig.get(key, new OllamaStreamingChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     // ---- helper methods --------------------------------------------------
@@ -158,7 +178,7 @@ public class OllamaModelProvider
     /**
      * Returns the Ollama base URL from configuration.
      *
-     * @return the base URL for Ollama service, defaults to http://localhost:11434
+     * @return the base URL for Ollama service, defaults to {@code http://localhost:11434}
      */
     protected String ollamaBaseUrl()
         {
@@ -170,8 +190,12 @@ public class OllamaModelProvider
     /**
      * MicroProfile Config instance for reading configuration properties.
      */
-    @Inject
-    private Config config;
+    private final Config config;
+
+    /**
+     * Repository containing model configuration.
+     */
+    private final ConfigRepository jsonConfig;
 
     // ---- constants -------------------------------------------------------
 

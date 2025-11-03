@@ -10,6 +10,7 @@ import com.oracle.coherence.rag.config.index.IndexConfig;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.io.pof.PortableObject;
 import java.io.IOException;
 import java.util.Objects;
 
@@ -26,6 +27,7 @@ import java.util.Objects;
 @SuppressWarnings("unused")
 public class StoreConfig
         extends AbstractConfig<Object>
+        implements PortableObject
     {
     public StoreConfig()
         {
@@ -33,11 +35,40 @@ public class StoreConfig
 
     public StoreConfig(String embeddingModel, boolean normalizeEmbeddings, IndexConfig<?> index, int chunkSize, int chunkOverlap)
         {
+        this(null, embeddingModel, normalizeEmbeddings, index, chunkSize, chunkOverlap);
+        }
+
+    public StoreConfig(String chatModel, String embeddingModel, boolean normalizeEmbeddings, IndexConfig<?> index, int chunkSize, int chunkOverlap)
+        {
+        this.chatModel = chatModel;
         this.embeddingModel = embeddingModel;
         this.normalizeEmbeddings = normalizeEmbeddings;
         this.index = index;
         this.chunkSize = chunkSize;
         this.chunkOverlap = chunkOverlap;
+        }
+
+    /**
+     * Gets the current chat model identifier.
+     *
+     * @return the chat model identifier, or null if not set
+     */
+    public String getChatModel()
+        {
+        return chatModel;
+        }
+
+    /**
+     * Sets the chat model and returns this instance for method chaining.
+     *
+     * @param chatModel  the chat model identifier to use
+     *
+     * @return this StoreConfig instance for method chaining
+     */
+    public StoreConfig setChatModel(String chatModel)
+        {
+        this.chatModel = chatModel;
+        return this;
         }
 
     /**
@@ -171,6 +202,7 @@ public class StoreConfig
         return normalizeEmbeddings == that.normalizeEmbeddings &&
                chunkSize == that.chunkSize &&
                chunkOverlap == that.chunkOverlap &&
+               Objects.equals(chatModel, that.chatModel) &&
                Objects.equals(embeddingModel, that.embeddingModel) &&
                Objects.equals(index, that.index);
         }
@@ -178,13 +210,14 @@ public class StoreConfig
     @Override
     public int hashCode()
         {
-        return Objects.hash(embeddingModel, normalizeEmbeddings, index, chunkSize, chunkOverlap);
+        return Objects.hash(chatModel, embeddingModel, normalizeEmbeddings, index, chunkSize, chunkOverlap);
         }
 
     @Override
     public String toString()
         {
         return "StoreConfig[" +
+               "chatModel=" + chatModel + ", " +
                "embeddingModel=" + embeddingModel + ", " +
                "normalizeEmbeddings=" + normalizeEmbeddings + ", " +
                "index=" + index + ", " +
@@ -205,21 +238,23 @@ public class StoreConfig
     @Override
     public void readExternal(PofReader pofReader) throws IOException
         {
-        embeddingModel = pofReader.readString(0);
-        normalizeEmbeddings = pofReader.readBoolean(1);
-        index = (IndexConfig) pofReader.readObject(2);
-        chunkSize = pofReader.readInt(3);
-        chunkOverlap = pofReader.readInt(4);
+        chatModel = pofReader.readString(0);
+        embeddingModel = pofReader.readString(1);
+        normalizeEmbeddings = pofReader.readBoolean(2);
+        index = pofReader.readObject(3);
+        chunkSize = pofReader.readInt(4);
+        chunkOverlap = pofReader.readInt(5);
         }
 
     @Override
     public void writeExternal(PofWriter pofWriter) throws IOException
         {
-        pofWriter.writeString(0, embeddingModel);
-        pofWriter.writeBoolean(1, normalizeEmbeddings);
-        pofWriter.writeObject(2, index);
-        pofWriter.writeInt(3, chunkSize);
-        pofWriter.writeInt(4, chunkOverlap);
+        pofWriter.writeString(0, chatModel);
+        pofWriter.writeString(1, embeddingModel);
+        pofWriter.writeBoolean(2, normalizeEmbeddings);
+        pofWriter.writeObject(3, index);
+        pofWriter.writeInt(4, chunkSize);
+        pofWriter.writeInt(5, chunkOverlap);
         }
 
     // ---- constants -------------------------------------------------------
@@ -230,6 +265,14 @@ public class StoreConfig
     public static final int IMPLEMENTATION_VERSION = 1;
 
     // ---- data members ----------------------------------------------------
+
+    /**
+     * The chat model identifier.
+     * <p/>
+     * This field specifies which AI model should be used for chat.
+     * The value should be a valid chat model identifier.
+     */
+    private String chatModel;
 
     /**
      * The embedding model identifier to use for generating vector embeddings.

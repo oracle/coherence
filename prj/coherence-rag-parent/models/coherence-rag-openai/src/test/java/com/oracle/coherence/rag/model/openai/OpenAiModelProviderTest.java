@@ -6,12 +6,18 @@
  */
 package com.oracle.coherence.rag.model.openai;
 
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.internal.json.JsonbProvider;
+
+import com.tangosol.net.cache.WrapperNamedCache;
+
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 
 import io.helidon.config.ConfigException;
 
+import java.util.HashMap;
 import org.eclipse.microprofile.config.Config;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +29,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,14 +56,10 @@ class OpenAiModelProviderTest
     private OpenAiModelProvider provider;
 
     @BeforeEach
-    void setUp() throws Exception
+    void setUp()
         {
-        provider = new OpenAiModelProvider();
-        
-        // Inject mock config using reflection
-        Field configField = OpenAiModelProvider.class.getDeclaredField("config");
-        configField.setAccessible(true);
-        configField.set(provider, mockConfig);
+        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
+        provider = new OpenAiModelProvider(mockConfig, jsonConfig);
         }
 
     @Test

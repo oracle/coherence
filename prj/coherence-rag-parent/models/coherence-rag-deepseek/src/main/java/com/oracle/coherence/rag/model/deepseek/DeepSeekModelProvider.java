@@ -8,6 +8,10 @@ package com.oracle.coherence.rag.model.deepseek;
 
 import com.oracle.coherence.rag.ModelProvider;
 
+import com.oracle.coherence.rag.config.ConfigKey;
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.model.deepseek.config.DeepSeekChatModelConfig;
+import com.oracle.coherence.rag.model.deepseek.config.DeepSeekStreamingChatModelConfig;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -36,7 +40,7 @@ import org.eclipse.microprofile.config.Config;
  * Configuration is managed through MicroProfile Config with the following properties:
  * <ul>
  * <li>deepseek.api.key - Required API key for DeepSeek service</li>
- * <li>deepseek.base.url - Base URL for DeepSeek API (defaults to https://api.deepseek.com/v1)</li>
+ * <li>deepseek.base.url - Base URL for DeepSeek API (defaults to {@code https://api.deepseek.com/v1})</li>
  * </ul>
  * <p/>
  * Example usage:
@@ -63,8 +67,11 @@ public class DeepSeekModelProvider
     /**
      * Default constructor for CDI initialization.
      */
-    public DeepSeekModelProvider()
+    @Inject
+    public DeepSeekModelProvider(Config config, ConfigRepository jsonConfig)
         {
+        this.config = config;
+        this.jsonConfig = jsonConfig;
         }
 
     // ---- ModelProvider interface implementation -------------------------
@@ -102,11 +109,15 @@ public class DeepSeekModelProvider
     public ChatModel getChatModel(String sName)
         {
         validateModelName(sName);
-        return OpenAiChatModel.builder()
-                            .apiKey(deepSeekApiKey())
-                            .baseUrl(deepSeekBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OpenAiChatModel.builder()
+                .apiKey(deepSeekApiKey())
+                .baseUrl(deepSeekBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("chat:DeepSeek/" + sName);
+        return jsonConfig.get(key, new DeepSeekChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     /**
@@ -127,11 +138,15 @@ public class DeepSeekModelProvider
     public StreamingChatModel getStreamingChatModel(String sName)
         {
         validateModelName(sName);
-        return OpenAiStreamingChatModel.builder()
-                            .apiKey(deepSeekApiKey())
-                            .baseUrl(deepSeekBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OpenAiStreamingChatModel.builder()
+                .apiKey(deepSeekApiKey())
+                .baseUrl(deepSeekBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("streamingChat:DeepSeek/" + sName);
+        return jsonConfig.get(key, new DeepSeekStreamingChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     // ---- helper methods --------------------------------------------------
@@ -176,7 +191,7 @@ public class DeepSeekModelProvider
     /**
      * Returns the DeepSeek base URL from configuration.
      *
-     * @return the base URL for DeepSeek API, defaults to https://api.deepseek.com/v1
+     * @return the base URL for DeepSeek API, defaults to {@code https://api.deepseek.com/v1}
      */
     protected String deepSeekBaseUrl()
         {
@@ -188,8 +203,12 @@ public class DeepSeekModelProvider
     /**
      * MicroProfile Config instance for reading configuration properties.
      */
-    @Inject
-    private Config config;
+    private final Config config;
+
+    /**
+     * Repository containing model configuration.
+     */
+    private final ConfigRepository jsonConfig;
 
     // ---- constants -------------------------------------------------------
 

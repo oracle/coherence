@@ -9,6 +9,9 @@ package com.oracle.coherence.rag.model.ollama;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.internal.json.JsonbProvider;
+import com.tangosol.net.cache.WrapperNamedCache;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -20,6 +23,7 @@ import dev.langchain4j.model.ollama.OllamaEmbeddingModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.eclipse.microprofile.config.Config;
@@ -27,7 +31,6 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import org.junit.jupiter.api.*;
 
-import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
@@ -109,14 +112,10 @@ class OllamaModelProviderIT
         }
 
     @BeforeEach
-    void setUp() throws Exception
+    void setUp()
         {
-        provider = new OllamaModelProvider();
-        
-        // Inject test config using reflection
-        Field configField = OllamaModelProvider.class.getDeclaredField("config");
-        configField.setAccessible(true);
-        configField.set(provider, new TestConfig());
+        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
+        provider = new OllamaModelProvider(new TestConfig(), jsonConfig);
         }
 
     // ---- tests -----------------------------------------------------------

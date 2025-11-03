@@ -4,29 +4,26 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.rag.model.openai.config;
+package com.oracle.coherence.rag.model.deepseek.config;
 
-import com.oracle.coherence.rag.config.model.ChatModelConfig;
-
-import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModel.OpenAiChatModelBuilder;
-
+import com.oracle.coherence.rag.config.model.StreamingChatModelConfig;
+import dev.langchain4j.model.openai.OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Configuration class for OpenAI chat model.
+ * Configuration class for DeepSeek streaming chat model.
  * <p/>
- * Encapsulates configuration parameters that control how OpenAI chat
+ * Encapsulates configuration parameters that control how DeepSeek streaming chat
  * models are used within the Coherence RAG framework.
  *
  * @author Aleks Seovic  2025.07.13
  * @since 25.09
  */
 @SuppressWarnings("unused")
-public class OpenAiChatModelConfig
-        extends ChatModelConfig<OpenAiChatModelBuilder>
+public class DeepSeekStreamingChatModelConfig
+        extends StreamingChatModelConfig<OpenAiStreamingChatModelBuilder>
     {
     // ---- properties ------------------------------------------------------
 
@@ -47,7 +44,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setOrganizationId(String organizationId)
+    public DeepSeekStreamingChatModelConfig setOrganizationId(String organizationId)
         {
         this.organizationId = organizationId;
         return this;
@@ -70,7 +67,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setProjectId(String projectId)
+    public DeepSeekStreamingChatModelConfig setProjectId(String projectId)
         {
         this.projectId = projectId;
         return this;
@@ -95,7 +92,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTemperature(Double temperature)
+    public DeepSeekStreamingChatModelConfig setTemperature(Double temperature)
         {
         this.temperature = temperature;
         return this;
@@ -118,7 +115,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTopP(Double topP)
+    public DeepSeekStreamingChatModelConfig setTopP(Double topP)
         {
         this.topP = topP;
         return this;
@@ -141,7 +138,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStop(List<String> stop)
+    public DeepSeekStreamingChatModelConfig setStop(List<String> stop)
         {
         this.stop = stop;
         return this;
@@ -164,7 +161,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMaxTokens(Integer maxTokens)
+    public DeepSeekStreamingChatModelConfig setMaxTokens(Integer maxTokens)
         {
         this.maxTokens = maxTokens;
         return this;
@@ -187,7 +184,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMaxCompletionTokens(Integer maxCompletionTokens)
+    public DeepSeekStreamingChatModelConfig setMaxCompletionTokens(Integer maxCompletionTokens)
         {
         this.maxCompletionTokens = maxCompletionTokens;
         return this;
@@ -210,7 +207,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setPresencePenalty(Double presencePenalty)
+    public DeepSeekStreamingChatModelConfig setPresencePenalty(Double presencePenalty)
         {
         this.presencePenalty = presencePenalty;
         return this;
@@ -233,7 +230,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setFrequencyPenalty(Double frequencyPenalty)
+    public DeepSeekStreamingChatModelConfig setFrequencyPenalty(Double frequencyPenalty)
         {
         this.frequencyPenalty = frequencyPenalty;
         return this;
@@ -256,14 +253,14 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogitBias(Map<String, Integer> logitBias)
+    public DeepSeekStreamingChatModelConfig setLogitBias(Map<String, Integer> logitBias)
         {
         this.logitBias = logitBias;
         return this;
         }
 
     /**
-     * Gets the expected format for model responses.
+     * Gets the expected response format.
      *
      * @return the response format
      */
@@ -273,13 +270,13 @@ public class OpenAiChatModelConfig
         }
 
     /**
-     * Sets the expected format for model responses.
+     * Sets the expected response format.
      *
      * @param responseFormat the response format
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setResponseFormat(String responseFormat)
+    public DeepSeekStreamingChatModelConfig setResponseFormat(String responseFormat)
         {
         this.responseFormat = responseFormat;
         return this;
@@ -288,7 +285,7 @@ public class OpenAiChatModelConfig
     /**
      * Returns whether strict JSON schema validation is enabled.
      *
-     * @return true if strict validation is enabled; false otherwise
+     * @return true if strict JSON schema validation is enabled
      */
     public Boolean isStrictJsonSchema()
         {
@@ -298,11 +295,11 @@ public class OpenAiChatModelConfig
     /**
      * Enables or disables strict JSON schema validation.
      *
-     * @param strictJsonSchema whether to enable strict validation
+     * @param strictJsonSchema whether to enable strict JSON schema validation
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStrictJsonSchema(Boolean strictJsonSchema)
+    public DeepSeekStreamingChatModelConfig setStrictJsonSchema(Boolean strictJsonSchema)
         {
         this.strictJsonSchema = strictJsonSchema;
         return this;
@@ -325,7 +322,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setSeed(Integer seed)
+    public DeepSeekStreamingChatModelConfig setSeed(Integer seed)
         {
         this.seed = seed;
         return this;
@@ -348,7 +345,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setUser(String user)
+    public DeepSeekStreamingChatModelConfig setUser(String user)
         {
         this.user = user;
         return this;
@@ -371,7 +368,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStrictTools(Boolean strictTools)
+    public DeepSeekStreamingChatModelConfig setStrictTools(Boolean strictTools)
         {
         this.strictTools = strictTools;
         return this;
@@ -394,16 +391,16 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setParallelToolCalls(Boolean parallelToolCalls)
+    public DeepSeekStreamingChatModelConfig setParallelToolCalls(Boolean parallelToolCalls)
         {
         this.parallelToolCalls = parallelToolCalls;
         return this;
         }
 
     /**
-     * Returns whether chat messages should be stored.
+     * Returns whether messages are stored.
      *
-     * @return true if storage is enabled
+     * @return true if message storage is enabled
      */
     public Boolean isStore()
         {
@@ -413,11 +410,11 @@ public class OpenAiChatModelConfig
     /**
      * Enables or disables message storage.
      *
-     * @param store whether to store messages
+     * @param store whether to enable message storage
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setStore(Boolean store)
+    public DeepSeekStreamingChatModelConfig setStore(Boolean store)
         {
         this.store = store;
         return this;
@@ -440,14 +437,14 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setMetadata(Map<String, String> metadata)
+    public DeepSeekStreamingChatModelConfig setMetadata(Map<String, String> metadata)
         {
         this.metadata = metadata;
         return this;
         }
 
     /**
-     * Gets the OpenAI service tier to be used.
+     * Gets the service tier to use for OpenAI requests.
      *
      * @return the service tier
      */
@@ -457,13 +454,13 @@ public class OpenAiChatModelConfig
         }
 
     /**
-     * Sets the OpenAI service tier to be used.
+     * Sets the service tier to use for OpenAI requests.
      *
      * @param serviceTier the service tier
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setServiceTier(String serviceTier)
+    public DeepSeekStreamingChatModelConfig setServiceTier(String serviceTier)
         {
         this.serviceTier = serviceTier;
         return this;
@@ -486,32 +483,9 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setTimeout(Duration timeout)
+    public DeepSeekStreamingChatModelConfig setTimeout(Duration timeout)
         {
         this.timeout = timeout;
-        return this;
-        }
-
-    /**
-     * Gets the maximum number of retry attempts.
-     *
-     * @return the retry count
-     */
-    public Integer getMaxRetries()
-        {
-        return maxRetries;
-        }
-
-    /**
-     * Sets the maximum number of retry attempts.
-     *
-     * @param maxRetries the retry count
-     *
-     * @return this config instance for method chaining
-     */
-    public OpenAiChatModelConfig setMaxRetries(Integer maxRetries)
-        {
-        this.maxRetries = maxRetries;
         return this;
         }
 
@@ -520,10 +494,7 @@ public class OpenAiChatModelConfig
      *
      * @return true if request logging is enabled
      */
-    public Boolean isLogRequests()
-        {
-        return logRequests;
-        }
+    public Boolean isLogRequests() { return logRequests; }
 
     /**
      * Enables or disables logging of API requests.
@@ -532,7 +503,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogRequests(Boolean logRequests)
+    public DeepSeekStreamingChatModelConfig setLogRequests(Boolean logRequests)
         {
         this.logRequests = logRequests;
         return this;
@@ -555,7 +526,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setLogResponses(Boolean logResponses)
+    public DeepSeekStreamingChatModelConfig setLogResponses(Boolean logResponses)
         {
         this.logResponses = logResponses;
         return this;
@@ -578,7 +549,7 @@ public class OpenAiChatModelConfig
      *
      * @return this config instance for method chaining
      */
-    public OpenAiChatModelConfig setCustomHeaders(Map<String, String> customHeaders)
+    public DeepSeekStreamingChatModelConfig setCustomHeaders(Map<String, String> customHeaders)
         {
         this.customHeaders = customHeaders;
         return this;
@@ -587,7 +558,7 @@ public class OpenAiChatModelConfig
     // ---- AbstractConfig methods ------------------------------------------
 
     @Override
-    public OpenAiChatModelBuilder apply(OpenAiChatModelBuilder target)
+    public OpenAiStreamingChatModelBuilder apply(OpenAiStreamingChatModelBuilder target)
         {
         return target
                 .organizationId(organizationId)
@@ -610,30 +581,18 @@ public class OpenAiChatModelConfig
                 .metadata(metadata)
                 .serviceTier(serviceTier)
                 .timeout(timeout)
-                .maxRetries(maxRetries)
                 .logRequests(logRequests)
                 .logResponses(logResponses)
                 .customHeaders(customHeaders);
         }
 
-    // ---- strongly typed builder conversion -------------------------------
-
-    /**
-     * Converts this configuration to a strongly-typed builder instance.
-     *
-     * @return a configured {@link OpenAiChatModelBuilder}
-     */
-    public OpenAiChatModelBuilder toBuilder()
-        {
-        return apply(OpenAiChatModel.builder());
-        }
-
     // ---- Object methods --------------------------------------------------
+
 
     @Override
     public String toString()
         {
-        return "OpenAiChatModelConfig[" +
+        return "DeepSeekStreamingChatModelConfig[" +
                "organizationId=" + organizationId +
                ", projectId=" + projectId +
                ", temperature=" + temperature +
@@ -654,10 +613,9 @@ public class OpenAiChatModelConfig
                ", metadata=" + metadata +
                ", serviceTier=" + serviceTier +
                ", timeout=" + timeout +
-               ", maxRetries=" + maxRetries +
                ", logRequests=" + logRequests +
                ", logResponses=" + logResponses +
-               ", customHeaders=" + customHeaders + ']';
+               ", customHeaders=" + customHeaders + ']' ;
         }
 
     // ---- data members ----------------------------------------------------
@@ -682,7 +640,6 @@ public class OpenAiChatModelConfig
     private Map<String, String> metadata;
     private String serviceTier;
     private Duration timeout;
-    private Integer maxRetries;
     private Boolean logRequests;
     private Boolean logResponses;
     private Map<String, String> customHeaders;

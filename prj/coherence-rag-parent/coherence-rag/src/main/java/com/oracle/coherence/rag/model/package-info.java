@@ -26,8 +26,7 @@
  * <ul>
  * <li>{@link com.oracle.coherence.rag.model.LocalOnnxEmbeddingModel} - Local embedding models via ONNX Runtime</li>
  * <li>{@link com.oracle.coherence.rag.model.LocalOnnxScoringModel} - Local scoring models via ONNX Runtime</li>
- * <li>{@link com.oracle.coherence.rag.model.OnnxEmbeddingModel} - Core ONNX embedding implementation</li>
- * <li>{@link com.oracle.coherence.rag.model.OnnxBertBiEncoder} - BERT bi-encoder for embeddings</li>
+ * <li>{@link com.oracle.coherence.rag.model.OnnxEmbeddingModel} - BERT bi-encoder for embeddings</li>
  * <li>{@link com.oracle.coherence.rag.model.OnnxBertCrossEncoder} - BERT cross-encoder for scoring</li>
  * </ul>
  * <p/>
@@ -45,7 +44,7 @@
  * <li>OpenAI GPT models - coherence-rag-open-ai</li>
  * <li>OCI GenAI service - coherence-rag-oci</li>
  * <li>Ollama local models - coherence-rag-ollama</li>
- * <li>DeepSeek API - coherence-rag-deepseek</li>
+ * <li>DeepSeek models - coherence-rag-deepseek</li>
  * </ul>
  *
  * @author Aleks Seovic 2025.07.04

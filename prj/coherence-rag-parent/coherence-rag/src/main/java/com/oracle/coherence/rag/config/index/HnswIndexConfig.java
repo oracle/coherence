@@ -309,9 +309,9 @@ public class HnswIndexConfig
     // ---- AbstractConfig methods ------------------------------------------
 
     @Override
-    public void apply(HnswIndex<?, ?> target)
+    public HnswIndex<?, ?> apply(HnswIndex<?, ?> target)
         {
-        target.setSpaceName(getSpaceName())
+        return target.setSpaceName(getSpaceName())
                 .setM(getM())
                 .setEfConstruction(getEfConstruction())
                 .setEfSearch(getEfSearch())

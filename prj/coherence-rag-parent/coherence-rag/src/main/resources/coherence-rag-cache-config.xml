@@ -31,6 +31,11 @@
     </cache-mapping>
 
     <cache-mapping>
+      <cache-name>jsonConfig</cache-name>
+      <scheme-name>jsonConfig</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
       <cache-name>chunks-*</cache-name>
       <scheme-name>chunks</scheme-name>
     </cache-mapping>
@@ -104,6 +109,17 @@
       </back-scheme>
       <autostart>true</autostart>
     </near-scheme>
+
+    <distributed-scheme>
+      <scheme-name>jsonConfig</scheme-name>
+      <service-name>JsonConfig</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
 
     <distributed-scheme>
       <scheme-name>chunks</scheme-name>

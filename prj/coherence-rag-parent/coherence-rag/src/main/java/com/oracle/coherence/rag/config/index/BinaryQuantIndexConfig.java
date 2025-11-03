@@ -141,9 +141,9 @@ public class BinaryQuantIndexConfig
     // ---- AbstractConfig methods ------------------------------------------
 
     @Override
-    public void apply(BinaryQuantIndex<?, ?, ?> target)
+    public BinaryQuantIndex<?, ?, ?> apply(BinaryQuantIndex<?, ?, ?> target)
         {
-        target.oversamplingFactor(getOversamplingFactor());
+        return target.oversamplingFactor(getOversamplingFactor());
         }
 
     // ---- Object methods --------------------------------------------------
