@@ -18,7 +18,6 @@
  * <li>{@link com.oracle.coherence.rag.util.CdiHelper} - CDI integration and bean resolution utilities</li>
  * <li>{@link com.oracle.coherence.rag.util.Formatting} - Text formatting and display utilities</li>
  * <li>{@link com.oracle.coherence.rag.util.Timer} - Performance timing and measurement utilities</li>
- * <li>{@link com.oracle.coherence.rag.util.HttpProxyExtension} - HTTP proxy configuration extension</li>
  * <li>{@link com.oracle.coherence.rag.util.ShardRetrievalPlan} - Distributed query optimization</li>
  * </ul>
  * <p/>

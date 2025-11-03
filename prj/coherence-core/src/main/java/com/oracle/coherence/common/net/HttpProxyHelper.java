@@ -4,23 +4,19 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.rag.util;
+package com.oracle.coherence.common.net;
 
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
-import jakarta.enterprise.inject.spi.Extension;
+import com.oracle.coherence.common.base.Logger;
 
 import java.net.URI;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
- * CDI extension for automatic HTTP proxy configuration from environment variables.
+ * Helper class for automatic Java HTTP proxy configuration from environment variables.
  * <p/>
- * This extension automatically configures Java HTTP proxy settings based on
- * standard environment variables during CDI container startup. It supports
- * the common proxy environment variables used in containerized and enterprise
- * environments, ensuring seamless integration with corporate network infrastructure.
+ * This class automatically configures Java HTTP proxy settings based on standard
+ * environment variables. It supports the common proxy environment variables used
+ * in containerized and enterprise environments, ensuring seamless integration with
+ * corporate network infrastructure.
  * <p/>
  * Supported environment variables:
  * <ul>
@@ -29,40 +25,30 @@ import java.util.logging.Logger;
  *   <li>{@code NO_PROXY} or {@code no_proxy} - Comma-separated list of hosts to bypass proxy</li>
  * </ul>
  * <p/>
- * The extension only sets proxy properties if they are not already configured,
+ * The class only sets proxy properties if they are not already configured,
  * allowing explicit system property configuration to take precedence. This
  * provides flexibility for different deployment scenarios.
  * <p/>
  * Proxy URL format: {@code http://[username:password@]host:port}
  * <p/>
  * NO_PROXY format: {@code localhost,.example.com,192.168.1.0/24}
- * <p/>
- * Usage: This extension is automatically discovered and activated by the CDI
- * container if present on the classpath. No explicit configuration is required.
- * 
+ *
  * @author Aleks Seovic  2025.07.04
  * @since 25.09
  */
-public class HttpProxyExtension
-        implements Extension
+public class HttpProxyHelper
     {
     /**
-     * Logger for proxy configuration messages.
+     * Configures Java HTTP proxy settings from standard environment variables.
      * <p/>
-     * Uses the "coherence" logger to align with other Coherence RAG logging.
+     * Supported environment variables:
+     * <ul>
+     *   <li>{@code HTTP_PROXY} or {@code http_proxy} - HTTP proxy URL</li>
+     *   <li>{@code HTTPS_PROXY} or {@code https_proxy} - HTTPS proxy URL</li>
+     *   <li>{@code NO_PROXY} or {@code no_proxy} - Comma-separated list of hosts to bypass proxy</li>
+     * </ul>
      */
-    private static final Logger LOGGER = Logger.getLogger("coherence");
-
-    /**
-     * Configures HTTP proxy settings during CDI container startup.
-     * <p/>
-     * This method is automatically called by the CDI container before bean
-     * discovery begins. It reads proxy configuration from environment variables
-     * and sets the corresponding Java system properties.
-     * 
-     * @param event the BeforeBeanDiscovery event (unused but required by CDI)
-     */
-    public void configureProxy(@Observes BeforeBeanDiscovery event)
+    public static void configureProxy()
         {
         configureProxyForScheme("http");
         configureProxyForScheme("https");
@@ -79,7 +65,7 @@ public class HttpProxyExtension
      * 
      * @param scheme the URL scheme to configure ("http" or "https")
      */
-    private void configureProxyForScheme(String scheme)
+    private static void configureProxyForScheme(String scheme)
         {
         String envVar = scheme.toUpperCase() + "_PROXY";
         String proxyEnv = System.getenv(envVar);
@@ -103,32 +89,32 @@ public class HttpProxyExtension
                 if (System.getProperty(proxyHostProperty) == null)
                     {
                     System.setProperty(proxyHostProperty, host);
-                    LOGGER.log(Level.CONFIG, "Set {0} = {1}", new Object[] {proxyHostProperty, host});
+                    Logger.config("Set %s = %s".formatted(proxyHostProperty, host));
                     }
                 else
                     {
-                    LOGGER.log(Level.FINE, "{0} already set, skipping", proxyHostProperty);
+                    Logger.fine("%s already set, skipping".formatted(proxyHostProperty));
                     }
 
                 if (System.getProperty(proxyPortProperty) == null)
                     {
                     System.setProperty(proxyPortProperty, String.valueOf(port));
-                    LOGGER.log(Level.CONFIG, "Set {0} = {1}", new Object[] {proxyPortProperty, port});
+                    Logger.config("Set %s = %s".formatted(proxyPortProperty, port));
                     }
                 else
                     {
-                    LOGGER.log(Level.FINE, "{0} already set, skipping", proxyPortProperty);
+                    Logger.fine("%s already set, skipping".formatted(proxyPortProperty));
                     }
 
                 }
             catch (Exception e)
                 {
-                LOGGER.log(Level.WARNING, "Failed to parse " + envVar + " = " + proxyEnv, e);
+                Logger.warn("Failed to parse %s = %s".formatted(envVar, proxyEnv), e);
                 }
             }
         else
             {
-            LOGGER.log(Level.CONFIG, "Environment variable {0} not set", envVar);
+            Logger.config("Environment variable %s not set".formatted(envVar));
             }
         }
 
@@ -147,7 +133,7 @@ public class HttpProxyExtension
      * Both uppercase (NO_PROXY) and lowercase (no_proxy) environment
      * variables are supported for compatibility.
      */
-    private void configureNonProxyHosts()
+    private static void configureNonProxyHosts()
         {
         String noProxyEnv = System.getenv("NO_PROXY");
         if (noProxyEnv == null)
@@ -156,29 +142,29 @@ public class HttpProxyExtension
             }
         if (noProxyEnv != null)
             {
-            String formatted = noProxyEnv.replace(",", "|").replaceAll("\\s+", "");
+            String nonProxyHosts = noProxyEnv.replace(",", "|").replaceAll("\\s+", "");
 
             // Java expects *.domain.com instead of just .domain.com
-            formatted = formatted.replaceAll("\\|\\.", "|*."); // replace "|." with "|*."
+            nonProxyHosts = nonProxyHosts.replaceAll("\\|\\.", "|*."); // replace "|." with "|*."
 
-            if (formatted.startsWith("."))
+            if (nonProxyHosts.startsWith("."))
                 {
-                formatted = "*" + formatted;
+                nonProxyHosts = "*" + nonProxyHosts;
                 }
 
             if (System.getProperty("http.nonProxyHosts") == null)
                 {
-                System.setProperty("http.nonProxyHosts", formatted);
-                LOGGER.log(Level.CONFIG, "Set http.nonProxyHosts = {0}", formatted);
+                System.setProperty("http.nonProxyHosts", nonProxyHosts);
+                Logger.config("Set http.nonProxyHosts = %s".formatted(nonProxyHosts));
                 }
             else
                 {
-                LOGGER.log(Level.FINE, "http.nonProxyHosts already set, skipping");
+                Logger.fine("http.nonProxyHosts already set, skipping");
                 }
             }
         else
             {
-            LOGGER.log(Level.CONFIG, "NO_PROXY environment variable not set");
+            Logger.config("NO_PROXY environment variable not set");
             }
         }
 
@@ -192,7 +178,7 @@ public class HttpProxyExtension
      * 
      * @return 443 for HTTPS, 80 for HTTP and other schemes
      */
-    private int defaultPortForScheme(String scheme)
+    private static int defaultPortForScheme(String scheme)
         {
         return "https".equalsIgnoreCase(scheme) ? 443 : 80;
         }
