@@ -11,8 +11,18 @@ import com.tangosol.coherence.config.Config;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.StringTokenizer;
+
+import static java.nio.file.Files.delete;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.walkFileTree;
 
 /**
  * File related utility methods.
@@ -151,6 +161,43 @@ public class Files
             }
         }
 
+    /**
+     * Recursively delete directory and all the files and subdirectories within it.
+     *
+     * @param path  the path of a directory to delete
+     *
+     * @throws IOException if an I/O error occurs
+     */
+    public static void deleteDirectory(Path path) throws IOException
+        {
+        if (!exists(path))
+            {
+            return;
+            }
+
+        walkFileTree(path, new SimpleFileVisitor<>()
+            {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                    throws IOException
+                {
+                delete(file);
+                return FileVisitResult.CONTINUE;
+                }
+
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException exc)
+                    throws IOException
+                {
+                if (exc != null)
+                    {
+                    throw exc;
+                    }
+                delete(dir);
+                return FileVisitResult.CONTINUE;
+                }
+            });
+        }
 
     // ----- constants ------------------------------------------------------
 
