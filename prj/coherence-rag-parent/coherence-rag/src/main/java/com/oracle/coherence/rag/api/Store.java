@@ -7,12 +7,15 @@
 package com.oracle.coherence.rag.api;
 
 import com.oracle.coherence.ai.DocumentChunk;
+import com.oracle.coherence.common.base.Exceptions;
+import com.oracle.coherence.rag.DocumentLoader;
 import com.oracle.coherence.rag.config.index.IndexConfig;
 import com.oracle.coherence.ai.QueryResult;
 import com.oracle.coherence.rag.config.StoreConfig;
 import com.oracle.coherence.ai.hnsw.HnswIndex;
 import com.oracle.coherence.ai.index.BinaryQuantIndex;
 import com.oracle.coherence.rag.ChatAssistant;
+import com.oracle.coherence.rag.model.LocalOnnxEmbeddingModel;
 import com.oracle.coherence.rag.model.StreamingChatModelSupplier;
 import com.oracle.coherence.rag.model.EmbeddingModelSupplier;
 import com.oracle.coherence.rag.model.ModelName;
@@ -21,21 +24,28 @@ import com.oracle.coherence.rag.util.Timer;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.oracle.coherence.concurrent.Semaphore;
-import com.oracle.coherence.concurrent.Semaphores;
 import com.oracle.coherence.lucene.LuceneIndex;
 import com.oracle.coherence.lucene.LuceneQueryParser;
 import com.oracle.coherence.lucene.LuceneSearch;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.net.management.model.AbstractModel;
+import com.tangosol.internal.net.management.model.ModelAttribute;
+import com.tangosol.internal.net.management.model.SimpleModelAttribute;
+import com.tangosol.internal.net.management.model.SimpleModelOperation;
+import com.tangosol.internal.net.metrics.Meter;
 import com.tangosol.internal.util.VirtualThreads;
 
+import com.tangosol.net.CacheService;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 import com.tangosol.net.ValueTypeAssertion;
 
+import com.tangosol.net.management.MBeanServerProxy;
+import com.tangosol.net.management.Registry;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Publisher.OrderBy;
@@ -83,8 +93,10 @@ import jakarta.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
+import java.time.Duration;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -93,10 +105,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.management.DynamicMBean;
 import org.apache.lucene.search.Query;
 
 /**
@@ -145,8 +160,6 @@ import org.apache.lucene.search.Query;
 @SuppressWarnings({"CdiManagedBeanInconsistencyInspection", "unchecked"})
 public class Store
     {
-    private static final ExecutorService EXECUTOR = VirtualThreads.newVirtualThreadPerTaskExecutor();
-
     private static final ValueExtractor<DocumentChunk.Id, String> DOC_ID = ValueExtractor.of(DocumentChunk.Id::docId).fromKey();
     private static final ValueExtractor<DocumentChunk, String>    TEXT   = ValueExtractor.of(DocumentChunk::text);
 
@@ -171,6 +184,8 @@ public class Store
 
     private final Thread documentProcessor;
     private final Thread batchingEmbedder;
+
+    private final Stats stats;
 
     /**
      * Cleanup method called when the store is destroyed.
@@ -233,15 +248,18 @@ public class Store
 
         documentProcessor = Thread.ofPlatform()
                 .name("DocumentProcessor")
-                .priority(Thread.MAX_PRIORITY)
+                .priority(Thread.MIN_PRIORITY)
                 .daemon()
                 .start(new DocumentProcessor());
 
         batchingEmbedder = Thread.ofPlatform()
                 .name("BatchingEmbedder")
-                .priority(Thread.MAX_PRIORITY)
+                .priority(Thread.MIN_PRIORITY)
                 .daemon()
                 .start(new BatchingChunkEmbedder());
+
+        stats = new Stats();
+        registerMBean();
         }
 
     /**
@@ -350,7 +368,7 @@ public class Store
     @Path("index")
     public Response removeIndex()
         {
-        IndexConfig indexConfig = config().getIndex();
+        IndexConfig<?> indexConfig = config().getIndex();
 
         if (indexConfig != null)
             {
@@ -388,7 +406,7 @@ public class Store
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("index")
-    public Response createIndex(IndexConfig indexConfig)
+    public Response createIndex(IndexConfig<?> indexConfig)
         {
         try (Response r = removeIndex())
             {
@@ -460,6 +478,7 @@ public class Store
         Timer timer = new Timer().start();
         List<ChunkResult> results = findChunks(req.query(), req.maxResults(), req.minScore(), req.fullTextWeight(), req.scoringModel());
         timer.stop();
+        stats.recordSearch(timer.duration());
 
         // now that we've updated the scores, we can filter, sort and limit results
         results = results.stream()
@@ -725,7 +744,7 @@ public class Store
         //noinspection resource
         Publisher<String> publisher = ensureDocsPublisher();
         uris.forEach(publisher::publish);
-        publisher.flush();
+        publisher.flush().join();
 
         return Response.noContent().build();
         }
@@ -1019,6 +1038,30 @@ public class Store
         return Coherence.getInstance().getSession().getTopic(name, ValueTypeAssertion.withType(elementClass));
         }
 
+    /**
+     * Register the MBean for this repository with Coherence.
+     */
+    private void registerMBean()
+        {
+        try
+            {
+            Cluster cluster  = docs.getService().getCluster();
+            Registry registry = cluster.getManagement();
+
+            if (registry != null)
+                {
+                String sName = registry.ensureGlobalName("type=RAG," + Registry.KEY_NAME + name);
+                registry.register(sName, stats);
+                Logger.info("Registered RAG MBean " + sName + " for knowledge store " + name);
+                }
+            }
+        catch (Exception e)
+            {
+            Logger.err("Failed to register RAG MBean for knowledge store " + name, e);
+            }
+        }
+
+
     // ---- inner classes ---------------------------------------------------
 
     /**
@@ -1046,61 +1089,141 @@ public class Store
             {
             Logger.info("Started main DocumentProcessor thread");
 
-            while (docsSubscriber.isActive())
+            try (var executor = VirtualThreads.newVirtualThreadPerTaskExecutor())
                 {
-                try
+                while (docsSubscriber.isActive())
                     {
-                    Element<String> e = docsSubscriber.receive().join();
-                    String docId = e.getValue();
-
-                    EXECUTOR.execute(() ->
+                    try
                         {
-                        Semaphore semaphore = Semaphores.localSemaphore("concurrent.docs", 32768);
-                        try
-                            {
-                            semaphore.acquire();
-                            Document doc = docs.get(docId);
+                        Element<String> e = docsSubscriber.receive().join();
+                        String docId = e.getValue();
 
-                            if (doc != null)
-                                {
-                                Timer timer = new Timer();
-                                timer.start();
-                                DocumentSplitter splitter = DocumentSplitters.recursive(config().getChunkSize(), config().getChunkOverlap());
-                                List<TextSegment> segments = splitter.split(doc);
+                        executor.execute(() ->
+                             {
+                             Timer loadTimer = new Timer();
+                             Timer splitTimer = new Timer();
 
-                                long splitTime = timer.stop().duration().toMillis();
-                                int chunkCount = segments.size();
-                                Logger.fine("Split %s into %,d segments in %,d ms".formatted(docId, chunkCount, splitTime));
+                             Document doc = docs.get(docId);
+                             if (doc == null)
+                                 {
+                                 loadTimer.start();
 
-                                //noinspection resource
-                                Publisher<DocumentChunk> publisher = ensureChunksPublisher();
-                                for (TextSegment segment : segments)
-                                    {
-                                    DocumentChunk chunk = new DocumentChunk(segment.text(), segment.metadata().toMap());
-                                    publisher.publish(chunk);
-                                    }
-                                publisher.flush();
-                                }
-                            e.commitAsync();
-                            }
-                        catch (InterruptedException ex)
-                            {
-                            Thread.currentThread().interrupt();
-                            }
-                        finally
-                            {
-                            semaphore.release();
-                            }
-                        });
-                    }
-                catch (Exception e)
-                    {
-                    if (chunksSubscriber.isActive())
+                                 doc = loadDocument(docId);
+                                 long time = loadTimer.stop().duration().toMillis();
+
+                                 if (doc != null)
+                                     {
+                                     docs.put(docId, doc);
+                                     Logger.fine("Loaded %s in %,d ms".formatted(docId, time));
+                                     }
+                                 }
+
+                             if (doc != null)
+                                 {
+                                 splitTimer.start();
+                                 DocumentSplitter splitter = DocumentSplitters.recursive(config().getChunkSize(), config().getChunkOverlap());
+                                 List<TextSegment> segments = splitter.split(doc);
+
+                                 long splitTime = splitTimer.stop().duration().toMillis();
+                                 int chunkCount = segments.size();
+                                 Logger.fine("Split %s into %,d segments in %,d ms".formatted(docId, chunkCount, splitTime));
+
+                                 //noinspection resource
+                                 Publisher<DocumentChunk> publisher = ensureChunksPublisher();
+                                 for (TextSegment segment : segments)
+                                     {
+                                     DocumentChunk chunk = new DocumentChunk(segment.text(), segment.metadata().toMap());
+                                     publisher.publish(chunk);
+                                     }
+                                 publisher.flush().join();
+
+                                 stats.finishDocument(loadTimer.duration(), splitTimer.duration());
+                                 }
+                             else
+                                 {
+                                 stats.failDocument(loadTimer.duration(), splitTimer.duration());
+                                 }
+
+                             e.commit();
+                             });
+                        }
+                    catch (Exception e)
                         {
                         Logger.err(e);
+                        if (!docsSubscriber.isActive())
+                            {
+                            throw e;
+                            }
                         }
                     }
                 }
+            }
+
+        /**
+         * Loads a document from the specified URI using appropriate {@link DocumentLoader}.
+         * <p/>
+         * This method implements the core document loading logic with the following steps:
+         * <ol>
+         *   <li>Parse the document ID as a URI to determine the scheme</li>
+         *   <li>Find the appropriate DocumentLoader implementation for the scheme</li>
+         *   <li>Load the document using the selected loader</li>
+         * </ol>
+         *
+         * @param docId the document identifier, must be a valid URI string
+         *
+         * @return the loaded Document object, or null if loading fails
+         */
+        public Document loadDocument(String docId)
+            {
+            URI uri     = URI.create(docId);
+            String sScheme = uri.getScheme();
+
+            DocumentLoader loader = findDocumentLoader(sScheme);
+            if (loader == null)
+                {
+                return null;
+                }
+
+            try
+                {
+                Document doc = loader.load(uri);
+                if (doc == null)
+                    {
+                    Logger.info("Unable to load document %s".formatted(docId));
+                    }
+
+                return doc;
+                }
+            catch (Throwable e)
+                {
+                Throwable cause = Exceptions.getRootCause(e);
+                Logger.info("Failed to load document %s: %s".formatted(cause.getClass().getName(), cause.getMessage()));
+                }
+
+            return null;
+            }
+
+        /**
+         * Finds the appropriate DocumentLoader implementation for a given URI scheme.
+         * <p/>
+         * This method uses CDI BeanManager to dynamically locate DocumentLoader
+         * implementations that are registered with a name matching the URI scheme.
+         * This enables protocol-specific document loading (file, http, https, etc.).
+         *
+         * @param scheme the URI scheme (e.g., "file", "http", "https")
+         *
+         * @return the DocumentLoader for the scheme, or null if none found
+         */
+        private DocumentLoader findDocumentLoader(String scheme)
+            {
+            var loader = CdiHelper.getNamedBean(DocumentLoader.class, scheme);
+            if (loader == null)
+                {
+                Logger.warn("Unable to find document loader for URI scheme '%s'".formatted(scheme));
+                return null;
+                }
+
+            return loader;
             }
         }
 
@@ -1128,39 +1251,56 @@ public class Store
          */
         public void run()
             {
-            int batchSize = Config.getInteger("embed.batch.size", 64);
-            Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
+            int batchSize = Config.getInteger("coherence.rag.embed.batch.size", 64);
+            EmbeddingModel embeddingModel = getEmbeddingModel();
 
-            while (chunksSubscriber.isActive())
+            try (var executor = embeddingModel instanceof LocalOnnxEmbeddingModel
+                                       ? ForkJoinPool.commonPool()
+                                       : VirtualThreads.newVirtualThreadPerTaskExecutor())
                 {
-                try
-                    {
-                    List<Element<DocumentChunk>> chunkList = chunksSubscriber.receive(batchSize).join();
-                    if (!chunkList.isEmpty())
-                        {
-                        ChunkBatch batch = new ChunkBatch(chunkList);
+                Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
 
-                        EXECUTOR.execute(() ->
+                while (chunksSubscriber.isActive())
+                    {
+                    try
+                        {
+                        List<Element<DocumentChunk>> chunkList = chunksSubscriber.receive(batchSize).join();
+                        if (!chunkList.isEmpty())
                             {
-                            Timer timer = new Timer();
-                            int   count = batch.chunks().size();
+                            ChunkBatch batch = new ChunkBatch(chunkList);
 
-                            timer.start();
-                            batch.embedAll(getEmbeddingModel());
-                            long time  = timer.stop().duration().toMillis();
+                            executor.execute(() ->
+                                 {
+                                 Timer timer = new Timer();
+                                 int count = batch.chunks().size();
 
-                            Logger.fine("Created %,d embeddings in %,d ms (%,.3f ms/embedding)".formatted(count, time, 1.0f * time / count));
+                                 try
+                                     {
+                                     timer.start();
+                                     batch.embedAll(embeddingModel);
+                                     long time = timer.stop().duration().toMillis();
 
-                            chunks.putAll(batch.chunks());
-                            chunksSubscriber.commitAsync(chunkList.stream().collect(Collectors.toMap(Element::getChannel, Element::getPosition, (p1, p2) -> p1.compareTo(p2) < 0 ? p2 : p1)));
-                            });
+                                     Logger.fine("Created %,d embeddings in %,d ms (%,.3f ms/embedding)".formatted(count, time, 1.0f * time / count));
+
+                                     chunks.putAll(batch.chunks());
+                                     chunksSubscriber.commit(chunkList.stream().collect(
+                                             Collectors.toMap(Element::getChannel, Element::getPosition, (p1, p2) -> p1.compareTo(p2) < 0 ? p2 : p1)));
+                                     stats.finishEmbeddings(count, timer.duration());
+                                     }
+                                 catch (Throwable t)
+                                     {
+                                     Logger.err("Failed to create %,d embeddings".formatted(count), t);
+                                     stats.failEmbeddings(count, timer.duration());
+                                     }
+                                 });
+                            }
                         }
-                    }
-                catch (Exception e)
-                    {
-                    if (chunksSubscriber.isActive())
+                    catch (Exception e)
                         {
-                        Logger.err(e);
+                        if (chunksSubscriber.isActive())
+                            {
+                            Logger.err(e);
+                            }
                         }
                     }
                 }
@@ -1694,5 +1834,423 @@ public class Store
             {
             this(chunk.text(), chunk.metadata(), chunk.vector().get());
             }
+        }
+
+    // ---- inner class: Stats MBean ----------------------------------------
+
+    /**
+     * Store stats exposed via JMX.
+     */
+    class Stats
+            extends AbstractModel<Stats>
+            implements DynamicMBean
+        {
+        private static final String MBEAN_DESCRIPTION = "A RAG knowledge base store.";
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_COUNT =
+                SimpleModelAttribute.intBuilder("DocumentCount", Stats.class)
+                    .withDescription("The number of documents stored on this member")
+                    .metric(true)
+                    .withFunction(Stats::documentCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_COUNT_PROCESSED =
+                SimpleModelAttribute.intBuilder("DocumentCountProcessed", Stats.class)
+                    .withDescription("The number of documents ingested by this member")
+                    .metric(true)
+                    .withFunction(Stats::documentProcessedCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_COUNT_FAILED =
+                SimpleModelAttribute.intBuilder("DocumentCountFailed", Stats.class)
+                    .withDescription("The number of document ingestion failures on this member")
+                    .metric(true)
+                    .withFunction(Stats::documentFailedCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_COUNT_PENDING =
+                SimpleModelAttribute.intBuilder("DocumentCountPending", Stats.class)
+                    .withDescription("The number of pending documents that still need to be ingested")
+                    .metric(true)
+                    .withFunction(Stats::documentPendingCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_LOAD_TIME =
+                SimpleModelAttribute.longBuilder("DocumentLoadTime", Stats.class)
+                    .withDescription("The total amount of time (im milliseconds) spent loading documents")
+                    .metric(true)
+                    .withFunction(Stats::documentLoadDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> DOCUMENT_SPLIT_TIME =
+                SimpleModelAttribute.longBuilder("DocumentSplitTime", Stats.class)
+                    .withDescription("The total amount of time (im milliseconds) spent splitting documents into chunks")
+                    .metric(true)
+                    .withFunction(Stats::documentSplitDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_COUNT =
+                SimpleModelAttribute.intBuilder("EmbeddingCount", Stats.class)
+                    .withDescription("The number of embeddings stored on this member")
+                    .metric(true)
+                    .withFunction(Stats::embeddingCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_COUNT_PROCESSED =
+                SimpleModelAttribute.longBuilder("EmbeddingCountProcessed", Stats.class)
+                    .withDescription("The number of embeddings created by this member")
+                    .metric(true)
+                    .withFunction(Stats::embeddingProcessedCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_COUNT_FAILED =
+                SimpleModelAttribute.intBuilder("EmbeddingCountFailed", Stats.class)
+                    .withDescription("The number of chunks we failed to create vector embeddings for")
+                    .metric(true)
+                    .withFunction(Stats::embeddingFailedCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_COUNT_PENDING =
+                SimpleModelAttribute.intBuilder("EmbeddingCountPending", Stats.class)
+                    .withDescription("The number of pending document chunks that need to be embedded")
+                    .metric(true)
+                    .withFunction(Stats::embeddingPendingCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_TIME =
+                SimpleModelAttribute.longBuilder("EmbeddingTime", Stats.class)
+                    .withDescription("The total amount of time (im milliseconds) spent creating vector embeddings")
+                    .metric(true)
+                    .withFunction(Stats::embeddingDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_TIME_MEAN =
+                SimpleModelAttribute.doubleBuilder("EmbeddingTimeMean", Stats.class)
+                    .withDescription("The average time (im milliseconds) it took to create a single vector embedding")
+                    .metric(true)
+                    .withFunction(Stats::embeddingAverageDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_RATE_MEAN =
+                SimpleModelAttribute.doubleBuilder("EmbeddingRateMean", Stats.class)
+                    .withDescription("The embedding request mean rate")
+                    .metric("EmbeddingRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_MEAN)
+                    .withFunction(Stats::embeddingMeanRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_RATE_ONE_MINUTE =
+                SimpleModelAttribute.doubleBuilder("EmbeddingRate01", Stats.class)
+                    .withDescription("The embedding request one-minute rate")
+                    .metric("EmbeddingRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_1MIN)
+                    .withFunction(Stats::embeddingOneMinuteRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_RATE_FIVE_MINUTE =
+                SimpleModelAttribute.doubleBuilder("EmbeddingRate05", Stats.class)
+                    .withDescription("The embedding request five-minute rate")
+                    .metric("EmbeddingRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_5MIN)
+                    .withFunction(Stats::embeddingFiveMinuteRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> EMBEDDING_RATE_FIFTEEN_MINUTE =
+                SimpleModelAttribute.doubleBuilder("EmbeddingRate15", Stats.class)
+                    .withDescription("The embedding request fifteen-minute rate")
+                    .metric("EmbeddingRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_15MIN)
+                    .withFunction(Stats::embeddingFifteenMinuteRate)
+                    .build();
+        
+        protected static final SimpleModelAttribute<Stats> SEARCH_COUNT =
+                SimpleModelAttribute.longBuilder("SearchCount", Stats.class)
+                    .withDescription("The number of searches performed")
+                    .metric(true)
+                    .withFunction(Stats::searchCount)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_TIME =
+                SimpleModelAttribute.longBuilder("SearchTime", Stats.class)
+                    .withDescription("The total amount of time (im milliseconds) spent searching")
+                    .metric(true)
+                    .withFunction(Stats::searchDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_TIME_MEAN =
+                SimpleModelAttribute.doubleBuilder("SearchTimeMean", Stats.class)
+                    .withDescription("The average time (im milliseconds) each search took")
+                    .metric(true)
+                    .withFunction(Stats::averageSearchDuration)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_RATE_MEAN =
+                SimpleModelAttribute.doubleBuilder("SearchRateMean", Stats.class)
+                    .withDescription("The search request mean rate")
+                    .metric("SearchRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_MEAN)
+                    .withFunction(Stats::searchMeanRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_RATE_ONE_MINUTE =
+                SimpleModelAttribute.doubleBuilder("SearchRate01", Stats.class)
+                    .withDescription("The search request one-minute rate")
+                    .metric("SearchRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_1MIN)
+                    .withFunction(Stats::searchOneMinuteRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_RATE_FIVE_MINUTE =
+                SimpleModelAttribute.doubleBuilder("SearchRate05", Stats.class)
+                    .withDescription("The search request five-minute rate")
+                    .metric("SearchRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_5MIN)
+                    .withFunction(Stats::searchFiveMinuteRate)
+                    .build();
+
+        protected static final SimpleModelAttribute<Stats> SEARCH_RATE_FIFTEEN_MINUTE =
+                SimpleModelAttribute.doubleBuilder("SearchRate15", Stats.class)
+                    .withDescription("The search request fifteen-minute rate")
+                    .metric("SearchRate")
+                    .withMetricLabels("rate", ModelAttribute.RATE_15MIN)
+                    .withFunction(Stats::searchFifteenMinuteRate)
+                    .build();
+        
+        protected static final SimpleModelOperation<Stats> RESET_STATISTICS =
+                SimpleModelOperation.builder("resetStatistics", Stats.class)
+                   .withDescription("Reset statistics")
+                   .withFunction(Stats::reset)
+                   .build();
+
+        Stats()
+            {
+            super(MBEAN_DESCRIPTION);
+
+            addAttribute(DOCUMENT_COUNT);
+            addAttribute(DOCUMENT_COUNT_PROCESSED);
+            addAttribute(DOCUMENT_COUNT_FAILED);
+            addAttribute(DOCUMENT_COUNT_PENDING);
+            addAttribute(DOCUMENT_LOAD_TIME);
+            addAttribute(DOCUMENT_SPLIT_TIME);
+
+            addAttribute(EMBEDDING_COUNT);
+            addAttribute(EMBEDDING_COUNT_PROCESSED);
+            addAttribute(EMBEDDING_COUNT_FAILED);
+            addAttribute(EMBEDDING_COUNT_PENDING);
+            addAttribute(EMBEDDING_TIME);
+            addAttribute(EMBEDDING_TIME_MEAN);
+            addAttribute(EMBEDDING_RATE_MEAN);
+            addAttribute(EMBEDDING_RATE_ONE_MINUTE);
+            addAttribute(EMBEDDING_RATE_FIVE_MINUTE);
+            addAttribute(EMBEDDING_RATE_FIFTEEN_MINUTE);
+
+            addAttribute(SEARCH_COUNT);
+            addAttribute(SEARCH_TIME);
+            addAttribute(SEARCH_TIME_MEAN);
+            addAttribute(SEARCH_RATE_MEAN);
+            addAttribute(SEARCH_RATE_ONE_MINUTE);
+            addAttribute(SEARCH_RATE_FIVE_MINUTE);
+            addAttribute(SEARCH_RATE_FIFTEEN_MINUTE);
+
+            addOperation(RESET_STATISTICS);
+
+            var cluster  = docs.getService().getCluster();
+            var registry = cluster.getManagement();
+            proxy = registry.getMBeanServerProxy().local();
+
+            sNameDocs   = getCacheMBeanName(registry, docs);
+            sNameChunks = getCacheMBeanName(registry, chunks);
+            }
+
+        private String getCacheMBeanName(Registry registry, NamedMap<?, ?> cache)
+            {
+            CacheService service = cache.getService();
+            String sName = Registry.CACHE_TYPE +
+                "," + Registry.KEY_SERVICE + service.getInfo().getServiceName() +
+                ",name=" + cache.getName();
+
+            sName = registry.ensureGlobalName(sName);
+            sName = sName + ",tier=back";
+
+            return sName;
+            }
+
+        int documentCount()
+            {
+            return (int) proxy.getAttribute(sNameDocs, "Size");
+            }
+
+        int documentProcessedCount()
+            {
+            return documentProcessedCount.get();
+            }
+
+        int documentFailedCount()
+            {
+            return documentFailedCount.get();
+            }
+
+        int documentPendingCount()
+            {
+            return docsSubscriber.getRemainingMessages();
+            }
+
+        long documentLoadDuration()
+            {
+            return documentLoadDuration.get();
+            }
+
+        long documentSplitDuration()
+            {
+            return documentSplitDuration.get();
+            }
+
+        int embeddingCount()
+            {
+            return (int) proxy.getAttribute(sNameChunks, "Size");
+            }
+
+        long embeddingProcessedCount()
+            {
+            return embeddingMeter.getCount();
+            }
+
+        int embeddingFailedCount()
+            {
+            return embeddingFailedCount.get();
+            }
+
+        int embeddingPendingCount()
+            {
+            return chunksSubscriber.getRemainingMessages();
+            }
+
+        long embeddingDuration()
+            {
+            return embeddingDuration.get();
+            }
+
+        double embeddingAverageDuration()
+            {
+            return embeddingDuration.doubleValue() / embeddingMeter.getCount();
+            }
+
+        double embeddingFifteenMinuteRate()
+            {
+            return embeddingMeter.getFifteenMinuteRate();
+            }
+
+        double embeddingFiveMinuteRate()
+            {
+            return embeddingMeter.getFiveMinuteRate();
+            }
+
+        double embeddingOneMinuteRate()
+            {
+            return embeddingMeter.getOneMinuteRate();
+            }
+
+        double embeddingMeanRate()
+            {
+            return embeddingMeter.getMeanRate();
+            }
+        
+        public long searchCount()
+            {
+            return searchMeter.getCount();
+            }
+
+        public long searchDuration()
+            {
+            return searchDuration.get();
+            }
+
+        double averageSearchDuration()
+            {
+            return searchDuration.doubleValue() / searchMeter.getCount();
+            }
+
+        double searchFifteenMinuteRate()
+            {
+            return searchMeter.getFifteenMinuteRate();
+            }
+
+        double searchFiveMinuteRate()
+            {
+            return searchMeter.getFiveMinuteRate();
+            }
+
+        double searchOneMinuteRate()
+            {
+            return searchMeter.getOneMinuteRate();
+            }
+
+        double searchMeanRate()
+            {
+            return searchMeter.getMeanRate();
+            }
+        
+        void finishDocument(Duration loadDuration, Duration splitDuration)
+            {
+            documentProcessedCount.incrementAndGet();
+            documentLoadDuration.addAndGet(loadDuration.toMillis());
+            documentSplitDuration.addAndGet(splitDuration.toMillis());
+            }
+
+        void failDocument(Duration loadDuration, Duration splitDuration)
+            {
+            documentFailedCount.incrementAndGet();
+            documentLoadDuration.addAndGet(loadDuration.toMillis());
+            documentSplitDuration.addAndGet(splitDuration.toMillis());
+            }
+
+        void finishEmbeddings(int count, Duration duration)
+            {
+            embeddingMeter.mark(count);
+            embeddingDuration.addAndGet(duration.toMillis());
+            }
+
+        void failEmbeddings(int count, Duration duration)
+            {
+            embeddingFailedCount.addAndGet(count);
+            embeddingDuration.addAndGet(duration.toMillis());
+            }
+
+        void recordSearch(Duration duration)
+            {
+            searchMeter.mark();
+            searchDuration.addAndGet(duration.toMillis());
+            }
+
+        void reset(Object[] objects)
+            {
+            documentProcessedCount.set(0);
+            documentFailedCount.set(0);
+            documentLoadDuration.set(0);
+            documentSplitDuration.set(0);
+
+            embeddingMeter = new Meter();
+            embeddingFailedCount.set(0);
+            embeddingDuration.set(0);
+
+            searchMeter = new Meter();
+            searchDuration.set(0);
+            }
+
+        private final AtomicInteger documentProcessedCount = new AtomicInteger();
+        private final AtomicInteger documentFailedCount = new AtomicInteger();
+        private final AtomicLong documentLoadDuration = new AtomicLong();
+        private final AtomicLong documentSplitDuration = new AtomicLong();
+
+        private volatile Meter embeddingMeter = new Meter();
+        private final AtomicInteger embeddingFailedCount = new AtomicInteger();
+        private final AtomicLong embeddingDuration = new AtomicLong();
+
+        private volatile Meter searchMeter = new Meter();
+        private final AtomicLong searchDuration = new AtomicLong();
+
+        private final MBeanServerProxy proxy;
+        private final String sNameDocs;
+        private final String sNameChunks;
         }
     }
