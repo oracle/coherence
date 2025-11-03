@@ -777,11 +777,9 @@ public class Store
             return Response.status(Response.Status.NOT_FOUND).build();
             }
 
-        DocChunk[] aChunks = new DocChunk[mapChunks.size()];
-        for (int i = 0; i < aChunks.length; i++)
-            {
-            aChunks[i] = new DocChunk(mapChunks.get(DocumentChunk.id(docId, i)));
-            }
+        DocChunk[] aChunks = mapChunks.values().stream()
+                .map(DocChunk::new)
+                .toArray(DocChunk[]::new);
 
         return Response.ok(new DocChunks(docId, aChunks)).build();
         }
@@ -928,7 +926,7 @@ public class Store
      * 
      * @return map of chunk IDs to document chunks
      */
-    private Map<DocumentChunk.Id, DocumentChunk> getChunks(String docId)
+    Map<DocumentChunk.Id, DocumentChunk> getChunks(String docId)
         {
         return chunks.entrySet(Filters.equal(DOC_ID, docId)).stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
@@ -1387,7 +1385,12 @@ public class Store
          */
         private DocumentChunk.Id chunkId(DocumentChunk chunk)
             {
-            return new DocumentChunk.Id((String) chunk.metadata().get("url"), Integer.parseInt((String) chunk.metadata().get("index")));
+            Object oIndex = chunk.metadata().get("index");
+            int    nIndex = oIndex instanceof Integer
+                             ? (Integer) oIndex
+                             : Integer.parseInt((String) oIndex);
+
+            return new DocumentChunk.Id((String) chunk.metadata().get("url"), nIndex);
             }
 
         /**
