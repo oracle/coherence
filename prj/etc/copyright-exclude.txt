@@ -5,6 +5,7 @@ coherence-http-netty/src/main/java/com/tangosol/coherence/http/netty/NettyInputS
 coherence-javadoc/src/main/javadoc/resources/
 coherence-json/src/main/java/com/oracle/coherence/io/json/genson/
 coherence-json/src/test/java/com/oracle/coherence/io/json/genson/
+coherence-rag-parent\models\coherence-rag-oci\src\test\resources\test_config
 examples/tutorials/500-graphql/complete/src/main/resources/web/index.html
 examples/tutorials/500-graphql/initial/src/main/resources/web/index.html
 test/distribution/target/
@@ -56,7 +57,9 @@ cache-config-UTF8-BOM.xml
 .jpg
 .json
 .key
+.onnx
 .p12
+.pdf
 .pem
 .png
 .ptn

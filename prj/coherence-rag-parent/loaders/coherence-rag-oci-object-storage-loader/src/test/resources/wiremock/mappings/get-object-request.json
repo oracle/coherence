@@ -1,0 +1,23 @@
+{
+  "id": "1a2b3c4d-5e6f-7890-ab12-cd34ef567890",
+  "name": "OCI Object Storage Get Object Request",
+  "request" : {
+    "url" : "/n/odx-stateservice/b/coherence-rag-test/o/test-documents%2Fsample-document.pdf",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "sample-document.pdf",
+    "headers" : {
+      "Content-Type" : "application/pdf",
+      "Content-Length" : "654",
+      "ETag" : "\"d41d8cd98f00b204e9800998ecf8427e\"",
+      "Content-MD5" : "1osOaYLuuf5yRviEx+zMGg==",
+      "Last-Modified" : "Fri, 11 Jul 2025 02:00:00 GMT",
+      "opc-content-md5" : "1osOaYLuuf5yRviEx+zMGg==",
+      "opc-request-id" : "12345678-1234-1234-1234-123456789012",
+      "x-content-type-options" : "nosniff"
+    }
+  },
+  "uuid" : "1a2b3c4d-5e6f-7890-ab12-cd34ef567890"
+} 

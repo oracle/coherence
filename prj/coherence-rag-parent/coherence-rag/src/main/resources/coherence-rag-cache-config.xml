@@ -1,0 +1,163 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xmlns:cdi="class://com.oracle.coherence.cdi.server.CdiNamespaceHandler"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+
+  <defaults>
+    <serializer>pof</serializer>
+  </defaults>
+
+  <interceptors>
+    <interceptor>
+      <instance>
+        <class-name>com.oracle.coherence.mp.config.CoherenceConfigSource</class-name>
+      </instance>
+    </interceptor>
+  </interceptors>
+
+  <caching-scheme-mapping>
+
+    <cache-mapping>
+      <cache-name>storeConfig</cache-name>
+      <scheme-name>storeConfig</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>chunks-*</cache-name>
+      <scheme-name>chunks</scheme-name>
+    </cache-mapping>
+
+    <cache-mapping>
+      <cache-name>documents-*</cache-name>
+      <scheme-name>documents-rwbm</scheme-name>
+<!--      <interceptors>-->
+<!--        <interceptor>-->
+<!--          <instance>-->
+<!--            <class-name>com.oracle.coherence.ai.server.api.Store$DocumentSplittingInterceptor</class-name>-->
+<!--          </instance>-->
+<!--        </interceptor>-->
+<!--      </interceptors>-->
+    </cache-mapping>
+
+  </caching-scheme-mapping>
+
+  <topic-scheme-mapping>
+    <topic-mapping>
+      <topic-name>docs-*</topic-name>
+      <scheme-name>docsTopic</scheme-name>
+    </topic-mapping>
+    <topic-mapping>
+      <topic-name>chunks-*</topic-name>
+      <scheme-name>chunksTopic</scheme-name>
+    </topic-mapping>
+  </topic-scheme-mapping>
+
+  <caching-schemes>
+
+    <paged-topic-scheme>
+      <scheme-name>docsTopic</scheme-name>
+      <service-name>DocsTopic</service-name>
+      <thread-count-min>-1</thread-count-min>
+      <storage>flashjournal</storage>
+      <autostart>true</autostart>
+      <channel-count>15</channel-count>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>chunksTopic</scheme-name>
+      <service-name>ChunksTopic</service-name>
+      <thread-count-min>-1</thread-count-min>
+      <storage>flashjournal</storage>
+      <autostart>true</autostart>
+      <channel-count>15</channel-count>
+<!--      <page-size>8m</page-size>-->
+<!--      <high-units>128m</high-units>-->
+    </paged-topic-scheme>
+
+    <distributed-scheme>
+      <scheme-name>storeConfigBack</scheme-name>
+      <service-name>StoreConfig</service-name>
+      <thread-count>-1</thread-count>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <local-scheme>
+              <unit-calculator>BINARY</unit-calculator>
+            </local-scheme>
+          </internal-cache-scheme>
+          <miss-cache-scheme>
+            <local-scheme/>
+          </miss-cache-scheme>
+          <cachestore-scheme>
+            <cdi:bean>StoreConfigCacheLoader</cdi:bean>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <near-scheme>
+      <scheme-name>storeConfig</scheme-name>
+      <front-scheme>
+        <local-scheme/>
+      </front-scheme>
+      <back-scheme>
+        <distributed-scheme>
+          <scheme-ref>storeConfigBack</scheme-ref>
+        </distributed-scheme>
+      </back-scheme>
+      <autostart>true</autostart>
+    </near-scheme>
+
+    <distributed-scheme>
+      <scheme-name>chunks</scheme-name>
+      <service-name>DocumentChunks</service-name>
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>documents</scheme-name>
+      <service-name>Documents</service-name>
+      <thread-count>-1</thread-count>
+      <backing-map-scheme>
+        <flashjournal-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </flashjournal-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>documents-rwbm</scheme-name>
+      <service-name>Documents</service-name>
+      <backing-map-scheme>
+        <read-write-backing-map-scheme>
+          <internal-cache-scheme>
+            <flashjournal-scheme>
+              <unit-calculator>BINARY</unit-calculator>
+            </flashjournal-scheme>
+          </internal-cache-scheme>
+          <cachestore-scheme>
+            <cdi:bean>DocumentCacheLoader</cdi:bean>
+          </cachestore-scheme>
+        </read-write-backing-map-scheme>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+  </caching-schemes>
+
+</cache-config>

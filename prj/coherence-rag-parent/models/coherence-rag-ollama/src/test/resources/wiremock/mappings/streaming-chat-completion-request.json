@@ -1,0 +1,24 @@
+{
+  "id": "1fa68e83-1232-4e9e-83e4-6aa2c2b61a98",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/chat",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.model && @.messages && @.stream == true)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type" : "application/x-ndjson"
+    },
+    "bodyFileName": "streaming-chat-completion-response.json",
+    "chunkedDribbleDelay": {
+      "numberOfChunks": 23,
+      "totalDuration":  250
+    }
+
+  }
+} 

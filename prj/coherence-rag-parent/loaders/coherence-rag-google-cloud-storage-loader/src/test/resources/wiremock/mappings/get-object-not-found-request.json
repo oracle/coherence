@@ -1,0 +1,43 @@
+{
+  "id": "8a0d4b3f-c5e6-4f7a-9b0c-123456789eee",
+  "request": {
+    "method": "GET",
+    "urlPattern": "/storage/v1/b/coherence-rag-demo/o/nonexistent%2F.*",
+    "queryParameters": {
+      "alt": {
+        "equalTo": "media"
+      }
+    }
+  },
+  "response": {
+    "status": 404,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "body": "{\n  \"error\": {\n    \"code\": 404,\n    \"message\": \"No such object: coherence-rag-demo/nonexistent/document.pdf\",\n    \"errors\": [\n      {\n        \"message\": \"No such object: coherence-rag-demo/nonexistent/document.pdf\",\n        \"domain\": \"global\",\n        \"reason\": \"notFound\"\n      }\n    ]\n  }\n}"
+  }
+}
+{
+  "id" : "920e6d07-3112-37b3-962e-eafb15868d18",
+  "name": "Google Cloud Storage Get Object Request - Not Found",
+  "request" : {
+    "url" : "/storage/v1/b/coherence-rag-demo/o/nonexistent%2Fdocument.pdf?projection=full",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "get-object-not-found-response.json",
+    "headers" : {
+      "Alt-Svc" : "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Server" : "UploadServer",
+      "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+      "X-GUploader-UploadID" : "ABgVH8_jU98fj_Y2GPxXa0HY5ULOxK73YEuCy7KEtAVUITOe6zu6D2TSXw6mCeMtfp2EIC9lR4bb6LY",
+      "Vary" : [ "Origin", "X-Origin" ],
+      "Pragma" : "no-cache",
+      "Expires" : "Mon, 01 Jan 1990 00:00:00 GMT",
+      "Date" : "Fri, 11 Jul 2025 01:51:58 GMT",
+      "Content-Type" : "application/json; charset=UTF-8"
+    }
+  },
+  "uuid" : "920e6d07-3112-37b3-962e-eafb15868d18"
+}

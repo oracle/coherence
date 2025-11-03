@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.oracle.coherence.ce</groupId>
+    <artifactId>coherence-rag-parent</artifactId>
+    <version>${revision}</version>
+    <relativePath>../../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-rag-deepseek</artifactId>
+  <name>Model: DeepSeek</name>
+
+  <properties>
+    <module.name>com.oracle.coherence.rag.model.deepseek</module.name>
+
+    <api.url>https://api.deepseek.com</api.url>
+    <api.proxy.port>8089</api.proxy.port>
+  </properties>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-open-ai</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-rag</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>io.helidon.microprofile.config</groupId>
+      <artifactId>helidon-microprofile-config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.enterprise</groupId>
+      <artifactId>jakarta.enterprise.cdi-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.eclipse.microprofile.config</groupId>
+      <artifactId>microprofile-config-api</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>org.osgi</groupId>
+          <artifactId>org.osgi.annotation.versioning</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
+  </dependencies>
+
+  <build>
+    <plugins>
+
+      <!-- we deploy this module to a Maven repository -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-deploy-plugin</artifactId>
+        <version>${maven.deploy.plugin.version}</version>
+        <configuration combine.self="override">
+          <skip>false</skip>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>wiremock-proxy</id>
+            <phase>none</phase> <!-- Only run manually -->
+            <goals>
+              <goal>java</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <mainClass>wiremock.Run</mainClass>
+          <arguments>
+            <argument>--proxy-all=${api.url}</argument>
+            <argument>--record-mappings</argument>
+            <argument>--port=${api.proxy.port}</argument>
+            <argument>--verbose</argument>
+            <argument>--root-dir=${project.build.directory}/wiremock</argument>
+          </arguments>
+          <classpathScope>test</classpathScope>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

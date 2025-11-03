@@ -1,0 +1,6 @@
+[DEFAULT]
+user=test.user
+fingerprint=test:fingerprint
+key_file=src/test/resources/test_key.pem
+tenancy=test.tenant.id
+region=us-phoenix-1

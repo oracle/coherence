@@ -1,0 +1,6 @@
+{
+  "code": "ObjectNotFound",
+  "message": "The object test-documents/sample-document.pdf was not found in the bucket coherence-rag-test in namespace odx-stateservice.",
+  "opc-request-id": "12345678-1234-1234-1234-123456789012",
+  "status": 404
+} 

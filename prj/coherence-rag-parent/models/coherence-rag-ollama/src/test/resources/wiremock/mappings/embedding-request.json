@@ -1,0 +1,19 @@
+{
+  "id": "6f29f0c7-67c6-4f49-98de-e678540f785d",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/embed",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.model && @.input)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "embedding-response.json"
+  }
+} 

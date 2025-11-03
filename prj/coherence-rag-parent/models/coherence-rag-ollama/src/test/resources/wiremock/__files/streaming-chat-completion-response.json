@@ -1,0 +1,23 @@
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.232235Z","message":{"role":"assistant","content":"I"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.2437Z","message":{"role":"assistant","content":"'m"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.253176Z","message":{"role":"assistant","content":" an"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.259815Z","message":{"role":"assistant","content":" artificial"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.267316Z","message":{"role":"assistant","content":" intelligence"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.273766Z","message":{"role":"assistant","content":" model"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.280146Z","message":{"role":"assistant","content":" known"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.286576Z","message":{"role":"assistant","content":" as"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.293001Z","message":{"role":"assistant","content":" L"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.29938Z","message":{"role":"assistant","content":"lama"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.305621Z","message":{"role":"assistant","content":"."},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.312023Z","message":{"role":"assistant","content":" L"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.318479Z","message":{"role":"assistant","content":"lama"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.324749Z","message":{"role":"assistant","content":" stands"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.331324Z","message":{"role":"assistant","content":" for"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.337598Z","message":{"role":"assistant","content":" \""},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.343964Z","message":{"role":"assistant","content":"Large"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.350126Z","message":{"role":"assistant","content":" Language"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.356543Z","message":{"role":"assistant","content":" Model"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.362863Z","message":{"role":"assistant","content":" Meta"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.369154Z","message":{"role":"assistant","content":" AI"},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.37556Z","message":{"role":"assistant","content":".\""},"done":false}
+{"model":"llama3.2:1b","created_at":"2025-07-07T23:40:05.381838Z","message":{"role":"assistant","content":""},"done_reason":"stop","done":true,"total_duration":193228583,"load_duration":34841167,"prompt_eval_count":29,"prompt_eval_duration":7551167,"eval_count":23,"eval_duration":150261167}

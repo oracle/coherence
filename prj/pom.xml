@@ -393,6 +393,7 @@
         <module>coherence-native</module>
         <module>coherence-protobuf</module>
         <module>coherence-http-netty</module>
+        <module>coherence-rag-parent</module>
         <module>coherence-rest</module>
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>
@@ -463,6 +464,7 @@
         <module>coherence-native</module>
         <module>coherence-protobuf</module>
         <module>coherence-http-netty</module>
+        <module>coherence-rag-parent</module>
         <module>coherence-rest</module>
         <module>coherence-cdi</module>
         <module>coherence-cdi-server</module>

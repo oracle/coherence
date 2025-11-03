@@ -1,0 +1,20 @@
+{
+  "kind": "storage#object",
+  "id": "coherence-rag-demo/test-documents/sample-document.pdf/1752195657579016",
+  "selfLink": "https://www.googleapis.com/storage/v1/b/coherence-rag-demo/o/test-documents%2Fsample-document.pdf",
+  "mediaLink": "https://storage.googleapis.com/download/storage/v1/b/coherence-rag-demo/o/test-documents%2Fsample-document.pdf?generation=1752195657579016&alt=media",
+  "name": "test-documents/sample-document.pdf",
+  "bucket": "coherence-rag-demo",
+  "generation": "1752195657579016",
+  "metageneration": "1",
+  "contentType": "application/pdf",
+  "storageClass": "STANDARD",
+  "size": "654",
+  "md5Hash": "1osOaYLuuf5yRviEx+zMGg==",
+  "crc32c": "5XK7sg==",
+  "etag": "CIj0/L3Ns44DEAE=",
+  "timeCreated": "2025-07-11T01:00:57.580Z",
+  "updated": "2025-07-11T01:00:57.580Z",
+  "timeStorageClassUpdated": "2025-07-11T01:00:57.580Z",
+  "timeFinalized": "2025-07-11T01:00:57.580Z"
+}

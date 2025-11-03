@@ -1,0 +1,29 @@
+{
+  "data": {
+    "chat-response": {
+      "api-format": "COHERE",
+      "chat-history": [
+        {
+          "message": "Who are you?",
+          "role": "USER"
+        },
+        {
+          "message": "I am Command, an AI language model developed by Cohere. I am designed to assist users by providing thorough and helpful responses to a wide range of questions and tasks. My knowledge is based on the data I have been trained on, which includes a vast amount of information from the internet up until January 2023. \n\nAs an AI assistant, I don't have personal experiences, emotions, or opinions. My purpose is to generate text based on the input I receive and provide information",
+          "role": "CHATBOT",
+          "tool-calls": null
+        }
+      ],
+      "citations": null,
+      "documents": null,
+      "error-message": null,
+      "finish-reason": "MAX_TOKENS",
+      "is-search-required": null,
+      "prompt": null,
+      "search-queries": null,
+      "text": "I am Command, an AI language model developed by Cohere. I am designed to assist users by providing thorough and helpful responses to a wide range of questions and tasks. My knowledge is based on the data I have been trained on, which includes a vast amount of information from the internet up until January 2023. \n\nAs an AI assistant, I don't have personal experiences, emotions, or opinions. My purpose is to generate text based on the input I receive and provide information",
+      "tool-calls": null
+    },
+    "model-id": "cohere.command-r-08-2024",
+    "model-version": "1.7"
+  }
+}

@@ -67,6 +67,7 @@
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
       --add-opens java.base/java.lang=ALL-UNNAMED
+      --enable-native-access=ALL-UNNAMED
     </default.failsafe.modules.argline>
     <failsafe.modules.argline>${default.failsafe.modules.argline}</failsafe.modules.argline>
     <failsafe.coverage.argline/>
@@ -76,6 +77,7 @@
       --add-exports org.junit.platform.commons/org.junit.platform.commons.util=ALL-UNNAMED
       --add-exports org.junit.platform.commons/org.junit.platform.commons.logging=ALL-UNNAMED
       --add-opens java.base/java.lang=ALL-UNNAMED
+      --enable-native-access=ALL-UNNAMED
     </default.surefire.modules.argline>
     <surefire.modules.argline>${default.surefire.modules.argline}</surefire.modules.argline>
 
@@ -111,13 +113,15 @@
     <maven.gpg.plugin.version>3.1.0</maven.gpg.plugin.version>
     <maven.install.plugin.version>3.1.1</maven.install.plugin.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
-    <maven.jandex.plugin.version>3.1.2</maven.jandex.plugin.version>
+    <maven.jandex.plugin.version>${jandex.version}</maven.jandex.plugin.version>
     <maven.jar.plugin.version>3.3.0</maven.jar.plugin.version>
     <maven.javadoc.plugin.version>3.5.0</maven.javadoc.plugin.version>
     <maven.jib.plugin.version>2.5.2</maven.jib.plugin.version>
-    <maven.moditect.plugin.version>1.0.0-RC3</maven.moditect.plugin.version>
+    <maven.moditect.plugin.version>25.09</maven.moditect.plugin.version>
+    <maven.native.plugin.version>1.0-alpha-8</maven.native.plugin.version>
     <maven.nbm.plugin.version>2.6.2</maven.nbm.plugin.version>
-    <maven.plugin.api.version>3.9.2</maven.plugin.api.version>
+    <maven.plexus-build-api.version>0.0.7</maven.plexus-build-api.version>
+    <maven.plugin.api.version>3.9.10</maven.plugin.api.version>
     <maven.plugin.plugin.version>3.8.1</maven.plugin.plugin.version>
     <maven.release.plugin.version>3.0.1</maven.release.plugin.version>
     <maven.replacer.plugin.version>1.5.2</maven.replacer.plugin.version>
@@ -230,6 +234,7 @@
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     <!-- Helidon version.lib.jakarta.xml.bind-api -->
     <jakarta.xml.bind.version>4.0.2</jakarta.xml.bind.version>
+    <jandex.version>3.1.2</jandex.version>
     <javax.cache.version>1.1.1</javax.cache.version>
     <javax.cache.tck.version>1.1.1</javax.cache.tck.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon -->
@@ -241,6 +246,7 @@
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jna.version>5.14.0</jna.version>
+    <langchain4j.version>1.0.1</langchain4j.version>
     <log4j2.version>2.25.1</log4j2.version>
     <micrometer.version>1.13.4</micrometer.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
@@ -255,7 +261,8 @@
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
-    <oracle.db.version>11.2.0.3.0</oracle.db.version>
+    <onnx.version>1.20.0</onnx.version>
+    <oracle.db.version>21.13.0.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.7</parsson-media.version>
     <protobuf.version>4.31.1</protobuf.version>
@@ -634,6 +641,14 @@
           <artifactId>jakarta.inject-api</artifactId>
           <version>${jakarta.inject.version}</version>
       </dependency>
+
+      <!-- Jandex -->
+      <dependency>
+        <groupId>io.smallrye</groupId>
+        <artifactId>jandex</artifactId>
+        <version>${jandex.version}</version>
+      </dependency>
+
       <!-- JSON-B -->
       <dependency>
         <groupId>jakarta.json.bind</groupId>
@@ -661,10 +676,29 @@
         <version>${jna.version}</version>
       </dependency>
 
+      <!-- LangChain4j -->
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-bom</artifactId>
+        <version>${langchain4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
       <!-- log4j2 -->
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-api</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${log4j2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-to-slf4j</artifactId>
         <version>${log4j2.version}</version>
       </dependency>
 
@@ -694,10 +728,41 @@
         <scope>import</scope>
       </dependency>
 
+      <!-- OCI SDK -->
+      <dependency>
+        <groupId>com.oracle.oci.sdk</groupId>
+        <artifactId>oci-java-sdk-bom</artifactId>
+        <version>${oci.sdk.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+
+      <!-- ONNX Runtime -->
+      <dependency>
+        <groupId>com.microsoft.onnxruntime</groupId>
+        <artifactId>onnxruntime</artifactId>
+        <version>${onnx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.microsoft.onnxruntime</groupId>
+        <artifactId>onnxruntime_gpu</artifactId>
+        <version>${onnx.version}</version>
+      </dependency>
+
       <!-- slf4j -->
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-debug</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-jdk14</artifactId>
         <version>${slf4j.version}</version>
       </dependency>
       <dependency>
@@ -865,11 +930,6 @@
         <artifactId>mockito-junit-jupiter</artifactId>
         <version>${mockito.version}</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>${log4j2.version}</version>
       </dependency>
 
       <!-- Used when building on Java 11+ -->

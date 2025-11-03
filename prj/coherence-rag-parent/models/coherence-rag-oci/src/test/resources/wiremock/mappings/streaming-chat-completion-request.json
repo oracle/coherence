@@ -1,0 +1,32 @@
+{
+  "id": "8b0d4a3f-c5e6-4f7b-9b0c-345678901def",
+  "name": "OCI GenAI Streaming Chat Completion Request",
+  "request": {
+    "method": "POST",
+    "urlPath": "/20231130/actions/chat",
+    "headers": {
+      "Content-Type": {
+        "contains": "application/json"
+      },
+      "Authorization": {
+        "matches": "Signature.*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.compartmentId && @.servingMode && @.chatRequest && @.chatRequest.isStream == true)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "text/event-stream"
+    },
+    "bodyFileName": "streaming-chat-completion-response.txt",
+    "chunkedDribbleDelay": {
+      "numberOfChunks": 33,
+      "totalDuration":  500
+    }
+  }
+} 

@@ -1,0 +1,26 @@
+{
+  "id": "ab34d5e6-7f8a-4b9c-ad2e-98765fedcb21",
+  "name": "Azure Blob Storage Get Blob Properties Request",
+  "request" : {
+    "url" : "/coherence-rag-test/test-documents%2Fsample-document.pdf",
+    "method" : "HEAD"
+  },
+  "response" : {
+    "status" : 200,
+    "headers" : {
+      "Content-Type" : "application/pdf",
+      "Content-Length" : "654",
+      "ETag" : "\"0x8DCFF8A6B4A4A4A\"",
+      "Last-Modified" : "Fri, 11 Jul 2025 02:00:00 GMT",
+      "x-ms-blob-type" : "BlockBlob",
+      "x-ms-lease-status" : "unlocked",
+      "x-ms-lease-state" : "available",
+      "x-ms-server-encrypted" : "true",
+      "x-ms-version" : "2024-08-04",
+      "x-ms-creation-time" : "Fri, 11 Jul 2025 02:00:00 GMT",
+      "x-ms-access-tier" : "Hot",
+      "x-ms-access-tier-inferred" : "true"
+    }
+  },
+  "uuid" : "ab34d5e6-7f8a-4b9c-ad2e-98765fedcb21"
+} 

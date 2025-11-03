@@ -1,0 +1,30 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/embeddings",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.input"
+      },
+      {
+        "matchesJsonPath": "$.model"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "embedding-response.json"
+  }
+} 

@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": 404,
+    "message": "No such object: coherence-rag-demo/nonexistent/document.pdf",
+    "errors": [
+      {
+        "message": "No such object: coherence-rag-demo/nonexistent/document.pdf",
+        "domain": "global",
+        "reason": "notFound"
+      }
+    ]
+  }
+}
