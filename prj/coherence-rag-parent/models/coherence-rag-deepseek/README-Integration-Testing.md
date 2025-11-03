@@ -17,7 +17,7 @@ Tests run against recorded responses stored in `src/test/resources/wiremock/`. T
 
 ```bash
 # No special setup required - tests use recorded responses
-mvn test -Dtest=DeepSeekModelProviderIntegrationTest
+mvn test -Dtest=DeepSeekModelProviderIT
 ```
 
 ### 2. Real API Mode  
@@ -29,7 +29,7 @@ Tests make actual calls to DeepSeek API. Requires a valid API key and incurs usa
 export DEEPSEEK_API_KEY=sk-your-real-api-key
 
 # Run tests against real API
-mvn test -Dtest=DeepSeekModelProviderIntegrationTest
+mvn test -Dtest=DeepSeekModelProviderIT
 ```
 
 ## Capturing New API Responses
@@ -55,7 +55,7 @@ mvn exec:java@wiremock-proxy
 export DEEPSEEK_BASE_URL=http://localhost:8089/v1
 
 # Run tests to capture responses
-mvn test -Dtest=DeepSeekModelProviderIntegrationTest
+mvn test -Dtest=DeepSeekModelProviderIT
 ```
 
 #### Step 3: Stop Proxy and Verify
@@ -76,7 +76,7 @@ export DEEPSEEK_API_KEY=sk-your-real-api-key
 export DEEPSEEK_BASE_URL=https://api.deepseek.com/v1
 
 # Run tests
-mvn test -Dtest=DeepSeekModelProviderIntegrationTest
+mvn test -Dtest=DeepSeekModelProviderIT
 ```
 
 ## Test Resources

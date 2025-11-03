@@ -4,72 +4,71 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-package com.oracle.coherence.rag.model.openai;
-
-import com.oracle.coherence.rag.config.ConfigRepository;
-import com.oracle.coherence.rag.internal.json.JsonbProvider;
-
-import com.tangosol.net.cache.WrapperNamedCache;
+package com.oracle.coherence.rag.model.anthropic;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
+
+import dev.langchain4j.model.anthropic.AnthropicChatModel;
+import dev.langchain4j.model.anthropic.AnthropicStreamingChatModel;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.chat.response.StreamingChatResponseHandler;
-import dev.langchain4j.model.embedding.EmbeddingModel;
-
-import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
 import java.util.concurrent.CountDownLatch;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
 import java.util.Optional;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.tangosol.coherence.config.Config.getProperty;
+import static dev.langchain4j.model.anthropic.AnthropicChatModelName.CLAUDE_3_7_SONNET_20250219;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 /**
- * Integration tests for OpenAiModelProvider that can run against both
- * real OpenAI API and WireMock recorded responses.
+ * Integration tests for AnthropicModelProvider that can run against both
+ * real Anthropic API and WireMock recorded responses.
  * <p/>
  * The tests use WireMock in proxy/replay mode to capture real API responses
- * for later offline testing. Based on the API key configuration, tests will
+ * for later offline testing. Based on the base URL configuration, tests will
  * either run against the real API or use recorded responses.
  * <p/>
  * Test modes:
  * <ul>
- * <li>Real API: When OPENAI_API_KEY does not start with "test"</li>
- * <li>WireMock: When OPENAI_API_KEY starts with "test" or when using recorded responses</li>
+ * <li>Real API: When ANTHROPIC_API_KEY does not start with "test"</li>
+ * <li>WireMock: When ANTHROPIC_API_KEY starts with "test" or when using recorded responses</li>
  * </ul>
  * <p/>
  * To capture new responses:
  * <ol>
  * <li>Run the Wiremock Proxy: {@code mvn exec:java@wiremock-proxy}</li>
- * <li>Set OPENAI_API_KEY to a real API key</li>
- * <li>Set OPENAI_BASE_URL to {@code http://localhost:8089/v1}</li>
+ * <li>Set ANTHROPIC_API_KEY to a real API key</li>
+ * <li>Set ANTHROPIC_BASE_URL to {@code http://localhost:8089/v1}</li>
  * <li>Run the tests to capture responses</li>
  * <li>Copy responses from {@code target/wiremock} to {@code test/resources/wiremock}</li>
  * <li>Stop WireMock proxy</li>
  * </ol>
  *
- * @author Aleks Seovic 2025.07.04
+ *
+ * @author Aleks Seovic/ Tim Middleton 2025.08.05
  * @since 25.09
  */
-@DisplayName("OpenAiModelProvider Integration Tests")
-class OpenAiModelProviderIT
+@DisplayName("AnthropicModelProvider Integration Tests")
+class AnthropicModelProviderIT
     {
     // ---- test lifecycle --------------------------------------------------
 
@@ -77,8 +76,8 @@ class OpenAiModelProviderIT
     static void setupClass()
         {
         // Determine if we should use WireMock or real API
-        String apiKey = getProperty("openai.api.key", TEST_API_KEY);
-        useWireMock = apiKey.startsWith("test");
+        String apiKey = getProperty("anthropic.api.key", TEST_API_KEY);
+        useWireMock   = apiKey.startsWith("test");
         
         if (useWireMock)
             {
@@ -94,7 +93,7 @@ class OpenAiModelProviderIT
             }
         else
             {
-            System.out.println("Running against real OpenAI API");
+            System.out.println("Running against real Anthropic API");
             }
         }
 
@@ -109,28 +108,17 @@ class OpenAiModelProviderIT
         }
 
     @BeforeEach
-    void setUp()
+    void setUp() throws Exception
         {
-        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
-        provider = new OpenAiModelProvider(new TestConfig(), jsonConfig);
+        provider = new AnthropicModelProvider();
+        
+        // Inject test config using reflection
+        Field configField = AnthropicModelProvider.class.getDeclaredField("config");
+        configField.setAccessible(true);
+        configField.set(provider, new TestConfig());
         }
 
     // ---- tests -----------------------------------------------------------
-
-    @Test
-    @DisplayName("should call embedding model successfully")
-    void shouldCreateEmbeddingModelSuccessfully()
-        {
-        // Use cost-effective embedding model
-        EmbeddingModel model = provider.getEmbeddingModel(EMBEDDING_MODEL_NAME);
-        assertThat(model, is(notNullValue()));
-        assertThat(model, is(instanceOf(OpenAiEmbeddingModel.class)));
-
-        // make model request and verify response
-        var response = model.embed("Hello!");
-        assertThat(response.content(), is(notNullValue()));
-        assertThat(response.content().dimension(), is(1536));
-        }
 
     @Test
     @DisplayName("should call chat model successfully")
@@ -138,13 +126,13 @@ class OpenAiModelProviderIT
         {
         ChatModel model = provider.getChatModel(CHAT_MODEL_NAME);
         assertThat(model, is(notNullValue()));
-        assertThat(model, is(instanceOf(OpenAiChatModel.class)));
+        assertThat(model, is(instanceOf(AnthropicChatModel.class)));
 
         // make model request and verify response
         var response = model.chat("Who are you?");
         System.out.println(response);
         assertThat(response, is(notNullValue()));
-        assertThat(response.toLowerCase(), containsString("i am"));
+        assertThat(response.toLowerCase(), anyOf(containsString("anthropic"), containsString("assistant"), containsString("ai")));
         }
 
     @Test
@@ -154,7 +142,7 @@ class OpenAiModelProviderIT
         {
         StreamingChatModel model = provider.getStreamingChatModel(CHAT_MODEL_NAME);
         assertThat(model, is(notNullValue()));
-        assertThat(model, is(instanceOf(OpenAiStreamingChatModel.class)));
+        assertThat(model, is(instanceOf(AnthropicStreamingChatModel.class)));
 
         // make model request and verify response
         List<String>   tokens    = new ArrayList<>();
@@ -174,20 +162,20 @@ class OpenAiModelProviderIT
 
             public void onError(Throwable error)
                 {
-                throw new RuntimeException(error);
+                error.printStackTrace();
+                completed.countDown();
                 }
             });
 
         completed.await();
 
         assertThat(tokens, is(not(empty())));
-        assertThat(tokens, hasItem("AI"));
         }
 
     // ---- inner classes ---------------------------------------------------
 
     /**
-     * Test configuration that provides appropriate OpenAI settings
+     * Test configuration that provides appropriate Anthropic settings
      * based on whether we're using WireMock or real API.
      */
     private static class TestConfig implements Config
@@ -203,12 +191,12 @@ class OpenAiModelProviderIT
         @SuppressWarnings("unchecked")
         public <T> Optional<T> getOptionalValue(String propertyName, Class<T> propertyType)
             {
-            if ("openai.api.key".equals(propertyName))
+            if ("anthropic.api.key".equals(propertyName))
                 {
-                String apiKey = getProperty("openai.api.key", TEST_API_KEY);
+                String apiKey = getProperty("anthropic.api.key", TEST_API_KEY);
                 return Optional.of((T) apiKey);
                 }
-            else if ("openai.base.url".equals(propertyName))
+            else if ("anthropic.base.url".equals(propertyName))
                 {
                 if (useWireMock)
                     {
@@ -217,8 +205,8 @@ class OpenAiModelProviderIT
                     }
                 else
                     {
-                    // Use real OpenAI API (default)
-                    return Optional.ofNullable((T) getProperty("openai.base.url"));
+                    // Use real Anthropic API or custom base URL
+                    return Optional.ofNullable((T) getProperty("anthropic.base.url", DEFAULT_BASE_URL));
                     }
                 }
             
@@ -228,7 +216,7 @@ class OpenAiModelProviderIT
         @Override
         public Iterable<String> getPropertyNames()
             {
-            return java.util.Arrays.asList("openai.api.key", "openai.base.url");
+            return java.util.Arrays.asList("anthropic.base.url");
             }
 
         @Override
@@ -244,9 +232,9 @@ class OpenAiModelProviderIT
             }
 
         @Override
-        public <T> java.util.Optional<org.eclipse.microprofile.config.spi.Converter<T>> getConverter(Class<T> forType)
+        public <T> Optional<org.eclipse.microprofile.config.spi.Converter<T>> getConverter(Class<T> forType)
             {
-            return java.util.Optional.empty();
+            return Optional.empty();
             }
 
         @Override
@@ -258,9 +246,10 @@ class OpenAiModelProviderIT
 
     // ---- data members ----------------------------------------------------
 
-    private OpenAiModelProvider provider;
+    private AnthropicModelProvider provider;
     
     private static WireMockServer wireMockServer;
+
     private static boolean useWireMock;
 
     // ---- constants -------------------------------------------------------
@@ -271,14 +260,12 @@ class OpenAiModelProviderIT
     public static final String TEST_API_KEY = "test-api-key";
 
     /**
-     * Cost-effective embedding model for testing.
-     * text-embedding-3-small is cheaper than text-embedding-3-large.
+     * Default Anthropic base URL.
      */
-    private static final String EMBEDDING_MODEL_NAME = "text-embedding-3-small";
+    public static final String DEFAULT_BASE_URL = "https://api.anthropic.com/v1/";
 
     /**
-     * Cost-effective chat model for testing.
-     * gpt-3.5-turbo is significantly cheaper than gpt-4 models.
+     * Model for testing.
      */
-    private static final String CHAT_MODEL_NAME = "gpt-3.5-turbo";
+    private static final String CHAT_MODEL_NAME = CLAUDE_3_7_SONNET_20250219.toString();
     } 

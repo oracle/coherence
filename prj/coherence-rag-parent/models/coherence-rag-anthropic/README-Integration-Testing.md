@@ -9,9 +9,9 @@ The integration tests can operate in two modes:
 1. **Real API Mode**: Tests run against the actual OpenAI API
 2. **WireMock Mode**: Tests run against recorded API responses
 
-The mode is automatically determined based on the `OPENAI_API_KEY` environment variable:
-- Real API: When `OPENAI_API_KEY` does NOT start with "test"
-- WireMock: When `OPENAI_API_KEY` starts with "test" or is not set
+The mode is automatically determined based on the `ANTHROPIC_API_KEY` environment variable:
+- Real API: When `ANTHROPIC_API_KEY` does NOT start with "test"
+- WireMock: When `ANTHROPIC_API_KEY` starts with "test" or is not set
 
 ## Cost-Effective Testing
 
@@ -27,10 +27,10 @@ This is the recommended approach for CI/CD and regular development:
 
 ```bash
 # Set test API key (or don't set it at all)
-export OPENAI_API_KEY=test-key
+export ANTHROPIC_API_KEY=test-key
 
 # Run the integration tests
-mvn test -Dtest=OpenAiModelProviderIT
+mvn test -Dtest=AnthropicModelProviderIT
 ```
 
 ### 2. Capturing New API Responses
@@ -40,7 +40,7 @@ When you need to update the recorded responses or test new functionality:
 #### Step 1: Start WireMock Proxy
 ```bash
 # Set your real OpenAI API key
-export OPENAI_API_KEY=your-real-api-key
+export ANTHROPIC_API_KEY=your-real-api-key
 
 # Start WireMock proxy
 mvn exec:java@wiremock-proxy
@@ -50,13 +50,13 @@ mvn exec:java@wiremock-proxy
 In another terminal:
 ```bash
 # Keep the real API key set
-export OPENAI_API_KEY=your-real-api-key
+export ANTHROPIC_API_KEY=your-real-api-key
 
 # Point tests to WireMock proxy
-export OPENAI_BASE_URL=http://localhost:8089/v1
+export ANTHROPIC_BASE_URL=http://localhost:8089/v1
 
 # Run tests to capture responses
-mvn test -Dtest=OpenAiModelProviderIntegrationTest
+mvn test -Dtest=AnthropicModelProviderIT -nsu
 ```
 
 #### Step 3: Stop Proxy and Verify
@@ -71,10 +71,10 @@ For validation or testing new functionality:
 
 ```bash
 # Set your real OpenAI API key (must NOT start with "test")
-export OPENAI_API_KEY=sk-your-real-api-key
+export ANTHROPIC_API_KEY=sk-your-real-api-key
 
 # Run tests against real API
-mvn test -Dtest=OpenAiModelProviderIT
+mvn test -Dtest=AnthropicModelProviderIntegrationTest
 ```
 
 ## Directory Structure
@@ -83,11 +83,9 @@ mvn test -Dtest=OpenAiModelProviderIT
 src/test/resources/wiremock/
 ├── mappings/                                    # Request/response mappings
 │   ├── chat-completion-request.json             # Chat completion API mapping
-│   ├── embedding-request.json                   # Embedding API mapping
 │   └── streaming-chat-completion-request.json   # Streaming Chat completion API mapping
 └── __files/                                     # Response body files
     ├── chat-completion-response.json            # Example chat completion response
-    ├── embedding-response.json                  # Example embedding response
     └── streaming-chat-completion-response.txt   # Example streaming chat completion response
 ```
 
@@ -95,7 +93,6 @@ src/test/resources/wiremock/
 
 The integration tests cover:
 
-- **Embedding Model**: Text embedding generation with validation
 - **Chat Model**: Conversation handling with response validation
 - **Streaming Chat Model**: Real-time conversation with streaming responses
 

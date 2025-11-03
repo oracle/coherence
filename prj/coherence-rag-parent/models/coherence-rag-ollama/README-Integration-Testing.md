@@ -23,7 +23,7 @@ Tests run against recorded responses stored in `src/test/resources/wiremock/`. T
 
 ```bash
 # No special setup required - tests use recorded responses
-mvn test -Dtest=OllamaModelProviderIntegrationTest
+mvn test -Dtest=OllamaModelProviderIT
 ```
 
 ### 2. Real API Mode  
@@ -35,7 +35,7 @@ Tests make actual calls to your local Ollama server. Requires Ollama to be runni
 export OLLAMA_BASE_URL=http://localhost:11434
 
 # Run tests against real API
-mvn test -Dtest=OllamaModelProviderIntegrationTest
+mvn test -Dtest=OllamaModelProviderIT
 ```
 
 ## Capturing New API Responses
@@ -69,7 +69,7 @@ mvn exec:java@wiremock-proxy
 export OLLAMA_BASE_URL=http://localhost:8089
 
 # Run tests to capture responses
-mvn test -Dtest=OllamaModelProviderIntegrationTest
+mvn test -Dtest=OllamaModelProviderIT
 ```
 
 #### Step 4: Stop Proxy and Verify
@@ -90,7 +90,7 @@ ollama serve
 export OLLAMA_BASE_URL=http://localhost:11434
 
 # Run tests
-mvn test -Dtest=OllamaModelProviderIntegrationTest
+mvn test -Dtest=OllamaModelProviderIT
 ```
 
 ## Test Resources

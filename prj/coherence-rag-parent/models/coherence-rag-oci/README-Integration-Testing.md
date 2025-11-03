@@ -4,7 +4,7 @@ This document describes how to run integration tests for the OCI GenAI model pro
 
 ## Overview
 
-The `OciModelProviderIntegrationTest` class provides comprehensive testing of:
+The `OciModelProviderIT` class provides comprehensive testing of:
 - **Embedding Models**: Cohere embedding models (`cohere.embed-english-v3.0`, `cohere.embed-multilingual-v3.0`)
 - **Chat Models**: Cohere Command models (`cohere.command-r-08-2024`, `cohere.command-r-plus-08-2024`)
 - **Streaming Chat Models**: Real-time response streaming for interactive applications
@@ -62,17 +62,17 @@ No additional setup required - uses pre-recorded responses from `src/test/resour
 
 ### Quick Test (WireMock Mode)
 ```bash
-mvn test -Dtest=OciModelProviderIntegrationTest
+mvn test -Dtest=OciModelProviderIT
 ```
 
 ### Test with Real API
 ```bash
 # Using config file authentication
-mvn test -Dtest=OciModelProviderIntegrationTest \
+mvn test -Dtest=OciModelProviderIT \
   -Doci.compartment.id=ocid1.compartment.oc1..your-compartment-ocid
 
 # Using properties authentication
-mvn test -Dtest=OciModelProviderIntegrationTest \
+mvn test -Dtest=OciModelProviderIT \
   -Doci.compartment.id=ocid1.compartment.oc1..your-compartment-ocid \
   -Doci.tenant.id=ocid1.tenancy.oc1..your-tenancy-ocid \
   -Doci.user.id=ocid1.user.oc1..your-user-ocid \
@@ -98,7 +98,7 @@ If your OCI configuration points to a different region, you may need to update t
 
 ### 3. Run Tests with Real Credentials
 ```bash
-mvn test -Dtest=OciModelProviderIntegrationTest \
+mvn test -Dtest=OciModelProviderIT \
   -Doci.compartment.id=ocid1.compartment.oc1..your-compartment-ocid
 ```
 
@@ -190,7 +190,7 @@ For automated testing in CI/CD pipelines:
 ```yaml
 # Example GitHub Actions
 - name: Run OCI GenAI Integration Tests
-  run: mvn test -Dtest=OciModelProviderIntegrationTest
+  run: mvn test -Dtest=OciModelProviderIT
   env:
     # Uses WireMock mode by default (no real API calls)
     OCI_COMPARTMENT_ID: test.compartment.id
@@ -200,7 +200,7 @@ For periodic verification with real API:
 ```yaml
 # Scheduled workflow with real credentials
 - name: Verify OCI GenAI Integration
-  run: mvn test -Dtest=OciModelProviderIntegrationTest
+  run: mvn test -Dtest=OciModelProviderIT
   env:
     OCI_COMPARTMENT_ID: ${{ secrets.OCI_COMPARTMENT_ID }}
     OCI_CONFIG_FILE: ${{ secrets.OCI_CONFIG_FILE }}
