@@ -72,6 +72,7 @@ import java.util.List;
  */
 public class LocalOnnxEmbeddingModel
         extends DimensionAwareEmbeddingModel
+        implements AutoCloseable
     {
     /**
      * Base path for model storage.
@@ -283,6 +284,21 @@ public class LocalOnnxEmbeddingModel
                ", dimension=" + dimension +
                ", runtime=" + (cuda ? "CUDA" : "CPU") +
                '}';
+        }
+
+    // ---- AutoCloseable interface -----------------------------------------
+
+    /**
+     * Close the native ONNX model and release associated resources.
+     *
+     * @throws Exception  if an error occurs
+     */
+    public void close() throws Exception
+        {
+        if (model != null)
+            {
+            model.close();
+            }
         }
 
     // ---- helpers ---------------------------------------------------------

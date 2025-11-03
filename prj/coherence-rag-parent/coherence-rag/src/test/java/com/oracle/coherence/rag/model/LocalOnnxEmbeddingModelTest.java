@@ -11,7 +11,7 @@ import com.oracle.coherence.testing.http.UseProxy;
 
 import dev.langchain4j.data.embedding.Embedding;
 
-import java.io.IOException;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterAll;
@@ -25,34 +25,48 @@ import static org.hamcrest.CoreMatchers.is;
 public class LocalOnnxEmbeddingModelTest
     {
     @AfterAll
-    public static void cleanup() throws IOException
+    public static void cleanup() throws Exception
         {
-        Files.deleteDirectory(Path.of("models", "TaylorAI"));
+        for (int i = 0; i < 5; i++)
+            {
+            try
+                {
+                Files.deleteDirectory(Path.of("models", "TaylorAI"));
+                break;
+                }
+            catch (DirectoryNotEmptyException e)
+                {
+                System.gc();
+                Thread.sleep(1000L * (1L << i)); // 1s, 2s, 4s, ...
+                }
+            }
         }
 
     @Test
-    public void testDefaultModel()
+    public void testDefaultModel() throws Exception
         {
         ModelName name = new ModelName("-/all-MiniLM-L6-v2");
-        LocalOnnxEmbeddingModel model = LocalOnnxEmbeddingModel.createDefault(name);
-
-        Embedding embedding = model.embed("Create a vector").content();
-        assertThat(embedding.dimension(), is(model.dimension()));
-        assertThat(model.name(), is(name));
+        try (LocalOnnxEmbeddingModel model = LocalOnnxEmbeddingModel.createDefault(name))
+            {
+            Embedding embedding = model.embed("Create a vector").content();
+            assertThat(embedding.dimension(), is(model.dimension()));
+            assertThat(model.name(), is(name));
+            }
         }
 
     @Test
-    public void testLocalModelDownload()
+    public void testLocalModelDownload() throws Exception
         {
         ModelName name = new ModelName("TaylorAI/bge-micro");
-        LocalOnnxEmbeddingModel model = LocalOnnxEmbeddingModel.create(name);
+        try (LocalOnnxEmbeddingModel model = LocalOnnxEmbeddingModel.create(name))
+            {
+            assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "config.json")), is(true));
+            assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "model.onnx")), is(true));
+            assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "tokenizer.json")), is(true));
 
-        assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "config.json")), is(true));
-        assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "model.onnx")), is(true));
-        assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "tokenizer.json")), is(true));
-
-        Embedding embedding = model.embed("Create a vector").content();
-        assertThat(embedding.dimension(), is(model.dimension()));
-        assertThat(model.name(), is(name));
+            Embedding embedding = model.embed("Create a vector").content();
+            assertThat(embedding.dimension(), is(model.dimension()));
+            assertThat(model.name(), is(name));
+            }
         }
     }

@@ -21,7 +21,6 @@ import jakarta.inject.Named;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.Path;
 
 /**
  * Document loader implementation for Oracle Cloud Infrastructure (OCI) Object Storage.
@@ -96,9 +95,9 @@ public class OciObjectStorageDocumentLoader
     public Document load(URI uri)
         {
         String ns     = uri.getHost();
-        Path   path   = Path.of(uri.getPath());
-        String bucket = path.getName(0).toString();
-        String object = path.subpath(1, path.getNameCount()).toString();
+        String path   = uri.getPath();
+        String bucket = getBucket(path);
+        String object = getObject(path);
 
         var request = GetObjectRequest.builder()
                 .namespaceName(ns)
@@ -142,6 +141,44 @@ public class OciObjectStorageDocumentLoader
             };
 
         return dev.langchain4j.data.document.DocumentLoader.load(source, m_parserSupplier.get());
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Extract bucket name from the URI path.
+     *
+     * @param path  URI path containing bucket and object name
+     *
+     * @return the bucket name
+     */
+    private String getBucket(String path)
+        {
+        String[] aPath = path.split("/", 3);
+        if (aPath.length < 2)
+            {
+            throw new IllegalArgumentException("Specified URI does not contain bucket name.");
+            }
+
+        return aPath[1];
+        }
+
+    /**
+     * Extract object name from the URI path.
+     *
+     * @param path  URI path containing bucket and object name
+     *
+     * @return the object name
+     */
+    private String getObject(String path)
+        {
+        var aPath = path.split("/", 3);
+        if (aPath.length < 3)
+            {
+            throw new IllegalArgumentException("Specified URI does not contain object name.");
+            }
+
+        return aPath[2];
         }
 
     // ---- data members ----------------------------------------------------

@@ -93,6 +93,23 @@ public class OnnxBertCrossEncoder
         }
 
     /**
+     * Closes the ONNX Runtime session and releases resources.
+     */
+    public void close()
+        {
+        try
+            {
+            tokenizer.close();
+            session.close();
+            environment.close();
+            }
+        catch (OrtException e)
+            {
+            throw new RuntimeException("Failed to close ONNX resources", e);
+            }
+        }
+
+    /**
      * Encodes a query-document pair and returns the relevance score.
      * 
      * @param query  the query text

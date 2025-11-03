@@ -486,6 +486,7 @@ public class OnnxEmbeddingModel
         {
         try
             {
+            tokenizer.close();
             session.close();
             env.close();
             }
