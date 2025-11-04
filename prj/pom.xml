@@ -119,7 +119,7 @@
     The prefix of the Java download URL for the Coherence images
     (this URL does not have the O/S and architecture specific part on the end of the URL, that is created by the build script)
      -->
-    <java.ea.base.url>https://download.oracle.com/java/24/latest/jdk-24</java.ea.base.url>
+    <java.ea.base.url>https://download.oracle.com/java/25/latest/jdk-25</java.ea.base.url>
     <!-- default ports configured in the image -->
     <docker.port.grpc>1408</docker.port.grpc>
     <docker.port.extend>20000</docker.port.extend>
