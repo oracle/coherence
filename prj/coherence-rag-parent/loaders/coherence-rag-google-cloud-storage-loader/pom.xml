@@ -110,6 +110,12 @@
         </configuration>
       </plugin>
 
+      <!-- flatten POM to remove build-specific content -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+      </plugin>
+
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
