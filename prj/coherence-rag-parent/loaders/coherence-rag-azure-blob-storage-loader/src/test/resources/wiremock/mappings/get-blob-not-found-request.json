@@ -1,0 +1,19 @@
+{
+  "id": "dc12f4b3-5c8e-4f9a-ab2d-876fe99d07ae",
+  "name": "Azure Blob Storage Get Blob Not Found",
+  "request" : {
+    "url" : "/coherence-rag-test/nonexistent%2Fdocument.pdf",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "get-blob-not-found-response.xml",
+    "headers" : {
+      "Content-Type" : "application/xml",
+      "x-ms-error-code" : "BlobNotFound",
+      "x-ms-version" : "2024-08-04",
+      "Server" : "Windows-Azure-Blob/1.0 Microsoft-HTTPAPI/2.0"
+    }
+  },
+  "uuid" : "dc12f4b3-5c8e-4f9a-ab2d-876fe99d07ae"
+} 

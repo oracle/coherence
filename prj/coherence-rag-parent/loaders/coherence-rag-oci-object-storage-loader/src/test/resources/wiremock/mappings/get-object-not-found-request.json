@@ -1,0 +1,17 @@
+{
+  "id": "9f8e7d6c-5b4a-3918-2756-fedcba098765",
+  "name": "OCI Object Storage Get Object Not Found",
+  "request" : {
+    "url" : "/n/odx-stateservice/b/coherence-rag-test/o/nonexistent%2Fdocument.pdf",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 404,
+    "bodyFileName" : "get-object-not-found-response.json",
+    "headers" : {
+      "Content-Type" : "application/json",
+      "opc-request-id" : "12345678-1234-1234-1234-123456789012"
+    }
+  },
+  "uuid" : "9f8e7d6c-5b4a-3918-2756-fedcba098765"
+} 

@@ -1,0 +1,67 @@
+data: {"apiFormat":"COHERE","text":"I","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" am","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" Command","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":",","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" an","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" AI","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" assistant","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" created","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" by","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" Cohere","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":".","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" I'm","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" a","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" large","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" language","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" model","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" designed","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" to","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" be","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" helpful","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":",","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" harmless","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":",","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" and","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" honest","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":".","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" How","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" can","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" I","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" help","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" you","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":" today","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":"?","message":null,"finishReason":null}
+
+data: {"apiFormat":"COHERE","text":"","message":{"role":"assistant","content":[{"type":"text","text":"I am Command, an AI assistant created by Cohere. I'm a large language model designed to be helpful, harmless, and honest. How can I help you today?"}]},"finishReason":"COMPLETE"} 

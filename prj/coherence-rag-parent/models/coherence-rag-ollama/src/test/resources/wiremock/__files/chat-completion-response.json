@@ -1,0 +1,15 @@
+{
+  "model": "llama3.2:1b",
+  "created_at": "2025-01-08T00:00:00.000Z",
+  "message": {
+    "role": "assistant",
+    "content": "Hello! I'm Llama, an AI assistant created by Meta. I'm here to help you with various tasks and answer your questions to the best of my ability. How can I assist you today?"
+  },
+  "done": true,
+  "total_duration": 1234567890,
+  "load_duration": 123456789,
+  "prompt_eval_count": 16,
+  "prompt_eval_duration": 234567890,
+  "eval_count": 39,
+  "eval_duration": 345678901
+} 

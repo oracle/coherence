@@ -1,0 +1,35 @@
+{
+  "id": "6f8b2e3d-a1b2-4c3d-9e8f-123456789abc",
+  "name": "OCI GenAI Embedding Request",
+  "request": {
+    "method": "POST",
+    "urlPath": "/20231130/actions/embedText",
+    "headers": {
+      "Content-Type": {
+        "contains": "application/json"
+      },
+      "Authorization": {
+        "matches": "Signature.*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$.compartmentId"
+      },
+      {
+        "matchesJsonPath": "$.servingMode"
+      },
+      {
+        "matchesJsonPath": "$.inputs"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json",
+      "opc-request-id": "{{randomValue length=32 type='ALPHANUMERIC'}}"
+    },
+    "bodyFileName": "embedding-response.json"
+  }
+} 

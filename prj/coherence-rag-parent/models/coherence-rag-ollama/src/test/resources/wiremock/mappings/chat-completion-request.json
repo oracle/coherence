@@ -1,0 +1,19 @@
+{
+  "id": "c3c8b6d6-6c7b-4fc0-9dc0-9ac799cf9483",
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/chat",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.model && @.messages && @.stream == false)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "chat-completion-response.json"
+  }
+} 

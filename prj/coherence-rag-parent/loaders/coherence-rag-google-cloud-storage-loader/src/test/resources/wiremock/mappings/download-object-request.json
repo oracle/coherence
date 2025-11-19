@@ -1,0 +1,33 @@
+{
+  "id" : "2b40ec59-cd5d-36ed-9702-5e767cba3ecd",
+  "name": "Google Cloud Storage Download Object Request",
+  "request" : {
+    "url" : "/download/storage/v1/b/coherence-rag-demo/o/test-documents%2Fsample-document.pdf?alt=media&generation=1752195657579016",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "sample-document.pdf",
+    "headers" : {
+      "Alt-Svc" : "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Server" : "UploadServer",
+      "X-Goog-Generation" : "1752195657579016",
+      "Pragma" : "no-cache",
+      "Last-Modified" : "Fri, 11 Jul 2025 01:00:57 GMT",
+      "X-Goog-Metageneration" : "1",
+      "Date" : "Fri, 11 Jul 2025 01:52:00 GMT",
+      "X-Goog-Stored-Content-Encoding" : "identity",
+      "X-Goog-Hash" : "crc32c=5XK7sg==,md5=1osOaYLuuf5yRviEx+zMGg==",
+      "Cache-Control" : "no-cache, no-store, max-age=0, must-revalidate",
+      "ETag" : "CIj0/L3Ns44DEAE=",
+      "Content-Disposition" : "attachment",
+      "X-Goog-Storage-Class" : "STANDARD",
+      "X-GUploader-UploadID" : "ABgVH88ddVlSHTljiwD-7dnSyfxyaS-A4qdHgiHganSYfVHW7qTyQ5s5n32dO_rwDeiuHrQ2",
+      "Vary" : [ "Origin", "X-Origin" ],
+      "Expires" : "Mon, 01 Jan 1990 00:00:00 GMT",
+      "X-Goog-Stored-Content-Length" : "654",
+      "Content-Type" : "application/pdf"
+    }
+  },
+  "uuid" : "2b40ec59-cd5d-36ed-9702-5e767cba3ecd"
+}

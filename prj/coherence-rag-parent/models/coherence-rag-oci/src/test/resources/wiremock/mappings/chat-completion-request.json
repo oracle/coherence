@@ -1,0 +1,28 @@
+{
+  "id": "7a9c3f2e-b4d5-4e6f-8a9b-234567890cde",
+  "name": "OCI GenAI Chat Completion Request",
+  "request": {
+    "method": "POST",
+    "urlPath": "/20231130/actions/chat",
+    "headers": {
+      "Content-Type": {
+        "contains": "application/json"
+      },
+      "Authorization": {
+        "matches": "Signature.*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.compartmentId && @.servingMode && @.chatRequest && @.chatRequest.isStream == false)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "bodyFileName": "chat-completion-response.json"
+  }
+} 

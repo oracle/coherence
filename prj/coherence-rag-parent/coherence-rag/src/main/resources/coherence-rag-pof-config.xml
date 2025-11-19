@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2025, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+
+<pof-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-pof-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-pof-config coherence-pof-config.xsd">
+
+  <user-type-list>
+    <user-type>
+      <type-id>2000</type-id>
+      <class-name>com.oracle.coherence.rag.config.StoreConfig</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>2100</type-id>
+      <class-name>com.oracle.coherence.rag.config.index.IndexConfig</class-name>
+    </user-type>
+    <user-type>
+      <type-id>2101</type-id>
+      <class-name>com.oracle.coherence.rag.config.index.BinaryQuantIndexConfig</class-name>
+    </user-type>
+    <user-type>
+      <type-id>2102</type-id>
+      <class-name>com.oracle.coherence.rag.config.index.HnswIndexConfig</class-name>
+    </user-type>
+    <user-type>
+      <type-id>2103</type-id>
+      <class-name>com.oracle.coherence.rag.config.index.SimpleIndexConfig</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>2200</type-id>
+      <class-name>com.oracle.coherence.rag.util.Timer</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>2001</type-id>
+      <class-name>dev.langchain4j.data.document.DefaultDocument</class-name>
+      <serializer>
+        <class-name>com.oracle.coherence.rag.internal.pof.DocumentSerializer</class-name>
+      </serializer>
+    </user-type>
+
+  </user-type-list>
+
+  <enable-type-discovery>true</enable-type-discovery>
+</pof-config>

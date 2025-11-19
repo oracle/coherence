@@ -1,0 +1,25 @@
+{
+  "id": "fb08e3c2-4a7b-3fde-81e3-574fe88c06fe",
+  "name": "Azure Blob Storage Get Blob Request",
+  "request" : {
+    "url" : "/coherence-rag-test/test-documents%2Fsample-document.pdf",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "sample-document.pdf",
+    "headers" : {
+      "Content-Type" : "application/pdf",
+      "Content-Length" : "654",
+      "Content-Range" : "bytes 0-653/654",
+      "ETag" : "\"0x8DCFF8A6B4A4A4A\"",
+      "Last-Modified" : "Fri, 11 Jul 2025 02:00:00 GMT",
+      "x-ms-blob-type" : "BlockBlob",
+      "x-ms-lease-status" : "unlocked",
+      "x-ms-lease-state" : "available",
+      "x-ms-server-encrypted" : "true",
+      "x-ms-version" : "2024-08-04"
+    }
+  },
+  "uuid" : "fb08e3c2-4a7b-3fde-81e3-574fe88c06fe"
+} 

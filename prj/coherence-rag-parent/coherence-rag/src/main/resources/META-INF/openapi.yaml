@@ -1,0 +1,1120 @@
+openapi: 3.0.3
+info:
+  title: Oracle Coherence RAG API
+  description: |
+    Comprehensive REST API for the Oracle Coherence RAG (Retrieval Augmented Generation) framework.
+    
+    This API provides document ingestion, vector storage, hybrid search, and chat capabilities built on Oracle Coherence.
+    The framework supports multiple document stores, various AI model providers, and configurable vector stores.
+    
+    ## Key Features
+    
+    - **Document Management**: Import documents from various sources and manage document lifecycle
+    - **Automatic Processing**: Asynchronous document chunking and embedding generation
+    - **Hybrid Search**: Combine vector similarity search with full-text search capabilities
+    - **AI Chat**: RAG-enhanced conversational AI with context retrieval
+    - **Multi-Store Support**: Manage multiple document stores with independent configurations
+    - **Flexible Indexing**: Support for HNSW, binary quantization, and Lucene indexing
+    - **Configuration Management**: Dynamic configuration updates across cluster members
+    - **Performance Monitoring**: Built-in statistics and performance metrics
+    
+    ## Authentication
+    
+    The API endpoints support standard HTTP authentication mechanisms. Authentication details should be configured according to your deployment requirements.
+    
+    ## Rate Limiting
+    
+    API endpoints may be subject to rate limiting based on your deployment configuration. Check response headers for rate limit information.
+    
+  version: 25.09
+  contact:
+    name: Oracle Coherence RAG Support
+    email: coherence-rag@oracle.com
+  license:
+    name: Universal Permissive License (UPL) 1.0
+    url: https://oss.oracle.com/licenses/upl.
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+  - url: https://api.coherence-rag.example.com
+    description: Production server
+
+tags:
+  - name: Store Management
+    description: Individual document store operations
+  - name: Document Operations
+    description: Document import and retrieval
+  - name: Search & Chat
+    description: Vector search and AI chat functionality
+  - name: Database Operations
+    description: Multi-store management and operations
+  - name: Configuration
+    description: System configuration management
+  - name: Scoring
+    description: Document relevance scoring services
+  - name: Monitoring
+    description: Statistics and performance monitoring
+
+paths:
+  # Database-level operations (multi-store)
+  /api/db:
+    get:
+      tags:
+        - Database Operations
+      summary: List all configured stores
+      description: |
+        Returns a list of all configured document stores with their configurations.
+        The list is sorted alphabetically by store name for consistent ordering.
+      operationId: listStores
+      responses:
+        '200':
+          description: List of configured stores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConfiguredStore'
+              example:
+                - name: "documents"
+                  config:
+                    embeddingModel: "text-embedding-3-small"
+                    chatModel: "gpt-4"
+                    normalizeEmbeddings: true
+                - name: "knowledge-base"
+                  config:
+                    embeddingModel: "all-minilm"
+                    chatModel: "llama2"
+                    normalizeEmbeddings: false
+
+  /api/db/search:
+    post:
+      tags:
+        - Database Operations
+        - Search & Chat
+      summary: Search across all stores
+      description: |
+        Performs a search operation across all configured document stores and aggregates results.
+        Results are combined and ranked by relevance score, providing comprehensive search across the entire database.
+      operationId: searchAllStores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            example:
+              query: "machine learning algorithms"
+              maxResults: 10
+              minScore: 0.7
+              fullTextWeight: 0.3
+              scoringModel: "ms-marco-TinyBERT-L-2-v2"
+      responses:
+        '200':
+          description: Search results from all stores
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/chat:
+    post:
+      tags:
+        - Database Operations
+        - Search & Chat
+      summary: Chat with context from all stores
+      description: |
+        Provides conversational AI functionality with context retrieval from all configured stores.
+        The response is streamed in real-time as tokens are generated by the chat model.
+      operationId: chatAllStores
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            example:
+              chatModel: "gpt-4"
+              question: "What are the key benefits of machine learning?"
+              maxResults: 5
+              minScore: 0.7
+              fullTextWeight: 0.2
+              scoringModel: null
+      responses:
+        '200':
+          description: Streaming chat response
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Streaming response with AI-generated answer
+        '400':
+          description: Invalid chat parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/config/{storeName}:
+    get:
+      tags:
+        - Database Operations
+        - Configuration
+      summary: Get store configuration
+      description: |
+        Retrieves the configuration for a specific document store, including model settings,
+        indexing configuration, and other store-specific parameters.
+      operationId: getStoreConfig
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '200':
+          description: Store configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreConfig'
+        '404':
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Database Operations
+        - Configuration
+      summary: Configure store settings
+      description: |
+        Updates the configuration for a specific document store. Changes are applied
+        immediately and propagated across all cluster members.
+      operationId: configureStore
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StoreConfig'
+            example:
+              embeddingModel: "text-embedding-3-large"
+              chatModel: "gpt-4-turbo"
+              normalizeEmbeddings: true
+              index:
+                type: "hnsw"
+                parameters:
+                  m: 16
+                  efConstruction: 200
+      responses:
+        '200':
+          description: Configuration updated successfully
+        '400':
+          description: Invalid configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Store-level operations
+  /api/db/{storeName}:
+    delete:
+      tags:
+        - Store Management
+      summary: Clear store contents
+      description: |
+        Removes all document chunks from the specified store. This operation cannot be undone.
+        Documents and their embeddings will need to be re-imported after clearing.
+      operationId: clearStore
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store to clear
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '204':
+          description: Store cleared successfully
+        '404':
+          description: Store not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/{storeName}/config:
+    get:
+      tags:
+        - Store Management
+        - Configuration
+      summary: Get store configuration
+      description: |
+        Retrieves the current configuration for the specified store, including
+        embedding model, chat model, and indexing settings.
+      operationId: getStoreConfiguration
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '200':
+          description: Store configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoreConfig'
+
+  /api/db/{storeName}/index:
+    post:
+      tags:
+        - Store Management
+      summary: Create vector index
+      description: |
+        Creates a new vector index for improved search performance. Supports various indexing
+        strategies including HNSW, binary quantization, and simple vector storage.
+      operationId: createIndex
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IndexConfig'
+            example:
+              type: "hnsw"
+              parameters:
+                m: 16
+                efConstruction: 200
+                efSearch: 100
+      responses:
+        '202':
+          description: Index creation accepted
+        '400':
+          description: Invalid index configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Store Management
+      summary: Remove vector index
+      description: |
+        Removes the existing vector index from the store. This will impact search performance
+        but does not affect the stored documents or embeddings.
+      operationId: removeIndex
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '202':
+          description: Index removal accepted
+        '304':
+          description: No index to remove
+
+  /api/db/{storeName}/search:
+    post:
+      tags:
+        - Search & Chat
+      summary: Search documents in store
+      description: |
+        Performs hybrid search combining vector similarity and full-text search.
+        Results can be optionally re-ranked using specialized scoring models.
+      operationId: searchStore
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store to search
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+            example:
+              query: "neural network architectures"
+              maxResults: 5
+              minScore: 0.8
+              fullTextWeight: 0.25
+              scoringModel: "ms-marco-TinyBERT-L-2-v2"
+      responses:
+        '200':
+          description: Search results with timing information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResult'
+        '400':
+          description: Invalid search parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/{storeName}/chat:
+    post:
+      tags:
+        - Search & Chat
+      summary: Chat with RAG context
+      description: |
+        Provides conversational AI with retrieval-augmented generation using documents
+        from the specified store as context. Response is streamed in real-time.
+      operationId: chatWithStore
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store for context retrieval
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+            example:
+              chatModel: "gpt-4"
+              question: "How do transformers work in natural language processing?"
+              maxResults: 3
+              minScore: 0.75
+              fullTextWeight: 0.1
+              scoringModel: null
+      responses:
+        '200':
+          description: Streaming chat response
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: AI-generated response with retrieved context
+        '400':
+          description: Invalid chat parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/{storeName}/docs:
+    get:
+      tags:
+        - Document Operations
+      summary: List or get documents
+      description: |
+        Lists all document IDs in the store when no docId parameter is provided,
+        or retrieves a specific document when docId is specified.
+      operationId: getDocuments
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+        - name: docId
+          in: query
+          required: false
+          description: Specific document ID to retrieve
+          schema:
+            type: string
+          example: "https://example.com/doc1.pdf"
+      responses:
+        '200':
+          description: Document list or specific document
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      type: string
+                    description: List of document IDs
+                  - $ref: '#/components/schemas/Document'
+              examples:
+                documentList:
+                  summary: List of document IDs
+                  value: [
+                    "https://example.com/doc1.pdf",
+                    "https://example.com/doc2.pdf",
+                    "file:///local/doc3.txt"
+                  ]
+                specificDocument:
+                  summary: Specific document content
+                  value:
+                    id: "https://example.com/doc1.pdf"
+                    text: "This is the content of the document..."
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Document Operations
+      summary: Import documents
+      description: |
+        Imports documents from the specified URIs for processing. Documents are processed
+        asynchronously - they are loaded, chunked, embedded, and stored automatically.
+        
+        Supported URI schemes include:
+        - http/https: Web documents
+        - file: Local file system
+        - s3: AWS S3 storage
+        - azure.blob: Azure Blob Storage
+        - gcs: Google Cloud Storage
+        - oci.os: OCI Object Storage
+      operationId: importDocuments
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: string
+                format: uri
+              description: List of document URIs to import
+            example: [
+              "https://example.com/research-paper.pdf",
+              "s3://my-bucket/documents/report.docx",
+              "file:///local/data/manual.txt"
+            ]
+      responses:
+        '204':
+          description: Documents queued for import
+        '400':
+          description: Invalid URIs provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/{storeName}/chunks:
+    get:
+      tags:
+        - Document Operations
+      summary: Get document chunks
+      description: |
+        Retrieves all chunks for a specific document, including their text content,
+        metadata, and vector embeddings.
+      operationId: getDocumentChunks
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+        - name: docId
+          in: query
+          required: true
+          description: Document ID to retrieve chunks for
+          schema:
+            type: string
+          example: "https://example.com/doc1.pdf"
+      responses:
+        '200':
+          description: Document chunks with embeddings
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentChunks'
+        '404':
+          description: Document not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Document Operations
+      summary: Add document chunks
+      description: |
+        Adds pre-processed document chunks with their embeddings directly to the store.
+        This is useful for batch operations or when chunks are processed externally.
+      operationId: addDocumentChunks
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DocumentChunks'
+            example:
+              - id: "doc1"
+                chunks:
+                  - text: "This is the first chunk of text."
+                    metadata:
+                      page: 1
+                      section: "introduction"
+                    embedding: [0.1, 0.2, 0.3, 0.4]
+                  - text: "This is the second chunk of text."
+                    metadata:
+                      page: 1
+                      section: "introduction"
+                    embedding: [0.2, 0.3, 0.4, 0.5]
+      responses:
+        '204':
+          description: Chunks added successfully
+        '400':
+          description: Invalid chunk data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/db/{storeName}/chunks/stats:
+    get:
+      tags:
+        - Monitoring
+      summary: Get chunk statistics
+      description: |
+        Retrieves statistics about document chunks in the store, including
+        distribution across cluster members and memory usage.
+      operationId: getChunkStats
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '200':
+          description: Chunk statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Coherence cluster statistics for chunks
+                additionalProperties: true
+
+  /api/db/{storeName}/stats:
+    delete:
+      tags:
+        - Monitoring
+      summary: Reset statistics
+      description: |
+        Resets performance and usage statistics for the specified store.
+      operationId: resetStats
+      parameters:
+        - name: storeName
+          in: path
+          required: true
+          description: Name of the store
+          schema:
+            type: string
+          example: "documents"
+      responses:
+        '204':
+          description: Statistics reset successfully
+
+  # Configuration management
+  /api/_config/{property}:
+    get:
+      tags:
+        - Configuration
+      summary: Get configuration property
+      description: |
+        Retrieves the value of a specific configuration property from the
+        distributed configuration store.
+      operationId: getConfigProperty
+      parameters:
+        - name: property
+          in: path
+          required: true
+          description: Name of the configuration property
+          schema:
+            type: string
+          example: "coherence.rag.default.embedding.model"
+      responses:
+        '200':
+          description: Configuration property value
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "text-embedding-3-small"
+        '404':
+          description: Property not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Configuration
+      summary: Set configuration property
+      description: |
+        Sets the value of a configuration property. Changes are propagated
+        across all cluster members and take effect immediately.
+      operationId: setConfigProperty
+      parameters:
+        - name: property
+          in: path
+          required: true
+          description: Name of the configuration property
+          schema:
+            type: string
+          example: "coherence.rag.default.embedding.model"
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+            example: "text-embedding-3-large"
+      responses:
+        '200':
+          description: Previous property value (may be null)
+          content:
+            text/plain:
+              schema:
+                type: string
+                nullable: true
+
+  # Scoring services
+  /api/score:
+    post:
+      tags:
+        - Scoring
+      summary: Score document relevance
+      description: |
+        Evaluates the relevance of multiple text segments (documents/answers) against
+        a given query using specialized scoring models. Returns relevance scores
+        from 0.0 (not relevant) to 1.0 (highly relevant).
+      operationId: scoreDocuments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScoreRequest'
+            example:
+              modelName: "ms-marco-TinyBERT-L-2-v2"
+              query: "What is machine learning?"
+              answers: [
+                "Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed.",
+                "Cats are domestic animals that are often kept as pets and are known for their independent nature.",
+                "ML algorithms use statistical techniques to find patterns in data and make predictions or decisions."
+              ]
+      responses:
+        '200':
+          description: Relevance scores for each answer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: number
+                  format: double
+                  minimum: 0.0
+                  maximum: 1.0
+                description: Relevance scores corresponding to each input answer
+              example: [0.92, 0.05, 0.84]
+        '400':
+          description: Invalid scoring request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # Core domain objects
+    Document:
+      type: object
+      required:
+        - id
+        - text
+      properties:
+        id:
+          type: string
+          description: Unique document identifier (usually URI)
+          example: "https://example.com/document.pdf"
+        text:
+          type: string
+          description: Full text content of the document
+          example: "This is the content of the document..."
+
+    DocumentChunk:
+      type: object
+      required:
+        - text
+        - metadata
+      properties:
+        text:
+          type: string
+          description: Text content of the chunk
+          example: "This is a chunk of text from the document."
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Chunk metadata including source information
+          example:
+            url: "https://example.com/doc.pdf"
+            index: 0
+            page: 1
+            section: "introduction"
+        embedding:
+          type: array
+          items:
+            type: number
+            format: float
+          description: Vector embedding for the chunk (optional)
+          example: [0.1, 0.2, 0.3, 0.4, 0.5]
+
+    DocumentChunks:
+      type: object
+      required:
+        - id
+        - chunks
+      properties:
+        id:
+          type: string
+          description: Document identifier
+          example: "doc1"
+        chunks:
+          type: array
+          items:
+            $ref: '#/components/schemas/DocumentChunk'
+          description: Array of document chunks
+
+    # Configuration objects
+    StoreConfig:
+      type: object
+      required:
+        - embeddingModel
+      properties:
+        embeddingModel:
+          type: string
+          description: Name of the embedding model to use
+          example: "text-embedding-3-small"
+        chatModel:
+          type: string
+          description: Name of the chat model to use
+          example: "gpt-4"
+        normalizeEmbeddings:
+          type: boolean
+          description: Whether to normalize embedding vectors
+          default: true
+          example: true
+        index:
+          $ref: '#/components/schemas/IndexConfig'
+
+    IndexConfig:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [hnsw, binary, simple]
+          description: Type of vector index to create
+          example: "hnsw"
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Index-specific configuration parameters
+          example:
+            m: 16
+            efConstruction: 200
+            efSearch: 100
+
+    ConfiguredStore:
+      type: object
+      required:
+        - name
+        - config
+      properties:
+        name:
+          type: string
+          description: Store name
+          example: "documents"
+        config:
+          $ref: '#/components/schemas/StoreConfig'
+
+    # Request/Response objects
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query text
+          example: "machine learning algorithms"
+        maxResults:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 5
+          description: Maximum number of results to return
+          example: 10
+        minScore:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+          description: Minimum relevance score for results
+          example: 0.7
+        fullTextWeight:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+          description: Weight for full-text search in hybrid search (0.0 = vector only, 1.0 = text only)
+          example: 0.3
+        scoringModel:
+          type: string
+          nullable: true
+          description: Optional scoring model for result re-ranking
+          example: "ms-marco-TinyBERT-L-2-v2"
+
+    ChatRequest:
+      type: object
+      required:
+        - question
+      properties:
+        chatModel:
+          type: string
+          nullable: true
+          description: Name of the chat model to use (null for default)
+          example: "gpt-4"
+        question:
+          type: string
+          description: User question for the chat assistant
+          example: "What are the key benefits of machine learning?"
+        maxResults:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 5
+          description: Maximum number of context documents to retrieve
+          example: 5
+        minScore:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+          description: Minimum relevance score for context documents
+          example: 0.7
+        fullTextWeight:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          default: 0.0
+          description: Weight for full-text search in context retrieval
+          example: 0.2
+        scoringModel:
+          type: string
+          nullable: true
+          description: Optional scoring model for context re-ranking
+          example: null
+
+    ScoreRequest:
+      type: object
+      required:
+        - query
+        - answers
+      properties:
+        modelName:
+          type: string
+          nullable: true
+          description: Name of the scoring model to use (null for default)
+          example: "ms-marco-TinyBERT-L-2-v2"
+        query:
+          type: string
+          description: Query to score answers against
+          example: "What is machine learning?"
+        answers:
+          type: array
+          items:
+            type: string
+          description: List of text segments to score for relevance
+          example: [
+            "Machine learning is a subset of artificial intelligence...",
+            "Cats are domestic animals...",
+            "ML algorithms use statistical techniques..."
+          ]
+
+    ChunkResult:
+      type: object
+      required:
+        - chunkId
+        - text
+        - score
+      properties:
+        chunkId:
+          type: string
+          description: Unique identifier for the chunk
+          example: "doc1#0"
+        text:
+          type: string
+          description: Text content of the chunk
+          example: "This is the content of the document chunk."
+        score:
+          type: number
+          format: double
+          minimum: 0.0
+          maximum: 1.0
+          description: Relevance score for the chunk
+          example: 0.85
+        index:
+          type: string
+          nullable: true
+          description: Index type used for retrieval
+          example: "vector"
+
+    SearchResult:
+      type: object
+      required:
+        - results
+        - searchDuration
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChunkResult'
+          description: List of matching document chunks
+        searchDuration:
+          type: integer
+          format: int64
+          description: Search execution time in milliseconds
+          example: 145
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type or code
+          example: "INVALID_PARAMETER"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "fullTextWeight must be in [0.0, 1.0]"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+          example:
+            parameter: "fullTextWeight"
+            value: 1.5
+            validRange: "[0.0, 1.0]"
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT bearer token authentication
+    
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key authentication
+    
+    BasicAuth:
+      type: http
+      scheme: basic
+      description: Basic HTTP authentication
+
+security:
+  - BearerAuth: []
+  - ApiKeyAuth: []
+  - BasicAuth: []
+  - {} # Allow unauthenticated access for development
+
+# Global response headers
+x-response-headers:
+  X-Request-ID:
+    description: Unique request identifier for tracing
+    schema:
+      type: string
+      format: uuid
+  X-Rate-Limit-Remaining:
+    description: Number of requests remaining in current window
+    schema:
+      type: integer
+  X-Rate-Limit-Reset:
+    description: Time when rate limit window resets (Unix timestamp)
+    schema:
+      type: integer
+      format: int64 

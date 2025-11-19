@@ -237,6 +237,51 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-aws-s3-loader</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-azure-blob-storage-loader</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-google-cloud-storage-loader</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-oci-object-storage-loader</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-deepseek</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-oci</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-ollama</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-rag-openai</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
         <artifactId>coherence-rest</artifactId>
         <version>${project.version}</version>
       </dependency>

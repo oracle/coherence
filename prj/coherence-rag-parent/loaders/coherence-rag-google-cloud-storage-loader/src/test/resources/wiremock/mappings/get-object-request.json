@@ -1,0 +1,21 @@
+{
+  "id": "ea99101f-4d8d-3ddf-80f2-673fe77b05ed",
+  "name": "Google Cloud Storage Get Object Request",
+  "request" : {
+    "url" : "/storage/v1/b/coherence-rag-demo/o/test-documents%2Fsample-document.pdf?projection=full",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "get-object-response.json",
+    "headers" : {
+      "Alt-Svc" : "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000",
+      "Server" : "UploadServer",
+      "Cache-Control" : "private, max-age=0, must-revalidate, no-transform",
+      "ETag" : "CIj0/L3Ns44DEAE=",
+      "X-GUploader-UploadID" : "ABgVH888c7sWQihiEVStBttVgDFAErtAIBEY0ohf0kZ6GgO2Bj-NZlvXy6oqIRNeFGoDAJD39GINNaU",
+      "Content-Type" : "application/json; charset=UTF-8"
+    }
+  },
+  "uuid" : "ea99101f-4d8d-3ddf-80f2-673fe77b05ed"
+}

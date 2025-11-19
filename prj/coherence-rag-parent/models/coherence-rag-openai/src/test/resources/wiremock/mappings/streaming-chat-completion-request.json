@@ -1,0 +1,31 @@
+{
+  "id" : "fa6da3ab-b3c2-335d-9fe5-380abd19a3a4",
+  "request": {
+    "method": "POST",
+    "urlPath": "/v1/chat/completions",
+    "headers": {
+      "Content-Type": {
+        "equalTo": "application/json"
+      },
+      "Authorization": {
+        "matches": "Bearer .*"
+      }
+    },
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.messages && @.model && @.stream == true)]"
+      }
+    ]
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type" : "text/event-stream"
+    },
+    "bodyFileName": "streaming-chat-completion-response.txt",
+    "chunkedDribbleDelay": {
+      "numberOfChunks": 26,
+      "totalDuration":  500
+    }
+  }
+} 

@@ -1,0 +1,21 @@
+{
+  "id": "chatcmpl-BqnQq6utdlMtefgMZxp5XMHbdOydQ",
+  "object": "chat.completion",
+  "created": 1751922772,
+  "model": "deepseek-chat",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello! I am DeepSeek, an AI assistant created by DeepSeek. I'm here to help you with various tasks and answer your questions to the best of my ability. How can I assist you today?"
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 16,
+    "completion_tokens": 39,
+    "total_tokens": 55
+  }
+} 

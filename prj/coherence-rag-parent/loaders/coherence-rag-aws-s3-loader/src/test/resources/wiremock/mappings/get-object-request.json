@@ -1,0 +1,21 @@
+{
+  "id": "8a0d4b3f-c5e6-4f7a-9b0c-123456789abc",
+  "name": "AWS S3 GetObject Request",
+  "request": {
+    "method": "GET",
+    "urlPattern": "/test-documents/sample-document.pdf"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/pdf",
+      "Content-Length": "654",
+      "ETag": "\"d41d8cd98f00b204e9800998ecf8427e\"",
+      "Last-Modified": "Tue, 07 Jan 2025 12:00:00 GMT",
+      "x-amz-id-2": "test-id-2",
+      "x-amz-request-id": "test-request-id",
+      "x-amz-version-id": "test-version-id"
+    },
+    "bodyFileName": "sample-document.pdf"
+  }
+} 
