@@ -13,6 +13,10 @@
   <user-type-list>
     <user-type>
       <type-id>2000</type-id>
+      <class-name>com.oracle.coherence.rag.config.ConfigKey</class-name>
+    </user-type>
+    <user-type>
+      <type-id>2001</type-id>
       <class-name>com.oracle.coherence.rag.config.StoreConfig</class-name>
     </user-type>
 
@@ -39,7 +43,7 @@
     </user-type>
 
     <user-type>
-      <type-id>2001</type-id>
+      <type-id>2300</type-id>
       <class-name>dev.langchain4j.data.document.DefaultDocument</class-name>
       <serializer>
         <class-name>com.oracle.coherence.rag.internal.pof.DocumentSerializer</class-name>

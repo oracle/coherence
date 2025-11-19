@@ -6,16 +6,12 @@
  */
 package com.oracle.coherence.rag.model.ollama.config;
 
-import com.oracle.coherence.rag.config.AbstractConfig;
-import com.tangosol.io.pof.PofReader;
-import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.pof.PortableObject;
+import com.oracle.coherence.rag.config.model.EmbeddingModelConfig;
 
-import java.io.IOException;
+import dev.langchain4j.model.ollama.OllamaEmbeddingModel.OllamaEmbeddingModelBuilder;
+
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Configuration class for Ollama embedding model.
@@ -28,65 +24,9 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class OllamaEmbeddingModelConfig
-        extends AbstractConfig
-        implements PortableObject
+        extends EmbeddingModelConfig<OllamaEmbeddingModelBuilder>
     {
-    // ---- constructors ----------------------------------------------------
-
-    /**
-     * Default constructor for POF and JSON serialization.
-     */
-    public OllamaEmbeddingModelConfig()
-        {
-        }
-
     // ---- properties ------------------------------------------------------
-
-    /**
-     * Gets the Ollama API base URL.
-     *
-     * @return the base URL to use for API requests
-     */
-    public String getBaseUrl()
-        {
-        return baseUrl;
-        }
-
-    /**
-     * Sets the Ollama API base URL.
-     *
-     * @param baseUrl the base URL to use for API requests
-     *
-     * @return this config instance for method chaining
-     */
-    public OllamaEmbeddingModelConfig setBaseUrl(String baseUrl)
-        {
-        this.baseUrl = baseUrl;
-        return this;
-        }
-
-    /**
-     * Gets the embedding model name.
-     *
-     * @return the embedding model name
-     */
-    public String getModelName()
-        {
-        return modelName;
-        }
-
-    /**
-     * Sets the embedding model name.
-     *
-     * @param modelName the embedding model name
-     *
-     * @return this config instance for method chaining
-     */
-    public OllamaEmbeddingModelConfig setModelName(String modelName)
-        {
-        this.modelName = modelName;
-        return this;
-        }
 
     /**
      * Gets the request timeout duration.
@@ -203,18 +143,12 @@ public class OllamaEmbeddingModelConfig
         return this;
         }
 
-    // ---- strongly typed builder conversion -------------------------------
+    // ---- AbstractConfig methods ------------------------------------------
 
-    /**
-     * Converts this configuration to a strongly-typed builder instance.
-     *
-     * @return a configured {@code OllamaEmbeddingModelBuilder}
-     */
-    public dev.langchain4j.model.ollama.OllamaEmbeddingModel.OllamaEmbeddingModelBuilder toBuilder()
+    @Override
+    public OllamaEmbeddingModelBuilder apply(OllamaEmbeddingModelBuilder target)
         {
-        return dev.langchain4j.model.ollama.OllamaEmbeddingModel.builder()
-                .baseUrl(baseUrl)
-                .modelName(modelName)
+        return target
                 .timeout(timeout)
                 .maxRetries(maxRetries)
                 .logRequests(logRequests)
@@ -225,32 +159,10 @@ public class OllamaEmbeddingModelConfig
     // ---- Object methods --------------------------------------------------
 
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o) return true;
-        if (!(o instanceof OllamaEmbeddingModelConfig that)) return false;
-        return Objects.equals(baseUrl, that.baseUrl) &&
-               Objects.equals(modelName, that.modelName) &&
-               Objects.equals(timeout, that.timeout) &&
-               Objects.equals(maxRetries, that.maxRetries) &&
-               Objects.equals(logRequests, that.logRequests) &&
-               Objects.equals(logResponses, that.logResponses) &&
-               Objects.equals(customHeaders, that.customHeaders);
-        }
-
-    @Override
-    public int hashCode()
-        {
-        return Objects.hash(baseUrl, modelName, timeout, maxRetries, logRequests, logResponses, customHeaders);
-        }
-
-    @Override
     public String toString()
         {
         return "OllamaEmbeddingModelConfig[" +
-               "baseUrl=" + baseUrl +
-               ", modelName=" + modelName +
-               ", timeout=" + timeout +
+               "timeout=" + timeout +
                ", maxRetries=" + maxRetries +
                ", logRequests=" + logRequests +
                ", logResponses=" + logResponses +
@@ -258,51 +170,8 @@ public class OllamaEmbeddingModelConfig
                ']';
         }
 
-    // ---- AbstractEvolvable interface -------------------------------------
-
-    @Override
-    public int getImplVersion()
-        {
-        return IMPLEMENTATION_VERSION;
-        }
-
-    // ---- PortableObject interface ----------------------------------------
-
-    @Override
-    public void readExternal(PofReader reader) throws IOException
-        {
-        baseUrl      = reader.readString(0);
-        modelName    = reader.readString(1);
-        timeout      = reader.readObject(2);
-        maxRetries   = reader.readInt(3);
-        logRequests  = reader.readBoolean(4);
-        logResponses = reader.readBoolean(5);
-        customHeaders = reader.readMap(6, new LinkedHashMap<>());
-        }
-
-    @Override
-    public void writeExternal(PofWriter writer) throws IOException
-        {
-        writer.writeString(0, baseUrl);
-        writer.writeString(1, modelName);
-        writer.writeObject(2, timeout);
-        writer.writeInt(3, maxRetries);
-        writer.writeBoolean(4, logRequests);
-        writer.writeBoolean(5, logResponses);
-        writer.writeMap(6, customHeaders);
-        }
-
-    // ---- constants -------------------------------------------------------
-
-    /**
-     * The implementation version for this class.
-     */
-    public static final int IMPLEMENTATION_VERSION = 1;
-
     // ---- data members ----------------------------------------------------
 
-    private String baseUrl;
-    private String modelName;
     private Duration timeout;
     private Integer maxRetries;
     private Boolean logRequests;

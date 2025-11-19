@@ -6,22 +6,13 @@
  */
 package com.oracle.coherence.rag.model.openai.config;
 
-import com.oracle.coherence.rag.config.AbstractConfig;
+import com.oracle.coherence.rag.config.model.StreamingChatModelConfig;
 
-import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel.OpenAiStreamingChatModelBuilder;
 
-import com.tangosol.io.pof.PofReader;
-import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.pof.PortableObject;
-
-import java.io.IOException;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Configuration class for OpenAI streaming chat model.
@@ -34,66 +25,9 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class OpenAiStreamingChatModelConfig
-        extends AbstractConfig
-        implements PortableObject
+        extends StreamingChatModelConfig<OpenAiStreamingChatModelBuilder>
     {
-    // ---- constructors ----------------------------------------------------
-
-    /**
-     * Default constructor for POF and JSON serialization.
-     */
-    public OpenAiStreamingChatModelConfig()
-        {
-        }
-
-
     // ---- properties ------------------------------------------------------
-
-    /**
-     * Gets the OpenAI API base URL.
-     *
-     * @return the base URL to use for API requests
-     */
-    public String getBaseUrl()
-        {
-        return baseUrl;
-        }
-
-    /**
-     * Sets the OpenAI API base URL.
-     *
-     * @param baseUrl the base URL to use for API requests
-     *
-     * @return this config instance for method chaining
-     */
-    public OpenAiStreamingChatModelConfig setBaseUrl(String baseUrl)
-        {
-        this.baseUrl = baseUrl;
-        return this;
-        }
-
-    /**
-     * Gets the OpenAI API key.
-     *
-     * @return the API key
-     */
-    public String getApiKey()
-        {
-        return apiKey;
-        }
-
-    /**
-     * Sets the OpenAI API key.
-     *
-     * @param apiKey the API key
-     *
-     * @return this config instance for method chaining
-     */
-    public OpenAiStreamingChatModelConfig setApiKey(String apiKey)
-        {
-        this.apiKey = apiKey;
-        return this;
-        }
 
     /**
      * Gets the organization ID.
@@ -138,29 +72,6 @@ public class OpenAiStreamingChatModelConfig
     public OpenAiStreamingChatModelConfig setProjectId(String projectId)
         {
         this.projectId = projectId;
-        return this;
-        }
-
-    /**
-     * Gets the model name to be used by the streaming chat model.
-     *
-     * @return the model name
-     */
-    public String getModelName()
-        {
-        return modelName;
-        }
-
-    /**
-     * Sets the model name to be used by the streaming chat model.
-     *
-     * @param modelName the model name
-     *
-     * @return this config instance for method chaining
-     */
-    public OpenAiStreamingChatModelConfig setModelName(String modelName)
-        {
-        this.modelName = modelName;
         return this;
         }
 
@@ -646,19 +557,12 @@ public class OpenAiStreamingChatModelConfig
         return this;
         }
 
-    // ---- strongly typed builder conversion -------------------------------
+    // ---- AbstractConfig methods ------------------------------------------
 
-    /**
-     * Converts this configuration to a strongly-typed builder instance.
-     *
-     * @return a configured {@link OpenAiStreamingChatModelBuilder}
-     */
-    public OpenAiStreamingChatModelBuilder toBuilder()
+    @Override
+    public OpenAiStreamingChatModelBuilder apply(OpenAiStreamingChatModelBuilder target)
         {
-        return OpenAiStreamingChatModel.builder()
-                .modelName(modelName)
-                .baseUrl(baseUrl)
-                .apiKey(apiKey)
+        return target
                 .organizationId(organizationId)
                 .projectId(projectId)
                 .temperature(temperature)
@@ -686,58 +590,13 @@ public class OpenAiStreamingChatModelConfig
 
     // ---- Object methods --------------------------------------------------
 
-    @Override
-    public boolean equals(Object o)
-        {
-        if (this == o) return true;
-        if (!(o instanceof OpenAiStreamingChatModelConfig that)) return false;
-        return Objects.equals(baseUrl, that.baseUrl) &&
-               Objects.equals(apiKey, that.apiKey) &&
-               Objects.equals(organizationId, that.organizationId) &&
-               Objects.equals(projectId, that.projectId) &&
-               Objects.equals(modelName, that.modelName) &&
-               Objects.equals(temperature, that.temperature) &&
-               Objects.equals(topP, that.topP) &&
-               Objects.equals(stop, that.stop) &&
-               Objects.equals(maxTokens, that.maxTokens) &&
-               Objects.equals(maxCompletionTokens, that.maxCompletionTokens) &&
-               Objects.equals(presencePenalty, that.presencePenalty) &&
-               Objects.equals(frequencyPenalty, that.frequencyPenalty) &&
-               Objects.equals(logitBias, that.logitBias) &&
-               Objects.equals(responseFormat, that.responseFormat) &&
-               Objects.equals(strictJsonSchema, that.strictJsonSchema) &&
-               Objects.equals(seed, that.seed) &&
-               Objects.equals(user, that.user) &&
-               Objects.equals(strictTools, that.strictTools) &&
-               Objects.equals(parallelToolCalls, that.parallelToolCalls) &&
-               Objects.equals(store, that.store) &&
-               Objects.equals(metadata, that.metadata) &&
-               Objects.equals(serviceTier, that.serviceTier) &&
-               Objects.equals(timeout, that.timeout) &&
-               Objects.equals(logRequests, that.logRequests) &&
-               Objects.equals(logResponses, that.logResponses) &&
-               Objects.equals(customHeaders, that.customHeaders);
-        }
-
-    @Override
-    public int hashCode()
-        {
-        return Objects.hash(baseUrl, apiKey, organizationId, projectId,
-                            modelName, temperature, topP, stop, maxTokens, maxCompletionTokens,
-                            presencePenalty, frequencyPenalty, logitBias, responseFormat, strictJsonSchema,
-                            seed, user, strictTools, parallelToolCalls, store, metadata, serviceTier,
-                            timeout, logRequests, logResponses, customHeaders);
-        }
 
     @Override
     public String toString()
         {
         return "OpenAiStreamingChatModelConfig[" +
-               "baseUrl=" + baseUrl +
-               ", apiKey=" + apiKey +
-               ", organizationId=" + organizationId +
+               "organizationId=" + organizationId +
                ", projectId=" + projectId +
-               ", modelName=" + modelName +
                ", temperature=" + temperature +
                ", topP=" + topP +
                ", stop=" + stop +
@@ -761,92 +620,10 @@ public class OpenAiStreamingChatModelConfig
                ", customHeaders=" + customHeaders + ']' ;
         }
 
-    // ---- AbstractEvolvable interface -------------------------------------
-
-    @Override
-    public int getImplVersion()
-        {
-        return IMPLEMENTATION_VERSION;
-        }
-
-    // ---- PortableObject interface ----------------------------------------
-
-    @Override
-    public void readExternal(PofReader reader) throws IOException
-        {
-        baseUrl                  = reader.readString(0);
-        apiKey                   = reader.readString(1);
-        organizationId           = reader.readString(2);
-        projectId                = reader.readString(3);
-        modelName                = reader.readString(5);
-        temperature              = reader.readDouble(6);
-        topP                     = reader.readDouble(7);
-        stop                     = reader.readCollection(8, new ArrayList<>());
-        maxTokens                = reader.readInt(9);
-        maxCompletionTokens      = reader.readInt(10);
-        presencePenalty          = reader.readDouble(11);
-        frequencyPenalty         = reader.readDouble(12);
-        logitBias                = reader.readMap(13, new LinkedHashMap<>());
-        responseFormat           = reader.readString(14);
-        strictJsonSchema         = reader.readBoolean(15);
-        seed                     = reader.readInt(16);
-        user                     = reader.readString(17);
-        strictTools              = reader.readBoolean(18);
-        parallelToolCalls        = reader.readBoolean(19);
-        store                    = reader.readBoolean(20);
-        metadata                 = reader.readMap(21, new LinkedHashMap<>());
-        serviceTier              = reader.readString(22);
-        timeout                  = reader.readObject(23);
-        logRequests              = reader.readBoolean(24);
-        logResponses             = reader.readBoolean(25);
-        customHeaders            = reader.readMap(26, new LinkedHashMap<>());
-        }
-
-    @Override
-    public void writeExternal(PofWriter writer) throws IOException
-        {
-        writer.writeString(0, baseUrl);
-        writer.writeString(1, apiKey);
-        writer.writeString(2, organizationId);
-        writer.writeString(3, projectId);
-        writer.writeString(5, modelName);
-        writer.writeDouble(6, temperature);
-        writer.writeDouble(7, topP);
-        writer.writeCollection(8, stop);
-        writer.writeInt(9, maxTokens);
-        writer.writeInt(10, maxCompletionTokens);
-        writer.writeDouble(11, presencePenalty);
-        writer.writeDouble(12, frequencyPenalty);
-        writer.writeMap(13, logitBias);
-        writer.writeString(14, responseFormat);
-        writer.writeBoolean(15, strictJsonSchema);
-        writer.writeInt(16, seed);
-        writer.writeString(17, user);
-        writer.writeBoolean(18, strictTools);
-        writer.writeBoolean(19, parallelToolCalls);
-        writer.writeBoolean(20, store);
-        writer.writeMap(21, metadata);
-        writer.writeString(22, serviceTier);
-        writer.writeObject(23, timeout);
-        writer.writeBoolean(24, logRequests);
-        writer.writeBoolean(25, logResponses);
-        writer.writeMap(26, customHeaders);
-        }
-
-    // ---- constants -------------------------------------------------------
-
-    /**
-     * The implementation version for this class.
-     */
-    public static final int IMPLEMENTATION_VERSION = 1;
-
     // ---- data members ----------------------------------------------------
 
-    private String baseUrl;
-    private String apiKey;
     private String organizationId;
     private String projectId;
-    private String modelName;
     private Double temperature;
     private Double topP;
     private List<String> stop;

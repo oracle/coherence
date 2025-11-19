@@ -53,6 +53,8 @@ tags:
     description: System configuration management
   - name: Scoring
     description: Document relevance scoring services
+  - name: Model Configuration
+    description: Provider-specific model configuration management
   - name: Monitoring
     description: Statistics and performance monitoring
 
@@ -735,6 +737,126 @@ paths:
       responses:
         '200':
           description: Previous property value (may be null)
+  # Model configuration management
+  /api/models:
+    get:
+      tags:
+        - Model Configuration
+      summary: List model configurations
+      description: |
+        Returns all configuration entries stored in the repository.
+      operationId: listModelConfigs
+      responses:
+        '200':
+          description: List of configuration entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ModelConfigEntry'
+
+  /api/models/{type}/{provider}/{model}:
+    get:
+      tags:
+        - Model Configuration
+      summary: Get model configuration
+      description: |
+        Retrieves the JSON configuration for the specified model.
+      operationId: getModelConfig
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [embedding, chat, streamingChat, scoring]
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model configuration JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          description: Configuration not found
+
+    put:
+      tags:
+        - Model Configuration
+      summary: Upsert model configuration
+      description: |
+        Creates or updates the JSON configuration for the specified model. The body is stored verbatim.
+      operationId: putModelConfig
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [embedding, chat, streamingChat, scoring]
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+            example:
+              temperature: 0.6
+              maxTokens: 1024
+      responses:
+        '204':
+          description: Configuration stored
+
+    delete:
+      tags:
+        - Model Configuration
+      summary: Delete model configuration
+      description: |
+        Deletes the configuration if present.
+      operationId: deleteModelConfig
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [embedding, chat, streamingChat, scoring]
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Configuration deleted
           content:
             text/plain:
               schema:
@@ -789,6 +911,15 @@ paths:
 
 components:
   schemas:
+    ModelConfigEntry:
+      type: object
+      required:
+        - key
+      properties:
+        key:
+          type: string
+          description: Logical configuration key in the form "{type}:{provider}/{model}"
+          example: "chat:OpenAI/gpt-4o-mini"
     # Core domain objects
     Document:
       type: object

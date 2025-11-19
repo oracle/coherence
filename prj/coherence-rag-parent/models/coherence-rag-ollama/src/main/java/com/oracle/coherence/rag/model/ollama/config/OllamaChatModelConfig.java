@@ -6,20 +6,13 @@
  */
 package com.oracle.coherence.rag.model.ollama.config;
 
-import com.oracle.coherence.rag.config.AbstractConfig;
+import com.oracle.coherence.rag.config.model.ChatModelConfig;
 
-import com.tangosol.io.pof.PofReader;
-import com.tangosol.io.pof.PofWriter;
-import com.tangosol.io.pof.PortableObject;
+import dev.langchain4j.model.ollama.OllamaChatModel.OllamaChatModelBuilder;
 
-import dev.langchain4j.model.ollama.OllamaChatModel;
-
-import java.io.IOException;
 import java.time.Duration;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Configuration class for Ollama chat model.
@@ -32,65 +25,9 @@ import java.util.Objects;
  */
 @SuppressWarnings("unused")
 public class OllamaChatModelConfig
-        extends AbstractConfig
-        implements PortableObject
+        extends ChatModelConfig<OllamaChatModelBuilder>
     {
-    // ---- constructors ----------------------------------------------------
-
-    /**
-     * Default constructor for POF and JSON serialization.
-     */
-    public OllamaChatModelConfig()
-        {
-        }
-
     // ---- properties ------------------------------------------------------
-
-    /**
-     * Gets the Ollama API base URL.
-     *
-     * @return the base URL
-     */
-    public String getBaseUrl()
-        {
-        return baseUrl;
-        }
-
-    /**
-     * Sets the Ollama API base URL.
-     *
-     * @param baseUrl the base URL
-     *
-     * @return this config instance
-     */
-    public OllamaChatModelConfig setBaseUrl(String baseUrl)
-        {
-        this.baseUrl = baseUrl;
-        return this;
-        }
-
-    /**
-     * Gets the embedding model name.
-     *
-     * @return the model name
-     */
-    public String getModelName()
-        {
-        return modelName;
-        }
-
-    /**
-     * Sets the embedding model name.
-     *
-     * @param modelName the model name
-     *
-     * @return this config instance
-     */
-    public OllamaChatModelConfig setModelName(String modelName)
-        {
-        this.modelName = modelName;
-        return this;
-        }
 
     /**
      * Gets the temperature value controlling randomness.
@@ -506,18 +443,12 @@ public class OllamaChatModelConfig
         return this;
         }
 
-    // ---- strongly typed builder conversion -------------------------------
+    // ---- AbstractConfig methods ------------------------------------------
 
-    /**
-     * Converts this configuration to a strongly-typed builder instance.
-     *
-     * @return a configured {@code OllamaChatModelBuilder}
-     */
-    public OllamaChatModel.OllamaChatModelBuilder toBuilder()
+    @Override
+    public OllamaChatModelBuilder apply(OllamaChatModelBuilder target)
         {
-        return dev.langchain4j.model.ollama.OllamaChatModel.builder()
-                .baseUrl(baseUrl)
-                .modelName(modelName)
+        return target
                 .temperature(temperature)
                 .topK(topK)
                 .topP(topP)
@@ -541,47 +472,10 @@ public class OllamaChatModelConfig
     // ---- Object methods --------------------------------------------------
 
     @Override
-    public boolean equals(Object o)
-        {
-        if (this == o) return true;
-        if (!(o instanceof OllamaChatModelConfig that)) return false;
-        return Objects.equals(baseUrl, that.baseUrl) &&
-               Objects.equals(modelName, that.modelName) &&
-               Objects.equals(temperature, that.temperature) &&
-               Objects.equals(topK, that.topK) &&
-               Objects.equals(topP, that.topP) &&
-               Objects.equals(mirostat, that.mirostat) &&
-               Objects.equals(mirostatEta, that.mirostatEta) &&
-               Objects.equals(mirostatTau, that.mirostatTau) &&
-               Objects.equals(numCtx, that.numCtx) &&
-               Objects.equals(repeatLastN, that.repeatLastN) &&
-               Objects.equals(repeatPenalty, that.repeatPenalty) &&
-               Objects.equals(seed, that.seed) &&
-               Objects.equals(numPredict, that.numPredict) &&
-               Objects.equals(stop, that.stop) &&
-               Objects.equals(minP, that.minP) &&
-               Objects.equals(timeout, that.timeout) &&
-               Objects.equals(maxRetries, that.maxRetries) &&
-               Objects.equals(customHeaders, that.customHeaders) &&
-               Objects.equals(logRequests, that.logRequests) &&
-               Objects.equals(logResponses, that.logResponses);
-        }
-
-    @Override
-    public int hashCode()
-        {
-        return Objects.hash(baseUrl, modelName, temperature, topK, topP, mirostat, mirostatEta, mirostatTau,
-                numCtx, repeatLastN, repeatPenalty, seed, numPredict, stop, minP,
-                timeout, maxRetries, customHeaders, logRequests, logResponses);
-        }
-
-    @Override
     public String toString()
         {
         return "OllamaChatModelConfig[" +
-               "baseUrl=" + baseUrl +
-               ", modelName=" + modelName +
-               ", temperature=" + temperature +
+               "temperature=" + temperature +
                ", topK=" + topK +
                ", topP=" + topP +
                ", mirostat=" + mirostat +
@@ -601,77 +495,8 @@ public class OllamaChatModelConfig
                ", logResponses=" + logResponses + ']';
         }
 
-    // ---- AbstractEvolvable interface -------------------------------------
-
-    @Override
-    public int getImplVersion()
-        {
-        return IMPLEMENTATION_VERSION;
-        }
-
-    // ---- PortableObject interface ----------------------------------------
-
-    @Override
-    public void readExternal(PofReader reader) throws IOException
-        {
-        baseUrl        = reader.readString(0);
-        modelName      = reader.readString(1);
-        temperature    = reader.readDouble(2);
-        topK           = reader.readInt(3);
-        topP           = reader.readDouble(4);
-        mirostat       = reader.readInt(5);
-        mirostatEta    = reader.readDouble(6);
-        mirostatTau    = reader.readDouble(7);
-        numCtx         = reader.readInt(8);
-        repeatLastN    = reader.readInt(9);
-        repeatPenalty  = reader.readDouble(10);
-        seed           = reader.readInt(11);
-        numPredict     = reader.readInt(12);
-        stop           = reader.readCollection(13, new java.util.ArrayList<>());
-        minP           = reader.readDouble(14);
-        timeout        = reader.readObject(17);
-        maxRetries     = reader.readInt(18);
-        customHeaders  = reader.readMap(19, new LinkedHashMap<>());
-        logRequests    = reader.readBoolean(20);
-        logResponses   = reader.readBoolean(21);
-        }
-
-    @Override
-    public void writeExternal(PofWriter writer) throws IOException
-        {
-        writer.writeString(0, baseUrl);
-        writer.writeString(1, modelName);
-        writer.writeDouble(2, temperature);
-        writer.writeInt(3, topK);
-        writer.writeDouble(4, topP);
-        writer.writeInt(5, mirostat);
-        writer.writeDouble(6, mirostatEta);
-        writer.writeDouble(7, mirostatTau);
-        writer.writeInt(8, numCtx);
-        writer.writeInt(9, repeatLastN);
-        writer.writeDouble(10, repeatPenalty);
-        writer.writeInt(11, seed);
-        writer.writeInt(12, numPredict);
-        writer.writeCollection(13, stop);
-        writer.writeDouble(14, minP);
-        writer.writeObject(17, timeout);
-        writer.writeInt(18, maxRetries);
-        writer.writeMap(19, customHeaders);
-        writer.writeBoolean(20, logRequests);
-        writer.writeBoolean(21, logResponses);
-        }
-
-    // ---- constants -------------------------------------------------------
-
-    /**
-     * The implementation version for this class.
-     */
-    public static final int IMPLEMENTATION_VERSION = 1;
-
     // ---- data members ----------------------------------------------------
 
-    private String baseUrl;
-    private String modelName;
     private Double temperature;
     private Integer topK;
     private Double topP;

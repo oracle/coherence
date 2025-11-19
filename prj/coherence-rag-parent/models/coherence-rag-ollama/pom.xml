@@ -35,12 +35,10 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-rag</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>
@@ -66,6 +64,17 @@
           <artifactId>org.osgi.annotation.versioning</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.helidon.http.media</groupId>
+      <artifactId>helidon-http-media-jsonb</artifactId>
+      <scope>test</scope>
     </dependency>
 
   </dependencies>

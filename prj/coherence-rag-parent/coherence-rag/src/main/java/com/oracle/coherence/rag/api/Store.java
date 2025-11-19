@@ -865,7 +865,7 @@ public class Store
     public Response chat(ChatRequest request)
         {
         StreamingChatModel chatModel = request.chatModel() == null
-                                  ? chatModelSupplier.get()
+                                  ? chatModelSupplier.get(config().getChatModel())
                                   : chatModelSupplier.get(new ModelName(request.chatModel()));
         ChatAssistant assistant = createChatAssistant(chatModel, request.maxResults(), request.minScore());
         TokenStream   answer    = assistant.answer(request.question());
@@ -1113,6 +1113,7 @@ public class Store
 
                                  if (doc != null)
                                      {
+                                     doc.metadata().put("url", docId);
                                      docs.put(docId, doc);
                                      Logger.fine("Loaded %s in %,d ms".formatted(docId, time));
                                      }

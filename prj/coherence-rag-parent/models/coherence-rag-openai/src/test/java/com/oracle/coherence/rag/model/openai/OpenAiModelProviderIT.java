@@ -6,6 +6,11 @@
  */
 package com.oracle.coherence.rag.model.openai;
 
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.internal.json.JsonbProvider;
+
+import com.tangosol.net.cache.WrapperNamedCache;
+
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 
@@ -20,6 +25,7 @@ import dev.langchain4j.model.openai.OpenAiEmbeddingModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import org.eclipse.microprofile.config.Config;
@@ -103,14 +109,10 @@ class OpenAiModelProviderIT
         }
 
     @BeforeEach
-    void setUp() throws Exception
+    void setUp()
         {
-        provider = new OpenAiModelProvider();
-        
-        // Inject test config using reflection (same pattern as unit test)
-        Field configField = OpenAiModelProvider.class.getDeclaredField("config");
-        configField.setAccessible(true);
-        configField.set(provider, new TestConfig());
+        ConfigRepository jsonConfig = new ConfigRepository(new WrapperNamedCache<>(new HashMap<>(), "jsonConfig"), new JsonbProvider());
+        provider = new OpenAiModelProvider(new TestConfig(), jsonConfig);
         }
 
     // ---- tests -----------------------------------------------------------

@@ -7,6 +7,11 @@
 package com.oracle.coherence.rag.model.openai;
 
 import com.oracle.coherence.rag.ModelProvider;
+import com.oracle.coherence.rag.config.ConfigKey;
+import com.oracle.coherence.rag.config.ConfigRepository;
+import com.oracle.coherence.rag.model.openai.config.OpenAiChatModelConfig;
+import com.oracle.coherence.rag.model.openai.config.OpenAiEmbeddingModelConfig;
+import com.oracle.coherence.rag.model.openai.config.OpenAiStreamingChatModelConfig;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -33,7 +38,7 @@ import org.eclipse.microprofile.config.Config;
  * Configuration is managed through MicroProfile Config with the following properties:
  * <ul>
  * <li>openai.api.key - Required API key for OpenAI service</li>
- * <li>openai.base.url - Base URL for OpenAI API (defaults to https://api.openai.com/v1)</li>
+ * <li>openai.base.url - Base URL for OpenAI API (defaults to {@code https://api.openai.com/v1})</li>
  * </ul>
  * <p/>
  * Example usage:
@@ -43,8 +48,8 @@ import org.eclipse.microprofile.config.Config;
  * ModelProvider openAiProvider;
  * 
  * EmbeddingModel embeddingModel = openAiProvider.getEmbeddingModel("text-embedding-3-large");
- * ChatModel chatModel = openAiProvider.getChatModel("gpt-4");
- * StreamingChatModel streamingModel = openAiProvider.getStreamingChatModel("gpt-4");
+ * ChatModel chatModel = openAiProvider.getChatModel("gpt-4o");
+ * StreamingChatModel streamingModel = openAiProvider.getStreamingChatModel("gpt-5");
  * }</pre>
  *
  * @author Aleks Seovic 2025.07.04
@@ -61,8 +66,11 @@ public class OpenAiModelProvider
     /**
      * Default constructor for CDI initialization.
      */
-    public OpenAiModelProvider()
+    @Inject
+    public OpenAiModelProvider(Config config, ConfigRepository jsonConfig)
         {
+        this.config = config;
+        this.jsonConfig = jsonConfig;
         }
 
     // ---- ModelProvider interface implementation -------------------------
@@ -85,11 +93,15 @@ public class OpenAiModelProvider
     public EmbeddingModel getEmbeddingModel(String sName)
         {
         validateModelName(sName);
-        return OpenAiEmbeddingModel.builder()
-                            .apiKey(openAiApiKey())
-                            .baseUrl(openAiBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OpenAiEmbeddingModel.builder()
+                .apiKey(openAiApiKey())
+                .baseUrl(openAiBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("embedding:OpenAI/" + sName);
+        return jsonConfig.get(key, new OpenAiEmbeddingModelConfig())
+                .apply(builder)
+                .build();
         }
 
     /**
@@ -109,11 +121,15 @@ public class OpenAiModelProvider
     public ChatModel getChatModel(String sName)
         {
         validateModelName(sName);
-        return OpenAiChatModel.builder()
-                            .apiKey(openAiApiKey())
-                            .baseUrl(openAiBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OpenAiChatModel.builder()
+                .apiKey(openAiApiKey())
+                .baseUrl(openAiBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("chat:OpenAI/" + sName);
+        return jsonConfig.get(key, new OpenAiChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     /**
@@ -133,11 +149,15 @@ public class OpenAiModelProvider
     public StreamingChatModel getStreamingChatModel(String sName)
         {
         validateModelName(sName);
-        return OpenAiStreamingChatModel.builder()
-                            .apiKey(openAiApiKey())
-                            .baseUrl(openAiBaseUrl())
-                            .modelName(sName)
-                            .build();
+        var builder = OpenAiStreamingChatModel.builder()
+                .apiKey(openAiApiKey())
+                .baseUrl(openAiBaseUrl())
+                .modelName(sName);
+
+        var key = new ConfigKey("streamingChat:OpenAI/" + sName);
+        return jsonConfig.get(key, new OpenAiStreamingChatModelConfig())
+                .apply(builder)
+                .build();
         }
 
     // ---- helper methods --------------------------------------------------
@@ -194,8 +214,12 @@ public class OpenAiModelProvider
     /**
      * MicroProfile Config instance for reading configuration properties.
      */
-    @Inject
-    private Config config;
+    private final Config config;
+
+    /**
+     * Repository containing model configuration.
+     */
+    private final ConfigRepository jsonConfig;
 
     // ---- constants -------------------------------------------------------
 

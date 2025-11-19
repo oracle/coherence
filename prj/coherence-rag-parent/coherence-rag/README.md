@@ -28,6 +28,7 @@ This module contains the main RAG framework implementation including:
 - Configuration management endpoints
 - Real-time streaming responses
 - CORS support for web applications
+- Model configuration management
 
 ### 📄 **Document Processing**
 - Automatic document chunking with configurable parameters
@@ -128,12 +129,14 @@ public interface ModelProvider {
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `/api/store/{storeName}/documents` | POST | Upload and process documents |
-| `/api/store/{storeName}/search` | POST | Search for similar documents |
-| `/api/store/{storeName}/config` | GET/PUT | Store configuration management |
-| `/api/db/stores` | GET | List all document stores |
+| `/api/kb/{storeName}/docs` | POST | Upload and process documents |
+| `/api/kb/{storeName}/search` | POST | Search for similar documents |
+| `/api/kb/{storeName}/config` | GET/PUT | Store configuration management |
+| `/api/kb/stores` | GET | List all document stores |
 | `/api/config` | GET | Global configuration |
 | `/api/scoring/rerank` | POST | Re-rank search results |
+| `/api/models` | GET | List model configuration entries |
+| `/api/models/{type}/{provider}/{model}` | GET/PUT/DELETE | Manage model configuration (optional `?store=...`) |
 
 ### Configuration
 
@@ -148,19 +151,29 @@ StoreConfig config = StoreConfig.builder()
 ```
 
 #### Model Configuration
-```java
-// Local ONNX embedding model
-EmbeddingModel embeddingModel = LocalOnnxEmbeddingModel.builder()
-    .modelPath("models/all-MiniLM-L6-v2.onnx")
-    .vocabularyPath("models/vocab.txt")
-    .poolingMode(PoolingMode.MEAN)
-    .build();
+You can manage provider-specific model configuration as JSON via the REST API. Configuration is stored under logical keys of the form `{type}:{provider}/{model}` with an optional `store` scope.
 
-// Local ONNX scoring model
-ScoringModel scoringModel = LocalOnnxScoringModel.builder()
-    .modelPath("models/ms-marco-MiniLM-L-12-v2.onnx")
-    .vocabularyPath("models/vocab.txt")
-    .build();
+Examples (OpenAI):
+
+```bash
+# Upsert global chat model config (applies to all stores)
+curl -X PUT "http://localhost:8080/api/models/chat/OpenAI/gpt-4o-mini" \
+  -H "Content-Type: application/json" \
+  -d '{"temperature":0.6, "maxTokens":1024}'
+
+# Get global chat model config
+curl -s "http://localhost:8080/api/models/chat/OpenAI/gpt-4o-mini"
+
+# Upsert store-specific config (store=kb)
+curl -X PUT "http://localhost:8080/api/models/chat/OpenAI/gpt-4o-mini?store=kb" \
+  -H "Content-Type: application/json" \
+  -d '{"temperature":0.3}'
+
+# Delete a config
+curl -X DELETE "http://localhost:8080/api/models/chat/OpenAI/gpt-4o-mini"
+
+# List all configuration entries
+curl -s "http://localhost:8080/api/models"
 ```
 
 ## Local ONNX Models

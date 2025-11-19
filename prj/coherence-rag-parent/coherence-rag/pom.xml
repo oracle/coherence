@@ -27,37 +27,30 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-hnsw</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-lucene</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-concurrent</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-cdi-server</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-mp-config</artifactId>
-      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-json</artifactId>
-      <version>${project.version}</version>
     </dependency>
 
     <dependency>

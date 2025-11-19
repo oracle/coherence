@@ -10,6 +10,7 @@ import com.oracle.coherence.rag.config.AbstractConfig;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
+import com.tangosol.io.pof.PortableObject;
 import jakarta.json.bind.annotation.JsonbSubtype;
 import jakarta.json.bind.annotation.JsonbTypeInfo;
 import java.io.IOException;
@@ -42,6 +43,7 @@ import java.util.Objects;
 )
 public class IndexConfig<T>
         extends AbstractConfig<T>
+        implements PortableObject
     {
     // ---- methods ---------------------------------------------------------
 
