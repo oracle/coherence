@@ -63,7 +63,6 @@
     <paged-topic-scheme>
       <scheme-name>docsTopic</scheme-name>
       <service-name>DocsTopic</service-name>
-      <storage>flashjournal</storage>
       <autostart>true</autostart>
       <channel-count>15</channel-count>
     </paged-topic-scheme>
@@ -71,7 +70,6 @@
     <paged-topic-scheme>
       <scheme-name>chunksTopic</scheme-name>
       <service-name>ChunksTopic</service-name>
-      <storage>flashjournal</storage>
       <autostart>true</autostart>
       <channel-count>15</channel-count>
     </paged-topic-scheme>
@@ -136,9 +134,9 @@
       <scheme-name>documents</scheme-name>
       <service-name>Documents</service-name>
       <backing-map-scheme>
-        <flashjournal-scheme>
+        <local-scheme>
           <unit-calculator>BINARY</unit-calculator>
-        </flashjournal-scheme>
+        </local-scheme>
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
