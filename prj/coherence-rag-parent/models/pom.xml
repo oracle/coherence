@@ -25,6 +25,7 @@
     <module>coherence-rag-oci</module>
     <module>coherence-rag-ollama</module>
     <module>coherence-rag-openai</module>
+    <module>coherence-rag-anthropic</module>
   </modules>
 
 </project>

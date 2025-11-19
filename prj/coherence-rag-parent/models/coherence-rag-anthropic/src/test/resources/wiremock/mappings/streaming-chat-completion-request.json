@@ -1,0 +1,23 @@
+{
+  "id" : "f1662006-52a9-3a98-b011-8618c3c27463",
+  "request" : {
+    "url" : "/v1/messages",
+    "method" : "POST",
+    "bodyPatterns": [
+      {
+        "matchesJsonPath": "$[?(@.messages && @.model && @.stream == true)]"
+      }
+    ]
+  },
+  "response" : {
+    "status" : 200,
+    "bodyFileName" : "streaming-chat-completion-response.txt",
+    "headers" : {
+      "anthropic-organization-id" : "d0c94b12-fd5a-425c-9495-fc8defefbac2",
+      "request-id" : "req_011CRp5LfS1YpFWXiTHFbuhT",
+      "Date" : "Tue, 05 Aug 2025 06:17:48 GMT",
+      "Content-Type" : "text/event-stream; charset=utf-8"
+    }
+  },
+  "uuid" : "f1662006-52a9-3a98-b011-8618c3c27463"
+}

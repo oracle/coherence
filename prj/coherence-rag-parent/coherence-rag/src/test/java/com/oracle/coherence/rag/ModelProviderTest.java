@@ -196,10 +196,7 @@ class ModelProviderTest
             ModelProvider basicProvider = new BasicModelProvider();
 
             // Act
-            ScoringModel model = basicProvider.getScoringModel("test-scoring-model");
-
-            // Assert
-            assertThat(model, is(nullValue()));
+            assertThrows(UnsupportedOperationException.class, () -> basicProvider.getScoringModel("test-scoring-model"));
             }
 
         @Test

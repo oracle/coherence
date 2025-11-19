@@ -66,7 +66,7 @@ public interface ModelProvider
      */
     default ScoringModel getScoringModel(String sName)
         {
-        return null;
+        throw new UnsupportedOperationException("Scoring model is not supported by " + getClass().getName());
         }
 
     /**
