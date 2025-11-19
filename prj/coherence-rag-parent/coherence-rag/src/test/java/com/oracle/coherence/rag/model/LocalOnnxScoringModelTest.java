@@ -11,8 +11,7 @@ import com.oracle.coherence.testing.http.UseProxy;
 
 import dev.langchain4j.data.segment.TextSegment;
 
-import java.io.IOException;
-
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Path;
 
 import java.util.List;
@@ -29,59 +28,73 @@ import static org.hamcrest.Matchers.greaterThan;
 public class LocalOnnxScoringModelTest
     {
     @AfterAll
-    public static void cleanup() throws IOException
+    public static void cleanup() throws Exception
         {
-        Files.deleteDirectory(Path.of("models", "Xenova"));
+        for (int i = 0; i < 5; i++)
+            {
+            try
+                {
+                Files.deleteDirectory(Path.of("models", "Xenova"));
+                break;
+                }
+            catch (DirectoryNotEmptyException e)
+                {
+                System.gc();
+                Thread.sleep(1000L * (1L << i)); // 1s, 2s, 4s, ...
+                }
+            }
         }
 
     @Test
-    public void testDefaultModel()
+    public void testDefaultModel() throws Exception
         {
         ModelName name = new ModelName("-/ms-marco-TinyBERT-L-2-v2");
-        LocalOnnxScoringModel model = LocalOnnxScoringModel.createDefault(name);
-
-        String question = "How many people live in Berlin?";
-        List<TextSegment> answers = List.of(
-                TextSegment.from("New York City is famous for the Metropolitan Museum of Art."),
-                TextSegment.from("Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers."));
-
-        List<Double> scores = model.scoreAll(answers, question).content();
-
-        System.out.println(question);
-        System.out.println();
-        
-        for (int i = 0; i < scores.size(); i++)
+        try (LocalOnnxScoringModel model = LocalOnnxScoringModel.createDefault(name))
             {
-            System.out.printf("%.5f: %s\n", scores.get(i), answers.get(i).text());
-            }
+            String question = "How many people live in Berlin?";
+            List<TextSegment> answers = List.of(
+                    TextSegment.from("New York City is famous for the Metropolitan Museum of Art."),
+                    TextSegment.from("Berlin had a population of 3,520,031 registered inhabitants in an area of 891.82 square kilometers."));
 
-        assertThat(model.name(), is(name));
-        assertThat(scores.get(1), is(greaterThan(scores.get(0))));
+            List<Double> scores = model.scoreAll(answers, question).content();
+
+            System.out.println(question);
+            System.out.println();
+
+            for (int i = 0; i < scores.size(); i++)
+                {
+                System.out.printf("%.5f: %s\n", scores.get(i), answers.get(i).text());
+                }
+
+            assertThat(model.name(), is(name));
+            assertThat(scores.get(1), is(greaterThan(scores.get(0))));
+            }
         }
 
     @Test
-    public void testLocalModelDownload()
+    public void testLocalModelDownload() throws Exception
         {
         ModelName name = new ModelName("Xenova/ms-marco-MiniLM-L-6-v2");
-        LocalOnnxScoringModel model = LocalOnnxScoringModel.create(name);
+        try (LocalOnnxScoringModel model = LocalOnnxScoringModel.create(name))
+            {
+            assertThat(exists(LocalOnnxScoringModel.pathTo(name, "model.onnx")), is(true));
+            assertThat(exists(LocalOnnxScoringModel.pathTo(name, "tokenizer.json")), is(true));
 
-        assertThat(exists(LocalOnnxScoringModel.pathTo(name, "model.onnx")), is(true));
-        assertThat(exists(LocalOnnxScoringModel.pathTo(name, "tokenizer.json")), is(true));
+            String question = "What is panda?";
+            List<TextSegment> answers = List.of(
+                    TextSegment.from("Dolphins are mammals, not fish."),
+                    TextSegment.from("The giant panda (Ailuropoda melanoleuca), sometimes called a panda bear or simply panda, is a bear species endemic to China."));
 
-        String question = "What is panda?";
-        List<TextSegment> answers = List.of(
-                TextSegment.from("Dolphins are mammals, not fish."),
-                TextSegment.from("The giant panda (Ailuropoda melanoleuca), sometimes called a panda bear or simply panda, is a bear species endemic to China."));
+            double lowScore = model.score(answers.get(0), question).content();
+            double hightScore = model.score(answers.get(1), question).content();
 
-        double lowScore   = model.score(answers.get(0), question).content();
-        double hightScore = model.score(answers.get(1), question).content();
+            System.out.println(question);
+            System.out.println();
+            System.out.printf("%.5f: %s\n", lowScore, answers.get(0).text());
+            System.out.printf("%.5f: %s\n", hightScore, answers.get(1).text());
 
-        System.out.println(question);
-        System.out.println();
-        System.out.printf("%.5f: %s\n", lowScore, answers.get(0).text());
-        System.out.printf("%.5f: %s\n", hightScore, answers.get(1).text());
-
-        assertThat(model.name(), is(name));
-        assertThat(hightScore, is(greaterThan(lowScore)));
+            assertThat(model.name(), is(name));
+            assertThat(hightScore, is(greaterThan(lowScore)));
+            }
         }
     }

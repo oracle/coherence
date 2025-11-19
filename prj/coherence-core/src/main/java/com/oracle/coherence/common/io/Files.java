@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.common.io;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.tangosol.coherence.config.Config;
 
 import java.io.BufferedReader;
@@ -13,6 +15,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
@@ -20,8 +24,9 @@ import java.nio.file.attribute.BasicFileAttributes;
 
 import java.util.StringTokenizer;
 
-import static java.nio.file.Files.delete;
+import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.exists;
+import static java.nio.file.Files.newDirectoryStream;
 import static java.nio.file.Files.walkFileTree;
 
 /**
@@ -181,7 +186,7 @@ public class Files
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException
                 {
-                delete(file);
+                deleteIfExists(file);
                 return FileVisitResult.CONTINUE;
                 }
 
@@ -193,8 +198,50 @@ public class Files
                     {
                     throw exc;
                     }
-                delete(dir);
-                return FileVisitResult.CONTINUE;
+
+                // Retry logic for Windows
+                for (int i = 0; i < DELETE_RETRY_COUNT; i++)
+                    {
+                    try
+                        {
+                        deleteIfExists(dir);
+                        return FileVisitResult.CONTINUE;
+                        }
+                    catch (DirectoryNotEmptyException e)
+                        {
+                        try
+                            {
+                            Thread.sleep(100L * (1L << i)); // 100ms, 200ms, 400ms, ...
+                            }
+                        catch (InterruptedException ie)
+                            {
+                            Thread.currentThread().interrupt();
+                            throw new IOException("Interrupted while retrying directory deletion", ie);
+                            }
+                        }
+                    }
+
+                // Final attempt (will log the list of files and throw if still not empty)
+                try
+                    {
+                    deleteIfExists(dir);
+                    return FileVisitResult.CONTINUE;
+                    }
+                catch (DirectoryNotEmptyException e)
+                    {
+                    try (DirectoryStream<Path> stream = newDirectoryStream(dir))
+                        {
+                        for (Path entry : stream)
+                            {
+                            Logger.fine("Unable to delete: " + entry);
+                            }
+                        }
+                    catch (IOException suppressed)
+                        {
+                        Logger.fine("Failed to list directory: " + dir + " → " + suppressed);
+                        }
+                    throw e;
+                    }
                 }
             });
         }
@@ -205,4 +252,13 @@ public class Files
      * The default value to assume if it cannot be determined if a path is local or not.
      */
     protected static final boolean ASSUME_LOCAL = Config.getBoolean(Files.class.getCanonicalName() + ".assumeLocal");
+
+    /**
+     * The maximum number of attempts for directory deletion.
+     * <p/>
+     * This is needed primarily on Windows, which tends to lock the files more
+     * aggressively, and may not allow deletion of a file that's open, or has been
+     * recently closed.
+     */
+    protected static final int DELETE_RETRY_COUNT = 5;
     }

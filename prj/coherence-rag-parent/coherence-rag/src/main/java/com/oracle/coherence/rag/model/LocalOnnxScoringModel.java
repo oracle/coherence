@@ -73,7 +73,7 @@ import static java.lang.Math.exp;
  * @since 25.09
  */
 public class LocalOnnxScoringModel
-        implements ScoringModel
+        implements ScoringModel, AutoCloseable
     {
     /**
      * Base path for model storage.
@@ -257,6 +257,21 @@ public class LocalOnnxScoringModel
             scores.add(score);
             }
         return Response.from(scores);
+        }
+
+    // ---- AutoCloseable interface -----------------------------------------
+
+    /**
+     * Close the native ONNX model and release associated resources.
+     *
+     * @throws Exception  if an error occurs
+     */
+    public void close() throws Exception
+        {
+        if (model != null)
+            {
+            model.close();
+            }
         }
 
     // ---- Object methods --------------------------------------------------
