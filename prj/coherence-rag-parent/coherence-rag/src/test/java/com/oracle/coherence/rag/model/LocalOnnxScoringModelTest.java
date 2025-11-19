@@ -6,13 +6,13 @@
  */
 package com.oracle.coherence.rag.model;
 
+import com.oracle.coherence.common.io.Files;
 import com.oracle.coherence.testing.http.UseProxy;
 
 import dev.langchain4j.data.segment.TextSegment;
 
 import java.io.IOException;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import java.util.List;
@@ -20,6 +20,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
+import static java.nio.file.Files.exists;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
@@ -30,11 +31,7 @@ public class LocalOnnxScoringModelTest
     @AfterAll
     public static void cleanup() throws IOException
         {
-        ModelName name = new ModelName("Xenova/ms-marco-MiniLM-L-6-v2");
-        Files.delete(LocalOnnxScoringModel.pathTo(name, "model.onnx"));
-        Files.delete(LocalOnnxScoringModel.pathTo(name, "tokenizer.json"));
-        Files.delete(LocalOnnxScoringModel.pathTo(name));
-        Files.delete(Path.of("models", "Xenova"));
+        Files.deleteDirectory(Path.of("models", "Xenova"));
         }
 
     @Test
@@ -68,8 +65,8 @@ public class LocalOnnxScoringModelTest
         ModelName name = new ModelName("Xenova/ms-marco-MiniLM-L-6-v2");
         LocalOnnxScoringModel model = LocalOnnxScoringModel.create(name);
 
-        assertThat(Files.exists(LocalOnnxScoringModel.pathTo(name, "model.onnx")), is(true));
-        assertThat(Files.exists(LocalOnnxScoringModel.pathTo(name, "tokenizer.json")), is(true));
+        assertThat(exists(LocalOnnxScoringModel.pathTo(name, "model.onnx")), is(true));
+        assertThat(exists(LocalOnnxScoringModel.pathTo(name, "tokenizer.json")), is(true));
 
         String question = "What is panda?";
         List<TextSegment> answers = List.of(
