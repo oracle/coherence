@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.rag.model;
 
+import com.oracle.coherence.testing.http.UseProxy;
+
 import dev.langchain4j.data.segment.TextSegment;
 
 import java.io.IOException;
@@ -22,6 +24,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 
+@UseProxy
 public class LocalOnnxScoringModelTest
     {
     @AfterAll

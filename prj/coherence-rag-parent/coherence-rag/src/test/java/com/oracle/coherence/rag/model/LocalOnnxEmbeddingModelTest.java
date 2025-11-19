@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.rag.model;
 
+import com.oracle.coherence.testing.http.UseProxy;
+
 import dev.langchain4j.data.embedding.Embedding;
 
 import java.io.IOException;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
 
+@UseProxy
 public class LocalOnnxEmbeddingModelTest
     {
     @AfterAll
