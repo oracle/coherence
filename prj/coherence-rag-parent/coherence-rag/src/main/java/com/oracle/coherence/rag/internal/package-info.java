@@ -15,7 +15,6 @@
  * <p/>
  * Internal components include:
  * <ul>
- * <li>{@link com.oracle.coherence.rag.internal.DocumentCacheLoader} - On-demand document loading with caching</li>
  * <li>{@link com.oracle.coherence.rag.internal.StoreConfigCacheLoader} - Configuration loading and defaults</li>
  * </ul>
  * <p/>
