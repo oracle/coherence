@@ -25,6 +25,9 @@
     <java.version>21</java.version>
     <java.version.release>21</java.version.release>
 
+    <!-- force Helidon 4 usage, regardless of JDK version -->
+    <helidon.version>${helidon.version.4}</helidon.version>
+    
     <useModulePath>false</useModulePath>
   </properties>
 
