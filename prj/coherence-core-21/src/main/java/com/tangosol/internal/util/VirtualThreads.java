@@ -14,6 +14,7 @@ import com.tangosol.net.security.SecurityHelper;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadFactory;
 
 import java.util.function.Function;
@@ -154,7 +155,6 @@ public class VirtualThreads
         {
         return thread.isVirtual();
         }
-
 
     /**
      * Returns either a new virtual thread per-task executor on Java 21 or higher

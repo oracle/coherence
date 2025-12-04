@@ -252,6 +252,7 @@
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
     <netty.version>4.1.127.Final</netty.version>
+    <oci.sdk.version>3.69.0</oci.sdk.version>
     <ok.http.version>5.1.0</ok.http.version>
     <opentelemetry.version>1.52.0</opentelemetry.version>
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
