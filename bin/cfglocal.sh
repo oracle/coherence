@@ -13,7 +13,7 @@
 # enqueue -j <version> [-c changelist]
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
-JAVA_VERSION_TO_USE=${JV:-24}
+JAVA_VERSION_TO_USE=${JV:-25}
 
 while [ -h "${SCRIPT_PATH}" ]; do
   LS=`ls -ld "${SCRIPT_PATH}"`

@@ -89,7 +89,7 @@ function setup
   # Ensure proper Java version, attempt selection if necessary
   #
   _JAVA_HOME=$JAVA_HOME
-  _VERSION_REQUIRED=${JAVA_VERSION_TO_USE:-24}
+  _VERSION_REQUIRED=${JAVA_VERSION_TO_USE:-25}
 
   if [ -z $JAVA_HOME ] || [ "$($JAVA_HOME/bin/java -version 2>&1 | sed 's/.*version "\([0-9]*\).*/\1/; 1q')" != "$_VERSION_REQUIRED" ]; then
     # Try to find the correct version
