@@ -7,13 +7,15 @@
 
 plugins {
     id "application"
+	id 'java'
 }
-apply plugin: "java"
 
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
 
 group = 'com.oracle.coherence.tutorials'
 version = '${coherenceVersion}'
-sourceCompatibility = '17'
 
 repositories {
     mavenLocal()
@@ -67,7 +69,7 @@ task runCohQLPrimary(type: Exec) {
     dependsOn build
     group = "Execution"
     description = "Run CohQL on PrimaryCluster"
-    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
             "-Dcoherence.cacheconfig=federation-cache-config.xml", "-Xms128m", "-Xmx128m",
             "-Dcoherence.wka=127.0.0.1", "-Dcoherence.cluster=PrimaryCluster", "-Dcoherence.clusterport=7574",
             "-Dcoherence.distributed.localstorage=false", "com.tangosol.coherence.dslquery.QueryPlus"

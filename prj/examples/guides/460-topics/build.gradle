@@ -7,13 +7,16 @@
 
 plugins {
     id "application"
+	id 'java'
 }
-apply plugin: "java"
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
 
 
 group = 'com.oracle.coherence.tutorials'
 version = '${coherenceVersion}'
-sourceCompatibility = '17'
 
 repositories {
     mavenLocal()
@@ -50,7 +53,7 @@ task runClient(type: Exec) {
     group = "Execution"
     description = "Run Chat Application"
     def userId = findProperty('userId') ?: "default"
-    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
             "-Dcoherence.cacheconfig=topics-cache-config.xml", "-Xms128m", "-Xmx128m",
             "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.guides.topics.ChatApplication", userId
 }

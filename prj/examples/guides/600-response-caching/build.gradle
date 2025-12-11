@@ -9,13 +9,17 @@ plugins {
 	id "org.kordamp.gradle.jandex" version "1.1.0"
 }
 
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+}
+
 ext {
 	helidonversion = '4.0.5'
 	mainClass='io.helidon.microprofile.cdi.Main'
 }
+
 group = 'com.oracle.coherence.guides'
 version = coherenceVersion
-sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()

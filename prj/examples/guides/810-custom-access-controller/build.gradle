@@ -8,9 +8,12 @@ plugins {
 	id 'java'
 }
 
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
+
 group = 'com.oracle.coherence.guides'
 version = '1.0.0-SNAPSHOT'
-sourceCompatibility = '11'
 
 configurations {
 	deployment
