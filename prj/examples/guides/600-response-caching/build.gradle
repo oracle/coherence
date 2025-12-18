@@ -14,8 +14,7 @@ ext {
 	mainClass='io.helidon.microprofile.cdi.Main'
 }
 group = 'com.oracle.coherence.guides'
-coherenceVersion = '14.1.2-0-0-SNAPSHOT'
-version = coherenceVersion
+version = '${coherenceVersion}'
 sourceCompatibility = '17'
 
 repositories {
