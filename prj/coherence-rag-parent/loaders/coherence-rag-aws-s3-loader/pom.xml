@@ -21,11 +21,14 @@
 
   <properties>
     <module.name>com.oracle.coherence.rag.loader.aws.s3</module.name>
-    
+
     <api.url>https://coherence-rag.s3.us-east-1.amazonaws.com</api.url>
     <api.proxy.port>8089</api.proxy.port>
-    
+
     <aws.sdk.version>2.31.15</aws.sdk.version>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencyManagement>
@@ -39,7 +42,7 @@
       </dependency>
     </dependencies>
   </dependencyManagement>
-  
+
   <dependencies>
 
     <dependency>

@@ -23,10 +23,13 @@
     <module.name>com.oracle.coherence.rag.loader.azure.blobstorage</module.name>
     <!-- API endpoint for Azure Blob Storage -->
     <api.url>https://storage.azure.com</api.url>
-    
+
     <!-- WireMock proxy port for testing -->
     <api.proxy.port>8089</api.proxy.port>
     <azure.sdk.version>12.30.0</azure.sdk.version>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>

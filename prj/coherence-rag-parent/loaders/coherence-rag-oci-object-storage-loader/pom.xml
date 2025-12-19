@@ -21,11 +21,14 @@
 
   <properties>
     <module.name>com.oracle.coherence.rag.loader.oci.objectstorage</module.name>
-    
+
     <api.url>https://objectstorage.us-chicago-1.oraclecloud.com</api.url>
     <api.proxy.port>8089</api.proxy.port>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
-  
+
   <dependencies>
 
     <dependency>

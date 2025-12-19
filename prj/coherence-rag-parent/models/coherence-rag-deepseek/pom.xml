@@ -24,6 +24,9 @@
 
     <api.url>https://api.deepseek.com</api.url>
     <api.proxy.port>8089</api.proxy.port>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>

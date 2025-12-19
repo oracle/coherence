@@ -21,11 +21,14 @@
 
   <properties>
     <module.name>com.oracle.coherence.rag.loader.google.cloudstorage</module.name>
-    
+
     <api.url>https://storage.googleapis.com</api.url>
     <api.proxy.port>8089</api.proxy.port>
-    
+
     <google.sdk.version>2.50.0</google.sdk.version>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
