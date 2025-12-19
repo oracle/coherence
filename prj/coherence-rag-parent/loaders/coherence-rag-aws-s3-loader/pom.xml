@@ -44,7 +44,6 @@
   </dependencyManagement>
 
   <dependencies>
-
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
@@ -102,23 +101,10 @@
       <artifactId>slf4j-simple</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
-
 
   <build>
     <plugins>
-
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -148,8 +134,6 @@
           </execution>
         </executions>
       </plugin>
-
     </plugins>
   </build>
-
 </project>

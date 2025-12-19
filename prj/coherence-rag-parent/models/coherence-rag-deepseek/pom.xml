@@ -30,7 +30,6 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>dev.langchain4j</groupId>
       <artifactId>langchain4j-open-ai</artifactId>
@@ -80,22 +79,10 @@
       <artifactId>helidon-http-media-jsonb</artifactId>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
     <plugins>
-
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
-        </configuration>
-      </plugin>
-
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -128,5 +115,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

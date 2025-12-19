@@ -26,10 +26,13 @@
 
     <java.version>21</java.version>
     <java.version.release>21</java.version.release>
+
+    <!--  this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <dependencies>
-    <!-- Coherence --> 
+    <!-- Coherence -->
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence</artifactId>
@@ -105,16 +108,6 @@
           <archive>
             <manifestFile>${project.build.outputDirectory}/META-INF/MANIFEST.MF</manifestFile>
           </archive>
-        </configuration>
-      </plugin>
-
-      <!-- we deploy this module to a Maven repository -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven.deploy.plugin.version}</version>
-        <configuration combine.self="override">
-          <skip>false</skip>
         </configuration>
       </plugin>
 
