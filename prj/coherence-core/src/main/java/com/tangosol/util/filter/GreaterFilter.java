@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -95,9 +96,9 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
-            // there is no relevant index
+            // there is no relevant index, or partitioned index is incomplete
             return -1;
             }
         
@@ -151,15 +152,53 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             }
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
-            // there is no relevant index; evaluate individual entries
+            // there is no relevant index, or partitioned index is incomplete;
+            // fall back to entry-by-entry evaluation
             return this;
             }
         else if (index.getIndexContents().isEmpty())
             {
             // there are no entries in the index, which means no entries match this filter
             setKeys.clear();
+            return null;
+            }
+
+        // For partial (for example, conditional) indexes we must retain only
+        // the matching keys from the index; remove-only optimizations leave
+        // non-indexed keys behind and produce supersets.
+        if (index.isPartial())
+            {
+            Map<E, Set<?>> mapContents = index.getIndexContents();
+            List<Set<?>>   listGT      = new ArrayList<>();
+
+            if (index.isOrdered())
+                {
+                NavigableMap<E, Set<?>> mapSorted = (NavigableMap<E, Set<?>>) mapContents;
+                mapSorted.tailMap(value, includeEquals())
+                        .values()
+                        .forEach(set -> listGT.add(ensureSafeSet(set)));
+                }
+            else
+                {
+                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
+                    {
+                    if (evaluateExtracted(entry.getKey()))
+                        {
+                        listGT.add(ensureSafeSet(entry.getValue()));
+                        }
+                    }
+                }
+
+            if (listGT.isEmpty())
+                {
+                setKeys.clear();
+                }
+            else
+                {
+                setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
+                }
             return null;
             }
 
@@ -176,25 +215,23 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
                 return null;
                 }
 
-            NavigableMap mapHead    = mapContents.headMap(value, !includeEquals());
-            NavigableMap mapTail    = mapContents.tailMap(value, includeEquals());
-            boolean      fHeadHeavy = mapHead.size() > mapContents.size() / 2;
-
-            if (fHeadHeavy || index.isPartial())
+            NavigableMap<E, Set<?>> mapHead      = mapContents.headMap(value, !includeEquals());
+            NavigableMap<E, Set<?>> mapTail      = mapContents.tailMap(value, includeEquals());
+            boolean                  fHeadHeavy  = mapHead.size() > mapContents.size() / 2;
+            if (fHeadHeavy)
                 {
                 List<Set<?>> listGT = new ArrayList<>(mapTail.size());
-                for (Object o : mapTail.values())
+                for (Set<?> set : mapTail.values())
                     {
-                    Set set = (Set) o;
                     listGT.add(ensureSafeSet(set));
                     }
                 setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
                 }
             else
                 {
-                for (Object o : mapHead.values())
+                for (Set<?> set : mapHead.values())
                     {
-                    setKeys.removeAll(ensureSafeSet((Set) o));
+                    setKeys.removeAll(ensureSafeSet(set));
                     }
                 }
 
@@ -204,26 +241,11 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             {
             Map<E, Set<?>> mapContents = index.getIndexContents();
 
-            if (index.isPartial())
+            for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
                 {
-                List<Set<?>> listGT = new ArrayList(mapContents.size());
-                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
+                if (!evaluateExtracted(entry.getKey()))
                     {
-                    if (evaluateExtracted(entry.getKey()))
-                        {
-                        listGT.add(ensureSafeSet(entry.getValue()));
-                        }
-                    }
-                setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
-                }
-            else
-                {
-                for (Map.Entry<E, Set<?>> entry : mapContents.entrySet())
-                    {
-                    if (!evaluateExtracted(entry.getKey()))
-                        {
-                        setKeys.removeAll(ensureSafeSet(entry.getValue()));
-                        }
+                    setKeys.removeAll(ensureSafeSet(entry.getValue()));
                     }
                 }
             }
@@ -282,4 +304,5 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
 
         return null;
         }
+
     }

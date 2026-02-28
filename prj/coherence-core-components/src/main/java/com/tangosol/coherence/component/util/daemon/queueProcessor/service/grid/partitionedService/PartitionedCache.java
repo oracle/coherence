@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10308,7 +10308,7 @@ public class PartitionedCache
         finally
             {
             // schedule an index update
-            if (cRecovered > 0 && isIndexed() && getDaemonPool().isStarted())
+            if (cRecovered > 0 && getDaemonPool().isStarted())
                 {
                 scheduleIndexUpdate(iPartition, com.tangosol.util.MapEvent.ENTRY_INSERTED);
                 }
@@ -11992,7 +11992,7 @@ public class PartitionedCache
             {
             partsCounter.computeIfPresent(nPartition, (k, v) ->
                 {
-                if (v.decrementAndGet() <= 1)
+                if (v.decrementAndGet() <= 0)
                     {
                     return null;
                     }

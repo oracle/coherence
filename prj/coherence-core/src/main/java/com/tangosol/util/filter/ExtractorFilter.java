@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -170,7 +170,7 @@ public abstract class ExtractorFilter<T, E>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        return index == null
+        return isInapplicableIndex(index)
                ? -1
                : setKeys.size();
         }
@@ -182,8 +182,10 @@ public abstract class ExtractorFilter<T, E>
     public Filter applyIndex(Map mapIndexes, Set setKeys)
         {
         MapIndex<?, ?, E> index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
+            // there is no relevant index, or partitioned index is incomplete;
+            // fall back to entry-by-entry evaluation
             return this;
             }
 
@@ -266,6 +268,34 @@ public abstract class ExtractorFilter<T, E>
     protected static Set ensureSafeSet(Set set)
         {
         return set == null ? Collections.emptySet() : set;
+        }
+
+    /**
+     * Return {@code true} if the index cannot be used for optimization.
+     *
+     * @param index  the index to test
+     *
+     * @return {@code true} if the index cannot be used for optimization
+     */
+    protected static boolean isInapplicableIndex(MapIndex index)
+        {
+        return index == null || isIncompletePartitionedIndex(index);
+        }
+
+    /**
+     * Return {@code true} if the specified index is a partitioned composite
+     * index in an incomplete state (e.g. at least one partition is missing the
+     * corresponding per-partition index).
+     *
+     * @param index  the index to test
+     *
+     * @return {@code true} if the index is an incomplete partitioned index
+     */
+    protected static boolean isIncompletePartitionedIndex(MapIndex index)
+        {
+        return index != null
+                && "com.tangosol.internal.util.PartitionedIndexMap$PartitionedIndex".equals(index.getClass().getName())
+                && index.isPartial();
         }
 
     // ----- constants ------------------------------------------------------
