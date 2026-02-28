@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.NavigableMap;
 
 import static com.tangosol.util.filter.ExtractorFilter.ensureSafeSet;
+import static com.tangosol.util.filter.ExtractorFilter.isInapplicableIndex;
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -260,9 +261,10 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
 
-        if (index == null)
+        if (isInapplicableIndex(index)) 
             {
-            // there is no relevant index; evaluate individual entries
+            // there is no relevant index, or partitioned index is incomplete;
+            // fall back to entry-by-entry evaluation
             return this;
             }
         else if (index.getIndexContents().isEmpty())
@@ -302,9 +304,9 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
     public int calculateEffectiveness(Map mapIndexes, Set setKeys)
         {
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
-            // there is no relevant index
+            // there is no relevant index, or partitioned index is incomplete
             return -1;
             }
 
@@ -441,6 +443,7 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
             }
 
         NavigableMap<E, Set<?>> mapRange        = mapContents.subMap(getLowerBound(), isLowerBoundInclusive(), getUpperBound(), isUpperBoundInclusive());
+
         Collection              colKeysToRetain = new HashSet<>();
 
         for (Map.Entry<E, Set<?>> entry : mapRange.entrySet())
@@ -498,4 +501,5 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         return null;
         }
+
     }

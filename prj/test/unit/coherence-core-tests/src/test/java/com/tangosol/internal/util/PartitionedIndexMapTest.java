@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -292,6 +292,168 @@ public class PartitionedIndexMapTest
         assertThat(pim.get(AGE ).get("kiki"), is(10));
         }
 
+    /**
+     * Issue 1: verify that a missing per-partition index does not silently
+     * drop entries from query results.
+     */
+    @Test
+    public void testMissingPartitionIndexDoesNotDropEntries()
+        {
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>());
+        mapIndex.put(2, new HashMap<>(s_mapIndex.get(2)));
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1, 2));
+
+        MapIndex<String, Person, ?> index = pim.get(NAME);
+        assertThat(index, is(notNullValue()));
+        assertThat(index.isPartial(), is(true));
+
+        Set<String> setCandidateKeys = new HashSet<>(Set.of(
+                "aleks", "ana",
+                "marija", "nole", "tal",
+                "kiki"));
+
+        EqualsFilter<Person, String> filter = new EqualsFilter<>(NAME, "Novak");
+        filter.applyIndex(pim, setCandidateKeys);
+
+        assertThat(setCandidateKeys, org.hamcrest.Matchers.hasItem("nole"));
+        }
+
+    /**
+     * Issue 2: get() must return a partitioned index whenever any partition
+     * has the requested MapIndex.
+     */
+    @Test
+    public void testGetReturnsIndexWhenAtLeastOnePartitionHasIt()
+        {
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>());
+        mapIndex.put(2, new HashMap<>(s_mapIndex.get(2)));
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1, 2));
+
+        int cNull = 0;
+        for (int i = 0; i < 100; i++)
+            {
+            if (pim.get(NAME) == null)
+                {
+                cNull++;
+                }
+            }
+
+        assertThat(cNull, is(0));
+        }
+
+    @Test
+    public void testGetReturnsNullWhenNoPartitionHasIndex()
+        {
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, s_mapIndex, partitions(0, 1, 2));
+
+        PartitionedIndexMap<String, Person> pimNoIndex =
+                new PartitionedIndexMap<>(s_bmc, new TreeMap<>(), partitions(0, 1, 2));
+
+        assertThat(pim.get(Person::getSalary), is(nullValue()));
+        assertThat(pimNoIndex.get(Person::getSalary), is(nullValue()));
+        }
+
+    /**
+     * Issue 3: scoped views must ignore partiality outside their partition set.
+     */
+    @Test
+    public void testIsPartialOnlyScopedPartitions()
+        {
+        SimpleMapIndex partialIndex = Mockito.spy(
+                new SimpleMapIndex(NAME, false, null, s_bmc));
+        Mockito.when(partialIndex.isPartial()).thenReturn(true);
+
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>(s_mapIndex.get(1)));
+        Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>> mapPartial = new HashMap<>();
+        mapPartial.put(NAME, partialIndex);
+        mapIndex.put(2, mapPartial);
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1));
+
+        MapIndex<String, Person, ?> index = pim.get(NAME);
+        assertThat(index.isPartial(), is(false));
+        }
+
+    /**
+     * Issue 3: isPartial() must report true when scoped partitions are missing
+     * a MapIndex entirely.
+     */
+    @Test
+    public void testIsPartialDetectsMissingPartitionIndex()
+        {
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>());
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1));
+
+        MapIndex<String, Person, ?> index = pim.get(NAME);
+        assertThat(index.isPartial(), is(true));
+        }
+
+    /**
+     * Combined scenario for Issues 1-3: filter queries must retain entries
+     * from partitions whose indexes are missing.
+     */
+    @Test
+    public void testFilterQueryWithMissingPartitionIndex()
+        {
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>());
+        mapIndex.put(2, new HashMap<>(s_mapIndex.get(2)));
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1, 2));
+
+        Set<String> setCandidateKeys = new HashSet<>(Set.of(
+                "aleks", "ana",
+                "marija", "nole", "tal",
+                "kiki"));
+
+        EqualsFilter<Person, Integer> filter = new EqualsFilter<>(AGE, 18);
+        filter.applyIndex(pim, setCandidateKeys);
+
+        assertThat(setCandidateKeys, org.hamcrest.Matchers.hasItem("ana"));
+        assertThat(setCandidateKeys, org.hamcrest.Matchers.hasItem("tal"));
+        }
+
+    /**
+     * Issue 1/2: forward lookups must return NO_VALUE for keys in partitions
+     * whose indexes are missing.
+     */
+    @Test
+    public void testForwardIndexGetForMissingPartition()
+        {
+        Map<Integer, Map<ValueExtractor<Person, ?>, MapIndex<String, Person, ?>>> mapIndex = new TreeMap<>();
+        mapIndex.put(0, new HashMap<>(s_mapIndex.get(0)));
+        mapIndex.put(1, new HashMap<>());
+        mapIndex.put(2, new HashMap<>(s_mapIndex.get(2)));
+
+        PartitionedIndexMap<String, Person> pim =
+                new PartitionedIndexMap<>(s_bmc, mapIndex, partitions(0, 1, 2));
+
+        MapIndex<String, Person, ?> index = pim.get(NAME);
+        assertThat(index.get("aleks"), is("Aleksandar"));
+        assertThat(index.get("marija"), is(MapIndex.NO_VALUE));
+        assertThat(index.get("nole"), is(MapIndex.NO_VALUE));
+        assertThat(index.get("tal"), is(MapIndex.NO_VALUE));
+        assertThat(index.get("kiki"), is("Kristina"));
+        }
+
     // ---- helpers ---------------------------------------------------------
     
     private Set<String> applyIndex(IndexAwareFilter<Object, Person> filter, PartitionedIndexMap<String, Person> pim)
@@ -352,34 +514,34 @@ public class PartitionedIndexMapTest
 
     private static IndexAwareFilter<Object, Person> children()
         {
-        return new EqualsFilter<>(Person::isAdult, false);
+        return new EqualsFilter<>(ADULT, false);
         }
 
     private static IndexAwareFilter<Object, Person> boys()
         {
-        return new EqualsFilter<>(Person::getGender, Gender.MALE);
+        return new EqualsFilter<>(GENDER, Gender.MALE);
         }
 
     private static IndexAwareFilter<Object, Person> girls()
         {
-        return new EqualsFilter<>(Person::getGender, Gender.FEMALE);
+        return new EqualsFilter<>(GENDER, Gender.FEMALE);
         }
 
     private static IndexAwareFilter<Object, Person> elementarySchool()
         {
-        return new LessFilter<>(Person::getAge, 14);
+        return new LessFilter<>(AGE, 14);
         }
 
     private static IndexAwareFilter<Object, Person> highSchool()
         {
-        return new BetweenFilter<>(Person::getAge, 14, 17);
+        return new BetweenFilter<>(AGE, 14, 17);
         }
 
     private static IndexAwareFilter<Object, Person> college()
         {
         return (IndexAwareFilter<Object, Person>)
-                new GreaterEqualsFilter<>(Person::getAge, 18)
-                .and(new LessEqualsFilter<>(Person::getAge, 22));
+                new GreaterEqualsFilter<>(AGE, 18)
+                .and(new LessEqualsFilter<>(AGE, 22));
         }
 
     // ---- constants -------------------------------------------------------
