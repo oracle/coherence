@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -99,8 +99,7 @@ public class GreaterFilterTest
 
         filter.applyIndex(mapIndexes, setKeys);
 
-        assertEquals("Two keys should remain in the set of keys.",
-                2, setKeys.size());
+        assertEquals("Unexpected number of keys after applyIndex.", 2, setKeys.size());
 
         assertTrue("key4 should have been retained.", setKeys.contains("key4"));
         assertTrue("key5 should have been retained.", setKeys.contains("key5"));

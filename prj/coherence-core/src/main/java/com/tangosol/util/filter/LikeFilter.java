@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -184,9 +184,9 @@ public class LikeFilter<T, E>
             }
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
-            // there is no relevant index
+            // there is no relevant index, or partitioned index is incomplete
             return -1;
             }
 
@@ -279,9 +279,10 @@ public class LikeFilter<T, E>
             }
 
         MapIndex index = (MapIndex) mapIndexes.get(getValueExtractor());
-        if (index == null)
+        if (isInapplicableIndex(index))
             {
-            // there is no relevant index
+            // there is no relevant index, or partitioned index is incomplete;
+            // fall back to entry-by-entry evaluation
             return this;
             }
         else if (index.getIndexContents().isEmpty())

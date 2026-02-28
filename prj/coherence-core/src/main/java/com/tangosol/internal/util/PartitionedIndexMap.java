@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -79,18 +79,30 @@ public class PartitionedIndexMap<K, V>
      */
     public <E> MapIndex<K, V, E> get(ValueExtractor<V, E> extractor)
         {
-        int nPart = f_partitions == null
-                    ? f_mapPartitioned.keySet().stream().findFirst().orElse(-1)
-                    : f_partitions.rnd();
+        MapIndex<K, V, E> mapIndexSample = null;
 
-        MapIndex<K, V, E> mapIndex = getMapIndex(nPart, extractor);
-        if (mapIndex != null)
+        if (f_partitions != null && f_partitions.cardinality() == 1)
             {
-            return f_partitions != null && f_partitions.cardinality() == 1
-                   ? mapIndex   // optimize for single partition
-                   : new PartitionedIndex(extractor, mapIndex.isOrdered(), mapIndex.getComparator());
+            int nPart = f_partitions.next(0);
+            return getMapIndex(nPart, extractor);
             }
-        return null;
+
+        for (int nPart : getPartitions())
+            {
+            MapIndex<K, V, E> mapIndex = getMapIndex(nPart, extractor);
+            if (mapIndex != null)
+                {
+                mapIndexSample = mapIndex;
+                break;
+                }
+            }
+
+        if (mapIndexSample == null)
+            {
+            return null;
+            }
+
+        return new PartitionedIndex(extractor, mapIndexSample.isOrdered(), mapIndexSample.getComparator());
         }
 
     /**
@@ -218,10 +230,10 @@ public class PartitionedIndexMap<K, V>
         @Override
         public boolean isPartial()
             {
-            for (Map<ValueExtractor<V, ?>, MapIndex<K, V, ?>> mapPart : f_mapPartitioned.values())
+            for (int nPart : getPartitions())
                 {
-                MapIndex<K, V, ?> mapIndex = mapPart.get(f_extractor);
-                if (mapIndex != null && mapIndex.isPartial())
+                MapIndex<K, V, ?> mapIndex = getMapIndex(nPart, f_extractor);
+                if (mapIndex == null || mapIndex.isPartial())
                     {
                     return true;
                     }

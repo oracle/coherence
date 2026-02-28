@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -133,6 +133,12 @@ public class LimitFilterTests
     public void testComparator()
         {
         NamedCache cache = getNamedCache(AbstractExtendTests.CACHE_DIST_EXTEND_DIRECT);
+
+        // ensure the cache contains a homogeneous value type for this extractor/index
+        // test; @Before prepares String values for other tests, which would cause
+        // ReflectionExtractor("getOrigAirport") to run against String instances
+        cache.clear();
+
         Random     rand  = new Random();
         for (int i=0; i < 10000; i++)
             {
