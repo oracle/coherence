@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -123,7 +123,14 @@ public abstract class ArrayFilter
     */
     public Filter applyIndex(Map mapIndexes, Set setKeys)
         {
-        return applyIndex(mapIndexes, setKeys, null, null);
+        try
+            {
+            return applyIndex(mapIndexes, setKeys, null, null);
+            }
+        finally
+            {
+            clearOptimizedFiltersRecursive();
+            }
         }
 
 
@@ -134,18 +141,25 @@ public abstract class ArrayFilter
     */
     public void explain(QueryContext ctx, QueryRecord.PartialResult.ExplainStep step, Set setKeys)
         {
-        optimizeFilterOrder(ctx.getBackingMapContext().getIndexMap(), setKeys);
-
-        Filter<?>[] aFilter = getFilters();
-        for (Filter filter : aFilter)
+        try
             {
-            QueryRecord.PartialResult.ExplainStep subStep = step.ensureStep(filter);
+            optimizeFilterOrder(ctx.getBackingMapContext().getIndexMap(), setKeys);
 
-            QueryRecorderFilter filterRecorder = filter instanceof QueryRecorderFilter
-                    ? (QueryRecorderFilter) filter
-                    : new WrapperQueryRecorderFilter(filter);
+            Filter<?>[] aFilter = getFilters();
+            for (Filter filter : aFilter)
+                {
+                QueryRecord.PartialResult.ExplainStep subStep = step.ensureStep(filter);
 
-            filterRecorder.explain(ctx, subStep, setKeys);
+                QueryRecorderFilter filterRecorder = filter instanceof QueryRecorderFilter
+                        ? (QueryRecorderFilter) filter
+                        : new WrapperQueryRecorderFilter(filter);
+
+                filterRecorder.explain(ctx, subStep, setKeys);
+                }
+            }
+        finally
+            {
+            clearOptimizedFiltersRecursive();
             }
         }
 
@@ -158,7 +172,15 @@ public abstract class ArrayFilter
 
         long ldtStart = System.currentTimeMillis();
 
-        Filter filterRemaining = applyIndex(ctx.getBackingMapContext().getIndexMap(), setKeys, ctx, step);
+        Filter filterRemaining;
+        try
+            {
+            filterRemaining = applyIndex(ctx.getBackingMapContext().getIndexMap(), setKeys, ctx, step);
+            }
+        finally
+            {
+            clearOptimizedFiltersRecursive();
+            }
 
         long ldtEnd = System.currentTimeMillis();
 
@@ -230,6 +252,11 @@ public abstract class ArrayFilter
     */
     public Filter<?>[] getFilters()
         {
+        if (m_fOptimized)
+            {
+            return m_aFilter;
+            }
+
         Filter<?>[] filters = f_aFilterOptimized.get();
         return filters == null ? m_aFilter : filters;
         }
@@ -242,6 +269,7 @@ public abstract class ArrayFilter
     public void honorOrder()
         {
         m_fOptimized = true;
+        clearOptimizedFilters();
         }
 
 
@@ -256,7 +284,7 @@ public abstract class ArrayFilter
     */
     protected void optimizeFilterOrder(Map mapIndexes, Set setKeys)
         {
-        if (m_fOptimized)
+        if (m_fOptimized || f_aFilterOptimized.get() != null)
             {
             return;
             }
@@ -288,7 +316,35 @@ public abstract class ArrayFilter
             }
 
         f_aFilterOptimized.set(aFilter);
-        m_fOptimized = true;
+        }
+
+    /**
+     * Clear optimized filter order for the current thread.
+     */
+    protected void clearOptimizedFilters()
+        {
+        f_aFilterOptimized.remove();
+        }
+
+    /**
+     * Clear optimized filter order recursively for this filter and any nested
+     * {@link ArrayFilter} instances.
+     */
+    protected void clearOptimizedFiltersRecursive()
+        {
+        clearOptimizedFilters();
+
+        Filter<?>[] aFilter = m_aFilter;
+        if (aFilter != null)
+            {
+            for (Filter<?> filter : aFilter)
+                {
+                if (filter instanceof ArrayFilter)
+                    {
+                    ((ArrayFilter) filter).clearOptimizedFiltersRecursive();
+                    }
+                }
+            }
         }
 
     /**
