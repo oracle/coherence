@@ -30,6 +30,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -298,6 +299,73 @@ public abstract class ExtractorFilter<T, E>
                 && index.isPartial();
         }
 
+    /**
+     * Return {@code true} if the supplied candidate and index-cardinality data
+     * indicates that it is cheaper to evaluate keys using a forward index.
+     *
+     * @param setKeys       the current candidate key set
+     * @param colIndexSets  the index sets contributing to the matching range
+     *
+     * @return {@code true} if forward-index evaluation should be used
+     */
+    protected static boolean shouldEvaluateUsingForwardIndex(Set setKeys, Collection<? extends Set> colIndexSets)
+        {
+        return shouldEvaluateUsingForwardIndex(setKeys, colIndexSets, FORWARD_INDEX_EVAL_CARDINALITY_FACTOR);
+        }
+
+    /**
+     * Return {@code true} if the supplied candidate and index-cardinality data
+     * indicates that it is cheaper to evaluate keys using a forward index.
+     *
+     * @param setKeys       the current candidate key set
+     * @param colIndexSets  the index sets contributing to the matching range
+     * @param nFactor       the cardinality factor used to determine threshold
+     *
+     * @return {@code true} if forward-index evaluation should be used
+     */
+    protected static boolean shouldEvaluateUsingForwardIndex(Set setKeys, Collection<? extends Set> colIndexSets,
+                                                             int nFactor)
+        {
+        if (setKeys == null || setKeys.isEmpty())
+            {
+            return false;
+            }
+
+        long cThreshold = (long) setKeys.size() * nFactor;
+        long cEntries   = 0;
+
+        for (Set set : colIndexSets)
+            {
+            cEntries += ensureSafeSet(set).size();
+            if (cEntries > cThreshold)
+                {
+                return true;
+                }
+            }
+
+        return false;
+        }
+
+    /**
+     * Return {@code true} if the supplied index appears to have forward-index
+     * support for the supplied keys.
+     *
+     * @param index    the index to test
+     * @param setKeys  the current candidate key set
+     *
+     * @return {@code true} if forward-index access is available
+     */
+    protected static boolean isForwardIndexSupported(MapIndex index, Set setKeys)
+        {
+        if (index == null || setKeys == null || setKeys.isEmpty())
+            {
+            return false;
+            }
+
+        Object oKey = setKeys.iterator().next();
+        return index.get(oKey) != MapIndex.NO_VALUE;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -306,6 +374,12 @@ public abstract class ExtractorFilter<T, E>
     * @see IndexAwareFilter#calculateEffectiveness(Map, Set)
     */
     public static int EVAL_COST = 1000;
+
+    /**
+     * Cardinality factor used to determine when to switch from inverse-index
+     * retain/remove to forward-index key evaluation.
+     */
+    public static int FORWARD_INDEX_EVAL_CARDINALITY_FACTOR = 1;
 
 
     // ----- data members ---------------------------------------------------

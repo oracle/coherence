@@ -19,12 +19,15 @@ import com.tangosol.util.ValueExtractor;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.NavigableMap;
 
 import static com.tangosol.util.filter.ExtractorFilter.ensureSafeSet;
+import static com.tangosol.util.filter.ExtractorFilter.isForwardIndexSupported;
 import static com.tangosol.util.filter.ExtractorFilter.isInapplicableIndex;
+import static com.tangosol.util.filter.ExtractorFilter.shouldEvaluateUsingForwardIndex;
 
 /**
 * Filter which compares the result of a method invocation with a value for
@@ -444,6 +447,14 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
         NavigableMap<E, Set<?>> mapRange        = mapContents.subMap(getLowerBound(), isLowerBoundInclusive(), getUpperBound(), isUpperBoundInclusive());
 
+        if (!index.isPartial()
+                && isForwardIndexSupported(index, setKeys)
+                && shouldEvaluateUsingForwardIndex(setKeys, mapRange.values()))
+            {
+            applyForwardIndex(index, setKeys);
+            return;
+            }
+
         Collection              colKeysToRetain = new HashSet<>();
 
         for (Map.Entry<E, Set<?>> entry : mapRange.entrySet())
@@ -458,6 +469,36 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
         else
             {
             setKeys.retainAll(colKeysToRetain);
+            }
+        }
+
+    /**
+     * Apply this filter using forward-index lookups for each candidate key.
+     *
+     * @param index    the index
+     * @param setKeys  the candidate key set
+     */
+    protected void applyForwardIndex(MapIndex index, Set setKeys)
+        {
+        for (Iterator iterator = setKeys.iterator(); iterator.hasNext(); )
+            {
+            Object  oKey      = iterator.next();
+            Object  oExtracted = index.get(oKey);
+            boolean fMatch;
+
+            try
+                {
+                fMatch = oExtracted != MapIndex.NO_VALUE && evaluateExtracted(oExtracted);
+                }
+            catch (ClassCastException ignored)
+                {
+                fMatch = false;
+                }
+
+            if (!fMatch)
+                {
+                iterator.remove();
+                }
             }
         }
 

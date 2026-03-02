@@ -14,6 +14,7 @@ import com.tangosol.util.ValueExtractor;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -218,26 +219,35 @@ public class LessFilter<T, E extends Comparable<? super E>>
             Set          setNULL    = mapContents.get(null);
             NavigableMap<E, Set<?>> mapHead      = mapContents.headMap(value, includeEquals());
             NavigableMap<E, Set<?>> mapTail      = mapContents.tailMap(value, !includeEquals());
-            boolean                  fHeadHeavy  = mapHead.size() > mapContents.size() / 2;
+            boolean                  fForward    = isForwardIndexSupported(index, setKeys)
+                    && shouldEvaluateUsingForwardIndex(setKeys, mapHead.values());
 
             setKeys.removeAll(ensureSafeSet(setNULL));
 
-            if (fHeadHeavy)
+            if (fForward)
                 {
-                for (Set<?> set : mapTail.values())
-                    {
-                    setKeys.removeAll(ensureSafeSet(set));
-                    }
+                applyForwardIndex(index, setKeys);
                 }
             else
                 {
-                List<Set<?>> listLT = new ArrayList<>(mapHead.size());
-                for (Set<?> set : mapHead.values())
+                boolean fHeadHeavy = mapHead.size() > mapContents.size() / 2;
+                if (fHeadHeavy)
                     {
-                    listLT.add(ensureSafeSet(set));
+                    for (Set<?> set : mapTail.values())
+                        {
+                        setKeys.removeAll(ensureSafeSet(set));
+                        }
                     }
+                else
+                    {
+                    List<Set<?>> listLT = new ArrayList<>(mapHead.size());
+                    for (Set<?> set : mapHead.values())
+                        {
+                        listLT.add(ensureSafeSet(set));
+                        }
 
-                setKeys.retainAll(new ChainedCollection<>(listLT.toArray(Set[]::new)));
+                    setKeys.retainAll(new ChainedCollection<>(listLT.toArray(Set[]::new)));
+                    }
                 }
             }
         else
@@ -306,6 +316,36 @@ public class LessFilter<T, E extends Comparable<? super E>>
             }
 
         return null;
+        }
+
+    /**
+     * Apply this filter using forward-index lookups for each candidate key.
+     *
+     * @param index    the index
+     * @param setKeys  the candidate key set
+     */
+    protected void applyForwardIndex(MapIndex index, Set setKeys)
+        {
+        for (Iterator iterator = setKeys.iterator(); iterator.hasNext(); )
+            {
+            Object  oKey      = iterator.next();
+            Object  oExtracted = index.get(oKey);
+            boolean fMatch;
+
+            try
+                {
+                fMatch = oExtracted != MapIndex.NO_VALUE && evaluateExtracted((E) oExtracted);
+                }
+            catch (ClassCastException ignored)
+                {
+                fMatch = false;
+                }
+
+            if (!fMatch)
+                {
+                iterator.remove();
+                }
+            }
         }
 
     }
