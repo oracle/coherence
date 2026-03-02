@@ -13,7 +13,7 @@ import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -217,21 +217,31 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
 
             NavigableMap<E, Set<?>> mapHead      = mapContents.headMap(value, !includeEquals());
             NavigableMap<E, Set<?>> mapTail      = mapContents.tailMap(value, includeEquals());
-            boolean                  fHeadHeavy  = mapHead.size() > mapContents.size() / 2;
-            if (fHeadHeavy)
+            boolean                  fForward    = isForwardIndexSupported(index, setKeys)
+                    && shouldEvaluateUsingForwardIndex(setKeys, mapTail.values());
+
+            if (fForward)
                 {
-                List<Set<?>> listGT = new ArrayList<>(mapTail.size());
-                for (Set<?> set : mapTail.values())
-                    {
-                    listGT.add(ensureSafeSet(set));
-                    }
-                setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
+                applyForwardIndex(index, setKeys);
                 }
             else
                 {
-                for (Set<?> set : mapHead.values())
+                boolean fHeadHeavy = mapHead.size() > mapContents.size() / 2;
+                if (fHeadHeavy)
                     {
-                    setKeys.removeAll(ensureSafeSet(set));
+                    List<Set<?>> listGT = new ArrayList<>(mapTail.size());
+                    for (Set<?> set : mapTail.values())
+                        {
+                        listGT.add(ensureSafeSet(set));
+                        }
+                    setKeys.retainAll(new ChainedCollection<>(listGT.toArray(Set[]::new)));
+                    }
+                else
+                    {
+                    for (Set<?> set : mapHead.values())
+                        {
+                        setKeys.removeAll(ensureSafeSet(set));
+                        }
                     }
                 }
 
@@ -303,6 +313,36 @@ public class GreaterFilter<T, E extends Comparable<? super E>>
             }
 
         return null;
+        }
+
+    /**
+     * Apply this filter using forward-index lookups for each candidate key.
+     *
+     * @param index    the index
+     * @param setKeys  the candidate key set
+     */
+    protected void applyForwardIndex(MapIndex index, Set setKeys)
+        {
+        for (Iterator iterator = setKeys.iterator(); iterator.hasNext(); )
+            {
+            Object  oKey      = iterator.next();
+            Object  oExtracted = index.get(oKey);
+            boolean fMatch;
+
+            try
+                {
+                fMatch = oExtracted != MapIndex.NO_VALUE && evaluateExtracted((E) oExtracted);
+                }
+            catch (ClassCastException ignored)
+                {
+                fMatch = false;
+                }
+
+            if (!fMatch)
+                {
+                iterator.remove();
+                }
+            }
         }
 
     }

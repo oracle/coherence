@@ -105,6 +105,79 @@ public class GreaterFilterTest
         assertTrue("key5 should have been retained.", setKeys.contains("key5"));
         }
 
+    @Test
+    public void shouldUseForwardEvaluationWhenBeneficial()
+        {
+        MapIndex index = mock(MapIndex.class);
+
+        IndexAwareFilter filter = new GreaterFilter(IdentityExtractor.INSTANCE, 3);
+
+        Map mapIndexes = new HashMap();
+        mapIndexes.put(IdentityExtractor.INSTANCE, index);
+
+        Set<String> setKeys = new HashSet<>(List.of("key2", "key4"));
+
+        Map mapInverse = new NullableSortedMap();
+        mapInverse.put(1, new HashSet(List.of("key1")));
+        mapInverse.put(2, new HashSet(List.of("key2")));
+        mapInverse.put(3, new HashSet(List.of("key3")));
+        mapInverse.put(4, new HashSet(List.of("key4", "key40")));
+        mapInverse.put(5, new HashSet(List.of("key5", "key50")));
+
+        Map<String, Integer> mapForward = new HashMap<>();
+        mapForward.put("key2", 2);
+        mapForward.put("key4", 4);
+
+        when(index.isOrdered()).thenReturn(true);
+        when(index.isPartial()).thenReturn(false);
+        when(index.getIndexContents()).thenReturn(mapInverse);
+        when(index.get(any())).thenAnswer(invocation ->
+            {
+            Object oKey = invocation.getArgument(0);
+            return mapForward.containsKey(oKey)
+                    ? mapForward.get(oKey)
+                    : MapIndex.NO_VALUE;
+            });
+
+        filter.applyIndex(mapIndexes, setKeys);
+
+        assertEquals("Unexpected number of keys after applyIndex.", 1, setKeys.size());
+        assertTrue("key4 should have been retained.", setKeys.contains("key4"));
+        verify(index, atLeast(3)).get(any());
+        }
+
+    @Test
+    public void shouldFallbackWhenForwardIndexNotAvailable()
+        {
+        MapIndex index = mock(MapIndex.class);
+
+        IndexAwareFilter filter = new GreaterFilter(IdentityExtractor.INSTANCE, 3);
+
+        Map mapIndexes = new HashMap();
+        mapIndexes.put(IdentityExtractor.INSTANCE, index);
+
+        Set<String> setKeys = new HashSet<>(List.of("key2", "key4", "key5"));
+
+        Map mapInverse = new NullableSortedMap();
+        mapInverse.put(1, new HashSet(List.of("key1")));
+        mapInverse.put(2, new HashSet(List.of("key2")));
+        mapInverse.put(3, new HashSet(List.of("key3")));
+        mapInverse.put(4, new HashSet(List.of("key4")));
+        mapInverse.put(5, new HashSet(List.of("key5")));
+
+        when(index.isOrdered()).thenReturn(true);
+        when(index.isPartial()).thenReturn(false);
+        when(index.getIndexContents()).thenReturn(mapInverse);
+        when(index.get(any())).thenReturn(MapIndex.NO_VALUE);
+
+        filter.applyIndex(mapIndexes, setKeys);
+
+        assertEquals("Unexpected number of keys after applyIndex.", 2, setKeys.size());
+        assertTrue("key4 should have been retained.", setKeys.contains("key4"));
+        assertTrue("key5 should have been retained.", setKeys.contains("key5"));
+        verify(index, times(1)).get(any());
+        }
+
     /**
     * Run the test with an ordered index.
     */

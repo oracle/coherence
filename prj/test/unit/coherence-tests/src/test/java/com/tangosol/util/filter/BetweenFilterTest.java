@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
+import com.tangosol.util.MapIndex;
 import com.tangosol.util.QueryContext;
 import com.tangosol.util.QueryRecord;
 import com.tangosol.util.SimpleMapEntry;
@@ -32,8 +33,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
@@ -42,7 +45,9 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.junit.Assert.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 
@@ -397,6 +402,71 @@ public class BetweenFilterTest
 
         assertThat(filter.applyIndex(mapIndexes, setKeys), is(nullValue()));
         assertThat(setKeys.size(), is(0));
+        }
+
+    @Test
+    public void shouldUseForwardEvaluationWhenBeneficial()
+        {
+        MapIndex index = mock(MapIndex.class);
+        Map      indexes = new HashMap();
+        indexes.put(f_extractor, index);
+
+        BetweenFilter filter = new BetweenFilter(f_extractor, 10, 20);
+        Set<String>   setKeys = new HashSet<>(Set.of("key10", "key15", "key40"));
+
+        NavigableMap<Integer, Set<String>> mapInverse = new TreeMap<>();
+        mapInverse.put(5, Set.of("key5"));
+        mapInverse.put(10, Set.of("key10", "key100"));
+        mapInverse.put(15, Set.of("key15", "key150"));
+        mapInverse.put(20, Set.of("key20", "key200"));
+        mapInverse.put(30, Set.of("key30"));
+
+        Map<String, Integer> mapForward = new HashMap<>();
+        mapForward.put("key10", 10);
+        mapForward.put("key15", 15);
+        mapForward.put("key40", 40);
+
+        when(index.isOrdered()).thenReturn(true);
+        when(index.isPartial()).thenReturn(false);
+        when(index.getIndexContents()).thenReturn(mapInverse);
+        when(index.get(any())).thenAnswer(invocation ->
+            {
+            Object oKey = invocation.getArgument(0);
+            return mapForward.containsKey(oKey)
+                    ? mapForward.get(oKey)
+                    : MapIndex.NO_VALUE;
+            });
+
+        assertThat(filter.applyIndex(indexes, setKeys), is(nullValue()));
+        assertThat(setKeys, is(Set.of("key10", "key15")));
+        verify(index, atLeast(4)).get(any());
+        }
+
+    @Test
+    public void shouldFallbackWhenForwardIndexNotAvailable()
+        {
+        MapIndex index = mock(MapIndex.class);
+        Map      indexes = new HashMap();
+        indexes.put(f_extractor, index);
+
+        BetweenFilter filter = new BetweenFilter(f_extractor, 10, 20);
+        Set<String>   setKeys = new HashSet<>(Set.of("key10", "key15", "key40"));
+
+        NavigableMap<Integer, Set<String>> mapInverse = new TreeMap<>();
+        mapInverse.put(5, Set.of("key5"));
+        mapInverse.put(10, Set.of("key10"));
+        mapInverse.put(15, Set.of("key15"));
+        mapInverse.put(20, Set.of("key20"));
+        mapInverse.put(30, Set.of("key30"));
+
+        when(index.isOrdered()).thenReturn(true);
+        when(index.isPartial()).thenReturn(false);
+        when(index.getIndexContents()).thenReturn(mapInverse);
+        when(index.get(any())).thenReturn(MapIndex.NO_VALUE);
+
+        assertThat(filter.applyIndex(indexes, setKeys), is(nullValue()));
+        assertThat(setKeys, is(Set.of("key10", "key15")));
+        verify(index, times(1)).get(any());
         }
 
     /**
