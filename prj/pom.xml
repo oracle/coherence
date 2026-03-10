@@ -261,7 +261,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
+        <version>${jackson.annotations.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -726,8 +726,10 @@
     <!-- Force use of a higher version of gson to get CVE fixes -->
     <gson.version>2.13.1</gson.version>
     <helidon.sitegen.version>2.0.0-RC1</helidon.sitegen.version>
-    <jackson.version>2.15.0</jackson.version>
-    <jackson.databind.version>2.15.0</jackson.databind.version>
+    <jackson.version>2.21.1</jackson.version>
+    <!-- sometimes Jackson annotations does not get 3rd digit release updates -->
+    <jackson.annotations.version>2.21</jackson.annotations.version>
+    <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.5</jacoco.version>
     <javaee.version>5</javaee.version>
     <javax.activation.version>1.1.1</javax.activation.version>
