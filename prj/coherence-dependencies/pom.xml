@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -249,7 +249,7 @@
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
     <mockito.version>5.18.0</mockito.version>
     <objenesis.version>2.2</objenesis.version>
-    <oracle.bedrock.version>6.0.4</oracle.bedrock.version>
+    <oracle.bedrock.version>7.0.9</oracle.bedrock.version>
     <testcontainers.version>1.21.3</testcontainers.version>
 
     <!-- commercial test dependency versions -->
