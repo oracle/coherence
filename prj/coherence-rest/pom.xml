@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -117,6 +117,11 @@
         <exclusion>
           <groupId>com.fasterxml.jackson.core</groupId>
           <artifactId>jackson-databind</artifactId>
+        </exclusion>
+        <!-- exclude javax based XML binding -->
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -392,7 +397,7 @@
                 <Private-Package>*.internal.*,com.tangosol.coherence.asm.*
                 </Private-Package>
                 <Import-Package>
-                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.*;version=${jackson.version},org.glassfish.grizzly.*;version=${grizzly.version};resolution:=optional,org.simpleframework.*;version=${simpleframework.version};resolution:=optional,*;resolution:=optional
+                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.annotation;version=${jackson.annotations.version},com.fasterxml.jackson.*;version=${jackson.version},org.glassfish.grizzly.*;version=${grizzly.version};resolution:=optional,org.simpleframework.*;version=${simpleframework.version};resolution:=optional,*;resolution:=optional
                 </Import-Package>
               </instructions>
             </configuration>

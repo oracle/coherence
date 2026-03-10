@@ -191,8 +191,10 @@
     <helidon.version>2.6.14</helidon.version>
     <helidon.sitegen.version>2.1.2</helidon.sitegen.version>
     <hsqldb.version>2.7.4</hsqldb.version>
-    <jackson.version>2.15.0</jackson.version>
-    <jackson.databind.version>2.15.0</jackson.databind.version>
+    <jackson.version>2.21.1</jackson.version>
+    <!-- sometimes Jackson annotations does not get 3rd digit release updates -->
+    <jackson.annotations.version>2.21</jackson.annotations.version>
+    <jackson.databind.version>${jackson.version}</jackson.databind.version>
     <jacoco.version>0.8.13</jacoco.version>
     <jaeger.version>1.8.1</jaeger.version>
     <jakarta.activation.version>1.2.2</jakarta.activation.version>
@@ -419,7 +421,7 @@
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
+        <version>${jackson.annotations.version}</version>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
