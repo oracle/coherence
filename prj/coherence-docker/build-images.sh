@@ -389,5 +389,3 @@ buildah rm "container-amd64" || true
 buildah rmi "coherence:amd64" || true
 buildah rm "container-arm64" || true
 buildah rmi "coherence:arm64" || true
-
-
