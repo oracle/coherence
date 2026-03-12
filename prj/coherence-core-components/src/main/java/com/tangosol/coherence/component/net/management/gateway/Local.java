@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -476,10 +476,14 @@ public class Local
             {
             // this path is reserved to ensure the management service is running
             // @see SimpleServiceMonitor#monitorServices
-            Remote gatewayRemote = (Remote) getRemoteGateway();
-            if (gatewayRemote != null)
+            Gateway rmtGtw = getRemoteGateway();
+            if (rmtGtw instanceof Remote)
                 {
-                gatewayRemote.ensureRunningConnector();
+                ((Remote) rmtGtw).ensureRunningConnector();
+                }
+            else if (rmtGtw instanceof Mock)
+                {
+                ((Mock) rmtGtw).ensureRunningConnector();
                 }
         
             return getLocalModels().containsKey(sName);
