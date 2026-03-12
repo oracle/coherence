@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -143,7 +143,7 @@ It will be loaded automatically when CDI integration is used.
           </resource-config>
         </http-acceptor>
       </acceptor-config>
-      <autostart>true</autostart>
+      <autostart system-property="coherence.health.http.enabled">true</autostart>
     </proxy-scheme>
 
     <!-- A proxy scheme to allow Coherence*Extend clients to connect to the system session -->
