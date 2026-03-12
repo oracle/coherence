@@ -157,4 +157,3 @@ else
       --name buildah \
       quay.io/buildah/stable:v1.37.1 "${SCRIPT_NAME}"
 fi
-

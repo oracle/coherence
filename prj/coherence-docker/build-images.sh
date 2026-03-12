@@ -301,6 +301,7 @@ setup_jdk() {
     JAVA_PKG="${5}"_linux-"${ARCH}"_bin.tar.gz
     JDK_NAME=$(basename ${5})
     IMAGE_JAVA_HOME=/usr/java/${JDK_NAME}
+
 #   Download the JDK
     curl --output /tmp/jdk.tgz "$JAVA_PKG"
     mkdir -p "/tmp${IMAGE_JAVA_HOME}"
@@ -426,5 +427,3 @@ buildah rm "container-amd64" || true
 buildah rmi "coherence:amd64" || true
 buildah rm "container-arm64" || true
 buildah rmi "coherence:arm64" || true
-
-
