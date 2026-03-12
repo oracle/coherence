@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
-  ~
-  ~ Licensed under the Universal Permissive License v 1.0 as shown at
-  ~ https://oss.oracle.com/licenses/upl.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -153,7 +153,7 @@
                 <Export-Package>!*.internal.*,com.tangosol.coherence.management.*</Export-Package>
                 <Private-Package>*.internal.*</Private-Package>
                 <Import-Package>
-                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.ce.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.*;version=${jackson.version}
+                  !com.tangosol.application.*,!com.tangosol.coherence.*,!com.tangosol.injection.*,!com.oracle.common.net.exabus.*,com.tangosol.*;version="[${project.version.short},${project.version.next.short})",com.tangosol.io.*,com.tangosol.net.*,com.tangosol.run.xml.*,com.tangosol.util.*,com.oracle.common.net.*,!com.oracle.common.*,!com.oracle.coherence.ce.common.*,org.glassfish.jersey.*;version=${jersey.version},com.fasterxml.jackson.annotation;version=${jackson.annotations.version},com.fasterxml.jackson.*;version=${jackson.version}
                 </Import-Package>
               </instructions>
             </configuration>
