@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -299,6 +299,7 @@ public class HealthCheckTests
                 {
                 Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
                 Eventually.assertDeferred(() -> isServiceOneRunning(app2), is(true));
+
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_HA), is(200));
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_HA), is(200));
                 }
@@ -327,6 +328,7 @@ public class HealthCheckTests
             {
             Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
             Eventually.assertDeferred(() -> isServiceTwoRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceRunning(app, "$SYS:HealthHttpProxy"), is(true));
 
             // wait for ready
             Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
@@ -582,6 +584,33 @@ public class HealthCheckTests
         }
 
     @Test
+    public void shouldNotStartHttpHealthProxy()
+    {
+        LocalPlatform platform     = LocalPlatform.get();
+        Integer       nHealthPort = platform.getAvailablePorts().next();
+
+        try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
+                ClassName.of(Coherence.class),
+                CacheConfig.of("test-cache-config.xml"),
+                IPv4Preferred.yes(),
+                LocalHost.only(),
+                Logging.atMax(),
+                m_testLogs.builder(),
+                DisplayName.of("health-proxy-0"),
+                SystemProperty.of(PROP_HEALTH_PORT, nHealthPort),
+                SystemProperty.of(PROP_HTTP_HEALTH_ENABLED, false)))
+            {
+            Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceRunning(app, "$SYS:HealthHttpProxy"), is(false));
+
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_STARTED), is(-1));
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_LIVE), is(-1));
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_HEALTHZ), is(-1));
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_READY), is(-1));
+            }
+        }
+
+    @Test
     public void shouldNotSuspendNonPersistentServices()
         {
         LocalPlatform platform     = LocalPlatform.get();
@@ -757,6 +786,7 @@ public class HealthCheckTests
     // ----- constants ------------------------------------------------------
 
     private static final String PROP_HEALTH_PORT = "coherence.health.http.port";
+    private static final String PROP_HTTP_HEALTH_ENABLED = "coherence.health.http.enabled";
 
     private static final String PATH_HA = "/ha";
     private static final String PATH_SUSPEND = "/suspend";
