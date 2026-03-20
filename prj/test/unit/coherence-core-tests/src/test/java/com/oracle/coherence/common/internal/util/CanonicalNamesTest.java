@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * @author cp   05/15/2025
  * @since  25.03.2
  */
-public class CanonicalNamesTests
+public class CanonicalNamesTest
     {
 
     /**
