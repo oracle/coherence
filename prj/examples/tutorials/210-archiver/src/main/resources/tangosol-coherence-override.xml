@@ -1,0 +1,57 @@
+<?xml version='1.0'?>
+<!--
+  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- tag::mapping[] -->
+<coherence  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+            xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+            xml-override="../common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+
+    <!--
+    The following can be used to specify the directories individually.
+    It is not needed for this example as we are using default-active
+    and specifying -Dcoherence.distributed.persistence.base.dir
+
+    <persistence-environments>
+      <persistence-environment id="sample-environment">
+        <persistence-mode>active</persistence-mode>
+        <active-directory   system-property="coherence.distributed.persistence.active.dir">persistence-data/store-active</active-directory>
+        <snapshot-directory system-property="coherence.distributed.persistence.snapshot.dir">persistence-data/store-snapshot</snapshot-directory>
+        <trash-directory    system-property="coherence.distributed.persistence.trash.dir">persistence-data/store-trash</trash-directory>
+      </persistence-environment>
+    </persistence-environments>
+    -->
+
+    <snapshot-archivers>
+      <custom-archiver id="simple-sftp-archiver"> <!--1-->
+        <class-name>com.oracle.coherence.tutorials.archiver.SFTPSnapshotArchiver</class-name>
+        <init-params>
+          <init-param>
+            <param-value>{cluster-name}</param-value>
+          </init-param>
+          <init-param>
+            <param-value>{service-name}</param-value>
+          </init-param>
+          <init-param>
+            <param-type>string</param-type>
+            <!-- if you have ssh equivalence setup you can omit password -->
+            <param-value system-property="sftp.uri">sftp://username:password@hostname/path/</param-value> <!--2-->
+          </init-param>
+        </init-params>
+      </custom-archiver>
+    </snapshot-archivers>
+  </cluster-config>
+
+  <management-config>
+    <managed-nodes system-property="coherence.management">all</managed-nodes>
+  </management-config>
+
+</coherence>
+        <!-- end::mapping[] -->

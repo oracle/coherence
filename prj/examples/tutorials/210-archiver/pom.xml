@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.oracle.coherence.tutorial</groupId>
+  <artifactId>archiver</artifactId>
+  <version>${revision}</version>
+  <name>Coherence Tutorials - Archiver</name>
+
+  <properties>
+    <revision>15.1.1-0-3-SNAPSHOT</revision>
+
+    <coherence.group.id>com.oracle.coherence.ce</coherence.group.id>
+    <coherence.version>${project.version}</coherence.version>
+
+    <java.version>17</java.version>
+
+    <jline.version>3.26.3</jline.version>
+
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
+    <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
+    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
+    <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
+    <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
+
+    <jaxb-api.version>2.3.1</jaxb-api.version>
+    <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
+    <junit.jupiter.version>5.7.0</junit.jupiter.version>
+    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
+    <org.apache.sshd.version>2.12.0</org.apache.sshd.version>
+
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+
+  <!-- tag::deps1[] -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>coherence-bom</artifactId>
+        <version>${coherence.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <!-- end::deps1[] -->
+
+  <dependencies>
+    <!-- tag::deps2[] -->
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence</artifactId>
+    </dependency>
+    <!-- end::deps2[] -->
+
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>${jline.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.xml.bind</groupId>
+      <artifactId>jaxb-api</artifactId>
+      <version>${jaxb-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.glassfish.jaxb</groupId>
+      <artifactId>jaxb-runtime</artifactId>
+      <version>${jaxb-runtime.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.sshd</groupId>
+      <artifactId>sshd-sftp</artifactId>
+      <version>${org.apache.sshd.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.oracle.bedrock.coherence</groupId>
+      <artifactId>coherence-21.06-testing-support</artifactId>
+      <version>${oracle.bedrock.version}</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- tag::cache-server[] -->
+    <profile>
+      <id>cache-server</id>
+      <activation>
+        <property>
+          <name>cache-server</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven.exec.plugin.version}</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument><classpath/>
+                <argument>-Dcoherence.log.level=3</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Xmx512m</argument>
+                <argument>-Xms512m</argument>
+                <argument>-Dcoherence.cacheconfig=archiver-cache-config.xml</argument>
+                <argument>-Dcoherence.distributed.persistence.mode=on-demand</argument>
+                <argument>-Dcoherence.distributed.persistence.base.dir=persistence-data</argument>
+                <argument>-Dtangosol.pof.config=pof-config.xml</argument>
+                <argument>-Dtangosol.pof.enabled=true</argument>
+                <argument>-Dsftp.uri=sftp://username:password@hostname/path</argument> <!--1-->
+                <argument>com.tangosol.net.Coherence</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- end::cache-server[] -->
+
+    <!-- tag::archiver[] -->
+    <profile>
+      <id>archiver</id>
+      <activation>
+        <property>
+          <name>archiver</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${maven.exec.plugin.version}</version>
+            <configuration>
+              <executable>java</executable>
+              <arguments>
+                <argument>-classpath</argument><classpath/>
+                <argument>-Dcoherence.log.level=3</argument>
+                <argument>-Dcoherence.wka=127.0.0.1</argument>
+                <argument>-Xmx128m</argument>
+                <argument>-Xms128m</argument>
+                <argument>-Dcoherence.cacheconfig=archiver-cache-config.xml</argument>
+                <argument>-Dcoherence.distributed.localstorage=false</argument>
+                <argument>-Dtangosol.pof.config=pof-config.xml</argument>
+                <argument>-Dtangosol.pof.enabled=true</argument>
+                <argument>-Dsftp.uri=sftp://username:password@hostname/path/</argument> <!--2-->
+                <argument>com.oracle.coherence.tutorials.archiver.ArchiverExample</argument>
+              </arguments>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <!-- end::archiver[] -->
+  </profiles>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>${maven.depdency.plugin.version}</version>
+        <executions>
+          <execution>
+            <id>copy-libs</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/libs</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>false</overWriteSnapshots>
+              <overWriteIfNewer>true</overWriteIfNewer>
+              <includeScope>runtime</includeScope>
+              <excludeScope>test</excludeScope>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
