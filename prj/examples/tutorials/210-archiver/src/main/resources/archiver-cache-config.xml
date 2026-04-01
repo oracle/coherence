@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+  ~
+  ~ Licensed under the Universal Permissive License v 1.0 as shown at
+  ~ https://oss.oracle.com/licenses/upl.
+  -->
+
+<!-- tag::mapping[] -->
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <defaults>
+    <serializer>pof</serializer>
+  </defaults>
+
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>contacts</cache-name>
+      <scheme-name>ExamplesPartitionedPofScheme</scheme-name>
+      <key-type>com.oracle.coherence.tutorials.archiver.pof.ContactId</key-type>
+      <value-type>com.oracle.coherence.tutorials.archiver.pof.Contact</value-type>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>ExamplesPartitionedPofScheme</scheme-name>
+      <service-name>PartitionedPofCache</service-name>
+      <partition-count>${coherence.partition.count 257}</partition-count>
+      <backing-map-scheme>
+        <transient>{transient false}</transient>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+          <expiry-delay>0</expiry-delay>
+        </local-scheme>
+      </backing-map-scheme>
+      <persistence>
+        <archiver>simple-sftp-archiver</archiver>
+      </persistence>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
+        <!-- end::mapping[] -->
