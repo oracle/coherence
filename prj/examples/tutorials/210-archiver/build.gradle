@@ -1,0 +1,69 @@
+/*
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+plugins {
+    id "application"
+	id 'java'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+}
+
+group = 'com.oracle.coherence.tutorials'
+version = '${coherenceVersion}'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
+    implementation "javax.xml.bind:jaxb-api:${jaxbApiVersion}"
+    runtimeOnly "org.glassfish.jaxb:jaxb-runtime:${jaxbRuntimeVersion}"
+    implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
+
+    implementation "${coherenceGroupId}:coherence"
+    testImplementation "org.jline:jline:${jlineVersion}"
+    testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+
+task runCacheServer(type: Exec) {
+    dependsOn build
+    group = "Execution"
+    description = "Run a Coherence Cache Server"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Xms512m", "-Xmx512m",
+            "-Dcoherence.cacheconfig=archiver-cache-config.xml",
+            "-Dcoherence.wka=127.0.0.1", "-Dcoherence.distributed.persistence.base.dir=persistence-data",
+            "-Dcoherence.distributed.persistence.mode=on-demand",
+            "-Dsftp.uri=sftp://username:password@hostname/path/",
+            "-Dtangosol.pof.config=pof-config.xml",
+            "-Dtangosol.pof.enabled=true",
+            "com.tangosol.net.Coherence"
+}
+
+task runArchiver(type: Exec) {
+    standardInput = System.in
+    dependsOn build
+    group = "Execution"
+    description = "Run Archiver Example"
+    commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
+            "-Dcoherence.cacheconfig=archiver-cache-config.xml", "-Xms128m", "-Xmx128m",
+            "-Dcoherence.wka=127.0.0.1",  "-Dcoherence.distributed.persistence.base.dir=persistence-data",
+            "-Dcoherence.distributed.localstorage=false",
+            "-Dsftp.uri=sftp://username:password@hostname/path/",
+            "-Dcoherence.management=all",
+            "-Dtangosol.pof.config=pof-config.xml",
+            "-Dtangosol.pof.enabled=true",
+            "com.oracle.coherence.tutorials.archiver.ArchiverExample"
+}

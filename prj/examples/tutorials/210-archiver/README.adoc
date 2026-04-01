@@ -1,0 +1,216 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Archiving Snapshots
+:description: Coherence Tutorials
+:keywords: coherence, java, documentation, tutorials, Persistence, Archiver
+
+== Persistence
+
+This tutorial walks through the archiving feature of Coherence Persistence.
+Specifically, it shows how to use sftp to store, retrieve and manage snapshots created using Coherence Persistence feature.
+
+Coherence Persistence is a set of tools and technologies that manage the persistence and
+recovery of Coherence distributed caches. Cached data is persisted so that it can be quickly recovered after
+a catastrophic failure or after a cluster restart due to planned maintenance.
+
+Persistence can operate in two modes:
+
+* On-Demand persistence mode – a cache service is manually persisted and recovered upon request using the
+persistence coordinator. The persistence coordinator is exposed as an MBean interface that provides
+operations for creating, archiving, and recovering snapshots of a cache service.
+
+* Active persistence mode – In this mode, cache contents are automatically persisted on all mutations and are
+automatically recovered on cluster/service startup. The persistence coordinator can still
+be used in active persistence mode to perform on-demand snapshots.
+
+For more information on Coherence Persistence, please see the
+{commercial-docs-base-url}/administer/persisting-caches.html[Coherence Documentation].
+
+=== Table of Contents
+
+* <<what-you-will-build,What You Will Build>>
+* <<what-you-need,What You Need>>
+* <<building,Building the Example Code>>
+* <<review-the-initial-project, Review the Project>>
+** <<maven, Maven Configuration>>
+** <<cache-config, Persistence Configuration>>
+* <<run-the-example, Build and Run the Example>>
+* <<active-persistence, Enable Active Persistence>>
+* <<archiver, Enable a Snapshot Archiver>>
+* <<summary, Summary>>
+* <<see-also, See Also>>
+
+[#what-you-will-build]
+=== What You Will Build
+
+
+You will review the requirements for running `active` persistence with sftp archiving and carry out the following:
+
+1. Start one or more cache servers with `on-demand` persistence
+2. Work with archiving snapshots in the sftp location configured
+
+
+// Do not change this part.
+[#what-you-need]
+=== What You Need
+:java_version: 17 or above
+:duration: 20-30
+include::../../internal/includes/what-you-need.adoc[tag=text]
+
+[#building]
+==== Building the Example Code
+
+include::../../internal/includes/simple-build.adoc[tag=text]
+
+[#review-the-initial-project]
+=== Review the Project
+
+[#maven]
+==== Maven Configuration
+
+The project is a Coherence project and imports the `coherence-bom` and `coherence-dependencies`
+POMs as shown below:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps1]
+----
+
+The `coherence` library is also included:
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=deps2]
+----
+
+We also define a number of profiles to run the `cache server` for each cluster and `archiver` for each cluster.
+
+* <<cache-server,cache-server - Runs a cache server>>
+* <<archiver, archiver - Runs the example that stores the persistence snapshots in a SFTP location configured in the custom>>
+
+[#cache-server]
+*cache-server* - Runs a `cache server`
+
+[source,xml,indent=0]
+----
+include::pom.xml[tag=cache-server]
+----
+<1> Set on-demand mode, which is the default
+<2> Set the base directory for all persistence directories
+
+[#archiver]
+*archiver* - Runs the `ArchiverExample` which creates the persistence snapshots and stores them in the sftp location configured.
+
+[#cache-config]
+----
+include::pom.xml[tag=archiver]
+----
+==== Persistence Configuration
+
+By default, any partitioned service, including Federated services, will default to `on-demand` mode. This mode allows you
+to create and manage snapshots to default directories without any setup. A `coherence` directory off the users home
+directory is used to store all persistence-related data.
+
+If you wish to enable `active` persistence mode you can use a system property `-Dcoherence.distributed.persistence.mode=active`
+and this will use the default directories as described above.
+
+In this example we are also defining the base persistence directory using a system property `-Dcoherence.distributed.persistence.base.dir=persistence-data`.
+All other persistence directories will be created below this directory.
+
+Please see {commercial-docs-base-url}/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8[here] for more
+details on configuring your persistence locations.
+
+In this tutorial, Persistence is configured in two files:
+
+* An operational override file is used to configure non-default persistence environments and archive locations
+* A cache configuration with file the `<persistence>` element is used to associate services with persistence environments, if you are not using the defaults. (This is initially commented out.)
+
+**Cache Configuration File**
+
+[source,xml,indent=0]
+----
+include::src/main/resources/archiver-cache-config.xml[tag=mapping]
+Defines persistence with sftp archiver configuration
+
+----
+**Operational Override File**
+
+[source,xml,indent=0]
+----
+include::src/main/resources/tangosol-coherence-override.xml[tag=mapping]
+----
+<1> Defines a custom snapshot archiver (simple-sftp-archiver) to archive to a sftp location provided.
+<2> Defines the sftp URI parameter which can also be set as java system property (sftp.uri)
+
+**Main entry point**
+
+[source,java,indent=0]
+----
+include::src/main/java/com/oracle/coherence/tutorials/archiver/ArchiverExample.java[tag=main]
+----
+1. Join the cluster
+2. List the existing snapshots in the sftp location, if any.
+3. Clear all existing snapshots
+4. Populate data in the cache
+5. Create snapshot
+6. Archive the snapshots to the configured sftp location
+7. Remove local snapshots
+8. Clear the cache
+9. Recover the snapshot from configured sftp location
+
+[#run-the-example]
+=== Run the Example
+
+Once you have built the project as described earlier in this document, you can run it via Maven or Gradle.
+
+==== Maven
+1. Update pom.xml to set the correct sftp.uri property
+[source,xml,indent=0]
+----
+include::pom.xml[tag=cache-server]
+include::pom.xml[tag=archiver]
+----
+<1> Edit this line to set the property for sftp.uri
+<2> Edit this line to set the property for sftp.uri
++
+2.Start cache server in separate terminal.
++
+[source,bash]
+----
+./mvnw exec:exec -P cache-server
+----
+3.Start SFTP archiver example.
++
+[source,bash]
+----
+./mvnw exec:exec -P archiver
+----
+
+==== Gradle
+
+1. Update build.gradle file to change the sftp.uri property to the URI that refers to the correct sftp location
+
+2. Start one or more cache servers in separate terminals.
++
+[source,bash]
+----
+./gradlew runCacheServer
+----
+3. Run the sftp archiver example
+[source,bash]
+----
+./gradlew runArchiver
+----
+[#summary]
+=== Summary
+
+In this tutorial, you have learnt about Coherence Persistence with custom archiver that uses SFTP location to store the persistence snapshots.
+
+[#see-also]
+=== See Also
+
+* {commercial-docs-base-url}/administer/persisting-caches.html#GUID-AA98D601-5CE9-4E33-BB16-487B417BA5A8[Persistence Configuration]
