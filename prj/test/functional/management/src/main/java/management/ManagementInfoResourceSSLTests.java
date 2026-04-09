@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@ import com.tangosol.internal.net.ssl.LegacyXmlSSLSocketProviderDependencies;
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
 
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.junit.BeforeClass;
 
 import jakarta.ws.rs.client.Client;

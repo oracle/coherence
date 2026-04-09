@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -104,10 +104,10 @@ import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriBuilder;
 
 import org.glassfish.hk2.api.ServiceLocator;
+import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.TypeLiteral;
 
 import org.glassfish.jersey.internal.PropertiesDelegate;
-import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.internal.inject.ReferencingFactory;
 import org.glassfish.jersey.internal.util.collection.Ref;
 
@@ -125,6 +125,8 @@ import org.glassfish.jersey.server.spi.ContainerResponseWriter;
 
 import org.glassfish.jersey.spi.ExecutorServiceProvider;
 import org.glassfish.jersey.spi.ScheduledExecutorServiceProvider;
+
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 
 /**
@@ -531,7 +533,12 @@ public class NettyHttpServer
          */
         public NettyHttpContainer(Application application, final ServiceLocator parentLocator)
             {
-            this.m_hApplication = new ApplicationHandler(application, new NettyBinder(), parentLocator);
+            ResourceConfig config = ResourceConfig.forApplication(application)
+                    .register(new NettyBinder());
+
+            // Pass the parent HK2 ServiceLocator created by AbstractHttpServer#createContainer
+            // so Jersey/HK2 can resolve server-level bindings such as Session and Service.
+            this.m_hApplication = new ApplicationHandler(config, null, parentLocator);
             this.m_hApplication.onStartup(this);
             }
 
@@ -1782,7 +1789,7 @@ public class NettyHttpServer
                     .proxyForSameScope(false)
                     .in(RequestScoped.class);
 
-            bindFactory(ReferencingFactory.<ChannelHandlerContext>referenceFactory())
+            bindFactory(NettyChannelHandlerContextRefFactory.class)
                     .to(ChannelHandlerContextTYPE)
                     .in(RequestScoped.class);
 
@@ -1792,9 +1799,56 @@ public class NettyHttpServer
                     .proxyForSameScope(false)
                     .in(RequestScoped.class);
 
-            bindFactory(ReferencingFactory.<Channel>referenceFactory())
+            bindFactory(NettyChannelRefFactory.class)
                     .to(ChannelTYPE)
                     .in(RequestScoped.class);
+            }
+        }
+
+    /**
+     * Factory producing request-scoped {@link Ref} instances for {@link ChannelHandlerContext}.
+     *
+     * @since 15.1.2.0
+     */
+    public static class NettyChannelHandlerContextRefFactory
+            implements Factory<Ref<ChannelHandlerContext>>
+        {
+        @Override
+        public Ref<ChannelHandlerContext> provide()
+            {
+            return ReferencingFactory.<ChannelHandlerContext>referenceFactory().get();
+            }
+
+        @Override
+        public void dispose(Ref<ChannelHandlerContext> instance)
+            {
+            }
+        }
+
+    /**
+     * Factory producing request-scoped {@link Ref} instances for {@link Channel}.
+     *
+     * @since 15.1.2.0
+     */
+    public static class NettyChannelRefFactory
+            extends ReferencingFactory<ChannelHandlerContext>
+            implements Factory<Ref<Channel>>
+        {
+        @Inject
+        public NettyChannelRefFactory(Provider<Ref<ChannelHandlerContext>> referenceFactory)
+            {
+            super(referenceFactory);
+            }
+
+        @Override
+        public Ref<Channel> provide()
+            {
+            return ReferencingFactory.<Channel>referenceFactory().get();
+            }
+
+        @Override
+        public void dispose(Ref<Channel> instance)
+            {
             }
         }
 
@@ -1805,28 +1859,51 @@ public class NettyHttpServer
      */
     public static class NettyChannelHandlerContextReferencingFactory
             extends ReferencingFactory<ChannelHandlerContext>
+            implements Factory<ChannelHandlerContext>
         {
-
         @Inject
         public NettyChannelHandlerContextReferencingFactory(Provider<Ref<ChannelHandlerContext>> referenceFactory)
             {
             super(referenceFactory);
+            }
+
+        @Override
+        public ChannelHandlerContext provide()
+            {
+            return get();
+            }
+
+        @Override
+        public void dispose(ChannelHandlerContext channelHandlerContext)
+            {
+
             }
         }
 
     // ----- inner class: NettyChannelReferencingFactory --------------------
 
     /**
-     * Provides dependency injection for {@link Channel}.
+     * Provides dependency injection for {@link ChannelHandlerContext}.
      */
     public static class NettyChannelReferencingFactory
             extends ReferencingFactory<Channel>
+            implements Factory<Channel>
         {
-
         @Inject
         public NettyChannelReferencingFactory(Provider<Ref<Channel>> referenceFactory)
             {
             super(referenceFactory);
+            }
+
+        @Override
+        public Channel provide()
+            {
+            return get();
+            }
+
+        @Override
+        public void dispose(Channel instance)
+            {
             }
         }
 

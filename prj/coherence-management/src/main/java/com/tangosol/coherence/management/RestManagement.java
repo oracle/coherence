@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,9 +29,9 @@ import java.util.function.Supplier;
 
 import javax.management.MBeanServer;
 
-import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
+
 import org.glassfish.jersey.message.GZipEncoder;
-import org.glassfish.jersey.process.internal.RequestScoped;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.filter.EncodingFilter;
 
@@ -269,15 +269,7 @@ public final class RestManagement
         @Override
         protected void configure()
             {
-            bindFactory(new Supplier<MBeanServerProxy>()
-                    {
-                    @RequestScoped
-                    public MBeanServerProxy get()
-                        {
-                        return f_factory.get();
-                        }
-                    })
-                .to(MBeanServerProxy.class);
+            bind(f_factory.get()).to(MBeanServerProxy.class);
             }
 
         private final MBeanServerProxyFactory f_factory;

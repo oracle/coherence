@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -287,7 +287,19 @@ public class DefaultHttpServer
                             subject == null ? exchange.getPrincipal() : subject.getPrincipals().iterator().next(), isSecure()),
                         new MapPropertiesDelegate());
                 request.setEntityStream(exchange.getRequestBody());
-                request.getHeaders().putAll(exchange.getRequestHeaders());
+
+                // Copy request headers into mutable lists.
+                //
+                // HttpExchange#getRequestHeaders() can expose header value lists backed by
+                // unmodifiable collections. Jersey's URI content-negotiation filter mutates
+                // request headers for extension-based requests like "/entries.json" by calling
+                // MultivaluedMap.putSingle("Accept", ...), which clears any existing values.
+                // Re-using the original header lists therefore causes an
+                // UnsupportedOperationException during request filtering.
+                for (Map.Entry<String, List<String>> entry : exchange.getRequestHeaders().entrySet())
+                    {
+                    request.getHeaders().put(entry.getKey(), new ArrayList<>(entry.getValue()));
+                    }
                 responseWriter = new Writer(exchange);
                 request.setWriter(responseWriter);
                 handleRequest(m_hApplication, request, subject);

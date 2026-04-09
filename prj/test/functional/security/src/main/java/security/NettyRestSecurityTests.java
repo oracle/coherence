@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
 import java.util.Properties;
-import org.glassfish.jersey.apache.connector.ApacheConnectorProvider;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
 import org.glassfish.jersey.jackson.JacksonFeature;
@@ -20,7 +19,6 @@ import org.junit.AfterClass;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 
-import javax.net.ssl.HostnameVerifier;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 
@@ -87,10 +85,8 @@ public class NettyRestSecurityTests
      */
     @Override protected Client createHttpClient(String sUsername)
         {
-        ClientConfig clientConfig = new ClientConfig();
-        clientConfig.connectorProvider(new ApacheConnectorProvider());
         return ClientBuilder.newBuilder()
-                .withConfig(clientConfig)
+                .withConfig(new ClientConfig())
                 .register(JacksonMapperProvider.class)
                 .register(JacksonFeature.class).build()
                 .property(ClientProperties.READ_TIMEOUT, 5000);
@@ -105,10 +101,8 @@ public class NettyRestSecurityTests
      */
     @Override protected Client createHttpsClient(SSLSocketProvider provider)
         {
-        ClientConfig clientConfig = new ClientConfig();
-        clientConfig.connectorProvider(new ApacheConnectorProvider());
         return ClientBuilder.newBuilder()
-                .withConfig(clientConfig)
+                .withConfig(new ClientConfig())
                 .register(JacksonMapperProvider.class)
                 .register(JacksonFeature.class)
                 .hostnameVerifier((s, sslSession) -> true)

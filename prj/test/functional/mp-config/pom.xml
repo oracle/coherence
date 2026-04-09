@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -32,13 +32,34 @@
       --add-reads com.oracle.coherence.cdi=ALL-UNNAMED
       --add-reads com.oracle.coherence.cdi.server=ALL-UNNAMED
       --add-reads com.oracle.coherence.mp.config=ALL-UNNAMED
+      --add-reads io.helidon.microprofile.server=ALL-UNNAMED
       --add-opens java.base/java.lang=weld.core.impl
       --add-opens java.base/java.lang=ALL-UNNAMED
+      --add-opens io.helidon.microprofile.server/io.helidon.microprofile.server=weld.core.impl
+      --add-opens io.helidon.microprofile.server/io.helidon.microprofile.server=io.helidon.microprofile.cdi
       --add-reads com.oracle.coherence.cdi=weld.api
       --add-reads com.oracle.coherence.cdi=weld.core.impl
       --add-reads com.oracle.coherence.cdi.server=weld.core.impl
     </failsafe.modules.argline>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!--
+      Helidon's server CDI extension still expects Jersey 3 internals such as
+      org.glassfish.jersey.internal.inject.InstanceBinding. Override the
+      parent Jersey 4 BOM for this test module so the Helidon server stack
+      resolves a compatible Jersey line.
+      -->
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <version>${jersey3.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -81,6 +102,13 @@
     <dependency>
       <groupId>jakarta.inject</groupId>
       <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
+      <version>${jakarta.servlet.ee11.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -42,6 +42,24 @@
       --add-reads com.oracle.coherence.cdi.server=weld.core.impl
     </failsafe.modules.argline>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!--
+      Helidon's server CDI extension still expects Jersey 3 internals such as
+      org.glassfish.jersey.internal.inject.InstanceBinding. Override the
+      parent Jersey 4 BOM for this test module so the Helidon server stack
+      resolves a compatible Jersey line.
+      -->
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <version>${jersey3.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>

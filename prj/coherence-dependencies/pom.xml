@@ -209,6 +209,7 @@
 
     <helidon.sitegen.version>2.3.7</helidon.sitegen.version>
     <hsqldb.version>2.7.4</hsqldb.version>
+    <httpclient5.version>5.6</httpclient5.version>
     <groovy.version>4.0.27</groovy.version>
     <jackson.version>2.19.2</jackson.version>
     <jackson.databind.version>2.19.2</jackson.databind.version>
@@ -229,7 +230,8 @@
     <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
     <jakarta.resource.version>2.1.0</jakarta.resource.version>
     <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
-    <jakarta.servlet.jsp.version>2.3.6</jakarta.servlet.jsp.version>
+    <jakarta.servlet.ee11.version>6.1.0</jakarta.servlet.ee11.version>
+    <jakarta.servlet.jsp.version>4.0.0</jakarta.servlet.jsp.version>
     <!-- Helidon version.lib.jakarta.jaxrs-api -->
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     <!-- Helidon version.lib.jakarta.xml.bind-api -->
@@ -242,7 +244,8 @@
     <jaxb-impl.version>4.0.5</jaxb-impl.version>
     <!-- NOTE: this version should ideally be in sync' with that used by Helidon
          This is not always possible if we need to bump versions for CVE's -->
-    <jersey.version>3.1.10</jersey.version>
+    <jersey3.version>3.1.10</jersey3.version>
+    <jersey.version>4.0.2</jersey.version>
     <jettison.version>1.5.4</jettison.version>
     <jhdf.version>0.7.0-alpha</jhdf.version>
     <jna.version>5.14.0</jna.version>
@@ -574,7 +577,7 @@
       <dependency>
         <groupId>jakarta.servlet</groupId>
         <artifactId>jakarta.servlet-api</artifactId>
-        <version>${jakarta.servlet.version}</version>
+        <version>${jakarta.servlet.ee11.version}</version>
       </dependency>
 
       <!-- JSP -->
@@ -700,6 +703,13 @@
         <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-to-slf4j</artifactId>
         <version>${log4j2.version}</version>
+      </dependency>
+
+      <!-- apache http-client -->
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${httpclient5.version}</version>
       </dependency>
 
       <!-- Lucene -->

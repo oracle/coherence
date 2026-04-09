@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2025, Oracle and/or its affiliates.
+  Copyright (c) 2025, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,26 @@
   <properties>
     <module.name>com.oracle.coherence.rag</module.name>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.helidon</groupId>
+        <artifactId>helidon-bom</artifactId>
+        <type>pom</type>
+        <version>${helidon.version.4}</version>
+        <scope>import</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.glassfish.jersey</groupId>
+        <artifactId>jersey-bom</artifactId>
+        <type>pom</type>
+        <version>${jersey3.version}</version>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -95,7 +115,6 @@
     <dependency>
       <groupId>org.glassfish.jersey.ext.microprofile</groupId>
       <artifactId>jersey-mp-config</artifactId>
-      <version>${jersey.version}</version>
     </dependency>
 
     <dependency>

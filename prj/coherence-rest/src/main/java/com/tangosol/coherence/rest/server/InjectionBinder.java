@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,11 +23,10 @@ import com.tangosol.net.options.WithClassLoader;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import java.util.function.Supplier;
-
+import org.glassfish.hk2.api.Factory;
 import org.glassfish.hk2.api.ServiceLocator;
 
-import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.hk2.utilities.binding.AbstractBinder;
 
 /**
  * A binder for REST API dependencies.
@@ -88,26 +87,35 @@ public class InjectionBinder
    /**
     * HK2 Factory that is used to create RestConfig instance.
     */
-   private static class RestConfigFactory implements Supplier<RestConfig>
+   private static class RestConfigFactory implements Factory<RestConfig>
        {
        @Override
-       public RestConfig get()
+       public RestConfig provide()
            {
            return RestConfig.create();
            }
 
+       @Override
+       public void dispose(RestConfig config)
+           {
+           }
        }
 
    /**
     * HK2 Factory that is used to create MarshallerRegistry instance.
     */
-   private static class MarshallerRegistryFactory implements Supplier<MarshallerRegistry>
+   private static class MarshallerRegistryFactory implements Factory<MarshallerRegistry>
        {
        @Override
-       public MarshallerRegistry get()
+       public MarshallerRegistry provide()
            {
            return m_config != null ? m_config.getMarshallerRegistry()
                 : new MarshallerRegistry();
+           }
+
+       @Override
+       public void dispose(MarshallerRegistry registry)
+           {
            }
 
        @Inject
@@ -117,13 +125,18 @@ public class InjectionBinder
    /**
     * HK2 Factory that is used to create ProcessorRegistry instance.
     */
-   private static class ProcessorRegistryFactory implements Supplier<ProcessorRegistry>
+   private static class ProcessorRegistryFactory implements Factory<ProcessorRegistry>
        {
        @Override
-       public ProcessorRegistry get()
+       public ProcessorRegistry provide()
            {
            return m_config != null ? m_config.getProcessorRegistry()
                : new ProcessorRegistry();
+           }
+
+       @Override
+       public void dispose(ProcessorRegistry registry)
+           {
            }
 
        @Inject
@@ -133,13 +146,18 @@ public class InjectionBinder
    /**
     * HK2 Factory that is used to create AggregatorRegistry instance.
     */
-   private static class AggregatorRegistryFactory implements Supplier<AggregatorRegistry>
+   private static class AggregatorRegistryFactory implements Factory<AggregatorRegistry>
        {
        @Override
-       public AggregatorRegistry get()
+       public AggregatorRegistry provide()
            {
            return m_config != null ? m_config.getAggregatorRegistry()
                : new AggregatorRegistry();
+           }
+
+       @Override
+       public void dispose(AggregatorRegistry registry)
+           {
            }
 
        @Inject
@@ -149,13 +167,18 @@ public class InjectionBinder
    /**
     * HK2 Factory that is used to create QueryEngineRegistry instance.
     */
-   private static class QueryEngineRegistryFactory implements Supplier<QueryEngineRegistry>
+   private static class QueryEngineRegistryFactory implements Factory<QueryEngineRegistry>
        {
        @Override
-       public QueryEngineRegistry get()
+       public QueryEngineRegistry provide()
            {
            return m_config != null ? m_config.getQueryEngineRegistry()
                : new QueryEngineRegistry();
+           }
+
+       @Override
+       public void dispose(QueryEngineRegistry registry)
+           {
            }
 
        @Inject

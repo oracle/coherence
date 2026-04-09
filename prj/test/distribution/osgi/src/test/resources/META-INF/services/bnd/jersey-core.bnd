@@ -1,6 +1,6 @@
-Bundle-Version: 1.16
+Bundle-Version: ${jersey.version}
 Bundle-Name: Jersey Core
 Bundle-SymbolicName: Jersey Core
 Bundle-Vendor: Oracle
-Export-Package: javax.ws.*,org.glassfish.jersey.*
+Export-Package: org.glassfish.jersey.logging;version=${jersey.version},org.glassfish.jersey.logging.*;version=${jersey.version},org.glassfish.jersey.*;version=${jersey.version}
 Import-Package: *;resolution:=optional

@@ -138,13 +138,9 @@
       <artifactId>classgraph</artifactId>
     </dependency>
 
-    <!-- IMPORTANT: intentional dependency on old versions of Servlet and JSP specs,
-                    as that's what Coherence*Web currently supports -->
-    <!-- TODO: upgrade to Java EE 8 spec versions -->
     <dependency>
-      <groupId>javax.servlet.jsp</groupId>
-      <artifactId>jsp-api</artifactId>
-      <version>2.1</version>
+      <groupId>jakarta.servlet.jsp</groupId>
+      <artifactId>jakarta.servlet.jsp-api</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -237,7 +233,7 @@
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
-      <version>${jakarta.servlet.version}</version>
+      <version>${jakarta.servlet.ee11.version}</version>
     </dependency>
 
     <!-- JCA -->

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,13 @@
     <!-- Fails to build a native image -->
     <skip.native.build>true</skip.native.build>
     <skip.native.tests>true</skip.native.tests>
+
+    <!--
+    Skip the inherited Moditect add-module-info execution for this test module.
+    The plugin's skip parameter is bound to the moditect.skip property, which is
+    the reliable way to suppress the inherited execution.
+    -->
+    <moditect.skip>true</moditect.skip>
 
     <failsafe.modules.argline>
       ${default.failsafe.modules.argline}
