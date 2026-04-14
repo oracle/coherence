@@ -142,6 +142,9 @@
     <!--                      Path Configuration                            -->
     <!-- ================================================================== -->
 
+    <!-- the path to the base directory for the entire product -->
+    <root.path>${maven.multiModuleProjectDirectory}/..</root.path>
+
     <!-- the path to the "prj" directory -->
     <projects.path>${root.path}/prj</projects.path>
 
@@ -834,7 +837,7 @@
               <artifactId>maven-surefire-plugin</artifactId>
               <version>${maven.surefire.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.lambdas>static</bedrock.profile.lambdas>
                   <bedrock.profile.lambdas.classname>com.oracle.bedrock.runtime.coherence.profiles.LambdaModeProfile</bedrock.profile.lambdas.classname>
                   <coherence.lambdas>static</coherence.lambdas>
@@ -846,7 +849,7 @@
               <artifactId>maven-failsafe-plugin</artifactId>
               <version>${maven.failsafe.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.lambdas>static</bedrock.profile.lambdas>
                   <bedrock.profile.lambdas.classname>com.oracle.bedrock.runtime.coherence.profiles.LambdaModeProfile</bedrock.profile.lambdas.classname>
                   <coherence.lambdas>static</coherence.lambdas>
@@ -910,7 +913,7 @@
               <artifactId>maven-surefire-plugin</artifactId>
               <version>${maven.surefire.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
                   <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-ut.exec</jacoco-agent.destfile>
@@ -938,7 +941,7 @@
               <artifactId>maven-failsafe-plugin</artifactId>
               <version>${maven.failsafe.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.coverage>auto</bedrock.profile.coverage>
                   <bedrock.profile.coverage.classname>com.oracle.coherence.testing.bedrock.CoverageProfile</bedrock.profile.coverage.classname>
                   <jacoco-agent.destfile>${project.build.directory}/jacoco/jacoco-it.exec</jacoco-agent.destfile>
