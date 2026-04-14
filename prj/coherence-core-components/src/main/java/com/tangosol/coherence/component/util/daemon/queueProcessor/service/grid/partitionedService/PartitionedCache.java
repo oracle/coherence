@@ -5121,8 +5121,12 @@ public class PartitionedCache
 
                 if (msgEvent != null && !msgEvent.isDelivered())
                     {
-                    msgEvent.setNotifyDelivery(true);
-                    post(msgEvent);
+                    // Do not repost the in-flight message instance; it may
+                    // still have transport state attached from the prior send.
+                    PartitionedCache.MapEvent msgResend = (PartitionedCache.MapEvent) msgEvent.cloneMessage();
+
+                    msgResend.setNotifyDelivery(true);
+                    post(msgResend);
                     }
                 }
             m_lOldestSUIDtemp = lOldestSUID; // keep track of movement
@@ -6640,7 +6644,9 @@ public class PartitionedCache
                     {
                     PartitionedCache.MapEvent msgEvent = (PartitionedCache.MapEvent) iter.next();
         
-                    post(msgEvent);
+                    // Failover resend has the same requirement: rebuild the
+                    // message payload without reusing the old send state.
+                    post(msgEvent.cloneMessage());
                     }
                 }
             }
