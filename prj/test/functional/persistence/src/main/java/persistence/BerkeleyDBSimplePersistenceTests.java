@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,32 +15,57 @@ import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
 
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
+import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.PartitionedService;
+import com.tangosol.net.partition.SimplePartitionKey;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.BinaryEntry;
+import com.tangosol.util.CompositeKey;
+import com.tangosol.util.InvocableMap;
+import com.tangosol.util.MapIndex;
+import com.tangosol.util.SimpleMapIndex;
+import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.extractor.ReflectionExtractor;
+import com.tangosol.util.processor.AbstractProcessor;
 
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
 
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import javax.management.MBeanException;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Functional tests for simple cache persistence and recovery using the
@@ -110,6 +135,128 @@ public class BerkeleyDBSimplePersistenceTests
             throws IOException, MBeanException
         {
         testMultipleRestartsWithClientEnsureCache("active-backup");
+        }
+
+    /**
+     * Regression test for COH-33056: stress index rebuild after persistence
+     * recovery with a larger partition count.
+     */
+    @Test
+    public void testIndexConsistencyAfterRecoveryWithManyPartitions()
+            throws IOException, MBeanException
+        {
+        File fileSnapshot = FileHelper.createTempDir();
+        File fileTrash    = FileHelper.createTempDir();
+        File fileActive1  = FileHelper.createTempDir();
+        File fileActive2  = FileHelper.createTempDir();
+        File fileActive3  = FileHelper.createTempDir();
+
+        final String sTestName             = "testIndexConsistencyAfterRecoveryWithManyPartitions";
+        final String sPersistentCache      = "simple-persistent";
+        final String sCluster              = sTestName + "-" + Base.getSafeTimeMillis();
+        final int    cPartitions           = Integer.getInteger("test.index.recovery.partition.count", 1021);
+        final int    cEntriesPerPartition  = Integer.getInteger("test.index.recovery.entries.per.partition", 8);
+        final int    cRestartCount         = Integer.getInteger("test.index.recovery.restart.count", 3);
+        final int    cThreads              = Integer.getInteger("test.index.recovery.thread.count", 8);
+        final int    cEntries              = cPartitions * cEntriesPerPartition;
+        final String sServer1              = sTestName + "-1";
+        final String sServer2              = sTestName + "-2";
+        final String sServer3              = sTestName + "-3";
+
+        String sPrevCluster    = System.getProperty("coherence.cluster");
+        String sPrevPartitions = System.getProperty("coherence.distributed.partitions");
+
+        Properties props1 = createRecoveryProperties(fileActive1, fileSnapshot, fileTrash, sCluster, cPartitions, cThreads);
+        Properties props2 = createRecoveryProperties(fileActive2, fileSnapshot, fileTrash, sCluster, cPartitions, cThreads);
+        Properties props3 = createRecoveryProperties(fileActive3, fileSnapshot, fileTrash, sCluster, cPartitions, cThreads);
+
+        NamedCache cache = null;
+
+        try
+            {
+            CacheFactory.shutdown();
+
+            System.setProperty("coherence.cluster", sCluster);
+            System.setProperty("coherence.distributed.partitions", String.valueOf(cPartitions));
+
+            ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                    .getConfigurableCacheFactory("client-cache-config.xml", null);
+            setFactory(factory);
+
+            cache = getNamedCache(sPersistentCache);
+
+            DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
+            Cluster                 cluster = CacheFactory.ensureCluster();
+
+            startCacheServer(sServer1, getProjectName(), getCacheConfigPath(), props1);
+            startCacheServer(sServer2, getProjectName(), getCacheConfigPath(), props2);
+            startCacheServer(sServer3, getProjectName(), getCacheConfigPath(), props3);
+
+            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
+            waitForBalanced(service);
+
+            ValueExtractor extractor = new ReflectionExtractor("length");
+            cache.addIndex(extractor, false, null);
+
+            populateEveryPartition(cache, cPartitions, cEntriesPerPartition);
+
+            assertEquals(cEntries, cache.size());
+            assertNoIndexInconsistencies(cache, cPartitions, 1, "initial population");
+
+            String sService = service.getInfo().getServiceName();
+
+            for (int i = 1; i <= cRestartCount; i++)
+                {
+                cluster.suspendService(sService);
+
+                try
+                    {
+                    stopCacheServer(sServer1);
+                    stopCacheServer(sServer2);
+                    stopCacheServer(sServer3);
+
+                    Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+                    }
+                finally
+                    {
+                    cluster.resumeService(sService);
+                    }
+
+                service.shutdown();
+
+                startCacheServer(sServer1, getProjectName(), getCacheConfigPath(), props1);
+                startCacheServer(sServer2, getProjectName(), getCacheConfigPath(), props2);
+                startCacheServer(sServer3, getProjectName(), getCacheConfigPath(), props3);
+
+                cache   = getNamedCache(sPersistentCache);
+                service = (DistributedCacheService) cache.getCacheService();
+
+                Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
+                waitForBalanced(service);
+
+                assertEquals("Unexpected cache size after restart " + i, cEntries, cache.size());
+                assertNoIndexInconsistencies(cache, cPartitions, 1, "restart " + i);
+                }
+            }
+        finally
+            {
+            if (cache != null && getFactory() != null)
+                {
+                getFactory().destroyCache(cache);
+                }
+
+            stopAllApplications();
+            CacheFactory.shutdown();
+
+            restoreSystemProperty("coherence.cluster", sPrevCluster);
+            restoreSystemProperty("coherence.distributed.partitions", sPrevPartitions);
+
+            FileHelper.deleteDirSilent(fileActive1);
+            FileHelper.deleteDirSilent(fileActive2);
+            FileHelper.deleteDirSilent(fileActive3);
+            FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
         }
 
     /**
@@ -595,8 +742,245 @@ public class BerkeleyDBSimplePersistenceTests
             FileHelper.deleteDirSilent(fileTrash);
             }
         }
+
+    static Properties createRecoveryProperties(File fileActive, File fileSnapshot, File fileTrash,
+                                               String sCluster, int cPartitions, int cThreads)
+        {
+        Properties props = new Properties();
+
+        props.setProperty("test.persistence.mode", "active");
+        props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
+        props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
+        props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
+        props.setProperty("test.persistence.members", "3");
+        props.setProperty("test.distribution.members", "3");
+        props.setProperty("test.threads", String.valueOf(cThreads));
+        props.setProperty("coherence.cluster", sCluster);
+        props.setProperty("coherence.distributed.partitions", String.valueOf(cPartitions));
+        props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        return props;
+        }
+
+    static void populateEveryPartition(NamedCache cache, int cPartitions, int cEntriesPerPartition)
+        {
+        Map mapBatch = new HashMap();
+
+        for (int iPart = 0; iPart < cPartitions; iPart++)
+            {
+            for (int iEntry = 0; iEntry < cEntriesPerPartition; iEntry++)
+                {
+                mapBatch.put(new CompositeKey(SimplePartitionKey.getPartitionKey(iPart), iPart + "-" + iEntry),
+                        String.format("value-%05d-%03d", iPart, iEntry));
+
+                if (mapBatch.size() >= 1024)
+                    {
+                    cache.putAll(mapBatch);
+                    mapBatch.clear();
+                    }
+                }
+            }
+
+        if (!mapBatch.isEmpty())
+            {
+            cache.putAll(mapBatch);
+            }
+        }
+
+    static void assertNoIndexInconsistencies(NamedCache cache, int cPartitions, int cExpectedIndexes, String sStage)
+        {
+        int  cTimeoutSeconds    = Integer.getInteger("test.index.recovery.consistency.timeout.seconds", 120);
+        long ldtTimeout         = Base.getSafeTimeMillis() + TimeUnit.SECONDS.toMillis(cTimeoutSeconds);
+        Map  mapInconsistencies = collectIndexInconsistencies(cache, cPartitions, cExpectedIndexes);
+
+        while (!mapInconsistencies.isEmpty() && Base.getSafeTimeMillis() < ldtTimeout)
+            {
+            Base.sleep(500L);
+            mapInconsistencies = collectIndexInconsistencies(cache, cPartitions, cExpectedIndexes);
+            }
+
+        assertTrue("Expected no index inconsistencies after " + sStage + " but found " + mapInconsistencies,
+                mapInconsistencies.isEmpty());
+        }
+
+    private static Map collectIndexInconsistencies(NamedCache cache, int cPartitions, int cExpectedIndexes)
+        {
+        Map mapResults         = cache.invokeAll(createPartitionKeySet(cPartitions),
+                new PartitionIndexCheckProcessor(cExpectedIndexes));
+        Map mapInconsistencies = new LinkedHashMap();
+
+        for (Iterator iter = mapResults.entrySet().iterator(); iter.hasNext(); )
+            {
+            Map.Entry         entry            = (Map.Entry) iter.next();
+            SimplePartitionKey key             = (SimplePartitionKey) entry.getKey();
+            Map               mapPartitionInfo = (Map) entry.getValue();
+
+            if (mapPartitionInfo != null && !mapPartitionInfo.isEmpty())
+                {
+                mapInconsistencies.put(key.getPartitionId(), mapPartitionInfo);
+                }
+            }
+
+        return mapInconsistencies;
+        }
+
+    private static Set createPartitionKeySet(int cPartitions)
+        {
+        Set setKeys = new LinkedHashSet(cPartitions);
+
+        for (int iPart = 0; iPart < cPartitions; iPart++)
+            {
+            setKeys.add(SimplePartitionKey.getPartitionKey(iPart));
+            }
+
+        return setKeys;
+        }
+
+    static void restoreSystemProperty(String sProperty, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sProperty);
+            }
+        else
+            {
+            System.setProperty(sProperty, sValue);
+            }
+        }
+
     // ----- data members ---------------------------------------------------
 
     @ClassRule
     public static final ThreadDumpOnTimeoutRule timeout = ThreadDumpOnTimeoutRule.after(90, TimeUnit.MINUTES);
+
+    // ----- helper processor ----------------------------------------------
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static class PartitionIndexCheckProcessor
+            extends AbstractProcessor
+            implements ExternalizableLite
+        {
+        public PartitionIndexCheckProcessor()
+            {
+            }
+
+        public PartitionIndexCheckProcessor(int cExpectedIndexes)
+            {
+            m_cExpectedIndexes = cExpectedIndexes;
+            }
+
+        @Override
+        public Object process(InvocableMap.Entry entry)
+            {
+            BinaryEntry              binEntry = entry.asBinaryEntry();
+            BackingMapContext        bmc      = binEntry.getBackingMapContext();
+            BackingMapManagerContext bmmc     = bmc.getManagerContext();
+            PartitionedService       service  = (PartitionedService) bmmc.getCacheService();
+            PartitionedCache         cacheSvc = (PartitionedCache) service;
+            Storage                  storage  = cacheSvc.getStorage(bmc.getCacheName());
+            int                      nPart    = binEntry.getKeyPartition();
+
+            if (storage == null)
+                {
+                return new LinkedHashMap();
+                }
+
+            Set setBackingKeys = storage.collectKeySet(nPart);
+            int cBackingKeys   = setBackingKeys.size();
+            int cRegistered    = storage.getIndexExtractorMap().size();
+
+            Map mapIssues = new LinkedHashMap();
+
+            if (cBackingKeys == 0)
+                {
+                return mapIssues;
+                }
+
+            if (cRegistered < m_cExpectedIndexes)
+                {
+                mapIssues.put("<registration>",
+                        "backing=" + cBackingKeys + ", registered=" + cRegistered
+                        + ", expected=" + m_cExpectedIndexes);
+
+                if (cRegistered == 0)
+                    {
+                    return mapIssues;
+                    }
+                }
+
+            Map mapPartitioned = storage.getPartitionedIndexMap();
+            Map mapPartIndex   = mapPartitioned == null
+                                 ? null
+                                 : (Map) mapPartitioned.get(Integer.valueOf(nPart));
+
+            for (Iterator iter = storage.getIndexExtractorMap().keySet().iterator(); iter.hasNext(); )
+                {
+                ValueExtractor extractor = (ValueExtractor) iter.next();
+                MapIndex       index     = mapPartIndex == null
+                                           ? null
+                                           : (MapIndex) mapPartIndex.get(extractor);
+
+                if (index == null)
+                    {
+                    mapIssues.put(String.valueOf(extractor),
+                            "backing=" + cBackingKeys + ", index=0, missing=" + cBackingKeys);
+                    continue;
+                    }
+
+                if (index instanceof SimpleMapIndex)
+                    {
+                    Set setIndexKeys = new HashSet();
+
+                    for (Iterator iterContents = ((SimpleMapIndex) index).getIndexContents().values().iterator();
+                         iterContents.hasNext(); )
+                        {
+                        setIndexKeys.addAll((Collection) iterContents.next());
+                        }
+
+                    if (!setBackingKeys.equals(setIndexKeys))
+                        {
+                        Set setMissing = new HashSet(setBackingKeys);
+                        setMissing.removeAll(setIndexKeys);
+
+                        if (!setMissing.isEmpty())
+                            {
+                            Set setExtra = new HashSet(setIndexKeys);
+                            setExtra.removeAll(setBackingKeys);
+
+                            StringBuilder sb = new StringBuilder()
+                                    .append("backing=").append(cBackingKeys)
+                                    .append(", index=").append(setIndexKeys.size())
+                                    .append(", missing=").append(setMissing.size());
+
+                            if (!setExtra.isEmpty())
+                                {
+                                sb.append(", extra=").append(setExtra.size());
+                                }
+
+                            mapIssues.put(String.valueOf(extractor), sb.toString());
+                            }
+                        }
+                    }
+                }
+
+            return mapIssues;
+            }
+
+        @Override
+        public void readExternal(DataInput in)
+                throws IOException
+            {
+            m_cExpectedIndexes = in.readInt();
+            }
+
+        @Override
+        public void writeExternal(DataOutput out)
+                throws IOException
+            {
+            out.writeInt(m_cExpectedIndexes);
+            }
+
+        private int m_cExpectedIndexes;
+        }
     }
