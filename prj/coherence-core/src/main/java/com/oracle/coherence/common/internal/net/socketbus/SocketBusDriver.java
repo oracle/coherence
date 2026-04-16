@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -369,6 +369,29 @@ public class SocketBusDriver
         public long getReceiptRequestThreshold();
 
         /**
+         * Return the maximum size of a consumer-owned write batch before a new batch should be started.
+         *
+         * @return the maximum batch size in bytes, or a non-positive value to use the adaptive default
+         */
+        public long getMaxWriteBatchBytes();
+
+        /**
+         * Return the maximum number of messages to accumulate into a consumer-owned write batch before a new
+         * batch should be started.
+         *
+         * @return the maximum message count, or a non-positive value to disable the count-based cap
+         */
+        public int getMaxWriteBatchMessages();
+
+        /**
+         * Return the backlog threshold at which producer threads should stop free-running and help the
+         * connection make write progress.
+         *
+         * @return the producer backpressure threshold in bytes, or a non-positive value to use the adaptive default
+         */
+        public long getProducerBackpressureThresholdBytes();
+
+        /**
          * Return the maximum number of threads which should concurrently attempt direct writes.
          * <p>
          * A direct write is a write performed on the calling thread rather then on a background thread. Direct writes
@@ -450,6 +473,9 @@ public class SocketBusDriver
                 m_cAckFatalTimeoutMillis   = deps.getAckFatalTimeoutMillis();
                 m_cbAutoFlush              = deps.getAutoFlushThreshold();
                 m_cbReceiptRequest         = deps.getReceiptRequestThreshold();
+                m_cbMaxWriteBatch          = deps.getMaxWriteBatchBytes();
+                m_cMaxWriteBatchMessages   = deps.getMaxWriteBatchMessages();
+                m_cbProducerBackpressure   = deps.getProducerBackpressureThresholdBytes();
                 m_cThreadsDirect           = deps.getDirectWriteThreadThreshold();
                 m_nDropRatio               = deps.getDropRatio();
                 m_nCorruptionRatio         = deps.getCorruptionRatio();
@@ -828,6 +854,73 @@ public class SocketBusDriver
             }
 
         /**
+         * {@inheritDoc}
+         */
+        @Override
+        public long getMaxWriteBatchBytes()
+            {
+            return m_cbMaxWriteBatch;
+            }
+
+        /**
+         * Set threshold for the maximum accumulated write batch size.
+         *
+         * @param cbMaxBatch  maximum write batch size in bytes, or a non-positive value to use the adaptive default
+         *
+         * @return this object
+         */
+        public DefaultDependencies setMaxWriteBatchBytes(long cbMaxBatch)
+            {
+            m_cbMaxWriteBatch = cbMaxBatch;
+            return this;
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public int getMaxWriteBatchMessages()
+            {
+            return m_cMaxWriteBatchMessages;
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public long getProducerBackpressureThresholdBytes()
+            {
+            return m_cbProducerBackpressure;
+            }
+
+        /**
+         * Set the backlog threshold at which producer threads should stop free-running and help the connection
+         * make write progress.
+         *
+         * @param cbThreshold  producer backpressure threshold in bytes, or a non-positive value to use the adaptive default
+         *
+         * @return this object
+         */
+        public DefaultDependencies setProducerBackpressureThresholdBytes(long cbThreshold)
+            {
+            m_cbProducerBackpressure = cbThreshold;
+            return this;
+            }
+
+        /**
+         * Set threshold for the maximum number of accumulated write-batch messages.
+         *
+         * @param cMaxMessages  maximum write batch message count, or a non-positive value to disable the cap
+         *
+         * @return this object
+         */
+        public DefaultDependencies setMaxWriteBatchMessages(int cMaxMessages)
+            {
+            m_cMaxWriteBatchMessages = cMaxMessages;
+            return this;
+            }
+
+        /**
          * Set threshold for receipt requests
          *
          * @param cbRequest receipt request threshold
@@ -1061,6 +1154,32 @@ public class SocketBusDriver
          * Threshold after which to request receipts.
          */
         protected long m_cbReceiptRequest = getSafeMemorySize(SocketBusDriver.class.getName()+".receiptRequestThreshold");
+
+        /**
+         * Maximum accumulated size of a consumer-owned write batch and the default
+         * producer-side backlog threshold when no explicit backpressure override
+         * is configured.
+         */
+        protected long m_cbMaxWriteBatch = Config.getMemorySize(
+                SocketBusDriver.class.getName()+".maxWriteBatchBytes",
+                "128KB").getByteCount();
+
+        /**
+         * Maximum number of messages to accumulate into a consumer-owned write batch.
+         */
+        protected int m_cMaxWriteBatchMessages = Config.getInteger(
+                SocketBusDriver.class.getName() + ".maxWriteBatchMessages", -1);
+
+        /**
+         * Producer-side write backlog threshold. Defaults to the write batch size so
+         * the common case only needs a single tuning knob.
+         */
+        protected long m_cbProducerBackpressure = Config.getProperty(
+                SocketBusDriver.class.getName()+".producerBackpressureThresholdBytes") == null
+                    ? m_cbMaxWriteBatch
+                    : Config.getMemorySize(
+                            SocketBusDriver.class.getName()+".producerBackpressureThresholdBytes",
+                            "128KB").getByteCount();
 
         /**
          * The maximum number of concurrent writers on which to attempt direct writes.

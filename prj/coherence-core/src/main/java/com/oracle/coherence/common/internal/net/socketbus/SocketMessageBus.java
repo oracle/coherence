@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,9 +28,9 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.LockSupport;
 
 import java.util.LinkedList;
 import java.util.zip.CRC32;
@@ -114,20 +114,81 @@ public class SocketMessageBus
             return;
             }
 
-        AtomicInteger cWriters = conn.m_cWritersWaiting;
+        long cbMsg;
+        ByteBuffer header = conn.prepareHeader(bufseq);
+        cbMsg = header.remaining() + bufseq.getLength();
+        conn.enqueue(new SendEntry(header, bufseq, receipt, cbMsg));
 
-        cWriters.getAndIncrement(); // track threads waiting to use the connection
-        conn.lock();
-        try
+        if (!conn.isValid())
             {
-            cWriters.getAndDecrement();
-
-            conn.ensureValid().evaluateAutoFlush(conn.isFlushInProgress(), conn.isFlushRequired(),
-                    conn.send(bufseq, receipt), fSocketWrite);
+            return;
             }
-        finally
+
+        conn.coordinatePostSend(fSocketWrite, !isTransportCallbackThread());
+        }
+
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * ThreadLocal header buffer slab.
+     */
+    private static final ThreadLocal<ByteBuffer> TL_HEADER =
+            ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(1024));
+
+    /**
+     * ThreadLocal CRC32 used for message header preparation.
+     */
+    private static final ThreadLocal<CRC32> TL_CRC =
+            ThreadLocal.withInitial(CRC32::new);
+
+    /**
+     * Lock-free MPSC queue entry for user message sends.
+     */
+    static class SendEntry
+        {
+        SendEntry(ByteBuffer header, BufferSequence body, Object receipt, long cb)
             {
-            conn.unlock();
+            this.header  = header;
+            this.body    = body;
+            this.receipt = receipt;
+            this.cb      = cb;
+            }
+
+        /**
+         * Message header.
+         */
+        ByteBuffer header;
+
+        /**
+         * Message body.
+         */
+        BufferSequence body;
+
+        /**
+         * Message receipt.
+         */
+        Object receipt;
+
+        /**
+         * Message size in bytes (header + body).
+         */
+        long cb;
+
+        /**
+         * Next entry in intrusive list.
+         */
+        volatile SendEntry next;
+
+        /**
+         * Clear the payload once the entry has been drained and appended.
+         */
+        void clearPayload()
+            {
+            header  = null;
+            body    = null;
+            receipt = null;
+            cb      = 0L;
             }
         }
 
@@ -157,6 +218,107 @@ public class SocketMessageBus
         public MessageConnection(UrlEndPoint peer)
             {
             super(peer);
+            }
+
+        /**
+         * Return the maximum size of a consumer-owned write batch before a new batch should be started.
+         *
+         * @return the maximum batch size in bytes
+         */
+        protected long getMaxWriteBatchBytes()
+            {
+            long cb = getSocketDriver().getDependencies().getMaxWriteBatchBytes();
+            return cb > 0 ? cb : getAutoFlushThreshold();
+            }
+
+        /**
+         * Return the maximum number of messages to accumulate into a consumer-owned write batch.
+         *
+         * @return the maximum message count, or a non-positive value if disabled
+         */
+        protected int getMaxWriteBatchMessages()
+            {
+            return getSocketDriver().getDependencies().getMaxWriteBatchMessages();
+            }
+
+        /**
+         * Return the backlog threshold at which producer threads should stop free-running and wait for the
+         * connection to catch up.
+         *
+         * @return the producer backpressure threshold in bytes
+         */
+        protected long getProducerBackpressureThresholdBytes()
+            {
+            long cb = getSocketDriver().getDependencies().getProducerBackpressureThresholdBytes();
+            return cb > 0 ? cb : Math.max(128L * 1024L, getMaxWriteBatchBytes() << 1);
+            }
+
+        /**
+         * Coordinate post-send progression and apply producer-side pacing once the connection backlog grows too large.
+         *
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to socket writes
+         * @param fCanBlock     true if the caller may be backpressured waiting for the connection backlog to drain
+         */
+        protected void coordinatePostSend(boolean fSocketWrite, boolean fCanBlock)
+            {
+            long cbBackpressure = getProducerBackpressureThresholdBytes();
+            long cbResume       = Math.max(32L * 1024L, cbBackpressure >>> 1);
+            long cbPublished    = getPublishedBacklogBytes();
+            boolean fPressure   = cbPublished > cbBackpressure;
+
+            if (tryActivateWriter())
+                {
+                // Once producers are being throttled, progression must behave like an explicit flush rather than
+                // a soft auto-flush; otherwise the connection can livelock with a "small" batch parked forever.
+                scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ !fPressure);
+                }
+
+            if (fPressure && fCanBlock)
+                {
+                awaitWriteBacklog(cbResume, fSocketWrite);
+                }
+            }
+
+        /**
+         * Return producer-visible connection backlog, excluding already-acked data.
+         *
+         * @return the number of outstanding producer-visible bytes
+         */
+        protected long getPublishedBacklogBytes()
+            {
+            return Math.max(0L, f_cbQueued.get() + m_cbPending.get());
+            }
+
+        /**
+         * Wait for connection backlog to fall back to a reasonable level, nudging write progression as needed.
+         *
+         * @param cbResume      the backlog threshold below which the caller may resume publishing freely
+         * @param fSocketWrite  true if the caller is willing to offer its cpu to socket writes
+         */
+        protected void awaitWriteBacklog(long cbResume, boolean fSocketWrite)
+            {
+            for (int i = 0; isValid() && getPublishedBacklogBytes() > cbResume; ++i)
+                {
+                if (tryActivateWriter())
+                    {
+                    scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ false);
+                    }
+
+                if ((i & 0x0F) == 0)
+                    {
+                    try
+                        {
+                        wakeup();
+                        }
+                    catch (IOException e)
+                        {
+                        onException(e);
+                        break;
+                        }
+                    }
+
+                LockSupport.parkNanos(100_000L);
+                }
             }
 
         /**
@@ -256,34 +418,113 @@ public class SocketMessageBus
                 m_readBatch = null;
                 batch.dispose();
                 }
-            ByteBuffer bufferHdr = m_bufferMsgHdr;
-            if (bufferHdr != null)
-                {
-                getSocketDriver().getDependencies().getBufferManager().release(bufferHdr);
-                m_bufferMsgHdr = null;
-                }
 
             super.dispose();
             }
 
         /**
-         * Schedule a send of the specified BufferSequence.
+         * Prepare a message header using a ThreadLocal slab.
          *
-         * @param bufseq   the BufferSequence
-         * @param receipt  the optional receipt
+         * @param bufseq  the message body
          *
-         * @return the length of the current WriteBatch
+         * @return the populated header
          */
-        public long send(BufferSequence bufseq, Object receipt)
+        ByteBuffer prepareHeader(BufferSequence bufseq)
             {
-            long cbMsg    = bufseq.getLength();
-            int  nProt    = getProtocolVersion();
-            int  cbHeader = getMessageHeaderSize();
-
-            if (cbMsg < 0 || (nProt < 5 && cbMsg > Integer.MAX_VALUE))
+            long cbBody = bufseq.getLength();
+            int  nProt  = getProtocolVersion();
+            if (cbBody < 0 || (nProt < 5 && cbBody > Integer.MAX_VALUE))
                 {
-                throw new UnsupportedOperationException(
-                        "unsupported message size " + cbMsg);
+                throw new UnsupportedOperationException("unsupported message size " + cbBody);
+                }
+
+            int        cbHeader = getMessageHeaderSize();
+            ByteBuffer slab     = TL_HEADER.get();
+
+            if (slab.remaining() < cbHeader)
+                {
+                slab = ByteBuffer.allocateDirect(1024);
+                TL_HEADER.set(slab);
+                ++m_cHeaderSlabAllocs;
+                }
+
+            int        nSlabPos = slab.position();
+            ByteBuffer header   = slab.slice();
+            header.limit(cbHeader);
+            slab.position(nSlabPos + cbHeader);
+
+            int  nPos   = header.position();
+
+            if (nProt > 4)
+                {
+                header.putLong(nPos, cbBody);
+
+                int   lCrcBody = 0;
+                CRC32 crc32    = f_crcTx == null ? null : TL_CRC.get();
+                if (crc32 != null)
+                    {
+                    crc32.reset();
+                    int          cBuffers = bufseq.getBufferCount();
+                    ByteBuffer[] aBodyBuf = new ByteBuffer[cBuffers];
+                    bufseq.getBuffers(0, cBuffers, aBodyBuf, 0);
+                    lCrcBody = Buffers.updateCrc(crc32, aBodyBuf, 0, cbBody);
+                    lCrcBody = lCrcBody == 0 ? 1 : lCrcBody;
+                    }
+                header.putInt(nPos + 8, lCrcBody);
+
+                int lCrcHeader = 0;
+                if (crc32 != null)
+                    {
+                    crc32.reset();
+                    int nLimit = header.limit();
+                    header.limit(nPos + 12);
+                    lCrcHeader = Buffers.updateCrc(crc32, header);
+                    lCrcHeader = lCrcHeader == 0 ? 1 : lCrcHeader;
+                    header.limit(nLimit);
+                    }
+                header.putInt(nPos + 12, lCrcHeader);
+                }
+            else
+                {
+                header.putInt(nPos, (int) cbBody);
+                }
+
+            return header;
+            }
+
+        /**
+         * Enqueue a prepared send entry.
+         *
+         * @param entry  the send entry
+         */
+        void enqueue(SendEntry entry)
+            {
+            long cPending = m_cPendingMsgs.incrementAndGet();
+            long cbPending = m_cbPending.addAndGet(entry.cb);
+            m_cPendingMsgsPeak = Math.max(m_cPendingMsgsPeak, cPending);
+            m_cbPendingPeak = Math.max(m_cbPendingPeak, cbPending);
+
+            entry.next = null;
+            m_queueFifoMsTail.getAndSet(entry).next = entry;
+            }
+
+        @Override
+        protected long drainQueue()
+            {
+            return drainQueueFifoMs();
+            }
+
+        /**
+         * Drain the producer queue when using the inline MPSC FIFO mode.
+         *
+         * @return drained bytes
+         */
+        protected long drainQueueFifoMs()
+            {
+            SendEntry entry = pollQueueFifoMs();
+            if (entry == null)
+                {
+                return 0L;
                 }
 
             WriteBatch batch = m_batchWriteUnflushed;
@@ -292,38 +533,141 @@ public class SocketMessageBus
                 batch = m_batchWriteUnflushed = new WriteBatch();
                 }
 
-            if (m_bufferMsgHdr == null)
-                {
-                m_bufferMsgHdr = getSocketDriver().getDependencies()
-                        .getBufferManager().acquire(cbHeader * 1024); //4KB or 24KB for version 5
+            long cbBatchMax = getMaxWriteBatchBytes();
+            int  cBatchMax  = getMaxWriteBatchMessages();
+            long cbDrained  = 0;
+            long cMsg       = 0;
+            long cNullRcpt  = 0;
 
-                int cbCap = m_bufferMsgHdr.capacity();
-                m_bufferMsgHdr.limit(cbCap - (cbCap % cbHeader));
+            do
+                {
+                if (batch.getLength() > 0 &&
+                    ((cbBatchMax > 0 && batch.getLength() + entry.cb > cbBatchMax) ||
+                     (cBatchMax > 0 && batch.getMessageCount() >= cBatchMax)))
+                    {
+                    enqueueWriteBatch(detachUnflushedWriteBatch());
+                    batch = m_batchWriteUnflushed = new WriteBatch();
+                    }
+
+                appendPreparedForDrain(batch, entry);
+                cbDrained += entry.cb;
+                ++cMsg;
+                if (entry.receipt == null)
+                    {
+                    ++cNullRcpt;
+                    }
+                entry.clearPayload();
+                }
+            while ((entry = pollQueueFifoMs()) != null);
+
+            m_cbPending.addAndGet(-cbDrained);
+            m_cPendingMsgs.addAndGet(-cMsg);
+            m_cMsgUserOut += cMsg;
+            m_cReceiptsNull += cNullRcpt;
+            ++m_cDrainCalls;
+            m_cDrainedMsgs += cMsg;
+            m_cbDrained += cbDrained;
+
+            return cbDrained;
+            }
+
+        @Override
+        protected boolean hasProducerWriteWork()
+            {
+            return m_queueFifoMsHead != m_queueFifoMsTail.get();
+            }
+
+        /**
+         * Poll a single entry from the inline MPSC FIFO queue.
+         *
+         * @return the next drained entry, or {@code null} if the queue is empty
+         */
+        protected SendEntry pollQueueFifoMs()
+            {
+            SendEntry head = m_queueFifoMsHead;
+            SendEntry next = head.next;
+
+            if (next == null)
+                {
+                if (head == m_queueFifoMsTail.get())
+                    {
+                    return null;
+                    }
+
+                do
+                    {
+                    Thread.onSpinWait();
+                    next = head.next;
+                    }
+                while (next == null);
                 }
 
-            // prepend the message data with it's header
-            ByteBuffer bufferMsgHdr = m_bufferMsgHdr;
-            if (bufferMsgHdr.remaining() > cbHeader)
-                {
-                ByteBuffer buffHeader = bufferMsgHdr.slice();
-                buffHeader.limit(buffHeader.position() + cbHeader);
-                bufferMsgHdr.position(bufferMsgHdr.position() + cbHeader);
+            head.next = null;
+            m_queueFifoMsHead = next;
+            return next;
+            }
 
-                batch.append(buffHeader, /*fRecycle*/ false, bufseq, receipt);
-                }
-            else // bufferMsgHdr.remaining() == getMessageHeaderSize()
-                {
-                // write last chunk in append and recycle
-                batch.append(bufferMsgHdr, /*fRecycle*/ true, bufseq, receipt);
-                m_bufferMsgHdr = null;
-                }
+        /**
+         * Append a drained producer entry into the consumer-owned batch.
+         *
+         * @param batch  the consumer-owned batch
+         * @param entry  the producer-published send entry
+         */
+        protected void appendPreparedForDrain(WriteBatch batch, SendEntry entry)
+            {
+            batch.appendPreparedMessageConsumer(entry.header, entry.body, entry.receipt);
+            }
 
-            ++m_cMsgUserOut;
-            if (receipt == null)
-                {
-                ++m_cReceiptsNull;
-                }
-            return batch.getLength();
+        @Override
+        protected boolean shouldDeferSmallAutoFlushBatch(WriteBatch batch)
+            {
+            // The MPSC producer path must not leave consumer-owned batches parked indefinitely awaiting more
+            // traffic. Correctness requires idle connections to flush pending responses promptly.
+            return false;
+            }
+
+        @Override
+        protected long getProducerPendingBytes()
+            {
+            return m_cbPending.get();
+            }
+
+        @Override
+        protected long getProducerPendingMessages()
+            {
+            return m_cPendingMsgs.get();
+            }
+
+        @Override
+        protected long getBacklogSignalBytes()
+            {
+            return getPublishedBacklogBytes();
+            }
+
+        @Override
+        protected long getBacklogSignalExcessiveThreshold()
+            {
+            return getProducerBackpressureThresholdBytes();
+            }
+
+        @Override
+        protected long getBacklogSignalNormalThreshold()
+            {
+            long cbBackpressure = getProducerBackpressureThresholdBytes();
+            return Math.max(32L * 1024L, cbBackpressure >>> 1);
+            }
+
+        @Override
+        protected String getPerfTraceDetail()
+            {
+            return "mpsc(drainCalls=" + m_cDrainCalls
+                    + ", queueMode=fifo-ms"
+                    + ", consumerAppendFast=true"
+                    + ", drainedMsgs=" + m_cDrainedMsgs
+                    + ", drainedBytes=" + new MemorySize(Math.max(0L, m_cbDrained))
+                    + ", pendingPeakMsgs=" + m_cPendingMsgsPeak
+                    + ", pendingPeakBytes=" + new MemorySize(Math.max(0L, m_cbPendingPeak))
+                    + ", headerSlabAllocs=" + m_cHeaderSlabAllocs + ")";
             }
 
         @Override
@@ -430,9 +774,17 @@ public class SocketMessageBus
                                 {
                                 break;
                                 }
-                            send(pair.getKey(), pair.getValue());
+                            BufferSequence bufSeq   = pair.getKey();
+                            Object         oReceipt = pair.getValue();
+                            ByteBuffer     header   = prepareHeader(bufSeq);
+                            long           cbMsg    = header.remaining() + bufSeq.getLength();
+
+                            // This replay runs on the SelectionService thread as part of handshake completion.
+                            // Producer-side backpressure must not park the selector, or no one remains to drain
+                            // the queued writes and the connection deadlocks before the first socket write.
+                            enqueue(new SendEntry(header, bufSeq, oReceipt, cbMsg));
                             }
-                        flush();
+                        flush(/*fSocketWrite*/ true);
 
                         m_queuePreNegotiate = null;
                         }
@@ -1182,9 +1534,59 @@ public class SocketMessageBus
         protected long m_cbReadThreshold;
 
         /**
-         * ByteBuffer to write Message headers.
+         * Stub node used by the inline MPSC FIFO queue.
          */
-        protected ByteBuffer m_bufferMsgHdr;
+        private final SendEntry m_queueFifoMsStub = new SendEntry(null, null, null, 0L);
+
+        /**
+         * Consumer-owned head for the inline MPSC FIFO queue.
+         */
+        private SendEntry m_queueFifoMsHead = m_queueFifoMsStub;
+
+        /**
+         * Producer-owned tail for the inline MPSC FIFO queue.
+         */
+        private final AtomicReference<SendEntry> m_queueFifoMsTail = new AtomicReference<>(m_queueFifoMsStub);
+
+        /**
+         * Total bytes enqueued but not yet drained into the unflushed batch.
+         */
+        final AtomicLong m_cbPending = new AtomicLong();
+
+        /**
+         * Total number of queued user sends pending drain into the unflushed batch.
+         */
+        final AtomicLong m_cPendingMsgs = new AtomicLong();
+
+        /**
+         * Peak queued user send count observed on this connection.
+         */
+        protected long m_cPendingMsgsPeak;
+
+        /**
+         * Peak queued producer bytes observed on this connection.
+         */
+        protected long m_cbPendingPeak;
+
+        /**
+         * Number of producer queue drain calls.
+         */
+        protected long m_cDrainCalls;
+
+        /**
+         * Total messages drained from the producer queue.
+         */
+        protected long m_cDrainedMsgs;
+
+        /**
+         * Total bytes drained from the producer queue.
+         */
+        protected long m_cbDrained;
+
+        /**
+         * Number of direct header slab allocations performed by this connection.
+         */
+        protected long m_cHeaderSlabAllocs;
 
         /**
          * The total number emitted messages;
