@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,8 @@ import com.tangosol.coherence.config.Config;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+
+import java.util.Arrays;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -104,11 +106,13 @@ public class SegmentedBufferManager
                     + nMaxSegments);
             }
 
-        int       cbBuff   = m_cbMin     = cbBufferMin;
-        Segment[] aSegment = f_aSegments = new Segment[cSegments];
+        int       cbBuff    = m_cbMin            = cbBufferMin;
+        Segment[] aSegment  = f_aSegments        = new Segment[cSegments];
+        int[]     acbBuffer = f_acbSegmentBuffer = new int[cSegments];
         for (int i = 0; i < cSegments; i++)
             {
             long cBuf = cbSegment / cbBuff;
+            acbBuffer[i] = cbBuff;
             aSegment[i] = allocateSegment(cbBuff, (int) (cBuf > Integer.MAX_VALUE ? Integer.MAX_VALUE : cBuf));
             cbBuff      = cbBuff << nGrowthFactor;
             }
@@ -439,24 +443,20 @@ public class SegmentedBufferManager
         throws IllegalArgumentException
         {
         Segment[] aSegments = f_aSegments;
-        final int     cbDecoded = cb = decodeSize(cb);
-        final int     cSeg      = aSegments.length;
-        int           iSeg      = 0;
+        int[]     acbBuffer = f_acbSegmentBuffer;
+        int       cbDecoded = decodeSize(cb);
+        int       iSeg      = Arrays.binarySearch(acbBuffer, cbDecoded);
 
-        for (int cbMin = m_cbMin; cb > cbMin && iSeg < cSeg; ++iSeg)
-            {
-            cb = cb >> m_nSegmentGrowthFactor;
-            }
-
-        if (iSeg < cSeg && cbDecoded == aSegments[iSeg].getBufferSize())
+        if (iSeg >= 0)
             {
             return aSegments[iSeg];
             }
 
+        int cSeg = aSegments.length;
         throw new IllegalArgumentException("No pool segment for size: "
                 + cbDecoded + " in " + cSeg + " segment(s) between "
-                + aSegments[0].getBufferSize() + " .. "
-                + aSegments[cSeg - 1].getBufferSize());
+                + acbBuffer[0] + " .. "
+                + acbBuffer[cSeg - 1]);
         }
 
 
@@ -1195,6 +1195,11 @@ public class SegmentedBufferManager
      * allocation size and proceeding to the largest.
      */
     private final Segment[] f_aSegments;
+
+    /**
+     * Exact buffer size for each segment, in the same order as {@link #f_aSegments}.
+     */
+    private final int[] f_acbSegmentBuffer;
 
     /**
      * The buffer size of the smallest buffer.

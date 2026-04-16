@@ -45,6 +45,29 @@ import java.util.zip.CRC32;
 public abstract class BufferedSocketBus
         extends AbstractSocketBus
     {
+    /**
+     * Thread-local depth marker for transport-owned callbacks.
+     */
+    private static final ThreadLocal<Integer> TL_TRANSPORT_CALLBACK_DEPTH =
+            ThreadLocal.withInitial(() -> 0);
+
+    /**
+     * Enables lightweight per-connection performance tracing for socket bus write progression.
+     */
+    protected static final boolean PERF_TRACE = Boolean.getBoolean("coherence.socketbus.perf.trace");
+
+    /**
+     * Minimum interval between periodic performance snapshots.
+     */
+    protected static final long PERF_TRACE_INTERVAL_MILLIS =
+            Long.getLong("coherence.socketbus.perf.trace.intervalMillis", 5000L);
+
+    /**
+     * Backlog threshold that triggers periodic snapshots even when the interval has not elapsed.
+     */
+    protected static final long PERF_TRACE_THRESHOLD_BYTES =
+            Long.getLong("coherence.socketbus.perf.trace.thresholdBytes", 8L * 1024L * 1024L);
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -59,6 +82,40 @@ public abstract class BufferedSocketBus
             throws IOException
         {
         super(driver, pointLocal);
+        }
+
+    /**
+     * Return {@code true} if the current thread is inside a transport-owned callback.
+     *
+     * @return {@code true} iff the current thread is executing a socket-bus callback
+     */
+    protected static boolean isTransportCallbackThread()
+        {
+        return TL_TRANSPORT_CALLBACK_DEPTH.get() > 0;
+        }
+
+    /**
+     * Mark entry into a transport-owned callback.
+     */
+    protected static void enterTransportCallback()
+        {
+        TL_TRANSPORT_CALLBACK_DEPTH.set(TL_TRANSPORT_CALLBACK_DEPTH.get() + 1);
+        }
+
+    /**
+     * Mark exit from a transport-owned callback.
+     */
+    protected static void exitTransportCallback()
+        {
+        int cDepth = TL_TRANSPORT_CALLBACK_DEPTH.get() - 1;
+        if (cDepth <= 0)
+            {
+            TL_TRANSPORT_CALLBACK_DEPTH.remove();
+            }
+        else
+            {
+            TL_TRANSPORT_CALLBACK_DEPTH.set(cDepth);
+            }
         }
 
     /**
@@ -233,9 +290,249 @@ public abstract class BufferedSocketBus
         protected int getConcurrentWriters()
             {
             // estimate how contended this connection is by including all threads which contributed to this batch
-            // as well as any threads waiting to use the connection
+            // as well as any threads actively preparing/enqueuing messages
 
-            return m_cWritersWaiting.get() + m_cWritersBatch;
+            return m_cWritersActive.get() + m_cWritersBatch;
+            }
+
+        /**
+         * Attempt to become the active writer for this connection.
+         *
+         * @return true iff the caller became the active writer
+         */
+        protected boolean tryActivateWriter()
+            {
+            return m_fWriterActive.compareAndSet(false, true);
+            }
+
+        /**
+         * Relinquish active writer ownership.
+         */
+        protected void deactivateWriter()
+            {
+            m_fWriterActive.set(false);
+            }
+
+        /**
+         * Return true iff a writer is currently active for this connection.
+         *
+         * @return true iff a writer is currently active
+         */
+        protected boolean isWriterActive()
+            {
+            return m_fWriterActive.get();
+            }
+
+        /**
+         * Schedule an already-owned consumer write-progression pass on the SelectionService thread.
+         *
+         * @param fSocketWrite  true if the consumer may offer cpu to socket writes
+         * @param fAuto         true iff this pass was scheduled by auto-flush style coordination
+         */
+        protected void scheduleActiveWriteProgression(boolean fSocketWrite, boolean fAuto)
+            {
+            try
+                {
+                invoke(new Runnable()
+                    {
+                    @Override
+                    public void run()
+                        {
+                        processQueuedWritesOnSelectionThread(fSocketWrite, fAuto);
+                        }
+                    });
+                }
+            catch (RuntimeException e)
+                {
+                deactivateWriter();
+                throw e;
+                }
+            }
+
+        /**
+         * Coordinate consumer-owned write progression without directly performing any write-state work.
+         *
+         * @param fSocketWrite  true if the consumer may offer cpu to socket writes
+         * @param fAuto         true iff this coordination request originated from auto-flush logic
+         *
+         * @return true iff no producer-published work remains waiting to be absorbed
+         */
+        protected boolean requestWriteProgression(boolean fSocketWrite, boolean fAuto)
+            {
+            if (tryActivateWriter())
+                {
+                scheduleActiveWriteProgression(fSocketWrite, fAuto);
+                }
+
+            return !hasProducerWriteWork();
+            }
+
+        /**
+         * Return true iff there is producer-published work that still needs to be absorbed by the consumer.
+         *
+         * @return true iff there is producer-published work pending
+         */
+        protected boolean hasProducerWriteWork()
+            {
+            return false;
+            }
+
+        /**
+         * Drain producer-published work into consumer-owned batch state.
+         *
+         * @return the number of drained bytes
+         */
+        protected long absorbPublishedWrites()
+            {
+            long cbDrained = 0;
+            long cbBatch;
+            while ((cbBatch = drainQueue()) > 0)
+                {
+                cbDrained += cbBatch;
+                }
+            return cbDrained;
+            }
+
+        /**
+         * Append any pending receipt bookkeeping into the current consumer-owned build batch.
+         *
+         * @param batch  the current build batch, or {@code null}
+         *
+         * @return the consumer-owned build batch after receipt bookkeeping has been applied
+         */
+        protected WriteBatch appendPendingReceiptMessages(WriteBatch batch)
+            {
+            SocketBusDriver.Dependencies deps = getSocketDriver().getDependencies();
+
+            int cRecReq = m_cReceiptsUnflushed;
+            int cRecRet = m_cReceiptsReturn.getAndSet(0);
+
+            // determine if we need to ask for forced acks
+            long cUnackedBytes = f_cBytesUnacked.get();
+            if (cRecReq > 0 && cUnackedBytes > getForceAckThreshold())
+                {
+                cRecReq = -cRecReq; // negative receipts indicates forced acks
+                f_cBytesUnacked.set(0); // reset counter to avoid requesting multiple forced acks
+                }
+
+            // insert receipt message if necessary
+            if (cRecReq != 0 || cRecRet != 0 || m_fIdle)
+                {
+                m_fIdle = false;
+                if (batch == null)
+                    {
+                    m_batchWriteUnflushed = batch = new WriteBatch();
+                    }
+
+                int        cbReceipt        = getReceiptSize();
+                ByteBuffer bufferMsgReceipt = m_bufferRecycleOutboundReceipts;
+                if (bufferMsgReceipt == null)
+                    {
+                    bufferMsgReceipt = m_bufferRecycleOutboundReceipts = deps.getBufferManager().acquire(cbReceipt * 1024);
+                    int cbCap = bufferMsgReceipt.capacity();
+                    bufferMsgReceipt.limit(cbCap - (cbCap % cbReceipt));
+                    }
+
+                if (bufferMsgReceipt.remaining() > cbReceipt)
+                    {
+                    ByteBuffer buffReceipt = bufferMsgReceipt.slice();
+                    writeMsgReceipt(buffReceipt, cRecReq, cRecRet);
+                    bufferMsgReceipt.position(bufferMsgReceipt.position() + cbReceipt);
+                    batch.append(buffReceipt, /*fRecycle*/ false, /*body*/ null, /*receipt*/ cRecReq == 0 ? null : RECEIPT_ACKREQ_MARKER);
+                    }
+                else // bufferMsgReceipt.remaining() == MSG_RECEIPT_SIZE
+                    {
+                    // write last chunk and recycle
+                    bufferMsgReceipt.mark();
+                    writeMsgReceipt(bufferMsgReceipt, cRecReq, cRecRet);
+                    batch.append(bufferMsgReceipt, /*fRecycle*/ true, /*body*/ null, /*receipt*/ cRecReq == 0 ? null : RECEIPT_ACKREQ_MARKER_RECYCLE);
+                    m_bufferRecycleOutboundReceipts = null;
+                    }
+                m_cReceiptsUnflushed = 0;
+                }
+
+            return batch;
+            }
+
+        /**
+         * Detach the current consumer-owned build batch from the unflushed slot.
+         *
+         * @return the detached build batch, or {@code null}
+         */
+        protected WriteBatch detachUnflushedWriteBatch()
+            {
+            WriteBatch batch = m_batchWriteUnflushed;
+            if (batch != null)
+                {
+                m_batchWriteUnflushed = null;
+                m_cWritersBatch       = 0;
+                m_lWritersBatchBitSet = 0;
+                }
+            return batch;
+            }
+
+        /**
+         * Run the consumer-owned queued-write processing step on the SelectionService thread.
+         *
+         * @param fSocketWrite  true if the consumer may offer cpu to socket writes
+         */
+        protected void processQueuedWritesOnSelectionThread(boolean fSocketWrite, boolean fAuto)
+            {
+            try
+                {
+                lock();
+                try
+                    {
+                    // avoid surfacing a spurious IllegalArgumentException if the connection
+                    // becomes defunct between producer publication and consumer processing.
+                    if (!isValid())
+                        {
+                        return;
+                        }
+
+                    boolean fFlushPending = isFlushable(this);
+                    if (progressQueuedWrites(fSocketWrite, fAuto))
+                        {
+                        if (fFlushPending)
+                            {
+                            removeFlushable(this);
+                            }
+                        }
+                    else if (!fFlushPending)
+                        {
+                        addFlushable(this);
+                        }
+                    }
+                finally
+                    {
+                    unlock();
+                    }
+                }
+            finally
+                {
+                deactivateWriter();
+
+                if (isValid() && hasProducerWriteWork() && tryActivateWriter())
+                    {
+                    // Producer publications that arrive after this pass are handled as follow-up background work.
+                    scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ true);
+                    }
+                else if (isValid() && f_cbQueued.get() > 0)
+                    {
+                    // If this pass queued socket writes but there is no further producer work, drive the queued
+                    // writes immediately instead of waiting for a future OP_WRITE callback that may never come.
+                    // processWrites() performs its own writer activation; pre-activating here can strand the
+                    // writer bit and turn the follow-up into a no-op.
+                    try
+                        {
+                        processWrites(/*fReady*/ false);
+                        }
+                    catch (IOException e)
+                        {
+                        onException(e);
+                        }
+                    }
+                }
             }
 
         /**
@@ -255,7 +552,7 @@ public abstract class BufferedSocketBus
                 {
                 if (cbPending > getAutoFlushThreshold())
                     {
-                    if (!flush(/*fSocketWrite*/ fSocketWrite, /*fAuto*/true))
+                    if (!requestWriteProgression(fSocketWrite, /*fAuto*/ true))
                         {
                         if (!fFlushPending)
                             {
@@ -293,6 +590,27 @@ public abstract class BufferedSocketBus
             }
 
         /**
+         * Drain any queued app-thread sends into the current unflushed batch.
+         */
+        protected long drainQueue()
+            {
+            return 0L;
+            }
+
+        /**
+         * Return {@code true} if an automatically coordinated small batch should remain local to the consumer so it
+         * can continue to grow before being queued to the SelectionService.
+         *
+         * @param batch  the current unflushed batch
+         *
+         * @return {@code true} to defer flushing the batch, or {@code false} to enqueue it now
+         */
+        protected boolean shouldDeferSmallAutoFlushBatch(WriteBatch batch)
+            {
+            return true;
+            }
+
+        /**
          * Send any scheduled BufferSequences.
          */
         public void flush()
@@ -307,79 +625,49 @@ public abstract class BufferedSocketBus
          */
         public void flush(boolean fSocketWrite)
             {
-            if (flush(/*fSocketWrite*/fSocketWrite, /*fAuto*/false))
-                {
-                removeFlushable(this);
-                }
+            flush(fSocketWrite, /*fAuto*/ false);
             }
 
         /**
-         * Send any scheduled BufferSequences.
+         * Coordinate consumer-owned flushing of any scheduled BufferSequences.
          *
          * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
          * @param fAuto         true iff it is an auto-flush
          *
-         * @return true if the connection has flushed all pending data
+         * @return true iff no producer-visible queued work remains after coordination
          */
         public boolean flush(boolean fSocketWrite, boolean fAuto)
             {
+            return requestWriteProgression(fSocketWrite, fAuto);
+            }
+
+        /**
+         * Run one consumer-owned write progression pass.
+         *
+         * @param fSocketWrite  true if the consumer may offer cpu to perform a socket write
+         * @param fAuto         true iff it is an auto-flush
+         *
+         * @return true if the connection has flushed all pending data known to the consumer
+         */
+        protected boolean progressQueuedWrites(boolean fSocketWrite, boolean fAuto)
+            {
+            ++m_cProgressPasses;
+            absorbPublishedWrites();
             SocketBusDriver.Dependencies deps = getSocketDriver().getDependencies();
 
-            WriteBatch batch   = m_batchWriteUnflushed;
-            int        cRecReq = m_cReceiptsUnflushed;
-            int        cRecRet = m_cReceiptsReturn.getAndSet(0);
-
-            // determine if we need to ask for forced acks
-            long cUnackedBytes = f_cBytesUnacked.get();
-            if (cRecReq > 0 && cUnackedBytes > getForceAckThreshold())
-                {
-                cRecReq = -cRecReq; // negative receipts indicates forced acks
-                f_cBytesUnacked.set(0); // reset counter to avoid requesting multiple forced acks
-                }
-
-            // insert receipt message if necessary
-            if (cRecReq != 0 || cRecRet != 0 || m_fIdle)
-                {
-                m_fIdle = false;
-                if (batch == null)
-                    {
-                    m_batchWriteUnflushed = batch = new WriteBatch();
-                    }
-
-                int        cbReceipt        = getReceiptSize();
-                ByteBuffer bufferMsgReceipt = m_bufferRecycleOutboundReceipts;
-                if (bufferMsgReceipt == null)
-                    {
-                    bufferMsgReceipt = m_bufferRecycleOutboundReceipts = deps.getBufferManager().acquire(cbReceipt * 1024);
-                    int        cbCap = bufferMsgReceipt.capacity();
-                    bufferMsgReceipt.limit(cbCap - (cbCap % cbReceipt));
-                    }
-
-                if (bufferMsgReceipt.remaining() > cbReceipt)
-                    {
-                    ByteBuffer buffReceipt = bufferMsgReceipt.slice();
-                    writeMsgReceipt(buffReceipt, cRecReq, cRecRet);
-                    bufferMsgReceipt.position(bufferMsgReceipt.position() + cbReceipt);
-                    batch.append(buffReceipt, /*fRecycle*/ false, /*body*/ null, /*receipt*/ cRecReq == 0 ? null : RECEIPT_ACKREQ_MARKER);
-                    }
-                else // bufferMsgReceipt.remaining() == MSG_RECEIPT_SIZE
-                    {
-                    // write last chunk and recycle
-                    bufferMsgReceipt.mark();
-                    writeMsgReceipt(bufferMsgReceipt, cRecReq, cRecRet);
-                    batch.append(bufferMsgReceipt, /*fRecycle*/ true, /*body*/ null, /*receipt*/ cRecReq == 0 ? null : RECEIPT_ACKREQ_MARKER_RECYCLE);
-                    m_bufferRecycleOutboundReceipts = null;
-                    }
-                m_cReceiptsUnflushed = 0;
-                }
+            WriteBatch batch = appendPendingReceiptMessages(m_batchWriteUnflushed);
 
             int cWriter = getConcurrentWriters();
+            boolean fResult;
+
             if (batch == null)
                 {
-                return true; // nothing to flush
+                fResult = true; // nothing to flush
+                ++m_cProgressNoWork;
                 }
-            else if (f_cbQueued.get() == 0 && (cWriter == 1 || (cWriter <= deps.getDirectWriteThreadThreshold() && fSocketWrite)))
+            else if (f_cbQueued.get() == 0 && (cWriter <= 1 || (cWriter <= deps.getDirectWriteThreadThreshold() && fSocketWrite)))
                 {
+                ++m_cProgressDirect;
                 // SS thread isn't writing, so this is the current head.  Even if the SS thread never sees this
                 // batch we want to overwrite any historic batch with the current head to avoid building up
                 // garbage which otherwise wouldn't be GCable until the SS thread iterated through many empty batches
@@ -393,9 +681,13 @@ public abstract class BufferedSocketBus
                             {
                             m_cWritersBatch       = 0;
                             m_lWritersBatchBitSet = 0;
-                            return true;
+                            fResult = true;
                             }
-                        // else; we didn't write everything, fall through and evaluate if we need to enqueue the batch
+                        else
+                            {
+                            // we didn't write everything, fall through and evaluate if we need to enqueue the batch
+                            batch = m_batchWriteUnflushed;
+                            }
                         }
                     finally
                         {
@@ -405,32 +697,90 @@ public abstract class BufferedSocketBus
                 catch (IOException e)
                     {
                     // stream is now in an unknown state; queue the remainder and reconnect
-                    m_batchWriteUnflushed = null;
+                    detachUnflushedWriteBatch();
                     enqueueWriteBatch(batch);
                     onException(e);
-                    return true; // nothing more can be done
+                    fResult = true; // nothing more can be done
+                    long cbPostDrain = absorbPublishedWrites();
+                    m_cbProgressPostDrain += cbPostDrain;
+                    if (cbPostDrain > 0)
+                        {
+                        // TEMP DEBUG: post-flush drain identified new MPSC work after a direct-write failure.
+                        // Keep the connection flushable and wake the selector so the follow-up pass is prompt.
+                        getLogger().log(makeRecord(Level.FINER,
+                                "{0} TEMP DEBUG post-flush drain after direct-write failure recovered {1} bytes for {2}; queued={3}, unflushed={4}",
+                                getLocalEndPoint(), cbPostDrain, BufferedConnection.this,
+                                f_cbQueued.get(), m_batchWriteUnflushed == null ? 0 : m_batchWriteUnflushed.getLength()));
+                        addFlushable(this);
+                        try
+                            {
+                            wakeup();
+                            }
+                        catch (IOException eWakeup)
+                            {
+                            getLogger().log(makeRecord(Level.FINER,
+                                    "{0} TEMP DEBUG post-flush wakeup failed for {1}: {2}",
+                                    getLocalEndPoint(), BufferedConnection.this, eWakeup));
+                            onException(eWakeup);
+                            }
+                        return false;
+                        }
+                    return fResult;
                     }
                 }
             else if (m_state == ConnectionState.DEFUNCT)
                 {
                 scheduleDisconnect(null); // ensure receipts are emitted ASAP
+                fResult = true;
                 }
 
-            if (fAuto && batch.getLength() < getBacklogExcessiveThreshold() * 2)
+            if (batch == null)
                 {
-                return false; // data remains to be flushed
+                fResult = true;
+                }
+            else if (fAuto
+                    && batch.getLength() < getBacklogExcessiveThreshold() * 2
+                    && shouldDeferSmallAutoFlushBatch(batch))
+                {
+                fResult = false; // data remains to be flushed
                 }
             else
                 {
+                ++m_cProgressQueued;
                 // either caller explictly flushed or we're buffering a significant
                 // amount, enqueue to SelectionService
-                m_batchWriteUnflushed = null;
-                m_cWritersBatch       = 0;
-                m_lWritersBatchBitSet = 0;
-
+                detachUnflushedWriteBatch();
                 enqueueWriteBatch(batch);
-                return true; // euqueue'd the batch
+                fResult = true; // euqueue'd the batch
                 }
+
+            long cbPostDrain = absorbPublishedWrites();
+            m_cbProgressPostDrain += cbPostDrain;
+            if (cbPostDrain > 0)
+                {
+                // TEMP DEBUG: post-flush drain identified new MPSC work that arrived during flush.
+                // Keep the connection flushable and wake the selector so the follow-up pass is prompt.
+                getLogger().log(makeRecord(Level.FINER,
+                        "{0} TEMP DEBUG post-flush drain recovered {1} bytes for {2}; queued={3}, unflushed={4}, auto={5}",
+                        getLocalEndPoint(), cbPostDrain, BufferedConnection.this,
+                        f_cbQueued.get(), m_batchWriteUnflushed == null ? 0 : m_batchWriteUnflushed.getLength(), fAuto));
+                addFlushable(this);
+                try
+                    {
+                    wakeup();
+                    }
+                catch (IOException e)
+                    {
+                    getLogger().log(makeRecord(Level.FINER,
+                            "{0} TEMP DEBUG post-flush wakeup failed for {1}: {2}",
+                            getLocalEndPoint(), BufferedConnection.this, e));
+                    onException(e);
+                    }
+                return false;
+                }
+
+            tracePerf("progress", false);
+            return fResult;
             }
 
 
@@ -485,8 +835,8 @@ public abstract class BufferedSocketBus
                     }
                 }
 
-            final long cbExcessive = getBacklogExcessiveThreshold();
-            if (cbQueuedNow > cbExcessive * 2 &&
+            final long cbSignalExcessive = getBacklogSignalExcessiveThreshold();
+            if (cbQueuedNow > cbSignalExcessive * 2 &&
                 m_fBacklogScheduled.compareAndSet(false, true))
                 {
                 // handle the case where the SelectionService thread doesn't wake up for any writes
@@ -499,7 +849,8 @@ public abstract class BufferedSocketBus
                         {
                         m_fBacklogScheduled.set(false);
 
-                        if (isValid() && !m_fBacklog && f_cbQueued.get() > cbExcessive)
+                        long cbSignal = getBacklogSignalBytes();
+                        if (isValid() && !m_fBacklog && cbSignal > cbSignalExcessive)
                             {
                             m_fBacklog = true;
                             emitEvent(new SimpleEvent(
@@ -560,9 +911,11 @@ public abstract class BufferedSocketBus
                 throws IOException
             {
             int cReceiptsRequested = in.readInt();
+            ++m_cReceiptProcessCalls;
             if (cReceiptsRequested < 0 || getSocketDriver().getDependencies().getMaximumReceiptDelayMillis() == 0)
                 {
                 // negative or config indicates force receipt send immediately
+                m_cReceiptsRequested += cReceiptsRequested < 0 ? -((long) cReceiptsRequested) : cReceiptsRequested;
                 m_cReceiptsReturn.addAndGet(cReceiptsRequested < 0 ? -cReceiptsRequested : cReceiptsRequested);
 
                 if (isReceiptFlushRequired())
@@ -573,10 +926,12 @@ public abstract class BufferedSocketBus
                 }
             else
                 {
+                m_cReceiptsRequested += cReceiptsRequested;
                 m_cReceiptsReturn.addAndGet(cReceiptsRequested);
                 }
 
             int cReturned = in.readInt();
+            m_cReceiptsReturned += cReturned;
             if (cReturned > 0)
                 {
                 EndPoint   epPeer      = getPeer();
@@ -584,28 +939,11 @@ public abstract class BufferedSocketBus
                 WriteBatch batchNext   = batchResend.next();
                 for (;;)
                     {
-                    int cEmit;
-                    if (batchNext == null && m_batchWriteUnflushed == batchResend)
-                        {
-                        // the app may be concurrently writing to this (the last) batch, thus we must sync
-                        batchResend.lock();
-                        try
-                            {
-                            cReturned -= cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
-                            }
-                        finally
-                            {
-                            batchResend.unlock();
-                            }
-                        }
-                    else
-                        {
-                        // there is a subsequent batch which means the application is no longer writing
-                        // to this batch.  Also reading the next ref acts as a memory barrier ensuring
-                        // that we have a clean view of the contents of this batch since it was written
-                        // after this batch was done being written to by the app thread
-                        cReturned -= cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
-                        }
+                    // The resend/send/unflushed chain is consumer-owned, and receipts are processed on the
+                    // same SelectionService thread that owns write progression. That means ack processing can
+                    // walk the current resend batch directly without producer-side synchronization.
+                    int cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
+                    cReturned -= cEmit;
 
                     // emit receipts outside of synchronization
                     for (int i = 0; i < cEmit; ++i)
@@ -662,6 +1000,8 @@ public abstract class BufferedSocketBus
                 // visible to checkHealth
                 f_cBytesUnacked.set(0);
                 }
+
+            tracePerf("receipt", false);
             }
 
         /**
@@ -730,7 +1070,15 @@ public abstract class BufferedSocketBus
         public int onReadySafe(int nOps)
             throws IOException
             {
-            return m_nInterestOpsLast = processReads((nOps & OP_READ) != 0) | processWrites((nOps & OP_WRITE) != 0);
+            enterTransportCallback();
+            try
+                {
+                return m_nInterestOpsLast = processReads((nOps & OP_READ) != 0) | processWrites((nOps & OP_WRITE) != 0);
+                }
+            finally
+                {
+                exitTransportCallback();
+                }
             }
 
         @Override
@@ -780,6 +1128,29 @@ public abstract class BufferedSocketBus
                     for (int i = Math.min(ofSafe, batchResend.m_ofAck), e = Math.min(ofSafe, batchResend.m_ofSend); i < e; ++i)
                         {
                         Object oReceipt = aReceipt[i];
+                        if (oReceipt instanceof ReceiptSpanMarker)
+                            {
+                            ReceiptSpanMarker marker      = (ReceiptSpanMarker) oReceipt;
+                            int               cSpan       = Math.min(marker.getBufferCount(), e - i);
+                            Object            oMsgReceipt = cSpan <= 0
+                                    ? null
+                                    : aReceipt[i + cSpan - 1];
+
+                            if (oReceiptUnacked == null)
+                                {
+                                if (oMsgReceipt != null)
+                                    {
+                                    // This message requires a protocol receipt; now search for the subsequent ack request.
+                                    oReceiptUnacked  = oMsgReceipt;
+                                    ofReceiptUnacked = i;
+                                    batchUnacked     = batchResend;
+                                    }
+                                }
+
+                            i += cSpan - 1;
+                            continue;
+                            }
+
                         if (oReceiptUnacked == null)
                             {
                             if (oReceipt != null &&
@@ -869,6 +1240,8 @@ public abstract class BufferedSocketBus
                 }
             else if (ldtNow >= ldtAckTimeout)
                 {
+                ++m_cAckTimeouts;
+                tracePerf("ack-timeout", true);
                 // timeout expired
                 final int cMultCap = 10;
                 long      cMillisTimeout = f_driver.getDependencies().getAckTimeoutMillis();
@@ -925,95 +1298,223 @@ public abstract class BufferedSocketBus
             // else; progressing towards timeout
             }
 
+        /**
+         * Return producer-owned bytes pending drain into the consumer-owned batch.
+         *
+         * @return pending producer bytes
+         */
+        protected long getProducerPendingBytes()
+            {
+            return 0L;
+            }
+
+        /**
+         * Return producer-owned message count pending drain into the consumer-owned batch.
+         *
+         * @return pending producer message count
+         */
+        protected long getProducerPendingMessages()
+            {
+            return 0L;
+            }
+
+        /**
+         * Return the outbound backlog that should drive sender-side backlog signaling.
+         *
+         * @return backlog bytes used for BACKLOG_EXCESSIVE/NORMAL emission
+         */
+        protected long getBacklogSignalBytes()
+            {
+            return Math.max(0L, f_cbQueued.get());
+            }
+
+        /**
+         * Return the threshold at which sender-side backlog should be declared excessive.
+         *
+         * @return the excessive threshold in bytes
+         */
+        protected long getBacklogSignalExcessiveThreshold()
+            {
+            return getBacklogExcessiveThreshold();
+            }
+
+        /**
+         * Return the threshold below which sender-side backlog should be declared normal again.
+         *
+         * @return the normal threshold in bytes
+         */
+        protected long getBacklogSignalNormalThreshold()
+            {
+            return getBacklogSignalExcessiveThreshold() / 2;
+            }
+
+        /**
+         * Return connection-specific performance detail for tracing.
+         *
+         * @return optional suffix detail
+         */
+        protected String getPerfTraceDetail()
+            {
+            return "";
+            }
+
+        /**
+         * Emit an opt-in performance snapshot for troubleshooting write progression and ack stalls.
+         *
+         * @param sReason  the trigger reason
+         * @param fForce   true to ignore interval throttling
+         */
+        protected void tracePerf(String sReason, boolean fForce)
+            {
+            if (!PERF_TRACE)
+                {
+                return;
+                }
+
+            long cbQueued  = f_cbQueued.get();
+            long cbPending = getProducerPendingBytes();
+            long ldtNow    = SafeClock.INSTANCE.getSafeTimeMillis();
+            if (!fForce
+                    && cbQueued < PERF_TRACE_THRESHOLD_BYTES
+                    && cbPending < PERF_TRACE_THRESHOLD_BYTES
+                    && ldtNow < m_ldtNextPerfTrace)
+                {
+                return;
+                }
+
+            m_ldtNextPerfTrace = ldtNow + PERF_TRACE_INTERVAL_MILLIS;
+
+            WriteBatch batchUnflushed = m_batchWriteUnflushed;
+            WriteBatch batchSend      = m_batchWriteSendHead;
+            WriteBatch batchResend    = m_batchWriteResendHead;
+
+            String sDetail = getPerfTraceDetail();
+            if (!sDetail.isEmpty())
+                {
+                sDetail = ", " + sDetail;
+                }
+
+            getLogger().log(makeRecord(Level.INFO,
+                    "{0} PERF[{1}] peer={2}, state={3}, writerActive={4}, concurrentWriters={5}, pendingMsgs={6}, pendingBytes={7}, queuedBytes={8}, unflushed={9}, sendHead={10}, resendHead={11}, bytesUnacked={12}, receiptsReturn={13}, receiptsUnflushed={14}, progress(pass={15}, direct={16}, queued={17}, idle={18}, postDrain={19}), receipts(calls={20}, req={21}, returned={22}, emitted={23}), ackTimeouts={24}{25}",
+                    getLocalEndPoint(), sReason, getPeer(), m_state, isWriterActive(), getConcurrentWriters(),
+                    getProducerPendingMessages(), new MemorySize(Math.max(0L, cbPending)),
+                    new MemorySize(Math.max(0L, cbQueued)),
+                    new MemorySize(batchUnflushed == null ? 0L : Math.max(0L, batchUnflushed.getLength())),
+                    new MemorySize(batchSend == null ? 0L : Math.max(0L, batchSend.getLength())),
+                    new MemorySize(batchResend == null ? 0L : Math.max(0L, batchResend.getLength())),
+                    new MemorySize(Math.max(0L, f_cBytesUnacked.get())), m_cReceiptsReturn.get(), m_cReceiptsUnflushed,
+                    m_cProgressPasses, m_cProgressDirect, m_cProgressQueued, m_cProgressNoWork,
+                    new MemorySize(Math.max(0L, m_cbProgressPostDrain)),
+                    m_cReceiptProcessCalls, m_cReceiptsRequested, m_cReceiptsReturned, m_cReceiptsEmitted,
+                    m_cAckTimeouts, sDetail));
+            }
+
 
         @Override
         public void onMigration()
             {
-            super.onMigration();
-
-            // don't log as a warning, we can get here simply because the other process terminated, i.e. delay
-            // logging as a warning until we actually re-establish the connection.
-            getLogger().log(makeRecord(Level.FINER, "{0} migrating connection with {1}",
-                    getLocalEndPoint(), BufferedConnection.this));
-
-            m_cMsgInSkip = 0; // our peer will start with a new SYNC message which will tell us exactly how much we should skip
-
-            WriteBatch batchWriteUnflushed = m_batchWriteUnflushed;
-            if (batchWriteUnflushed != null)
+            boolean fDeactivateWriter = tryActivateWriter();
+            try
                 {
-                m_batchWriteUnflushed = null;
-                f_cbQueued.addAndGet(batchWriteUnflushed.getLength());
-                }
+                super.onMigration();
 
-            // remove any sends (from f_cbQueued) that were pre-ack'd during a former migration
-            for (WriteBatch batch = m_batchWriteSendHead; batch != null && batch.m_ofAck == batch.m_ofAdd; batch = batch.next())
-                {
-                batch.m_ofSend = batch.m_ofAdd; // pretend we've sent everything
-                f_cbQueued.addAndGet(-batch.getLength());
-                }
+                // don't log as a warning, we can get here simply because the other process terminated, i.e. delay
+                // logging as a warning until we actually re-establish the connection.
+                getLogger().log(makeRecord(Level.FINER, "{0} migrating connection with {1}",
+                        getLocalEndPoint(), BufferedConnection.this));
 
-            // rewind batches from the resend queue; Note: we scan the entire queue because it is not trivial
-            // to identify where it is safe to stop scanning.  Specifically we can't stop and the first unsent
-            // message since we can run into empty batches
-            WriteBatch batchResendHead = m_batchWriteResendHead;
-            for (WriteBatch batch = batchResendHead; batch != null; batch = batch.next())
-                {
-                f_cbQueued.addAndGet(batch.rewind());
-                }
+                m_cMsgInSkip = 0; // our peer will start with a new SYNC message which will tell us exactly how much we should skip
 
-            int nProt = getProtocolVersion();
-            if (nProt > 0)
-                {
-                // place SYNC message at the start of the send queue, but don't included it in the resend queue
-                WriteBatch batchWriteSync = m_batchWriteSendHead = new WriteBatch(/*fLink*/ false);
+                // Establish a migration boundary over consumer-owned state:
+                // 1. absorb any producer-published work into the current build batch
+                // 2. append pending receipt bookkeeping into that build batch
+                // 3. promote the build batch into the queued send/resend structures
+                absorbPublishedWrites();
+                appendPendingReceiptMessages(m_batchWriteUnflushed);
 
-                int        cbHead  = nProt < 5 ? 4 : 16;       // msg header size
-                int        cbBody  = 17 + (nProt < 3 ? 0 : 1); // msg body size
-                ByteBuffer bufSync = ByteBuffer.allocate(cbHead + cbBody);
-
-                if (nProt > 4)
+                WriteBatch batchWriteUnflushed = detachUnflushedWriteBatch();
+                if (batchWriteUnflushed != null)
                     {
-                    bufSync.putLong(-cbBody)  // negative msg size indicates control message of that size
-                            .position(16); // skip writes for header/body crc
+                    f_cbQueued.addAndGet(batchWriteUnflushed.getLength());
+                    }
+
+                // remove any sends (from f_cbQueued) that were pre-ack'd during a former migration
+                for (WriteBatch batch = m_batchWriteSendHead; batch != null && batch.m_ofAck == batch.m_ofAdd; batch = batch.next())
+                    {
+                    batch.m_ofSend = batch.m_ofAdd; // pretend we've sent everything
+                    f_cbQueued.addAndGet(-batch.getLength());
+                    }
+
+                // rewind batches from the resend queue; Note: we scan the entire queue because it is not trivial
+                // to identify where it is safe to stop scanning.  Specifically we can't stop and the first unsent
+                // message since we can run into empty batches
+                WriteBatch batchResendHead = m_batchWriteResendHead;
+                for (WriteBatch batch = batchResendHead; batch != null; batch = batch.next())
+                    {
+                    f_cbQueued.addAndGet(batch.rewind());
+                    }
+
+                int nProt = getProtocolVersion();
+                if (nProt > 0)
+                    {
+                    // place SYNC message at the start of the send queue, but don't included it in the resend queue
+                    WriteBatch batchWriteSync = m_batchWriteSendHead = new WriteBatch(/*fLink*/ false);
+
+                    int        cbHead  = nProt < 5 ? 4 : 16;       // msg header size
+                    int        cbBody  = 17 + (nProt < 3 ? 0 : 1); // msg body size
+                    ByteBuffer bufSync = ByteBuffer.allocate(cbHead + cbBody);
+
+                    if (nProt > 4)
+                        {
+                        bufSync.putLong(-cbBody)  // negative msg size indicates control message of that size
+                                .position(16); // skip writes for header/body crc
+                        }
+                    else
+                        {
+                        bufSync.putInt(-cbBody);
+                        }
+
+                    bufSync.put(MSG_SYNC)
+                            .putLong(m_cMsgOutDelivered)
+                            .putLong(m_cMsgIn);
+
+                    if (nProt > 2)
+                        {
+                        bufSync.put(m_cUnackLast == MIGRATION_LIMIT_BEFORE_DUMP ? SYNC_CMD_DUMP : SYNC_CMD_NONE);
+                        }
+
+                    bufSync.flip();
+                    if (nProt > 4)
+                        {
+                        // backfill the message header with the header and body CRCs now that they can be computed
+                        populateCtrlMsgHeaderCrc(bufSync);
+                        }
+
+                    batchWriteSync.append(bufSync, /*fRecycle*/ false, /*body*/ null, /*receipt*/ null);
+                    batchWriteSync.m_ofAck = batchWriteSync.m_ofAdd; // prevent it from accepting bundles, since it isn't resend eligible
+                    batchWriteSync.m_next  = batchResendHead;
+                    f_cbQueued.addAndGet(batchWriteSync.getLength());
+                    }
+                else if (m_state == ConnectionState.ACTIVE)
+                    {
+                    // this shouldn't be possible except at protocol v0 and we don't call migrate when running at v0
+                    scheduleDisconnect(new IOException("protocol error; sync at protocol=" + nProt + ", with in=" + m_cMsgIn + ", out=" + m_cMsgOutDelivered));
                     }
                 else
                     {
-                    bufSync.putInt(-cbBody);
+                    // the disconnect may have occurred before we negotiated a protocol version, we can't send a SYNC
+                    // if we don't know the version, since by the time it gets processed on the new connection a version will
+                    // have been negotiated and we would need to use that unknown version here.  But since we haven't negotiated
+                    // a version yet it also means we could not have exchanged messages either, so it is safe to skip the SYNC.
+                    m_batchWriteSendHead = batchResendHead;
                     }
-
-                bufSync.put(MSG_SYNC)
-                        .putLong(m_cMsgOutDelivered)
-                        .putLong(m_cMsgIn);
-
-                if (nProt > 2)
-                    {
-                    bufSync.put(m_cUnackLast == MIGRATION_LIMIT_BEFORE_DUMP ? SYNC_CMD_DUMP : SYNC_CMD_NONE);
-                    }
-
-                bufSync.flip();
-                if (nProt > 4)
-                    {
-                    // backfill the message header with the header and body CRCs now that they can be computed
-                    populateCtrlMsgHeaderCrc(bufSync);
-                    }
-
-                batchWriteSync.append(bufSync, /*fRecycle*/ false, /*body*/ null, /*receipt*/ null);
-                batchWriteSync.m_ofAck = batchWriteSync.m_ofAdd; // prevent it from accepting bundles, since it isn't resend eligible
-                batchWriteSync.m_next  = batchResendHead;
-                f_cbQueued.addAndGet(batchWriteSync.getLength());
                 }
-            else if (m_state == ConnectionState.ACTIVE)
+            finally
                 {
-                // this shouldn't be possible except at protocol v0 and we don't call migrate when running at v0
-                scheduleDisconnect(new IOException("protocol error; sync at protocol=" + nProt + ", with in=" + m_cMsgIn + ", out=" + m_cMsgOutDelivered));
-                }
-            else
-                {
-                // the disconnect may have occurred before we negotiated a protocol version, we can't send a SYNC
-                // if we don't know the version, since by the time it gets processed on the new connection a version will
-                // have been negotiated and we would need to use that unknown version here.  But since we haven't negotiated
-                // a version yet it also means we could not have exchanged messages either, so it is safe to skip the SYNC.
-                m_batchWriteSendHead = batchResendHead;
+                if (fDeactivateWriter)
+                    {
+                    deactivateWriter();
+                    }
                 }
             }
 
@@ -1083,55 +1584,62 @@ public abstract class BufferedSocketBus
 
             if (fReady || cbBacklog > 0)
                 {
-                WriteBatch batch       = m_batchWriteSendHead;
-                long       cbBundle    = getAutoFlushThreshold();
-                long       cbExcessive = getBacklogExcessiveThreshold();
-                boolean    fBacklog    = m_fBacklog;
+                if (!tryActivateWriter())
+                    {
+                    return cbBacklog > 0 ? OP_WRITE : 0;
+                    }
 
-                // process the queue
-
-                // Note: Avoid the possibility of staying in this loop "forever" if the producer and consumer
-                // are matching pace.  The only reason to bail out is to allow other work to be accomplished
-                // on this SelectionService thread.
-                long cbWritten = 0;
                 try
                     {
-                    for (int i = 0; cbBacklog > 0 && i < 16 && (cbBacklog <= cbExcessive || fBacklog); ++i)
+                    WriteBatch batch       = m_batchWriteSendHead;
+                    long       cbBundle    = getAutoFlushThreshold();
+                    long       cbExcessive = getBacklogExcessiveThreshold();
+                    boolean    fBacklog    = m_fBacklog;
+
+                    // process the queue
+
+                    // Note: Avoid the possibility of staying in this loop "forever" if the producer and consumer
+                    // are matching pace.  The only reason to bail out is to allow other work to be accomplished
+                    // on this SelectionService thread.
+                    long cbWritten = 0;
+                    try
                         {
-                        long cbBatch = batch.getLength();
-                        while (cbBatch != 0 &&        // don't bundle into an empty batch
-                               cbBatch < cbBundle &&  // batch is small enough that it is worth bundling
-                               cbBacklog > cbBatch && // there is more in the backlog, i.e. batch.bundle won't NPE
-                               batch.m_ofAck < batch.m_ofAdd) // ensure we don't bundle into fully ack'd batches as this can lead to data loss during migration
+                        for (int i = 0; cbBacklog > 0 && i < 16 && (cbBacklog <= cbExcessive || fBacklog); ++i)
                             {
-                            cbBatch = batch.bundle();
-                            }
-
-                        if (cbBatch == 0 || batch.write()) // unlike in flush we don't need to sync since acks are also processed on this thread
-                            {
-                            cbWritten += cbBatch;
-                            cbBacklog -= cbBatch;
-
-                            if (cbBacklog == 0)
+                            long cbBatch = batch.getLength();
+                            while (cbBatch != 0 &&        // don't bundle into an empty batch
+                                   cbBatch < cbBundle &&  // batch is small enough that it is worth bundling
+                                   cbBacklog > cbBatch && // there is more in the backlog, i.e. batch.bundle won't NPE
+                                   batch.m_ofAck < batch.m_ofAdd) // ensure we don't bundle into fully ack'd batches as this can lead to data loss during migration
                                 {
-                                // check to see if more has been queued
-                                cbBacklog = f_cbQueued.addAndGet(-cbWritten);
-                                cbWritten = 0;
+                                cbBatch = batch.bundle();
+                                }
+
+                            if (cbBatch == 0 || batch.write()) // unlike in flush we don't need to sync since acks are also processed on this thread
+                                {
+                                cbWritten += cbBatch;
+                                cbBacklog -= cbBatch;
 
                                 if (cbBacklog == 0)
                                     {
-                                    break;
-                                    }
-                                }
+                                    // check to see if more has been queued
+                                    cbBacklog = f_cbQueued.addAndGet(-cbWritten);
+                                    cbWritten = 0;
 
-                            batch = batch.next();
+                                    if (cbBacklog == 0)
+                                        {
+                                        break;
+                                        }
+                                    }
+
+                                batch = batch.next();
+                                }
+                            else // we've exhausted the socket write buffer
+                                {
+                                cbWritten += (cbBatch - batch.getLength());
+                                break;
+                                }
                             }
-                        else // we've exhausted the socket write buffer
-                            {
-                            cbWritten += (cbBatch - batch.getLength());
-                            break;
-                            }
-                        }
                     }
                 finally
                     {
@@ -1139,19 +1647,34 @@ public abstract class BufferedSocketBus
                     m_batchWriteSendHead = batch;
                     }
 
-                // change backlog status if necessary
-                if (fBacklog)
-                    {
-                    if (cbBacklog < cbExcessive / 2)
+                    // change backlog status if necessary
+                    long cbSignal          = getBacklogSignalBytes();
+                    long cbSignalExcessive = getBacklogSignalExcessiveThreshold();
+                    long cbSignalNormal    = getBacklogSignalNormalThreshold();
+                    if (fBacklog)
                         {
-                        m_fBacklog = false;
-                        emitEvent(new SimpleEvent(Event.Type.BACKLOG_NORMAL, getPeer()));
+                        if (cbSignal < cbSignalNormal)
+                            {
+                            m_fBacklog = false;
+                            emitEvent(new SimpleEvent(Event.Type.BACKLOG_NORMAL, getPeer()));
+                            }
+                        }
+                    else if (cbSignal > cbSignalExcessive)
+                        {
+                        m_fBacklog = true;
+                        emitEvent(new SimpleEvent(Event.Type.BACKLOG_EXCESSIVE, getPeer()));
                         }
                     }
-                else if (cbBacklog > cbExcessive)
+                finally
                     {
-                    m_fBacklog = true;
-                    emitEvent(new SimpleEvent(Event.Type.BACKLOG_EXCESSIVE, getPeer()));
+                    deactivateWriter();
+
+                    if (isValid() && hasProducerWriteWork() && tryActivateWriter())
+                        {
+                        // We are already on the SelectionService thread for this channel, so run the follow-up
+                        // progression immediately instead of re-posting it and letting producer backlog sit.
+                        processQueuedWritesOnSelectionThread(/*fSocketWrite*/ false, /*fAuto*/ true);
+                        }
                     }
                 }
 
@@ -1181,11 +1704,12 @@ public abstract class BufferedSocketBus
             lock();
             try
                 {
-                WriteBatch batch = m_batchWriteUnflushed;
-                m_batchWriteUnflushed = null;
+                absorbPublishedWrites();
+
+                WriteBatch batch = detachUnflushedWriteBatch();
                 if (batch != null)
                     {
-                    enqueueWriteBatch(batch);
+                    f_cbQueued.addAndGet(batch.getLength());
                     }
 
                 for (batch = m_batchWriteResendHead; batch != null; batch = batch.next())
@@ -1208,6 +1732,9 @@ public abstract class BufferedSocketBus
                     }
 
                 m_batchWriteResendHead = m_batchWriteSendHead = m_batchWriteTail = new WriteBatch(/*fLink*/ false);
+                m_cReceiptsUnflushed = 0;
+                m_cReceiptsReturn.set(0);
+                f_cBytesUnacked.set(0);
                 }
             finally
                 {
@@ -1296,6 +1823,16 @@ public abstract class BufferedSocketBus
                 }
 
             /**
+             * Return the number of append operations represented by the batch.
+             *
+             * @return the number of accumulated messages
+             */
+            public int getMessageCount()
+                {
+                return m_cMessages;
+                }
+
+            /**
              * Append a message to the batch.
              *
              * This method locks the batch, as it is always called from the app thread and
@@ -1313,95 +1850,210 @@ public abstract class BufferedSocketBus
                 lock();
                 try
                     {
-                    addWriter();
-
-                    int cBufferAdd = 1 + (bufseqBody == null
-                                          ? 0
-                                          : bufseqBody.getBufferCount());
-
-                    int ofAdd = ensureAdditionalBufferCapacity(cBufferAdd);
-                    Object[] aoReceipt = m_aReceipt;
-                    ByteBuffer[] aBuffer = m_aBuffer;
-                    long cbBody = 0;
-                    if (bufseqBody != null)
-                        {
-                        bufseqBody.getBuffers(0, cBufferAdd - 1, aBuffer, ofAdd + 1);
-                        cbBody = bufseqBody.getLength();
-
-                        populateMessageHeader(bufHead, aBuffer, ofAdd + 1, cBufferAdd, cbBody);
-                        }
-
-                    aBuffer[ofAdd] = bufHead;
-
-                    long cb = bufHead.remaining() + cbBody;
-                    long cbUnacked = cbBody;
-
-                    if (fRecycleHead)
-                        {
-                        // we don't count recycled against unacked
-                        aoReceipt[ofAdd] = RECEIPT_HEADER_RECYCLE;
-                        }
-                    else
-                        {
-                        cbUnacked += bufHead.remaining();
-                        }
-
-                    // mark each of the append buffers so that we can reset to initial position
-                    // in case we need to retransmit due to migration
-                    for (int of = ofAdd, eOf = ofAdd + cBufferAdd; of < eOf; ++of)
-                        {
-                        aBuffer[of].mark();
-                        }
-
-                    if (receipt == null && m_cbBatch == 0 &&
-                        cBufferAdd > 1) // cBufferAdd > 1 ensures it is not a control message; SYNCs shouldn't be counted and we don't want receipts for receipts
-                        {
-                        // in order to prevent the resend queue from growing endlessly we ensure that we
-                        // have periodic acks by injecting artificial receipts at most once per batch.
-                        // this becomes a real receipt from the protocol perspective, but it will never be emitted
-                        // to the user
-                        receipt = RECEIPT_NO_EMIT;
-                        }
-
-                    if (receipt == null)
-                        {
-                        // mark message boundaries with artificial receipts, unlike RECEIPT_NO_EMIT these
-                        // are not real from a protocol perspective
-                        aoReceipt[ofAdd + cBufferAdd - 1] = fRecycleHead && cBufferAdd == 1
-                                                            ? RECEIPT_MSG_MARKER_HEADER_RECYCLE
-                                                            // combo receipt indicating msg and recycling
-                                                            : RECEIPT_MSG_MARKER;
-                        }
-                    else if (cBufferAdd == 1)
-                        {
-                        if (receipt == RECEIPT_ACKREQ_MARKER || receipt == RECEIPT_ACKREQ_MARKER_RECYCLE)
-                            {
-                            aoReceipt[ofAdd] = receipt;
-                            }
-                        else
-                            {
-                            // we don't have a way to encode this. There is also no way for a user to cause this
-                            // it could only be the result of a bug in the bus
-                            throw new IllegalStateException();
-                            }
-                        // else; it is an ACK with a marker; do nothing
-                        }
-                    else
-                        {
-                        aoReceipt[ofAdd + cBufferAdd - 1] = receipt;
-                        ++m_cReceiptsUnflushed;
-                        }
-
-                    m_ofAdd = ofAdd + cBufferAdd;
-
-                    BufferedConnection.this.f_cBytesUnacked.addAndGet(cbUnacked);
-
-                    return m_cbBatch += cb;
+                    return appendInternal(bufHead, fRecycleHead, bufseqBody, receipt, /*fHeaderPrePopulated*/ false);
                     }
                 finally
                     {
                     unlock();
                     }
+                }
+
+            /**
+             * Append a message with a pre-populated header to the batch.
+             * Unlike {@link #append}, this does NOT call populateMessageHeader() -
+             * the header ByteBuffer must already contain valid framing data.
+             *
+             * @param bufHead      pre-populated header buffer
+             * @param bufseqBody   the message body (may be null for control messages)
+             * @param receipt      the delivery receipt (may be null)
+             *
+             * @return the new batch size
+             */
+            public long appendPrepared(ByteBuffer bufHead, BufferSequence bufseqBody, Object receipt)
+                {
+                lock();
+                try
+                    {
+                    return appendInternal(bufHead, /*fRecycleHead*/ false, bufseqBody, receipt, /*fHeaderPrePopulated*/ true);
+                    }
+                finally
+                    {
+                    unlock();
+                    }
+                }
+
+            /**
+             * Append a message with a pre-populated header when the batch is already known to be consumer-owned
+             * on the SelectionService thread.
+             *
+             * @param bufHead      pre-populated header buffer
+             * @param bufseqBody   the message body (may be null for control messages)
+             * @param receipt      the delivery receipt (may be null)
+             *
+             * @return the new batch size
+             */
+            public long appendPreparedConsumer(ByteBuffer bufHead, BufferSequence bufseqBody, Object receipt)
+                {
+                return appendInternal(bufHead, /*fRecycleHead*/ false, bufseqBody, receipt, /*fHeaderPrePopulated*/ true);
+                }
+
+            /**
+             * Append a drained user message with a pre-populated header when the batch is already known to be
+             * consumer-owned on the SelectionService thread.
+             * <p>
+             * This is the common MPSC drain path: no header recycling, no control-message shape, and the header is
+             * already populated.
+             *
+             * @param bufHead      pre-populated header buffer
+             * @param bufseqBody   the message body
+             * @param receipt      the delivery receipt (may be null)
+             *
+             * @return the new batch size
+             */
+            public long appendPreparedMessageConsumer(ByteBuffer bufHead, BufferSequence bufseqBody, Object receipt)
+                {
+                addWriter();
+
+                int cBodyBuffers = bufseqBody.getBufferCount();
+                int cBufferAdd   = 1 + cBodyBuffers;
+                int ofAdd        = ensureAdditionalBufferCapacity(cBufferAdd);
+
+                Object[]     aoReceipt = m_aReceipt;
+                ByteBuffer[] aBuffer   = m_aBuffer;
+
+                bufseqBody.getBuffers(0, cBodyBuffers, aBuffer, ofAdd + 1);
+                aBuffer[ofAdd] = bufHead;
+
+                for (int of = ofAdd, ofEnd = ofAdd + cBufferAdd; of < ofEnd; ++of)
+                    {
+                    aBuffer[of].mark();
+                    }
+
+                long cbHead = bufHead.remaining();
+                long cbBody = bufseqBody.getLength();
+                long cb     = cbHead + cbBody;
+                int  ofTail = ofAdd + cBufferAdd - 1;
+
+                if (receipt == null && m_cbBatch == 0)
+                    {
+                    // Inject a protocol-level receipt at most once per batch so resend state cannot grow forever.
+                    receipt = RECEIPT_NO_EMIT;
+                    }
+
+                aoReceipt[ofAdd] = getReceiptSpanMarker(cBufferAdd);
+                if (receipt != null)
+                    {
+                    aoReceipt[ofTail] = receipt;
+                    ++m_cReceiptsUnflushed;
+                    }
+
+                m_ofAdd = ofAdd + cBufferAdd;
+
+                BufferedConnection.this.f_cBytesUnacked.addAndGet(cb);
+
+                ++m_cMessages;
+
+                return m_cbBatch += cb;
+                }
+
+            /**
+             * Shared append implementation used by both append paths.
+             *
+             * TEMP DEBUG NOTE: This method exists to keep the MPSC appendPrepared path
+             * semantically aligned with the legacy append path for receipts, markers,
+             * ack bookkeeping and migration/rewind behavior.
+             */
+            protected long appendInternal(ByteBuffer bufHead, boolean fRecycleHead,
+                    BufferSequence bufseqBody, Object receipt, boolean fHeaderPrePopulated)
+                {
+                addWriter();
+
+                int cBufferAdd = 1 + (bufseqBody == null
+                                      ? 0
+                                      : bufseqBody.getBufferCount());
+
+                int          ofAdd     = ensureAdditionalBufferCapacity(cBufferAdd);
+                Object[]     aoReceipt = m_aReceipt;
+                ByteBuffer[] aBuffer   = m_aBuffer;
+                long         cbBody    = 0;
+                if (bufseqBody != null)
+                    {
+                    bufseqBody.getBuffers(0, cBufferAdd - 1, aBuffer, ofAdd + 1);
+                    cbBody = bufseqBody.getLength();
+
+                    if (!fHeaderPrePopulated)
+                        {
+                        populateMessageHeader(bufHead, aBuffer, ofAdd + 1, cBufferAdd, cbBody);
+                        }
+                    }
+
+                aBuffer[ofAdd] = bufHead;
+
+                long cb       = bufHead.remaining() + cbBody;
+                long cbUnacked = cbBody;
+
+                if (fRecycleHead)
+                    {
+                    // we don't count recycled against unacked
+                    aoReceipt[ofAdd] = RECEIPT_HEADER_RECYCLE;
+                    }
+                else
+                    {
+                    cbUnacked += bufHead.remaining();
+                    }
+
+                // mark each of the append buffers so that we can reset to initial position
+                // in case we need to retransmit due to migration
+                for (int of = ofAdd, eOf = ofAdd + cBufferAdd; of < eOf; ++of)
+                    {
+                    aBuffer[of].mark();
+                    }
+
+                if (receipt == null && m_cbBatch == 0 &&
+                    cBufferAdd > 1) // cBufferAdd > 1 ensures it is not a control message; SYNCs shouldn't be counted and we don't want receipts for receipts
+                    {
+                    // in order to prevent the resend queue from growing endlessly we ensure that we
+                    // have periodic acks by injecting artificial receipts at most once per batch.
+                    // this becomes a real receipt from the protocol perspective, but it will never be emitted
+                    // to the user
+                    receipt = RECEIPT_NO_EMIT;
+                    }
+
+                if (receipt == null)
+                    {
+                    // mark message boundaries with artificial receipts, unlike RECEIPT_NO_EMIT these
+                    // are not real from a protocol perspective
+                    aoReceipt[ofAdd + cBufferAdd - 1] = fRecycleHead && cBufferAdd == 1
+                                                        ? RECEIPT_MSG_MARKER_HEADER_RECYCLE
+                                                        // combo receipt indicating msg and recycling
+                                                        : RECEIPT_MSG_MARKER;
+                    }
+                else if (cBufferAdd == 1)
+                    {
+                    if (receipt == RECEIPT_ACKREQ_MARKER || receipt == RECEIPT_ACKREQ_MARKER_RECYCLE)
+                        {
+                        aoReceipt[ofAdd] = receipt;
+                        }
+                    else
+                        {
+                        // we don't have a way to encode this. There is also no way for a user to cause this
+                        // it could only be the result of a bug in the bus
+                        throw new IllegalStateException();
+                        }
+                    }
+                else
+                    {
+                    aoReceipt[ofAdd + cBufferAdd - 1] = receipt;
+                    ++m_cReceiptsUnflushed;
+                    }
+
+                m_ofAdd = ofAdd + cBufferAdd;
+
+                BufferedConnection.this.f_cBytesUnacked.addAndGet(cbUnacked);
+
+                ++m_cMessages;
+
+                return m_cbBatch += cb;
                 }
 
             /**
@@ -1436,6 +2088,7 @@ public abstract class BufferedSocketBus
                     }
 
                 long cbBatch = m_cbBatch += batchSrc.getLength();
+                m_cMessages += batchSrc.getMessageCount();
 
                 // NOTE: f_cBytesUnacked and m_cReceiptsUnflushed don't need to be updated as it had already been
                 // accounted for when producing the source batch
@@ -1444,6 +2097,7 @@ public abstract class BufferedSocketBus
                 batchSrc.m_aReceipt = batchSrc.m_aBuffer = EMPTY_BUFFER_ARRAY;
                 batchSrc.m_ofAck    = batchSrc.m_ofSend  = batchSrc.m_ofAdd = 0;
                 batchSrc.m_cbBatch  = 0;
+                batchSrc.m_cMessages = 0;
                 // we don't null out batchSrc.m_next as there could still be head pointers referencing it
 
                 return cbBatch;
@@ -1505,6 +2159,52 @@ public abstract class BufferedSocketBus
                     {
                     Object     oReceipt = aReceipt[ofAck];
                     ByteBuffer buff     = aBuff[ofAck];
+
+                    if (oReceipt instanceof ReceiptSpanMarker)
+                        {
+                        ReceiptSpanMarker  marker          = (ReceiptSpanMarker) oReceipt;
+                        int                cSpan = Math.min(marker.getBufferCount(), ofAdd - ofAck);
+                        Object             oMessageReceipt = cSpan <= 0
+                                ? null
+                                : aReceipt[ofAck + cSpan - 1];
+
+                        for (int i = 0; i < cSpan; ++i)
+                            {
+                            int        ofSlot   = ofAck + i;
+                            ByteBuffer buffSlot = aBuff[ofSlot];
+
+                            if (buffSlot != null)
+                                {
+                                if (ofSlot >= ofSend)
+                                    {
+                                    ByteBuffer buffNew = ByteBuffer.allocate(buffSlot.remaining());
+                                    buffNew.put(buffSlot).flip();
+                                    aBuff[ofSlot] = buffNew;
+                                    }
+                                else
+                                    {
+                                    aBuff[ofSlot] = null;
+                                    }
+                                }
+
+                            aReceipt[ofSlot] = null;
+                            }
+
+                        ofAck += cSpan;
+                        ++cMsg;
+
+                        if (oMessageReceipt != null)
+                            {
+                            --cReceipts;
+                            aoReceipt[ofReceipt++] = oMessageReceipt;
+                            if (ofReceipt == aoReceipt.length)
+                                {
+                                break;
+                                }
+                            }
+
+                        continue;
+                        }
 
                     aBuff[ofAck]    = null;
                     aReceipt[ofAck] = null;
@@ -1695,6 +2395,11 @@ public abstract class BufferedSocketBus
             protected long m_cbBatch;
 
             /**
+             * The number of append operations represented by the batch.
+             */
+            protected int m_cMessages;
+
+            /**
              * The ByteBuffer array.
              */
             protected ByteBuffer[] m_aBuffer = new ByteBuffer[16];
@@ -1846,14 +2551,69 @@ public abstract class BufferedSocketBus
         protected final AtomicLong f_cBytesUnacked = new AtomicLong();
 
         /**
+         * True iff a single consumer currently owns write progression for this connection.
+         */
+        protected final AtomicBoolean m_fWriterActive = new AtomicBoolean();
+
+        /**
+         * Next time a periodic performance snapshot may be emitted.
+         */
+        protected volatile long m_ldtNextPerfTrace;
+
+        /**
+         * Count of consumer-owned write progression passes.
+         */
+        protected long m_cProgressPasses;
+
+        /**
+         * Count of passes that attempted direct write progression.
+         */
+        protected long m_cProgressDirect;
+
+        /**
+         * Count of passes that enqueued work to the selection service.
+         */
+        protected long m_cProgressQueued;
+
+        /**
+         * Count of passes that found no work to flush.
+         */
+        protected long m_cProgressNoWork;
+
+        /**
+         * Total bytes drained after the main flush decision point.
+         */
+        protected long m_cbProgressPostDrain;
+
+        /**
+         * Count of processed receipt control messages.
+         */
+        protected long m_cReceiptProcessCalls;
+
+        /**
+         * Total receipts requested by the peer.
+         */
+        protected long m_cReceiptsRequested;
+
+        /**
+         * Total receipts returned by the peer.
+         */
+        protected long m_cReceiptsReturned;
+
+        /**
+         * Count of ack timeout migrations observed by this connection.
+         */
+        protected long m_cAckTimeouts;
+
+        /**
          * ByteBuffer to write Receipt messages
          */
         protected ByteBuffer m_bufferRecycleOutboundReceipts;
 
         /**
-         * The number of threads waiting to use the connection.
+         * The number of threads actively preparing/enqueuing messages.
          */
-        protected final AtomicInteger m_cWritersWaiting = new AtomicInteger();
+        protected final AtomicInteger m_cWritersActive = new AtomicInteger();
 
         /**
          * The total number of messages (including control messages) received from our peer.
@@ -1869,6 +2629,11 @@ public abstract class BufferedSocketBus
          * The total number of receipts emitted.
          */
         protected long m_cReceiptsEmitted;
+
+        /**
+         * Reusable array for holding receipts.
+         */
+        protected final Object[] f_aoReceiptTmp = new Object[16];
 
         /**
          * The total number of messages (including control messages) which have been confirmed as delivered to our peer.
@@ -1910,10 +2675,6 @@ public abstract class BufferedSocketBus
          */
         protected long m_ldtAckFatalTimeout;
 
-        /**
-         * Reusable array for holding receipts.
-         */
-        protected final Object[] f_aoReceiptTmp = new Object[16];
         }
 
 
@@ -1989,6 +2750,52 @@ public abstract class BufferedSocketBus
      * This receipt *is* reflected on the wire, but never emitted to the user.
      */
     protected static final Object RECEIPT_NO_EMIT = new Object();
+
+    /**
+     * Receipt metadata for a contiguous user-message span in a consumer-owned write batch.
+     *
+     * The real receipt, if any, remains stored in the tail slot so the common MPSC append path can avoid
+     * allocating one wrapper object per message.
+     */
+    protected static final class ReceiptSpanMarker
+        {
+        ReceiptSpanMarker(int cBuffers)
+            {
+            m_cBuffers = cBuffers;
+            }
+
+        int getBufferCount()
+            {
+            return m_cBuffers;
+            }
+
+        private final int m_cBuffers;
+        }
+
+    /**
+     * Return a cached span marker for common message sizes and allocate only for unusually fragmented messages.
+     */
+    protected static ReceiptSpanMarker getReceiptSpanMarker(int cBuffers)
+        {
+        return cBuffers > 0 && cBuffers < RECEIPT_SPAN_MARKERS.length
+                ? RECEIPT_SPAN_MARKERS[cBuffers]
+                : new ReceiptSpanMarker(cBuffers);
+        }
+
+    /**
+     * Cached receipt span markers keyed by buffer count.
+     */
+    protected static ReceiptSpanMarker[] createReceiptSpanMarkers()
+        {
+        ReceiptSpanMarker[] aMarker = new ReceiptSpanMarker[33];
+        for (int i = 1, c = aMarker.length; i < c; ++i)
+            {
+            aMarker[i] = new ReceiptSpanMarker(i);
+            }
+        return aMarker;
+        }
+
+    protected static final ReceiptSpanMarker[] RECEIPT_SPAN_MARKERS = createReceiptSpanMarkers();
 
     /**
      * Empty buffer array for use in bundling.
