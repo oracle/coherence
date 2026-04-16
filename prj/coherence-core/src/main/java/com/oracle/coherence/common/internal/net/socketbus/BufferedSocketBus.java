@@ -705,12 +705,6 @@ public abstract class BufferedSocketBus
                     m_cbProgressPostDrain += cbPostDrain;
                     if (cbPostDrain > 0)
                         {
-                        // TEMP DEBUG: post-flush drain identified new MPSC work after a direct-write failure.
-                        // Keep the connection flushable and wake the selector so the follow-up pass is prompt.
-                        getLogger().log(makeRecord(Level.FINER,
-                                "{0} TEMP DEBUG post-flush drain after direct-write failure recovered {1} bytes for {2}; queued={3}, unflushed={4}",
-                                getLocalEndPoint(), cbPostDrain, BufferedConnection.this,
-                                f_cbQueued.get(), m_batchWriteUnflushed == null ? 0 : m_batchWriteUnflushed.getLength()));
                         addFlushable(this);
                         try
                             {
@@ -718,9 +712,6 @@ public abstract class BufferedSocketBus
                             }
                         catch (IOException eWakeup)
                             {
-                            getLogger().log(makeRecord(Level.FINER,
-                                    "{0} TEMP DEBUG post-flush wakeup failed for {1}: {2}",
-                                    getLocalEndPoint(), BufferedConnection.this, eWakeup));
                             onException(eWakeup);
                             }
                         return false;
@@ -758,12 +749,6 @@ public abstract class BufferedSocketBus
             m_cbProgressPostDrain += cbPostDrain;
             if (cbPostDrain > 0)
                 {
-                // TEMP DEBUG: post-flush drain identified new MPSC work that arrived during flush.
-                // Keep the connection flushable and wake the selector so the follow-up pass is prompt.
-                getLogger().log(makeRecord(Level.FINER,
-                        "{0} TEMP DEBUG post-flush drain recovered {1} bytes for {2}; queued={3}, unflushed={4}, auto={5}",
-                        getLocalEndPoint(), cbPostDrain, BufferedConnection.this,
-                        f_cbQueued.get(), m_batchWriteUnflushed == null ? 0 : m_batchWriteUnflushed.getLength(), fAuto));
                 addFlushable(this);
                 try
                     {
@@ -771,9 +756,6 @@ public abstract class BufferedSocketBus
                     }
                 catch (IOException e)
                     {
-                    getLogger().log(makeRecord(Level.FINER,
-                            "{0} TEMP DEBUG post-flush wakeup failed for {1}: {2}",
-                            getLocalEndPoint(), BufferedConnection.this, e));
                     onException(e);
                     }
                 return false;
@@ -1958,10 +1940,9 @@ public abstract class BufferedSocketBus
 
             /**
              * Shared append implementation used by both append paths.
-             *
-             * TEMP DEBUG NOTE: This method exists to keep the MPSC appendPrepared path
-             * semantically aligned with the legacy append path for receipts, markers,
-             * ack bookkeeping and migration/rewind behavior.
+             * Keeps the MPSC appendPrepared path aligned with the legacy append
+             * path for receipts, markers, ack bookkeeping and
+             * migration/rewind behavior.
              */
             protected long appendInternal(ByteBuffer bufHead, boolean fRecycleHead,
                     BufferSequence bufseqBody, Object receipt, boolean fHeaderPrePopulated)
