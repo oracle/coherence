@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net.socketbus;
 
@@ -117,12 +117,17 @@ public class SocketMessageBus
         AtomicInteger cWriters = conn.m_cWritersWaiting;
 
         cWriters.getAndIncrement(); // track threads waiting to use the connection
-        synchronized (conn)
+        conn.lock();
+        try
             {
             cWriters.getAndDecrement();
 
             conn.ensureValid().evaluateAutoFlush(conn.isFlushInProgress(), conn.isFlushRequired(),
                     conn.send(bufseq, receipt), fSocketWrite);
+            }
+        finally
+            {
+            conn.unlock();
             }
         }
 
@@ -401,7 +406,8 @@ public class SocketMessageBus
         protected void setProtocolVersion(int nProt)
             {
             // drain the requests sent before this point
-            synchronized (this)
+            lock();
+            try
                 {
                 super.setProtocolVersion(nProt);
 
@@ -437,12 +443,17 @@ public class SocketMessageBus
                         }
                     }
                 }
+            finally
+                {
+                unlock();
+                }
             }
 
         @Override
         public void drainReceipts()
             {
-            synchronized (this)
+            lock();
+            try
                 {
                 LinkedList<Pair<BufferSequence, Object>> queue = m_queuePreNegotiate;
                 m_queuePreNegotiate = null;
@@ -466,6 +477,10 @@ public class SocketMessageBus
                     }
 
                 super.drainReceipts();
+                }
+            finally
+                {
+                unlock();
                 }
             }
 
@@ -1103,7 +1118,8 @@ public class SocketMessageBus
          */
         protected boolean deferSend(BufferSequence bufSeq, Object receipt)
             {
-            synchronized (this)
+            lock();
+            try
                 {
                 ensureValid();
 
@@ -1118,7 +1134,8 @@ public class SocketMessageBus
                         // emit the BACKLOG_EXCESSIVE event to prevent OOM in case of delayed handshake
                         invoke(() ->
                             {
-                            synchronized (this)
+                            lock();
+                            try
                                 {
                                 if (!m_fBacklog && getProtocolVersion() < 0)
                                     {
@@ -1127,6 +1144,10 @@ public class SocketMessageBus
                                             Event.Type.BACKLOG_EXCESSIVE,
                                             getPeer()));
                                     }
+                                }
+                            finally
+                                {
+                                unlock();
                                 }
                             });
                         }
@@ -1139,6 +1160,11 @@ public class SocketMessageBus
                     return true;
                     }
                 }
+            finally
+                {
+                unlock();
+                }
+            
             return false;
             }
 

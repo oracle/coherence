@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import java.net.SocketException;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 import java.util.zip.CRC32;
@@ -238,8 +240,8 @@ public abstract class BufferedSocketBus
 
         /**
          * Extracted post "send" logic.
-         *
-         * The caller must be synchronized on this connection. The parameter ordering allows the caller to inline
+         * <p/>
+         * The caller must hold the lock on this connection. The parameter ordering allows the caller to inline
          * the computation of each parameter.
          *
          * @param fFlushInProg   true if a flush was in progress before the send
@@ -384,7 +386,8 @@ public abstract class BufferedSocketBus
                 m_batchWriteSendHead = batch;
                 try
                     {
-                    synchronized (batch) // sync'd because ack can come in while we're still in batch.write
+                    batch.lock();  // lock because ack can come in while we're still in batch.write
+                    try
                         {
                         if (batch.write())
                             {
@@ -393,6 +396,10 @@ public abstract class BufferedSocketBus
                             return true;
                             }
                         // else; we didn't write everything, fall through and evaluate if we need to enqueue the batch
+                        }
+                    finally
+                        {
+                        batch.unlock();
                         }
                     }
                 catch (IOException e)
@@ -581,9 +588,14 @@ public abstract class BufferedSocketBus
                     if (batchNext == null && m_batchWriteUnflushed == batchResend)
                         {
                         // the app may be concurrently writing to this (the last) batch, thus we must sync
-                        synchronized (batchResend)
+                        batchResend.lock();
+                        try
                             {
                             cReturned -= cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
+                            }
+                        finally
+                            {
+                            batchResend.unlock();
                             }
                         }
                     else
@@ -1166,7 +1178,8 @@ public abstract class BufferedSocketBus
             // Note: we must drain in send order, specifially
             // resent, current, queue'd, unflushed
 
-            synchronized (this)
+            lock();
+            try
                 {
                 WriteBatch batch = m_batchWriteUnflushed;
                 m_batchWriteUnflushed = null;
@@ -1195,6 +1208,10 @@ public abstract class BufferedSocketBus
                     }
 
                 m_batchWriteResendHead = m_batchWriteSendHead = m_batchWriteTail = new WriteBatch(/*fLink*/ false);
+                }
+            finally
+                {
+                unlock();
                 }
             }
 
@@ -1281,7 +1298,7 @@ public abstract class BufferedSocketBus
             /**
              * Append a message to the batch.
              *
-             * This method is synchronized as it is always called from the app thread and
+             * This method locks the batch, as it is always called from the app thread and
              * the batch may be concurrently being ack processed on the SS thread.
              *
              * @param bufHead       the buffer header to append
@@ -1291,89 +1308,100 @@ public abstract class BufferedSocketBus
              *
              * @return the batch size
              */
-            public synchronized long append(ByteBuffer bufHead, boolean fRecycleHead, BufferSequence bufseqBody, Object receipt)
+            public long append(ByteBuffer bufHead, boolean fRecycleHead, BufferSequence bufseqBody, Object receipt)
                 {
-                addWriter();
-
-                int cBufferAdd = 1 + (bufseqBody == null ? 0 : bufseqBody.getBufferCount());
-
-                int          ofAdd     = ensureAdditionalBufferCapacity(cBufferAdd);
-                Object[]     aoReceipt = m_aReceipt;
-                ByteBuffer[] aBuffer   = m_aBuffer;
-                long         cbBody    = 0;
-                if (bufseqBody != null)
+                lock();
+                try
                     {
-                    bufseqBody.getBuffers(0, cBufferAdd - 1, aBuffer, ofAdd + 1);
-                    cbBody = bufseqBody.getLength();
+                    addWriter();
 
-                    populateMessageHeader(bufHead, aBuffer, ofAdd + 1, cBufferAdd, cbBody);
-                    }
+                    int cBufferAdd = 1 + (bufseqBody == null
+                                          ? 0
+                                          : bufseqBody.getBufferCount());
 
-                aBuffer[ofAdd] = bufHead;
-
-                long cb        = bufHead.remaining() + cbBody;
-                long cbUnacked = cbBody;
-
-                if (fRecycleHead)
-                    {
-                    // we don't count recycled against unacked
-                    aoReceipt[ofAdd] = RECEIPT_HEADER_RECYCLE;
-                    }
-                else
-                    {
-                    cbUnacked += bufHead.remaining();
-                    }
-
-                // mark each of the append buffers so that we can reset to initial position
-                // in case we need to retransmit due to migration
-                for (int of = ofAdd, eOf = ofAdd + cBufferAdd; of < eOf; ++of)
-                    {
-                    aBuffer[of].mark();
-                    }
-
-                if (receipt == null && m_cbBatch == 0 &&
-                    cBufferAdd > 1) // cBufferAdd > 1 ensures it is not a control message; SYNCs shouldn't be counted and we don't want receipts for receipts
-                    {
-                    // in order to prevent the resend queue from growing endlessly we ensure that we
-                    // have periodic acks by injecting artificial receipts at most once per batch.
-                    // this becomes a real receipt from the protocol perspective, but it will never be emitted
-                    // to the user
-                    receipt = RECEIPT_NO_EMIT;
-                    }
-
-                if (receipt == null)
-                    {
-                    // mark message boundaries with artificial receipts, unlike RECEIPT_NO_EMIT these
-                    // are not real from a protocol perspective
-                    aoReceipt[ofAdd + cBufferAdd - 1] = fRecycleHead && cBufferAdd == 1
-                            ? RECEIPT_MSG_MARKER_HEADER_RECYCLE // combo receipt indicating msg and recycling
-                            : RECEIPT_MSG_MARKER;
-                    }
-                else if (cBufferAdd == 1)
-                    {
-                    if (receipt == RECEIPT_ACKREQ_MARKER || receipt == RECEIPT_ACKREQ_MARKER_RECYCLE)
+                    int ofAdd = ensureAdditionalBufferCapacity(cBufferAdd);
+                    Object[] aoReceipt = m_aReceipt;
+                    ByteBuffer[] aBuffer = m_aBuffer;
+                    long cbBody = 0;
+                    if (bufseqBody != null)
                         {
-                        aoReceipt[ofAdd] = receipt;
+                        bufseqBody.getBuffers(0, cBufferAdd - 1, aBuffer, ofAdd + 1);
+                        cbBody = bufseqBody.getLength();
+
+                        populateMessageHeader(bufHead, aBuffer, ofAdd + 1, cBufferAdd, cbBody);
+                        }
+
+                    aBuffer[ofAdd] = bufHead;
+
+                    long cb = bufHead.remaining() + cbBody;
+                    long cbUnacked = cbBody;
+
+                    if (fRecycleHead)
+                        {
+                        // we don't count recycled against unacked
+                        aoReceipt[ofAdd] = RECEIPT_HEADER_RECYCLE;
                         }
                     else
                         {
-                        // we don't have a way to encode this. There is also no way for a user to cause this
-                        // it could only be the result of a bug in the bus
-                        throw new IllegalStateException();
+                        cbUnacked += bufHead.remaining();
                         }
-                    // else; it is an ACK with a marker; do nothing
+
+                    // mark each of the append buffers so that we can reset to initial position
+                    // in case we need to retransmit due to migration
+                    for (int of = ofAdd, eOf = ofAdd + cBufferAdd; of < eOf; ++of)
+                        {
+                        aBuffer[of].mark();
+                        }
+
+                    if (receipt == null && m_cbBatch == 0 &&
+                        cBufferAdd > 1) // cBufferAdd > 1 ensures it is not a control message; SYNCs shouldn't be counted and we don't want receipts for receipts
+                        {
+                        // in order to prevent the resend queue from growing endlessly we ensure that we
+                        // have periodic acks by injecting artificial receipts at most once per batch.
+                        // this becomes a real receipt from the protocol perspective, but it will never be emitted
+                        // to the user
+                        receipt = RECEIPT_NO_EMIT;
+                        }
+
+                    if (receipt == null)
+                        {
+                        // mark message boundaries with artificial receipts, unlike RECEIPT_NO_EMIT these
+                        // are not real from a protocol perspective
+                        aoReceipt[ofAdd + cBufferAdd - 1] = fRecycleHead && cBufferAdd == 1
+                                                            ? RECEIPT_MSG_MARKER_HEADER_RECYCLE
+                                                            // combo receipt indicating msg and recycling
+                                                            : RECEIPT_MSG_MARKER;
+                        }
+                    else if (cBufferAdd == 1)
+                        {
+                        if (receipt == RECEIPT_ACKREQ_MARKER || receipt == RECEIPT_ACKREQ_MARKER_RECYCLE)
+                            {
+                            aoReceipt[ofAdd] = receipt;
+                            }
+                        else
+                            {
+                            // we don't have a way to encode this. There is also no way for a user to cause this
+                            // it could only be the result of a bug in the bus
+                            throw new IllegalStateException();
+                            }
+                        // else; it is an ACK with a marker; do nothing
+                        }
+                    else
+                        {
+                        aoReceipt[ofAdd + cBufferAdd - 1] = receipt;
+                        ++m_cReceiptsUnflushed;
+                        }
+
+                    m_ofAdd = ofAdd + cBufferAdd;
+
+                    BufferedConnection.this.f_cBytesUnacked.addAndGet(cbUnacked);
+
+                    return m_cbBatch += cb;
                     }
-                else
+                finally
                     {
-                    aoReceipt[ofAdd + cBufferAdd - 1] = receipt;
-                    ++m_cReceiptsUnflushed;
+                    unlock();
                     }
-
-                m_ofAdd = ofAdd + cBufferAdd;
-
-                BufferedConnection.this.f_cBytesUnacked.addAndGet(cbUnacked);
-
-                return m_cbBatch += cb;
                 }
 
             /**
@@ -1646,6 +1674,22 @@ public abstract class BufferedSocketBus
                 }
 
             /**
+             * Lock this batch in order to mutate its state.
+             */
+            public void lock()
+                {
+                f_lock.lock();
+                }
+
+            /**
+             * Unlock this batch.
+             */
+            public void unlock()
+                {
+                f_lock.unlock();
+                }
+
+            /**
              * The total number of bytes remaining to write in the batch.
              */
             protected long m_cbBatch;
@@ -1679,14 +1723,19 @@ public abstract class BufferedSocketBus
              * The next batch in the write queue.
              */
             protected volatile WriteBatch m_next;
+
+            /**
+             * Lock used to synchronize access to this WriteBatch.
+             */
+            private final Lock f_lock = new ReentrantLock();
             }
 
         // ----- data members -------------------------------------------
 
         /**
          * The tail of the write queue.
-         *
-         * This is only accessed while synchronized on the connection.
+         * <p/>
+         * This is only accessed while holding the lock on the connection.
          */
         protected WriteBatch m_batchWriteTail = new WriteBatch(/*fLink*/ false);
 
