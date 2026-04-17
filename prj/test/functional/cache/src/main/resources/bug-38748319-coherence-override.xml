@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<!--
+  Keep the regression on the default TCMP transport, but reduce the packet size
+  so environments with very small UDP socket buffers can still start members.
+  The BUG-38748319 path is in PacketPublisher resend logic, so switching the
+  transport would weaken coverage more than shrinking packet size would.
+-->
+<coherence xml-override="common/tangosol-coherence-override.xml">
+  <cluster-config>
+    <packet-publisher>
+      <packet-size>
+        <maximum-length>768</maximum-length>
+        <preferred-length>768</preferred-length>
+      </packet-size>
+    </packet-publisher>
+  </cluster-config>
+</coherence>

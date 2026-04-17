@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -372,6 +372,38 @@ public class MapEventMessage
                 }
             }
         return oEvent;
+        }
+
+    // Declared at the super level
+    /**
+     * Instantiate a copy of this message. This is quite different from the
+     * standard "clone" since only the "transmittable" portion of the message
+     * (and none of the internal) state should be cloned.
+     */
+    public com.tangosol.coherence.component.net.Message cloneMessage()
+        {
+        // Resends must use a fresh message instance; the original may still
+        // carry transport-specific buffer and packet state from a prior send.
+        MapEventMessage msgClone = (MapEventMessage) super.cloneMessage();
+        long[]          alFilter = getFilterId();
+
+        msgClone.setCacheId(getCacheId());
+        msgClone.setEventSUID(getEventSUID());
+        msgClone.setEventType(getEventType());
+        msgClone.setFilterId(alFilter == null ? null : alFilter.clone());
+        msgClone.setFromMember(getFromMember());
+        msgClone.setKey(getKey());
+        msgClone.setNewValue(getNewValue());
+        msgClone.setNotifyDelivery(isNotifyDelivery());
+        msgClone.setOldestPendingEventSUID(getOldestPendingEventSUID());
+        msgClone.setOldValue(getOldValue());
+        msgClone.setPartition(getPartition());
+        msgClone.setToMemberSet(getToMemberSet());
+        msgClone.setToPollId(getToPollId());
+        msgClone.setTracingSpanContext(getTracingSpanContext());
+        msgClone.setVersion(getVersion());
+
+        return msgClone;
         }
     
     /**
