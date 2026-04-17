@@ -949,6 +949,18 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Return the currently managed peer EndPoints.
+     *
+     * @return the currently managed peer EndPoints
+     *
+     * @since 12.2.1.4.25
+     */
+    public Set<EndPoint> getPeerEndPoints()
+        {
+        return f_mapConnections.keySet();
+        }
+
+    /**
      * Configure the specified Socket
      *
      * @param socket  the socket to configure
@@ -2199,19 +2211,18 @@ public abstract class AbstractSocketBus
                         @Override
                         public void run()
                             {
-                            {
                             Connection.this.lock();
                             try
                                 {
                                 if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
                                     {
-                                    getLogger().log(makeExceptionRecord(Level.FINER, eReason,
-                                                                        "{0} migrating connection with {1} off of {2} on {3}",
-                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this));
+                                    // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
+                                    getLogger().log(makeRecord(Level.FINER,
+                                                                        "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
 
                                     m_eMigrationCause = eReason;
                                     onMigration();
-
 
                                     // we're sync'd on the connection so nothing new can be scheduled
                                     try
