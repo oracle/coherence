@@ -67,11 +67,13 @@ public class IsCoherenceRunning
                 {
                 if (!coherence.whenStarted().isDone() || !coherence.isStarted())
                     {
+                    System.out.println("Bedrock: IsCoherenceRunning failed.Coherence instance \"" + sName + "\" is not started");
                     return false;
                     }
                 }
             else
                 {
+                System.out.println("Bedrock: IsCoherenceRunning failed.Coherence instance \"" + sName + "\" not found");
                 return false;
                 }
             }

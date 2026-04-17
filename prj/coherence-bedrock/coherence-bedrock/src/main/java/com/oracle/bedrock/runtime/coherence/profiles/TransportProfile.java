@@ -1,47 +1,41 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
-
 package com.oracle.bedrock.runtime.coherence.profiles;
 
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
-
 import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.MetaClass;
 import com.oracle.bedrock.runtime.Platform;
 import com.oracle.bedrock.runtime.Profile;
-
 import com.oracle.bedrock.runtime.java.options.SystemProperties;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.tangosol.coherence.config.Config;
-import com.tangosol.internal.util.invoke.Lambdas;
-
 
 /**
- * A Bedrock {@link Profile} to set the Coherence lambda mode.
+ * A Bedrock {@link Profile} to set the Coherence reliable transport property.
  */
-public class LambdaModeProfile
+public class TransportProfile
         implements Profile, Option
     {
     /**
-     * Create a {@link LambdaModeProfile}.
+     * Create a {@link TransportProfile}.
      *
-     * @param sParam  the Coherence lambda mode to set
+     * @param sParam  the Coherence reliable transport value to set
      */
     @OptionsByType.Default
-    public LambdaModeProfile(String sParam)
+    public TransportProfile(String sParam)
         {
-        if ("static".equals(sParam) || "dynamic".equals(sParam))
+        if ("datagram".equals(sParam) || "tmb".equals(sParam) || "tmbs".equals(sParam))
             {
             m_sValue = sParam;
             }
         else
             {
-            throw new IllegalStateException("Invalid lambda mode parameter, must be \"static\" or \"dynamic\"");
+            throw new IllegalStateException("Invalid transport parameter, must be \"datagram\" or \"tmb\"");
             }
         }
 
@@ -49,10 +43,10 @@ public class LambdaModeProfile
     public void onLaunching(Platform platform, MetaClass metaClass, OptionsByType optionsByType)
         {
         SystemProperties properties = optionsByType.get(SystemProperties.class);
-        SystemProperty   property   = properties.get(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY);
+        SystemProperty   property   = properties.get(PROP_TRANSPORT);
         if (property == null)
             {
-            optionsByType.add(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, m_sValue));
+            optionsByType.add(SystemProperty.of(PROP_TRANSPORT, m_sValue));
             }
         }
 
@@ -69,7 +63,12 @@ public class LambdaModeProfile
     // ----- data members ---------------------------------------------------
 
     /**
-     * The Coherence lambda mode value to set.
+     * The Coherence reliable transport property.
+     */
+    public static final String PROP_TRANSPORT = "coherence.transport.reliable";
+
+    /**
+     * The Coherence reliable transport value to set.
      */
     private final String m_sValue;
     }

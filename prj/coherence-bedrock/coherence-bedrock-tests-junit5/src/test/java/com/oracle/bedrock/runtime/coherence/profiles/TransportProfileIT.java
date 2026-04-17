@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,44 +13,43 @@ import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
-import com.tangosol.internal.util.invoke.Lambdas;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class LambdaModeProfileIT
+public class TransportProfileIT
     {
     @Test
-    public void shouldSetLambdaMode()
+    public void shouldSetTransport()
         {
-        LambdaModeProfile profile = new LambdaModeProfile("static");
+        TransportProfile profile = new TransportProfile("datagram");
 
         try (CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class,
                 profile,
-                ClusterName.of("shouldSetLambdaMode"),
+                ClusterName.of("shouldSetTransport"),
                 WellKnownAddress.loopback(),
                 LocalHost.only()))
             {
             Eventually.assertDeferred(member::isCoherenceRunning, is(true));
-            assertThat(member.invoke(() -> System.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)), is("static"));
+            assertThat(member.invoke(() -> System.getProperty(TransportProfile.PROP_TRANSPORT)), is("datagram"));
             }
         }
 
     @Test
-    public void shouldNotSetLambdaModeIfAlreadySet()
+    public void shouldNotSetTransportIfAlreadySet()
         {
-        LambdaModeProfile profile = new LambdaModeProfile("static");
+        TransportProfile profile = new TransportProfile("datagram");
 
         try (CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class,
                 profile,
-                SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, "dynamic"),
-                ClusterName.of("shouldNotSetLambdaModeIfAlreadySet"),
+                SystemProperty.of(TransportProfile.PROP_TRANSPORT, "tmb"),
+                ClusterName.of("shouldNotSetTransportIfAlreadySet"),
                 WellKnownAddress.loopback(),
                 LocalHost.only()))
             {
             Eventually.assertDeferred(member::isCoherenceRunning, is(true));
-            assertThat(member.invoke(() -> System.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)), is("dynamic"));
+            assertThat(member.invoke(() -> System.getProperty(TransportProfile.PROP_TRANSPORT)), is("tmb"));
             }
         }
 
