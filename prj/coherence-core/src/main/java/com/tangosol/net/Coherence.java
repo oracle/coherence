@@ -14,7 +14,6 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.common.util.Duration;
 
-import com.tangosol.application.ContainerAdapter;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 
