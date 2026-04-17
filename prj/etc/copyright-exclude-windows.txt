@@ -57,6 +57,7 @@ cache-config-UTF8-BOM.xml
 .jar
 .jks
 .jpg
+.md
 .json
 .key
 .onnx
