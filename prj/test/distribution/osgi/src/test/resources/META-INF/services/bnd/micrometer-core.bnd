@@ -1,0 +1,6 @@
+Bundle-Version: 1.0.0
+Bundle-Name: Micrometer Core
+Bundle-SymbolicName: io.micrometer.core
+Bundle-Vendor: Micrometer
+Export-Package: io.micrometer.core.*
+Import-Package: *;resolution:=optional
