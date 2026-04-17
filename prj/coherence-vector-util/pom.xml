@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.oracle.coherence</groupId>
+    <artifactId>main</artifactId>
+    <version>${revision}</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <artifactId>coherence-vector-util</artifactId>
+  <name>Coherence Vector Util</name>
+
+  <properties>
+    <module.name>com.oracle.coherence.vector.util</module.name>
+  </properties>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <executions>
+            <!-- Compile Java 22+  -->
+            <execution>
+              <id>compile-java22</id>
+              <phase>compile</phase>
+              <goals>
+                <goal>compile</goal>
+              </goals>
+              <configuration>
+                <release>22</release>
+                <compileSourceRoots>
+                  <compileSourceRoot>${project.basedir}/src/main/java21</compileSourceRoot>
+                </compileSourceRoots>
+                <compilerArgs>
+                  <arg>--add-modules</arg>
+                  <arg>jdk.incubator.vector</arg>
+                </compilerArgs>
+                <multiReleaseOutput>true</multiReleaseOutput>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+        <!-- maven-jar-plugin with configuration to package generated MANIFEST.MF to project jar -->
+        <plugin>
+          <artifactId>maven-jar-plugin</artifactId>
+          <configuration>
+            <archive>
+              <manifestEntries>
+                <Multi-Release>true</Multi-Release>
+              </manifestEntries>
+            </archive>
+          </configuration>
+        </plugin>
+
+      </plugins>
+    </pluginManagement>
+  </build>
+
+</project>

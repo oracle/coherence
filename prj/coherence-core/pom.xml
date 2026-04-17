@@ -33,6 +33,12 @@
       <version>${project.version}</version>
     </dependency>
 
+    <dependency>
+      <groupId>${coherence.group.id}</groupId>
+      <artifactId>coherence-vector-util</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <!-- asm -->
     <dependency>
       <groupId>org.ow2.asm</groupId>
@@ -56,6 +62,7 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- fastutil -->
     <dependency>
       <groupId>it.unimi.dsi</groupId>
       <artifactId>fastutil-core</artifactId>

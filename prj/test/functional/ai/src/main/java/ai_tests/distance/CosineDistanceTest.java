@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,7 +12,6 @@ import com.oracle.coherence.ai.Float32Vector;
 import com.oracle.coherence.ai.Int8Vector;
 import com.oracle.coherence.ai.Vector;
 import com.oracle.coherence.ai.distance.CosineDistance;
-import com.oracle.coherence.ai.util.Vectors;
 
 import com.oracle.coherence.io.json.JsonSerializer;
 
@@ -68,7 +67,7 @@ public class CosineDistanceTest
     public void shouldCalculateFloat32DistanceForExactMatch()
         {
         CosineDistance<float[]> algorithm = new CosineDistance<>();
-        float[]                 floats    = Vectors.normalize(new float[]{0.2f, 0.4f, 0.1f, 0.3f});  // already normalized
+        float[]                 floats    = new float[]{0.2f, 0.4f, 0.1f, 0.3f};  // already normalized
         Vector<float[]>         vector    = new Float32Vector(floats);
         double                  distance  = algorithm.distance(vector, vector);
         assertThat(distance, is(0.0d));
@@ -83,7 +82,7 @@ public class CosineDistanceTest
         float[]                 floats2   = new float[]{0.1f, 0.5f, 0.2f, 0.2f}; // already normalized
         Vector<float[]>         vector2   = new Float32Vector(floats2);
         double                  distance  = algorithm.distance(vector1, vector2);
-        assertThat(distance, is(closeTo(0.699999988079071d, 0.0000001d)));
+        assertThat(distance, is(closeTo(0.0606635, 0.0000001d)));
         }
 
     @Test

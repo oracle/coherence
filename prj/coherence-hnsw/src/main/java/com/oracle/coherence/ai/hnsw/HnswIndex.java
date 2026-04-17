@@ -11,16 +11,20 @@ import com.oracle.coherence.ai.Vector;
 import com.oracle.coherence.ai.VectorIndex;
 import com.oracle.coherence.ai.VectorIndexExtractor;
 import com.oracle.coherence.ai.search.BinaryQueryResult;
+
 import com.oracle.coherence.hnswlib.Hnswlib.QueryFilter;
 import com.oracle.coherence.hnswlib.Index;
 import com.oracle.coherence.hnswlib.QueryTuple;
 import com.oracle.coherence.hnswlib.SpaceName;
+
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.EvolvablePortableObject;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
+
 import com.tangosol.net.BackingMapContext;
+
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.ExternalizableHelper;
@@ -30,10 +34,12 @@ import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
+
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+
 import jakarta.json.bind.annotation.JsonbProperty;
 
 import java.io.Closeable;

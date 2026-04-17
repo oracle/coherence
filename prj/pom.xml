@@ -353,6 +353,7 @@
         <module>coherence-core-24</module>
         <module>coherence-core-components</module>
         <module>coherence-tracing</module>
+        <module>coherence-vector-util</module>
 
         <!-- distributed modules -->
         <module>coherence-bom</module>
@@ -449,6 +450,7 @@
       <modules>
         <!-- internal modules -->
         <module>coherence-dependencies</module>
+        <module>coherence-vector-util</module>
 
         <module>coherence-testing-data</module>
         <module>coherence-testing-support</module>

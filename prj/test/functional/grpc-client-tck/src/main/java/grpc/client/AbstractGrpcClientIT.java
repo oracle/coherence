@@ -16,13 +16,16 @@ import com.oracle.coherence.ai.QueryResult;
 import com.oracle.coherence.ai.Vector;
 import com.oracle.coherence.ai.search.SimilaritySearch;
 import com.oracle.coherence.ai.util.Vectors;
+
 import com.oracle.coherence.common.base.Exceptions;
+
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
 import com.oracle.coherence.grpc.client.common.DeactivationListener;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
 import com.oracle.coherence.grpc.client.common.GrpcRemoteCacheService;
 import com.oracle.coherence.grpc.client.common.NamedCacheClient;
 import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
+
 import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteCacheService;
@@ -30,9 +33,10 @@ import com.tangosol.coherence.component.util.SafeAsyncNamedCache;
 
 import com.tangosol.coherence.component.util.SafeNamedCache;
 import com.tangosol.coherence.component.util.safeService.SafeCacheService;
-import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
+import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.net.SessionNamedCache;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
@@ -43,11 +47,12 @@ import com.tangosol.net.CacheService;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.OperationalContext;
-
 import com.tangosol.net.RequestIncompleteException;
+
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import com.tangosol.net.partition.KeyPartitioningStrategy;
+
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
 import com.tangosol.util.Extractors;
