@@ -222,6 +222,7 @@ public abstract class AbstractSocketBus
                     conn.unlock();
                     }
                 }
+            }
         catch (IOException e)
             {
             throw new IllegalStateException(e);
