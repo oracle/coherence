@@ -548,6 +548,9 @@ public class Storage
      */
     private int __m_QueryRetries;
 
+    /* DO NOT MERGE */
+    private static final boolean executorDebug = Boolean.getBoolean("executorDebug");
+
     /**
      * Property QuerySizeCache
      *
@@ -11411,11 +11414,8 @@ public class Storage
         public static final int BACKUP_FLASHJOURNAL = 7;
 
         /**
-         * Property BACKUP_OFFHEAP
-         *
-         * <backup-storage/type> value is "off-heap"
+         * Property BACKUP_OFFHEAP = 1 was deprecated in 12.1.3 and removed in 15.1.1.0.
          */
-        public static final int BACKUP_OFFHEAP = 1;
 
         /**
          * Property BACKUP_ONHEAP
@@ -12052,10 +12052,6 @@ public class Storage
                                 ((MappedBufferManager) bufferMgr).close();
                                 }
                             catch (ClassCastException ignored) {}
-                            break;
-
-                        case BACKUP_OFFHEAP:
-                            map.clear();
                             break;
 
                         case BACKUP_SCHEME:

@@ -1494,7 +1494,147 @@ public class ServiceModel
         
         return -1; // n/a
         }
-    
+
+    public long getTaskRateCount()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getRateCount();
+            }
+        return 0L;
+        }
+
+    public double getTaskRateOneMinute()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getOneMinuteRate();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskRateFiveMinute()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getFiveMinuteRate();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskRateFifteenMinute()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getFifteenMinuteRate();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskRateMean()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMeanRate();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDurationMax()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().getMax();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDurationMean()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().getMean();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDurationMedian()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().getMedian();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDurationMin()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().getMin();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDuration75thPercentile()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().get75thPercentile();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDuration95thPercentile()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().get95thPercentile();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDuration98thPercentile()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().get98thPercentile();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDuration99thPercentile()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().get99thPercentile();
+            }
+        return 0.0d;
+        }
+
+    public double getTaskDuration999thPercentile()
+        {
+        DaemonPool pool = get_DaemonPool();
+        if (pool != null && pool.isStarted())
+            {
+            return pool.getMetricsSnapshot().get999thPercentile();
+            }
+        return 0.0d;
+        }
+
     // Accessor for the property "TaskAverageDuration"
     /**
      * Getter for property TaskAverageDuration.<p>
@@ -2368,7 +2508,7 @@ public class ServiceModel
         mapSnapshot.put("TransportSentMessages", Long.valueOf(ExternalizableHelper.readLong(in)));
         mapSnapshot.put("TransportStatus", ExternalizableHelper.readSafeUTF(in));
         mapSnapshot.put("Type", ExternalizableHelper.readSafeUTF(in));
-        
+
         // Persistence statistics
         mapSnapshot.put("PersistenceEnvironment", ExternalizableHelper.readSafeUTF(in));
         mapSnapshot.put("PersistenceLatencyAverage", Float.valueOf(in.readFloat()));
@@ -2391,6 +2531,24 @@ public class ServiceModel
             mapSnapshot.put("PersistenceBackupSpaceAvailable", Long.valueOf(ExternalizableHelper.readLong(in)));
             mapSnapshot.put("PersistenceBackupSpaceTotal", Long.valueOf(ExternalizableHelper.readLong(in)));
             mapSnapshot.put("PersistenceBackupSpaceUsed", Long.valueOf(ExternalizableHelper.readLong(in)));
+            }
+
+        if (ExternalizableHelper.isVersionCompatible(in, 15, 1, 1, 0, 0))
+            {
+            mapSnapshot.put("TaskDuration75thPercentile", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDuration95thPercentile", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDuration98thPercentile", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDuration99thPercentile", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDuration999thPercentile", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDurationMax", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDurationMean", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDurationMedian", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskDurationMin", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskRateCount", Long.valueOf(ExternalizableHelper.readLong(in)));
+            mapSnapshot.put("TaskRateFifteenMinute", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskRateFiveMinute", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskRateMean", Double.valueOf(in.readDouble()));
+            mapSnapshot.put("TaskRateOneMinute", Double.valueOf(in.readDouble()));
             }
         }
 
@@ -2799,6 +2957,25 @@ public class ServiceModel
             ExternalizableHelper.writeLong(out, getPersistenceBackupSpaceAvailable());
             ExternalizableHelper.writeLong(out, getPersistenceBackupSpaceTotal());
             ExternalizableHelper.writeLong(out, getPersistenceBackupSpaceUsed());
+            }
+
+        // added in 15.1.1.0
+        if (ExternalizableHelper.isVersionCompatible(out, 15, 1, 1, 0, 0))
+            {
+            out.writeDouble(getTaskDuration75thPercentile());
+            out.writeDouble(getTaskDuration95thPercentile());
+            out.writeDouble(getTaskDuration98thPercentile());
+            out.writeDouble(getTaskDuration99thPercentile());
+            out.writeDouble(getTaskDuration999thPercentile());
+            out.writeDouble(getTaskDurationMax());
+            out.writeDouble(getTaskDurationMean());
+            out.writeDouble(getTaskDurationMedian());
+            out.writeDouble(getTaskDurationMin());
+            ExternalizableHelper.writeLong(out, getTaskRateCount());
+            out.writeDouble(getTaskRateFifteenMinute());
+            out.writeDouble(getTaskRateFiveMinute());
+            out.writeDouble(getTaskRateMean());
+            out.writeDouble(getTaskRateOneMinute());
             }
         }
     }

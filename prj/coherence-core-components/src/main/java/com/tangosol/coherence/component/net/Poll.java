@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -158,7 +158,7 @@ public class Poll
     /**
      * Property TracingSpan
      *
-     * The OpenTracing Span associated with this poll.
+     * The distributed Span associated with this poll.
      */
     private com.tangosol.internal.tracing.Span __m_TracingSpan;
     
@@ -468,7 +468,7 @@ public class Poll
     // Accessor for the property "TracingSpan"
     /**
      * Getter for property TracingSpan.<p>
-    * The OpenTracing Span associated with this poll.
+    * The distributed tracing Span associated with this poll.
      */
     public com.tangosol.internal.tracing.Span getTracingSpan()
         {
@@ -935,7 +935,7 @@ public class Poll
     // Accessor for the property "TracingSpan"
     /**
      * Setter for property TracingSpan.<p>
-    * The OpenTracing Span associated with this poll.
+    * The distributed tracing Span associated with this poll.
      */
     public void setTracingSpan(com.tangosol.internal.tracing.Span spanTracing)
         {

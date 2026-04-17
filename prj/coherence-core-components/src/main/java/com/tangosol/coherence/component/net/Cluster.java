@@ -1327,7 +1327,7 @@ public class Cluster
         }
     
     /**
-     * Configure OpenTracing
+     * Configure distributed tracing.
      */
     public boolean configureTracing(com.tangosol.internal.tracing.TracingShim.Dependencies deps)
         {

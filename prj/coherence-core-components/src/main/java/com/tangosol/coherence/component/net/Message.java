@@ -778,7 +778,7 @@ public class Message
     // Accessor for the property "TracingSpanContext"
     /**
      * Getter for property TracingSpanContext.<p>
-     * The OpenTracing {@link SpanContext}.
+     * The distributed tracing {@link SpanContext}.
      *
      * @since 14.1.1.0
      */
@@ -1664,7 +1664,7 @@ public class Message
     // Accessor for the property "TracingSpanContext"
     /**
      * Setter for property TracingSpanContext.<p>
-     * The OpenTracing {@link SpanContext}.
+     * The distributed tracing {@link SpanContext}.
      *
      * @since 14.1.1.0
      */

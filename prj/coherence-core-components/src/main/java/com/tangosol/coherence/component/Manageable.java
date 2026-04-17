@@ -387,7 +387,7 @@ public abstract class Manageable
      * Build a Descriptor object from a comma-delimited string of key-value
     * pairs.
      */
-    protected javax.management.Descriptor buildDescriptor(String sDescriptor)
+    protected javax.management.Descriptor buildDescriptor(String sDescriptor, Map<String, ?> map)
         {
         // import com.tangosol.net.management.annotation.MetricsScope;
         // import com.tangosol.util.Base;
@@ -402,7 +402,12 @@ public abstract class Manageable
             sDescriptor = sDescriptor + "," + MetricsScope.VENDOR;
             }
         
-        return new ImmutableDescriptor(Base.parseDelimitedString(sDescriptor, ','));
+        ImmutableDescriptor descriptor = new ImmutableDescriptor(Base.parseDelimitedString(sDescriptor, ','));
+        if (map != null)
+            {
+            descriptor = ImmutableDescriptor.union(descriptor, new ImmutableDescriptor(map));
+            }
+        return descriptor;
         }
     
     protected String buildMethodSignature(String sName, String[] asSignature)
@@ -442,7 +447,9 @@ public abstract class Manageable
                         String sGetter = info.isIs() ? "is" + sName : "get" + sName;
                         method = clzBean.getMethod(sGetter, new Class[0]);
                         }
-                    catch (NoSuchMethodException e) {}
+                    catch (NoSuchMethodException e) {
+                    System.err.println();
+                    }
                     }
                 break;
                 }
@@ -757,7 +764,13 @@ public abstract class Manageable
                 String sMBeanClass       = getClass().getName();
                 String sMBeanDescription = (String) aoCompInfo[0];
                 String sMBeanDescriptor  = (String) aoCompInfo[1];
-        
+
+                Map<String, ?> mapDesc = null;
+                if (aoCompInfo.length > 2)
+                    {
+                    mapDesc = (Map<String, ?>) aoCompInfo[2];
+                    }
+
                 // attributes
                 MBeanAttributeInfo[] aInfoAttribute =
                     new MBeanAttributeInfo[mapPropInfo.size()];
@@ -772,7 +785,13 @@ public abstract class Manageable
                         String sGetter      = (String) aoInfo[1];
                         String sSetter      = (String) aoInfo[2];
                         String sType        = (String) aoInfo[3];
-                        String sDescriptor  = (String) aoInfo[4];                
+                        String sDescriptor  = (String) aoInfo[4];
+
+                        Map<String, ?> map = null;
+                        if (aoInfo.length > 5)
+                            {
+                            map = (Map<String, ?>) aoInfo[5];
+                            }
         
                         aInfoAttribute[iProp++] = new MBeanAttributeInfo
                             (
@@ -782,7 +801,7 @@ public abstract class Manageable
                             sGetter != null,
                             sSetter != null,
                             sGetter != null && sGetter.startsWith("is"),
-                            buildDescriptor(sDescriptor)
+                            buildDescriptor(sDescriptor, map)
                             );
                         }
                     }
@@ -816,7 +835,13 @@ public abstract class Manageable
                         String[] asParamName = (String[]) aoInfo[3];
                         String[] asParamType = (String[]) aoInfo[4];
                         String   sDescriptor = (String)   aoInfo[5];
-        
+
+                        Map<String, ?> map = null;
+                        if (aoInfo.length > 6)
+                            {
+                            map = (Map<String, ?>) aoInfo[6];
+                            }
+
                         int cParams = asParamName == null ? 0 : asParamName.length;
                         MBeanParameterInfo[] aInfoParam = new MBeanParameterInfo[cParams];
                         for (int iParam = 0; iParam < cParams; iParam++)
@@ -836,14 +861,14 @@ public abstract class Manageable
                             aInfoParam,
                             toJmxSignature(sType),
                             MBeanOperationInfo.UNKNOWN,
-                            buildDescriptor(sDescriptor)
+                            buildDescriptor(sDescriptor, map)
                             );
                         }
                     }
         
                 infoBean = new MBeanInfo(sMBeanClass, sMBeanDescription,
                     aInfoAttribute, aInfoConstructor, aInfoOperation, getNotificationInfo(),
-                    buildDescriptor(sMBeanDescriptor));
+                    buildDescriptor(sMBeanDescriptor, mapDesc));
                 setMBeanInfo(infoBean);
                 }
             catch (Throwable e)

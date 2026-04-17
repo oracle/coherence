@@ -10,6 +10,10 @@
 
 package com.tangosol.coherence.component.manageable.modelAdapter;
 
+import com.tangosol.net.management.annotation.MetricsLabels;
+
+import java.util.Map;
+
 /**
  * ServiceMBean represents a clustered Service.
  */
@@ -734,7 +738,164 @@ public class ServiceMBean
                 "rest.collector=set,metrics.value=_default",
                 });
             }
-        
+
+        {
+        mapInfo.put("TaskRateCount", new Object[]
+                {
+                "The task count.",
+                "getTaskRateCount",
+                null,
+                "J",
+                "metrics.value=TaskRate",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"rate", "count"})
+                });
+        }
+
+
+        {
+        mapInfo.put("TaskRateOneMinute", new Object[]
+                {
+                "The task execution one minute rate.",
+                "getTaskRateOneMinute",
+                null,
+                "D",
+                "metrics.value=TaskRate",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"rate", "1min"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskRateFiveMinute", new Object[]
+                {
+                "The task execution five minute rate.",
+                "getTaskRateFiveMinute",
+                null,
+                "D",
+                "metrics.value=TaskRate",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"rate", "5min"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskRateFifteenMinute", new Object[]
+                {
+                "The task execution fifteen minute rate.",
+                "getTaskRateFifteenMinute",
+                null,
+                "D",
+                "metrics.value=TaskRate",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"rate", "15min"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskRateMean", new Object[]
+                {
+                "The task execution mean rate.",
+                "getTaskRateMean",
+                null,
+                "D",
+                "metrics.value=TaskRate",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"rate", "mean"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDurationMax", new Object[]
+                {
+                "The task execution max duration in nanos.",
+                "getTaskDurationMax",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "max"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDurationMean", new Object[]
+                {
+                "The task execution mean duration in nanos.",
+                "getTaskDurationMean",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "mean"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDurationMedian", new Object[]
+                {
+                "The task execution median duration in nanos.",
+                "getTaskDurationMedian",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "median"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDurationMin", new Object[]
+                {
+                "The task execution min duration in nanos.",
+                "getTaskDurationMin",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "min"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDuration75thPercentile", new Object[]
+                {
+                "The task execution duration 75th percentile in nanos.",
+                "getTaskDuration75thPercentile",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "75th"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDuration98thPercentile", new Object[]
+                {
+                "The task execution duration 98th percentile in nanos.",
+                "getTaskDuration98thPercentile",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "98th"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDuration99thPercentile", new Object[]
+                {
+                "The task execution duration 99th percentile in nanos.",
+                "getTaskDuration99thPercentile",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "99th"})
+                });
+        }
+
+        {
+        mapInfo.put("TaskDuration999thPercentile", new Object[]
+                {
+                "The task execution duration 999th percentile in nanos.",
+                "getTaskDuration999thPercentile",
+                null,
+                "D",
+                "metrics.value=TaskDuration",
+                Map.of(MetricsLabels.DESCRIPTOR_KEY, new String[]{"quantile", "999th"})
+                });
+        }
+
         // property TaskAverageDuration
             {
             mapInfo.put("TaskAverageDuration", new Object[]
@@ -1794,7 +1955,98 @@ public class ServiceMBean
         {
         return 0;
         }
-    
+
+    /**
+     * Return the task one minute rate.
+     *
+     * @return the task one minute rate
+     *
+     * @descriptor metrics.value=taskRate
+     */
+    public double getTaskRateOneMinute()
+        {
+        return 0.0d;
+        }
+
+    /**
+     * Return the task one minute rate.
+     *
+     * @return the task one minute rate
+     *
+     * @descriptor metrics.value=_default
+     */
+    public double getTaskRateFiveMinute()
+        {
+        return 0.0d;
+        }
+
+    /**
+     * Return the task one minute rate.
+     *
+     * @return the task one minute rate
+     *
+     * @descriptor metrics.value=_default
+     */
+    public double getTaskRateFifteenMinute()
+        {
+        return 0.0d;
+        }
+
+    public long getTaskRateCount()
+        {
+        return 0L;
+        }
+
+    public double getTaskRateMean()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDurationMax()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDurationMean()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDurationMedian()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDurationMin()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDuration75thPercentile()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDuration95thPercentile()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDuration98thPercentile()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDuration99thPercentile()
+        {
+        return 0.0d;
+        }
+
+    public double getTaskDuration999thPercentile()
+        {
+        return 0.0d;
+        }
+
     // Accessor for the property "TaskAverageDuration"
     /**
      * Getter for property TaskAverageDuration.<p>

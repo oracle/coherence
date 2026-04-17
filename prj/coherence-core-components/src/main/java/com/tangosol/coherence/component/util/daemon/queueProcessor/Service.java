@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1130,7 +1130,7 @@ public abstract class Service
         }
     
     /**
-     * Return a new OpenTracing Scope for the supplied op
+     * Return a new distributed tracing Scope for the supplied operation.
      *
      * @param sStage  the stage of the op, or null
      * @param op      a RequestMessage or DaemonPool task (i.e. Runnable)
