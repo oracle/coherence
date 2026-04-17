@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -61,7 +61,7 @@ public interface BackupMapConfig
     public String getDirectory(ParameterResolver resolver);
 
     /**
-     * Return the initial buffer size in bytes for off-heap and file-mapped
+     * Return the initial buffer size in bytes for file-mapped
      * backup maps.
      *
      * @param resolver  the ParameterResolver
@@ -71,7 +71,7 @@ public interface BackupMapConfig
     public int getInitialSize(ParameterResolver resolver);
 
     /**
-     * Return the maximum buffer size in bytes for off-heap and file-mapped
+     * Return the maximum buffer size in bytes for file-mapped
      * backup maps.
      *
      * @param resolver  the ParameterResolver

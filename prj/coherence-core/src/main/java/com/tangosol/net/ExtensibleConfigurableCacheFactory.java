@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 
 import com.tangosol.coherence.config.scheme.AbstractCompositeScheme;
+import com.tangosol.coherence.config.scheme.AbstractJournalScheme;
 import com.tangosol.coherence.config.scheme.AbstractLocalCachingScheme;
 import com.tangosol.coherence.config.scheme.AbstractServiceScheme;
 import com.tangosol.coherence.config.scheme.BackingMapScheme;
@@ -437,17 +438,22 @@ public class ExtensibleConfigurableCacheFactory
                 throw new IllegalArgumentException(String.format("Cannot find a mapping for %s", sName));
                 }
 
-            // always assert the safety of the types according to the specified assertion
-            // (as they may change between calls to ensureCache)
-            constraint.assertTypeSafety(sName, mapping);
-
             C col = store.get(sName, loader);
 
             if (col != null && col.isActive())
                 {
+                // the common path; the cache reference is active and reusable
+                checkPermission(col);
+
                 if (clsCollection.isAssignableFrom(col.getClass()))
                     {
+                    // the common path; the cache reference is active and reusable
                     checkPermission(col);
+
+                    // always assert the safety of the types according to the specified assertion
+                    // (as they may change between calls to ensureCache)
+                    constraint.assertTypeSafety(sName, mapping);
+
                     return col;
                     }
                 else
@@ -459,6 +465,36 @@ public class ExtensibleConfigurableCacheFactory
                     throw new IllegalStateException(sMsg);
                     }
                 }
+
+            if (col != null && !col.isDestroyed() && !col.isReleased())
+                {
+                try
+                    {
+                    // this can only indicate that the cache was "disconnected" due to a
+                    // network failure or an abnormal cache service termination;
+                    // the underlying cache service will “restart" during the very next call
+                    // to any of the NamedCache API method (see COH-15083 for details)
+                    checkPermission(col);
+
+                    // always assert the safety of the types according to the specified assertion
+                    // (as they may change between calls to ensureCache).
+                    constraint.assertTypeSafety(sName, mapping);
+
+                    return col;
+                    }
+                catch (IllegalStateException e)
+                    {
+                    // Fail to access due to cluster or service being explicitly stopped or shutdown
+                    // and not properly restarted.
+                    // Remove this cache and the process of returning a new one ensures all services needed by cache.
+                    store.release(col, loader);
+                    }
+                }
+
+            // Always assert the safety of the types according to the specified assertion.
+            // Only log warning once if mismatch between collection config specified types and
+            // runtime type assertion where one uses raw types.
+            constraint.assertTypeSafety(sName, mapping);
 
             // find the scheme for the collection
             ServiceScheme serviceScheme = f_cacheConfig.findSchemeBySchemeName(mapping.getSchemeName());
@@ -2115,12 +2151,6 @@ public class ExtensibleConfigurableCacheFactory
                         break;
                         }
 
-                    case BackingMapScheme.OFF_HEAP :
-                        {
-                        map.clear();
-                        break;
-                        }
-
                     case BackingMapScheme.SCHEME :
                     case BackingMapScheme.RAMJOURNAL :
                     case BackingMapScheme.FLASHJOURNAL :
@@ -2168,8 +2198,7 @@ public class ExtensibleConfigurableCacheFactory
 
             ParameterResolver resolver = getResolver(sName);
             int     nType              = getBackupMapType(schemeDist, resolver);
-            boolean fPartitionDefault  = nType != BackingMapScheme.OFF_HEAP &&
-                                         nType != BackingMapScheme.FILE_MAPPED;
+            boolean fPartitionDefault  = nType != BackingMapScheme.FILE_MAPPED;
 
             if (nType == BackingMapScheme.SCHEME)
                 {

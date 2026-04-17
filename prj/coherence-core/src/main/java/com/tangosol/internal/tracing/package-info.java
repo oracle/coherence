@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 /**
  * The classes in this package represent the smallest possible API surface for tracing operations
  * in coherence.  With this API, Coherence can create shims for other tracing implementations such as
- * {@code OpenTracing}, {@code OpenCensus}, and/or {@code OpenTelemetry}.
+ * {@code OpenTelemetry} or {@code OpenCensus}.
  * <p>
  * Similarities between the APIs in this package and those of the packages described above is intentional
  * to allow easy conceptual mappings between tracing concepts.
@@ -20,7 +20,6 @@
  * <p>
  * For reference:
  * <ul>
- *   <li><a href="http://opentracing.io">OpenTracing</a></li>
  *   <li><a href="http://opencensus.io">OpenCensus</a></li>
  *   <li><a href="http://opentelemetry.io">OpenTelemetry</a></li>
  * </ul>

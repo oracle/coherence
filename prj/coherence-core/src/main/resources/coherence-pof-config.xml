@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -889,40 +889,7 @@ descriptor: pof-config.xsd.
 
     <!-- com.tangosol.net.internal package (300-349) -->
 
-    <user-type>
-      <type-id>300</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$SessionHolder</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>301</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$SessionKey</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>302</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$AcquireSessionProcessor</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>303</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$ReleaseSessionProcessor</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>304</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$ResetSessionTimeoutProcessor</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>305</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$SaveSessionProcessor</class-name>
-    </user-type>
-
-    <user-type>
-      <type-id>306</type-id>
-      <class-name>com.tangosol.net.internal.AspNetSessionStoreProvider$ExternalAttributeKey</class-name>
-    </user-type>
+    <!-- ASP.NET (300 - 306) -->
 
     <user-type>
       <type-id>307</type-id>

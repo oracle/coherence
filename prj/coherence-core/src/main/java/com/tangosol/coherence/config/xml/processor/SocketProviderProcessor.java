@@ -182,4 +182,6 @@ public class SocketProviderProcessor
         XmlValue valueIdAttribute = xmlSocketProvider != null ? xmlSocketProvider.getAttribute("id") : null;
         return valueIdAttribute == null ? SocketProviderFactory.UNNAMED_PROVIDER_ID : valueIdAttribute.getString(SocketProviderFactory.UNNAMED_PROVIDER_ID);
         }
+
+    private final static String HOSTNAME_VERIFICATION = "coherence.security.hostname.verification";
     }

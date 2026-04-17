@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.oracle.coherence.common.util.Duration;
 
+import com.tangosol.application.ContainerAdapter;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
 
@@ -2209,7 +2210,7 @@ public class Coherence
                 if (!fAllowDuplicate)
                     {
                     throw new IllegalStateException("A Coherence instance with the name "
-                                                            + f_config.getName() + " already exists");
+                            + f_config.getName() + " already exists");
                     }
                 return prev;
                 }

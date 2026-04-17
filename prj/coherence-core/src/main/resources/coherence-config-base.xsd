@@ -812,8 +812,7 @@
                 paged-external-scheme, async-store-manager,
                 custom-store-manager,
                 bdb-store-manager,
-                nio-file-manager,
-                nio-memory-manager, serializer, address-provider
+                nio-file-manager, serializer, address-provider
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexType>

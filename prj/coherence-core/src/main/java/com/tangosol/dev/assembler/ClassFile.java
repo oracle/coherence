@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.assembler;
@@ -32,7 +32,7 @@ import com.tangosol.util.StringTable;
 * <p>
 * Description:
 * <p>
-*   The .class structure is hierachical in nature with a single internally
+*   The .class structure is hierarchical in nature with a single internally
 *   shared resource, the constant pool.  In other words, with the exception
 *   of the constant pool, all portions of the .class structure only refer
 *   to themselves or structures which are contained within themselves.  The
@@ -99,7 +99,7 @@ import com.tangosol.util.StringTable;
 * Requirements:
 * <p>
 * <pre>
-*   1)  The role of the class is to support the contruction, reflection,
+*   1)  The role of the class is to support the construction, reflection,
 *       modification, and transport (i.e. transient storage) of Java
 *       ClassFile (aka ".class file") structures
 *
@@ -296,15 +296,16 @@ public class ClassFile extends VMStructure implements Constants
         m_nVersionMinor = stream.readUnsignedShort();
         m_nVersionMajor = stream.readUnsignedShort();
 
-        if ( m_nVersionMajor <  VERSION_MAJOR_MIN
-         || (m_nVersionMajor == VERSION_MAJOR_MIN &&
-             m_nVersionMinor < VERSION_MINOR_MIN)
-         ||  m_nVersionMajor >  VERSION_MAJOR_MAX
-         || (m_nVersionMajor == VERSION_MAJOR_MAX &&
-             m_nVersionMinor > VERSION_MINOR_MAX))
-            {
-            throw new IOException(CLASS + ".disassemble:  Version (" + m_nVersionMajor + '.' + m_nVersionMinor+ ") not supported!");
-            }
+        // Check disabled here as we've disabled a similar check in ASM
+        //if ( m_nVersionMajor <  VERSION_MAJOR_MIN
+        // || (m_nVersionMajor == VERSION_MAJOR_MIN &&
+        //     m_nVersionMinor < VERSION_MINOR_MIN)
+        // ||  m_nVersionMajor >  VERSION_MAJOR_MAX
+        // || (m_nVersionMajor == VERSION_MAJOR_MAX &&
+        //     m_nVersionMinor > VERSION_MINOR_MAX))
+        //    {
+        //    throw new IOException(CLASS + ".disassemble:  Version (" + m_nVersionMajor + '.' + m_nVersionMinor+ ") not supported!");
+        //    }
 
         // constant pool
         pool.disassemble(stream, pool);
@@ -600,6 +601,18 @@ public class ClassFile extends VMStructure implements Constants
         }
 
     /**
+    * Return the {@link ConstantPool} for this {@code ClassFile}.
+    *
+    * @return the {@link ConstantPool} for this {@code ClassFile}
+    *
+    * @since 15.1.1.0
+    */
+    public ConstantPool getConstantPool()
+        {
+        return m_pool;
+        }
+
+    /**
     * Allow constants in the pool to be replaced by a callback.
     *
     * @param resolver  the callback
@@ -849,7 +862,7 @@ public class ClassFile extends VMStructure implements Constants
     * stream, the information is not expanded immediately in case the reason
     * for the creation of the ClassFile object is as a type-safe mechanism
     * for passing compiled .class structures.  Before any operations can take
-    * place agains the ClassFile, the .class structure stored in the byte
+    * place against the ClassFile, the .class structure stored in the byte
     * array must be expanded.
     *
     * @return false if the .class structure must be expanded before

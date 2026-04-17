@@ -226,9 +226,6 @@ public class SafeClock
         DEFAULT_JITTER_THRESHOLD = Long.parseLong(SecurityHelper.doPrivileged(
                 (PrivilegedAction<String>) () ->
                     {
-                    // Note: we do not use Config.getProperty to avoid a com.tangosol
-                    //       import and the acceptable loss of not supporting a property
-                    //       name that starts with tangosol.
                     return Config.getProperty("coherence.safeclock.jitter",
                                 Config.getProperty(SafeClock.class.getName() + ".jitter",
                                 "16"));

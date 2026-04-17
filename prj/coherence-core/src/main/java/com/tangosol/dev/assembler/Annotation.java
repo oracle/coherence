@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.dev.assembler;
@@ -229,6 +229,31 @@ public class Annotation
     public AbstractElementValue getElementValue(UtfConstant utfElementName)
         {
         return (AbstractElementValue) m_mapElementValue.get(utfElementName);
+        }
+
+    /**
+    * Get the element value associated with the attribute name in this
+    * annotation structure, or null if the element does not exist.
+    *
+    * @param sAttrName  the annotation attribute to lookup
+    *
+    * @since 15.1.1.0
+    */
+    public AbstractElementValue getElementValue(String sAttrName)
+        {
+        for (Iterator iter = m_mapElementValue.entrySet().iterator(); iter.hasNext();)
+            {
+            Map.Entry            entry = (Map.Entry) iter.next();
+            UtfConstant          key   = (UtfConstant) entry.getKey();
+            AbstractElementValue value = (AbstractElementValue) entry.getValue();
+
+            if (key.getValue().equals(sAttrName))
+                {
+                return value;
+                }
+            }
+
+        return null;
         }
     
     /**

@@ -25,8 +25,6 @@ public interface Span
     /**
      * Sets metadata to the {@code Span}. If the {@code Span} previously contained a mapping for
      * the key, the old value is replaced by the specified value.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#setTag(String, String)}.
      *
      * @param sKey    the key for this attribute
      * @param sValue  the value for this attribute
@@ -38,8 +36,6 @@ public interface Span
     /**
      * Sets metadata to the {@code Span}. If the {@code Span} previously contained a mapping for
      * the key, the old value is replaced by the specified value.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#setTag(String, Number)}.
      *
      * @param sKey    the key for this attribute
      * @param lValue  the value for this attribute
@@ -51,8 +47,6 @@ public interface Span
     /**
      * Sets metadata to the {@code Span}. If the {@code Span} previously contained a mapping for
      * the key, the old value is replaced by the specified value.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#setTag(String, Number)}.
      *
      * @param sKey    the key for this attribute
      * @param dValue  the value for this attribute
@@ -64,8 +58,6 @@ public interface Span
     /**
      * Sets metadata to the {@code Span}. If the {@code Span} previously contained a mapping for
      * the key, the old value is replaced by the specified value.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#setTag(String, boolean)}.
      *
      * @param sKey    the key for this attribute
      * @param fValue  the value for this attribute
@@ -99,8 +91,6 @@ public interface Span
      * <p>
      * Upon this update, any sampling behavior based on {@code Span} name will depend on the
      * implementation.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#setOperationName(String)}.
      *
      * @param sName  the {@code Span} name
      *
@@ -113,15 +103,11 @@ public interface Span
      * <p>
      * Only the timing of the first end call for a given {@code Span} will be recorded, and
      * implementations are free to ignore all further calls.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#finish()}.
      */
     public void end();
 
     /**
      * Returns the {@code SpanContext} associated with this {@code Span}.
-     * <p>
-     * This call is equivalent to {@code io.opentracing.Span#context()}.
      *
      * @return the {@code SpanContext} associated with this {@code Span}
      */

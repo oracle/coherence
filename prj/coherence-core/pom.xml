@@ -27,6 +27,7 @@
   </properties>
 
   <dependencies>
+
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-discovery</artifactId>

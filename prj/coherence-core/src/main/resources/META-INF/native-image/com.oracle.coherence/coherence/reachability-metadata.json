@@ -367,18 +367,6 @@
       "type": "io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk"
     },
     {
-      "type": "io.opentracing.Span"
-    },
-    {
-      "type": "io.opentracing.contrib.tracerresolver.TracerResolver"
-    },
-    {
-      "type": "io.opentracing.noop.NoopSpan"
-    },
-    {
-      "type": "io.opentracing.util.GlobalTracer"
-    },
-    {
       "type": "java.io.ObjectInputFilter",
       "methods": [
         {

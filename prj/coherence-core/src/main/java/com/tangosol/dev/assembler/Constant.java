@@ -178,6 +178,7 @@ public abstract class Constant extends VMStructure implements Constants, Compara
     */
     protected void preassemble(ConstantPool pool)
         {
+        pool.registerConstant(this);
         }
 
     /**

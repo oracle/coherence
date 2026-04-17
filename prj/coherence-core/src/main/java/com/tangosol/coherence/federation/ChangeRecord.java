@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.federation;
@@ -188,16 +188,28 @@ public interface ChangeRecord<K, V>
     boolean isSynthetic();
 
     /**
-     * Represents the key, value and name of the Participant from
+     * Determine whether the change is part of a ReplicateAll operation.
+     * <p>
+     * Note: This method is only relevant for REPLICATING and COMMITTING_REMOTE events.
+     *       It will always return false for COMMITTING_LOCAL events.
+     *
+     * @return true if it is part of a ReplicateAll; false otherwise
+     *
+     * @since 14.1.2.0.4
+     */
+    boolean isReplicateAll();
+
+    /**
+     * Represents the key, value and name of the {@link Participant} from
      * which the entry originated.
      */
     public interface Entry<K, V>
         {
         /**
-         * Obtain the name of the Participant from which the entry
+         * Obtain the name of the {@link Participant} from which the entry
          * originated.
          *
-         * @return  name of the source Participant
+         * @return  name of the source {@link Participant}
          */
         public String getSource();
 

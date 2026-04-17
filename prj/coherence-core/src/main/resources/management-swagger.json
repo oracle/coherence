@@ -303,8 +303,8 @@
         "tags": [
           "Cluster"
         ],
-        "summary": "Configure OpenTracing",
-        "description": "Use this endpoint to configure OpenTracing on members that are configured with a specific role. Omit the role to apply the changes to all cluster members.",
+        "summary": "Configure Distributed Tracing",
+        "description": "Use this endpoint to configure distributed tracing on members that are configured with a specific role. Omit the role to apply the changes to all cluster members.",
         "operationId": "/management/coherence/cluster/configureTracing POST",
         "produces": [
           "application/json"

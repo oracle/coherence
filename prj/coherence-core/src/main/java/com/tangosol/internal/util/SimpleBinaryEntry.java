@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -158,7 +158,29 @@ public class SimpleBinaryEntry<K, V>
 
     public String toString()
         {
-        return "SimpleBinaryEntry(key=\"" + getKey() + "\", value=\"" + getValue() + "\")";
+        return toString(false);
+        }
+
+    // ----- SimpleBinaryEntry implementation --------------------------------
+
+    /**
+     * Returns a string representation of this SimpleBinaryEntry. If called in
+     * debug mode, deserialize the key and value.
+     *
+     * @param fDebug  if true, then deserialize key and value
+     *
+     * @return a String representation of this SimpleBinaryEntry
+     */
+    public String toString(boolean fDebug)
+        {
+        if (fDebug)
+            {
+            return "SimpleBinaryEntry(key=\"" + getKey() + "\", value=\"" + getValue() + "\")";
+            }
+        else
+            {
+            return "SimpleBinaryEntry(key=\"" + m_binKey.toString()+ "\", value=\"" + m_binValue.toString() + "\")";
+            }
         }
 
     // ---- data members ----------------------------------------------

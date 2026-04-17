@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -546,7 +546,7 @@ public class ClusterResource
     public static final String DUMP_CLUSTER_HEAP = "dumpClusterHeap";
 
     /**
-     * The REST resource name and path element to configure OpenTracing.
+     * The REST resource name and path element to configure distributed tracing.
      *
      * @since 14.1.1.0
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -248,7 +248,7 @@ public class DistributedScheme
             }
 
         /**
-         * Return the initial buffer size in bytes for off-heap and file-mapped
+         * Return the initial buffer size in bytes for file-mapped
          * backup maps.
          *
          * @param expr  the initial buffer size
@@ -269,7 +269,7 @@ public class DistributedScheme
             }
 
         /**
-         * Set the maximum buffer size in bytes for off-heap and file-mapped
+         * Set the maximum buffer size in bytes for file-mapped
          * backup maps.
          *
          * @param expr  the maximum buffer size
@@ -362,13 +362,17 @@ public class DistributedScheme
                 {
                 nType = BackingMapScheme.CUSTOM;
                 }
-            else if (sType.equalsIgnoreCase("off-heap"))
-                {
-                nType = BackingMapScheme.OFF_HEAP;
-                }
             else if (sType.equalsIgnoreCase("on-heap"))
                 {
                 nType = BackingMapScheme.ON_HEAP;
+                }
+            else if (sType.equalsIgnoreCase("ramjournal"))
+                {
+                nType = BackingMapScheme.RAMJOURNAL;
+                }
+            else if (sType.equalsIgnoreCase("flashjournal"))
+                {
+                nType = BackingMapScheme.FLASHJOURNAL;
                 }
             else if (sType.equalsIgnoreCase("file-mapped"))
                 {
