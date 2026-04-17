@@ -34,7 +34,6 @@ import com.tangosol.coherence.config.builder.ParameterizedBuilderRegistry;
 import com.tangosol.coherence.config.builder.ServiceBuilder;
 
 import com.tangosol.coherence.config.scheme.AbstractCompositeScheme;
-import com.tangosol.coherence.config.scheme.AbstractJournalScheme;
 import com.tangosol.coherence.config.scheme.AbstractLocalCachingScheme;
 import com.tangosol.coherence.config.scheme.AbstractServiceScheme;
 import com.tangosol.coherence.config.scheme.BackingMapScheme;
