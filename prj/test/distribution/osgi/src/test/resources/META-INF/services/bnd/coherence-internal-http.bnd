@@ -1,0 +1,6 @@
+Bundle-Version: ${project.version}
+Bundle-Name: Coherence Internal HTTP
+Bundle-SymbolicName: com.tangosol.coherence.internal.http
+Bundle-Vendor: Oracle
+Export-Package: com.tangosol.internal.http;version=${project.version},com.tangosol.internal.management;version=${project.version},com.tangosol.internal.metrics;version=${project.version}
+Import-Package: *;resolution:=optional
