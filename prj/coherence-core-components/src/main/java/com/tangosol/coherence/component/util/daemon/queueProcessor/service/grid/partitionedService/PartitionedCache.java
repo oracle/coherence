@@ -3902,19 +3902,21 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        processChanges(msgResponse);
+            processChanges(msgResponse);
         
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partsPinned); // will be used to update stats
-        
-        // lastly, exit the partitions
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned); // will be used to update stats
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -3984,19 +3986,21 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        processChanges(msgResponse);
+            processChanges(msgResponse);
         
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partMask);
-        
-        // lastly, exit the partitions
-        unpinPartitions(partMask);
+            msgRequest.setProcessedPartitions(partMask);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -4456,19 +4460,22 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        processChanges(/*ctx*/ null, /*job*/ null, -1L,
-            ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
-        
-        // release all state held by the InvocationContext without
-        // unpinning partitions
-        ctxInvoke.release(/*fUnpin*/ false);
-        
-        unpinPartitions(partMask);
+            processChanges(/*ctx*/ null, /*job*/ null, -1L,
+                ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
+            }
+        finally
+            {
+            // release all state held by the InvocationContext without
+            // unpinning partitions
+            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ false);
+            }
         }
     
     /**
@@ -4513,12 +4520,17 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        processChanges(msgResponse);
-        
         PartitionSet partsPinned = pinner.getPinnedPartitions();
-        msgRequest.setProcessedPartitions(partsPinned);
+        try
+            {
+            processChanges(msgResponse);
         
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned);
+            }
+        finally
+            {
+            unpinPartitions(partsPinned);
+            }
         }
     
     /**
@@ -4590,10 +4602,11 @@ public class PartitionedCache
         
         PartitionSet partMask   = msgRequest.getRequestMaskSafe();
         PartitionSet partReject = pinOwnedPartitions(partMask);
-        Binary       binValue   = msgRequest.getValue();
         
         try
             {
+            Binary binValue = msgRequest.getValue();
+
             // no need to filter out "in-transfer" keys
             boolean fContains = storage.containsValue(binValue);
         
@@ -4605,11 +4618,16 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        processChanges(msgResponse);
+        try
+            {
+            processChanges(msgResponse);
         
-        msgRequest.setProcessedPartitions(partMask);
-        
-        unpinPartitions(partMask);
+            msgRequest.setProcessedPartitions(partMask);
+            }
+        finally
+            {
+            unpinPartitions(partMask);
+            }
         }
     
     // Declared at the super level
@@ -4898,22 +4916,25 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        // even if there was an exception, we need to backup potential changes
-        // (synthetic inserts caused by read-through)
-        processChanges(null, null, msgRequest.getCacheId(),
-                ctxInvoke.getEntryStatuses(),
-                instantiateBatchContext(msgResponse));
+            // even if there was an exception, we need to backup potential changes
+            // (synthetic inserts caused by read-through)
+            processChanges(null, null, msgRequest.getCacheId(),
+                    ctxInvoke.getEntryStatuses(),
+                    instantiateBatchContext(msgResponse));
         
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partsPinned);
-        
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -4987,25 +5008,30 @@ public class PartitionedCache
             msgResponse.setValue(tagException(e));
             }
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
-        
-        Collection colStatus = ctxInvoke.getEntryStatuses();
-        if (colStatus.size() == 1)
+        try
             {
-            // optimized single-entry path
-            processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
-            }
-        else
-            {
-            // a rare scenario of other entries enlisted by the get operation
-            processChanges(context, null, msgRequest.getCacheId(), colStatus,
-                    instantiateBatchContext(msgResponse));
-            }
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        releaseInvocationContext(ctxInvoke);
+            Collection colStatus = ctxInvoke.getEntryStatuses();
+            if (colStatus.size() == 1)
+                {
+                // optimized single-entry path
+                processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                }
+            else
+                {
+                // a rare scenario of other entries enlisted by the get operation
+                processChanges(context, null, msgRequest.getCacheId(), colStatus,
+                        instantiateBatchContext(msgResponse));
+                }
+            }
+        finally
+            {
+            releaseInvocationContext(ctxInvoke);
+            }
         }
     
     /**
@@ -5333,29 +5359,30 @@ public class PartitionedCache
         msgResponse.setValue(aoResult);
         msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        ctxInvoke.resetAccess();
+            ctxInvoke.resetAccess();
         
-        // register the results for the partitions that were executed
-        registerMultiResult(context, partsPinned, aoResult == null
-                ? Collections.emptyMap()
-                : new KeyValueArrayMap(aoKey, 0, aoResult, 0, cResults));
+            // register the results for the partitions that were executed
+            registerMultiResult(context, partsPinned, aoResult == null
+                    ? Collections.emptyMap()
+                    : new KeyValueArrayMap(aoKey, 0, aoResult, 0, cResults));
         
-        // even if there was an exception we need to backup the changes
-        processChanges(context, null, msgRequest.getCacheId(),
-                ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
+            // even if there was an exception we need to backup the changes
+            processChanges(context, null, msgRequest.getCacheId(),
+                    ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
         
-        // only now, after the backup message is sent, we can unlock (COH-3304)
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partsPinned);
-        
-        // lastly, exit the partitions
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -5684,31 +5711,32 @@ public class PartitionedCache
         msgResponse.setResult(aoResult);
         msgResponse.setSize(cResults + cResultsPrev);
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        ctxInvoke.resetAccess();
+            ctxInvoke.resetAccess();
         
-        // register the results for the partitions that were executed
-        registerMultiResult(context, partMask, aoResult == null
-                ? Collections.emptyMap()
-                : new EntrySetMap(
-                        new ImmutableArrayList(aoResult, cResultsPrev, cResults).getSet()));
+            // register the results for the partitions that were executed
+            registerMultiResult(context, partMask, aoResult == null
+                    ? Collections.emptyMap()
+                    : new EntrySetMap(
+                            new ImmutableArrayList(aoResult, cResultsPrev, cResults).getSet()));
         
-        // even if there was an exception we need to backup the changes
-        processChanges(context, null, msgRequest.getCacheId(),
-                ctxInvoke.getEntryStatuses(),
-                instantiateBatchContext(msgResponse));
+            // even if there was an exception we need to backup the changes
+            processChanges(context, null, msgRequest.getCacheId(),
+                    ctxInvoke.getEntryStatuses(),
+                    instantiateBatchContext(msgResponse));
         
-        // unlock the keys in the InvocationContext
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partMask);
-        
-        // lastly, exit the partitions
-        unpinPartitions(partMask);
+            msgRequest.setProcessedPartitions(partMask);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -5811,29 +5839,34 @@ public class PartitionedCache
                 msgResponse.setValue(tagException(e));
                 }
         
-            // COH-22088: if the thread was interrupted due to the guardian we must reset
-            //            (heartbeat and clear the interrupt bit) to avoid an exception when
-            //            invoking an interruptible method
-            GuardSupport.reset();
-        
-            ctxInvoke.resetAccess();
-        
-            Collection colStatus = ctxInvoke.getEntryStatuses();
-            if (colStatus.size() == 1)
+            try
                 {
-                // optimized single-update version
-                processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                // COH-22088: if the thread was interrupted due to the guardian we must reset
+                //            (heartbeat and clear the interrupt bit) to avoid an exception when
+                //            invoking an interruptible method
+                GuardSupport.reset();
+        
+                ctxInvoke.resetAccess();
+        
+                Collection colStatus = ctxInvoke.getEntryStatuses();
+                if (colStatus.size() == 1)
+                    {
+                    // optimized single-update version
+                    processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                    }
+                else
+                    {
+                    // general multi-key update version
+        
+                    // preserve the invocation result
+                    processChanges(context, null, msgRequest.getCacheId(), colStatus,
+                            instantiateBatchContext(msgResponse));
+                    }
                 }
-            else
+            finally
                 {
-                // general multi-key update version
-        
-                // preserve the invocation result
-                processChanges(context, null, msgRequest.getCacheId(), colStatus,
-                        instantiateBatchContext(msgResponse));
+                releaseInvocationContext(ctxInvoke);
                 }
-        
-            releaseInvocationContext(ctxInvoke);
             }
         finally
             {
@@ -5886,11 +5919,16 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        processChanges(msgResponse);
+        try
+            {
+            processChanges(msgResponse);
         
-        msgRequest.setProcessedPartitions(partMask);
-        
-        unpinPartitions(partMask);
+            msgRequest.setProcessedPartitions(partMask);
+            }
+        finally
+            {
+            unpinPartitions(partMask);
+            }
         }
     
     /**
@@ -6045,17 +6083,20 @@ public class PartitionedCache
             msgResponse.setFailedKeys(setKeys);
             }
         
-        msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
-        
-        if (ctxBatch != null)
+        try
             {
-            ctxBatch.onJobCompleted(null);
+            msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
+
+            if (ctxBatch != null)
+                {
+                ctxBatch.onJobCompleted(null);
+                }
             }
-            
-        // only now, after the backup message is sent, we can unlock (COH-3304)
-        releaseInvocationContext(ctxInvoke);
-        
-        unpinPartitions(partsPinned);
+        finally
+            {
+            // only now, after the backup message is sent, we can unlock (COH-3304)
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     public void onKeyListenerAllRequest(PartitionedCache.KeyListenerAllRequest.KeyListenerJob job)
@@ -6176,11 +6217,16 @@ public class PartitionedCache
             }
         finally
             {
-            releaseInvocationContext(ctxInvoke);
-        
-            if (fEntered)
+            try
                 {
-                unpinPartition(iPartition);
+                releaseInvocationContext(ctxInvoke);
+                }
+            finally
+                {
+                if (fEntered)
+                    {
+                    unpinPartition(iPartition);
+                    }
                 }
             }
         }
@@ -6369,13 +6415,13 @@ public class PartitionedCache
                     {
                     storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
                         fAdd ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_LISTENER_ADD : com.tangosol.net.security.StorageAccessAuthorizer.REASON_LISTENER_REMOVE);
-        
+    
                     if (fAdd)
                         {
                         boolean fLite = msgRequest.isLite();
-        
+    
                         storage.addListener(member, filter, lFilterId, fLite);
-        
+    
                         VersionedPartitions versions = msgRequest.getPartitionVersions();
                         if (versions != null && isPersistEvents())
                             {
@@ -6383,7 +6429,7 @@ public class PartitionedCache
                             for (int iPart = partsMask.next(0); iPart >= 0; iPart = partsMask.next(iPart + 1))
                                 {
                                 long lVersion = versions.getVersion(iPart);
-        
+    
                                 postEvents(storage.getPreviousEvents(
                                     member, filter, iPart, lVersion, fLite, lFilterId, /*oHolder*/ null));
                                 }
@@ -6399,7 +6445,7 @@ public class PartitionedCache
                 {
                 storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_WRITE_ANY,
                     fAdd ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_TRIGGER_ADD : com.tangosol.net.security.StorageAccessAuthorizer.REASON_TRIGGER_REMOVE);
-        
+    
                 if (fAdd)
                     {
                     storage.addTrigger(partsMask, trigger);
@@ -6408,13 +6454,13 @@ public class PartitionedCache
                     {
                     storage.removeTrigger(partsMask, trigger);
                     }
-        
+    
                 storage.persistTriggerRegistration(partsMask, trigger, fAdd);
                 }
-        
+    
             // register the results for the partitions that were executed
             registerMultiResult(context, partsMask, Collections.emptyMap());
-        
+    
             msgResponse.setValue(resultInfo == null ? partsMask : resultInfo.getPartitions());
             }
         catch (Throwable e)
@@ -6422,8 +6468,10 @@ public class PartitionedCache
             msgResponse.setResult(PartitionedCache.Response.RESULT_FAILURE);
             msgResponse.setValue(tagException(e));
             }
-        
-        unpinPartitions(partsMask);
+        finally
+            {
+            unpinPartitions(partsMask);
+            }
         
         if (getThisMember() == getOwnershipSenior()
                 && msgResponse.getResult() != PartitionedCache.Response.RESULT_FAILURE)
@@ -7060,24 +7108,26 @@ public class PartitionedCache
         
         msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        // register a result for the updated partitions (putAll() uses an empty map as a placeholder)
-        registerMultiResult(context, partsPinned, Collections.emptyMap());
+            // register a result for the updated partitions (putAll() uses an empty map as a placeholder)
+            registerMultiResult(context, partsPinned, Collections.emptyMap());
         
-        // even if there was an exception, we need to backup the changes
-        processChanges(context, null, msgRequest.getCacheId(), ctxInvoke.getEntryStatuses(),
-                         instantiateBatchContext(msgResponse));
+            // even if there was an exception, we need to backup the changes
+            processChanges(context, null, msgRequest.getCacheId(), ctxInvoke.getEntryStatuses(),
+                             instantiateBatchContext(msgResponse));
         
-        // only now, after the backup message is sent, we can unlock (COH-3304)
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partsPinned);
-        
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -7184,25 +7234,26 @@ public class PartitionedCache
             //            invoking an interruptible method
             GuardSupport.reset();
         
-            Collection colEntryStatus = ctxInvoke.getEntryStatuses();
-            switch (colEntryStatus.size())
+            try
                 {
-                case 0:
-                    break;
-                case 1:
-                    // optimized single-update version
-                    processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
-                    break;
-                default:
-                    // general multi-key update version
-                    processChanges(context, null, msgRequest.getCacheId(), colEntryStatus,
-                    instantiateBatchContext(msgResponse));
+                Collection colEntryStatus = ctxInvoke.getEntryStatuses();
+                switch (colEntryStatus.size())
+                    {
+                    case 0:
+                        break;
+                    case 1:
+                        // optimized single-update version
+                        processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                        break;
+                    default:
+                        // general multi-key update version
+                        processChanges(context, null, msgRequest.getCacheId(), colEntryStatus,
+                        instantiateBatchContext(msgResponse));
+                    }
                 }
-            releaseInvocationContext(ctxInvoke);
-        
-            if (fEntered)
+            finally
                 {
-                unpinPartition(nPartition);
+                releaseInvocationContextAndUnpin(ctxInvoke, nPartition, fEntered, /*fUnpin*/ true);
                 }
             }
         }
@@ -7305,13 +7356,16 @@ public class PartitionedCache
         //            invoking an interruptible method
         GuardSupport.reset();
 
-        processChanges();
-
-        releaseInvocationContext(ctxInvoke);
-
-        msgRequest.setProcessedPartitions(partMask);
-
-        unpinPartitions(partMask);
+        try
+            {
+            processChanges();
+        
+            msgRequest.setProcessedPartitions(partMask);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -7443,24 +7497,26 @@ public class PartitionedCache
         
         msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
         
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
+        try
+            {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
         
-        // register a result for the updated partitions (removeAll() uses an empty map as a placeholder)
-        registerMultiResult(context, partsPinned, Collections.emptyMap());
+            // register a result for the updated partitions (removeAll() uses an empty map as a placeholder)
+            registerMultiResult(context, partsPinned, Collections.emptyMap());
         
-        // even if there was an exception, we need to backup the changes
-        processChanges(context, null, msgRequest.getCacheId(),  ctxInvoke.getEntryStatuses(),
-                       instantiateBatchContext(msgResponse));
+            // even if there was an exception, we need to backup the changes
+            processChanges(context, null, msgRequest.getCacheId(),  ctxInvoke.getEntryStatuses(),
+                           instantiateBatchContext(msgResponse));
         
-        // only now, after the backup message is sent, we can unlock (COH-3304)
-        releaseInvocationContext(ctxInvoke);
-        
-        msgRequest.setProcessedPartitions(partsPinned);
-        
-        unpinPartitions(partsPinned);
+            msgRequest.setProcessedPartitions(partsPinned);
+            }
+        finally
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            }
         }
     
     /**
@@ -7562,19 +7618,23 @@ public class PartitionedCache
                     msgResponse.setException(tagException(e));
                     }
         
-                // COH-22088: if the thread was interrupted due to the guardian we must reset
-                //            (heartbeat and clear the interrupt bit) to avoid an exception when
-                //            invoking an interruptible method
-                GuardSupport.reset();
+                try
+                    {
+                    // COH-22088: if the thread was interrupted due to the guardian we must reset
+                    //            (heartbeat and clear the interrupt bit) to avoid an exception when
+                    //            invoking an interruptible method
+                    GuardSupport.reset();
         
-                // register a result for this partition (removeAll() uses an empty map as a placeholder)
-                registerMultiResult(context, iPartition, Collections.emptyMap());
+                    // register a result for this partition (removeAll() uses an empty map as a placeholder)
+                    registerMultiResult(context, iPartition, Collections.emptyMap());
         
-                // even if there was an exception, we need to backup the changes
-                processChanges(context, job, lCacheId, ctxInvoke.getEntryStatuses(), job.getBatchContext());
-        
-                // only now, after the backup message is sent, we can unlock (COH-3304)
-                releaseInvocationContext(ctxInvoke);
+                    // even if there was an exception, we need to backup the changes
+                    processChanges(context, job, lCacheId, ctxInvoke.getEntryStatuses(), job.getBatchContext());
+                    }
+                finally
+                    {
+                    releaseInvocationContext(ctxInvoke);
+                    }
                 }
             else
                 {
@@ -7698,25 +7758,26 @@ public class PartitionedCache
             //            invoking an interruptible method
             GuardSupport.reset();
         
-            Collection colEntryStatus = ctxInvoke.getEntryStatuses();
-            switch (colEntryStatus.size())
+            try
                 {
-                case 0:
-                    break;
-                case 1:
-                    // optimized single-update version
-                    processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
-                    break;
-                default:
-                    // general multi-key update version
-                    processChanges(context, null, msgRequest.getCacheId(), colEntryStatus,
-                    instantiateBatchContext(msgResponse));
+                Collection colEntryStatus = ctxInvoke.getEntryStatuses();
+                switch (colEntryStatus.size())
+                    {
+                    case 0:
+                        break;
+                    case 1:
+                        // optimized single-update version
+                        processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                        break;
+                    default:
+                        // general multi-key update version
+                        processChanges(context, null, msgRequest.getCacheId(), colEntryStatus,
+                        instantiateBatchContext(msgResponse));
+                    }
                 }
-            releaseInvocationContext(ctxInvoke);
-        
-            if (fEntered)
+            finally
                 {
-                unpinPartition(nPartition);
+                releaseInvocationContextAndUnpin(ctxInvoke, nPartition, fEntered, /*fUnpin*/ true);
                 }
             }
         }
@@ -7755,137 +7816,142 @@ public class PartitionedCache
         // Map<List<Member>, PartitionSet>
         Map mapMemberParts = splitByBackupOwners(partsOwned);
         
-        for (Iterator iter = mapMemberParts.entrySet().iterator(); iter.hasNext(); )
+        try
             {
-            java.util.Map.Entry                entry       = (java.util.Map.Entry) iter.next();
-            List                 listMembers = (List) entry.getKey();
-            PartitionSet         parts       = (PartitionSet) entry.getValue();
-            PartitionedCache.BackupAllRequest    msg         = null;
-            PrimitiveSparseArray laVersions  = null;
-            Map                  mapCaches   = null;
-        
-            if (!listMembers.isEmpty())
+            for (Iterator iter = mapMemberParts.entrySet().iterator(); iter.hasNext(); )
                 {
-                msg        = (PartitionedCache.BackupAllRequest) instantiateMessage("BackupAllRequest");
-                mapCaches  = new HashMap();
-                laVersions = msg.getPartitionVersions();
-        
-                msg.setMemberList(listMembers);
-                }
-        
-            long lCacheId  = 0L;
-            for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
-                {
-                PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(iPart);
-        
-                // increment the partition version
-                if (laVersions != null)
+                java.util.Map.Entry                entry       = (java.util.Map.Entry) iter.next();
+                List                 listMembers = (List) entry.getKey();
+                PartitionSet         parts       = (PartitionSet) entry.getValue();
+                PartitionedCache.BackupAllRequest    msg         = null;
+                PrimitiveSparseArray laVersions  = null;
+                Map                  mapCaches   = null;
+            
+                if (!listMembers.isEmpty())
                     {
-                    _assert(!laVersions.exists(iPart));
-        
-                    laVersions.setPrimitive(iPart,
-                            ctrlPart.getVersionCounter().incrementAndGet());
+                    msg        = (PartitionedCache.BackupAllRequest) instantiateMessage("BackupAllRequest");
+                    mapCaches  = new HashMap();
+                    laVersions = msg.getPartitionVersions();
+            
+                    msg.setMemberList(listMembers);
                     }
-        
-                LongArray laPendingBackups = ctrlPart.getPendingBackups();
-        
-                if (laPendingBackups.isEmpty() || msg == null)
+            
+                long lCacheId  = 0L;
+                for (int iPart = parts.next(0); iPart >= 0; iPart = parts.next(iPart + 1))
                     {
-                    if (msg == null)
+                    PartitionedCache.PartitionControl ctrlPart = (PartitionedCache.PartitionControl) getPartitionControl(iPart);
+            
+                    // increment the partition version
+                    if (laVersions != null)
                         {
-                        ctrlPart.setPendingBackups(null);
+                        _assert(!laVersions.exists(iPart));
+            
+                        laVersions.setPrimitive(iPart,
+                                ctrlPart.getVersionCounter().incrementAndGet());
                         }
-        
-                    continue;
+            
+                    LongArray laPendingBackups = ctrlPart.getPendingBackups();
+            
+                    if (laPendingBackups.isEmpty() || msg == null)
+                        {
+                        if (msg == null)
+                            {
+                            ctrlPart.setPendingBackups(null);
+                            }
+            
+                        continue;
+                        }
+            
+                    long[] alCacheIds = laPendingBackups.keys();
+            
+                    for (int i = 0, c = alCacheIds.length; i < c; ++i)
+                        {
+                        long lCacheIdCur = alCacheIds[i];
+            
+                        Set setKeys;
+            
+                        Map mapResource = getStorage(lCacheIdCur).getBackingInternalCache();
+            
+                        // send partition data for given cache id if threshold reached
+                        Map mapPendingBackupTotalSize = (Map) ctrlPart.getPendingBackupTotalSize();
+                        if (mapPendingBackupTotalSize != null &&
+                            ((Long) mapPendingBackupTotalSize.get(Long.valueOf(lCacheIdCur))).longValue() == Long.MAX_VALUE)
+                            {
+                            setKeys = getStorage(lCacheIdCur).collectKeySet(iPart);
+                            synchronized (laPendingBackups)
+                                {
+                                laPendingBackups.remove(lCacheIdCur);
+                                }
+                            mapPendingBackupTotalSize.put(Long.valueOf(lCacheIdCur), Long.valueOf(0L));
+                            }
+                        else
+                            {
+                            synchronized (laPendingBackups)
+                                {
+                                setKeys = ((Map) laPendingBackups.remove(lCacheIdCur)).keySet();
+                                }
+                            }
+            
+                        // initialize mapData appropriately based on single/multi cache mode
+                        Map mapData = null;
+                        if (lCacheId == 0L)
+                            {
+                            lCacheId = lCacheIdCur;
+                            mapData  = mapCaches;
+                            }
+                        else if (lCacheId == lCacheIdCur)
+                            {
+                            mapData = mapCaches;
+                            }
+                        else
+                            {
+                            if (lCacheId != -1L)
+                                {
+                                mapCaches = new HashMap(
+                                    Collections.singletonMap(Long.valueOf(lCacheId), mapData));
+                                lCacheId = -1L;
+                                }
+            
+                            mapData = (Map) mapCaches.get(Long.valueOf(lCacheIdCur));
+                            if (mapData == null)
+                                {
+                                mapCaches.put(Long.valueOf(lCacheIdCur),
+                                    mapData = new HashMap(setKeys.size()));
+                                }
+                            }
+            
+                        for (Iterator iterKeys = setKeys.iterator(); iterKeys.hasNext(); )
+                            {
+                            Binary binKey   = (Binary) iterKeys.next();
+                            Binary binValue = (Binary) mapResource.get(binKey);
+            
+                            mapData.put(binKey, binValue == null
+                                    ? Binary.EMPTY   // remove operation
+                                    : binValue);
+                            }
+                        }
                     }
-        
-                long[] alCacheIds = laPendingBackups.keys();
-        
-                for (int i = 0, c = alCacheIds.length; i < c; ++i)
+            
+                if (msg != null)
                     {
-                    long lCacheIdCur = alCacheIds[i];
-        
-                    Set setKeys;
-        
-                    Map mapResource = getStorage(lCacheIdCur).getBackingInternalCache();
-        
-                    // send partition data for given cache id if threshold reached
-                    Map mapPendingBackupTotalSize = (Map) ctrlPart.getPendingBackupTotalSize();
-                    if (mapPendingBackupTotalSize != null &&
-                        ((Long) mapPendingBackupTotalSize.get(Long.valueOf(lCacheIdCur))).longValue() == Long.MAX_VALUE)
-                        {
-                        setKeys = getStorage(lCacheIdCur).collectKeySet(iPart);
-                        synchronized (laPendingBackups)
-                            {
-                            laPendingBackups.remove(lCacheIdCur);
-                            }
-                        mapPendingBackupTotalSize.put(Long.valueOf(lCacheIdCur), Long.valueOf(0L));
-                        }
-                    else
-                        {
-                        synchronized (laPendingBackups)
-                            {
-                            setKeys = ((Map) laPendingBackups.remove(lCacheIdCur)).keySet();
-                            }
-                        }
-        
-                    // initialize mapData appropriately based on single/multi cache mode
-                    Map mapData = null;
-                    if (lCacheId == 0L)
-                        {
-                        lCacheId = lCacheIdCur;
-                        mapData  = mapCaches;
-                        }
-                    else if (lCacheId == lCacheIdCur)
-                        {
-                        mapData = mapCaches;
-                        }
-                    else
-                        {
-                        if (lCacheId != -1L)
-                            {
-                            mapCaches = new HashMap(
-                                Collections.singletonMap(Long.valueOf(lCacheId), mapData));
-                            lCacheId = -1L;
-                            }
-        
-                        mapData = (Map) mapCaches.get(Long.valueOf(lCacheIdCur));
-                        if (mapData == null)
-                            {
-                            mapCaches.put(Long.valueOf(lCacheIdCur),
-                                mapData = new HashMap(setKeys.size()));
-                            }
-                        }
-        
-                    for (Iterator iterKeys = setKeys.iterator(); iterKeys.hasNext(); )
-                        {
-                        Binary binKey   = (Binary) iterKeys.next();
-                        Binary binValue = (Binary) mapResource.get(binKey);
-        
-                        mapData.put(binKey, binValue == null
-                                ? Binary.EMPTY   // remove operation
-                                : binValue);
-                        }
+                    msg.setCacheId(lCacheId);
+                    msg.setMap(mapCaches);
+                    msg.setSyncMsg(false);
+            
+                    // scheduled backups does not support:
+                    //   1. event replay   # msg.setEventHolderMap(mapEvents)
+                    //   2. durable events # msg.setMapEventVersions(mapVersions)
+                    //   3. results        # msg.set(ResultsCacheId | ResultMap)
+            
+                    post(msg);
                     }
-                }
-        
-            if (msg != null)
-                {
-                msg.setCacheId(lCacheId);
-                msg.setMap(mapCaches);
-                msg.setSyncMsg(false);
-        
-                // scheduled backups does not support:
-                //   1. event replay   # msg.setEventHolderMap(mapEvents)
-                //   2. durable events # msg.setMapEventVersions(mapVersions)
-                //   3. results        # msg.set(ResultsCacheId | ResultMap)
-        
-                post(msg);
                 }
             }
-        
-        unpinPartitions(partsOwned);
-        
+        finally
+            {
+            unpinPartitions(partsOwned);
+            }
+
         contProceed.proceed(null);
         }
     
@@ -7993,10 +8059,15 @@ public class PartitionedCache
             msgResponse.setException(tagException(e));
             }
         
-        processChanges(msgResponse);
-        
-        // lastly, exit the partitions
-        unpinPartitions(partMask);
+        try
+            {
+            processChanges(msgResponse);
+            }
+        finally
+            {
+            // lastly, exit the partitions
+            unpinPartitions(partMask);
+            }
         }
     
     /**
@@ -10592,7 +10663,74 @@ public class PartitionedCache
      */
     public void releaseInvocationContext(PartitionedCache.InvocationContext ctxInvoke)
         {
-        ctxInvoke.release(/*fUnpin*/ true);
+        releaseInvocationContext(ctxInvoke, /*fUnpin*/ true);
+        }
+
+    /**
+     * Resets the thread local Invocation Context optionally unpinning any
+     * partitions entered via the context itself.
+     *
+     * @param ctxInvoke  the InvocationContext to release
+     * @param fUnpin     true to unpin partitions entered by the InvocationContext itself
+     *
+     * @since 12.2.1.4.30
+     */
+    protected void releaseInvocationContext(PartitionedCache.InvocationContext ctxInvoke, boolean fUnpin)
+        {
+        if (ctxInvoke != null)
+            {
+            ctxInvoke.release(fUnpin);
+            }
+        }
+
+    /**
+     * Release the InvocationContext and then unpin the specified partitions
+     * regardless of whether the InvocationContext cleanup succeeds.
+     *
+     * @param ctxInvoke    the InvocationContext to release
+     * @param partsPinned  the externally pinned partitions to unpin
+     * @param fUnpin       true to unpin partitions entered by the InvocationContext itself
+     *
+     * @since 12.2.1.4.30
+     */
+    protected void releaseInvocationContextAndUnpin(PartitionedCache.InvocationContext ctxInvoke,
+            com.tangosol.net.partition.PartitionSet partsPinned, boolean fUnpin)
+        {
+        try
+            {
+            releaseInvocationContext(ctxInvoke, fUnpin);
+            }
+        finally
+            {
+            unpinPartitions(partsPinned);
+            }
+        }
+
+    /**
+     * Release the InvocationContext and then unpin the specified partition
+     * regardless of whether the InvocationContext cleanup succeeds.
+     *
+     * @param ctxInvoke   the InvocationContext to release
+     * @param nPartition  the externally pinned partition to unpin
+     * @param fEntered    true if the partition was successfully pinned
+     * @param fUnpin      true to unpin partitions entered by the InvocationContext itself
+     *
+     * @since 12.2.1.4.30
+     */
+    protected void releaseInvocationContextAndUnpin(PartitionedCache.InvocationContext ctxInvoke,
+            int nPartition, boolean fEntered, boolean fUnpin)
+        {
+        try
+            {
+            releaseInvocationContext(ctxInvoke, fUnpin);
+            }
+        finally
+            {
+            if (fEntered)
+                {
+                unpinPartition(nPartition);
+                }
+            }
         }
     
     // Declared at the super level
@@ -23745,31 +23883,47 @@ public class PartitionedCache
             getStorageMap().clear();
                 
             PartitionedCache.ResourceCoordinator coordinator = getService().getResourceCoordinator();
+
+            PartitionSet partsPinned      = getPinnedPartitions();
+            PartitionSet partsPinnedPre   = getPrePinnedPartitions();
+            Set          setLockedStorage = getLockedStorage();
             
-            Set setLockedStorage = getLockedStorage();
-            for (Iterator iter = setLockedStorage.iterator(); iter.hasNext(); )
+            try
                 {
-                coordinator.unlockAll((Storage) iter.next());
+                try
+                    {
+                    for (Iterator iter = setLockedStorage.iterator(); iter.hasNext(); )
+                        {
+                        coordinator.unlockAll((Storage) iter.next());
+                        }
+                    }
+                finally
+                    {
+                    setLockedStorage.clear();
+                    }
                 }
-            setLockedStorage.clear();
-            
-            PartitionSet partsPinned = getPinnedPartitions();
-            if (fUnpin)
+            finally
                 {
-                getService().unpinPartitions(partsPinned);
+                try
+                    {
+                    if (fUnpin)
+                        {
+                        getService().unpinPartitions(partsPinned);
+                        }
+                    }
+                finally
+                    {
+                    Span span = TracingHelper.getActiveSpan();
+                    if (!TracingHelper.isNoop(span))
+                        {
+                        partsPinned.add(partsPinnedPre);
+                        span.setMetadata("partitions", partsPinned.toString(/*fVerbose*/ false));
+                        }
+                    
+                    partsPinned.clear();
+                    partsPinnedPre.clear();
+                    }
                 }
-            
-            PartitionSet partsPinnedPre = getPrePinnedPartitions();
-            
-            Span span = TracingHelper.getActiveSpan();
-            if (!TracingHelper.isNoop(span))
-                {
-                partsPinned.add(partsPinnedPre);
-                span.setMetadata("partitions", partsPinned.toString(/*fVerbose*/ false));
-                }
-            
-            partsPinned.clear();
-            partsPinnedPre.clear();
             }
         
         /**
