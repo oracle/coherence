@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -692,17 +692,25 @@ public class MetricsSupportTests
 
         Map<String, String> mapTags = getCommonTagsWithNodeId();
 
+        List<String> listExpectedMetrics =
+                new ArrayList<>(Arrays.asList("Coherence.Memory.ObjectPendingFinalizationCount",
+                                              "Coherence.Memory.HeapMemoryUsage.committed",
+                                              "Coherence.Memory.HeapMemoryUsage.init",
+                                              "Coherence.Memory.HeapMemoryUsage.max",
+                                              "Coherence.Memory.HeapMemoryUsage.used",
+                                              "Coherence.Memory.NonHeapMemoryUsage.committed",
+                                              "Coherence.Memory.NonHeapMemoryUsage.init",
+                                              "Coherence.Memory.NonHeapMemoryUsage.max",
+                                              "Coherence.Memory.NonHeapMemoryUsage.used"));
+
+        if (s_bTestJdk26)
+            {
+            listExpectedMetrics.add("Coherence.Memory.TotalGcCpuTime");
+            }
+
         assertMetricsWithoutAfterGC(adapter.getMetrics(),
                                     mapTags,
-                                    "Coherence.Memory.ObjectPendingFinalizationCount",
-                                    "Coherence.Memory.HeapMemoryUsage.committed",
-                                    "Coherence.Memory.HeapMemoryUsage.init",
-                                    "Coherence.Memory.HeapMemoryUsage.max",
-                                    "Coherence.Memory.HeapMemoryUsage.used",
-                                    "Coherence.Memory.NonHeapMemoryUsage.committed",
-                                    "Coherence.Memory.NonHeapMemoryUsage.init",
-                                    "Coherence.Memory.NonHeapMemoryUsage.max",
-                                    "Coherence.Memory.NonHeapMemoryUsage.used");
+                                    listExpectedMetrics.toArray(new String[0]));
         }
 
     @Test
@@ -1060,6 +1068,11 @@ public class MetricsSupportTests
      * True iff JVM is for JDK 15 or greater.
      */
     private static final Boolean s_bTestJdk15 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 14;
+
+    /**
+     * True iff JVM is for JDK 26 or greater.
+     */
+    private static final Boolean s_bTestJdk26 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 25;
 
     // ----- data members ---------------------------------------------------
 
