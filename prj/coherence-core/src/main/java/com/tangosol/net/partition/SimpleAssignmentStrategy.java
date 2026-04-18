@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -441,17 +441,25 @@ public class SimpleAssignmentStrategy
                         }
                     else
                         {
-                        // after 10 iterations after the reshuffle, if we
-                        // still couldn't reach the balance point, give up and decrease
-                        // the strength as a fail-safe to prevent an infinite loop;
-                        // reschedule the next analysis relatively soon and
-                        // log a soft-assert, as this shouldn't really happen
-                        Logger.err("Failed to find a partition assignment to satisfy "
-                            + strengthOrig + " among the member-set "
-                            + ctx.getOwnershipMembers()
-                            + "; weakening the backup-strength");
-
-                        ctx.setBackupStrength(strengthOrig.getWeaker());
+                        if (strengthOrig.isWeakest())
+                            {
+                            Logger.err("Failed to find a partition assignment to satisfy "
+                                + strengthOrig + " among the member-set "
+                                + ctx.getOwnershipMembers());
+                            }
+                        else
+                            {
+                            // after 10 iterations after the reshuffle, if we
+                            // still couldn't reach the balance point, give up and decrease
+                            // the strength as a fail-safe to prevent an infinite loop;
+                            // reschedule the next analysis relatively soon and
+                            // log a soft-assert, as this shouldn't really happen
+                            Logger.err("Failed to find a partition assignment to satisfy "
+                                    + strengthOrig + " among the member-set "
+                                    + ctx.getOwnershipMembers()
+                                    + "; weakening the backup-strength");
+                            ctx.setBackupStrength(strengthOrig.getWeaker());
+                            }
                         strengthOrig  = null;
                         cSuggestDelay = 1000L;
                         }
@@ -3686,6 +3694,16 @@ public class SimpleAssignmentStrategy
 
             return new BackupStrength(nStrength - 1,
                 m_setSites, m_setRacks, m_setMachines);
+            }
+
+        /**
+         * Return true iff this is the weakest possible BackupStrength.
+         *
+         * @return true iff this strength is NODE_SAFE
+         */
+        protected boolean isWeakest()
+            {
+            return m_nStrength == NODE_SAFE;
             }
 
         /**
