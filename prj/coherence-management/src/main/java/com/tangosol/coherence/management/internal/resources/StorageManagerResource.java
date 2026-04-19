@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,6 +55,25 @@ public class StorageManagerResource
         }
 
     // ----- GET API --------------------------------------------------------
+
+    /**
+     * Call "reportPartitionStats" operation on StorageManagerMBean for all members.
+     *
+     * @return the response object
+     */
+    @GET
+    @Path(PARTITION_STATS)
+    @Produces(MEDIA_TYPES)
+    public Response reportPartitionStats(@PathParam(CACHE_NAME) String sCacheName)
+    {
+        QueryBuilder queryBuilder = getQuery(sCacheName);
+        String[] asSignature      = {String.class.getName()};
+        Object[] aoArguments      = {"native"}; // this forces the Mbean operation to return Set<PartitionSize>
+
+        return response(getResponseFromMBeanOperation(queryBuilder,
+                PARTITION_STATS, PARTITION_STATS, aoArguments, asSignature));
+    }
+
 
     /**
      * Return the aggregated metrics of StorageManagerMBean's for a single cache belonging to a Service.
