@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -436,15 +436,13 @@ public class SSLSocketChannel
         // COH-21678 - check both clear and encrypted as the SSL engine may consume the decrypt resulting in an empty clear buffer
         boolean fMore = f_buffClearIn.hasRemaining() || fillClearBuffer() > 0 || f_buffEncIn.hasRemaining();
         markKeysReadable(fMore);
-
-        if (cbFill == 0 && cbRead == -1 && !fMore)
-            {
-            return -1;
-            }
-        else
-            {
-            return cbFill;
-            }
+        // COH-33073 - Prevent TcpProcessor spinning on closed sockets.
+        //       If no bytes were written to the destination buffer and the socket has reached EOS,
+        //       check fillClearBuffer() to ensure any remaining encrypted data cannot still be decrypted.
+        //       If it produces no bytes and the clear buffer is empty, the remaining data is likely a
+        //       partial TLS record that cannot be completed, so return -1 and allow TcpProcessor to close
+        //       the connection.
+        return (cbFill == 0 && cbRead == -1 && !(f_buffClearIn.hasRemaining()) && fillClearBuffer() == 0) ? -1 : cbFill;
         }
 
 
