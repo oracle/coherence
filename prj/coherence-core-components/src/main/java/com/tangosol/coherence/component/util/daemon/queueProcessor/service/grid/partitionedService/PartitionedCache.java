@@ -5013,6 +5013,12 @@ public class PartitionedCache
             // no need to pin - we are on the service thread
             PartitionSet   partsMask = calculatePartitionSet(getThisMember(), 0);
             RequestContext context   = msgRequest.getRequestContext();
+            if (isIndexDebugEnabled())
+                {
+                traceIndexDebug((fAdd ? "Applying" : "Removing") + " global index request for "
+                        + describeStorage(storage) + ", extractor=" + extractor + ", ordered="
+                        + (comparator != null) + ", owned-partitions=" + partsMask.cardinality());
+                }
             if (fAdd)
                 {
                 storage.addIndex(context, partsMask, extractor, comparator);
@@ -5023,6 +5029,13 @@ public class PartitionedCache
                 }
         
             msgResponse.setValue(partsMask);
+            if (isIndexDebugEnabled())
+                {
+                traceIndexDebug("Processed global index request for " + describeStorage(storage)
+                        + ", extractor=" + extractor + ", ordered=" + (comparator != null)
+                        + ", owned-partitions=" + partsMask.cardinality() + ", relay="
+                        + (getThisMember() == getOwnershipSenior()));
+                }
         
             // COH-9878: always relay the request to avoid missing or partial index
             if (getThisMember() == getOwnershipSenior())
@@ -8231,6 +8244,14 @@ public class PartitionedCache
         while (true)
             {
             int nPartition = msgRequest.getPartition();
+            if (isIndexDebugEnabled())
+                {
+                traceIndexDebug("Starting partition index rebuild for partition " + nPartition
+                        + ", event=" + msgRequest.getEventId() + ", queued=" + queue.size()
+                        + ", pending=" + getIndexPartitionCount(getIndexPendingPartitions(), nPartition)
+                        + ", processing=" + getIndexPartitionCount(getIndexProcessingPartitions(), nPartition)
+                        + ", request=" + describeIndexUpdate(msgRequest.getUpdateMap()));
+                }
         
             updateProcessingIndexPartition(nPartition, true);
         
@@ -8238,6 +8259,13 @@ public class PartitionedCache
                 {
                 updateProcessingIndexPartition(nPartition, false);
                 updatePendingIndexPartition(nPartition, false);
+                if (isIndexDebugEnabled())
+                    {
+                    traceIndexDebug("Completed partition index rebuild for partition " + nPartition
+                            + ", event=" + msgRequest.getEventId() + ", queued=" + queue.size()
+                            + ", pending=" + getIndexPartitionCount(getIndexPendingPartitions(), nPartition)
+                            + ", processing=" + getIndexPartitionCount(getIndexProcessingPartitions(), nPartition));
+                    }
         
                 Object oMonitor = Base.getCommonMonitor(System.identityHashCode(this) + nPartition);
                 synchronized (oMonitor)
@@ -8257,6 +8285,14 @@ public class PartitionedCache
                 {
                 // the response for the retry is deferred
                 updateProcessingIndexPartition(nPartition, false);
+                if (isIndexDebugEnabled())
+                    {
+                    traceIndexDebug("Deferred partition index rebuild for partition " + nPartition
+                            + ", event=" + msgRequest.getEventId() + ", queued=" + queue.size()
+                            + ", pending=" + getIndexPartitionCount(getIndexPendingPartitions(), nPartition)
+                            + ", processing=" + getIndexPartitionCount(getIndexProcessingPartitions(), nPartition)
+                            + ", request=" + describeIndexUpdate(msgRequest.getUpdateMap()));
+                    }
                 return;
                 }
             }
@@ -9392,6 +9428,11 @@ public class PartitionedCache
             if (ctrlPartition == null)
                 {
                 // we don't own the partition anymore
+                if (isIndexDebugEnabled())
+                    {
+                    traceIndexDebug("Skipping partition index rebuild for partition " + nPartition
+                            + " because PartitionControl is no longer available");
+                    }
                 return true;
                 }
         
@@ -9409,6 +9450,11 @@ public class PartitionedCache
                         if (ctrlPartition.deferResponse(msgResponse))
                             {
                             // result is set to RESULT_RETRY
+                            if (isIndexDebugEnabled())
+                                {
+                                traceIndexDebug("Partition index rebuild for partition " + nPartition
+                                        + " is waiting for transfer lock release");
+                                }
                             return false;
                             }
                         // partition is unlocked at the same time; try again
@@ -9448,6 +9494,13 @@ public class PartitionedCache
                                                        storage.isIndexed())
                                     {
                                     Map mapIndex = mapUpdate == null ? null : (Map) mapUpdate.get(storage);
+                                    if (isIndexDebugEnabled())
+                                        {
+                                        traceIndexDebug("Creating partition index for partition " + nPartition
+                                                + ", " + describeStorage(storage) + ", registered="
+                                                + storage.getIndexExtractorMap().size() + ", request="
+                                                + (mapIndex == null ? "all registered indexes" : mapIndex.keySet()));
+                                        }
         
                                     long ldtStart = Base.getSafeTimeMillis();
                                     while (true)
@@ -9455,11 +9508,24 @@ public class PartitionedCache
                                         List listFailed = storage.createPartitionIndex(nPartition, mapIndex);
                                         if (listFailed == null)
                                             {
+                                            if (isIndexDebugEnabled())
+                                                {
+                                                traceIndexDebug("Created partition index for partition " + nPartition
+                                                        + ", " + describeStorage(storage) + ", request="
+                                                        + (mapIndex == null ? "all registered indexes" : mapIndex.keySet()));
+                                                }
                                             break;
                                             }
         
                                         // index build failed and the failed index have been removed;
                                         // continue to create index for everything else that are left
+                                        if (isIndexDebugEnabled())
+                                            {
+                                            traceIndexDebug("Partition index build removed failed extractors for partition "
+                                                    + nPartition + ", " + describeStorage(storage) + ", failed="
+                                                    + listFailed + ", request="
+                                                    + (mapIndex == null ? "all registered indexes" : mapIndex.keySet()));
+                                            }
         
                                         if (mapUpdate != null)
                                             {
@@ -9482,6 +9548,13 @@ public class PartitionedCache
                                         }
                                     storage.updateIndexStatistics(ldtStart);
                                     }
+                                else if (isIndexDebugEnabled())
+                                    {
+                                    traceIndexDebug("Skipping partition index build for partition " + nPartition
+                                            + ", " + describeStorage(storage) + ", valid="
+                                            + (storage != null && storage.isValid()) + ", indexed="
+                                            + (storage != null && storage.isIndexed()));
+                                    }
                                 }
         
                             ctrlPartition.endEvent(nPartition, PartitionedCache.PartitionControl.PARTITION_EVENT_INDEX_BUILD, /*fRollBack*/ false);
@@ -9492,6 +9565,11 @@ public class PartitionedCache
                         else
                             {
                             // we don't own the partition anymore
+                            if (isIndexDebugEnabled())
+                                {
+                                traceIndexDebug("Skipping partition index rebuild for partition " + nPartition
+                                        + " because this member is no longer primary owner");
+                                }
                             }
                         return true;
                         }
@@ -10290,9 +10368,20 @@ public class PartitionedCache
             // schedule an index update
             if (cRecovered > 0 && getDaemonPool().isStarted())
                 {
+                if (isIndexDebugEnabled())
+                    {
+                    traceIndexDebug("Recovery scheduling partition index rebuild for partition " + iPartition
+                            + " after recovering " + cRecovered + " entries");
+                    }
                 scheduleIndexUpdate(iPartition, com.tangosol.util.MapEvent.ENTRY_INSERTED);
                 }
-        
+            else if (cRecovered > 0 && isIndexDebugEnabled())
+                {
+                traceIndexDebug("Recovery did not schedule partition index rebuild for partition " + iPartition
+                        + " after recovering " + cRecovered + " entries because daemonPoolStarted="
+                        + getDaemonPool().isStarted());
+                }
+
             if (fSuccess && ctrl.isDisabled())
                 {
                 // if we did not receive an exception but persistence became disabled, it
@@ -10811,7 +10900,97 @@ public class PartitionedCache
                 status.getKey());
             }
         }
-    
+
+    /**
+     * Return a short description of the specified Storage for index tracing.
+     */
+    protected String describeStorage(Storage storage)
+        {
+        return storage == null
+                ? "storage=null"
+                : "cache='" + storage.getCacheName() + "', cache-id=" + storage.getCacheId();
+        }
+
+    /**
+     * Return a short description of a pending index update request.
+     */
+    protected String describeIndexUpdate(java.util.Map mapUpdate)
+        {
+        if (mapUpdate == null)
+            {
+            return "all registered indexes";
+            }
+
+        StringBuilder sb          = new StringBuilder();
+        int           cStorages   = 0;
+        int           cExtractors = 0;
+
+        for (Iterator iterStorage = mapUpdate.entrySet().iterator(); iterStorage.hasNext(); )
+            {
+            Map.Entry entry    = (Map.Entry) iterStorage.next();
+            Storage   storage  = (Storage) entry.getKey();
+            Map       mapIndex = (Map) entry.getValue();
+            int       cIndex   = mapIndex == null
+                    ? (storage == null || storage.getIndexExtractorMap() == null
+                        ? 0 : storage.getIndexExtractorMap().size())
+                    : mapIndex.size();
+
+            cStorages++;
+            cExtractors += cIndex;
+
+            if (cStorages <= 3)
+                {
+                if (sb.length() > 0)
+                    {
+                    sb.append("; ");
+                    }
+                sb.append(describeStorage(storage))
+                  .append(", extractors=")
+                  .append(mapIndex == null ? "all" : Integer.valueOf(cIndex));
+                }
+            }
+
+        if (cStorages > 3)
+            {
+            if (sb.length() > 0)
+                {
+                sb.append("; ");
+                }
+            sb.append("...");
+            }
+
+        return "storages=" + cStorages + ", extractors=" + cExtractors
+                + (sb.length() == 0 ? "" : ", details=[" + sb + ']');
+        }
+
+    /**
+     * Return the current counter value for the specified partition.
+     */
+    protected int getIndexPartitionCount(Map<Integer, AtomicInteger> partsCounter, int nPartition)
+        {
+        AtomicInteger counter = partsCounter.get(nPartition);
+        return counter == null ? 0 : counter.get();
+        }
+
+    /**
+     * Return true iff diagnostic tracing for index recovery/rebuild is enabled.
+     */
+    protected boolean isIndexDebugEnabled()
+        {
+        return Config.getBoolean("coherence.distributed.index.debug");
+        }
+
+    /**
+     * Emit diagnostic tracing for index recovery/rebuild.
+     */
+    protected void traceIndexDebug(String sMessage)
+        {
+        if (isIndexDebugEnabled())
+            {
+            _trace("Index debug: " + sMessage, 3);
+            }
+        }
+
     /**
      * Schedule an index update for the specified partition. Called on the
     * service thread only.
@@ -10856,10 +11035,32 @@ public class PartitionedCache
             {
             setIndexUpdateCount(cUpdates + 1);
             post(msg);
+
+            if (isIndexDebugEnabled())
+                {
+                traceIndexDebug("Posted partition index rebuild for partition " + nPartition
+                        + ", event=" + nEventId + ", pending="
+                        + getIndexPartitionCount(getIndexPendingPartitions(), nPartition)
+                        + ", processing=" + getIndexPartitionCount(getIndexProcessingPartitions(), nPartition)
+                        + ", inFlight=" + (cUpdates + 1) + '/' + cFair
+                        + ", queued=" + getPendingIndexUpdate().size()
+                        + ", request=" + describeIndexUpdate(mapUpdate));
+                }
             }
         else
             {
             getPendingIndexUpdate().add(msg);
+
+            if (isIndexDebugEnabled())
+                {
+                traceIndexDebug("Queued partition index rebuild for partition " + nPartition
+                        + ", event=" + nEventId + ", pending="
+                        + getIndexPartitionCount(getIndexPendingPartitions(), nPartition)
+                        + ", processing=" + getIndexPartitionCount(getIndexProcessingPartitions(), nPartition)
+                        + ", inFlight=" + cUpdates + '/' + cFair
+                        + ", queued=" + getPendingIndexUpdate().size()
+                        + ", request=" + describeIndexUpdate(mapUpdate));
+                }
             }
         }
     
@@ -32546,7 +32747,29 @@ public class PartitionedCache
             
             protected Storage getStorage(long lOldCacheId)
                 {
-                return (Storage) getStorageArray().get(lOldCacheId);
+                Storage storage = (Storage) getStorageArray().get(lOldCacheId);
+                if (storage == null)
+                    {
+                    // During persistence recovery the persisted metadata can still
+                    // reference the source cache-id from the previous service
+                    // incarnation. Resolve the persisted cache name back to the
+                    // live Storage so recovered metadata is applied to the
+                    // current cache-id (COH-33056).
+                    PartitionedCache service = (PartitionedCache) get_Module();
+                    Object oCache = getStorageArrayPrev().get(lOldCacheId);
+                    if (oCache instanceof String)
+                        {
+                        String sCacheName = (String) oCache;
+                        storage = service.getStorage(sCacheName);
+                        if (storage == null && service.isIndexDebugEnabled())
+                            {
+                            service.traceIndexDebug("Recovery could not resolve old cache-id " + lOldCacheId
+                                    + " for partition " + getPartition() + " via cache '" + sCacheName + "'");
+                            }
+                        }
+                    }
+
+                return storage;
                 }
             
             // Accessor for the property "StorageArray"
@@ -32812,7 +33035,29 @@ public class PartitionedCache
             
             protected Storage getStorage(long lOldCacheId)
                 {
-                return (Storage) getStorageArray().get(lOldCacheId);
+                Storage storage = (Storage) getStorageArray().get(lOldCacheId);
+                if (storage == null)
+                    {
+                    // During persistence recovery the persisted metadata can still
+                    // reference the source cache-id from the previous service
+                    // incarnation. Resolve the persisted cache name back to the
+                    // live Storage so recovered metadata is applied to the
+                    // current cache-id (COH-33056).
+                    PartitionedCache service = (PartitionedCache) get_Module();
+                    Object oCache = getStorageArrayPrev().get(lOldCacheId);
+                    if (oCache instanceof String)
+                        {
+                        String sCacheName = (String) oCache;
+                        storage = service.getStorage(sCacheName);
+                        if (storage == null && service.isIndexDebugEnabled())
+                            {
+                            service.traceIndexDebug("Recovery could not resolve old cache-id " + lOldCacheId
+                                    + " for partition " + getPartition() + " via cache '" + sCacheName + "'");
+                            }
+                        }
+                    }
+
+                return storage;
                 }
             
             // Accessor for the property "StorageArray"
@@ -32935,15 +33180,21 @@ public class PartitionedCache
                 // import java.util.Comparator;
                 // import java.util.List;
                 
+                PartitionedCache service = (PartitionedCache) get_Module();
                 Storage storage = getStorage(lOldCacheId);
                 if (storage == null)
                     {
                     // TODO: this shouldn't happen; it probably means that the cache
                     //       was concurrently destroyed during the restore
+                    if (service.isIndexDebugEnabled())
+                        {
+                        service.traceIndexDebug("Recovery skipped persisted index registration for old cache-id "
+                                + lOldCacheId + " in partition " + getPartition()
+                                + " because no live Storage was resolved");
+                        }
                     }
                 else
                     {
-                    PartitionedCache    service    = (PartitionedCache) get_Module();
                     Serializer serializer = service.getSerializer();
                     com.tangosol.util.ValueExtractor  extractor  = (com.tangosol.util.ValueExtractor)  com.tangosol.util.ExternalizableHelper.fromBinary(binExtractor, serializer);
                     Comparator comparator = (Comparator) com.tangosol.util.ExternalizableHelper.fromBinary(binComparator, serializer);
@@ -32966,6 +33217,20 @@ public class PartitionedCache
                         msgRequest.setComparator(comparator);
                         msgRequest.addToMember(service.getOwnershipSenior(true));
                         listRequests.add(msgRequest);
+                        if (service.isIndexDebugEnabled())
+                            {
+                            service.traceIndexDebug("Recovery queued global index registration for partition "
+                                    + getPartition() + ", old cache-id=" + lOldCacheId + ", "
+                                    + service.describeStorage(storage) + ", extractor=" + extractor
+                                    + ", ordered=" + (comparator != null));
+                            }
+                        }
+                    else if (service.isIndexDebugEnabled())
+                        {
+                        service.traceIndexDebug("Recovery found persisted index registration for partition "
+                                + getPartition() + ", old cache-id=" + lOldCacheId + ", "
+                                + service.describeStorage(storage) + ", extractor=" + extractor
+                                + ", but no request list was available");
                         }
                     }
                 
