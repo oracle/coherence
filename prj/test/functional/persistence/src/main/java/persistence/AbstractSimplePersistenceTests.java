@@ -84,6 +84,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -512,7 +513,127 @@ public abstract class AbstractSimplePersistenceTests
         testCqcSnapshotRecovery("testCqcSnapshot" + getPersistenceManagerName(), "simple-persistent");
         }
 
+    @Test
+    public void testPersistenceRecoveryLogsMessage()
+            throws IOException, InterruptedException
+        {
+        testPersistenceRecoveryLogsMessage("testPersistenceRecoveryLogsMessage", "simple-persistent");
+        }
+
     // ----- helpers --------------------------------------------------------
+
+    private void testPersistenceRecoveryLogsMessage(String sServer, String sPersistentCache)
+            throws IOException, InterruptedException
+        {
+        // create temp directories
+        File fileActive1  = FileHelper.createTempDir();
+        File fileActive2  = FileHelper.createTempDir();
+        File fileActive3  = FileHelper.createTempDir();
+        File fileTrash    = FileHelper.createTempDir();
+
+        Properties props = new Properties();
+        props.setProperty("test.persistence.mode", "active");
+        props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
+        props.setProperty("coherence.distribution.2server", "false");
+        props.setProperty("coherence.management", "all");
+        props.setProperty("coherence.management.remote", "true");
+        props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
+
+        // join cluster locally
+        Cluster cluster = CacheFactory.getCluster();
+
+        // create properties for three servers
+        Properties props1 = new Properties();
+        props1.putAll(props);
+        props1.setProperty("test.persistence.active.dir", fileActive1.getAbsolutePath());
+        props1.setProperty("coherence.options", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5010");
+
+        Properties props2 = new Properties();
+        props2.putAll(props);
+        props2.setProperty("test.persistence.active.dir", fileActive2.getAbsolutePath());
+
+        Properties props3 = new Properties();
+        props3.putAll(props);
+        props3.setProperty("test.persistence.active.dir", fileActive3.getAbsolutePath());
+
+        String sServerName1 = sServer + "-1";
+        String sServerName2 = sServer + "-2";
+        String sServerName3 = sServer + "-3";
+
+        // start three servers
+        CoherenceClusterMember startedServer1 = startCacheServer(sServerName1, getProjectName(), getCacheConfigPath(), props1);
+        CoherenceClusterMember startedServer2 = startCacheServer(sServerName2, getProjectName(), getCacheConfigPath(), props2);
+        CoherenceClusterMember startedServer3 = startCacheServer(sServerName3, getProjectName(), getCacheConfigPath(), props3);
+
+        // await cluster having all four members
+        Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(4));
+
+        // create local cache
+        ConfigurableCacheFactory factory = CacheFactory.getCacheFactoryBuilder()
+                .getConfigurableCacheFactory("client-cache-config.xml", null);
+        setFactory(factory);
+
+        NamedCache<String, String> cache = getNamedCache(sPersistentCache);
+        PartitionedService service = (PartitionedService) cache.getCacheService();
+
+        try
+            {
+            Eventually.assertThat(invoking(startedServer1).isServiceRunning(service.getInfo().getServiceName()), is(true));
+            AbstractRollingRestartTest.waitForNoOrphans(cache.getCacheService());
+
+            // populate persistence files
+            final String KEY   = "key-";
+            final String VALUE = "value-";
+
+            Map<String, String> map = new HashMap<>();
+            for (int i = 1; i <= 500; i++)
+                {
+                map.put(KEY + i, VALUE + i);
+                }
+
+            cache.putAll(map);
+
+            // stop servers
+            stopCacheServer(sServerName1);
+            stopCacheServer(sServerName2);
+            stopCacheServer(sServerName3);
+
+            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
+
+            CoherenceClusterMember restartedServer1 = startCacheServer(sServerName1, getProjectName(), getCacheConfigPath(), props);
+            CoherenceClusterMember restartedServer2 = startCacheServer(sServerName2, getProjectName(), getCacheConfigPath(), props);
+            CoherenceClusterMember restartedServer3 = startCacheServer(sServerName3, getProjectName(), getCacheConfigPath(), props);
+
+            Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(4));
+            Eventually.assertThat(invoking(restartedServer1).isServiceRunning(service.getInfo().getServiceName()), is(true));
+            Eventually.assertThat(invoking(restartedServer2).isServiceRunning(service.getInfo().getServiceName()), is(true));
+            Eventually.assertThat(invoking(restartedServer3).isServiceRunning(service.getInfo().getServiceName()), is(true));
+            AbstractRollingRestartTest.waitForNoOrphans(cache.getCacheService());
+
+            // inspect server log for recovery completion message
+            File logFile = new File("target/test-output/functional", sServerName1 + ".out");
+            assertTrue("Expected log file not found: " + logFile, logFile.exists());
+
+            List<String> lines = Files.readAllLines(logFile.toPath());
+            boolean found = lines.stream().anyMatch(line -> line.contains("Persistence recovery is complete"));
+
+            assertTrue("Expected recovery log message not found", found);
+
+            stopCacheServer(sServerName1);
+            stopCacheServer(sServerName2);
+            stopCacheServer(sServerName3);
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+
+            FileHelper.deleteDirSilent(fileActive1);
+            FileHelper.deleteDirSilent(fileActive2);
+            FileHelper.deleteDirSilent(fileActive3);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
+        }
 
     private void testBasicPersistence(String sServer, String sPersistentCache, String sTransientCache)
             throws IOException
