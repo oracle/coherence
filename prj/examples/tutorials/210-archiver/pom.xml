@@ -24,22 +24,14 @@
 
     <java.version>17</java.version>
 
-    <jline.version>3.26.3</jline.version>
-
     <maven.compiler.source>${java.version}</maven.compiler.source>
     <maven.compiler.target>${java.version}</maven.compiler.target>
 
     <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
     <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
-    <maven.failsafe.plugin.version>3.0.0-M5</maven.failsafe.plugin.version>
-    <maven.jar.plugin.version>3.0.2</maven.jar.plugin.version>
-    <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
-    <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
     <jaxb-api.version>2.3.1</jaxb-api.version>
     <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
-    <junit.jupiter.version>5.7.0</junit.jupiter.version>
-    <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
     <org.apache.sshd.version>2.12.0</org.apache.sshd.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -69,12 +61,6 @@
     <!-- end::deps2[] -->
 
     <dependency>
-      <groupId>org.jline</groupId>
-      <artifactId>jline</artifactId>
-      <version>${jline.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>javax.xml.bind</groupId>
       <artifactId>jaxb-api</artifactId>
       <version>${jaxb-api.version}</version>
@@ -89,13 +75,6 @@
       <groupId>org.apache.sshd</groupId>
       <artifactId>sshd-sftp</artifactId>
       <version>${org.apache.sshd.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.oracle.bedrock.coherence</groupId>
-      <artifactId>coherence-21.06-testing-support</artifactId>
-      <version>${oracle.bedrock.version}</version>
-      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -176,26 +155,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-failsafe-plugin</artifactId>
-        <version>${maven.failsafe.plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>integration-test</goal>
-              <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>${maven.surefire.plugin.version}</version>
-      </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
