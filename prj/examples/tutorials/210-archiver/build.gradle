@@ -29,6 +29,7 @@ dependencies {
     implementation "org.apache.sshd:sshd-sftp:${sshdVersion}"
 
     implementation "${coherenceGroupId}:coherence"
+
     testImplementation "org.jline:jline:${jlineVersion}"
     testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
 }
