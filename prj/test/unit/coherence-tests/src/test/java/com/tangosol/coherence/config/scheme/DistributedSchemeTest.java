@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -132,8 +132,11 @@ public class DistributedSchemeTest
         config.setType(new LiteralExpression<String>("on-heap"));
         assertEquals(BackingMapScheme.ON_HEAP,config.resolveType(resolver, new LocalScheme()));
 
-        config.setType(new LiteralExpression<String>("off-heap"));
-        assertEquals(BackingMapScheme.OFF_HEAP,config.resolveType(resolver, new LocalScheme()));
+        config.setType(new LiteralExpression<String>("ramjournal"));
+        assertEquals(BackingMapScheme.RAMJOURNAL,config.resolveType(resolver, new LocalScheme()));
+
+        config.setType(new LiteralExpression<String>("flashjournal"));
+        assertEquals(BackingMapScheme.FLASHJOURNAL,config.resolveType(resolver, new LocalScheme()));
 
         config.setType(new LiteralExpression<String>("scheme"));
         assertEquals(BackingMapScheme.SCHEME,config.resolveType(resolver, new LocalScheme()));

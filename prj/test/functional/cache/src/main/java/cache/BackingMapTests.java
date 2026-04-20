@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -161,6 +161,29 @@ public class BackingMapTests
         mapSplitting.createPartition(1);
         Map mapPartition = mapSplitting.getPartitionMap(1);
         assertEquals(CustomMap.class, mapPartition.getClass());
+        cache.release();
+        }
+
+    @Test
+    public void testBackupSchemeRamjournal() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-backup-storage-ramjournal");
+        Map mapBackup = CacheTestHelper.getBackupMap(cache);
+        assertEquals( PartitionSplittingBackingMap.class, mapBackup.getClass());
+
+        cache.put("key", "value");
+        assertEquals("value", cache.get("key"));
+        cache.release();
+        }
+
+    @Test
+    public void testBackupOnlyRamjournal() throws Exception
+        {
+        NamedCache cache = getNamedCache("dist-backup-only-ramjournal");
+        Map mapBackup = CacheTestHelper.getBackupMap(cache);
+
+        assertEquals(PartitionSplittingBackingMap.class, mapBackup.getClass());
+
         cache.release();
         }
 
