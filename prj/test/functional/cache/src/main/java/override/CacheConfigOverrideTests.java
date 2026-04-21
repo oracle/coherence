@@ -77,6 +77,9 @@ public class CacheConfigOverrideTests
         // this test requires local storage to be enabled
         System.setProperty(LocalStorage.PROPERTY, "true");
 
+        // debug prop
+        System.setProperty("coherence.debug.35909248", "true");
+
         setupProps();
         }
 
@@ -89,6 +92,7 @@ public class CacheConfigOverrideTests
         System.clearProperty("test.unicast.port");
         System.clearProperty("coherence.cacheconfig");
         System.clearProperty("coherence.cacheconfig.override");
+        System.clearProperty("coherence.debug.35909248");
         }
 
     // ----- test methods ---------------------------------------------------
