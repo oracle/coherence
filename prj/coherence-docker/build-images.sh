@@ -360,7 +360,7 @@ fi
 if [ "${AMD_BASE_IMAGE_17}" != "" ]
 then
   # Build the amd64 Java 17 image
-  common_image amd64 linux "${AMD_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-amd64" "${JAVA_EA_17_URL}"
+  common_image amd64 linux "${AMD_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-amd64" "${JAVA_17_URL}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "amd64" ]
   then
@@ -380,7 +380,7 @@ fi
 if [ "${ARM_BASE_IMAGE_17}" != "" ]
 then
   # Build the arm64 Java 17 image
-  common_image arm64 linux "${ARM_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-arm64" "${JAVA_EA_17_URL}"
+  common_image arm64 linux "${ARM_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-arm64" "${JAVA_17_URL}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "arm64" ]
   then

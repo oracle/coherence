@@ -121,7 +121,7 @@ else
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
       -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
-      -e JAVA_EA_17_URL="${JAVA_EA_17_URL}" \
+      -e JAVA_17_URL="${JAVA_17_URL}" \
       -e BUILDER_IMAGE="${BUILDER_IMAGE}" \
       -e IMAGE_NAME="${IMAGE_NAME}" \
       -e IMAGE_ARCH="${IMAGE_ARCH}" \
