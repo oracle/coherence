@@ -22,14 +22,11 @@ import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.dslquery.internal.PersistenceToolsHelper;
 
-import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.net.Action;
 import com.tangosol.net.ActionPolicy;
-import com.tangosol.net.BackingMapContext;
-import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.Cluster;
@@ -49,13 +46,8 @@ import com.tangosol.net.partition.SimplePartitionKey;
 import com.tangosol.persistence.CachePersistenceHelper;
 
 import com.tangosol.util.Base;
-import com.tangosol.util.BinaryEntry;
-import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
-import com.tangosol.util.Filter;
-import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LongArray;
-import com.tangosol.util.MapIndex;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.MapTrigger;
 import com.tangosol.util.MapTriggerListener;
@@ -75,10 +67,6 @@ import com.tangosol.util.filter.GreaterEqualsFilter;
 import com.tangosol.persistence.GUIDHelper;
 import com.tangosol.util.listener.SimpleMapListener;
 
-import com.tangosol.util.processor.AbstractProcessor;
-
-import java.io.DataInput;
-import java.io.DataOutput;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -1839,10 +1827,7 @@ public abstract class AbstractSimplePersistenceTests
         waitForBalanced(service);
 
         PersistenceTestHelper      helper = new PersistenceTestHelper();
-        final ContinuousQueryCache cqc    = new ContinuousQueryCache(cache, (Filter) o -> o instanceof String
-                                                                                          || (o instanceof Integer
-                                                                                              && ((Integer) o) >= 9500
-                                                                                              && ((Integer) o) < 10500), true);
+        final ContinuousQueryCache cqc = new ContinuousQueryCache(cache, new CQCFilter(), true);
 
         try
             {
@@ -1913,6 +1898,7 @@ public abstract class AbstractSimplePersistenceTests
             FileHelper.deleteDirSilent(fileTrash);
             }
         }
+
     /**
      * A helper method to call the static {@link PersistenceTestHelper#listSnapshots(String)}
      * method. This allows us to use this method in Eventually.assertThat(Deferred, Matcher)
@@ -2073,67 +2059,6 @@ public abstract class AbstractSimplePersistenceTests
         // ----- data members -----------------------------------------------
 
         private String m_sLastMessage;
-        }
-
-    // ----- inner class: IndexTriggerCheckProcessor ------------------------
-
-    public static class IndexTriggerCheckProcessor
-            extends AbstractProcessor
-            implements ExternalizableLite
-        {
-        /**
-         * {@inheritDoc}
-         */
-        public Object process(InvocableMap.Entry entry)
-            {
-            BinaryEntry              binEntry = (BinaryEntry) entry;
-            BackingMapContext        bmc      = binEntry.getBackingMapContext();
-            BackingMapManagerContext bmmc     = bmc.getManagerContext();
-            PartitionedService       service  = (PartitionedService) bmmc.getCacheService();
-
-            try
-                {
-                Object oStorage   = ClassHelper.invoke(service, "getStorage", new Object[] { bmc.getCacheName() });
-                Map    mapIndices = (Map) ClassHelper.invoke(oStorage, "getIndexExtractorMap", new Object[0]);
-                Set setExtractors = mapIndices.keySet();
-
-                // triggers are recovered by being sent to the service senior in a
-                // ListenerRequest; on slow platforms this can take some time.
-                // poll for 10s if necessary
-                long ldtStart = CacheFactory.getSafeTimeMillis();
-                long ldtNow   = 0L;
-                Set setTriggers = null;
-                do
-                    {
-                    if (ldtNow > 0L)
-                        {
-                        Base.sleep(500L);
-                        }
-                    setTriggers = (Set) ClassHelper.invoke(oStorage, "getTriggerSet", new Object[0]);
-                    ldtNow      = CacheFactory.getSafeTimeMillis();
-                    } while (setTriggers == null && ldtNow < ldtStart + 10000L);
-
-                return new Object[] { setExtractors, setTriggers };
-                }
-            catch (Exception e)
-                {
-                throw Base.ensureRuntimeException(e);
-                }
-            }
-
-        /**
-         * {@inheritDoc}
-         */
-        public void readExternal(DataInput in) throws IOException
-            {
-            }
-
-        /**
-         * {@inheritDoc}
-         */
-        public void writeExternal(DataOutput out) throws IOException
-            {
-            }
         }
 
     // ----- inner class: QuorumPolicy --------------------------------------

@@ -1,0 +1,12 @@
+{
+  "reflection": [
+    {
+      "type": "persistence.CQCFilter",
+      "serializable": true
+    },
+    {
+      "type": "persistence.IndexTriggerCheckProcessor",
+      "serializable": true
+    }
+  ]
+}
