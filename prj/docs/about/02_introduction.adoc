@@ -83,7 +83,6 @@ Coherence Community Edition does not include the following Oracle Coherence comm
 * Deployment of Grid Archives (GARs)
 * HTTP session management for application servers (Coherence*Web)
 * GoldenGate HotCache
-* TopLink-based CacheLoaders and CacheStores
 * Elastic Data
 * Federation and WAN (wide area network) support
 * Transaction Framework
