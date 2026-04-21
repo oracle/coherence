@@ -232,7 +232,7 @@
                      <argument>BUILD</argument>
                    </arguments>
                    <environmentVariables>
-                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
+                     <JAVA_BASE_URL>${java.base.url}</JAVA_BASE_URL>
                      <JAVA_17_URL>${java.17.url}</JAVA_17_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
@@ -254,6 +254,8 @@
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
                      <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
                      <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <JDK_BASE_DOWNLOAD_TOKEN>${env.JDK_BASE_DOWNLOAD_TOKEN}</JDK_BASE_DOWNLOAD_TOKEN>
+                     <JDK_17_DOWNLOAD_TOKEN>${env.JDK_17_DOWNLOAD_TOKEN}</JDK_17_DOWNLOAD_TOKEN>
                      <PROJECT_URL>${project.url}</PROJECT_URL>
                      <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
                      <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
@@ -386,7 +388,7 @@
                      <argument>EXEC</argument>
                    </arguments>
                    <environmentVariables>
-                     <JAVA_EA_BASE_URL>${java.ea.base.url}</JAVA_EA_BASE_URL>
+                     <JAVA_BASE_URL>${java.base.url}</JAVA_BASE_URL>
                      <JAVA_17_URL>${java.17.url}</JAVA_17_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
@@ -408,6 +410,8 @@
                      <DOCKER_PASSWORD>${env.DOCKER_PASSWORD}</DOCKER_PASSWORD>
                      <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
                      <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
+                     <JDK_BASE_DOWNLOAD_TOKEN>${env.JDK_BASE_DOWNLOAD_TOKEN}</JDK_BASE_DOWNLOAD_TOKEN>
+                     <JDK_17_DOWNLOAD_TOKEN>${env.JDK_17_DOWNLOAD_TOKEN}</JDK_17_DOWNLOAD_TOKEN>
                      <PROJECT_URL>${project.url}</PROJECT_URL>
                      <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
                      <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>

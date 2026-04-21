@@ -180,7 +180,7 @@ common_image(){
 
   if [ "${5}" != "" ]
   then
-    setup_jdk ${1} ${2} ${3} ${4} ${5}
+    setup_jdk ${1} ${2} ${3} ${4} ${5} ${6}
   fi
 
   # Create the container from the base image, setting the architecture and O/S
@@ -301,8 +301,27 @@ setup_jdk() {
     JAVA_PKG="${5}"_linux-"${ARCH}"_bin.tar.gz
     JDK_NAME=$(basename ${5})
     IMAGE_JAVA_HOME=/usr/java/${JDK_NAME}
+
 #   Download the JDK
-    curl --output /tmp/jdk.tgz "$JAVA_PKG"
+    JDK_DOWNLOADED="false"
+    if [ "${6}" != "" ]
+    then
+      if  curl -LfS -H "token:${6}" --output /tmp/jdk.tgz "$JAVA_PKG"; then
+          echo "JDK Downloaded Successfully"
+          JDK_DOWNLOADED="true"
+      else
+         echo "Failed to download JDK with token"
+      fi
+    fi
+    if [ "${JDK_DOWNLOADED}" == "false" ]; then
+       if curl -LfS --output /tmp/jdk.tgz "$JAVA_PKG"; then
+          echo "JDK Downloaded Successfully"
+       else
+         echo "JDK Download Failed"
+         exit 1
+      fi
+    fi
+
     mkdir -p "/tmp${IMAGE_JAVA_HOME}"
     tar --extract --file /tmp/jdk.tgz --directory "/tmp${IMAGE_JAVA_HOME}" --strip-components 1
 #   Copy the JDK from the builder image to the target image
@@ -337,10 +356,10 @@ then
 fi
 
 # Build the amd64 image
-common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64" "${JAVA_EA_BASE_URL}"
+common_image amd64 linux "${AMD_BASE_IMAGE}" "${IMAGE_NAME}-amd64" "${JAVA_BASE_URL}" "${JDK_BASE_DOWNLOAD_TOKEN}"
 
 # Build the arm64 image
-common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64" "${JAVA_EA_BASE_URL}"
+common_image arm64 linux "${ARM_BASE_IMAGE}" "${IMAGE_NAME}-arm64" "${JAVA_BASE_URL}" "${JDK_BASE_DOWNLOAD_TOKEN}"
 
 # Push the relevant image to the docker daemon base on the build machine's o/s architecture
 if [ "${NO_DAEMON}" != "true" ]
@@ -360,7 +379,7 @@ fi
 if [ "${AMD_BASE_IMAGE_17}" != "" ]
 then
   # Build the amd64 Java 17 image
-  common_image amd64 linux "${AMD_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-amd64" "${JAVA_17_URL}"
+  common_image amd64 linux "${AMD_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-amd64" "${JAVA_17_URL}" "${JDK_17_DOWNLOAD_TOKEN}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "amd64" ]
   then
@@ -380,7 +399,7 @@ fi
 if [ "${ARM_BASE_IMAGE_17}" != "" ]
 then
   # Build the arm64 Java 17 image
-  common_image arm64 linux "${ARM_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-arm64" "${JAVA_17_URL}"
+  common_image arm64 linux "${ARM_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-arm64" "${JAVA_17_URL}" "${JDK_17_DOWNLOAD_TOKEN}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "arm64" ]
   then
@@ -400,10 +419,10 @@ fi
 if [ "${NO_GRAAL}" != "true" ]
 then
   # Build the amd64 Graal image
-  common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64" ""
+  common_image amd64 linux "${GRAAL_AMD_BASE_IMAGE}" "${IMAGE_NAME}-graal-amd64" "" ""
 
   # Build the arm64 Graal image
-  common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64" ""
+  common_image arm64 linux "${GRAAL_ARM_BASE_IMAGE}" "${IMAGE_NAME}-graal-arm64" "" ""
 
   # Push the relevant Graal image to the docker daemon base on the build machine's o/s architecture
   if [ "${NO_DAEMON}" != "true" ]
@@ -426,6 +445,4 @@ buildah rm "container-amd64" || true
 buildah rmi "coherence:amd64" || true
 buildah rm "container-arm64" || true
 buildah rmi "coherence:arm64" || true
-
-
 

@@ -120,7 +120,7 @@ else
       -v ${DOCKER_HOST}:${DOCKER_HOST}  \
       -v $BUILDAH_VOLUME:/var/lib/containers:Z  \
       --privileged --network host \
-      -e JAVA_EA_BASE_URL="${JAVA_EA_BASE_URL}" \
+      -e JAVA_BASE_URL="${JAVA_BASE_URL}" \
       -e JAVA_17_URL="${JAVA_17_URL}" \
       -e BUILDER_IMAGE="${BUILDER_IMAGE}" \
       -e IMAGE_NAME="${IMAGE_NAME}" \
@@ -149,6 +149,8 @@ else
       -e OCR_DOCKER_SERVER="${OCR_DOCKER_SERVER}" \
       -e DOCKER_HUB_USERNAME="${DOCKER_HUB_USERNAME}" \
       -e DOCKER_HUB_PASSWORD="${DOCKER_HUB_PASSWORD}" \
+      -e JDK_BASE_DOWNLOAD_TOKEN="${JDK_BASE_DOWNLOAD_TOKEN}" \
+      -e JDK_17_DOWNLOAD_TOKEN="${JDK_17_DOWNLOAD_TOKEN}" \
       -e PROJECT_URL="${PROJECT_URL}" \
       -e PROJECT_VENDOR="${PROJECT_VENDOR}" \
       -e PROJECT_DESCRIPTION="${PROJECT_DESCRIPTION}" \
