@@ -99,7 +99,7 @@
     <maven.clean.plugin.version>3.2.0</maven.clean.plugin.version>
     <maven.compiler.plugin.version>3.14.0</maven.compiler.plugin.version>
     <maven.dependency.plugin.version>3.3.0</maven.dependency.plugin.version>
-    <maven.dependency-check.plugin.version>12.1.0</maven.dependency-check.plugin.version>
+    <maven.dependency-check.plugin.version>12.1.6</maven.dependency-check.plugin.version>
     <maven.deploy.plugin.version>3.1.1</maven.deploy.plugin.version>
     <maven.directory.plugin.version>0.1</maven.directory.plugin.version>
     <maven.docker.plugin.version>0.15.7</maven.docker.plugin.version>
@@ -228,11 +228,15 @@
     <!-- Helidon version.lib.jakarta.jsonb-api -->
     <jakarta.json.bind.version>3.0.1</jakarta.json.bind.version>
     <jakarta.json.impl.version>2.0.1</jakarta.json.impl.version>
+    <jakarta.mail.version>2.1.3</jakarta.mail.version>
     <jakarta.persistence.version>3.2.0</jakarta.persistence.version>
     <jakarta.resource.version>2.1.0</jakarta.resource.version>
-    <jakarta.servlet.version>4.0.4</jakarta.servlet.version>
+    <jakarta.servlet.ee9.version>5.0.0</jakarta.servlet.ee9.version>
+    <jakarta.servlet.ee10.version>6.0.0</jakarta.servlet.ee10.version>
     <jakarta.servlet.ee11.version>6.1.0</jakarta.servlet.ee11.version>
-    <jakarta.servlet.jsp.version>4.0.0</jakarta.servlet.jsp.version>
+    <jakarta.servlet.jsp.ee9.version>3.0.0</jakarta.servlet.jsp.ee9.version>
+    <jakarta.servlet.jsp.ee10.version>3.1.1</jakarta.servlet.jsp.ee10.version>
+    <jakarta.servlet.jsp.ee11.version>4.0.0</jakarta.servlet.jsp.ee11.version>
     <!-- Helidon version.lib.jakarta.jaxrs-api -->
     <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
     <!-- Helidon version.lib.jakarta.xml.bind-api -->
@@ -266,15 +270,23 @@
     <oracle.db.version>21.13.0.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.7</parsson-media.version>
+    <!-- Force use of a later version of projectreactor to get CVE fixes -->
+    <projectreactor.version>1.2.8</projectreactor.version>
     <protobuf.version>4.31.1</protobuf.version>
     <rxjava.version>3.0.2</rxjava.version>
     <sdoapi.version>12.2.0.1.0</sdoapi.version>
     <slf4j.version>2.0.17</slf4j.version>
     <spymemcached.version>2.12.3</spymemcached.version>
+    <tika.version>3.3.0</tika.version>
+    <junrar.version>7.5.8</junrar.version>
 
     <!-- lucene -->
     <lucene.version>10.2.2</lucene.version>
 
+    <!-- native coh-web session management -->
+    <tomcat.ee9.version>10.0.27</tomcat.ee9.version>
+    <tomcat.ee10.version>10.1.20</tomcat.ee10.version>
+    <tomcat.ee11.version>11.0.2</tomcat.ee11.version>
     <!-- NOTE: this version should ideally be in sync with that used by Helidon -->
     <weld.version>5.1.1.SP2</weld.version>
     <weld-junit.version>3.0.0.Final</weld-junit.version>
@@ -395,9 +407,9 @@
 
       <!-- EclipseLink jakarta.persistence -->
       <dependency>
-        <groupId>jakarta.persistence</groupId>
-        <artifactId>jakarta.persistence-api</artifactId>
-        <version>${jakarta.persistence.version}</version>
+        <groupId>org.eclipse.persistence</groupId>
+        <artifactId>jakarta.persistence.jakarta.persistence-api</artifactId>
+        <version>${eclipselink.version}</version>
       </dependency>
 
       <!-- Eclipse MicroProfile -->
@@ -471,6 +483,13 @@
         <version>${gson.version}</version>
       </dependency>
 
+      <!-- projectreactor -->
+      <dependency>
+        <groupId>io.projectreactor.netty</groupId>
+        <artifactId>reactor-netty-http</artifactId>
+        <version>${projectreactor.version}</version>
+      </dependency>
+
       <!-- hsqldb -->
       <dependency>
         <groupId>org.hsqldb</groupId>
@@ -493,31 +512,11 @@
         <groupId>com.fasterxml.jackson.core</groupId>
         <artifactId>jackson-databind</artifactId>
         <version>${jackson.databind.version}</version>
-        <!-- exclude conflicting dependency on older version of jackson
-             than ${jackson.version} -->
-        <exclusions>
-          <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
         <artifactId>jackson-jakarta-rs-base</artifactId>
         <version>${jackson.version}</version>
-        <!-- exclude conflicting dependency on older versions of jackson
-             than ${jackson.version} and ${jackson.databind.version} -->
-        <exclusions>
-          <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.jakarta.rs</groupId>
@@ -528,16 +527,15 @@
         <groupId>com.fasterxml.jackson.module</groupId>
         <artifactId>jackson-module-jakarta-xmlbind-annotations</artifactId>
         <version>${jackson.version}</version>
-        <!-- exclude conflicting dependency on older version of jackson
-             than ${jackson.version} and ${jackson.databind.version} -->
         <exclusions>
+          <!-- exclude reference to older version than ${jackson.version} -->
           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -546,14 +544,14 @@
       <dependency>
         <groupId>jakarta.servlet</groupId>
         <artifactId>jakarta.servlet-api</artifactId>
-        <version>${jakarta.servlet.ee11.version}</version>
+        <version>${jakarta.servlet.ee9.version}</version>
       </dependency>
 
       <!-- JSP -->
       <dependency>
         <groupId>jakarta.servlet.jsp</groupId>
         <artifactId>jakarta.servlet.jsp-api</artifactId>
-        <version>${jakarta.servlet.jsp.version}</version>
+        <version>${jakarta.servlet.jsp.ee9.version}</version>
       </dependency>
 
       <!-- JCA -->
@@ -561,6 +559,20 @@
         <groupId>jakarta.resource</groupId>
         <artifactId>jakarta.resource-api</artifactId>
         <version>${jakarta.resource.version}</version>
+      </dependency>
+
+      <!-- Jakarta Mail -->
+      <dependency>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <version>${jakarta.mail.version}</version>
+      </dependency>
+
+      <!-- Jakarta Persistence -->
+      <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>${jakarta.persistence.version}</version>
       </dependency>
 
       <!-- Jakarta Interceptors -->
@@ -655,6 +667,20 @@
         <version>${langchain4j.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+
+      <!-- Apache Tika -->
+      <dependency>
+        <groupId>org.apache.tika</groupId>
+        <artifactId>tika-bom</artifactId>
+        <version>${tika.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>com.github.junrar</groupId>
+        <artifactId>junrar</artifactId>
+        <version>${junrar.version}</version>
       </dependency>
 
       <!-- log4j2 -->
