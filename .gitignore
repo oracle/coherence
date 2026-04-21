@@ -5,6 +5,7 @@
 *.war
 *.rar
 *.gar
+*.log
 
 # ignore these IntelliJ files
 .idea
@@ -21,9 +22,12 @@ target
 dist
 _package
 build/
+node_modules/
+prj/demo/unified-persistence-explorer/runtime/
 
 #ignore these specific files
 dependency-reduced-pom.xml
+.flattened-pom.xml
 
 # however allow these files
 !.ignore
