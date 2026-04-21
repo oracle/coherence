@@ -57,7 +57,8 @@ import org.eclipse.microprofile.config.spi.ConfigSource;
  * <p>
  * This config source is also mutable. It can be injected into any application 
  * class by the CDI container, and the values can be modified by calling
- * {@link }
+ * {@link #setValue(String, String)} method.
+ * 
  * @author Aleks Seovic  2019.10.12
  * @since 20.06
  */
