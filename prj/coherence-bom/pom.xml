@@ -295,6 +295,16 @@
         <artifactId>coherence-bedrock-testing-support</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>pof-maven-plugin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>com.oracle.coherence.gradle.plugin</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
