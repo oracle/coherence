@@ -30,7 +30,7 @@ public class OpenTelemetrySpan
      *
      * @param span  the {@link io.opentelemetry.api.trace.Span} delegate
      *
-     * @throws NullPointerException if {@code openTracingSpan} is {@code null}
+     * @throws NullPointerException if {@code span} is {@code null}
      */
     public OpenTelemetrySpan(io.opentelemetry.api.trace.Span span)
         {

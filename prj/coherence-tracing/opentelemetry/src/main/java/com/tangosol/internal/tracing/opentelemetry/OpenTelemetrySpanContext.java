@@ -30,7 +30,7 @@ public class OpenTelemetrySpanContext
      */
     public OpenTelemetrySpanContext(io.opentelemetry.api.trace.SpanContext spanContext)
         {
-        Objects.requireNonNull(spanContext, "Parameter openTracingSpanContext cannot be null");
+        Objects.requireNonNull(spanContext, "Parameter spanContext cannot be null");
 
         f_spanContext = spanContext;
         f_fNoop       = OpenTelemetryShimLoader.Noops.isNoop(spanContext);

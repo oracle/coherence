@@ -214,7 +214,6 @@
     <jackson.version>2.19.2</jackson.version>
     <jackson.databind.version>2.19.2</jackson.databind.version>
     <jacoco.version>0.8.13</jacoco.version>
-    <jaeger.version>1.8.1</jaeger.version>
     <!-- NOTE: these Jakarta versions should ideally be in sync' with that used by Helidon -->
     <jakarta.activation.version>2.1.3</jakarta.activation.version>
     <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
@@ -261,9 +260,6 @@
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
     <!-- only used for testing -->
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
-    <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
-    <opentracing.version>0.33.0</opentracing.version>
-    <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
     <onnx.version>1.22.0</onnx.version>
     <oracle.db.version>21.13.0.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
@@ -354,28 +350,6 @@
         <version>${classgraph.version}</version>
       </dependency>
 
-      <!-- opentracing -->
-      <dependency>
-        <groupId>io.opentracing</groupId>
-        <artifactId>opentracing-api</artifactId>
-        <version>${opentracing.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.opentracing</groupId>
-        <artifactId>opentracing-util</artifactId>
-        <version>${opentracing.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.opentracing</groupId>
-        <artifactId>opentracing-noop</artifactId>
-        <version>${opentracing.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.opentracing.contrib</groupId>
-        <artifactId>opentracing-tracerresolver</artifactId>
-        <version>${opentracing.tracerresolver.version}</version>
-      </dependency>
-
       <!-- OpenTelemetry -->
       <dependency>
         <groupId>io.opentelemetry</groupId>
@@ -402,13 +376,6 @@
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-jvm</artifactId>
         <version>${ok.http.version}</version>
-      </dependency>
-
-      <!-- Jaeger Client -->
-      <dependency>
-        <groupId>io.jaegertracing</groupId>
-        <artifactId>jaeger-client</artifactId>
-        <version>${jaeger.version}</version>
       </dependency>
 
       <dependency>
@@ -983,12 +950,6 @@
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
         <version>${google-error-prone.version}</version>
-      </dependency>
-
-      <dependency>
-        <groupId>io.opentracing.contrib</groupId>
-        <artifactId>opentracing-grpc</artifactId>
-        <version>${opentracing.grpc.version}</version>
       </dependency>
 
       <!-- Micrometer metrics integration -->

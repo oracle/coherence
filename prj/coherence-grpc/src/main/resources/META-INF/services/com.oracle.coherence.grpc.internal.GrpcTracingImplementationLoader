@@ -1,2 +1,1 @@
 com.oracle.coherence.grpc.internal.OpenTelemetryGrpcImplementationLoader
-com.oracle.coherence.grpc.internal.OpenTracingGrpcTracingImplementationLoader

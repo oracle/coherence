@@ -35,10 +35,6 @@
             We never want to include these API deps on an execution classpath.
           -->
           <classpathDependencyExcludes>
-            <classpathDependencyExclude>io.opentracing:opentracing-api</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-api</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-context</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-sdk</classpathDependencyExclude>
@@ -56,10 +52,6 @@
             We never want to include these API deps on an execution classpath.
           -->
           <classpathDependencyExcludes>
-            <classpathDependencyExclude>io.opentracing:opentracing-api</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing:opentracing-noop</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing:opentracing-util</classpathDependencyExclude>
-            <classpathDependencyExclude>io.opentracing.contrib:opentracing-tracerresolver</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-api</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-context</classpathDependencyExclude>
             <classpathDependencyExclude>io.opentelemetry:opentelemetry-sdk</classpathDependencyExclude>
@@ -82,26 +74,6 @@
       <groupId>${coherence.group.id}.tests</groupId>
       <artifactId>tracing-common</artifactId>
       <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-api</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-util</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-noop</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-tracerresolver</artifactId>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 </project>

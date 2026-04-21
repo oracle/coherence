@@ -84,11 +84,6 @@
 
     <dependency>
       <groupId>${coherence.group.id}</groupId>
-      <artifactId>opentracing</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
       <artifactId>opentelemetry</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -239,18 +234,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- OpenTracing -->
-    <dependency>
-      <groupId>io.opentracing</groupId>
-      <artifactId>opentracing-util</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.opentracing.contrib</groupId>
-      <artifactId>opentracing-tracerresolver</artifactId>
-      <optional>true</optional>
-    </dependency>
-
     <!-- OpenTelemetry -->
 
     <dependency>
@@ -375,7 +358,6 @@
                   <include>${coherence.group.id}:coherence-core-24</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:coherence-vector-util</include>
-                  <include>${coherence.group.id}:opentracing</include>
                   <include>${coherence.group.id}:opentelemetry</include>
                 </includes>
                 <excludes>

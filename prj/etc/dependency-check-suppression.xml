@@ -126,18 +126,6 @@
      <cve>CVE-2020-2981</cve>
   </suppress>
 
-   <!-- grpc -->
-   <!-- This was applying the version of opentracing-grpc to grpc
-        which triggered CVEs for older versions of grpc and grpc-js
-   -->
-   <suppress>
-      <notes><![CDATA[
-      file name: opentracing-grpc-0.2.3.jar
-      ]]></notes>
-      <packageUrl regex="true">^pkg:maven/io\.opentracing\.contrib/opentracing\-grpc@.*$</packageUrl>
-      <cpe>cpe:/a:grpc:grpc</cpe>
-   </suppress>
-
   <!-- guava transitive dependency of Maven Plugin API (not shipped) -->
   <suppress>
      <notes><![CDATA[
