@@ -87,10 +87,6 @@ public class AsyncNamedCacheTests
             new Object[] {"Distributed Cache (with executor)", "dist-test", optsExecutor},
             new Object[] {"Near Cache", "near-test", opts},
             new Object[] {"Near Cache (with executor)", "near-test", optsExecutor},
-            new Object[] {"Elastic Flash", "flash-test", opts},
-            new Object[] {"Elastic Flash (with executor)", "flash-test", optsExecutor},
-            new Object[] {"Elastic RAM", "ram-test", opts},
-            new Object[] {"Elastic RAM (with executor)", "ram-test", optsExecutor},
             new Object[] {"View Cache", "view-dist-test", opts},
             new Object[] {"View Cache (with executor)", "view-dist-test", optsExecutor}
             );

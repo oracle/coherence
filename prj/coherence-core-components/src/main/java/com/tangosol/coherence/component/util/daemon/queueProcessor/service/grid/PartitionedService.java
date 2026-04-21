@@ -24668,6 +24668,8 @@ public abstract class PartitionedService
                         // signal the persistence controller that recovery has completed
                         service.getPersistenceControl().getSnapshotController()
                                 .onRecoveryCompleted(sSnapshot, service.collectOrphanPartitions(), msgRequest.getEventsPartsFailed());
+
+                        _trace("Persistence recovery is complete.", 3);
                         }
                     }
                 

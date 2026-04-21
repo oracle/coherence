@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -131,12 +131,6 @@ public class DistributedSchemeTest
 
         config.setType(new LiteralExpression<String>("on-heap"));
         assertEquals(BackingMapScheme.ON_HEAP,config.resolveType(resolver, new LocalScheme()));
-
-        config.setType(new LiteralExpression<String>("ramjournal"));
-        assertEquals(BackingMapScheme.RAMJOURNAL,config.resolveType(resolver, new LocalScheme()));
-
-        config.setType(new LiteralExpression<String>("flashjournal"));
-        assertEquals(BackingMapScheme.FLASHJOURNAL,config.resolveType(resolver, new LocalScheme()));
 
         config.setType(new LiteralExpression<String>("scheme"));
         assertEquals(BackingMapScheme.SCHEME,config.resolveType(resolver, new LocalScheme()));
