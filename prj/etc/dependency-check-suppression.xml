@@ -262,8 +262,62 @@
      <cpe>cpe:/a:redis:redis</cpe>
   </suppress>
 
-  <!-- TopLink 14.1.1.0 suppressions - commercial only. -->
-  <!-- Remove them once we have moved to TopLink 14.1.2.0.0 -->
+  <!-- False positive: CVE applies to Python langchain-core package, not Java LangChain4j -->
+  <suppress>
+     <notes><![CDATA[
+     packageUrl regex: dev.langchain4j/*
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/dev\.langchain4j/.*$</packageUrl>
+     <cve>CVE-2026-34070</cve>
+  </suppress>
+
+  <!-- False positive: CVE describes an Apache PDFBox examples path, and jbig2-imageio has no newer release -->
+  <suppress until="2026-09-30Z">
+     <notes><![CDATA[
+     file name: jbig2-imageio-3.0.4.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/jbig2-imageio@.*$</packageUrl>
+     <cve>CVE-2026-23907</cve>
+  </suppress>
+  <suppress until="2026-09-30Z">
+     <notes><![CDATA[
+     file name: pdfbox-3.0.7.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox@.*$</packageUrl>
+     <cve>CVE-2026-23907</cve>
+  </suppress>
+  <suppress until="2026-09-30Z">
+     <notes><![CDATA[
+     file name: xmpbox-3.0.7.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/xmpbox@.*$</packageUrl>
+     <cve>CVE-2026-23907</cve>
+  </suppress>
+  <suppress until="2026-09-30Z">
+     <notes><![CDATA[
+     file name: pdfbox-io-3.0.7.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox\-io@.*$</packageUrl>
+     <cve>CVE-2026-23907</cve>
+  </suppress>
+  <suppress until="2026-09-30Z">
+     <notes><![CDATA[
+     file name: pdfbox-tools-3.0.7.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.apache\.pdfbox/pdfbox\-tools@.*$</packageUrl>
+     <cve>CVE-2026-23907</cve>
+  </suppress>
+
+  <!-- Build-time Maven-plugin dependency; not shipped in product runtime artifacts -->
+  <suppress>
+     <notes><![CDATA[
+     packageUrl regex: org.codehaus.plexus/plexus-utils
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.codehaus\.plexus/plexus\-utils@.*$</packageUrl>
+     <cve>CVE-2025-67030</cve>
+  </suppress>
+
+  <!-- TopLink suppressions - commercial only. -->
   <suppress>
     <notes><![CDATA[
     file name: toplink-grid-14.1.1.0.0-200329.2231.jar
@@ -278,7 +332,7 @@
     <cve>CVE-2021-2428</cve>
   </suppress>
 
-  <!-- Tomcat - for testing -->
+  <!-- Tomcat - test-only dependencies -->
   <suppress>
      <notes><![CDATA[
      file name: tomcat-embed-core-8.5.46.jar
@@ -511,18 +565,16 @@
     <cve>CVE-2022-33879</cve>
   </suppress>
 
-    <!-- Added for bcpkix-jdk18on-1.78.1.jar which is a 4th party dependency of
-    Helidon which brings in an older version of Lanchain4J
+    <!-- Added for bcpkix-jdk18on (transitive via Tika crypto parser)
     -->
     <suppress>
       <notes><![CDATA[
-      file name: bcpkix-jdk18on-1.78.1.jar
+      file name: bcpkix-jdk18on-*.jar
       ]]></notes>
       <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcpkix-jdk18on@.*$</packageUrl>
       <vulnerabilityName>CVE-2025-8916</vulnerabilityName>
     </suppress>
-    <!-- Added for tika-*-3.0.0.jar which is a 4th party dependency of
-    Helidon which brings in an older version of Lanchain4J
+    <!-- Added for Apache Tika artifacts used via LangChain4j document parser
     -->
     <suppress>
       <notes><![CDATA[
@@ -532,74 +584,53 @@
       <cve>CVE-2025-54988</cve>
     </suppress>
 
-    <!-- Added for poi-ooxml-5.3.0.jar which is a 4th party dependency of
-    dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.0-beta2
-    used in examples -->
+    <!-- Added for poi-ooxml (transitive via Tika parser) -->
   <suppress>
     <notes><![CDATA[
-    file name: poi-ooxml-5.3.0.jar
+    file name: poi-ooxml-*.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.poi/poi\-ooxml@.*$</packageUrl>
     <cpe>cpe:2.3:a:apache:poi</cpe>
     <cve>CVE-2025-31672</cve>
   </suppress>
 
-  <!-- For poi-5.3.0.jar which is a 4th party dependency of
-  dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.0-beta2
-  used in in RAG module and also in examples -->
+  <!-- For poi (transitive via Tika parser in RAG and examples) -->
   <suppress>
     <notes><![CDATA[
-  file name: poi-5.3.0.jar
+  file name: poi-*.jar
   ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.poi/poi@.*$</packageUrl>
     <cpe>cpe:2.3:a:apache:poi</cpe>
     <cve>CVE-2025-31672</cve>
   </suppress>
 
-  <!-- For poi-ooxml-lite-5.3.0.jar which is a 4th party dependency of
-  dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.0-beta2
-  used in in RAG module and also in examples -->
+  <!-- For poi-ooxml-lite (transitive via Tika parser in RAG and examples) -->
   <suppress>
     <notes><![CDATA[
-  file name: poi-ooxml-lite-5.3.0.jar
+  file name: poi-ooxml-lite-*.jar
   ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.poi/poi\-ooxml\-lite@.*$</packageUrl>
     <cpe>cpe:2.3:a:apache:poi</cpe>
     <cve>CVE-2025-31672</cve>
   </suppress>
 
-  <!-- For poi-scratchpad-5.3.0.jar which is a 4th party dependency of
-  dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.0-beta2
-  used in in RAG module and also in examples -->
+  <!-- For poi-scratchpad (transitive via Tika parser in RAG and examples) -->
   <suppress>
     <notes><![CDATA[
-  file name: poi-scratchpad-5.3.0.jar
+  file name: poi-scratchpad-*.jar
   ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.poi/poi\-scratchpad@.*$</packageUrl>
     <cpe>cpe:2.3:a:apache:poi</cpe>
     <cve>CVE-2025-31672</cve>
   </suppress>
 
-  <!-- For commons-lang3-3.17.0.jar which is a 4th party dependency of
-  dev.langchain4j:langchain4j-document-parser-apache-tika:jar:1.0.1-beta6
-  used in RAG module and also in tests and examples -->
+  <!-- For commons-lang3 (transitive via Tika parser in RAG and examples) -->
   <suppress>
     <notes><![CDATA[
-    file name: commons-lang3-3.17.0.jar
+    file name: commons-lang3-*.jar
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.apache\.commons/commons\-lang3@.*$</packageUrl>
     <cpe>cpe:2.3:a:apache:poi</cpe>
     <cve>CVE-2025-48924</cve>
-  </suppress>
-
-  <!-- Temporary suppression that will we addressed by update to jaxb 4.0.5 version in
-  Helidon 4.3.0 update -->
-  <suppress until="2025-08-21Z">
-    <notes><![CDATA[
-  Temporary suppression for angus-activation 2.0.1 → CVE-2025-7962
-  ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.eclipse\.angus/angus\-activation@.*$</packageUrl>
-    <cpe>cpe:2.3:a:eclipse:jakarta_mail</cpe>
-    <cve>CVE-2025-7962</cve>
   </suppress>
 </suppressions>

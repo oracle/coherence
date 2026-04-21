@@ -81,4 +81,4 @@ cache-config-UTF8-BOM.xml
 .dylib
 .exp
 .libw
-.md
+.bin
