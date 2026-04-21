@@ -59,7 +59,7 @@ public class DefaultServletContextListener
     /**
      * Notification that the web application initialization process is
      * starting. All ServletContextListeners are notified of context
-     * initialisation before any filter or servlet in the web application is
+     * initialization before any filter or servlet in the web application is
      * initialized.
      *
      * @param evt  the ServletContextEvent
