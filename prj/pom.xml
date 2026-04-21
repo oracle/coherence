@@ -417,6 +417,7 @@
         <module>test/distribution</module>
         <module>test/functional</module>
         <module>test/performance</module>
+        <module>test/performance/benchmarks</module>
       </modules>
     </profile>
 
@@ -491,6 +492,7 @@
         <module>test/unit</module>
         <module>test/functional</module>
         <module>test/performance</module>
+        <module>test/performance/benchmarks</module>
       </modules>
     </profile>
 
