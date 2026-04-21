@@ -188,7 +188,6 @@
         <module>transformer</module>
         <module>trigger</module>
         <module>util</module>
-        <module>web-native</module>
         <module>xsd</module>
       </modules>
     </profile>
@@ -249,6 +248,8 @@
       <id>stage2</id>
       <modules>
         <module>aggregator</module>
+    </profile -->
+
     <!-- profile>
       <id>stage3</id>
       <modules>
@@ -363,13 +364,6 @@
         <module>xsd</module>
       </modules>
     </profile -->
-
-    <profile>
-      <id>visualvm</id>
-      <modules>
-        <module>jvisualvm</module>
-      </modules>
-    </profile>
 
       <!-- GraalVM native image -->
       <profile>
