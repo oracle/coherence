@@ -687,7 +687,9 @@ public class ClusteredExecutorInfo
         public void proceed(Object o)
             {
             String sExecutorId = f_sExecutorId;
+            EqualsFilter<String, String> equalsFilter = new EqualsFilter<>("getExecutorId", sExecutorId);
 
+            int cTaskCountForExecutor = 0;
             if (ExecutorTrace.isEnabled())
                 {
                 ExecutorTrace.log(String.format("Closing Executor [%s]", sExecutorId));
@@ -697,7 +699,7 @@ public class ClusteredExecutorInfo
 
                 ExecutorTrace.log(String.format("Assignments: [%s]", assignments()));
 
-                int cTaskCountForExecutor = assignments().entrySet(new EqualsFilter<String, String>("getExecutorId", sExecutorId)).size();
+                cTaskCountForExecutor = assignments().entrySet(equalsFilter).size();
                 ExecutorTrace.log(String.format("Total number of known assignments [%s] for executor [%s]", cTaskCountForExecutor, sExecutorId));
                 }
 
@@ -705,8 +707,26 @@ public class ClusteredExecutorInfo
                 {
                 // determine all tasks assigned to the executor
                 Map<String, String> assignmentMap = assignments()
-                        .invokeAll(new EqualsFilter<String, String>("getExecutorId", sExecutorId),
+                        .invokeAll(equalsFilter,
                                    new ExtractorProcessor<>("getTaskId"));
+
+                if (ExecutorTrace.isEnabled())
+                    {
+                    NamedCache a = assignments();
+                    if (assignmentMap.size() != cTaskCountForExecutor)
+                        {
+                        final StringBuilder builder = new StringBuilder(1024);
+
+                        builder.append("\n=== Assignments [count=").append(a.size()).append("] ===\n");
+                        a.entrySet().forEach(oo -> builder.append('\t').append(oo).append('\n'));
+                        int nSizeNow = a.entrySet(equalsFilter).size();
+                        ExecutorTrace.log(String.format("entrySet[%s] returned different value from invokeAll[%s].  Second entrySet result returned after invokeAll [%s]", cTaskCountForExecutor, assignmentMap.size(), nSizeNow));
+                        Map assignmentMapTmp = a
+                                .invokeAll(equalsFilter,
+                                           new ExtractorProcessor<>("getTaskId"));
+                        ExecutorTrace.log(String.format("Second invoke call yielded: [%s]", assignmentMapTmp.size()));
+                        }
+                    }
 
                 Logger.finer(() -> String.format("Found %d Tasks Assigned to Executor [%s].  Notifying them of the Closing Executor",
                                                  assignmentMap.size(), sExecutorId));
