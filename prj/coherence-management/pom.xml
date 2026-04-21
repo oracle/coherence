@@ -68,13 +68,6 @@
       <version>${jackson.databind.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
-      <exclusions>
-        <!-- exclude reference to older version than ${jackson.version} -->
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.module</groupId>
@@ -82,18 +75,6 @@
       <version>${jackson.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
-      <exclusions>
-        <!-- exclude reference to older version than ${jackson.version} -->
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-annotations</artifactId>
-        </exclusion>
-        <!-- exclude reference to older version than ${jackson.databind.version} -->
-        <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
 
     <dependency>
