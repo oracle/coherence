@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -41,14 +41,6 @@
     <cache-mapping>
       <cache-name>dist-backup-storage-partitioned</cache-name>
       <scheme-name>dist-backup-storage-partitioned-scheme</scheme-name>
-    </cache-mapping>
-    <cache-mapping>
-      <cache-name>dist-backup-storage-ramjournal</cache-name>
-      <scheme-name>dist-backup-storage-ramjournal-scheme</scheme-name>
-    </cache-mapping>
-    <cache-mapping>
-      <cache-name>dist-backup-only-ramjournal</cache-name>
-      <scheme-name>dist-backup-only-ramjournal-scheme</scheme-name>
     </cache-mapping>
   </caching-scheme-mapping>
 
@@ -119,31 +111,7 @@
       </backing-map-scheme>
       <autostart>true</autostart>
     </distributed-scheme>
-
-    <distributed-scheme>
-      <scheme-name>dist-backup-storage-ramjournal-scheme</scheme-name>
-      <service-name>DistributedCache</service-name>
-      <backup-storage>
-        <type>ramjournal</type>
-      </backup-storage>
-      <backing-map-scheme>
-        <ramjournal-scheme/>
-      </backing-map-scheme>
-      <autostart>true</autostart>
-    </distributed-scheme>
-
-    <distributed-scheme>
-      <scheme-name>dist-backup-only-ramjournal-scheme</scheme-name>
-      <service-name>DistributedCache</service-name>
-      <backup-storage>
-        <type>ramjournal</type>
-      </backup-storage>
-      <backing-map-scheme>
-        <local-scheme/>
-      </backing-map-scheme>
-      <autostart>true</autostart>
-    </distributed-scheme>
-
+    
     <distributed-scheme>
       <scheme-name>dist-backup-storage-partitioned-scheme</scheme-name>
       <service-name>DistributedCache</service-name>
