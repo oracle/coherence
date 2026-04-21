@@ -1915,29 +1915,42 @@ public class QuorumTests
     */
     protected void testExtendConnect(CoherenceClusterMember proxy, boolean fAllowed)
         {
-        int port = Integer.parseInt(proxy.getSystemProperty("coherence.extend.port"));
+        final int RETRIES = 3;
+        int       cCount  = 0;
+        int       port    = Integer.parseInt(proxy.getSystemProperty("coherence.extend.port"));
 
-        getInitiatorAddressProvider().setNextPort(port);
 
-        try
+        while (++cCount <= RETRIES)
             {
-            Service    service = getFactory().ensureService("ExtendService");
-            NamedCache cache   = ((CacheService) service).ensureCache("dist-no-quorum", null);
+            try
+                {
+                getInitiatorAddressProvider().setNextPort(port);
+                Service service = getFactory().ensureService("ExtendService");
+                NamedCache cache = ((CacheService) service).ensureCache("dist-no-quorum", null);
 
-            cache.put("test", "test");
+                cache.put("test", "test");
 
-            // close the service so that the next test is forced to reconnect
-            service.stop();
+                // close the service so that the next test is forced to reconnect
+                service.stop();
 
-            azzert(fAllowed, "Extend client connections are not allowed, but a connection was established");
-            }
-        catch (ConnectionException e)
-            {
-            validateConnectionException(e, fAllowed);
-            }
-        catch (CompletionException e)
-            {
-            validateConnectionException((ConnectionException) e.getCause(), fAllowed);
+                if (!fAllowed && cCount == RETRIES)
+                    {
+                    azzert(fAllowed, "Extend client connections are not allowed, but a connection was established");
+                    }
+                else
+                    {
+                    // delay next retry to allow member join/leave to be processed and quorum rule to be updated.
+                    sleep(1000);
+                    }
+                }
+            catch (ConnectionException e)
+                {
+                validateConnectionException(e, fAllowed, RETRIES, cCount);
+                }
+            catch (CompletionException e)
+                {
+                validateConnectionException((ConnectionException) e.getCause(), fAllowed, RETRIES, cCount);
+                }
             }
         }
 
@@ -2322,23 +2335,37 @@ public class QuorumTests
     /**
      * Validate the ConnectionException.
      */
-    protected void validateConnectionException(ConnectionException e, boolean fAllowed)
+    protected void validateConnectionException(ConnectionException e, boolean fAllowed, int RETRIES, int cCount)
         {
-        azzert(!fAllowed, "Extend client connections are allowed, but an exception was thrown: "
-                + e + "\n" + printStackTrace(e));
-        Throwable cause = e.getCause();
-        while (cause != null)
+        if (fAllowed && cCount == RETRIES)
             {
-            if (cause instanceof RequestPolicyException)
-                {
-                break;
-                }
-            cause = cause.getCause();
+            azzert(!fAllowed, "Extend client connections are allowed, but an exception was thrown: "
+                   + e + "\n" + printStackTrace(e));
             }
+
         if (!fAllowed)
             {
-            azzert(cause instanceof RequestPolicyException,
-                    "Expected cause to be instanceof RequestPolicyException, but was: " + e.getCause().toString());
+            Throwable cause = e.getCause();
+            while (cause != null)
+                {
+                if (cause instanceof RequestPolicyException)
+                    {
+                    return;
+                    }
+                if (cause.getCause() == null)
+                    {
+                    break;
+                    }
+                else
+                    {
+                    cause = cause.getCause();
+                    }
+                }
+            if (cause != null)
+                {
+                azzert(cause instanceof RequestPolicyException,
+                       "Expected cause to be instanceof RequestPolicyException, but was: " + cause.toString());
+                }
             }
         }
 

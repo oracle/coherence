@@ -116,22 +116,24 @@ public abstract class AbstractDistEntryProcessorTests
     public void expiry()
         {
         NamedCache cache = getNamedCache();
+        String     sKey  = "expiryKey";
+
         cache.clear();
         Eventually.assertDeferred(cache::size, is(0));
         Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
-        cache.put("key", "value");
+        cache.put(sKey, "value");
         Eventually.assertDeferred(cache::size, is(1));
 
         InvocableMap.EntryProcessor processor =
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_NONE, 100L);
-        cache.invoke("key", processor);
+        cache.invoke(sKey, processor);
 
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
         // ensure setting the expiry for a non-existent entry is a no-op
-        cache.invoke("key2", processor);
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        cache.invoke(sKey + '2', processor);
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
         }
 
     /**
@@ -142,24 +144,27 @@ public abstract class AbstractDistEntryProcessorTests
     public void updateBeforeExpiry()
         {
         NamedCache cache = getNamedCache();
+        String     sKey  = "ubeKey";
+
         cache.clear();
         Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
         Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
-        cache.put("key", "value");
+        cache.put(sKey, "value");
         Eventually.assertDeferred(cache::size, is(1));
 
         InvocableMap.EntryProcessor processor =
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE_BIN, 100L);
-        cache.invoke("key", processor);
+        cache.invoke(sKey, processor);
 
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
         // ensure setting the value & expiry for a non-existent entry
         // functions as expected
-        cache.invoke("key2", new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE, 750L));
-        assertEquals("value2", cache.get("key2"));
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        cache.invoke(sKey + '2', new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_BEFORE, 750L));
+        assertEquals("value2", cache.get(sKey + '2'));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
         }
 
     /**
@@ -170,24 +175,27 @@ public abstract class AbstractDistEntryProcessorTests
     public void updateAfterExpiry()
         {
         NamedCache cache = getNamedCache();
+        String     sKey  = "uaeKey";
+
         cache.clear();
         Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
         Eventually.assertDeferred(cache::size, is(0));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
-        cache.put("key", "value");
+        cache.put(sKey, "value");
         Eventually.assertDeferred(cache::size, is(1));
 
         InvocableMap.EntryProcessor processor =
                 new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER_BIN, 100L);
-        cache.invoke("key", processor);
+        cache.invoke(sKey, processor);
 
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
 
         // ensure setting the expiry & value for a non-existent entry
         // functions as expected
-        cache.invoke("key2", new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER, 750L));
-        assertEquals("value2", cache.get("key2"));
-        Eventually.assertDeferred(cache::isEmpty, is(true));
+        cache.invoke(sKey + '2', new ExpiryProcessor(ExpiryProcessor.Mode.UPDATE_AFTER, 750L));
+        assertEquals("value2", cache.get(sKey + '2'));
+        Eventually.assertDeferred("The cache should be empty. Cache contents: " + cache.entrySet(), cache::isEmpty, is(true));
         }
 
     /**

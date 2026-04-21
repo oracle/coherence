@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,15 +8,26 @@ package filter;
 
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.tangosol.net.CacheService;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.util.Base;
+import com.tangosol.util.extractor.AbstractExtractor;
+import com.tangosol.util.extractor.KeyExtractor;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.LimitFilter;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
+import data.Person;
+
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 
@@ -30,6 +41,7 @@ import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertTrue;
 
 
 /**
@@ -62,7 +74,7 @@ public class LimitFilterTests
             {
             cache.put(i, "value" + i);
             }
-        System.out.println("Populated: Cache size: " + cache.size());
+        out("Populated: Cache size: " + cache.size());
         }
 
     @Test
@@ -88,7 +100,7 @@ public class LimitFilterTests
             iterations++;
             pagedFilter.nextPage();
             }
-        System.out.println("Number of entries fetched " + allData.size()
+        out("Number of entries fetched " + allData.size()
                 + ", iterations " + iterations
                 + " : Number of items in Cache: " + cache.size());
         Assert.assertEquals(CACHE_SIZE, allData.size());
@@ -117,7 +129,7 @@ public class LimitFilterTests
             iterations++;
             pagedFilter.nextPage();
             }
-        System.out.println("Number of entries fetched " + allData.size()
+        out("Number of entries fetched " + allData.size()
                 + ", iterations " + iterations
                 + " : Number of items in Cache: " + cache.size());
         Assert.assertEquals(CACHE_SIZE, allData.size());
@@ -145,7 +157,7 @@ public class LimitFilterTests
             iterations++;
             pagedFilter.nextPage();
             }
-        System.out.println("Number of entries fetched " + allData.size()
+        out("Number of entries fetched " + allData.size()
                 + ", iterations " + iterations
                 + " : Number of items in Cache: " + cache.size());
         Assert.assertEquals(CACHE_SIZE, allData.size());
@@ -173,7 +185,7 @@ public class LimitFilterTests
             iterations++;
             pagedFilter.nextPage();
             }
-        System.out.println("Number of entries fetched " + allData.size()
+        out("Number of entries fetched " + allData.size()
                 + ", iterations " + iterations
                 + " : Number of items in Cache: " + cache.size());
         Assert.assertEquals(CACHE_SIZE, allData.size());
@@ -190,15 +202,8 @@ public class LimitFilterTests
         Set<?> data;
         Set allData = new HashSet();
         int iterations = 0;
-        try
-            {
-            Thread.sleep(1000);
-            }
-        catch (InterruptedException e)
-            {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            }
+
+        Base.sleep(1000);
         while (true)
             {
             data = cache.entrySet(pagedFilter);
@@ -211,7 +216,7 @@ public class LimitFilterTests
             iterations++;
             pagedFilter.nextPage();
             }
-        System.out.println("Number of entries fetched " + allData.size()
+        out("Number of entries fetched " + allData.size()
                 + ", iterations " + iterations
                 + " : Number of items in Cache: " + cache.size());
         Assert.assertEquals(CACHE_SIZE, allData.size());
@@ -263,6 +268,119 @@ public class LimitFilterTests
         for (int i = 0; i < totalPages; i++)
             {
             assertEqualKeySet(forward[i], backward[i]);
+            }
+        }
+
+    @Test
+    public void testQuery()
+        {
+        final int SIZE = 1000;
+        NamedCache cache = getNamedCache();
+
+        cache.clear();
+        Person.fillRandom(cache, SIZE);
+        out("Populated Cache with " + cache.size() + " persons.");
+
+        KeyExtractor keyExtractor = new KeyExtractor("getId");
+        testQueryWithExtractor(cache, SIZE, keyExtractor);
+
+        MyExtractor  valueExtractor = new MyExtractor("getId");
+        testQueryWithExtractor(cache, SIZE, valueExtractor);
+        }
+
+    void testQueryWithExtractor(NamedCache cache, int size, AbstractExtractor extractor)
+        {
+        int pageSize   = 100;
+        int totalPages = size / pageSize + (CACHE_SIZE % pageSize > 0 ? 1 : 0);
+
+        LimitFilter  pagedFilter = new LimitFilter(AlwaysFilter.INSTANCE, pageSize);
+
+        out("testQuery using extractor: " + extractor);
+
+        Collection data;
+        Set allData = new HashSet();
+        int iterations = 0;
+
+        Base.sleep(1000);
+
+        Person pageFirst  = null;
+        Person pageSecond = null;
+        while (iterations < totalPages)
+            {
+            data = cache.values(pagedFilter, extractor);
+
+            if (data.isEmpty())
+                {
+                break;
+                }
+
+            int    i = 0;
+            int    nFirst     = new Random().nextInt(pageSize/2);
+            int    nSecond    = new Random().nextInt(pageSize/2, pageSize - 1);
+            Person first      = null;
+            Person second     = null;
+
+            Iterator<Person> iterator = data.iterator();
+            while (iterator.hasNext())
+                {
+                if (i == nFirst)
+                    {
+                    first = iterator.next();
+                    }
+                if (i == nSecond)
+                    {
+                    second = iterator.next();
+                    }
+                else
+                    {
+                    iterator.next();
+                    }
+                i++;
+                }
+            assertTrue(((String) extractor.extract(second)).compareTo((String) extractor.extract(first)) > 0);
+
+            if (iterations == 1)
+                {
+                pageFirst = second;
+                }
+            else if (iterations == 5)
+                {
+                pageSecond = first;
+                }
+
+            allData.addAll(data);
+            iterations++;
+            pagedFilter.nextPage();
+            }
+        assertTrue(((String) extractor.extract(pageSecond)).compareTo((String) extractor.extract(pageFirst)) > 0);
+        assertTrue(cache.size() == allData.size());
+
+        // Compare forward/backward sets
+        Collection[] forward = new Collection[totalPages];
+        pagedFilter.setPage(0);
+        for (int i = 0; i < totalPages; i++)
+            {
+            forward[i] = cache.values(pagedFilter, extractor);
+            pagedFilter.nextPage();
+            }
+
+        Collection[] backward = new Collection[totalPages];
+        pagedFilter.setPage(totalPages-1);
+        for (int i = totalPages - 1; i >= 0; i--)
+            {
+            backward[i] = cache.values(pagedFilter, extractor);
+
+            if (i != 0)
+                {
+                pagedFilter.previousPage();
+                }
+            }
+
+        for (int i = 0; i < totalPages; i++)
+            {
+            Set<String> setForward = new HashSet<>(forward[i]);
+            Set<String> setBackward = new HashSet<>(backward[i]);
+            assertEqualKeySet(setForward, setBackward);
             }
         }
 
@@ -320,6 +438,7 @@ public class LimitFilterTests
         DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
         Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
         }
+
     /**
     *
     */

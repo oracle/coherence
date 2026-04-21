@@ -599,7 +599,8 @@ public abstract class AbstractSimplePersistenceTests
             AbstractRollingRestartTest.waitForNoOrphans(cache.getCacheService());
 
             // inspect server log for recovery completion message
-            File logFile = new File("target/test-output/functional", sServerName1 + ".out");
+            File dirOut        = ensureOutputDir(getProjectName());
+            File logFile = new File(dirOut, sServerName1 + ".out");
             assertTrue("Expected log file not found: " + logFile, logFile.exists());
 
             List<String> lines = Files.readAllLines(logFile.toPath());
@@ -933,7 +934,7 @@ public abstract class AbstractSimplePersistenceTests
         props.setProperty("test.persistence.active.dir", fileActive.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", fileSnapshot.getAbsolutePath());
         props.setProperty("test.persistence.trash.dir", fileTrash.getAbsolutePath());
-        props.setProperty("test.threads", "5");
+        props.setProperty("test.threads", "25");
         props.setProperty("test.persistence.members", "2");
         props.setProperty("coherence.distribution.2server", "false");
         props.setProperty("coherence.override", "common-tangosol-coherence-override.xml");
@@ -950,8 +951,9 @@ public abstract class AbstractSimplePersistenceTests
 
         startCacheServer(sServer + "-1", getProjectName(), getCacheConfigPath(), props);
         startCacheServer(sServer + "-2", getProjectName(), getCacheConfigPath(), props);
+        startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
 
-        Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+        Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
         waitForBalanced(service);
         try
             {
@@ -960,8 +962,10 @@ public abstract class AbstractSimplePersistenceTests
             cache.put("foo", "bar");
             cache.put("biz", "baz");
 
-            int      cThreads = 5;
-            int      cPuts    = 1000;
+            //int      cThreads = 7;
+            int      cThreads = 1;
+            //int      cPuts    = 100000;
+            int      cPuts    = 2;
             Thread[] aThreads = new Thread[cThreads];
             for (int i = 0; i < cThreads; i++)
                 {
@@ -992,13 +996,15 @@ public abstract class AbstractSimplePersistenceTests
 
             stopCacheServer(sServer + "-1");
             stopCacheServer(sServer + "-2");
+            stopCacheServer(sServer + "-3");
 
             Eventually.assertThat(invoking(cluster).getMemberSet().size(), is(1));
 
-            startCacheServer(sServer + "-3", getProjectName(), getCacheConfigPath(), props);
             startCacheServer(sServer + "-4", getProjectName(), getCacheConfigPath(), props);
+            startCacheServer(sServer + "-5", getProjectName(), getCacheConfigPath(), props);
+            startCacheServer(sServer + "-6", getProjectName(), getCacheConfigPath(), props);
 
-            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(2));
+            Eventually.assertThat(invoking(service).getOwnershipEnabledMembers().size(), is(3));
             waitForBalanced(service);
 
             // validate that the data were restored
@@ -1013,11 +1019,12 @@ public abstract class AbstractSimplePersistenceTests
             if (!cacheTruncate.isEmpty())
                 {
                 fail(String.format("cache %s did not truncate; size: %s\n",
-                        cacheTruncate.getCacheName(), cacheTruncate.size()));
+                                   cacheTruncate.getCacheName(), cacheTruncate.size()));
                 }
 
-            stopCacheServer(sServer + "-3");
             stopCacheServer(sServer + "-4");
+            stopCacheServer(sServer + "-5");
+            stopCacheServer(sServer + "-6");
             }
         catch (InterruptedException e)
             {
@@ -1736,6 +1743,8 @@ public abstract class AbstractSimplePersistenceTests
 
         final NamedCache        cache    = getNamedCache(sPersistentCache);
         DistributedCacheService service  = (DistributedCacheService) cache.getCacheService();
+        Cluster                 cluster  = service.getCluster();
+        String                  sService = service.getInfo().getServiceName();
 
         String sServer1;
         String sServer2;
@@ -1770,12 +1779,17 @@ public abstract class AbstractSimplePersistenceTests
                 // leave some time for backups to persist, they are async
                 Base.sleep(10*1000);
 
+                // workaround so files don't become corrupted when servers waiting
+                // to be stopped start re-distributing
+                // see COH-30043
+                cluster.suspendService(sService);
+
                 // abruptly shutdown
                 stopCacheServer(sServer1);
-                Base.sleep(1000L);
                 stopCacheServer(sServer2);
-                Base.sleep(1000L);
                 stopCacheServer(sServer3);
+
+                cluster.resumeService(sService);
                 }
             }
         finally

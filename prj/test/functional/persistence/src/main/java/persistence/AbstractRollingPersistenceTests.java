@@ -280,8 +280,8 @@ public abstract class AbstractRollingPersistenceTests
             DistributedCacheService service = (DistributedCacheService) cache.getCacheService();
 
             Eventually.assertThat(
-                invoking(service).getOwnershipEnabledMembers().size(),
-                is(cServers));
+                    invoking(service).getOwnershipEnabledMembers().size(),
+                    is(cServers));
 
             HashMap map = new HashMap();
             for (int i = 0; i < 5000; i++)
@@ -450,7 +450,7 @@ public abstract class AbstractRollingPersistenceTests
     // ----- helper methods -------------------------------------------------
 
     private void startServer(String sTestPrefix, String sMember, File dirActive, File dirTrash,
-            Properties props, List<String> listMembers)
+                             Properties props, List<String> listMembers)
         {
         String sMachine   = sMember.substring(0, sMember.indexOf('-')); // machine name is member's prefix
 

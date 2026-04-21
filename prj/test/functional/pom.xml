@@ -188,6 +188,7 @@
         <module>transformer</module>
         <module>trigger</module>
         <module>util</module>
+        <module>web-native</module>
         <module>xsd</module>
       </modules>
     </profile>
@@ -248,14 +249,6 @@
       <id>stage2</id>
       <modules>
         <module>aggregator</module>
-        <module>bootstrap</module>
-        <module>bundler</module>
-        <module>cache</module>
-        <module>config</module>
-        <module>discovery</module>
-       </modules>
-    </profile -->
-
     <!-- profile>
       <id>stage3</id>
       <modules>
@@ -349,13 +342,13 @@
         <module>health</module>
         <module>session</module>
         <module>ssl</module>
-        <module>tcmp</module>
       </modules>
     </profile -->
 
     <!-- profile>
       <id>stage11</id>
       <modules>
+        <module>tcmp</module>
         <module>topics</module>
       </modules>
     </profile -->

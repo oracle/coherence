@@ -10,11 +10,8 @@ package security;
 
 import com.tangosol.net.PasswordProvider;
 
-import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
-
-import java.security.Principal;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -27,20 +24,20 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 
 /**
 * The HandlerPasswordProvider is a CallbackHandler implementation
-* based on a specified username and a password provider.  A file based
-* password provider, FileBasedPasswordProvider, is used.
+* based on a specified username and a password provider.  For the
+* password provider, a file based password provider,
+* FileBasedPasswordProvider, is used.
 *
 * @author lh, jk  2025.02.04
 * @since Coherence 14.1.2.0.2
 */
 public class HandlerPasswordProvider
-        extends    Base
-        implements CallbackHandler, Principal
+        implements CallbackHandler
     {
     // ----- constructors ---------------------------------------------------
 
     /**
-     * Construct a SimpleHandler.
+     * Construct a HandlerPasswordProvider.
      *
      * @param sName   the username
      * @param sClass  the password provider class name
@@ -94,7 +91,10 @@ public class HandlerPasswordProvider
                 }
             else if (callback instanceof PasswordCallback)
                 {
-                ((PasswordCallback) callback).setPassword(m_provider.get());
+                if (m_provider != null)
+                    {
+                        ((PasswordCallback) callback).setPassword(m_provider.get());
+                    }
                 }
             else if (callback instanceof TextOutputCallback ||
                      callback instanceof ConfirmationCallback)
@@ -125,7 +125,7 @@ public class HandlerPasswordProvider
     public boolean equals(Object o)
         {
         return o instanceof HandlerPasswordProvider ?
-            equals(m_sName, ((HandlerPasswordProvider) o).m_sName) : false;
+            m_sName.equals(((HandlerPasswordProvider) o).m_sName) : false;
         }
 
     /**

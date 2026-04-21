@@ -26,6 +26,9 @@
               <password>password</password>
             </key-store>
           </trust-manager>
+          <hostname-verifier>
+            <action>allow</action>
+          </hostname-verifier>
         </ssl>
       </socket-provider>
     </socket-providers>

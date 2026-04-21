@@ -238,6 +238,7 @@ public class AbstractTracingIT
         Properties propsMain = new Properties();
         propsMain.put("coherence.role", "node" + nId);
         propsMain.put("java.net.preferIPv4Stack", "true");
+        props.setProperty("java.security.debug", "access,domain,failure");
         propsMain.putAll(props);
 
         assertThat(cluster.isRunning(), is(true));

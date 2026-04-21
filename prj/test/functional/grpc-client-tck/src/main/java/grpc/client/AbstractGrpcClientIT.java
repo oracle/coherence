@@ -7,6 +7,7 @@
 
 package grpc.client;
 
+import com.oracle.bedrock.junit.CoherenceAssumptions;
 import com.oracle.bedrock.runtime.coherence.profiles.NativeImageProfile;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -1065,6 +1066,8 @@ public abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     public void shouldReplaceAllWithKeySet(String sSerializerName, Serializer serializer)
         {
+        CoherenceAssumptions.isNotStaticLambdas();
+
         String                     cacheName = createCacheName();
         NamedCache<String, String> cache     = ensureCache(cacheName);
         clearAndPopulate(cache, 5);
@@ -1089,6 +1092,8 @@ public abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     public void shouldReplaceAllWithAssociatedKeySet(String sSerializerName, Serializer serializer)
         {
+        CoherenceAssumptions.isNotStaticLambdas();
+
         String                                cacheName = createCacheName();
         NamedCache<TestAssociatedKey, String> cache     = ensureCache(cacheName);
 
@@ -1114,6 +1119,8 @@ public abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     public void shouldReplaceAllWithFilter(String sSerializerName, Serializer serializer)
         {
+        CoherenceAssumptions.isNotStaticLambdas();
+
         String                     cacheName = createCacheName("people");
         NamedCache<String, Person> cache     = ensureCache(cacheName);
         cache.clear();
@@ -1233,6 +1240,8 @@ public abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     public void shouldComputeAndUpdateEntry(String sSerializerName, Serializer serializer)
         {
+        CoherenceAssumptions.isNotStaticLambdas();
+
         String                      cacheName = createCacheName();
         NamedCache<String, Integer> cache     = ensureCache(cacheName);
         cache.clear();
@@ -1254,6 +1263,8 @@ public abstract class AbstractGrpcClientIT
     @MethodSource("serializers")
     public void shouldComputeAndUpdateEntryWithAssociatedKey(String sSerializerName, Serializer serializer)
         {
+        CoherenceAssumptions.isNotStaticLambdas();
+
         String                                 cacheName = createCacheName();
         NamedCache<TestAssociatedKey, Integer> cache     = ensureCache(cacheName);
         TestAssociatedKey                      key1      = new TestAssociatedKey("k1", "foo");

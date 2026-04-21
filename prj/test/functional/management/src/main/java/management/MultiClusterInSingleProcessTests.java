@@ -15,7 +15,6 @@ import com.oracle.bedrock.runtime.coherence.callables.GetServiceStatus;
 import com.oracle.bedrock.runtime.coherence.callables.IsReady;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
-import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
@@ -95,6 +94,7 @@ public class MultiClusterInSingleProcessTests
         {
         // skipped
         }
+
 
     // ----- helper methods -------------------------------------------------
 

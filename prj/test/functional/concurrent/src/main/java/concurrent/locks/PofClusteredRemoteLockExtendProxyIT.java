@@ -20,6 +20,7 @@ import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.Pof;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
 
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
@@ -65,6 +66,7 @@ public class PofClusteredRemoteLockExtendProxyIT
                     .with(ClassName.of(Coherence.class),
                           Logging.at(9),
                           LocalHost.only(),
+                          WellKnownAddress.loopback(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,

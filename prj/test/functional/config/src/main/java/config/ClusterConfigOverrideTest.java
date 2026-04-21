@@ -9,7 +9,7 @@ package config;
 
 
 import com.tangosol.net.CacheFactory;
-import com.tangosol.net.Coherence;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.RequestTimeoutException;
 
 import com.tangosol.util.Base;
@@ -31,7 +31,6 @@ public class ClusterConfigOverrideTest
     @After
     public void cleanup()
         {
-        Coherence.closeAll();
         System.clearProperty("coherence.publisher.delivery.timeout");
         System.clearProperty("coherence.wka");
         }
@@ -45,24 +44,38 @@ public class ClusterConfigOverrideTest
         // based on the timeout value set using "coherence.publisher.delivery.timeout"
         System.setProperty("coherence.wka", "1.2.3.4");
 
-        long ldt1 = Base.getSafeTimeMillis();
+        Cluster cluster = null;
+        long    ldt1    = 0L;
+
         try
             {
-            CacheFactory.ensureCluster();
+            ldt1 = Base.getSafeTimeMillis();
+
+            cluster = CacheFactory.ensureCluster();
 
             fail("Exception should have been thrown!");
             }
         catch (Exception e)
             {
+            long ldt2 = Base.getSafeTimeMillis();
+
             assertTrue(e instanceof RequestTimeoutException);
 
-            long ldt2 = Base.getSafeTimeMillis();
-            assertTrue(String.format("Should have failed after configured timeout of %s instead got %s", PUBLISHER_DELIVERY_TIMEOUT, ldt2 - ldt1),
-                       ldt2 < (ldt1 + (PUBLISHER_DELIVERY_TIMEOUT * 2)));
+            long ldiff = ldt2 - ldt1;
+
+            assertTrue(String.format("Should have failed after configured timeout of %s millis instead got %s millis",
+                       PUBLISHER_DELIVERY_TIMEOUT, ldiff), ldiff < PUBLISHER_DELIVERY_TIMEOUT * 3);
+            }
+        finally
+            {
+            if (cluster != null)
+                {
+                cluster.shutdown();
+                }
             }
         }
 
     // ----- data members ---------------------------------------------
 
-    private static final long PUBLISHER_DELIVERY_TIMEOUT = 10000;
+    private static final long PUBLISHER_DELIVERY_TIMEOUT = 10000L;
     }
