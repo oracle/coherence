@@ -67,6 +67,15 @@ test {
     }
 }
 
+tasks.named('jar', Jar) {
+    manifest {
+        from('target/classes/META-INF/MANIFEST.MF')
+    }
+    from('target/classes/META-INF') {
+        into('META-INF')
+    }
+}
+
 tasks.register('javadocJar', Jar) {
     archiveClassifier = 'javadoc'
     from javadoc.destinationDir

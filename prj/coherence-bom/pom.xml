@@ -302,7 +302,7 @@
       </dependency>
       <dependency>
         <groupId>${coherence.group.id}</groupId>
-        <artifactId>com.oracle.coherence.gradle.plugin</artifactId>
+        <artifactId>${coherence.group.id}.gradle.plugin</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>
