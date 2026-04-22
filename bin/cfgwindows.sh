@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+# Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -16,13 +16,13 @@
 # see cfgcommon.sh
 
 #
-# This script by default uses JDK 11 and set JAVA_HOME pointing to
+# This script by default uses JDK 20 and set JAVA_HOME pointing to
 # that JDK version.
 #
-# To use JDK 17 locally, use command: RBT_JV=17 ./bin/cfgwindows.sh
+# To use JDK 21 locally, use command: RBT_JV=21 ./bin/cfgwindows.sh
 #
-# And to run on RQ with JDK 17, specify -j option as shown below
-# enqueue -j 17 [-c changelist]
+# And to run on RQ with JDK 21, specify -j option as shown below
+# enqueue -j 21 [-c changelist]
 
 #
 # Global Variables
