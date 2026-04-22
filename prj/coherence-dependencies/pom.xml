@@ -266,7 +266,7 @@
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
     <!-- only used for testing -->
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
-    <onnx.version>1.22.0</onnx.version>
+    <onnx.version>1.25.0</onnx.version>
     <oracle.db.version>21.13.0.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.7</parsson-media.version>
