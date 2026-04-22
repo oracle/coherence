@@ -451,7 +451,7 @@ for i in $TESTDATA; do
         if [ "$build_target" = "build_installer" ]; then
            timebomb 7200 &
            timebomb_pid=$!
-           (set -x ; env | sort ; ls -l $JAVA_HOME ; $MVN_CMD validate -P copyright && check_markdown_copyright && $MVN_CMD -DskipTests=true -Pcoherence,-modules clean install && $MVN_CMD clean install -P-coherence,modules,-javadoc -nsu -Dproject.installer -DskipTests ) > ${TMPDIR:?}/$JOBID/build.log 2>&1
+           (set -x ; env | sort ; ls -l $JAVA_HOME ; $MVN_CMD validate -P copyright && check_markdown_copyright && $MVN_CMD -DskipTests=true -Pcoherence,-modules clean install && $MVN_CMD clean install -P-coherence,modules,-javadoc -nsu -Dproject.official=true -Dproject.installer -DskipTests ) > ${TMPDIR:?}/$JOBID/build.log 2>&1
         elif [ -n "$STAGE_NAME" ]; then
           timebomb 600 &
           timebomb_pid=$!
@@ -523,7 +523,7 @@ for i in $TESTDATA; do
                 (set -x ; cd $DEV_ROOT/prj && $MVN_TEST_CMD clean install -Pcoherence,-modules && $MVN_TEST_CMD -amd -P-coherence,modules -nsu -pl $test_dir/$FUNCTEST $test_target) > ${TMPDIR:?}/$JOBID/$test_name.log 2>&1
             elif [ "$REMOTE_TEST" = "remote.compatibility" ]; then
                 test_name=${FUNCTEST}_compatibility
-                (set -x ; cd $DEV_ROOT/prj && $MVN_TEST_CMD clean install -Pcoherence,-modules && $MVN_TEST_CMD -P-coherence,modules -nsu -pl $test_dir/$FUNCTEST $test_target ) > ${TMPDIR:?}/$JOBID/$test_name.log 2>&1
+                (set -x ; cd $DEV_ROOT/prj && $MVN_TEST_CMD clean install -Pcoherence,-modules && $MVN_TEST_CMD -P-coherence,modules -nsu -pl $test_dir/$FUNCTEST $test_target) > ${TMPDIR:?}/$JOBID/$test_name.log 2>&1
             # main job of remote.full
             elif [ "$REMOTE_TEST" = "remote.full" ]; then
                 test_name=examples_maven
