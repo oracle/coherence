@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,7 @@ import com.tangosol.net.events.partition.TransactionEvent;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.BinaryEntry;
 
 import com.tangosol.util.Filter;
@@ -791,8 +792,17 @@ public class JmxTests
                                                            + clusterMember.getLocalMemberId());
 
              cluster.suspendService(sServiceName);
-             Eventually.assertThat(invoking(server, MBeanServer.class).getAttribute(oName, "QuorumStatus"),
-                                      is("Suspended"));
+             Eventually.assertDeferred(() ->
+                     {
+                     try
+                         {
+                         return server.getAttribute(oName, "QuorumStatus");
+                         }
+                     catch (Exception e)
+                         {
+                         return null;
+                         }
+                     }, is((Object) "Suspended"));
              }
          catch (Exception e)
              {
@@ -847,8 +857,17 @@ public class JmxTests
                              + cache.getCacheName()
                              + ",nodeId="
                              + iNodeId);
-             Eventually.assertThat(invoking(serverJMX, MBeanServer.class).getAttribute(oBeanName, "IndexingTotalMillis"),
-                     not( 0));
+             Eventually.assertDeferred(() ->
+                     {
+                     try
+                         {
+                         return serverJMX.getAttribute(oBeanName, "IndexingTotalMillis");
+                         }
+                     catch (Exception e)
+                         {
+                         return 0L;
+                         }
+                     }, not(0L));
              }
          catch (Exception e)
              {
@@ -1484,14 +1503,33 @@ public class JmxTests
 
     public Object getMbeanAttribute(MBeanServer server, ObjectName oBeanName, String sName)
         {
-        try
+        long ldtDeadline = System.currentTimeMillis() + MBEAN_ATTRIBUTE_TIMEOUT_MILLIS;
+
+        do
             {
-            return server.getAttribute(oBeanName, sName);
+            try
+                {
+                Object oValue = server.getAttribute(oBeanName, sName);
+
+                if (oValue != null)
+                    {
+                    return oValue;
+                    }
+                }
+            catch (Exception e)
+                {
+                // JMX registration and attribute visibility can lag briefly
+                // behind member startup, so allow a short bounded retry here.
+                }
+
+            if (System.currentTimeMillis() >= ldtDeadline)
+                {
+                return null;
+                }
+
+            Base.sleep(MBEAN_ATTRIBUTE_RETRY_MILLIS);
             }
-        catch (Exception e)
-            {
-            return null;
-            }
+        while (true);
         }
 
     /**
@@ -1524,21 +1562,24 @@ public class JmxTests
      * @param server  the {@link MBeanServer} to query
      * @param member  the {@link CoherenceClusterMember} of interest
      *
-     * @return the current configuration value or -1 if the attribute can't be retrieved.
+     * @return the current configuration value, or {@code null} while the
+     *         attribute is temporarily unavailable.
      */
-    public int getLoggingLevelForMember(MBeanServer server, CoherenceClusterMember member)
+    public Integer getLoggingLevelForMember(MBeanServer server, CoherenceClusterMember member)
         {
         try
             {
             ObjectName oBeanName = new ObjectName("Coherence:type=Node,nodeId=" + member.getLocalMemberId());
 
-            return (int) getMbeanAttribute(server, oBeanName, "LoggingLevel");
+            Object oValue = getMbeanAttribute(server, oBeanName, "LoggingLevel");
+
+            return oValue instanceof Number ? ((Number) oValue).intValue() : null;
             }
         catch (Exception e)
             {
             Assert.fail(printStackTrace(e));
             }
-        return -1;
+        return null;
         }
 
     /**
@@ -1786,6 +1827,16 @@ public class JmxTests
         }
 
     public static final String PROJECT = "jmx";
+
+    /**
+     * Maximum time to wait for a JMX attribute to become readable.
+     */
+    private static final long MBEAN_ATTRIBUTE_TIMEOUT_MILLIS = 1000L;
+
+    /**
+     * Delay between JMX attribute read retries.
+     */
+    private static final long MBEAN_ATTRIBUTE_RETRY_MILLIS = 50L;
 
     /**
     * The name of the InvocationService used by all test methods.
