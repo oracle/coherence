@@ -38310,14 +38310,14 @@ public class PartitionedCache
     @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
     public static class ResourceCoordinator
             extends    com.tangosol.coherence.component.Util
-            implements com.tangosol.util.SegmentedConcurrentMap.ContentionObserver
+            implements com.tangosol.util.ConcurrentKeyLock.ContentionObserver
         {
         // ---- Fields declarations ----
         
         /**
          * Property ContentionMap
          *
-         * This Map<Thread, SCM$LockableEntry> associates threads that are
+         * This Map<Thread, CKL$LockState> associates threads that are
          * contending for resource control locks, to the thread that holds the
          * lock being contended for.
          * 
@@ -38471,8 +38471,8 @@ public class PartitionedCache
         protected void checkResourceDeadlock(Object oContender)
             {
             // import com.tangosol.internal.util.LockContentionException;
+            // import com.tangosol.util.ConcurrentKeyLock$LockState as com.tangosol.util.ConcurrentKeyLock.LockState;
             // import com.tangosol.util.LiteSet;
-            // import com.tangosol.util.SegmentedConcurrentMap$LockableEntry as com.tangosol.util.SegmentedConcurrentMap.LockableEntry;
             // import java.util.Map;
             // import java.util.Set;
             
@@ -38484,7 +38484,7 @@ public class PartitionedCache
             do
                 {
                 setHolders.add(oHolderPrev = oHolder);
-                com.tangosol.util.SegmentedConcurrentMap.LockableEntry entry = (com.tangosol.util.SegmentedConcurrentMap.LockableEntry) mapContend.get(oHolder);
+                com.tangosol.util.ConcurrentKeyLock.LockState entry = (com.tangosol.util.ConcurrentKeyLock.LockState) mapContend.get(oHolder);
             
                 oHolder = entry == null ? null : entry.getLockHolder();
                 if (setHolders.contains(oHolder))
@@ -38495,14 +38495,14 @@ public class PartitionedCache
                     // participating threads should throw a LockContentionException; if the
                     // entry is contended then some thread is already wait()'ing, so this thread
                     // should throw; otherwise pick an arbitrary ordering among threads.
-                    com.tangosol.util.SegmentedConcurrentMap.LockableEntry entryThis = (com.tangosol.util.SegmentedConcurrentMap.LockableEntry) mapContend.get(oContender);
+                    com.tangosol.util.ConcurrentKeyLock.LockState entryThis = (com.tangosol.util.ConcurrentKeyLock.LockState) mapContend.get(oContender);
                     if ((oContender == oHolder || oContender == oHolderPrev) &&
                         (entry.isContended() ||
                         System.identityHashCode(oContender) <= System.identityHashCode(entryThis.getLockHolder())))
                         {
                         Object   oContenderThat = oContender == oHolder ? oHolderPrev : oHolder;
                         Object[] aoContenders   = new Object[] {oContender, oContenderThat};
-                        com.tangosol.util.SegmentedConcurrentMap.LockableEntry[]  aEntries       = new com.tangosol.util.SegmentedConcurrentMap.LockableEntry[] {entryThis, entry};
+                        com.tangosol.util.ConcurrentKeyLock.LockState[]  aEntries       = new com.tangosol.util.ConcurrentKeyLock.LockState[] {entryThis, entry};
             
                         reportContendingThreads(aoContenders, aEntries);
                         throw new LockContentionException(
@@ -38869,14 +38869,12 @@ public class PartitionedCache
         /**
          * Return a string description for parameter entry.
          */
-        protected String getCacheKeyDescription(java.util.Map.Entry entry)
+        protected String getCacheKeyDescription(com.tangosol.util.ConcurrentKeyLock.LockState entry)
             {
             // import com.tangosol.util.Base;
             // import com.tangosol.util.Binary;
-            // import com.tangosol.util.SegmentedConcurrentMap;
-            // import com.tangosol.util.SegmentedConcurrentMap$LockableEntry as com.tangosol.util.SegmentedConcurrentMap.LockableEntry;
             
-            if (entry instanceof com.tangosol.util.SegmentedConcurrentMap.LockableEntry)
+            if (entry != null)
                 {
                 Binary binKey = (Binary) entry.getKey();
                             
@@ -38888,19 +38886,16 @@ public class PartitionedCache
         /**
          * Return the cache name for parameter entry.
          */
-        protected String getCacheName(java.util.Map.Entry entry)
+        protected String getCacheName(com.tangosol.util.ConcurrentKeyLock.LockState entry)
             {
-            // import com.tangosol.util.SegmentedConcurrentMap;
-            // import com.tangosol.util.SegmentedConcurrentMap$LockableEntry as com.tangosol.util.SegmentedConcurrentMap.LockableEntry;
             // import java.util.Iterator;
-            // import java.util.Map;
             
-            if (!(entry instanceof com.tangosol.util.SegmentedConcurrentMap.LockableEntry))
+            if (entry == null)
                 {
                 return "";
                 }
             
-            Map mapSource = ((com.tangosol.util.SegmentedConcurrentMap.LockableEntry) entry).getSource();
+            Object mapSource = entry.getSource();
             
             for (Iterator iterStore = getService().getStorageArray().iterator(); iterStore.hasNext(); )
                 {
@@ -39025,10 +39020,8 @@ public class PartitionedCache
          */
         public com.tangosol.util.ConcurrentMap instantiateControlMap()
             {
-            // import com.tangosol.util.SegmentedConcurrentMap;
-            
-            // return a SCM with this ResourceCoordinator as a LockObserver
-            return new SegmentedConcurrentMap(this);
+            // return a key lock with this ResourceCoordinator as a LockObserver
+            return new com.tangosol.util.ConcurrentKeyLock<>(this);
             }
         
         /**
@@ -39129,8 +39122,8 @@ public class PartitionedCache
                 }
             }
         
-        // From interface: com.tangosol.util.SegmentedConcurrentMap$ContentionObserver
-        public void onContend(Object oContender, com.tangosol.util.SegmentedConcurrentMap.LockableEntry entry)
+        // From interface: com.tangosol.util.ConcurrentKeyLock$ContentionObserver
+        public void onContend(Thread oContender, com.tangosol.util.ConcurrentKeyLock.LockState entry)
             {
             getContentionMap().put(oContender, entry);
             
@@ -39159,8 +39152,8 @@ public class PartitionedCache
             setUnmanagedEventQueue(instantiateEventQueue(true));
             }
         
-        // From interface: com.tangosol.util.SegmentedConcurrentMap$ContentionObserver
-        public void onUncontend(Object oContender, com.tangosol.util.SegmentedConcurrentMap.LockableEntry entry)
+        // From interface: com.tangosol.util.ConcurrentKeyLock$ContentionObserver
+        public void onUncontend(Thread oContender, com.tangosol.util.ConcurrentKeyLock.LockState entry)
             {
             getContentionMap().remove(oContender);
             }
@@ -39479,16 +39472,8 @@ public class PartitionedCache
          * Report cache/key contention between threads at appropriate logging
         * level.
          */
-        protected void reportContendingThreads(Object[] aoContenders, com.tangosol.util.SegmentedConcurrentMap.LockableEntry[] aEntries)
+        protected void reportContendingThreads(Object[] aoContenders, com.tangosol.util.ConcurrentKeyLock.LockState[] aEntries)
             {
-            // import com.tangosol.util.Base;
-            // import com.tangosol.util.Binary;
-            // import com.tangosol.util.SegmentedConcurrentMap$LockableEntry as com.tangosol.util.SegmentedConcurrentMap.LockableEntry;
-            // import java.util.Collection;
-            // import java.util.Iterator;
-            // import java.util.Map;
-            // import java.util.Map$Entry as java.util.Map.Entry;
-            
             if (!_isTraceEnabled(5))
                 {
                 return;
@@ -39499,7 +39484,7 @@ public class PartitionedCache
             for (int i = 0, c = aoContenders.length; i < c; ++i)
                 {    
                 Object oThread = aoContenders[i];
-                com.tangosol.util.SegmentedConcurrentMap.LockableEntry  entry   = (com.tangosol.util.SegmentedConcurrentMap.LockableEntry) aEntries[i];
+                com.tangosol.util.ConcurrentKeyLock.LockState  entry   = aEntries[i];
             
                 if (entry != null)
                     {
@@ -39528,7 +39513,7 @@ public class PartitionedCache
         // Accessor for the property "ContentionMap"
         /**
          * Setter for property ContentionMap.<p>
-        * This Map<Thread, SCM$LockableEntry> associates threads that are
+        * This Map<Thread, CKL$LockState> associates threads that are
         * contending for resource control locks, to the thread that holds the
         * lock being contended for.
         * 
