@@ -4,6 +4,9 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
+
+import groovy.xml.XmlSlurper
+
 plugins {
 	id 'java'
 }
@@ -14,6 +17,25 @@ java {
 
 group = 'com.oracle.coherence.guides'
 version = '1.0.0-SNAPSHOT'
+
+// read shared dependency versions from pom.xml so the Maven and Gradle example builds stay aligned
+def pomProperty = { String name ->
+    File directory = projectDir
+    while (directory != null) {
+        File pomFile = new File(directory, 'pom.xml')
+        if (pomFile.exists()) {
+            def value = new XmlSlurper().parse(pomFile).properties.children().find { it.name() == name }?.text()
+            if (value) {
+                return value
+            }
+        }
+        directory = directory.parentFile
+    }
+    throw new GradleException("Missing '${name}' property in pom.xml hierarchy for ${projectDir}")
+}
+def hamcrestVersion = pomProperty('hamcrest.version')
+def junitVersion = pomProperty('junit.jupiter.version')
+def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
 configurations {
 	deployment
@@ -26,14 +48,15 @@ repositories {
 
 dependencies {
 	implementation platform("${coherenceGroupId}:coherence-bom:${coherenceVersion}")
-	testImplementation platform("org.junit:junit-bom:${junitVersion}")
+	testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+	testImplementation "org.junit.jupiter:junit-jupiter-params:${junitVersion}"
+	testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:${junitPlatformVersion}"
 
 	implementation "${coherenceGroupId}:coherence"
 
-	testImplementation "org.junit.platform:junit-platform-launcher"
-	testImplementation "org.junit.jupiter:junit-jupiter"
 	testImplementation "${coherenceGroupId}:coherence-bedrock-testing-support"
-	testImplementation "org.hamcrest:hamcrest-all:${hamcrestVersion}"
+	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }
 
 test {
@@ -47,4 +70,3 @@ task copyLibToBuild() {
 		into "$buildDir/../distribution/lib"
 	}
 }
-
