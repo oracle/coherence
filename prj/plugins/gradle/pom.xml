@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2023, Oracle and/or its affiliates.
+  Copyright (c) 2023, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,8 @@
 
   <properties>
     <gradle.executable>./gradlew</gradle.executable>
+    <gradle.hamcrest.version>${hamcrest-2.version}</gradle.hamcrest.version>
+    <gradle.junit.version>${junit.jupiter.version}</gradle.junit.version>
     <gradle.proxy.arg1/>
     <gradle.proxy.arg2/>
     <gradle.proxy.arg3/>
@@ -41,12 +43,23 @@
 
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-engine</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.platform</groupId>
+      <artifactId>junit-platform-launcher</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -144,7 +157,7 @@
             <phase>prepare-package</phase>
             <configuration>
               <executable>${gradle.executable}</executable>
-              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
@@ -156,7 +169,7 @@
             <configuration>
               <skip>${gradle.skip.test}</skip>
               <executable>${gradle.executable}</executable>
-              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
