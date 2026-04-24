@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.stream.Collectors;
 
-import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -112,7 +111,7 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(sMBeanName, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 1));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 1));
 
         proxy.setAttribute(sMBeanName, ATTRIBUTE_CACHE_SIZE, 1234);
 
@@ -217,7 +216,7 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(sMBeanName, listener, filterMod4, sHandback);
 
         // Ensure that the listeners have been removed by checking the listener count on the server
-        Eventually.assertThat(invoking(this).countMBeanListeners(member, sMBeanName), is(cBefore + 2));
+        Eventually.assertDeferred(() -> countMBeanListeners(member, sMBeanName), is(cBefore + 2));
 
         for (int i=1; i<=9; i++)
             {
@@ -279,8 +278,8 @@ public class MBeanServerProxyNotificationTests
         proxy.addNotificationListener(RESPONSIBILITY_MBEAN_NAME, listener, null, sHandback);
 
         // Ensure that the listener is added by checking the listener count on the server
-        Eventually.assertThat(invoking(this)
-                .countMBeanListeners(s_memberResponsibility, RESPONSIBILITY_MBEAN_NAME), is(cBefore + 1));
+        Eventually.assertDeferred(() -> countMBeanListeners(s_memberResponsibility, RESPONSIBILITY_MBEAN_NAME),
+                is(cBefore + 1));
 
         proxy.setAttribute(RESPONSIBILITY_MBEAN_NAME, ATTRIBUTE_CACHE_SIZE, 1234);
         Eventually.assertDeferred(() -> proxy.getAttribute(RESPONSIBILITY_MBEAN_NAME, ATTRIBUTE_CACHE_SIZE), is(1234));

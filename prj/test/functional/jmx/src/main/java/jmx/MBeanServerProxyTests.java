@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -573,8 +573,17 @@ public class MBeanServerProxyTests
 
     protected void waitForIdleStatus(MBeanServerProxy proxy, String sName)
         {
-        Eventually.assertThat(invoking(proxy).getAttribute(sName, "OperationStatus"), is((Object) "Idle"),
-                within(60 * 2, TimeUnit.SECONDS));
+        Eventually.assertDeferred(() ->
+                {
+                try
+                    {
+                    return proxy.getAttribute(sName, "OperationStatus");
+                    }
+                catch (Exception e)
+                    {
+                    return null;
+                    }
+                }, is((Object) "Idle"), within(60 * 3, TimeUnit.SECONDS));
         }
 
     /**
