@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -123,6 +123,7 @@ public class VirtualThreads
      */
     public static boolean isEnabled()
         {
+        // Reserved for VirtualDaemonPool selection; legacy DaemonPool ignores this flag.
         return CacheFactory.getCluster().getDependencies().isVirtualThreadsEnabled();
         }
 
@@ -136,6 +137,7 @@ public class VirtualThreads
      */
     public static boolean isEnabled(String sServiceName)
         {
+        // Reserved for VirtualDaemonPool selection; legacy DaemonPool ignores this flag.
         return sServiceName == null
                ? isEnabled()
                : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(sServiceName), isEnabled());

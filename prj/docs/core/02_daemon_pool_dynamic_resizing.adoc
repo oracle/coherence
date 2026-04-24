@@ -1,0 +1,436 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Daemon Pool Dynamic Resizing
+:toc: left
+:toclevels: 4
+:sectnums:
+
+This document describes how Coherence dynamically sizes the internal daemon
+thread pools that run cache service worker tasks, and how to tune that
+behavior through cache configuration and system properties.
+
+It is a user-facing guide intended for developers and operators running
+Coherence clusters, not an internal design document.
+
+== Overview
+
+Coherence services such as distributed caches, proxy services, and invocation
+services process incoming requests on a pool of daemon threads. The size of
+this pool has a direct effect on throughput, latency, and CPU utilization:
+
+- too few threads can cause queueing under load and high request latency
+- too many threads can cause contention and wasted CPU on context switching
+
+To avoid forcing operators to pick a single static size, Coherence ships with
+a dynamic daemon pool that continuously monitors throughput and utilization
+and resizes itself within a configurable range.
+
+This guide describes:
+
+- what the dynamic daemon pool measures and how it reacts to load
+- how to configure the minimum and maximum pool size
+- the system properties that tune the resizing behavior
+- how to observe and diagnose resizing decisions
+
+== How It Works
+
+The dynamic daemon pool is driven by a periodic _resize task_ that runs
+inside each pool. Each time the task runs it looks at two signals:
+
+- *throughput*: the number of tasks completed per second since the previous
+  tick
+- *utilization*: how busy the daemon threads have been, including whether
+  there is a backlog of queued work
+
+Based on those signals it can do one of the following:
+
+- *grow* the pool if throughput is increasing or the pool is clearly busy
+- *shrink* the pool by one thread if it is consistently underutilized
+- leave the pool size unchanged and keep observing
+- occasionally _shake_ the pool by a small amount to discover whether a
+  different size would perform better
+
+=== Growth Is Throughput-Driven
+
+When completed throughput rises from one tick to the next the resize task
+treats that as evidence that more threads would be useful and grows the
+pool, even if average utilization looks modest. Under bursty or uneven
+workloads throughput can increase before average utilization catches up, so
+the pool tracks the work instead of waiting for utilization to cross a
+threshold.
+
+The pool will not grow beyond its configured maximum.
+
+=== Shrink Is Linear and Rate-Limited
+
+When the pool is consistently underutilized the resize task shrinks the
+pool by exactly one thread per cycle. Linear shrink avoids large drops that
+would require a symmetric burst to recover from, and it keeps shrinking
+predictable even when the pool is large.
+
+After a shrink step the resize task applies a _shrink cooldown_: a minimum
+amount of time that must pass before another shrink is allowed. This
+prevents a quiet pool from collapsing all the way down to the minimum in a
+single flurry of ticks.
+
+=== Growth Has a Grace Window
+
+Once the pool has just grown, a single dip in throughput is not enough to
+reverse the decision. The pool needs to see _two_ consecutive throughput
+drops after a growth step before it will start shrinking again. This grace
+window prevents the pool from oscillating between sizes on short-lived
+throughput noise immediately after a resize.
+
+=== Adaptive Probing When Pinned at the Maximum
+
+If the pool is pinned at the configured maximum and the workload keeps the
+threads busy, the resize task will gradually accelerate its _shake_
+behavior. Periodically nudging the thread count down by a small amount lets
+the pool discover whether fewer threads would in fact run the workload
+faster, which can happen when the CPU is saturated and contention is the
+bottleneck.
+
+The acceleration is gradual:
+
+- after a moderate number of consecutive overutilized cycles the shake
+  period becomes faster
+- after an extended overutilized period it becomes faster still
+- as soon as the pool is no longer pinned-at-max the counter resets and the
+  shake period returns to its default
+
+=== Asymmetric Period Adjustment
+
+The resize task also adjusts _its own_ schedule. When it makes a resizing
+decision it shortens its period so it can check again sooner; when nothing
+interesting is happening it lengthens its period so it stays out of the
+way. Shortening is faster than lengthening, so the pool reacts quickly to
+change and relaxes slowly once the workload is stable.
+
+== Configuring Minimum and Maximum Pool Size
+
+The dynamic resizing logic always operates between a minimum and a maximum
+pool size. Those are configured per service in the cache configuration,
+using `<thread-count-min>` and `<thread-count-max>` on the service scheme.
+
+If a service leaves `<thread-count-max>` unconfigured, Coherence now treats the
+historical unbounded default as a request for a _derived_ platform-thread
+maximum rather than a literal infinite cap. The derived value is computed once
+at pool bootstrap from JVM sizing (`Xmx` and thread stack size) and is further
+bounded by a built-in hard ceiling of `2048` threads per pool. Explicit finite
+`thread-count-max` values still win exactly as configured.
+
+=== Distributed Cache Service Example
+
+[source,xml]
+----
+<cache-config>
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>orders-distributed</scheme-name>
+      <service-name>OrdersService</service-name>
+      <thread-count-min system-property="coherence.distributed.threads.min">2</thread-count-min>
+      <thread-count-max system-property="coherence.distributed.threads.max">32</thread-count-max>
+      <backing-map-scheme>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+  </caching-schemes>
+</cache-config>
+----
+
+With this configuration the `OrdersService` daemon pool starts at the
+minimum, scales up toward the maximum as throughput and utilization
+require, and shrinks back down when load is sustained below the pool's
+capacity.
+
+=== Rules of Thumb
+
+- Set `thread-count-min` to the smallest pool that can comfortably handle
+  your steady-state load. Setting it too low will cause the pool to grow
+  on every burst; setting it too high prevents the pool from shrinking
+  when traffic is quiet.
+- Set `thread-count-max` based on available CPU and expected peak load.
+  The pool will not exceed this value, so a maximum that is too low can
+  cap throughput during bursts.
+- If you do not set `thread-count-max`, Coherence derives a safe
+  platform-thread maximum automatically. That default is meant as a
+  guardrail, not as a throughput-optimized sizing choice, so production
+  services with well-understood workloads should still set an explicit
+  maximum.
+- Using `system-property` attributes lets you override the bounds per
+  deployment without re-packaging cache configuration.
+
+[NOTE]
+====
+Setting `thread-count-min` equal to `thread-count-max` disables dynamic
+resizing for that service and pins the pool at that size.
+====
+
+== Tuning the Resizing Behavior
+
+The algorithmic parameters of the resize task are controlled by JVM system
+properties. The defaults are intentionally conservative and appropriate for
+most workloads; they are documented here for environments with unusual
+requirements.
+
+All properties are read once, when the daemon pool class is initialized, so
+they must be set on the JVM command line or before any Coherence classes
+are loaded.
+
+=== Pool Sizing Behavior
+
+[cols="2,1,3"]
+|===
+| System Property | Default | Purpose
+
+| `coherence.daemonpool.grow.grace.count`
+| `2`
+| Number of consecutive throughput drops required after a grow step before
+the pool is allowed to shrink again. Increase to dampen oscillation under
+noisy workloads; decrease to react to throughput decreases more quickly.
+
+| `coherence.daemonpool.grow.percentage`
+| `1.0`
+| Fraction of the current pool size by which the pool may grow in one step
+when a grow decision is made. The default of `1.0` allows the pool to
+double in size in a single grow step, up to `thread-count-max`.
+
+| `coherence.daemonpool.idle.fraction`
+| `0.333`
+| Fraction of the pool's daemons that may be idle before the pool is
+considered underutilized. Lower values make the pool more aggressive about
+shrinking.
+
+| `coherence.daemonpool.idle.threshold`
+| `20`
+| Minimum idle-task count that contributes to the underutilization
+decision. Protects small pools from being shrunk on noise.
+
+| `coherence.daemonpool.jitter.percentage`
+| `0.05`
+| Fraction of the pool size used as random jitter on resize decisions.
+Helps multiple pools in the same cluster avoid resizing in lockstep.
+
+| `coherence.daemonpool.shake.percentage`
+| `0.15`
+| Fraction of the pool size used when the resize task _shakes_ the pool to
+probe whether a different size would perform better.
+
+| `coherence.daemonpool.shrink.cooldown`
+| `2 * coherence.daemonpool.min.period` (default `200` ms)
+| Minimum time in milliseconds between consecutive shrink steps. Prevents
+the pool from shrinking multiple times in rapid succession. By default it
+is derived from `coherence.daemonpool.min.period`, so changing
+`min.period` will move the cooldown with it unless you set
+`shrink.cooldown` explicitly.
+|===
+
+=== Resize Task Scheduling
+
+The resize task runs on an adaptive schedule. These properties bound that
+schedule and control how quickly it speeds up or slows down.
+
+[cols="2,1,3"]
+|===
+| System Property | Default | Purpose
+
+| `coherence.daemonpool.min.period`
+| `100` (ms)
+| Lower bound on the resize task's period. The resize task never runs
+more often than this.
+
+| `coherence.daemonpool.max.period`
+| `10000` (ms)
+| Upper bound on the resize task's period when the pool is quiet and has
+nothing to decide.
+
+| `coherence.daemonpool.adjust.period`
+| `250` (ms)
+| Step by which the resize task shortens its period after an interesting
+decision. Larger values react faster but use more CPU.
+
+| `coherence.daemonpool.adjust.slightly.slower`
+| `coherence.daemonpool.adjust.period / 2` (default `125` ms)
+| Step by which the resize task lengthens its period when nothing
+interesting is happening. Asymmetry is intentional: the pool should speed
+up quickly and relax slowly. By default it is derived from
+`adjust.period`, so changing `adjust.period` will move this knob with it
+unless you set `adjust.slightly.slower` explicitly.
+|===
+
+=== Shake Behavior When Pinned at Maximum
+
+Periodically shaking the pool lets it discover whether a slightly smaller
+size would perform better. These properties control how aggressive that
+probing becomes when the pool is stuck at the maximum and the workload
+keeps the threads busy.
+
+[cols="2,1,3"]
+|===
+| System Property | Default | Purpose
+
+| `coherence.daemonpool.shake.period`
+| `600000` (ms, 10 minutes)
+| Baseline shake period. The resize task will nudge the pool size by the
+`shake.percentage` on this schedule in the absence of sustained
+overutilization.
+
+| `coherence.daemonpool.shake.overutilized.count`
+| `10`
+| Number of consecutive overutilized-at-max cycles after which the resize
+task starts using the faster shake period.
+
+| `coherence.daemonpool.shake.overutilized.period`
+| `30000` (ms, 30 seconds)
+| Shake period used after the `shake.overutilized.count` threshold is
+crossed.
+
+| `coherence.daemonpool.shake.overutilized.max.count`
+| `30`
+| Number of consecutive overutilized-at-max cycles after which the resize
+task starts using the fastest shake period.
+
+| `coherence.daemonpool.shake.overutilized.max.period`
+| `10000` (ms, 10 seconds)
+| Shake period used after the `shake.overutilized.max.count` threshold is
+crossed. This is as aggressive as the shake schedule gets.
+|===
+
+=== Diagnostics
+
+[cols="2,1,3"]
+|===
+| System Property | Default | Purpose
+
+| `coherence.daemonpool.debug`
+| `false`
+| When `true`, the daemon pool logs the configured resize-task tuning
+parameters on startup and emits additional diagnostic messages about its
+resize decisions. Useful when tuning for an unusual workload.
+|===
+
+[NOTE]
+====
+`coherence.daemonpool.shrink.percentage` is formally deprecated as of
+release 26.04. The property is still parsed on startup and the configured
+value is still reported in the `coherence.daemonpool.debug` tuning trace
+for visibility, but shrink steps are always linear — one daemon per
+cycle, gated by `coherence.daemonpool.shrink.cooldown` — regardless of
+the value set. The property may be removed in a future release; do not
+rely on it in new deployments.
+====
+
+== Examples
+
+=== Keep the Pool Responsive for Bursty Traffic
+
+A service that normally runs at a few threads but sees short bursts of
+work may benefit from faster reactions and a shorter cooldown.
+
+[source,bash]
+----
+-Dcoherence.daemonpool.min.period=50 \
+-Dcoherence.daemonpool.adjust.period=500 \
+-Dcoherence.daemonpool.shrink.cooldown=200 \
+-Dcoherence.daemonpool.grow.grace.count=1
+----
+
+This combination:
+
+- lets the resize task run as often as every 50 ms
+- shortens its period by a bigger step on each interesting decision
+- keeps the shrink cooldown explicit and independent of `min.period`
+- allows the pool to start shrinking on the first throughput drop after a
+grow, trading some oscillation risk for responsiveness
+
+=== Dampen Oscillation for a Noisy Workload
+
+A workload with spiky client traffic may cause the pool to oscillate on
+transient throughput changes. In that case you can broaden the grace
+window and slow the resize task.
+
+[source,bash]
+----
+-Dcoherence.daemonpool.grow.grace.count=3 \
+-Dcoherence.daemonpool.adjust.period=150 \
+-Dcoherence.daemonpool.shrink.cooldown=500
+----
+
+=== Explore Pool Sizing Faster on a CPU-Bound Service
+
+For a CPU-bound service that often pins at its maximum thread count, you
+can accelerate the shake schedule so the pool experiments with slightly
+smaller sizes more often.
+
+[source,bash]
+----
+-Dcoherence.daemonpool.shake.period=120000 \
+-Dcoherence.daemonpool.shake.overutilized.count=5 \
+-Dcoherence.daemonpool.shake.overutilized.period=20000 \
+-Dcoherence.daemonpool.shake.overutilized.max.count=15 \
+-Dcoherence.daemonpool.shake.overutilized.max.period=5000
+----
+
+=== Disable Dynamic Resizing for a Service
+
+If a particular service must run at a fixed size, set the bounds to the
+same value in the cache configuration:
+
+[source,xml]
+----
+<distributed-scheme>
+  <scheme-name>fixed-pool</scheme-name>
+  <service-name>FixedService</service-name>
+  <thread-count-min>8</thread-count-min>
+  <thread-count-max>8</thread-count-max>
+  ...
+</distributed-scheme>
+----
+
+This disables growth and shrinkage for that service without turning off
+dynamic resizing elsewhere in the cluster.
+
+== Observing Resizing Behavior
+
+The daemon pool emits log messages at INFO level whenever it grows or
+shrinks the pool, including the reason for the decision (for example, a
+throughput increase or sustained underutilization) and the previous and
+new thread counts.
+
+When `coherence.daemonpool.debug` is enabled, the pool additionally logs:
+
+- the full set of tuning parameters in effect at startup
+- fine-grained messages on why the resize task is skipping, preserving, or
+adjusting its decision
+- details about shake cycles and shrink cooldown behavior
+
+For production tuning, enabling debug output on a single representative
+member for a short period is usually enough to understand how the pool is
+reacting to a given workload.
+
+== Summary
+
+The Coherence dynamic daemon pool lets you configure a _range_ of
+acceptable pool sizes instead of a single number, and then adapts within
+that range based on observed throughput and utilization:
+
+- grow when throughput increases
+- shrink one thread at a time when utilization is sustained low
+- wait out short-lived throughput drops after a grow step
+- probe at the maximum size when the workload keeps threads saturated
+- adapt its own schedule to the pace of the workload
+
+For most deployments setting `<thread-count-min>` and `<thread-count-max>`
+on each service is all that is required. The system properties described
+above are available for environments where finer control over the
+resizing policy is needed.
+
+If `<thread-count-max>` is omitted, Coherence still keeps the pool bounded by
+deriving a safe platform-thread maximum automatically. That protects legacy
+dynamic pools from unbounded growth, while preserving the existing explicit
+configuration path for services that need a different limit.
