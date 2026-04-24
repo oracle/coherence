@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,7 +25,7 @@ import com.oracle.coherence.common.util.Timers;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
-import com.tangosol.internal.util.VirtualThreads;
+import com.tangosol.internal.util.DaemonPoolSizing;
 
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
@@ -1842,13 +1842,28 @@ public class DaemonPool
      */
     protected void onDependencies(com.tangosol.internal.util.DaemonPoolDependencies deps)
         {
+        String                        sName   = deps.getName();
+        int                           cMin    = deps.getThreadCountMin();
+        DaemonPoolSizing.Result       result  = DaemonPoolSizing.resolveThreadCountMax(deps.getThreadCountMax(), cMin);
+        int                           cMax    = result.getEffectiveMax();
+        int                           cThread = Math.min(Math.max(deps.getThreadCount(), cMin), cMax);
+
         setInternalGuardian(deps.getGuardian());
-        setName(deps.getName());
-        setDaemonCountMin(deps.getThreadCountMin());
-        setDaemonCountMax(deps.getThreadCountMax());
-        setDaemonCount(deps.getThreadCount());
+        setName(sName);
+        setDaemonCountMin(cMin);
+        setDaemonCountMax(cMax);
+        setDaemonCount(cThread);
         setThreadGroup(deps.getThreadGroup());
         setThreadPriority(deps.getThreadPriority());
+
+        if (result.isDerived())
+            {
+            _trace("DaemonPool \"" + (sName == null ? "<unnamed>" : sName)
+                + "\": deriving platform thread-count-max=" + cMax
+                + " from Xmx=" + Base.toMemorySizeString(result.getMaxMemory())
+                + ", thread-stack=" + Base.toMemorySizeString(result.getThreadStackSize())
+                + ", hard-limit=" + result.getHardMax(), 4);
+            }
         }
     
     // Declared at the super level
@@ -3782,9 +3797,7 @@ public class DaemonPool
 
         protected Thread instantiateThread()
             {
-            Thread thread = useVirtualThreads()
-                   ? VirtualThreads.makeThread(getThreadGroup(), this, getThreadName())
-                   : Base.makeThread(getThreadGroup(), this, getThreadName());
+            Thread thread = Base.makeThread(getThreadGroup(), this, getThreadName());
 
             thread.setDaemon(true);
             int nPriority = getPriority();
@@ -3794,14 +3807,6 @@ public class DaemonPool
                 }
 
             return thread;
-            }
-
-        protected boolean useVirtualThreads()
-            {
-            DaemonPool pool = (DaemonPool) get_Module();
-            return VirtualThreads.isSupported()
-                   && VirtualThreads.isEnabled(pool.getName())
-                   && (pool.isDynamic() || getDaemonType() == DAEMON_NONPOOLED);
             }
 
         // Declared at the super level
@@ -4136,6 +4141,22 @@ public class DaemonPool
          * average is heavily weighed toward the most recent active count.
          */
         private transient double __m_ActiveCountAverage;
+
+        /**
+         * Property ConsecutiveDropsAfterGrow
+         *
+         * The number of consecutive throughput drops observed after the last
+         * pool growth.
+         */
+        private int __m_ConsecutiveDropsAfterGrow;
+
+        /**
+         * Property ConsecutiveOverutilized
+         *
+         * The number of consecutive analysis cycles during which the pool has
+         * remained overutilized without growing.
+         */
+        private int __m_ConsecutiveOverutilized;
         
         /**
          * Property ADJUST_FASTER
@@ -4144,6 +4165,14 @@ public class DaemonPool
          * Resize task executions.
          */
         public static final int ADJUST_FASTER = 1;
+
+        /**
+         * Property ADJUST_SLIGHTLY_SLOWER
+         *
+         * Indicates an intent to modestly increase the interval between the
+         * periodic Resize task executions.
+         */
+        public static final int ADJUST_SLIGHTLY_SLOWER = 3;
         
         /**
          * Property ADJUST_SLOWER
@@ -4158,6 +4187,14 @@ public class DaemonPool
          *
          */
         private static boolean __s_Debug;
+
+        /**
+         * Property GrowGraceCount
+         *
+         * The number of consecutive throughput drops required before a growth
+         * is reversed.
+         */
+        private static int __s_GrowGraceCount;
         
         /**
          * Property IdleFraction
@@ -4170,6 +4207,22 @@ public class DaemonPool
          *
          */
         private static int __s_IdleLimit;
+
+        /**
+         * Property OverutilizedShakeCount
+         *
+         * The number of consecutive overutilized analysis cycles required
+         * before the shake period is reduced.
+         */
+        private static int __s_OverutilizedShakeCount;
+
+        /**
+         * Property OverutilizedShakeCountMax
+         *
+         * The number of consecutive overutilized analysis cycles required
+         * before the fastest shake period is used.
+         */
+        private static int __s_OverutilizedShakeCountMax;
         
         /**
          * Property LastActiveMillis
@@ -4235,6 +4288,14 @@ public class DaemonPool
          *
          */
         private static long __s_PeriodAdjust;
+
+        /**
+         * Property PeriodAdjustSlightlySlower
+         *
+         * The smaller period deceleration step used when a growth attempt
+         * needs to be reversed.
+         */
+        private static long __s_PeriodAdjustSlightlySlower;
         
         /**
          * Property PeriodMax
@@ -4261,6 +4322,20 @@ public class DaemonPool
          *
          */
         private static long __s_PeriodShake;
+
+        /**
+         * Property PeriodShakeFast
+         *
+         * The faster shake period used after a sustained overutilized state.
+         */
+        private static long __s_PeriodShakeFast;
+
+        /**
+         * Property PeriodShakeFaster
+         *
+         * The fastest shake period used after an extended overutilized state.
+         */
+        private static long __s_PeriodShakeFaster;
         
         /**
          * Property ResizeGrow
@@ -4283,8 +4358,24 @@ public class DaemonPool
         /**
          * Property ResizeShrink
          *
+         * @deprecated As of 26.04, shrink steps are always linear (one daemon
+         *             per cycle, gated by {@link #getShrinkCooldownMillis()}),
+         *             so this value is no longer consulted by the resize
+         *             algorithm. The associated system property
+         *             {@code coherence.daemonpool.shrink.percentage} is still
+         *             read and the configured value is still reported in the
+         *             tuning trace for visibility, but it has no functional
+         *             effect and may be removed in a future release.
          */
+        @Deprecated
         private static double __s_ResizeShrink;
+
+        /**
+         * Property ShrinkCooldownMillis
+         *
+         * The minimum period to wait before allowing another shrink step.
+         */
+        private static long __s_ShrinkCooldownMillis;
         
         private static void _initStatic$Default()
             {
@@ -4299,54 +4390,83 @@ public class DaemonPool
             _initStatic$Default();
             
             setDebug(Config.getBoolean("coherence.daemonpool.debug"));
-            
+
+            String sPeriodAdjustSlightlySlower = Config.getProperty("coherence.daemonpool.adjust.slightly.slower");
+            String sShrinkCooldown             = Config.getProperty("coherence.daemonpool.shrink.cooldown");
+
             // configure the various "knobs"
+            setGrowGraceCount(getIntegerProperty("coherence.daemonpool.grow.grace.count", getGrowGraceCount()));
             setIdleFraction(getDoubleProperty ("coherence.daemonpool.idle.fraction",     getIdleFraction()));
             setIdleLimit   (getIntegerProperty("coherence.daemonpool.idle.threshold",    getIdleLimit()));
+            setOverutilizedShakeCount(getIntegerProperty("coherence.daemonpool.shake.overutilized.count",     getOverutilizedShakeCount()));
+            setOverutilizedShakeCountMax(getIntegerProperty("coherence.daemonpool.shake.overutilized.max.count", getOverutilizedShakeCountMax()));
             setPeriodAdjust(getLongProperty   ("coherence.daemonpool.adjust.period",     getPeriodAdjust()));
             setPeriodMax   (getLongProperty   ("coherence.daemonpool.max.period",        getPeriodMax()));
             setPeriodMin   (getLongProperty   ("coherence.daemonpool.min.period",        getPeriodMin()));
             setPeriodShake (getLongProperty   ("coherence.daemonpool.shake.period",      getPeriodShake()));
+            setPeriodShakeFast(getLongProperty("coherence.daemonpool.shake.overutilized.period",     getPeriodShakeFast()));
+            setPeriodShakeFaster(getLongProperty("coherence.daemonpool.shake.overutilized.max.period", getPeriodShakeFaster()));
             setResizeGrow  (getDoubleProperty ("coherence.daemonpool.grow.percentage",   getResizeGrow()));
             setResizeJitter(getDoubleProperty ("coherence.daemonpool.jitter.percentage", getResizeJitter()));
             setResizeShake (getDoubleProperty ("coherence.daemonpool.shake.percentage",  getResizeShake()));
             setResizeShrink(getDoubleProperty ("coherence.daemonpool.shrink.percentage", getResizeShrink()));
+            setPeriodAdjustSlightlySlower(sPeriodAdjustSlightlySlower == null
+                ? getPeriodAdjust() / 2
+                : getLongProperty("coherence.daemonpool.adjust.slightly.slower", getPeriodAdjustSlightlySlower()));
+            setShrinkCooldownMillis(sShrinkCooldown == null
+                ? getPeriodMin() * 2
+                : getLongProperty("coherence.daemonpool.shrink.cooldown", getShrinkCooldownMillis()));
             
             if (isDebug())
                 {
                 Object[] ao = new Object[]
                     {
+                    Integer.valueOf(getGrowGraceCount()),
                     Double.valueOf(getIdleFraction()),
                     Integer.valueOf(getIdleLimit()),
+                    Integer.valueOf(getOverutilizedShakeCount()),
+                    Integer.valueOf(getOverutilizedShakeCountMax()),
                     Long.valueOf(getPeriodAdjust()),
+                    Long.valueOf(getPeriodAdjustSlightlySlower()),
                     Long.valueOf(getPeriodMax()),
                     Long.valueOf(getPeriodMin()),
                     Long.valueOf(getPeriodShake()),
+                    Long.valueOf(getPeriodShakeFast()),
+                    Long.valueOf(getPeriodShakeFaster()),
                     Double.valueOf(getResizeGrow()),
                     Double.valueOf(getResizeJitter()),
                     Double.valueOf(getResizeShake()),
                     Double.valueOf(getResizeShrink()),
+                    Long.valueOf(getShrinkCooldownMillis()),
                     };
-                _trace(String.format("ResizeTask[IdleFraction=%.2f, IdleLimit=%d, PeriodAdjust=%d, PeriodMax=%d, PeriodMin=%d, PeriodShake=%d, ResizeGrow=%.3f, ResizeJitter=%.3f, ResizeShake=%.3f, ResizeShrink=%.3f]", ao), 3);
+                _trace(String.format("ResizeTask[GrowGraceCount=%d, IdleFraction=%.2f, IdleLimit=%d, OverutilizedShakeCount=%d, OverutilizedShakeCountMax=%d, PeriodAdjust=%d, PeriodAdjustSlightlySlower=%d, PeriodMax=%d, PeriodMin=%d, PeriodShake=%d, PeriodShakeFast=%d, PeriodShakeFaster=%d, ResizeGrow=%.3f, ResizeJitter=%.3f, ResizeShake=%.3f, ResizeShrink=%.3f, ShrinkCooldownMillis=%d]", ao), 3);
                 }
             }
         
         // Default static initializer
+        @SuppressWarnings("deprecation")
         private static void __initStatic()
             {
             // state initialization: static properties
             try
                 {
+                setGrowGraceCount(2);
                 setIdleFraction(0.333);
                 setIdleLimit(20);
+                setOverutilizedShakeCount(10);
+                setOverutilizedShakeCountMax(30);
                 setPeriodAdjust(250L);
+                setPeriodAdjustSlightlySlower(getPeriodAdjust() / 2);
                 setPeriodMax(10000L);
                 setPeriodMin(100L);
                 setPeriodShake(600000L);
+                setPeriodShakeFast(30000L);
+                setPeriodShakeFaster(10000L);
                 setResizeGrow(1.0);
                 setResizeJitter(0.05);
                 setResizeShake(0.15);
                 setResizeShrink(0.25);
+                setShrinkCooldownMillis(getPeriodMin() * 2);
                 }
             catch (java.lang.Exception e)
                 {
@@ -4455,7 +4575,11 @@ public class DaemonPool
                         cMillis = getPeriodMin();
                         }
                     break;
-            
+
+                case ADJUST_SLIGHTLY_SLOWER:
+                    setPeriodMillis(cMillis = Math.min(getPeriodMax(), cMillis + getPeriodAdjustSlightlySlower()));
+                    break;
+
                 case ADJUST_SLOWER:
                     setPeriodMillis(cMillis = Math.min(getPeriodMax(), cMillis + getPeriodAdjust()));
                     break;
@@ -4494,6 +4618,24 @@ public class DaemonPool
         public double getActiveCountAverage()
             {
             return __m_ActiveCountAverage;
+            }
+
+        // Accessor for the property "ConsecutiveDropsAfterGrow"
+        /**
+         * Getter for property ConsecutiveDropsAfterGrow.<p>
+         */
+        public int getConsecutiveDropsAfterGrow()
+            {
+            return __m_ConsecutiveDropsAfterGrow;
+            }
+
+        // Accessor for the property "ConsecutiveOverutilized"
+        /**
+         * Getter for property ConsecutiveOverutilized.<p>
+         */
+        public int getConsecutiveOverutilized()
+            {
+            return __m_ConsecutiveOverutilized;
             }
         
         // Accessor for the property "DaemonCount"
@@ -4538,6 +4680,15 @@ public class DaemonPool
                 return dflDefault;
                 }
             }
+
+        // Accessor for the property "GrowGraceCount"
+        /**
+         * Getter for property GrowGraceCount.<p>
+         */
+        public static int getGrowGraceCount()
+            {
+            return __s_GrowGraceCount;
+            }
         
         // Accessor for the property "IdleFraction"
         /**
@@ -4555,6 +4706,24 @@ public class DaemonPool
         public static int getIdleLimit()
             {
             return __s_IdleLimit;
+            }
+
+        // Accessor for the property "OverutilizedShakeCount"
+        /**
+         * Getter for property OverutilizedShakeCount.<p>
+         */
+        public static int getOverutilizedShakeCount()
+            {
+            return __s_OverutilizedShakeCount;
+            }
+
+        // Accessor for the property "OverutilizedShakeCountMax"
+        /**
+         * Getter for property OverutilizedShakeCountMax.<p>
+         */
+        public static int getOverutilizedShakeCountMax()
+            {
+            return __s_OverutilizedShakeCountMax;
             }
         
         /**
@@ -4694,6 +4863,15 @@ public class DaemonPool
             {
             return __s_PeriodAdjust;
             }
+
+        // Accessor for the property "PeriodAdjustSlightlySlower"
+        /**
+         * Getter for property PeriodAdjustSlightlySlower.<p>
+         */
+        public static long getPeriodAdjustSlightlySlower()
+            {
+            return __s_PeriodAdjustSlightlySlower;
+            }
         
         // Accessor for the property "PeriodMax"
         /**
@@ -4732,6 +4910,45 @@ public class DaemonPool
             {
             return __s_PeriodShake;
             }
+
+        /**
+         * Return the effective shake period for the current overutilization
+         * state.
+         */
+        protected long getEffectiveShakePeriod()
+            {
+            int cOverutilized = getConsecutiveOverutilized();
+
+            if (cOverutilized >= getOverutilizedShakeCountMax())
+                {
+                return getPeriodShakeFaster();
+                }
+
+            if (cOverutilized >= getOverutilizedShakeCount())
+                {
+                return getPeriodShakeFast();
+                }
+
+            return getPeriodShake();
+            }
+
+        // Accessor for the property "PeriodShakeFast"
+        /**
+         * Getter for property PeriodShakeFast.<p>
+         */
+        public static long getPeriodShakeFast()
+            {
+            return __s_PeriodShakeFast;
+            }
+
+        // Accessor for the property "PeriodShakeFaster"
+        /**
+         * Getter for property PeriodShakeFaster.<p>
+         */
+        public static long getPeriodShakeFaster()
+            {
+            return __s_PeriodShakeFaster;
+            }
         
         // Accessor for the property "ResizeGrow"
         /**
@@ -4763,10 +4980,35 @@ public class DaemonPool
         // Accessor for the property "ResizeShrink"
         /**
          * Getter for property ResizeShrink.<p>
+         *
+         * @deprecated As of 26.04; see {@link #__s_ResizeShrink} for details.
+         *             Shrink is always linear, so the configured value is no
+         *             longer consulted.
          */
+        @Deprecated
         public static double getResizeShrink()
             {
             return __s_ResizeShrink;
+            }
+
+        // Accessor for the property "ShrinkCooldownMillis"
+        /**
+         * Getter for property ShrinkCooldownMillis.<p>
+         */
+        public static long getShrinkCooldownMillis()
+            {
+            return __s_ShrinkCooldownMillis;
+            }
+
+        /**
+         * Ensure that the next analysis after a shrink waits at least the
+         * configured cooldown.
+         */
+        protected long applyShrinkCooldown(long cPeriod, int cThreadsOld, int cThreadsNew)
+            {
+            return cThreadsNew < cThreadsOld
+                ? Math.max(cPeriod, getShrinkCooldownMillis())
+                : cPeriod;
             }
         
         /**
@@ -4777,10 +5019,8 @@ public class DaemonPool
         protected int growDaemonPool(String sReason)
             {
             int cThreads = getDaemonCount();
-            
-            // no reason to grow an underutilized pool
-            return isDaemonPoolUnderutilized() ? cThreads :
-                resizeDaemonPool(Math.max(1, (int) (cThreads * getResizeGrow())), sReason);
+
+            return resizeDaemonPool(Math.max(1, (int) (cThreads * getResizeGrow())), sReason);
             }
         
         /**
@@ -4790,12 +5030,21 @@ public class DaemonPool
          */
         protected boolean isDaemonPoolOverutilized()
             {
+            return getDaemonCount() < getDaemonPool().getDaemonCountMax()
+                && isOverutilizedOrAtBusyMax();
+            }
+
+        /**
+         * Determine if the DaemonPool is busy enough that a capped grow should
+         * still count as sustained overutilization.
+         */
+        protected boolean isOverutilizedOrAtBusyMax()
+            {
             int    cThreads  = getDaemonCount();
             double dflActive = getActiveCountAverage();
             int    cIdle     = (int) (cThreads - dflActive);
-            
-            return cThreads < getDaemonPool().getDaemonCountMax()
-                && dflActive > cThreads*(1 - getIdleFraction())
+
+            return dflActive > cThreads * (1 - getIdleFraction())
                 && cIdle < getIdleLimit()
                 && getLastThroughput() > 0.0;
             }
@@ -4946,6 +5195,12 @@ public class DaemonPool
             long cActiveMillis = 0L;
             int  cThreads      = pool.getDaemonCount();
             int  cNew          = cThreads;
+            int  cLast         = getLastResize();
+            int  cResize       = 0;
+            int  cOverutilized = getConsecutiveOverutilized();
+
+            boolean fCountOverutilized = false;
+            boolean fPreserveResize    = false;
             
             if (pool.isInTransition())
                 {
@@ -4985,7 +5240,7 @@ public class DaemonPool
                              + "\": skipping analysis because the pool was resized externally (expected="
                                 + getLastThreadCount() + ", current=" + cThreads + ")", 3);
                         }
-                    setLastResize(cThreads - getLastThreadCount());
+                    cResize = cThreads - getLastThreadCount();
                     return;
                     }
             
@@ -4997,6 +5252,8 @@ public class DaemonPool
                              + "\": skipping analysis to gather new statistics after a resize or reset", 3);
                         }
                     cPeriod = getPeriodMin();
+                    fPreserveResize = true;
+                    cResize         = cLast;
                     return;
                     }
             
@@ -5008,7 +5265,6 @@ public class DaemonPool
                 double dflActive = (getActiveCountAverage() + pool.getActiveDaemonCount()) / 2;
             
                 // gather data used in resize analysis
-                int    cLast       = getLastResize();
                 double dflTPLast   = getLastThroughput();
                 double dflTPDelta  = dflTP - dflTPLast;
                 double dflTPJitter = dflTP * getResizeJitter();
@@ -5034,13 +5290,13 @@ public class DaemonPool
                 setActiveCountAverage(dflActive);
             
                 // determine if it is time to "shake" the pool
-                if (ldtNow >= getLastShakeMillis() + getPeriodShake())
+                if (ldtNow >= getLastShakeMillis() + getEffectiveShakePeriod())
                     {
                     setLastShakeMillis(ldtNow);
                     if (dflTP > 0.0)
                         {
                         cNew = shakeDaemonPool();
-                        setLastResize(cNew - cThreads);
+                        cResize = cNew - cThreads;
                         return;
                         }
                     }
@@ -5058,13 +5314,31 @@ public class DaemonPool
                         //     analysis to dampen oscillations
                         if (dflTPDelta > 0)
                             {
+                            setConsecutiveDropsAfterGrow(0);
                             cNew    = growDaemonPool("an increase in throughput of " + format2f(dflTPDelta) + "op/sec");
                             cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                            fCountOverutilized = cNew == cThreads && isOverutilizedOrAtBusyMax();
                             }
                         else
                             {
-                            cNew    = shrinkDaemonPool("a decrease in throughput of " + format2f(-dflTPDelta) + "op/sec");
-                            cPeriod = adjustPeriod(ADJUST_SLOWER, cThreads, cNew);
+                            int cDrops = getConsecutiveDropsAfterGrow() + 1;
+                            if (cDrops < getGrowGraceCount())
+                                {
+                                setConsecutiveDropsAfterGrow(cDrops);
+
+                                // Preserve the last resize direction so the next analysis cycle
+                                // can decide whether the growth reversal was sustained.
+                                cPeriod         = getPeriodMin();
+                                fPreserveResize = true;
+                                cResize         = cLast;
+                                }
+                            else
+                                {
+                                setConsecutiveDropsAfterGrow(0);
+                                cNew    = shrinkDaemonPool("a decrease in throughput of " + format2f(-dflTPDelta) + "op/sec");
+                                cPeriod = adjustPeriod(ADJUST_SLIGHTLY_SLOWER, cThreads, cNew);
+                                cPeriod = applyShrinkCooldown(cPeriod, cThreads, cNew);
+                                }
                             }
                         }
                     else if (cLast < 0)
@@ -5077,13 +5351,16 @@ public class DaemonPool
                         //     analysis to dampen oscillations
                         if (dflTPDelta > 0)
                             {
+                            setConsecutiveDropsAfterGrow(0);
                             cNew    = shrinkDaemonPool("an increase in throughput of " + format2f(dflTPDelta) + "op/sec");
-                            cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                            cPeriod = applyShrinkCooldown(cPeriod, cThreads, cNew);
                             }
                         else
                             {
+                            setConsecutiveDropsAfterGrow(0);
                             cNew    = growDaemonPool("a decrease in throughput of " + format2f(-dflTPDelta) + "op/sec");
-                            cPeriod = adjustPeriod(ADJUST_SLOWER, cThreads, cNew);
+                            cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                            fCountOverutilized = cNew == cThreads && isOverutilizedOrAtBusyMax();
                             }
                         }
                     else // cLast == 0
@@ -5092,35 +5369,42 @@ public class DaemonPool
                             {
                             // we didn't change anything and there was a notable throughput increase;
                             // keep it steady
+                            setConsecutiveDropsAfterGrow(0);
                             }
                         else
                             {
+                            setConsecutiveDropsAfterGrow(0);
                             // there was a notable throughput decrease;
                             // shrink the pool if it is underutilized or grow it if it is overutilized 
                             if (isDaemonPoolUnderutilized())
                                 {
                                 cNew    = shrinkDaemonPool("a decrease in throughput and the pool been underutilized");
                                 cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                                cPeriod = applyShrinkCooldown(cPeriod, cThreads, cNew);
                                 }
-                            else if (isDaemonPoolOverutilized())
+                            else if (isOverutilizedOrAtBusyMax())
                                 {
                                 cNew    = growDaemonPool("an decrease in throughput and the pool being overutilized");
                                 cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                                fCountOverutilized = cNew == cThreads && isOverutilizedOrAtBusyMax();
                                 }
                             }
                         }
                     }
                 else if (ldtNow > ldtLastResize + cPeriod)
                     {
-                    if (isDaemonPoolOverutilized())
+                    setConsecutiveDropsAfterGrow(0);
+                    if (isOverutilizedOrAtBusyMax())
                         {
                         cNew    = growDaemonPool("the pool being overutilized");
                         cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                        fCountOverutilized = cNew == cThreads && isOverutilizedOrAtBusyMax();
                         }
                     else if (isDaemonPoolUnderutilized())
                         {
                         cNew    = shrinkDaemonPool("the pool being underutilized");
                         cPeriod = adjustPeriod(ADJUST_FASTER, cThreads, cNew);
+                        cPeriod = applyShrinkCooldown(cPeriod, cThreads, cNew);
                         }
                     else
                         {
@@ -5128,21 +5412,38 @@ public class DaemonPool
                         cPeriod = adjustPeriod(ADJUST_SLOWER, cThreads, cNew);
                         }
                     }
-            
-                setLastResize(cNew - cThreads);
+                else
+                    {
+                    setConsecutiveDropsAfterGrow(0);
+                    }
+
+                if (!fPreserveResize)
+                    {
+                    cResize = cNew - cThreads;
+                    }
                 }
             finally
                 {
                 if (cNew != cThreads)
                     {
                     setLastResizeMillis(ldtNow);
+                    setConsecutiveOverutilized(0);
                     }
-            
+                else if (fCountOverutilized)
+                    {
+                    setConsecutiveOverutilized(cOverutilized + 1);
+                    }
+                else
+                    {
+                    setConsecutiveOverutilized(0);
+                    }
+
                 setLastRunMillis(ldtNow);
                 setLastTaskCount(cTasks);
                 setLastThreadCount(cNew);
                 setLastActiveMillis(cActiveMillis);
-            
+                setLastResize(fPreserveResize ? cLast : cResize);
+
                 pool.schedule(this, cPeriod);
                 }
             }
@@ -5157,6 +5458,24 @@ public class DaemonPool
             {
             __m_ActiveCountAverage = dflAverage;
             }
+
+        // Accessor for the property "ConsecutiveDropsAfterGrow"
+        /**
+         * Setter for property ConsecutiveDropsAfterGrow.<p>
+         */
+        protected void setConsecutiveDropsAfterGrow(int cDrops)
+            {
+            __m_ConsecutiveDropsAfterGrow = cDrops;
+            }
+
+        // Accessor for the property "ConsecutiveOverutilized"
+        /**
+         * Setter for property ConsecutiveOverutilized.<p>
+         */
+        protected void setConsecutiveOverutilized(int cOverutilized)
+            {
+            __m_ConsecutiveOverutilized = cOverutilized;
+            }
         
         // Accessor for the property "Debug"
         /**
@@ -5165,6 +5484,15 @@ public class DaemonPool
         public static void setDebug(boolean fDebug)
             {
             __s_Debug = fDebug;
+            }
+
+        // Accessor for the property "GrowGraceCount"
+        /**
+         * Setter for property GrowGraceCount.<p>
+         */
+        public static void setGrowGraceCount(int cGrace)
+            {
+            __s_GrowGraceCount = cGrace;
             }
         
         // Accessor for the property "IdleFraction"
@@ -5183,6 +5511,24 @@ public class DaemonPool
         public static void setIdleLimit(int nLimit)
             {
             __s_IdleLimit = nLimit;
+            }
+
+        // Accessor for the property "OverutilizedShakeCount"
+        /**
+         * Setter for property OverutilizedShakeCount.<p>
+         */
+        public static void setOverutilizedShakeCount(int cCycles)
+            {
+            __s_OverutilizedShakeCount = cCycles;
+            }
+
+        // Accessor for the property "OverutilizedShakeCountMax"
+        /**
+         * Setter for property OverutilizedShakeCountMax.<p>
+         */
+        public static void setOverutilizedShakeCountMax(int cCycles)
+            {
+            __s_OverutilizedShakeCountMax = cCycles;
             }
         
         // Accessor for the property "LastActiveMillis"
@@ -5276,6 +5622,15 @@ public class DaemonPool
             {
             __s_PeriodAdjust = lAdjust;
             }
+
+        // Accessor for the property "PeriodAdjustSlightlySlower"
+        /**
+         * Setter for property PeriodAdjustSlightlySlower.<p>
+         */
+        public static void setPeriodAdjustSlightlySlower(long lAdjust)
+            {
+            __s_PeriodAdjustSlightlySlower = lAdjust;
+            }
         
         // Accessor for the property "PeriodMax"
         /**
@@ -5314,6 +5669,24 @@ public class DaemonPool
             {
             __s_PeriodShake = lAdjust;
             }
+
+        // Accessor for the property "PeriodShakeFast"
+        /**
+         * Setter for property PeriodShakeFast.<p>
+         */
+        public static void setPeriodShakeFast(long lAdjust)
+            {
+            __s_PeriodShakeFast = lAdjust;
+            }
+
+        // Accessor for the property "PeriodShakeFaster"
+        /**
+         * Setter for property PeriodShakeFaster.<p>
+         */
+        public static void setPeriodShakeFaster(long lAdjust)
+            {
+            __s_PeriodShakeFaster = lAdjust;
+            }
         
         // Accessor for the property "ResizeGrow"
         /**
@@ -5345,10 +5718,24 @@ public class DaemonPool
         // Accessor for the property "ResizeShrink"
         /**
          * Setter for property ResizeShrink.<p>
+         *
+         * @deprecated As of 26.04; see {@link #__s_ResizeShrink} for details.
+         *             Shrink is always linear, so the value set here has no
+         *             effect on the resize algorithm.
          */
+        @Deprecated
         public static void setResizeShrink(double dGrow)
             {
             __s_ResizeShrink = dGrow;
+            }
+
+        // Accessor for the property "ShrinkCooldownMillis"
+        /**
+         * Setter for property ShrinkCooldownMillis.<p>
+         */
+        public static void setShrinkCooldownMillis(long cMillis)
+            {
+            __s_ShrinkCooldownMillis = cMillis;
             }
         
         /**
@@ -5373,7 +5760,7 @@ public class DaemonPool
          */
         protected int shrinkDaemonPool(String sReason)
             {
-            return resizeDaemonPool(-Math.max(1, (int) (getDaemonCount() * getResizeShrink())), sReason);
+            return resizeDaemonPool(-1, sReason);
             }
         
         // Declared at the super level
