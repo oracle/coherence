@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,6 +40,8 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.internal.util.Daemons;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.PagedTopicService;
@@ -52,6 +54,7 @@ import com.tangosol.net.topic.Subscriber.CommitResult;
 import com.tangosol.net.topic.Subscriber.Element;
 import com.tangosol.net.topic.TopicDependencies;
 
+import com.tangosol.util.Base;
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Filter;
@@ -310,25 +313,52 @@ public class PagedTopicSubscriberConnector<V>
             // We need to ensure that the subscription has really gone.
             // During a fail-over situation the subscriber may still exist in the configmap
             // so we  need to repeat the closure notification
-            String            sTopic        = f_caches.getTopicName();
-            PagedTopicService service       = f_caches.getService();
-            Set<SubscriberId> setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
-            while (setSubscriber.contains(f_subscriberId))
+            String            sTopic  = f_caches.getTopicName();
+            PagedTopicService service = f_caches.getService();
+            if (!waitForSubscriberToClose(service, sTopic, f_subscriberGroupId, f_subscriberId,
+                    () -> PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId),
+                    CLOSE_TIMEOUT_MILLIS))
                 {
-                Logger.fine("Repeating subscriber closed notification for topic subscriber: " + subscriber);
-                try
-                    {
-                    Blocking.sleep(100);
-                    }
-                catch (InterruptedException e)
-                    {
-                    break;
-                    }
-                PagedTopicSubscription.notifyClosed(f_caches.Subscriptions, f_subscriberGroupId, m_subscriptionId, f_subscriberId);
-                setSubscriber = service.getSubscribers(sTopic, f_subscriberGroupId);
+                Logger.warn("Subscriber.close: timeout after waiting " + CLOSE_TIMEOUT_MILLIS
+                        + "ms for subscriber removal from topic \"" + sTopic + "\" in group "
+                        + f_subscriberGroupId.getGroupName() + " for subscriber " + f_subscriberId
+                        + "; continuing close and relying on subsequent cleanup");
                 }
             m_state = State.Closed;
             }
+        }
+
+    static boolean waitForSubscriberToClose(PagedTopicService service, String sTopic, SubscriberGroupId subscriberGroupId,
+            SubscriberId subscriberId, Runnable notifyClosed, long cTimeoutMillis)
+        {
+        long              ldtTimeout    = SafeClock.INSTANCE.getSafeTimeMillis() + Math.max(0L, cTimeoutMillis);
+        Set<SubscriberId> setSubscriber  = service.getSubscribers(sTopic, subscriberGroupId);
+
+        while (setSubscriber.contains(subscriberId))
+            {
+            if (SafeClock.INSTANCE.getSafeTimeMillis() >= ldtTimeout)
+                {
+                return false;
+                }
+
+            Logger.fine("Repeating subscriber closed notification for topic \"" + sTopic
+                    + "\" and subscriber " + subscriberId);
+
+            try
+                {
+                Blocking.sleep(100);
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                return false;
+                }
+
+            notifyClosed.run();
+            setSubscriber = service.getSubscribers(sTopic, subscriberGroupId);
+            }
+
+        return true;
         }
 
     @Override
@@ -1232,6 +1262,12 @@ public class PagedTopicSubscriberConnector<V>
         }
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * The maximum time to wait for a closed subscriber to disappear from the topic config map.
+     */
+    static final long CLOSE_TIMEOUT_MILLIS =
+            Base.parseTime(Config.getProperty("coherence.topic.subscriber.close.timeout", "30s"), Base.UNIT_S);
 
     private volatile State m_state = State.Initial;
 
