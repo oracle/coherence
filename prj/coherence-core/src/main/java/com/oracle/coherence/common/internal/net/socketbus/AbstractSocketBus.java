@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.Lock;
 import java.util.logging.Level;
@@ -181,7 +182,7 @@ public abstract class AbstractSocketBus
             final AtomicInteger cConnections = new AtomicInteger(mapConn.size() + 1);
 
             // close the server socket
-            getSelectionService().invoke(f_channelServer,new Runnable()
+            getSelectionService().invoke(f_channelServer, new Runnable()
                 {
                 public void run()
                     {
@@ -189,7 +190,9 @@ public abstract class AbstractSocketBus
                         {
                         f_channelServer.close();
                         }
-                    catch (IOException e) {}
+                    catch (IOException ignore)
+                        {
+                        }
 
                     if (cConnections.decrementAndGet() == 0)
                         {
@@ -201,7 +204,8 @@ public abstract class AbstractSocketBus
             // release all open connections
             for (Connection conn : mapConn.values())
                 {
-                synchronized (conn)
+                conn.lock();
+                try
                     {
                     conn.scheduleShutdown(null, /*fRelease*/ true, new Continuation<Void>()
                         {
@@ -215,8 +219,12 @@ public abstract class AbstractSocketBus
                             }
                         });
                     }
+                finally
+                    {
+                    conn.unlock();
                     }
                 }
+            }
         catch (IOException e)
             {
             throw new IllegalStateException(e);
@@ -252,7 +260,8 @@ public abstract class AbstractSocketBus
                 }
 
             Connection conn = makeConnection(verifyEndPoint(peer));
-            synchronized (conn)
+            conn.lock();
+            try
                 {
                 if (f_mapConnections.putIfAbsent(peer, conn) == null)
                     {
@@ -266,6 +275,10 @@ public abstract class AbstractSocketBus
                     // equivalent, of a double connect, i.e. a no-op
                     conn.dispose();
                     }
+                }
+            finally
+                {
+                conn.unlock();
                 }
             }
         finally
@@ -284,9 +297,14 @@ public abstract class AbstractSocketBus
     public void disconnect(EndPoint peer)
         {
         Connection conn = ensureConnection(peer);
-        synchronized (conn)
+        conn.lock();
+        try
             {
             conn.ensureValid().scheduleDisconnect(null);
+            }
+        finally
+            {
+            conn.unlock();
             }
         }
 
@@ -296,9 +314,14 @@ public abstract class AbstractSocketBus
     public void release(EndPoint peer)
         {
         Connection conn = ensureConnection(peer);
-        synchronized (conn)
+        conn.lock();
+        try
             {
             conn.ensureValid().scheduleShutdown(null, /*fRelease*/ true, /*continuation*/ null);
+            }
+        finally
+            {
+            conn.unlock();
             }
         }
 
@@ -1247,12 +1270,13 @@ public abstract class AbstractSocketBus
             if (state == null)
                 {
                 // we can get here for LightMessageBus if there is a concurrent connect and the remote side
-                // wins; since LWMB doesn't synchronized in send we have to double check before declaring
+                // wins; since LWMB doesn't lock connection in send we have to double check before declaring
                 // a failure before open; simply making m_state volatile would not be sufficient because when
                 // the connection comes from the remote side it is inserted into the map before it is opened
                 // but is inserted while under sync. It still must be volatile though for the double-check
                 // to be safe
-                synchronized (this)
+                lock();
+                try
                     {
                     state = m_state;
                     if (state == null)
@@ -1261,6 +1285,10 @@ public abstract class AbstractSocketBus
                         return false;
                         }
                     // else; now we have a stable view of the state
+                    }
+                finally
+                    {
+                    unlock();
                     }
                 }
 
@@ -1344,6 +1372,22 @@ public abstract class AbstractSocketBus
             }
 
         /**
+         * Lock this connection in order to mutate its state.
+         */
+        public void lock()
+            {
+            f_lock.lock();
+            }
+
+        /**
+         * Unlock this connection.
+         */
+        public void unlock()
+            {
+            f_lock.unlock();
+            }
+
+        /**
          * Schedule a disconnect.
          *
          * @param eReason  the reason for the disconnect
@@ -1374,7 +1418,8 @@ public abstract class AbstractSocketBus
                     boolean          fEmitDisconnect = false;
                     HandshakeHandler handlerNext;
 
-                    synchronized (Connection.this)
+                    Connection.this.lock();
+                    try
                         {
                         handlerNext = m_next;
                         switch (m_state)
@@ -1402,6 +1447,10 @@ public abstract class AbstractSocketBus
                             default:
                                 throw new IllegalStateException("state = " + m_state);
                             }
+                        }
+                    finally
+                        {
+                        Connection.this.unlock();
                         }
 
                     final Continuation<? super Void> continuation = new WrapperContinuation<Void>(getContinuation())
@@ -1510,7 +1559,9 @@ public abstract class AbstractSocketBus
                         AbstractSocketBus.this.m_nState == BusState.OPEN)
                         {
                         // replace with pending connection
-                        synchronized (handlerNext.m_connection)
+
+                        handlerNext.m_connection.lock();
+                        try
                             {
                             // In order to ensure that the connection is visible once we emit the
                             // CONNECT event, the connection must be in the connection map before
@@ -1538,6 +1589,11 @@ public abstract class AbstractSocketBus
                                 handlerNext.m_connection.scheduleDisconnect(e);
                                 }
                             }
+                        finally
+                            {
+                            handlerNext.m_connection.unlock();
+                            }
+                        
                         handlerNext = null;
                         }
                     else
@@ -1644,9 +1700,9 @@ public abstract class AbstractSocketBus
 
         /**
          * Perform an optimistic flush, i.e. flush only if the connection is not already being flushed.
-         *
-         * Caller's need not be synchronized on the connection when calling this method, though the method
-         * will synchronize if it determines that it will flush.
+         * <p/>
+         * The callers need not lock the connection when calling this method, though the method
+         * will lock the connection if it determines that it will flush.
          */
         public void optimisticFlush()
             {
@@ -1655,9 +1711,9 @@ public abstract class AbstractSocketBus
 
         /**
          * Perform an optimistic flush, i.e. flush only if the connection is not already being flushed.
-         *
-         * Caller's need not be synchronized on the connection when calling this method, though the method
-         * will synchronize if it determines that it will flush.
+         * <p/>
+         * The callers need not lock the connection when calling this method, though the method
+         * will lock the connection if it determines that it will flush.
          *
          * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
          */
@@ -1667,7 +1723,8 @@ public abstract class AbstractSocketBus
 
             if (lockFlush.compareAndSet(false, true))
                 {
-                synchronized (this) // wait for any concurrent send to complete
+                lock();   // wait for any concurrent send to complete
+                try
                     {
                     try
                         {
@@ -1683,6 +1740,10 @@ public abstract class AbstractSocketBus
                         // while we hold the flush lock
                         lockFlush.set(false);
                         }
+                    }
+                finally
+                    {
+                    unlock();
                     }
                 }
             // else; another thread is actively flushing this connection. Because both conn.send and conn.flush
@@ -1729,9 +1790,14 @@ public abstract class AbstractSocketBus
                     return false;
 
                 case ACTIVE:
-                    synchronized (Connection.this)
+                    Connection.this.lock();
+                    try
                         {
                         getSelectionService().register(m_channel, m_handler);
+                        }
+                    finally
+                        {
+                        Connection.this.unlock();
                         }
                     return true;
 
@@ -1827,7 +1893,10 @@ public abstract class AbstractSocketBus
          *
          * @param runnable  the runnable to invoke
          */
-        protected synchronized void invoke(Runnable runnable)
+        protected void invoke(Runnable runnable)
+            {
+            lock();
+            try
                 {
                 Queue<Runnable> queueDeferred = m_queueDeferred;
                 if (queueDeferred == null)
@@ -1846,6 +1915,11 @@ public abstract class AbstractSocketBus
                     queueDeferred.add(runnable);
                     }
                 }
+            finally
+                {
+                unlock();
+                }
+            }
 
         // ----- Channel interface ------------------------------------------
 
@@ -2100,8 +2174,11 @@ public abstract class AbstractSocketBus
          *
          * @param eReason  optional exception describing why current connection needs to be replaced
          */
-        public synchronized void migrate(Throwable eReason)
+        public void migrate(Throwable eReason)
             {
+            lock();
+            try
+                {
                 SocketBusDriver.Dependencies depsDriver = f_driver.getDependencies();
                 int cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
 
@@ -2137,14 +2214,15 @@ public abstract class AbstractSocketBus
                         @Override
                         public void run()
                             {
-                        synchronized (Connection.this)
+                            Connection.this.lock();
+                            try
                                 {
                                 if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
                                     {
                                     // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
                                     getLogger().log(makeRecord(Level.FINER,
-                                                                        "{0} migrating connection with {1} off of {2} on {3}: {4}",
-                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
+                                                               "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                               getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
 
                                     m_eMigrationCause = eReason;
                                     onMigration();
@@ -2155,17 +2233,28 @@ public abstract class AbstractSocketBus
                                         getSelectionService().register(chan, null);
                                         m_handler = null;
                                         }
-                                catch (IOException e) {}
+                                    catch (IOException ignore)
+                                        {
+                                        }
 
                                     // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
                                     // schedule task to ensure register and connect are processed sequentially
                                     scheduleUnsafeTask(chan, () -> connect(), cMillisDelay);
                                     }
                                 }
+                            finally
+                                {
+                                Connection.this.unlock();
+                                }
                             }
                         }, cMillisDelay);
                     }
                 }
+            finally
+                {
+                unlock();
+                }
+            }
 
         /**
          * Called when the channel has been selected.
@@ -2273,6 +2362,11 @@ public abstract class AbstractSocketBus
          * The peer's EndPoint.
          */
         private final UrlEndPoint f_peer;
+
+        /**
+         * Lock that is used to synchronize access to this connection.
+         */
+        private final Lock f_lock = new ReentrantLock();
 
         /**
          * Atomic indicating if the connection is being flushed.
@@ -2795,7 +2889,8 @@ public abstract class AbstractSocketBus
                                 @Override
                                 public void run()
                                     {
-                                    synchronized (connOld)
+                                    connOld.lock();
+                                    try
                                         {
                                         if (connOld.m_channel == chanOld && connOld.m_state.ordinal() <= ConnectionState.ACTIVE.ordinal())
                                             {
@@ -2865,6 +2960,10 @@ public abstract class AbstractSocketBus
                                             closeChannel(chanNew);
                                             }
                                         }
+                                    finally
+                                        {
+                                        connOld.unlock();
+                                        }
                                     }
                                 }, /*cMillis*/ 0);
                             return 0;
@@ -2902,7 +3001,8 @@ public abstract class AbstractSocketBus
 
                 try
                     {
-                    synchronized (connNew)
+                    connNew.lock();
+                    try
                         {
                         final Connection connOld;
 
@@ -2938,7 +3038,8 @@ public abstract class AbstractSocketBus
 
                         if (connOld != null)
                             {
-                            synchronized (connOld)
+                            connOld.lock();
+                            try
                                 {
                                 switch (connOld.m_state)
                                     {
@@ -3003,7 +3104,8 @@ public abstract class AbstractSocketBus
                                                 public void run()
                                                     {
                                                     boolean fContinue;
-                                                    synchronized (connOld)
+                                                    connOld.lock();
+                                                    try
                                                         {
                                                         try
                                                             {
@@ -3042,6 +3144,10 @@ public abstract class AbstractSocketBus
                                                             {
                                                             connOld.invoke(runnable);
                                                             }
+                                                        }
+                                                    finally
+                                                        {
+                                                        connOld.unlock();
                                                         }
 
                                                     if (fContinue)
@@ -3127,11 +3233,19 @@ public abstract class AbstractSocketBus
                                         throw new IllegalStateException("state = " + connOld.m_state);
                                     }
                                 }
+                            finally
+                                {
+                                connOld.unlock();
                                 }
                             }
                         }
                     finally
                         {
+                        connNew.unlock();
+                        }
+                    }
+                finally
+                    {
                     if (m_connection != connNew)
                         {
                         connNew.dispose();
@@ -3281,7 +3395,8 @@ public abstract class AbstractSocketBus
             // connection, otherwise they would just close the socket
 
             Connection connection = m_connection;
-            synchronized (connection)
+            connection.lock();
+            try
                 {
                 switch (connection.m_state)
                     {
@@ -3298,6 +3413,10 @@ public abstract class AbstractSocketBus
                     default:
                         throw new IllegalStateException("state = " + connection.m_state);
                     }
+                }
+            finally
+                {
+                connection.unlock();
                 }
 
             return 0;
