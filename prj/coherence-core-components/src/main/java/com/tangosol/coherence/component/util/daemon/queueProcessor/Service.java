@@ -17,6 +17,7 @@ import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
+import com.tangosol.internal.util.DaemonPoolSizing;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
@@ -1202,14 +1203,27 @@ public abstract class Service
         int cThreads = deps.getWorkerThreadCountMin();
         if (cThreads > 0)
             {
+            String                  sServiceName = getServiceName();
+            DaemonPoolSizing.Result result       = DaemonPoolSizing.resolveThreadCountMax(deps.getWorkerThreadCountMax(), cThreads);
+            int                     cMax         = result.getEffectiveMax();
             com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
+            // cThreads is WorkerThreadCountMin, and validation guarantees max >= min.
             pool.setDaemonCount(cThreads);
-            pool.setDaemonCountMax(deps.getWorkerThreadCountMax());
+            pool.setDaemonCountMax(cMax);
             pool.setDaemonCountMin(cThreads);
             pool.setHungThreshold(deps.getTaskHungThresholdMillis());
-            pool.setName(getServiceName());
+            pool.setName(sServiceName);
             pool.setTaskTimeout(deps.getTaskTimeoutMillis());
             pool.setThreadPriority(deps.getWorkerThreadPriority());
+
+            if (result.isDerived())
+                {
+                _trace("DaemonPool \"" + sServiceName
+                    + "\": deriving platform thread-count-max=" + cMax
+                    + " from Xmx=" + Base.toMemorySizeString(result.getMaxMemory())
+                    + ", thread-stack=" + Base.toMemorySizeString(result.getThreadStackSize())
+                    + ", hard-limit=" + result.getHardMax(), 4);
+                }
             }
         
         setPriority(deps.getThreadPriority());
