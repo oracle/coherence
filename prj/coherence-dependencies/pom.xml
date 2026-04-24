@@ -250,7 +250,7 @@
     <opentracing.grpc.version>0.2.3</opentracing.grpc.version>
     <opentracing.version>0.33.0</opentracing.version>
     <opentracing.tracerresolver.version>0.1.8</opentracing.tracerresolver.version>
-    <onnx.version>1.20.0</onnx.version>
+    <onnx.version>1.25.0</onnx.version>
     <oracle.db.version>21.13.0.0</oracle.db.version>
     <!-- make sure this version of parsson-media is in sync with Helidon -->
     <parsson-media.version>1.1.7</parsson-media.version>
