@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.util;
 
+import com.oracle.coherence.common.base.TimeHelper;
 import com.tangosol.coherence.Component;
 import com.tangosol.coherence.component.util.queue.ConcurrentQueue;
 
@@ -24,6 +25,9 @@ import com.oracle.coherence.common.util.Timers;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.net.metrics.Histogram;
+import com.tangosol.internal.net.metrics.Meter;
+import com.tangosol.internal.net.metrics.Snapshot;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.internal.util.DaemonPoolSizing;
 
@@ -426,7 +430,21 @@ public class DaemonPool
      */
     private int __m_WorkSlotCount;
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    /**
+     * The histogram holding metrics for this daemon pool.
+     */
+    private transient Histogram m_metricsHistogram = new Histogram();
+
+    private transient Snapshot m_lastSnapshot;
+
+    private transient long m_cLastSnapshotMillis;
+
+    /**
+     * The meter holding metrics for this daemon pool.
+     */
+    private transient Meter m_metricsMeter = new Meter();
+
     // Static initializer
     static
         {
@@ -955,7 +973,60 @@ public class DaemonPool
             }
         return null;
         }
-    
+
+    /**
+     * Record the execution of a task.
+     *
+     * @param cNanos  the number of nanos the task took to execute
+     */
+    protected void recordTask(long cNanos)
+        {
+        m_metricsHistogram.update(cNanos);
+        m_metricsMeter.mark();
+        }
+
+    /**
+     * Return a {@link Snapshot} of the current histogram metrics.
+     *
+     * @return a {@link Snapshot} of the current histogram metrics
+     */
+    public Snapshot getMetricsSnapshot()
+        {
+        long     nNow     = TimeHelper.getLastSafeTimeMillis();
+        Snapshot snapshot = m_lastSnapshot;
+        if ((nNow - m_cLastSnapshotMillis) > 1000)
+            {
+            snapshot = m_lastSnapshot = m_metricsHistogram.getSnapshot();
+            m_cLastSnapshotMillis = nNow;
+            }
+        return snapshot;
+        }
+
+    public double getOneMinuteRate()
+        {
+        return m_metricsMeter.getOneMinuteRate();
+        }
+
+    public double getFiveMinuteRate()
+        {
+        return m_metricsMeter.getFiveMinuteRate();
+        }
+
+    public double getFifteenMinuteRate()
+        {
+        return m_metricsMeter.getFifteenMinuteRate();
+        }
+
+    public long getRateCount()
+        {
+        return m_metricsMeter.getCount();
+        }
+
+    public double getMeanRate()
+        {
+        return m_metricsMeter.getMeanRate();
+        }
+
     /**
      * Notify the Daemons that they should report their latest statistics as
     * soon as possible.
@@ -1971,6 +2042,8 @@ public class DaemonPool
         
             // update the reset timestamp
             setStatsLastResetMillis(Base.getSafeTimeMillis());
+            m_metricsHistogram = new Histogram();
+            m_metricsMeter = new Meter();
             }
         }
     
@@ -3462,6 +3535,8 @@ public class DaemonPool
                 {
                 while (!isExiting())
                     {
+                    long cStartNanos = System.nanoTime();
+
                     // Note: we don't collect any stats for a "single task" daemon
                     if (!fOnce)
                         {
@@ -3548,6 +3623,8 @@ public class DaemonPool
                         release(wrapper);
                         wrapper = null; // avoid double-release if exception is thrown
                         }
+                    long cNanos = System.nanoTime() - cStartNanos;
+                    pool.recordTask(cNanos);
                     }
                 }
             finally
