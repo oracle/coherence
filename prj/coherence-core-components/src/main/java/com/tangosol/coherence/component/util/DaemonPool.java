@@ -1045,19 +1045,41 @@ public class DaemonPool
             return;
             }
 
+        DaemonPool.Daemon daemonSkipped = null;
+        DaemonPool.Daemon daemonWake    = null;
+
         while (true)
             {
             DaemonPool.Daemon daemon = popIdleDaemon(stack);
             if (daemon == null)
                 {
-                return;
+                break;
                 }
 
             if (daemon.shouldWakeForNudge(queueTarget))
                 {
-                LockSupport.unpark(daemon.getThread());
-                return;
+                daemonWake = daemon;
+                break;
                 }
+
+            if (daemon.tryRestackWakeup())
+                {
+                daemon.setNextIdleDaemon(daemonSkipped);
+                daemonSkipped = daemon;
+                }
+            }
+
+        while (daemonSkipped != null)
+            {
+            DaemonPool.Daemon daemon = daemonSkipped;
+            daemonSkipped = daemon.getNextIdleDaemon();
+            daemon.setNextIdleDaemon(null);
+            pushIdleDaemon(daemon);
+            }
+
+        if (daemonWake != null)
+            {
+            LockSupport.unpark(daemonWake.getThread());
             }
         }
 
@@ -3820,6 +3842,32 @@ public class DaemonPool
                     == (WAKEUP_REGISTERED | WAKEUP_PARKED)
                     && getQueue() != queueTarget
                     && getThread() != null;
+            }
+
+        /**
+         * Restore this daemon's published idle-stack state if it was popped
+         * only to scan past an ineligible idle waiter and is still parked.
+         *
+         * @return {@code true} iff the daemon should be pushed back onto the
+         *         idle stack
+         */
+        protected boolean tryRestackWakeup()
+            {
+            while (true)
+                {
+                int nState = getWakeupState();
+                if ((nState & (WAKEUP_REGISTERED | WAKEUP_PARKED | WAKEUP_STACKED))
+                        != (WAKEUP_REGISTERED | WAKEUP_PARKED)
+                        || getThread() == null)
+                    {
+                    return false;
+                    }
+
+                if (s_updaterWakeupState.compareAndSet(this, nState, nState | WAKEUP_STACKED))
+                    {
+                    return true;
+                    }
+                }
             }
         
         // Declared at the super level
