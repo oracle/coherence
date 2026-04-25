@@ -20,6 +20,8 @@ tools\tlt-antutils\
 tools\wls\
 dependency-reduced-pom.xml
 etc\
+design\
+.ai\
 ExcludeList
 .git\
 .gradle\

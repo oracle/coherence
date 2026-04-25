@@ -18,6 +18,8 @@ tools/wls/
 dependency-reduced-pom.xml
 .Dockerfile
 etc/
+design/
+.ai/
 ExcludeList
 .git/
 .gradle/
