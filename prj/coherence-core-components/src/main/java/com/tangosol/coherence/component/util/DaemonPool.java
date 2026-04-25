@@ -1124,17 +1124,6 @@ public class DaemonPool
         }
 
     /**
-     * Record the execution of a task.
-     *
-     * @param cNanos  the number of nanos the task took to execute
-     */
-    protected void recordTask(long cNanos)
-        {
-        m_metricsHistogram.update(cNanos);
-        m_metricsMeter.mark();
-        }
-
-    /**
      * Notify the Daemons that they should report their latest statistics as
     * soon as possible.
      */
