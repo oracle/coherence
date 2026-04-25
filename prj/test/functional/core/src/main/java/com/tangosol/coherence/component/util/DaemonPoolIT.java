@@ -285,7 +285,7 @@ public class DaemonPoolIT
 
             if (isWakeupNudgeEnabled())
                 {
-                waitForCondition(() -> cStarted.get() == 3, 5000,
+                waitForCondition(() -> cStarted.get() == 3 && cMaxActive.get() == 3, 5000,
                         "expected off-queue daemons to steal once shared-queue waiters are already waking locally");
                 assertThat(cMaxActive.get(), is(3));
                 }
