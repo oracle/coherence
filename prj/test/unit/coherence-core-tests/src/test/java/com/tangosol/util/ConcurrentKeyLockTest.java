@@ -219,6 +219,29 @@ public class ConcurrentKeyLockTest
         }
 
     @Test
+    public void shouldSupportMoreThanMaxReadLockCountKeyLocksOnSameThread()
+        {
+        ConcurrentKeyLock<Integer, String> map    = new ConcurrentKeyLock<>();
+        int                                cLocks = 70_000;
+
+        for (int i = 0; i < cLocks; i++)
+            {
+            assertTrue(map.lock(i, 0L));
+            }
+
+        assertFalse(map.lock(ConcurrentMap.LOCK_ALL, 0L));
+
+        for (int i = 0; i < cLocks; i++)
+            {
+            assertTrue(map.unlock(i));
+            }
+
+        assertTrue(map.lock(ConcurrentMap.LOCK_ALL, 0L));
+        assertTrue(map.unlock(ConcurrentMap.LOCK_ALL));
+        assertEquals(0, map.getLockEntryCount());
+        }
+
+    @Test
     public void shouldAllowPerKeyLockWhileHoldingLockAll()
         {
         ConcurrentKeyLock<String, String> map = new ConcurrentKeyLock<>();
