@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -961,10 +961,14 @@ public class Daemon
         {
         if (isExiting())
             {
-            _trace(get_Name() + " caught an unhandled exception (" 
-                + e.getClass().getName() + ": " + e.getMessage()
-                + ") while exiting.", 4);
-            _trace(getStackTrace(e), 9); 
+            try
+                {
+                traceExitingException(e);
+                }
+            catch (RuntimeException eTrace)
+                {
+                // diagnostics must not surface as shutdown failures
+                }
             }
         else
             {
@@ -981,7 +985,20 @@ public class Daemon
                 }
             }
         }
-    
+
+    /**
+     * Trace an exception caught while this daemon is exiting.
+     *
+     * @param e  the Throwable object (a RuntimeException or an Error)
+     */
+    protected void traceExitingException(Throwable e)
+        {
+        _trace(get_Name() + " caught an unhandled exception ("
+            + e.getClass().getName() + ": " + e.getMessage()
+            + ") while exiting.", 4);
+        _trace(getStackTrace(e), 9);
+        }
+
     /**
      * Event notification called right before the daemon thread terminates. This
     * method is guaranteed to be called only once and on the daemon's thread.
