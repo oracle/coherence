@@ -53,6 +53,8 @@ tools\tlt-antutils\
 tools\wls\
 dependency-reduced-pom.xml
 etc\
+design\
+.ai\
 ExcludeList
 .git\
 .gradle\
@@ -90,6 +92,7 @@ cache-config-UTF8-BOM.xml
 .jar
 .jks
 .jpg
+.md
 .json
 .key
 .p12
