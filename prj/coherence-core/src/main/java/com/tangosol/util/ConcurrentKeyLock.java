@@ -150,7 +150,7 @@ public class ConcurrentKeyLock<K, V>
             if (!fAcquired)
                 {
                 releaseLockEntry(key, entry);
-                f_lockAll.readLock().unlock();
+                releaseReadLock();
                 }
             }
         }
@@ -173,7 +173,7 @@ public class ConcurrentKeyLock<K, V>
 
         entry.lock.unlock();
         releaseLockEntry(key, entry);
-        f_lockAll.readLock().unlock();
+        releaseReadLock();
 
         return true;
         }
@@ -319,27 +319,71 @@ public class ConcurrentKeyLock<K, V>
      */
     protected boolean acquireReadLock(long cWait, long ldtLimit)
         {
+        ReadLockHold hold = f_tloReadLockHold.get();
+        if (hold.count > 0)
+            {
+            ++hold.count;
+            return true;
+            }
+
         try
             {
+            boolean fLocked;
             if (cWait == 0L)
                 {
-                return f_lockAll.readLock().tryLock();
+                fLocked = f_lockAll.readLock().tryLock();
                 }
-
-            if (cWait < 0L)
+            else if (cWait < 0L)
                 {
                 f_lockAll.readLock().lockInterruptibly();
-                return true;
+                fLocked = true;
+                }
+            else
+                {
+                long cRemaining = remainingNanos(cWait, ldtLimit);
+                fLocked = cRemaining > 0L
+                        && f_lockAll.readLock().tryLock(cRemaining, TimeUnit.NANOSECONDS);
                 }
 
-            long cRemaining = remainingNanos(cWait, ldtLimit);
-            return cRemaining > 0L
-                    && f_lockAll.readLock().tryLock(cRemaining, TimeUnit.NANOSECONDS);
+            if (fLocked)
+                {
+                hold.count = 1;
+                }
+            else
+                {
+                f_tloReadLockHold.remove();
+                }
+            return fLocked;
             }
         catch (InterruptedException e)
             {
             Thread.currentThread().interrupt();
             throw Base.ensureRuntimeException(e, "Lock request interrupted");
+            }
+        }
+
+    /**
+     * Release one per-key-lock hold against the global read lock.
+     */
+    protected void releaseReadLock()
+        {
+        ReadLockHold hold = f_tloReadLockHold.get();
+        long         cHold = hold.count;
+
+        if (cHold <= 0L)
+            {
+            f_tloReadLockHold.remove();
+            throw new IllegalMonitorStateException("Read lock not held by current thread");
+            }
+
+        if (cHold == 1L)
+            {
+            f_tloReadLockHold.remove();
+            f_lockAll.readLock().unlock();
+            }
+        else
+            {
+            hold.count = cHold - 1L;
             }
         }
 
@@ -522,6 +566,20 @@ public class ConcurrentKeyLock<K, V>
         }
 
 
+    // ----- inner class: ReadLockHold ---------------------------------------
+
+    /**
+     * The current thread's global read-lock hold count.
+     */
+    protected static class ReadLockHold
+        {
+        /**
+         * The number of per-key locks held by the current thread.
+         */
+        protected long count;
+        }
+
+
     // ----- inner class: OwnedReentrantLock ------------------------------
 
     /**
@@ -558,6 +616,11 @@ public class ConcurrentKeyLock<K, V>
      * Global read/write lock supporting {@link ConcurrentMap#LOCK_ALL}.
      */
     protected final ReentrantReadWriteLock f_lockAll = new ReentrantReadWriteLock();
+
+    /**
+     * Per-thread read-lock accounting for held key locks.
+     */
+    protected final ThreadLocal<ReadLockHold> f_tloReadLockHold = ThreadLocal.withInitial(ReadLockHold::new);
 
     /**
      * Optional contention observer.
