@@ -43,6 +43,10 @@ import java.lang.reflect.Array;
 import java.util.Iterator;
 import java.util.Set;
 
+import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
+import java.util.concurrent.atomic.AtomicStampedReference;
+import java.util.concurrent.locks.LockSupport;
+
 /**
  * DaemonPool is a class thread pool implementation for processing queued
  * operations on one or more daemon threads.
@@ -190,6 +194,14 @@ public class DaemonPool
      * The Guardian that this Daemon's implementation delegates to.
      */
     private transient com.tangosol.net.Guardian __m_InternalGuardian;
+
+    /**
+     * Property IdleDaemonStack
+     *
+     * Pool-wide intrusive stack of idle daemons that can be nudged to attempt
+     * work stealing.
+     */
+    private transient java.util.concurrent.atomic.AtomicStampedReference __m_IdleDaemonStack;
     
     /**
      * Property InTransition
@@ -251,6 +263,13 @@ public class DaemonPool
      * @volatile
      */
     private volatile transient boolean __m_Started;
+
+    /**
+     * Property WakeupNudgeEnabled
+     *
+     * Flag indicating whether the pool-wide wake-up nudge is enabled.
+     */
+    private boolean __m_WakeupNudgeEnabled;
     
     /**
      * Property STATS_MONITOR
@@ -477,6 +496,7 @@ public class DaemonPool
             setAbandonThreshold(8);
             setDaemonCountMax(2147483647);
             setDaemonCountMin(1);
+            setIdleDaemonStack(new AtomicStampedReference(null, 0));
             setScheduledTasks(new java.util.HashSet());
             setStatsTaskAddCount(new java.util.concurrent.atomic.AtomicLong());
             }
@@ -628,6 +648,11 @@ public class DaemonPool
                 ? findMinBacklogSlot((int) cAdded)
                 : getWorkSlot(Base.mod(oAssoc.hashCode(), getWorkSlotCount()));
             slot.add(taskWrapper);
+
+            if (isWakeupNudgeEnabled() && getWorkSlotCount() > 1 && slot.isActive())
+                {
+                nudgeIdleDaemon(slot.getQueue());
+                }
             }
         else
             {
@@ -765,6 +790,40 @@ public class DaemonPool
             }
         
         return ao;
+        }
+
+    /**
+     * Ensure the published idle-daemon stack exists.
+     */
+    protected AtomicStampedReference<DaemonPool.Daemon> ensureIdleDaemonStack()
+        {
+        AtomicStampedReference<DaemonPool.Daemon> stack = getIdleDaemonStack();
+        if (stack == null)
+            {
+            setIdleDaemonStack(stack = new AtomicStampedReference(null, 0));
+            }
+        return stack;
+        }
+
+    /**
+     * Clear the published idle-daemon stack.
+     */
+    protected void clearIdleDaemonStack()
+        {
+        AtomicStampedReference<DaemonPool.Daemon> stack = ensureIdleDaemonStack();
+        stack.set(null, stack.getStamp() + 1);
+        }
+
+    /**
+     * Deregister a daemon from pool-wide wake-up nudging.
+     */
+    protected void deregisterIdleDaemon(DaemonPool.Daemon daemon)
+        {
+        if (isWakeupNudgeEnabled() && daemon != null)
+            {
+            daemon.deregisterWakeup();
+            trimIdleDaemonStack();
+            }
         }
     
     /**
@@ -955,7 +1014,126 @@ public class DaemonPool
             }
         return null;
         }
-    
+
+    /**
+     * Pop stale or ineligible idle daemons until one can be nudged or the
+     * idle stack is exhausted.
+     */
+    protected void nudgeIdleDaemon(com.oracle.coherence.common.util.AssociationPile queueTarget)
+        {
+        AtomicStampedReference<DaemonPool.Daemon> stack = getIdleDaemonStack();
+        if (stack.getReference() == null)
+            {
+            return;
+            }
+
+        while (true)
+            {
+            DaemonPool.Daemon daemon = popIdleDaemon(stack);
+            if (daemon == null)
+                {
+                return;
+                }
+
+            if (daemon.shouldWakeForNudge(queueTarget))
+                {
+                LockSupport.unpark(daemon.getThread());
+                return;
+                }
+            }
+        }
+
+    /**
+     * Pop the current idle-daemon stack head.
+     */
+    protected DaemonPool.Daemon popIdleDaemon(AtomicStampedReference<DaemonPool.Daemon> stack)
+        {
+        while (true)
+            {
+            DaemonPool.Daemon daemonHead = stack.getReference();
+            if (daemonHead == null)
+                {
+                return null;
+                }
+
+            int               nStamp     = stack.getStamp();
+            DaemonPool.Daemon daemonNext = daemonHead.getNextIdleDaemon();
+            if (stack.compareAndSet(daemonHead, daemonNext, nStamp, nStamp + 1))
+                {
+                daemonHead.setNextIdleDaemon(null);
+                daemonHead.onIdleDaemonPopped();
+                return daemonHead;
+                }
+            }
+        }
+
+    /**
+     * Push a daemon onto the pool-wide idle stack.
+     */
+    protected void pushIdleDaemon(DaemonPool.Daemon daemon)
+        {
+        AtomicStampedReference<DaemonPool.Daemon> stack = getIdleDaemonStack();
+        trimIdleDaemonStack();
+
+        while (daemon.isWakeupStacked())
+            {
+            DaemonPool.Daemon daemonHead = stack.getReference();
+            int               nStamp     = stack.getStamp();
+
+            daemon.setNextIdleDaemon(daemonHead);
+            if (stack.compareAndSet(daemonHead, daemon, nStamp, nStamp + 1))
+                {
+                return;
+                }
+            }
+
+        daemon.setNextIdleDaemon(null);
+        }
+
+    /**
+     * Trim stale idle-daemon entries from the stack head.
+     */
+    protected void trimIdleDaemonStack()
+        {
+        AtomicStampedReference<DaemonPool.Daemon> stack = getIdleDaemonStack();
+
+        while (true)
+            {
+            DaemonPool.Daemon daemonHead = stack.getReference();
+            if (daemonHead == null || daemonHead.isWakeupParkedAndStacked())
+                {
+                return;
+                }
+
+            if (popIdleDaemon(stack) == null)
+                {
+                return;
+                }
+            }
+        }
+
+    /**
+     * Register a daemon for pool-wide wake-up nudging.
+     */
+    protected void registerIdleDaemon(DaemonPool.Daemon daemon)
+        {
+        if (isWakeupNudgeEnabled() && daemon != null && daemon.getDaemonType() == DAEMON_STANDARD)
+            {
+            daemon.registerWakeup();
+            }
+        }
+
+    /**
+     * Record the execution of a task.
+     *
+     * @param cNanos  the number of nanos the task took to execute
+     */
+    protected void recordTask(long cNanos)
+        {
+        m_metricsHistogram.update(cNanos);
+        m_metricsMeter.mark();
+        }
+
     /**
      * Notify the Daemons that they should report their latest statistics as
     * soon as possible.
@@ -1170,6 +1348,17 @@ public class DaemonPool
            }
         
         return guardian;
+        }
+
+    // Accessor for the property "IdleDaemonStack"
+    /**
+     * Getter for property IdleDaemonStack.<p>
+    * Pool-wide intrusive stack of idle daemons that can be nudged to attempt
+    * work stealing.
+     */
+    protected java.util.concurrent.atomic.AtomicStampedReference<DaemonPool.Daemon> getIdleDaemonStack()
+        {
+        return __m_IdleDaemonStack;
         }
     
     // Accessor for the property "Name"
@@ -1693,7 +1882,17 @@ public class DaemonPool
         {
         return isStarted();
         }
-    
+
+    // Accessor for the property "WakeupNudgeEnabled"
+    /**
+     * Getter for property WakeupNudgeEnabled.<p>
+    * Flag indicating whether the pool-wide wake-up nudge is enabled.
+     */
+    protected boolean isWakeupNudgeEnabled()
+        {
+        return __m_WakeupNudgeEnabled;
+        }
+
     // Accessor for the property "Started"
     /**
      * Getter for property Started.<p>
@@ -1826,6 +2025,7 @@ public class DaemonPool
                 }
             }
         
+        deregisterIdleDaemon(daemon);
         setDaemons((DaemonPool.Daemon[]) copyOnRemove(getDaemons(), daemon));
         
         taskStop.scheduleNext();
@@ -1888,6 +2088,9 @@ public class DaemonPool
             {
             setAbandonThreshold(Integer.parseInt(sCount));
             }
+
+        ensureIdleDaemonStack();
+        setWakeupNudgeEnabled(Config.getBoolean("coherence.daemonpool.wakeup.nudge", true));
         
         super.onInit();
         
@@ -1936,7 +2139,10 @@ public class DaemonPool
         
                 if (daemon == daemonAbandon)
                     {
+                    deregisterIdleDaemon(daemonAbandon);
+
                     DaemonPool.Daemon daemonNew = instantiateDaemon(DaemonPool.DAEMON_STANDARD, daemon.getQueue());
+                    registerIdleDaemon(daemonNew);
                     daemonNew.start();
                     aDaemon[i] = daemonNew;
         
@@ -2244,6 +2450,17 @@ public class DaemonPool
         
         __m_InternalGuardian = (guardian);
         }
+
+    // Accessor for the property "IdleDaemonStack"
+    /**
+     * Setter for property IdleDaemonStack.<p>
+    * Pool-wide intrusive stack of idle daemons that can be nudged to attempt
+    * work stealing.
+     */
+    protected void setIdleDaemonStack(java.util.concurrent.atomic.AtomicStampedReference stack)
+        {
+        __m_IdleDaemonStack = stack;
+        }
     
     // Accessor for the property "InTransition"
     /**
@@ -2339,6 +2556,16 @@ public class DaemonPool
         _assert(!fStarted || is_Constructed());
         
         __m_Started = (fStarted);
+        }
+
+    // Accessor for the property "WakeupNudgeEnabled"
+    /**
+     * Setter for property WakeupNudgeEnabled.<p>
+    * Flag indicating whether the pool-wide wake-up nudge is enabled.
+     */
+    protected void setWakeupNudgeEnabled(boolean fEnabled)
+        {
+        __m_WakeupNudgeEnabled = fEnabled;
         }
     
     // Accessor for the property "StatsAbandonedCount"
@@ -2683,6 +2910,12 @@ public class DaemonPool
             setDaemonCount(cDaemons);
             setQueues(aQueue);
             setDaemons(aDaemon);
+            clearIdleDaemonStack();
+
+            for (int i = 0; i < cDaemons; i++)
+                {
+                registerIdleDaemon(aDaemon[i]);
+                }
         
             for (int i = 0; i < cSlots; i++)
                 {
@@ -2767,6 +3000,7 @@ public class DaemonPool
         
             setQueues((AssociationPile[]) copyOnAdd(getQueues(), queue));
             setDaemons((DaemonPool.Daemon[]) copyOnAdd(aDaemon, daemon));
+            registerIdleDaemon(daemon);
             
             try
                 {
@@ -2803,6 +3037,7 @@ public class DaemonPool
             Daemon daemon = instantiateDaemon(DAEMON_STANDARD, queue);
         
             setDaemons((DaemonPool.Daemon[]) copyOnAdd(aDaemon, daemon));
+            registerIdleDaemon(daemon);
         
             daemon.start();
         
@@ -2849,8 +3084,10 @@ public class DaemonPool
                     setStarted(false);
         
                     DaemonPool.Daemon[] aDaemon = getDaemons();
+                    clearIdleDaemonStack();
                     for (int i = 0, c = aDaemon.length; i < c; i++)
                         {
+                        deregisterIdleDaemon(aDaemon[i]);
                         aDaemon[i].stop();
                         }
         
@@ -3016,7 +3253,23 @@ public class DaemonPool
          * The Queue from which this Daemon extracts Runnable tasks.
          */
         private com.oracle.coherence.common.util.AssociationPile __m_Queue;
-        
+
+        /**
+         * Property NextIdleDaemon
+         *
+         * The next daemon in the pool-wide idle stack.
+         */
+        private volatile transient DaemonPool.Daemon __m_NextIdleDaemon;
+
+        /**
+         * Property WakeupState
+         *
+         * Bit-set of WAKEUP_* flags describing whether this daemon is
+         * registered, parked, and/or currently published on the pool-wide
+         * idle stack.
+         */
+        private volatile transient int __m_WakeupState;
+
         /**
          * Property WrapperTask
          *
@@ -3026,6 +3279,30 @@ public class DaemonPool
          * @volatile
          */
         private volatile transient DaemonPool.WrapperTask __m_WrapperTask;
+
+        /**
+         * Wake-up state indicating the daemon is registered with the pool-wide
+         * nudge mechanism.
+         */
+        protected static final int WAKEUP_REGISTERED = 1;
+
+        /**
+         * Wake-up state indicating the daemon is currently parked or about to
+         * park.
+         */
+        protected static final int WAKEUP_PARKED = 1 << 1;
+
+        /**
+         * Wake-up state indicating the daemon already has a published idle
+         * stack entry.
+         */
+        protected static final int WAKEUP_STACKED = 1 << 2;
+
+        /**
+         * Atomic updater for {@link #__m_WakeupState}.
+         */
+        private static final AtomicIntegerFieldUpdater<DaemonPool.Daemon> s_updaterWakeupState =
+                AtomicIntegerFieldUpdater.newUpdater(DaemonPool.Daemon.class, "__m_WakeupState");
         
         // Default constructor
         public Daemon()
@@ -3281,6 +3558,14 @@ public class DaemonPool
             {
             return __m_Queue;
             }
+
+        /**
+         * Return the next daemon in the pool-wide idle stack.
+         */
+        protected DaemonPool.Daemon getNextIdleDaemon()
+            {
+            return __m_NextIdleDaemon;
+            }
         
         // Declared at the super level
         /**
@@ -3321,6 +3606,158 @@ public class DaemonPool
         public DaemonPool.WrapperTask getWrapperTask()
             {
             return __m_WrapperTask;
+            }
+
+        /**
+         * Clear this daemon's parked state when leaving {@link #onWait()}.
+         */
+        protected void clearWakeupParked()
+            {
+            while (true)
+                {
+                int nState = getWakeupState();
+                if ((nState & WAKEUP_PARKED) == 0)
+                    {
+                    return;
+                    }
+
+                if (s_updaterWakeupState.compareAndSet(this, nState, nState & ~WAKEUP_PARKED))
+                    {
+                    return;
+                    }
+                }
+            }
+
+        /**
+         * Deregister this daemon from the pool-wide wake-up mechanism.
+         */
+        protected void deregisterWakeup()
+            {
+            while (true)
+                {
+                int nState = getWakeupState();
+                if (nState == 0)
+                    {
+                    setNextIdleDaemon(null);
+                    return;
+                    }
+
+                if (s_updaterWakeupState.compareAndSet(this, nState, 0))
+                    {
+                    setNextIdleDaemon(null);
+
+                    if ((nState & WAKEUP_PARKED) != 0)
+                        {
+                        Thread thread = getThread();
+                        if (thread != null)
+                            {
+                            LockSupport.unpark(thread);
+                            }
+                        }
+                    return;
+                    }
+                }
+            }
+
+        /**
+         * Return the current wake-up state.
+         */
+        protected int getWakeupState()
+            {
+            return __m_WakeupState;
+            }
+
+        /**
+         * Return {@code true} if the daemon currently has a published idle
+         * stack entry.
+         */
+        protected boolean isWakeupStacked()
+            {
+            return (getWakeupState() & WAKEUP_STACKED) != 0;
+            }
+
+        /**
+         * Return {@code true} iff this daemon remains a valid parked idle
+         * stack entry.
+         */
+        protected boolean isWakeupParkedAndStacked()
+            {
+            return (getWakeupState() & (WAKEUP_REGISTERED | WAKEUP_PARKED | WAKEUP_STACKED))
+                    == (WAKEUP_REGISTERED | WAKEUP_PARKED | WAKEUP_STACKED)
+                    && getThread() != null;
+            }
+
+        /**
+         * Clear the published idle-stack bit after this daemon is popped from
+         * the pool-wide idle stack.
+         */
+        protected void onIdleDaemonPopped()
+            {
+            while (true)
+                {
+                int nState = getWakeupState();
+                if ((nState & WAKEUP_STACKED) == 0)
+                    {
+                    return;
+                    }
+
+                if (s_updaterWakeupState.compareAndSet(this, nState, nState & ~WAKEUP_STACKED))
+                    {
+                    return;
+                    }
+                }
+            }
+
+        /**
+         * Prepare this daemon to publish itself as idle before entering
+         * {@link #onWait()}.
+         *
+         * @return {@code true} iff the daemon should be pushed onto the idle
+         *         stack
+         */
+        protected boolean prepareWakeupWait()
+            {
+            while (true)
+                {
+                int nState = getWakeupState();
+                if ((nState & WAKEUP_REGISTERED) == 0)
+                    {
+                    return false;
+                    }
+
+                boolean fPush = (nState & WAKEUP_STACKED) == 0;
+                int     nNew  = nState | WAKEUP_PARKED;
+                if (fPush)
+                    {
+                    nNew |= WAKEUP_STACKED;
+                    }
+
+                if (s_updaterWakeupState.compareAndSet(this, nState, nNew))
+                    {
+                    return fPush;
+                    }
+                }
+            }
+
+        /**
+         * Register this daemon with the pool-wide wake-up mechanism.
+         */
+        protected void registerWakeup()
+            {
+            __m_WakeupState = WAKEUP_REGISTERED;
+            setNextIdleDaemon(null);
+            }
+
+        /**
+         * Return {@code true} iff this daemon should be awakened by a
+         * pool-wide nudge for the specified target queue.
+         */
+        protected boolean shouldWakeForNudge(com.oracle.coherence.common.util.AssociationPile queueTarget)
+            {
+            return (getWakeupState() & (WAKEUP_REGISTERED | WAKEUP_PARKED))
+                    == (WAKEUP_REGISTERED | WAKEUP_PARKED)
+                    && getQueue() != queueTarget
+                    && getThread() != null;
             }
         
         // Declared at the super level
@@ -3421,6 +3858,8 @@ public class DaemonPool
          */
         protected void onExit()
             {
+            deregisterWakeup();
+
             if (!isExiting())
                 {
                 // soft assert that this daemon is no longer in its pool
@@ -3575,7 +4014,27 @@ public class DaemonPool
             {
             if (getWrapperTask() == null)
                 {
-                super.onWait();
+                DaemonPool pool = (DaemonPool) get_Parent();
+                if (!pool.isWakeupNudgeEnabled())
+                    {
+                    super.onWait();
+                    return;
+                    }
+
+                boolean fPush = prepareWakeupWait();
+                if (fPush)
+                    {
+                    pool.pushIdleDaemon(this);
+                    }
+
+                try
+                    {
+                    super.onWait();
+                    }
+                finally
+                    {
+                    clearWakeupParked();
+                    }
                 }
             }
         
@@ -3723,6 +4182,14 @@ public class DaemonPool
             {
             __m_InterruptCount = cInterrupts;
             }
+
+        /**
+         * Set the next daemon in the pool-wide idle stack.
+         */
+        protected void setNextIdleDaemon(DaemonPool.Daemon daemon)
+            {
+            __m_NextIdleDaemon = daemon;
+            }
         
         // Accessor for the property "Queue"
         /**
@@ -3776,7 +4243,6 @@ public class DaemonPool
                 heartbeat();
                 }
             }
-        
         // Declared at the super level
         /**
          * Starts the daemon thread associated with this component. If the

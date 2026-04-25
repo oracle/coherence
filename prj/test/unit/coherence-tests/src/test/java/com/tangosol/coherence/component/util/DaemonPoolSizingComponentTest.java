@@ -80,6 +80,25 @@ public class DaemonPoolSizingComponentTest
         assertThat(pool.getDaemonCount(), is(cMin));
         }
 
+    @Test
+    public void shouldStartServiceWorkerPoolWithWakeupNudge()
+        {
+        TestService service = new TestService("DaemonPoolSizingServiceComponentTest");
+        DaemonPool  pool    = service.getDaemonPool();
+
+        try
+            {
+            pool.start();
+
+            assertThat(pool.isStarted(), is(true));
+            assertThat(pool.getIdleDaemonStack() == null, is(false));
+            }
+        finally
+            {
+            pool.stop();
+            }
+        }
+
     // ----- inner class: TestService --------------------------------------
 
     public static class TestService
@@ -90,7 +109,7 @@ public class DaemonPoolSizingComponentTest
             super(sName, null, false);
 
             __initPrivate();
-            setDaemonPool(new Service.DaemonPool());
+            setDaemonPool(new Service.DaemonPool("DaemonPool", this, true));
             setServiceName(sName);
             }
         }

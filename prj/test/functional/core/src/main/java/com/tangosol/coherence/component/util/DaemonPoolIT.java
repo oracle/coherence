@@ -7,6 +7,7 @@
 package com.tangosol.coherence.component.util;
 
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+import com.tangosol.net.cache.KeyAssociation;
 import com.tangosol.util.Base;
 import org.junit.After;
 import org.junit.Before;
@@ -19,6 +20,9 @@ import org.mockito.stubbing.Answer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BooleanSupplier;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -26,6 +30,8 @@ import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class DaemonPoolIT
     {
@@ -163,6 +169,265 @@ public class DaemonPoolIT
 
         assertThat(resizeTask.getDaemonPool(), is(nullValue()));
         assertThat(pool.isStarted(), is(false));
+        }
+
+    @Test
+    public void shouldDrainHotQueueWithIdleStealers() throws Exception
+        {
+        String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
+        TestDaemonPool pool           = new TestDaemonPool();
+        CountDownLatch latchDone      = new CountDownLatch(8);
+        CountDownLatch latchRelease   = new CountDownLatch(1);
+        AtomicInteger  cActive        = new AtomicInteger();
+        AtomicInteger  cMaxActive     = new AtomicInteger();
+        AtomicInteger  cStarted       = new AtomicInteger();
+        AtomicInteger[] acSequence    = new AtomicInteger[4];
+
+        for (int i = 0; i < acSequence.length; i++)
+            {
+            acSequence[i] = new AtomicInteger();
+            }
+
+        AtomicReference<Throwable> refFailure = new AtomicReference<>();
+
+        try
+            {
+            System.setProperty("coherence.daemonpool.slots", "8");
+
+            pool.setDaemonCountMin(4);
+            pool.setDaemonCountMax(4);
+            pool.setDaemonCount(4);
+            pool.start();
+
+            if (isWakeupNudgeEnabled())
+                {
+                waitForCondition(() -> pool.countIdleDaemons() == 4, 5000,
+                        "expected all daemons to publish as idle before skewed work starts");
+                }
+            else
+                {
+                Base.sleep(250L);
+                }
+
+            for (int iAssoc = 0; iAssoc < 4; iAssoc++)
+                {
+                HotAssociation association = new HotAssociation(iAssoc);
+
+                pool.add(new BlockingAssociatedTask(association, 0, latchRelease, latchDone,
+                        cActive, cMaxActive, cStarted, acSequence, refFailure));
+                pool.add(new BlockingAssociatedTask(association, 1, latchRelease, latchDone,
+                        cActive, cMaxActive, cStarted, acSequence, refFailure));
+                }
+
+            if (isWakeupNudgeEnabled())
+                {
+                waitForCondition(() -> cStarted.get() == 4, 5000,
+                        "expected one active task per hot-slot association with wake-up nudging enabled");
+                assertThat(cMaxActive.get(), is(4));
+                }
+            else
+                {
+                Base.sleep(500L);
+                assertThat(cStarted.get(), is(1));
+                assertThat(cMaxActive.get(), is(1));
+                }
+
+            latchRelease.countDown();
+            assertTrue("expected all skewed tasks to complete", latchDone.await(10, TimeUnit.SECONDS));
+            assertThat(cStarted.get(), is(8));
+            assertNoTaskFailure(refFailure);
+            }
+        finally
+            {
+            latchRelease.countDown();
+            stopPool(pool);
+            restoreProperty("coherence.daemonpool.slots", sSlotsPrevious);
+            }
+        }
+
+    @Test
+    public void shouldWakeOffQueueStealersWhenTargetQueueAlreadyHasSharedWaiters() throws Exception
+        {
+        String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
+        TestDaemonPool pool           = new TestDaemonPool();
+        CountDownLatch latchDone      = new CountDownLatch(3);
+        CountDownLatch latchRelease   = new CountDownLatch(1);
+        AtomicInteger  cActive        = new AtomicInteger();
+        AtomicInteger  cMaxActive     = new AtomicInteger();
+        AtomicInteger  cStarted       = new AtomicInteger();
+
+        try
+            {
+            System.setProperty("coherence.daemonpool.slots", "2");
+
+            pool.setDaemonCountMin(3);
+            pool.setDaemonCountMax(3);
+            pool.setDaemonCount(3);
+            pool.start();
+
+            if (isWakeupNudgeEnabled())
+                {
+                waitForCondition(() -> pool.countIdleDaemons() == 3, 5000,
+                        "expected all daemons to publish as idle before shared-queue work starts");
+                }
+            else
+                {
+                Base.sleep(250L);
+                }
+
+            assertThat(pool.countDaemonsForSlot(0), is(2));
+
+            for (int i = 0; i < 3; i++)
+                {
+                pool.add(new BlockingCountedAssociatedTask(new SlotAssociation(0, i), latchRelease, latchDone,
+                        cStarted, cActive, cMaxActive));
+                }
+
+            if (isWakeupNudgeEnabled())
+                {
+                waitForCondition(() -> cStarted.get() == 3, 5000,
+                        "expected off-queue daemons to steal once shared-queue waiters are already waking locally");
+                assertThat(cMaxActive.get(), is(3));
+                }
+            else
+                {
+                Base.sleep(500L);
+                assertThat(cStarted.get(), is(2));
+                assertThat(cMaxActive.get(), is(2));
+                }
+
+            latchRelease.countDown();
+            assertTrue("expected shared-queue tasks to complete", latchDone.await(10, TimeUnit.SECONDS));
+            }
+        finally
+            {
+            latchRelease.countDown();
+            stopPool(pool);
+            restoreProperty("coherence.daemonpool.slots", sSlotsPrevious);
+            }
+        }
+
+    @Test
+    public void shouldSkipWakeupNudgeWhileSplitSlotIsInactive() throws Exception
+        {
+        if (!isWakeupNudgeEnabled())
+            {
+            return;
+            }
+
+        String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
+        TestDaemonPool pool           = new TestDaemonPool();
+        CountDownLatch latchBlockDone = new CountDownLatch(1);
+        CountDownLatch latchBlocked   = new CountDownLatch(1);
+        CountDownLatch latchRelease   = new CountDownLatch(1);
+        CountDownLatch latchSplitDone = new CountDownLatch(1);
+
+        try
+            {
+            System.setProperty("coherence.daemonpool.slots", "3");
+
+            pool.setDaemonCountMin(2);
+            pool.setDaemonCountMax(2);
+            pool.setDaemonCount(2);
+            pool.start();
+
+            waitForCondition(() -> pool.countIdleDaemons() == 2, 5000,
+                    "expected both daemons to publish as idle before queue-split setup");
+
+            int iSharedSlot = pool.findSharedSlotIndex();
+            assertTrue("expected a shared slot before triggering a queue split", iSharedSlot >= 0);
+
+            pool.add(new BlockingCountedAssociatedTask(new SlotAssociation(iSharedSlot, 0), latchRelease,
+                    latchBlockDone, latchBlocked, null, null, null));
+
+            assertTrue("expected the shared-slot daemon to block before the split request",
+                    latchBlocked.await(5, TimeUnit.SECONDS));
+            waitForCondition(() -> pool.countIdleDaemons() == 1, 5000,
+                    "expected only the non-shared daemon to remain idle during the split window");
+
+            pool.requestStartDaemon();
+
+            waitForCondition(() -> pool.findInactiveSlotIndex() >= 0, 5000,
+                    "expected one slot to remain inactive until StartTask activates the split daemon");
+
+            int iInactiveSlot = pool.findInactiveSlotIndex();
+            int cIdleBefore    = pool.countIdleDaemons();
+            int cNudgesBefore  = pool.getWakeupNudgeCount();
+
+            pool.add(new SignalAssociatedTask(new SlotAssociation(iInactiveSlot, 1), latchSplitDone));
+
+            Base.sleep(250L);
+
+            assertThat(pool.countIdleDaemons(), is(cIdleBefore));
+            assertThat(pool.getWakeupNudgeCount(), is(cNudgesBefore));
+            assertFalse("inactive-slot add should not complete before StartTask activates the split daemon",
+                    latchSplitDone.await(250L, TimeUnit.MILLISECONDS));
+
+            latchRelease.countDown();
+
+            assertTrue("expected the queue-split task to complete after StartTask activation",
+                    latchSplitDone.await(10, TimeUnit.SECONDS));
+            assertTrue("expected the blocked shared-slot task to complete", latchBlockDone.await(10, TimeUnit.SECONDS));
+            waitForCondition(() -> pool.findInactiveSlotIndex() < 0, 5000,
+                    "expected StartTask to reactivate the split slot once the new daemon starts");
+            }
+        finally
+            {
+            latchRelease.countDown();
+            stopPool(pool);
+            restoreProperty("coherence.daemonpool.slots", sSlotsPrevious);
+            }
+        }
+
+    @Test
+    public void shouldCleanIdleStackAfterReplacingAbandonedDaemon() throws Exception
+        {
+        if (!isWakeupNudgeEnabled())
+            {
+            return;
+            }
+
+        String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
+        TestDaemonPool pool           = new TestDaemonPool();
+        CountDownLatch latchDone      = new CountDownLatch(1);
+
+        try
+            {
+            System.setProperty("coherence.daemonpool.slots", "2");
+
+            pool.setDaemonCountMin(2);
+            pool.setDaemonCountMax(2);
+            pool.setDaemonCount(2);
+            pool.start();
+
+            waitForCondition(() -> pool.countIdleDaemons() == 2, 5000,
+                    "expected both daemons to publish as idle before replacement");
+
+            DaemonPool.Daemon daemonOld = pool.getIdleDaemonHead();
+            assertThat(daemonOld, is(notNullValue()));
+
+            daemonOld.setExiting(true);
+            daemonOld.setDaemonType(DaemonPool.DAEMON_ABANDONED);
+
+            pool.replaceDaemon(daemonOld);
+
+            waitForCondition(() -> !pool.containsDaemon(daemonOld), 5000,
+                    "expected replaced daemon to leave the pool daemon array");
+            assertTrue("expected no duplicate idle entries after replacement", pool.countIdleDaemons() <= 2);
+
+            pool.add(new SignalAssociatedTask(new HotAssociation(0), latchDone));
+
+            assertTrue("expected follow-up task to complete", latchDone.await(10, TimeUnit.SECONDS));
+            waitForCondition(() -> !pool.containsIdleDaemon(daemonOld), 5000,
+                    "expected replaced daemon to be removed from the idle stack");
+            waitForCondition(() -> daemonOld.getThread() == null, 5000,
+                    "expected replaced daemon thread to exit after replacement");
+            }
+        finally
+            {
+            stopPool(pool);
+            restoreProperty("coherence.daemonpool.slots", sSlotsPrevious);
+            }
         }
 
     @Test
@@ -321,6 +586,57 @@ public class DaemonPoolIT
         assertThat(resizeTask.getEffectiveShakePeriod(), is(10000L));
         }
 
+    protected void assertNoTaskFailure(AtomicReference<Throwable> refFailure)
+        {
+        Throwable failure = refFailure.get();
+        if (failure != null)
+            {
+            throw failure instanceof AssertionError
+                    ? (AssertionError) failure
+                    : new AssertionError("unexpected task failure", failure);
+            }
+        }
+
+    protected static boolean isWakeupNudgeEnabled()
+        {
+        return Boolean.parseBoolean(System.getProperty("coherence.daemonpool.wakeup.nudge", "true"));
+        }
+
+    protected static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
+    protected void stopPool(DaemonPool pool)
+        {
+        if (pool.isStarted())
+            {
+            pool.stop();
+            }
+        }
+
+    protected void waitForCondition(BooleanSupplier supplier, long cMillis, String sMessage) throws Exception
+        {
+        long ldtStop = Base.getSafeTimeMillis() + cMillis;
+        while (Base.getSafeTimeMillis() < ldtStop)
+            {
+            if (supplier.getAsBoolean())
+                {
+                return;
+                }
+            Base.sleep(10L);
+            }
+
+        assertTrue(sMessage, supplier.getAsBoolean());
+        }
+
     private DaemonPool.ResizeTask createResizeTask(ResizeTaskDaemonPoolStub pool, int cThreads, int cMin, int cMax)
         {
         pool.setDaemonCountMin(cMin);
@@ -474,6 +790,412 @@ public class DaemonPoolIT
         protected long m_cStatsTaskCount;
         protected long m_ldtStatsLastResetMillis;
         protected long m_ldtStatsLastResizeMillis;
+        }
+
+    protected static class TestDaemonPool
+            extends DaemonPool
+        {
+        @Override
+        protected void nudgeIdleDaemon(com.oracle.coherence.common.util.AssociationPile queueTarget)
+            {
+            m_cWakeupNudges++;
+            super.nudgeIdleDaemon(queueTarget);
+            }
+
+        public DaemonPool.Daemon getIdleDaemonHead()
+            {
+            return getIdleDaemonStack().getReference();
+            }
+
+        public int getWakeupNudgeCount()
+            {
+            return m_cWakeupNudges;
+            }
+
+        public boolean containsDaemon(DaemonPool.Daemon daemon)
+            {
+            for (DaemonPool.Daemon daemonTest : getDaemons())
+                {
+                if (daemonTest == daemon)
+                    {
+                    return true;
+                    }
+                }
+            return false;
+            }
+
+        public boolean containsIdleDaemon(DaemonPool.Daemon daemon)
+            {
+            return indexOfIdleDaemon(daemon) >= 0;
+            }
+
+        public int countDaemonsForSlot(int iSlot)
+            {
+            return countDaemonsForQueue(getWorkSlot(iSlot).getQueue());
+            }
+
+        public int countIdleDaemons()
+            {
+            int               cDaemons = 0;
+            DaemonPool.Daemon daemon   = getIdleDaemonHead();
+
+            while (daemon != null && cDaemons < 32)
+                {
+                cDaemons++;
+                daemon = daemon.getNextIdleDaemon();
+                }
+
+            return cDaemons;
+            }
+
+        public int findInactiveSlotIndex()
+            {
+            for (int i = 0, c = getWorkSlotCount(); i < c; i++)
+                {
+                if (!getWorkSlot(i).isActive())
+                    {
+                    return i;
+                    }
+                }
+
+            return -1;
+            }
+
+        public int findSharedSlotIndex()
+            {
+            for (int i = 0, c = getWorkSlotCount(); i < c; i++)
+                {
+                if (countSlotsForQueue(getWorkSlot(i).getQueue()) > 1)
+                    {
+                    return i;
+                    }
+                }
+
+            return -1;
+            }
+
+        public void requestStartDaemon()
+            {
+            DaemonPool.StartTask task = (DaemonPool.StartTask) _newChild("StartTask");
+            task.setStartCount(1);
+            startDaemon(task);
+            }
+
+        protected int indexOfIdleDaemon(DaemonPool.Daemon daemonFind)
+            {
+            int               i      = 0;
+            DaemonPool.Daemon daemon = getIdleDaemonHead();
+
+            while (daemon != null && i < 32)
+                {
+                if (daemon == daemonFind)
+                    {
+                    return i;
+                    }
+
+                daemon = daemon.getNextIdleDaemon();
+                i++;
+                }
+
+            return -1;
+            }
+
+        protected int countDaemonsForQueue(Object queue)
+            {
+            int cDaemons = 0;
+
+            for (DaemonPool.Daemon daemon : getDaemons())
+                {
+                if (daemon.getQueue() == queue)
+                    {
+                    cDaemons++;
+                    }
+                }
+
+            return cDaemons;
+            }
+
+        protected int countSlotsForQueue(Object queue)
+            {
+            int cSlots = 0;
+
+            for (int i = 0, c = getWorkSlotCount(); i < c; i++)
+                {
+                if (getWorkSlot(i).getQueue() == queue)
+                    {
+                    cSlots++;
+                    }
+                }
+
+            return cSlots;
+            }
+
+        protected int m_cWakeupNudges;
+        }
+
+    protected static class HotAssociation
+        {
+        protected HotAssociation(int nId)
+            {
+            m_nId = nId;
+            }
+
+        public int getId()
+            {
+            return m_nId;
+            }
+
+        @Override
+        public boolean equals(Object oThat)
+            {
+            if (this == oThat)
+                {
+                return true;
+                }
+
+            if (!(oThat instanceof HotAssociation))
+                {
+                return false;
+                }
+
+            return m_nId == ((HotAssociation) oThat).m_nId;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return 0;
+            }
+
+        private final int m_nId;
+        }
+
+    protected static class SlotAssociation
+        {
+        protected SlotAssociation(int iSlot, int nId)
+            {
+            m_iSlot = iSlot;
+            m_nId   = nId;
+            }
+
+        @Override
+        public boolean equals(Object oThat)
+            {
+            if (this == oThat)
+                {
+                return true;
+                }
+
+            if (!(oThat instanceof SlotAssociation))
+                {
+                return false;
+                }
+
+            SlotAssociation that = (SlotAssociation) oThat;
+            return m_iSlot == that.m_iSlot && m_nId == that.m_nId;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return m_iSlot;
+            }
+
+        private final int m_iSlot;
+        private final int m_nId;
+        }
+
+    protected static class BlockingAssociatedTask
+            implements KeyAssociation, Runnable
+        {
+        protected BlockingAssociatedTask(HotAssociation association, int nSequence, CountDownLatch latchRelease,
+                CountDownLatch latchDone, AtomicInteger cActive, AtomicInteger cMaxActive, AtomicInteger cStarted,
+                AtomicInteger[] acSequence, AtomicReference<Throwable> refFailure)
+            {
+            f_association = association;
+            f_nSequence   = nSequence;
+            f_latchDone   = latchDone;
+            f_latchRelease = latchRelease;
+            f_cActive     = cActive;
+            f_cMaxActive  = cMaxActive;
+            f_cStarted    = cStarted;
+            f_acSequence  = acSequence;
+            f_refFailure  = refFailure;
+            }
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_association;
+            }
+
+        @Override
+        public void run()
+            {
+            int cActive = f_cActive.incrementAndGet();
+            f_cStarted.incrementAndGet();
+            updateMax(f_cMaxActive, cActive);
+
+            try
+                {
+                int nExpected = f_acSequence[f_association.getId()].getAndIncrement();
+                if (nExpected != f_nSequence)
+                    {
+                    f_refFailure.compareAndSet(null, new AssertionError("association " + f_association.getId()
+                            + " ran out of order: expected " + nExpected + " but was " + f_nSequence));
+                    }
+
+                if (!f_latchRelease.await(10, TimeUnit.SECONDS))
+                    {
+                    f_refFailure.compareAndSet(null, new AssertionError("timed out waiting to release skewed task"));
+                    }
+                }
+            catch (Throwable e)
+                {
+                f_refFailure.compareAndSet(null, e);
+                }
+            finally
+                {
+                f_cActive.decrementAndGet();
+                f_latchDone.countDown();
+                }
+            }
+
+        protected static void updateMax(AtomicInteger cMax, int cValue)
+            {
+            while (true)
+                {
+                int cMaxCurrent = cMax.get();
+                if (cMaxCurrent >= cValue || cMax.compareAndSet(cMaxCurrent, cValue))
+                    {
+                    return;
+                    }
+                }
+            }
+
+        private final HotAssociation f_association;
+        private final int f_nSequence;
+        private final CountDownLatch f_latchDone;
+        private final CountDownLatch f_latchRelease;
+        private final AtomicInteger f_cActive;
+        private final AtomicInteger f_cMaxActive;
+        private final AtomicInteger f_cStarted;
+        private final AtomicInteger[] f_acSequence;
+        private final AtomicReference<Throwable> f_refFailure;
+        }
+
+    protected static class BlockingCountedAssociatedTask
+            implements KeyAssociation, Runnable
+        {
+        protected BlockingCountedAssociatedTask(Object association, CountDownLatch latchRelease,
+                CountDownLatch latchDone, AtomicInteger cStarted, AtomicInteger cActive, AtomicInteger cMaxActive)
+            {
+            this(association, latchRelease, latchDone, null, cStarted, cActive, cMaxActive);
+            }
+
+        protected BlockingCountedAssociatedTask(Object association, CountDownLatch latchRelease,
+                CountDownLatch latchDone, CountDownLatch latchBlocked, AtomicInteger cStarted, AtomicInteger cActive,
+                AtomicInteger cMaxActive)
+            {
+            f_association = association;
+            f_latchRelease = latchRelease;
+            f_latchDone    = latchDone;
+            f_latchBlocked = latchBlocked;
+            f_cStarted     = cStarted;
+            f_cActive      = cActive;
+            f_cMaxActive   = cMaxActive;
+            }
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_association;
+            }
+
+        @Override
+        public void run()
+            {
+            if (f_cStarted != null)
+                {
+                f_cStarted.incrementAndGet();
+                }
+
+            int cActive = 0;
+            if (f_cActive != null)
+                {
+                cActive = f_cActive.incrementAndGet();
+                if (f_cMaxActive != null)
+                    {
+                    BlockingAssociatedTask.updateMax(f_cMaxActive, cActive);
+                    }
+                }
+
+            try
+                {
+                if (f_latchBlocked != null)
+                    {
+                    f_latchBlocked.countDown();
+                    }
+
+                if (f_latchRelease != null)
+                    {
+                    if (!f_latchRelease.await(10, TimeUnit.SECONDS))
+                        {
+                        throw new AssertionError("timed out waiting to release associated task");
+                        }
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new AssertionError("unexpected interruption while blocking an associated task", e);
+                }
+            finally
+                {
+                if (f_cActive != null)
+                    {
+                    f_cActive.decrementAndGet();
+                    }
+
+                if (f_latchDone != null)
+                    {
+                    f_latchDone.countDown();
+                    }
+                }
+            }
+
+        private final Object f_association;
+        private final CountDownLatch f_latchRelease;
+        private final CountDownLatch f_latchDone;
+        private final CountDownLatch f_latchBlocked;
+        private final AtomicInteger f_cStarted;
+        private final AtomicInteger f_cActive;
+        private final AtomicInteger f_cMaxActive;
+        }
+
+    protected static class SignalAssociatedTask
+            implements KeyAssociation, Runnable
+        {
+        protected SignalAssociatedTask(Object association, CountDownLatch latchDone)
+            {
+            f_association = association;
+            f_latchDone   = latchDone;
+            }
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_association;
+            }
+
+        @Override
+        public void run()
+            {
+            f_latchDone.countDown();
+            }
+
+        private final Object f_association;
+        private final CountDownLatch f_latchDone;
         }
 
     // ----- data members ---------------------------------------------------
