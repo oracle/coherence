@@ -317,9 +317,8 @@ public class DaemonPoolIT
 
         String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
         TestDaemonPool pool           = new TestDaemonPool();
-        CountDownLatch latchBlockDone = new CountDownLatch(1);
-        CountDownLatch latchBlocked   = new CountDownLatch(1);
-        CountDownLatch latchRelease   = new CountDownLatch(1);
+        CountDownLatch latchStartTask = new CountDownLatch(1);
+        CountDownLatch latchActivate  = new CountDownLatch(1);
         CountDownLatch latchSplitDone = new CountDownLatch(1);
 
         try
@@ -337,16 +336,11 @@ public class DaemonPoolIT
             int iSharedSlot = pool.findSharedSlotIndex();
             assertTrue("expected a shared slot before triggering a queue split", iSharedSlot >= 0);
 
-            pool.add(new BlockingCountedAssociatedTask(new SlotAssociation(iSharedSlot, 0), latchRelease,
-                    latchBlockDone, latchBlocked, null, null, null));
-
-            assertTrue("expected the shared-slot daemon to block before the split request",
-                    latchBlocked.await(5, TimeUnit.SECONDS));
-            waitForCondition(() -> pool.countIdleDaemons() == 1, 5000,
-                    "expected only the non-shared daemon to remain idle during the split window");
-
+            pool.setStartTaskGate(latchStartTask, latchActivate);
             pool.requestStartDaemon();
 
+            assertTrue("expected the split StartTask to pause before activating the split daemon",
+                    latchStartTask.await(10, TimeUnit.SECONDS));
             waitForCondition(() -> pool.findInactiveSlotIndex() >= 0, 5000,
                     "expected one slot to remain inactive until StartTask activates the split daemon");
 
@@ -363,17 +357,16 @@ public class DaemonPoolIT
             assertFalse("inactive-slot add should not complete before StartTask activates the split daemon",
                     latchSplitDone.await(250L, TimeUnit.MILLISECONDS));
 
-            latchRelease.countDown();
+            latchActivate.countDown();
 
             assertTrue("expected the queue-split task to complete after StartTask activation",
                     latchSplitDone.await(10, TimeUnit.SECONDS));
-            assertTrue("expected the blocked shared-slot task to complete", latchBlockDone.await(10, TimeUnit.SECONDS));
             waitForCondition(() -> pool.findInactiveSlotIndex() < 0, 5000,
                     "expected StartTask to reactivate the split slot once the new daemon starts");
             }
         finally
             {
-            latchRelease.countDown();
+            latchActivate.countDown();
             stopPool(pool);
             restoreProperty("coherence.daemonpool.slots", sSlotsPrevious);
             }
@@ -802,6 +795,24 @@ public class DaemonPoolIT
             super.nudgeIdleDaemon(queueTarget);
             }
 
+        @Override
+        public DaemonPool.WrapperTask instantiateWrapperTask(Runnable task, boolean fAggressiveTimeout)
+            {
+            if (task instanceof DaemonPool.StartTask && ((DaemonPool.StartTask) task).getDaemon() != null
+                    && m_latchStartTask != null)
+                {
+                task = new GatedStartTask(this, (DaemonPool.StartTask) task, m_latchStartTask, m_latchActivate);
+                }
+
+            return super.instantiateWrapperTask(task, fAggressiveTimeout);
+            }
+
+        public void setStartTaskGate(CountDownLatch latchStartTask, CountDownLatch latchActivate)
+            {
+            m_latchStartTask = latchStartTask;
+            m_latchActivate  = latchActivate;
+            }
+
         public DaemonPool.Daemon getIdleDaemonHead()
             {
             return getIdleDaemonStack().getReference();
@@ -931,6 +942,49 @@ public class DaemonPoolIT
             }
 
         protected int m_cWakeupNudges;
+        protected volatile CountDownLatch m_latchStartTask;
+        protected volatile CountDownLatch m_latchActivate;
+        }
+
+    protected static class GatedStartTask
+            extends DaemonPool.StartTask
+        {
+        protected GatedStartTask(DaemonPool pool, DaemonPool.StartTask task, CountDownLatch latchStartTask,
+                CountDownLatch latchActivate)
+            {
+            super(null, pool, true);
+
+            setDaemon(task.getDaemon());
+            setQueue(task.getQueue());
+            setStartCount(task.getStartCount());
+            setWorkSlotActivate(task.getWorkSlotActivate());
+
+            f_latchStartTask = latchStartTask;
+            f_latchActivate  = latchActivate;
+            }
+
+        @Override
+        public void run()
+            {
+            f_latchStartTask.countDown();
+            try
+                {
+                if (!f_latchActivate.await(10, TimeUnit.SECONDS))
+                    {
+                    throw new AssertionError("timed out waiting to activate split daemon");
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new AssertionError("unexpected interruption while waiting to activate split daemon", e);
+                }
+
+            super.run();
+            }
+
+        private final CountDownLatch f_latchStartTask;
+        private final CountDownLatch f_latchActivate;
         }
 
     protected static class HotAssociation
