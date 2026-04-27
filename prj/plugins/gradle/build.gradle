@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,17 @@ plugins {
     id 'java-gradle-plugin'
     id 'maven-publish'
 }
+
+def requireBuildProperty = { String name ->
+    def value = findProperty(name) ?: System.getProperty(name)
+    if (value == null || value.toString().trim().isEmpty()) {
+        throw new GradleException("Missing '${name}' property. Run the build via Maven or pass -P${name}=<value>.")
+    }
+    value.toString()
+}
+
+def junitVersion = requireBuildProperty('junitVersion')
+def hamcrestVersion = requireBuildProperty('hamcrestVersion')
 
 java {
     targetCompatibility = 17
@@ -30,10 +41,12 @@ publishing {
 
 dependencies {
     implementation "${group}:coherence:${version}"
-    testImplementation platform("org.junit:junit-bom:${junitVersion}")
-    testImplementation "org.junit.platform:junit-platform-launcher"
-    testImplementation "org.junit.jupiter:junit-jupiter"
-    testImplementation "org.hamcrest:hamcrest-core:${hamcrestVersion}"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:${junitVersion}"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:${junitVersion}"
+    // use the launcher jar copied by Maven so Gradle test execution does not need a second JUnit version property
+    testRuntimeOnly fileTree(dir: "target/dependencies",
+            include: "org/junit/platform/junit-platform-launcher/*/junit-platform-launcher-*.jar")
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }
 configurations {
     testImplementation.extendsFrom compileOnly

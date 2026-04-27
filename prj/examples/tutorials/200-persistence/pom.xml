@@ -36,8 +36,8 @@
     <maven.gmaven.plugin.version>1.5</maven.gmaven.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
 
-    <junit.jupiter.version>5.7.0</junit.jupiter.version>
-    <hamcrest.version>2.2</hamcrest.version>
+    <junit.jupiter.version>5.12.2</junit.jupiter.version>
+    <hamcrest.version>3.0</hamcrest.version>
     <oracle.bedrock.version>5.1.3</oracle.bedrock.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

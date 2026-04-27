@@ -41,6 +41,7 @@
     <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
 
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
+    <hamcrest.version>3.0</hamcrest.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -106,7 +107,8 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-all</artifactId>
+      <artifactId>hamcrest</artifactId>
+      <version>${hamcrest.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
