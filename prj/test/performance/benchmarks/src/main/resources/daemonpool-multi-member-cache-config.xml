@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-backup</cache-name>
+      <scheme-name>backup-benchmark-distributed</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-persistence</cache-name>
+      <scheme-name>persistence-benchmark-distributed</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>backup-benchmark-distributed</scheme-name>
+      <service-name>BackupBenchmarkCache</service-name>
+      <daemon-pool system-property="coherence.benchmark.daemonpool">platform</daemon-pool>
+      <backup-count system-property="benchmark.daemonpool.backup.count">1</backup-count>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>persistence-benchmark-distributed</scheme-name>
+      <service-name>PersistenceBenchmarkCache</service-name>
+      <daemon-pool system-property="coherence.benchmark.daemonpool">platform</daemon-pool>
+      <backup-count system-property="benchmark.daemonpool.backup.count">1</backup-count>
+
+      <backing-map-scheme>
+        <local-scheme>
+          <unit-calculator>BINARY</unit-calculator>
+        </local-scheme>
+      </backing-map-scheme>
+
+      <persistence>
+        <environment>daemonpool-benchmark-bdb</environment>
+      </persistence>
+
+      <autostart system-property="benchmark.daemonpool.persistence.autostart">false</autostart>
+    </distributed-scheme>
+
+    <proxy-scheme>
+      <scheme-name>daemonpool-extend-proxy</scheme-name>
+      <service-name>Proxy</service-name>
+      <thread-count system-property="benchmark.daemonpool.proxy.threads">4</thread-count>
+      <acceptor-config>
+        <tcp-acceptor/>
+        <serializer>${coherence.extend.serializer ${coherence.serializer}}</serializer>
+      </acceptor-config>
+      <autostart system-property="coherence.proxy.enabled">false</autostart>
+    </proxy-scheme>
+
+    <proxy-scheme>
+      <scheme-name>daemonpool-grpc-proxy</scheme-name>
+      <service-name>GrpcProxy</service-name>
+      <thread-count system-property="coherence.grpc.server.threads">4</thread-count>
+      <acceptor-config>
+        <grpc-acceptor>
+          <local-address>
+            <address system-property="coherence.grpc.server.address">127.0.0.1</address>
+            <port system-property="coherence.grpc.server.port">1408</port>
+          </local-address>
+          <socket-provider system-property="coherence.grpc.server.socketprovider"/>
+          <in-process-name system-property="coherence.grpc.inprocess.name"/>
+        </grpc-acceptor>
+      </acceptor-config>
+      <autostart system-property="coherence.grpc.enabled">false</autostart>
+    </proxy-scheme>
+  </caching-schemes>
+</cache-config>

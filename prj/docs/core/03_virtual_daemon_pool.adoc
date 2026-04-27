@@ -1,0 +1,520 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Virtual Daemon Pool
+:toc: left
+:toclevels: 4
+:sectnums:
+
+This document describes the *Virtual Daemon Pool* (VDP), an alternative
+service worker pool implementation that runs cache service tasks on Java
+virtual threads instead of platform threads.
+
+It is a user-facing guide intended for developers and operators who want
+to enable VDP for one or more services in a Coherence cluster. The
+internal design is documented separately in
+`design/features/daemon-pool/design/virtual-threads.md` in the source
+tree.
+
+== Overview
+
+The traditional Coherence daemon pool runs each service's worker tasks on
+a fixed-size pool of platform (operating-system) threads. Pool size is
+controlled by `<thread-count-min>` and `<thread-count-max>`, and the
+dynamic resizing logic described in xref:02_daemon_pool_dynamic_resizing.adoc[]
+adapts the pool within those bounds. This works well for most workloads
+but has two structural limitations:
+
+- *Blocking is expensive.* When a worker thread blocks on an entry lock,
+  I/O, or any other operation, the operating-system thread is parked
+  until the operation completes. The pool must be sized large enough to
+  absorb these stalls, which means more native memory and more context
+  switching.
+- *Hot keys consume the pool.* When many requests target the same key,
+  the threads serving them serialize on the entry lock. Without the
+  pool's `AssociationPile` routing, the entire pool can starve waiting
+  for that key.
+
+The Virtual Daemon Pool addresses both limitations by running worker
+tasks on virtual threads:
+
+- *Blocking yields the carrier.* A blocked virtual thread releases its
+  underlying carrier thread, which is free to run other virtual threads.
+  An I/O-heavy workload no longer needs to oversize its pool to keep CPU
+  busy.
+- *Per-key admission is lightweight.* VDP routes mutating tasks for the
+  same key through a per-key mailbox drained by a single virtual thread,
+  so there is no contention on the entry lock for same-key work, and no
+  pool sizing to balance.
+
+VDP is opt-in. The default service worker pool is the legacy
+platform-thread pool, and it remains fully supported.
+
+== Choosing a Pool Type
+
+Pick the pool type per service, based on what the service does.
+
+[cols="1,2"]
+|===
+| Service profile | Recommended pool
+
+| Mostly CPU-bound work, no significant blocking
+| Legacy `platform` pool (default)
+
+| Significant I/O — persistence, network, CacheLoader/CacheStore
+| `virtual`
+
+| Hot-key contention with mutations on a small set of keys
+| `virtual`
+
+| Mixed workload with long synchronous client calls (Extend / gRPC proxy)
+| `virtual`
+
+| Internal infrastructure pools (common daemon, guardian)
+| Legacy `platform` pool (default)
+|===
+
+VDP is an architectural choice, not a tunable. Switching a service's
+pool type changes its concurrency model and should be tested before it
+goes to production. There is no global override that flips all services
+at once — see <<no_global_override>> for the rationale.
+
+== Enabling Virtual Threads for a Service
+
+VDP is selected with the `<daemon-pool>` element. The element accepts
+two values:
+
+- `platform` — legacy `DaemonPool` with `<thread-count-*>` sizing. This
+  is the default and the implicit value when `<daemon-pool>` is omitted.
+- `virtual` — `VirtualDaemonPool`, with optional `<task-limit>` admission
+  cap.
+
+There are two configuration surfaces for the element, both per-service:
+
+- *Cache configuration* (preferred) — set `<daemon-pool>` on the service
+  scheme.
+- *Operational configuration* — set `<daemon-pool>` as an init-param on
+  the service definition in the operational config.
+
+When a service is configured at both levels, the cache-config value wins.
+
+=== Cache Configuration Example
+
+[source,xml]
+----
+<distributed-scheme>
+  <scheme-name>orders-distributed</scheme-name>
+  <service-name>OrdersService</service-name>
+  <daemon-pool>virtual</daemon-pool>
+  <task-limit system-property="coherence.orders.task.limit">10000</task-limit>
+  <backing-map-scheme>
+    <local-scheme/>
+  </backing-map-scheme>
+  <autostart>true</autostart>
+</distributed-scheme>
+----
+
+This configures the `OrdersService` worker pool to use virtual threads
+with an admission cap of 10,000 concurrently executing tasks. The
+`system-property` attribute is optional and lets operators override the
+cap per deployment without re-packaging the cache configuration.
+
+The same `system-property` attribute is supported on `<daemon-pool>`
+itself, for example
+`<daemon-pool system-property="coherence.orders.daemonpool">platform</daemon-pool>`.
+This is occasionally useful for benchmark and A/B-testing workflows
+where the same cache configuration needs to run under both pool types.
+For production deployments, prefer setting the value directly in the
+cache configuration so the choice is visible and version-controlled.
+
+=== Operational Configuration Example
+
+[source,xml]
+----
+<service>
+  <service-type>DistributedCache</service-type>
+  <init-params>
+    <init-param>
+      <param-name>daemon-pool</param-name>
+      <param-value>virtual</param-value>
+    </init-param>
+  </init-params>
+</service>
+----
+
+This sets the default pool type for any `DistributedCache` service that
+does not override `<daemon-pool>` in its cache-config scheme.
+
+== Admission Cap with `<task-limit>`
+
+Virtual threads are cheap (~300 bytes each), so a single VDP service can
+run thousands of concurrently executing tasks without stress. For most
+workloads no admission cap is needed and `<task-limit>` should be left
+unset (or set to `0`).
+
+An explicit `<task-limit>` is worth setting when:
+
+- *Memory-bound bursts.* If a sudden burst of work could create
+  millions of in-flight tasks, capping the number of concurrently
+  executing tasks bounds memory consumption.
+- *Downstream protection.* If tasks call out to a database, web service,
+  or other downstream system that has its own concurrency limits, the
+  cap protects the downstream from being overwhelmed.
+- *Fairness across services.* On a member that runs several VDP
+  services, a cap on each prevents one heavily loaded service from
+  saturating the JVM's carrier thread pool.
+
+When the cap is reached, additional task producers block until permits
+are released. They yield the carrier thread while blocked, so the
+backpressure is cheap.
+
+The cap applies to tasks that are *currently executing*, not to tasks
+queued in mailboxes. Queued tasks consume only their wrapper and queue
+slot; they do not hold a permit until the mailbox drainer pulls them
+from the queue and starts running them.
+
+== Element Compatibility Rules
+
+The legacy daemon-pool sizing elements are not meaningful under VDP and
+the new `<task-limit>` is not meaningful under the legacy pool. The
+service-start validator enforces mutual exclusion and rejects
+incompatible combinations with a clear error.
+
+[cols="1,2,2"]
+|===
+| `<daemon-pool>` value | Allowed alongside | Rejected alongside
+
+| `platform` (default)
+| `<thread-count>`, `<thread-count-min>`, `<thread-count-max>`,
+  `<worker-priority>`, `<lease-granularity>`
+| `<task-limit>`
+
+| `virtual`
+| `<task-limit>`, `<lease-granularity>`
+| `<thread-count>`, `<thread-count-min>`, `<thread-count-max>`,
+  `<worker-priority>`
+|===
+
+`<lease-granularity>` applies to both pool types, since it controls
+whether the lock-hold owner is a thread or a member, which is meaningful
+regardless of the underlying thread model.
+
+For example, a service configured with
+`<daemon-pool>virtual</daemon-pool>` and
+`<thread-count-max>32</thread-count-max>` fails to start with a message
+identifying both the offending element and the chosen pool type. Fix
+the configuration by removing the legacy element and relying on
+`<task-limit>` (or, if appropriate, remove `<daemon-pool>` and revert
+to the legacy pool).
+
+[NOTE]
+====
+The validator also produces a `WARN`-level configuration warning when a
+service mixes `<thread-count>` with `<thread-count-min>` or
+`<thread-count-max>`, because those elements have ambiguous combined
+semantics: `<thread-count>` historically pins the pool to a fixed size
+(or disables the pool entirely if set to `0`), while
+`<thread-count-min>` / `<thread-count-max>` configure dynamic resizing
+bounds. The combination is allowed for backward compatibility, but
+operators should pick one form: either `<thread-count>` for a fixed
+pool or `<thread-count-min>` / `<thread-count-max>` for dynamic
+resizing.
+====
+
+[#no_global_override]
+== Why There Is No Global VDP Switch
+
+There is intentionally no system property or cluster-level operational
+flag that enables VDP for all services. Three forms of global override
+were considered and explicitly rejected during design.
+
+A global *enable-by-default* setting would create silent contradiction
+with per-service config. Suppose a deployment-wide setting selects
+`virtual`, and a service has `<thread-count-max>32</thread-count-max>`.
+What does the service do? Honoring the global setting silently ignores
+the service's `<thread-count-max>` and yields a service the operator
+did not configure. Honoring the service config silently ignores the
+global setting. Failing the service at start is the only correct
+option, but in that case the global setting is useless because it
+makes existing service configs invalid. The cleanest resolution is to
+not have the global setting in the first place.
+
+A *kill switch* that forces all services back to platform threads is
+operationally dangerous. A service that was configured for VDP with
+`<task-limit>10000</task-limit>` and no `<thread-count-max>` would, on
+forced rollback, inherit the legacy default sizing. With the
+platform-thread maximum derived from JVM heap and stack settings (see
+xref:02_daemon_pool_dynamic_resizing.adoc[]), a service under load
+could spawn hundreds or thousands of platform threads, exhausting
+native memory and crashing the cluster. The "rollback to safety" lever
+ends up being more dangerous than the situation it was meant to
+mitigate.
+
+Migration is not impaired by the absence of a global default. A
+deployment that wants every service on VDP makes one cache-config edit
+(or one operational-config edit) per service. The work is the same as
+flipping a system property, but it leaves a durable, reviewable
+artifact in version control instead of an environment-flippable bit.
+
+== Migration Notes
+
+If your deployment previously set the 24.03-era flags
+`<virtual-threads-enabled>`, `coherence.virtualthreads.enabled`, or
+`coherence.service.<service>.virtualthreads.enabled`, those settings
+are removed. They never actually selected VDP on prior versions of this
+branch (the legacy pool's selector code was removed during an earlier
+unbounded-pool safety follow-up), so removing them does not change
+runtime behavior. To opt a service into VDP, set
+`<daemon-pool>virtual</daemon-pool>` on the service scheme or as a
+service init-param.
+
+If your deployment previously experimented with the interim system
+property `coherence.daemonpool.virtual=true`, that property is also
+removed. Replace it with per-service `<daemon-pool>virtual</daemon-pool>`
+configuration.
+
+== Tuning the Cooperative Notifier Flush Policy
+
+VDP uses a *cooperative notifier flush* to wake up callers that are
+blocked waiting for a request to complete. Because virtual-thread
+workers are short-lived (one per task or one per active key) and exit
+after completing their work, VDP must explicitly flush the cooperative
+notifier at known idle boundaries to match legacy daemon pool behavior.
+
+The flush policy is controlled by a single production system property:
+
+[cols="2,1,3"]
+|===
+| System Property | Default | Purpose
+
+| `coherence.daemonpool.virtual.flushPolicy`
+| `idle`
+| Flush policy for the cooperative notifier.
+
+`idle` (or `default`) flushes at idle boundaries: keyed mailbox drainers
+flush when the mailbox queue drains empty, and direct, priority, and
+`ASSOCIATION_ALL` work flushes at wrapper completion after the
+association barrier is released. This matches legacy daemon pool
+semantics.
+
+`task` (or `eager`) flushes after every wrapper execution, including
+within a mailbox drainer, for the most aggressive latency posture. Use
+this only if a workload is observed to suffer wakeup-latency stalls
+under the default `idle` policy.
+
+The values `none` and `off` are accepted in benchmark-only diagnostic
+mode, but are explicitly rejected on this property and fall back to
+`idle`. Disabling cooperative-notifier flushing recreates a
+request-latency failure that VDP's design specifically addresses, so it
+is not a supported operational setting.
+|===
+
+== Observing VDP
+
+Standard Coherence service metrics (task counts, throughput, latency)
+work identically with VDP. Some metrics are specific to the new
+implementation:
+
+- *Active mailbox count* — number of keys with an in-flight task or
+  queue. Reflects current per-key contention.
+- *Mailbox queue depth* — per-mailbox queue depth for active keys.
+- *Permit utilization* — when `<task-limit>` is set, the ratio of
+  permits held to total permits. A consistently high ratio suggests the
+  cap may be too low, or that downstream blocking is the actual
+  bottleneck.
+
+=== VDP MBean Surface
+
+The `ServiceMBean` surface is intentionally shared by legacy
+platform-thread pools and VDP. Existing attributes keep their literal
+meaning, and VDP-specific concepts are exposed through additional
+attributes instead of overloading existing ones.
+
+[cols="1,2,2"]
+|===
+| Attribute | Platform pool | Virtual pool
+
+| `ThreadCount`
+| Live platform worker count
+| Live virtual-thread count
+
+| `ThreadCountMin`
+| Configured platform worker floor
+| `0` — VDP keeps no idle thread floor
+
+| `ThreadCountMax`
+| Configured platform worker ceiling
+| `Integer.MAX_VALUE` — virtual threads are not capped by thread count
+
+| `ActiveDaemonCount`
+| Platform workers currently executing tasks
+| Virtual threads currently executing tasks
+
+| `ThreadIdleCount`
+| Idle platform workers
+| Parked virtual threads waiting behind `TaskLimit`
+
+| `ThreadPoolSizingEnabled`
+| `true` when the platform pool can resize within bounds
+| `true` — VDP is workload-driven by design
+
+| `TaskBacklog`
+| Tasks queued for platform workers, plus service queue backlog
+| Keyed-mailbox queue depth, parked virtual threads, plus service queue backlog
+
+| `TaskLimit`
+| `-1` — not applicable; use `ThreadCountMax`
+| Configured active-task cap; `0` means unbounded
+
+| `DaemonPoolType`
+| `PLATFORM`
+| `VIRTUAL`
+
+| `PoolSaturation`
+| `ActiveDaemonCount / ThreadCountMax`, or `-1.0` when undefined
+| `ActiveDaemonCount / TaskLimit`, or `-1.0` when unbounded
+|===
+
+`ThreadCount` continues to mean "live thread count" for both pool
+types. For VDP this can be much larger than `ActiveDaemonCount`, because
+virtual threads parked behind `TaskLimit` are live but not executing.
+Dashboards should use `PoolSaturation` for operational saturation
+instead of constructing their own ratio from thread-count attributes.
+
+`TaskBacklog` includes parked virtual threads in addition to keyed
+mailbox queue depth. This is the same combined measure used by service
+flow-control backpressure, so a saturated VDP service now reports
+backlog accurately and producer backpressure engages when the combined
+backlog exceeds the service threshold.
+
+[cols="2,2"]
+|===
+| Legacy dashboard behavior | VDP-ready behavior
+
+| Chart `ActiveDaemonCount / ThreadCountMax`
+| Chart `PoolSaturation`
+
+| Alert when `ThreadCount` approaches `ThreadCountMax`
+| Alert when `PoolSaturation` approaches `1.0`
+
+| Use `ThreadCountMax` as the concurrency cap
+| Use `TaskLimit` when `DaemonPoolType` is `VIRTUAL`
+
+| Treat `TaskBacklog` as queued worker tasks
+| Treat `TaskBacklog` as queued tasks plus parked virtual threads
+
+| Resize with `ThreadCount`, `ThreadCountMin`, or `ThreadCountMax`
+| Adjust `TaskLimit`; thread-count setters are ignored with a warning
+|===
+
+=== Reading VDP Thread Names
+
+VDP thread names follow a fixed structure designed to be informative in
+thread dumps and useful for log-line correlation. Knowing how to read
+them is the fastest way to interpret a thread dump or grep through logs
+for activity on a specific mailbox or request.
+
+[cols="2,3"]
+|===
+| Pattern | Meaning
+
+| `<pool>:M:<MBOX-HEX>`
+| Mailbox drainer on entry or after its drain loop exits
+
+| `<pool>:M:<MBOX-HEX>:<Type>:<TASK-HEX>`
+| Mailbox drainer, currently executing a task
+
+| `<pool>:D:<Type>:<TASK-HEX>`
+| Direct (unassociated) task
+
+| `<pool>:A:<Type>:<TASK-HEX>`
+| `ASSOCIATION_ALL` task (write-barrier holder, blocks all other tasks while it runs)
+|===
+
+Field semantics:
+
+- `<pool>` — service name, e.g. `OrdersService`.
+- `M`, `D`, `A` — single-letter dispatch category. Use this to scan
+  thread dumps quickly. `A` in particular identifies a thread that is
+  currently holding the pool's write barrier; while one is active, all
+  other tasks in the pool are blocked.
+- `<Type>` — the simple name of the request class with a trailing
+  `Request` suffix removed, so `GetRequest` shows up as `Get`,
+  `InvokeRequest` as `Invoke`, and `PartitionTransferRequest` as
+  `PartitionTransfer`. Other suffixes (`Message`, `Event`, `Task`)
+  are preserved.
+- `<MBOX-HEX>` — uppercase 8-digit hex identifier for the mailbox.
+  Stable for the lifetime of the mailbox. *All drainer threads for
+  the same live mailbox share the same `<MBOX-HEX>`*, so grepping logs
+  by this field surfaces every reactivated drainer cycle for that
+  mailbox. If an idle mailbox is retired and a later task recreates a
+  mailbox for the same association key, the new mailbox gets a new
+  identifier. The hex is `System.identityHashCode` of the mailbox
+  object, not the cache key itself.
+- `<TASK-HEX>` — uppercase 8-digit hex identifier for the request
+  being processed. Useful for tying a log line back to the exact
+  request the thread was running at that moment.
+
+Example names:
+
+[source,text]
+----
+OrdersService:M:1A3B5C7D                        # idle drainer for mailbox 1A3B5C7D
+OrdersService:M:1A3B5C7D:Get:FEDCBA98           # same drainer running a Get request
+OrdersService:D:Invoke:11223344                 # direct, processing an Invoke request
+OrdersService:A:PartitionTransfer:55667788      # all-association, holding the write barrier
+----
+
+Mailbox drainers update their thread name to the active form on each
+task they pick up, so log lines and JFR `ExecutionSample` events that
+interpolate the thread name reflect the request currently being
+processed. The drainer's name is restored to the idle form on exit.
+
+[NOTE]
+====
+Cache keys, EP arguments, and other request payload do not appear in
+thread names. The hex correlators uniquely identify the relevant
+object (mailbox or request) within the running JVM but disclose
+nothing about its contents. Thread dumps, JFR recordings, and log
+files can be shared with support without redaction concerns about
+user data leaking through worker thread names.
+====
+
+=== Thread Dumps and JFR
+
+Virtual thread dumps can be very large under load (one VT per active
+key, plus one per direct-dispatch task in flight). Use Java Flight
+Recorder for long-running diagnostic sessions in preference to thread
+dumps. JFR `ExecutionSample` events capture the live thread name at
+sample time, so the per-task drainer renames described above propagate
+into JFR profile aggregations: CPU samples can be grouped by
+`<Type>` to attribute time to specific request classes per service.
+
+== Summary
+
+The Virtual Daemon Pool is an opt-in alternative to the legacy
+platform-thread daemon pool. Enable it per service with
+`<daemon-pool>virtual</daemon-pool>`, optionally adding `<task-limit>`
+for admission control. The default behavior is unchanged from earlier
+releases: services run on the legacy platform-thread pool unless
+explicitly opted in, and there is no deployment-wide switch that
+enables VDP everywhere.
+
+For most deployments the migration path is:
+
+. Choose a candidate service for VDP — typically one with significant
+  I/O, hot-key contention, or long synchronous external calls.
+. Add `<daemon-pool>virtual</daemon-pool>` to the service scheme in a
+  test environment, remove any `<thread-count-*>` or `<worker-priority>`
+  elements on that scheme, and validate functional behavior.
+. Tune `<task-limit>` if a cap is needed for memory or downstream
+  protection.
+. Promote to production once functional and load testing are clean.
+
+The legacy pool remains fully supported, and a service can switch back
+by replacing `<daemon-pool>virtual</daemon-pool>` with
+`<daemon-pool>platform</daemon-pool>` (or removing the element
+entirely) and reinstating the legacy sizing elements.

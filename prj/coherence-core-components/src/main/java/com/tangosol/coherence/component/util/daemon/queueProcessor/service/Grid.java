@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7374,6 +7374,112 @@ public abstract class Grid
                 
                 super.onWait();
                 }
+            }
+        }
+
+    // Declared at the super level
+    protected com.tangosol.coherence.component.util.DaemonPool instantiateDaemonPool(boolean fVirtual)
+        {
+        return fVirtual
+               ? new Grid.VirtualDaemonPool("VirtualDaemonPool", this, true)
+               : new Grid.DaemonPool("DaemonPool", this, true);
+        }
+
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid$VirtualDaemonPool
+
+    /**
+     * Grid-specific virtual-thread worker-pool prototype.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class VirtualDaemonPool
+            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+        {
+        private static com.tangosol.util.ListMap __mapChildren;
+
+        static
+            {
+            __initStatic();
+            }
+
+        private static void __initStatic()
+            {
+            __mapChildren = new com.tangosol.util.ListMap();
+            __mapChildren.put("Daemon", Grid.DaemonPool.Daemon.get_CLASS());
+            __mapChildren.put("ResizeTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.ResizeTask.get_CLASS());
+            __mapChildren.put("ScheduleTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.ScheduleTask.get_CLASS());
+            __mapChildren.put("StartTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.StartTask.get_CLASS());
+            __mapChildren.put("StopTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.StopTask.get_CLASS());
+            __mapChildren.put("WorkSlot", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.WorkSlot.get_CLASS());
+            __mapChildren.put("WrapperTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.WrapperTask.get_CLASS());
+            }
+
+        public VirtualDaemonPool()
+            {
+            this(null, null, true);
+            }
+
+        public VirtualDaemonPool(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        public void __init()
+            {
+            __initPrivate();
+
+            try
+                {
+                setAbandonThreshold(8);
+                setDaemonCountMax(2147483647);
+                setDaemonCountMin(1);
+                setScheduledTasks(new java.util.HashSet());
+                setStatsTaskAddCount(new java.util.concurrent.atomic.AtomicLong());
+                }
+            catch (java.lang.Exception e)
+                {
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            set_Constructed(true);
+            }
+
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.VirtualDaemonPool();
+            }
+
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/Grid$VirtualDaemonPool".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        protected java.util.Map get_ChildClasses()
+            {
+            return __mapChildren;
             }
         }
 

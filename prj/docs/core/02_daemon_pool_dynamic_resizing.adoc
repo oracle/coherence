@@ -16,6 +16,15 @@ behavior through cache configuration and system properties.
 It is a user-facing guide intended for developers and operators running
 Coherence clusters, not an internal design document.
 
+This guide covers the *legacy platform-thread daemon pool*, which is the
+default. Coherence also offers a *Virtual Daemon Pool* that runs worker
+tasks on virtual threads instead, with a different concurrency model
+and configuration surface. See xref:03_virtual_daemon_pool.adoc[] for
+when to choose the virtual pool and how to enable it per service. The
+two pool types are mutually exclusive on a given service: the
+configuration elements described in this guide apply only when the
+service is using the legacy platform-thread pool.
+
 == Overview
 
 Coherence services such as distributed caches, proxy services, and invocation
@@ -169,6 +178,21 @@ capacity.
 ====
 Setting `thread-count-min` equal to `thread-count-max` disables dynamic
 resizing for that service and pins the pool at that size.
+====
+
+[NOTE]
+====
+The legacy `<thread-count>` element pins the pool to a fixed size, or
+disables the daemon pool entirely if set to `0` (in which case the
+service thread processes all requests). Combining `<thread-count>` with
+`<thread-count-min>` or `<thread-count-max>` is ambiguous, because the
+fixed-size and dynamic-bounds models contradict each other. The
+combination is allowed for backward compatibility with existing
+configurations, but the service emits a configuration warning at
+startup identifying the offending elements. Pick one form for new
+deployments: either `<thread-count>` for a fixed-size pool, or
+`<thread-count-min>` / `<thread-count-max>` for dynamic resizing within
+bounds.
 ====
 
 == Tuning the Resizing Behavior

@@ -7748,7 +7748,17 @@ public class DaemonPool
             {
             return __m_ManagementTask;
             }
-        
+
+        /**
+         * Determine whether the wrapped task is read-only.
+         */
+        public boolean isReadOnly()
+            {
+            Runnable task = getTask();
+            return task instanceof com.tangosol.coherence.component.net.message.RequestMessage
+                   && ((com.tangosol.coherence.component.net.message.RequestMessage) task).isReadOnly();
+            }
+
         // Declared at the super level
         /**
          * The "component has been initialized" method-notification called out
@@ -7772,13 +7782,18 @@ public class DaemonPool
         public void recover()
             {
             }
-        
-        // From interface: java.lang.Runnable
-        public void run()
+
+        /**
+         * Prepare the wrapped task for execution.
+         *
+         * @return true if the task should execute; false if it has already
+         *         been canceled or handled
+         */
+        protected boolean prepareExecution()
             {
             // import com.tangosol.net.Guardian$GuardContext as com.tangosol.net.Guardian.GuardContext;
             // import com.tangosol.util.Base;
-            
+
             synchronized (this)
                 {
                 com.tangosol.net.Guardian.GuardContext context = getGuardContext();
@@ -7787,15 +7802,15 @@ public class DaemonPool
                     context.release();
                     setGuardContext(null);
                     }
-            
+
                 if (getStartTime() > 0L)
                     {
                     // the task has already been handled (canceled)
-                    return;
+                    return false;
                     }
                 long ldtNow = Base.getSafeTimeMillis();
                 setStartTime(ldtNow);
-            
+
                 if (getStopTime() == 0L)
                     {
                     long cTimeout = getTimeoutMillis();
@@ -7805,9 +7820,17 @@ public class DaemonPool
                         setStopTime(ldtNow + cTimeout);
                         }
                     }
+                return true;
                 }
-            
-            run(getTask());
+            }
+
+        // From interface: java.lang.Runnable
+        public void run()
+            {
+            if (prepareExecution())
+                {
+                run(getTask());
+                }
             }
         
         /**

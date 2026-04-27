@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -52,15 +52,35 @@ public class LegacyXmlServiceHelper
         deps.setRequestTimeoutMillis(
            XmlHelper.parseTime(xml, "request-timeout", deps.getRequestTimeoutMillis()));
 
-        XmlElement xmlThreads = xml.getElement("thread-count");
-        if (xmlThreads == null || xmlThreads.isEmpty())
-            {
-            deps.setWorkerThreadCountMax(xml.getSafeElement("thread-count-max").getInt(deps.getWorkerThreadCountMax()));
-            deps.setWorkerThreadCountMin(xml.getSafeElement("thread-count-min").getInt(deps.getWorkerThreadCountMin()));
-            }
-        else
+        XmlElement xmlThreads        = xml.getElement("thread-count");
+        XmlElement xmlThreadCountMax = xml.getElement("thread-count-max");
+        XmlElement xmlThreadCountMin = xml.getElement("thread-count-min");
+
+        if (xmlThreads != null && !XmlHelper.isEmpty(xmlThreads))
             {
             deps.setWorkerThreadCount(xmlThreads.getInt(deps.getWorkerThreadCount()));
+            }
+
+        if (xmlThreadCountMax != null && !XmlHelper.isEmpty(xmlThreadCountMax))
+            {
+            deps.setWorkerThreadCountMax(xmlThreadCountMax.getInt(deps.getWorkerThreadCountMax()));
+            }
+
+        if (xmlThreadCountMin != null && !XmlHelper.isEmpty(xmlThreadCountMin))
+            {
+            deps.setWorkerThreadCountMin(xmlThreadCountMin.getInt(deps.getWorkerThreadCountMin()));
+            }
+
+        XmlElement xmlDaemonPool = xml.getElement("daemon-pool");
+        if (xmlDaemonPool != null && !XmlHelper.isEmpty(xmlDaemonPool))
+            {
+            deps.setDaemonPoolType(xmlDaemonPool.getString());
+            }
+
+        XmlElement xmlTaskLimit = xml.getElement("task-limit");
+        if (xmlTaskLimit != null && !XmlHelper.isEmpty(xmlTaskLimit))
+            {
+            deps.setTaskLimit(xmlTaskLimit.getInt(deps.getTaskLimit()));
             }
 
         deps.setTaskHungThresholdMillis(
@@ -75,8 +95,11 @@ public class LegacyXmlServiceHelper
         deps.setEventDispatcherThreadPriority(xml.getSafeElement("event-dispatcher-priority")
                 .getInt(deps.getEventDispatcherThreadPriority()));
 
-        deps.setWorkerThreadPriority(
-                xml.getSafeElement("worker-priority").getInt(deps.getWorkerThreadPriority()));
+        XmlElement xmlWorkerPriority = xml.getElement("worker-priority");
+        if (xmlWorkerPriority != null && !XmlHelper.isEmpty(xmlWorkerPriority))
+            {
+            deps.setWorkerThreadPriority(xmlWorkerPriority.getInt(deps.getWorkerThreadPriority()));
+            }
 
         XmlElement xmlSerializer = xml.getElement("serializer");
         if (xmlSerializer != null && !XmlHelper.isEmpty(xmlSerializer))

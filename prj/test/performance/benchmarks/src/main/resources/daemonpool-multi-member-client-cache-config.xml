@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<cache-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
+              xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
+  <caching-scheme-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-backup</cache-name>
+      <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-persistence</cache-name>
+      <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
+    </cache-mapping>
+  </caching-scheme-mapping>
+
+  <caching-schemes>
+    <remote-cache-scheme>
+      <scheme-name>benchmark-remote-extend</scheme-name>
+      <service-name>RemoteCache</service-name>
+      <proxy-service-name>Proxy</proxy-service-name>
+      <initiator-config>
+        <tcp-initiator>
+          <name-service-addresses>
+            <socket-address>
+              <address system-property="benchmark.daemonpool.name.service.address">127.0.0.1</address>
+              <port system-property="benchmark.daemonpool.name.service.port">7574</port>
+            </socket-address>
+          </name-service-addresses>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <request-timeout>2m</request-timeout>
+        </outgoing-message-handler>
+      </initiator-config>
+    </remote-cache-scheme>
+
+    <remote-grpc-cache-scheme>
+      <scheme-name>benchmark-remote-grpc</scheme-name>
+      <service-name>RemoteGrpcCache</service-name>
+      <grpc-channel>
+        <remote-addresses>
+          <socket-address>
+            <address system-property="benchmark.daemonpool.grpc.address">127.0.0.1</address>
+            <port system-property="benchmark.daemonpool.grpc.port">1408</port>
+          </socket-address>
+        </remote-addresses>
+      </grpc-channel>
+    </remote-grpc-cache-scheme>
+  </caching-schemes>
+</cache-config>

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -150,24 +150,25 @@ public class ServiceModel
     /**
      * Property ThreadCount
      *
-     * The number of threads in the service thread pool. For services that
-     * support dynamic thread pool sizing, this is the current thread pool size.
+     * The number of live worker threads in the service pool. For VDP-backed
+     * services this is the number of live virtual threads.
      */
     private int __m_ThreadCount;
     
     /**
      * Property ThreadCountMax
      *
-     * The maximum thread count allowed for this service when dynamic thread
-     * pool sizing is enabled.
+     * The maximum live worker thread count for platform-thread pools. For VDP,
+     * virtual threads are not capped by this value; use TaskLimit for the
+     * active-task cap.
      */
     private transient int __m_ThreadCountMax;
     
     /**
      * Property ThreadCountMin
      *
-     * The minimum thread count for this service when dynamic thread pool
-     * sizing is enabled.
+     * The minimum live worker thread count for platform-thread pools. For VDP,
+     * this is 0 because the pool does not maintain an idle thread floor.
      */
     private transient int __m_ThreadCountMin;
     
@@ -281,6 +282,25 @@ public class ServiceModel
             }
         
         return serviceImpl == null ? null : serviceImpl.getDaemonPool();
+        }
+
+    // Accessor for the property "DaemonPoolType"
+    /**
+     * Getter for property DaemonPoolType.<p>
+     * The daemon pool implementation backing this service.
+     */
+    public String getDaemonPoolType()
+        {
+        // import Component.Util.DaemonPool;
+
+        DaemonPool pool = get_DaemonPool();
+        if (pool == null)
+            {
+            return "NONE";
+            }
+
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? "VIRTUAL" : "PLATFORM";
         }
     
     // Accessor for the property "_MessageHandler"
@@ -1643,7 +1663,7 @@ public class ServiceModel
     public float getTaskAverageDuration()
         {
         // import Component.Util.DaemonPool;
-        
+
         DaemonPool pool = get_DaemonPool();
         if (pool != null && pool.isStarted())
             {
@@ -1652,14 +1672,42 @@ public class ServiceModel
         
             return cTasks == 0L ? 0.0f : (float) (((double) cPoolTotal)/ ((double) cTasks));
             }
-        
+
         return -1f;
+        }
+
+    // Accessor for the property "PoolSaturation"
+    /**
+     * Getter for property PoolSaturation.<p>
+     * Fraction of the active-concurrency cap currently in use.
+     */
+    public double getPoolSaturation()
+        {
+        // import Component.Util.DaemonPool;
+
+        DaemonPool pool = get_DaemonPool();
+        if (pool == null || !pool.isStarted())
+            {
+            return -1.0d;
+            }
+
+        int cActive = pool.getActiveDaemonCount();
+        if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
+            {
+            int cTaskLimit = ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool).getTaskLimit();
+            return cTaskLimit > 0 ? (double) cActive / cTaskLimit : -1.0d;
+            }
+
+        int cMax = pool.getDaemonCountMax();
+        return cMax > 0 ? (double) cActive / cMax : -1.0d;
         }
     
     // Accessor for the property "TaskBacklog"
     /**
      * Getter for property TaskBacklog.<p>
-    * The number of Daemon threads used by this Service.
+    * The size of the backlog queue that holds tasks scheduled to be executed
+    * by one of the service workers. For VDP this includes virtual threads
+    * parked behind TaskLimit.
      */
     public int getTaskBacklog()
         {
@@ -1682,6 +1730,21 @@ public class ServiceModel
         
         return cTask;
         }
+
+    // Accessor for the property "TaskLimit"
+    /**
+     * Getter for property TaskLimit.<p>
+     * The maximum number of concurrently executing tasks for VDP-backed services.
+     */
+    public int getTaskLimit()
+        {
+        // import Component.Util.DaemonPool;
+
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool).getTaskLimit()
+                : -1;
+        }
     
     // Accessor for the property "TaskCount"
     /**
@@ -1692,7 +1755,7 @@ public class ServiceModel
     public long getTaskCount()
         {
         // import Component.Util.DaemonPool;
-        
+
         DaemonPool pool = get_DaemonPool();
         return pool != null && pool.isStarted() ? pool.getStatsTaskCount() : -1;
         }
@@ -1705,7 +1768,7 @@ public class ServiceModel
     public int getTaskHungCount()
         {
         // import Component.Util.DaemonPool;
-        
+
         DaemonPool pool = get_DaemonPool();
         return pool != null && pool.isStarted() ? pool.getStatsHungCount() : -1;
         }
@@ -1841,8 +1904,8 @@ public class ServiceModel
     // Accessor for the property "ThreadCount"
     /**
      * Getter for property ThreadCount.<p>
-    * The number of threads in the service thread pool. For services that
-    * support dynamic thread pool sizing, this is the current thread pool size.
+    * The number of live worker threads in the service pool. For VDP-backed
+    * services this is the number of live virtual threads.
      */
     public int getThreadCount()
         {
@@ -1855,8 +1918,9 @@ public class ServiceModel
     // Accessor for the property "ThreadCountMax"
     /**
      * Getter for property ThreadCountMax.<p>
-    * The maximum thread count allowed for this service when dynamic thread
-    * pool sizing is enabled.
+    * The maximum live worker thread count for platform-thread pools. For VDP,
+    * virtual threads are not capped by this value; use TaskLimit for the
+    * active-task cap.
      */
     public int getThreadCountMax()
         {
@@ -1869,8 +1933,8 @@ public class ServiceModel
     // Accessor for the property "ThreadCountMin"
     /**
      * Getter for property ThreadCountMin.<p>
-    * The minimum thread count for this service when dynamic thread pool sizing
-    * is enabled.
+    * The minimum live worker thread count for platform-thread pools. For VDP,
+    * this is 0 because the pool does not maintain an idle thread floor.
      */
     public int getThreadCountMin()
         {
@@ -2423,7 +2487,8 @@ public class ServiceModel
     // Accessor for the property "ThreadPoolSizingEnabled"
     /**
      * Getter for property ThreadPoolSizingEnabled.<p>
-    * Whether or not dynamic thread pool sizing is enabled for this service.
+    * Whether or not the backing pool reports dynamic sizing. VDP always reports
+    * dynamic sizing because virtual threads are created and retired on demand.
      */
     public boolean isThreadPoolSizingEnabled()
         {
@@ -2549,6 +2614,24 @@ public class ServiceModel
             mapSnapshot.put("TaskRateFiveMinute", Double.valueOf(in.readDouble()));
             mapSnapshot.put("TaskRateMean", Double.valueOf(in.readDouble()));
             mapSnapshot.put("TaskRateOneMinute", Double.valueOf(in.readDouble()));
+            }
+
+        mapSnapshot.put("TaskLimit", Integer.valueOf(-1));
+        mapSnapshot.put("DaemonPoolType", "NONE");
+        mapSnapshot.put("PoolSaturation", Double.valueOf(-1.0d));
+
+        if (ExternalizableHelper.isVersionCompatible(in, 15, 1, 2, 0, 0))
+            {
+            try
+                {
+                mapSnapshot.put("TaskLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("DaemonPoolType", ExternalizableHelper.readSafeUTF(in));
+                mapSnapshot.put("PoolSaturation", Double.valueOf(in.readDouble()));
+                }
+            catch (java.io.EOFException ignored)
+                {
+                // tolerate older same-version nodes that do not yet write VDP MBean fields
+                }
             }
         }
 
@@ -2743,12 +2826,44 @@ public class ServiceModel
                 "ThreadPool is not configured");
             }
         }
+
+    // Accessor for the property "TaskLimit"
+    /**
+     * Setter for property TaskLimit.<p>
+     * The maximum number of concurrently executing tasks for VDP-backed services.
+     */
+    public void setTaskLimit(int cTaskLimit)
+        {
+        // import Component.Util.DaemonPool;
+
+        checkReadOnly("setTaskLimit");
+
+        DaemonPool pool = get_DaemonPool();
+        if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
+            {
+            ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool).setTaskLimit(cTaskLimit);
+            }
+        else
+            {
+            traceTaskLimitSetterNoEffect(cTaskLimit, pool);
+            }
+        }
+
+    /**
+     * Trace that the VDP TaskLimit setter is not applicable to a platform pool.
+     */
+    protected void traceTaskLimitSetterNoEffect(int cTaskLimit, DaemonPool pool)
+        {
+        _trace("setTaskLimit(" + cTaskLimit + ") has no effect on platform-thread pool \""
+                + (pool == null ? get_ServiceName() : pool.getName())
+                + "\"; use setThreadCountMax instead.", 2);
+        }
     
     // Accessor for the property "ThreadCount"
     /**
      * Setter for property ThreadCount.<p>
-    * The number of threads in the service thread pool. For services that
-    * support dynamic thread pool sizing, this is the current thread pool size.
+    * The number of live worker threads in the service pool. For VDP-backed
+    * services this setter has no effect and emits a warning.
      */
     public void setThreadCount(int cThreads)
         {
@@ -2757,7 +2872,11 @@ public class ServiceModel
         checkReadOnly("setThreadCount");
         
         DaemonPool pool = get_DaemonPool();
-        if (pool != null && pool.isStarted())
+        if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
+            {
+            pool.setDaemonCount(cThreads);
+            }
+        else if (pool != null && pool.isStarted())
             {
             checkRange("setThreadCount", cThreads, 1, Integer.MAX_VALUE);
             pool.setDaemonCount(cThreads);
@@ -2772,8 +2891,8 @@ public class ServiceModel
     // Accessor for the property "ThreadCountMax"
     /**
      * Setter for property ThreadCountMax.<p>
-    * The maximum thread count allowed for this service when dynamic thread
-    * pool sizing is enabled.
+    * The maximum live worker thread count for platform-thread pools. For VDP,
+    * use TaskLimit instead.
      */
     public void setThreadCountMax(int nMax)
         {
@@ -2782,7 +2901,11 @@ public class ServiceModel
         checkReadOnly("setThreadCountMax");
         
         DaemonPool pool = get_DaemonPool();
-        if (pool != null && pool.isDynamic())
+        if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
+            {
+            pool.setDaemonCountMax(nMax);
+            }
+        else if (pool != null && pool.isDynamic())
             {
             checkRange("setThreadCountMax", nMax, getThreadCountMin() + 1, Integer.MAX_VALUE);
             pool.setDaemonCountMax(nMax);
@@ -2797,8 +2920,8 @@ public class ServiceModel
     // Accessor for the property "ThreadCountMin"
     /**
      * Setter for property ThreadCountMin.<p>
-    * The minimum thread count for this service when dynamic thread pool sizing
-    * is enabled.
+    * The minimum live worker thread count for platform-thread pools. For VDP
+    * this setter has no effect and emits a warning.
      */
     public void setThreadCountMin(int nMin)
         {
@@ -2807,7 +2930,11 @@ public class ServiceModel
         checkReadOnly("setThreadCountMin");
         
         DaemonPool pool = get_DaemonPool();
-        if (pool != null && pool.isDynamic())
+        if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
+            {
+            pool.setDaemonCountMin(nMin);
+            }
+        else if (pool != null && pool.isDynamic())
             {
             checkRange("setThreadCountMin", nMin, 1, getThreadCountMax() - 1);
             pool.setDaemonCountMin(nMin);
@@ -2976,6 +3103,14 @@ public class ServiceModel
             out.writeDouble(getTaskRateFiveMinute());
             out.writeDouble(getTaskRateMean());
             out.writeDouble(getTaskRateOneMinute());
+            }
+
+        // added in 15.1.2.0.0
+        if (ExternalizableHelper.isVersionCompatible(out, 15, 1, 2, 0, 0))
+            {
+            ExternalizableHelper.writeInt(out, getTaskLimit());
+            ExternalizableHelper.writeSafeUTF(out, getDaemonPoolType());
+            out.writeDouble(getPoolSaturation());
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package com.tangosol.internal.net.service;
 
 import com.tangosol.io.ConfigurableSerializerFactory;
+
+import com.tangosol.net.DaemonPoolType;
 
 import com.tangosol.util.AssertionException;
 
@@ -200,6 +202,10 @@ public class ServiceDependenciesTest
         assertEquals(deps1.getTaskTimeoutMillis(), deps2.getTaskTimeoutMillis());
         assertEquals(deps1.getWorkerThreadCount(), deps2.getWorkerThreadCount());
         assertEquals(deps1.getSerializerFactory(), deps2.getSerializerFactory());
+        assertEquals(deps1.getDaemonPoolType(), deps2.getDaemonPoolType());
+        assertEquals(deps1.isDaemonPoolConfigured(), deps2.isDaemonPoolConfigured());
+        assertEquals(deps1.getTaskLimit(), deps2.getTaskLimit());
+        assertEquals(deps1.isTaskLimitConfigured(), deps2.isTaskLimitConfigured());
         }
 
     /**
@@ -233,5 +239,11 @@ public class ServiceDependenciesTest
 
         deps.setWorkerThreadCount(n);
         assertEquals(n, deps.getWorkerThreadCount());
+
+        deps.setDaemonPoolType(DaemonPoolType.VIRTUAL);
+        assertEquals(DaemonPoolType.VIRTUAL, deps.getDaemonPoolType());
+
+        deps.setTaskLimit(n = random.nextInt(1000));
+        assertEquals(n, deps.getTaskLimit());
         }
     }

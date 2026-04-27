@@ -388,6 +388,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.PartitionsEndangered",
                                     "Coherence.Service.PartitionsUnbalanced",
                                     "Coherence.Service.PartitionsVulnerable",
+                                    "Coherence.Service.PoolSaturation",
                                     "Coherence.Service.PersistenceLatencyAverage",
                                     "Coherence.Service.PersistenceLatencyMax",
                                     "Coherence.Service.PersistenceSnapshotSpaceAvailable",
@@ -409,6 +410,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.TaskMaxBacklog",
                                     "Coherence.Service.TaskRate",
                                     "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.TaskLimit",
                                     "Coherence.Service.ThreadAbandonedCount",
                                     "Coherence.Service.ThreadAverageActiveCount",
                                     "Coherence.Service.ThreadCount",
@@ -434,6 +436,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.MessagesLocal",
                                     "Coherence.Service.MessagesReceived",
                                     "Coherence.Service.MessagesSent",
+                                    "Coherence.Service.PoolSaturation",
                                     "Coherence.Service.RequestAverageDuration",
                                     "Coherence.Service.RequestMaxDuration",
                                     "Coherence.Service.RequestPendingCount",
@@ -449,6 +452,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.TaskMaxBacklog",
                                     "Coherence.Service.TaskRate",
                                     "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.TaskLimit",
                                     "Coherence.Service.ThreadAbandonedCount",
                                     "Coherence.Service.ThreadAverageActiveCount",
                                     "Coherence.Service.ThreadCount",
@@ -489,6 +493,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.PersistenceLatencyMax",
                                     "Coherence.Service.PersistenceSnapshotSpaceAvailable",
                                     "Coherence.Service.PersistenceSnapshotSpaceTotal",
+                                    "Coherence.Service.PoolSaturation",
                                     "Coherence.Service.RequestAverageDuration",
                                     "Coherence.Service.RequestMaxDuration",
                                     "Coherence.Service.RequestPendingCount",
@@ -506,6 +511,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.TaskMaxBacklog",
                                     "Coherence.Service.TaskRate",
                                     "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.TaskLimit",
                                     "Coherence.Service.ThreadAbandonedCount",
                                     "Coherence.Service.ThreadAverageActiveCount",
                                     "Coherence.Service.ThreadCount",
@@ -549,6 +555,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.PersistenceLatencyMax",
                                     "Coherence.Service.PersistenceSnapshotSpaceAvailable",
                                     "Coherence.Service.PersistenceSnapshotSpaceTotal",
+                                    "Coherence.Service.PoolSaturation",
                                     "Coherence.Service.RequestAverageDuration",
                                     "Coherence.Service.RequestMaxDuration",
                                     "Coherence.Service.RequestPendingCount",
@@ -566,6 +573,7 @@ public class MetricsSupportTests
                                     "Coherence.Service.TaskMaxBacklog",
                                     "Coherence.Service.TaskRate",
                                     "Coherence.Service.TaskTimeoutCount",
+                                    "Coherence.Service.TaskLimit",
                                     "Coherence.Service.ThreadAbandonedCount",
                                     "Coherence.Service.ThreadAverageActiveCount",
                                     "Coherence.Service.ThreadCount",
@@ -1045,17 +1053,17 @@ public class MetricsSupportTests
     /**
      * List of optional metrics that are not reported as a missing metric assertion failure.
      *
-     * THe MBean attribute documentation for jdk.management OperatingSystemMXBean document
-     * that these attributes can return a negative value. Metrics treats a negative value as not set
-     * and does not return the value. So consider all these values as optional to avoid nusance failures
-     * when running against JDK 17. See build bug 33374653 for details.
+     * Some MBean attributes can return negative sentinel values. Metrics treats a negative
+     * value as not set and does not return the value, so consider those metrics optional.
+     * For JDK OS metrics, see build bug 33374653.
      */
     private static final List<String> LIST_OPTIONAL =
             Arrays.asList("Coherence.OS.CpuLoad",
                           "Coherence.OS.ProcessCpuLoad",
                           "Coherence.OS.ProcessCpuTime",
                           "Coherence.OS.SystemCpuLoad",
-                          "Coherence.OS.SystemLoadAverage"
+                          "Coherence.OS.SystemLoadAverage",
+                          "Coherence.Service.TaskLimit"
                          );
 
     /**

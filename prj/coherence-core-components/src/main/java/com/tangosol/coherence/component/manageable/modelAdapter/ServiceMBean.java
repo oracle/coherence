@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,24 @@ public class ServiceMBean
         extends    com.tangosol.coherence.component.manageable.ModelAdapter
     {
     // ---- Fields declarations ----
+
+    /**
+     * Property DaemonPoolType
+     *
+     * The daemon pool implementation backing this service.
+     *
+     * @descriptor rest.collector=set
+     */
+    private transient String __m_DaemonPoolType;
+
+    /**
+     * Property PoolSaturation
+     *
+     * Fraction of the active-concurrency cap currently in use.
+     *
+     * @descriptor rest.collector=avg,metrics.value=_default
+     */
+    private transient double __m_PoolSaturation;
     
     /**
      * Property RequestTimeoutMillis
@@ -55,13 +73,21 @@ public class ServiceMBean
      * @descriptor rest.collector=set
      */
     private transient long __m_TaskTimeoutMillis;
+
+    /**
+     * Property TaskLimit
+     *
+     * The maximum number of concurrently executing tasks for VDP-backed services.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    private transient int __m_TaskLimit;
     
     /**
      * Property ThreadCount
      *
-     * The number of threads in the service thread pool. For services that
-     * support dynamic thread pool sizing, this is the current thread pool
-     * size.
+     * The number of live worker threads in the service pool. For VDP-backed
+     * services this is the number of live virtual threads.
      * 
      * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -70,8 +96,9 @@ public class ServiceMBean
     /**
      * Property ThreadCountMax
      *
-     * The maximum thread count allowed for this service when dynamic thread
-     * pool sizing is enabled.
+     * The maximum live worker thread count for platform-thread pools. For VDP,
+     * virtual threads are not capped by this value; use TaskLimit for the
+     * active-task cap.
      * 
      * @descriptor rest.collector=set
      */
@@ -80,8 +107,8 @@ public class ServiceMBean
     /**
      * Property ThreadCountMin
      *
-     * The minimum thread count for this service when dynamic thread pool
-     * sizing is enabled.
+     * The minimum live worker thread count for platform-thread pools. For VDP,
+     * this is 0 because the pool does not maintain an idle thread floor.
      * 
      * @descriptor rest.collector=set
      */
@@ -187,6 +214,18 @@ public class ServiceMBean
         {
         java.util.Map mapInfo = super.get_PropertyInfo();
         
+        // property DaemonPoolType
+            {
+            mapInfo.put("DaemonPoolType", new Object[]
+                {
+                "The daemon pool implementation backing this service: \"PLATFORM\" for the legacy platform-thread pool or \"VIRTUAL\" for the virtual-thread pool. Use this attribute to dispatch on pool-type-specific operational characteristics.",
+                "getDaemonPoolType",
+                null,
+                "Ljava/lang/String;",
+                "rest.collector=set",
+                });
+            }
+
         // property BackupCount
             {
             mapInfo.put("BackupCount", new Object[]
@@ -198,7 +237,7 @@ public class ServiceMBean
                 "rest.collector=set",
                 });
             }
-        
+
         // property BackupCountAfterWritebehind
             {
             mapInfo.put("BackupCountAfterWritebehind", new Object[]
@@ -210,7 +249,7 @@ public class ServiceMBean
                 "rest.collector=set",
                 });
             }
-        
+
         // property EventBacklog
             {
             mapInfo.put("EventBacklog", new Object[]
@@ -739,6 +778,18 @@ public class ServiceMBean
                 });
             }
 
+        // property PoolSaturation
+            {
+            mapInfo.put("PoolSaturation", new Object[]
+                {
+                "Fraction of the active-concurrency cap currently in use, in [0.0, 1.0]. For platform-thread pools this is ActiveDaemonCount/ThreadCountMax; for virtual-thread pools this is ActiveDaemonCount/TaskLimit. Returns -1.0 when saturation is undefined (pool not started, or no concurrency cap configured).",
+                "getPoolSaturation",
+                null,
+                "D",
+                "rest.collector=avg,metrics.value=_default",
+                });
+            }
+
         {
         mapInfo.put("TaskRateCount", new Object[]
                 {
@@ -912,7 +963,7 @@ public class ServiceMBean
             {
             mapInfo.put("TaskBacklog", new Object[]
                 {
-                "The size of the backlog queue that holds tasks scheduled to be executed by one of the service threads.",
+                "The size of the backlog queue that holds tasks scheduled to be executed by one of the service workers. For VDP this includes virtual threads parked behind TaskLimit.",
                 "getTaskBacklog",
                 null,
                 "I",
@@ -920,6 +971,18 @@ public class ServiceMBean
                 });
             }
         
+        // property TaskLimit
+            {
+            mapInfo.put("TaskLimit", new Object[]
+                {
+                "The maximum number of concurrently executing tasks for virtual-thread pools (VDP). For platform-thread pools this attribute returns -1; the operational cap is exposed via ThreadCountMax instead. A value of 0 indicates an unbounded VDP.",
+                "getTaskLimit",
+                "setTaskLimit",
+                "I",
+                "rest.collector=set,metrics.value=_default",
+                });
+            }
+
         // property TaskCount
             {
             mapInfo.put("TaskCount", new Object[]
@@ -1044,7 +1107,7 @@ public class ServiceMBean
             {
             mapInfo.put("ThreadCount", new Object[]
                 {
-                "The number of threads in the service thread pool. For services that support dynamic thread pool sizing, this is the current thread pool size.",
+                "The number of live worker threads in the service pool. For VDP-backed services this is the number of live virtual threads.",
                 "getThreadCount",
                 "setThreadCount",
                 "I",
@@ -1056,7 +1119,7 @@ public class ServiceMBean
             {
             mapInfo.put("ThreadCountMax", new Object[]
                 {
-                "The maximum thread count allowed for this service when dynamic thread pool sizing is enabled.",
+                "The maximum live worker thread count for platform-thread pools. For VDP, virtual threads are not capped by this value; use TaskLimit for the active-task cap.",
                 "getThreadCountMax",
                 "setThreadCountMax",
                 "I",
@@ -1068,7 +1131,7 @@ public class ServiceMBean
             {
             mapInfo.put("ThreadCountMin", new Object[]
                 {
-                "The minimum thread count for this service when dynamic thread pool sizing is enabled.",
+                "The minimum live worker thread count for platform-thread pools. For VDP, this is 0 because the pool does not maintain an idle thread floor.",
                 "getThreadCountMin",
                 "setThreadCountMin",
                 "I",
@@ -1104,7 +1167,7 @@ public class ServiceMBean
             {
             mapInfo.put("ThreadPoolSizingEnabled", new Object[]
                 {
-                "Whether or not dynamic thread pool sizing is enabled for this service.",
+                "Whether or not the backing pool reports dynamic sizing. VDP always reports dynamic sizing because virtual threads are created and retired on demand.",
                 "isThreadPoolSizingEnabled",
                 null,
                 "Z",
@@ -1363,6 +1426,18 @@ public class ServiceMBean
             }
         
         return mapInfo;
+        }
+
+    // Accessor for the property "DaemonPoolType"
+    /**
+     * Getter for property DaemonPoolType.<p>
+    * The daemon pool implementation backing this service.
+    *
+    * @descriptor rest.collector=set
+     */
+    public String getDaemonPoolType()
+        {
+        return __m_DaemonPoolType;
         }
     
     // Accessor for the property "BackupCount"
@@ -2047,6 +2122,18 @@ public class ServiceMBean
         return 0.0d;
         }
 
+    // Accessor for the property "PoolSaturation"
+    /**
+     * Getter for property PoolSaturation.<p>
+    * Fraction of the active-concurrency cap currently in use.
+    *
+    * @descriptor rest.collector=avg,metrics.value=_default
+     */
+    public double getPoolSaturation()
+        {
+        return __m_PoolSaturation;
+        }
+
     // Accessor for the property "TaskAverageDuration"
     /**
      * Getter for property TaskAverageDuration.<p>
@@ -2063,13 +2150,26 @@ public class ServiceMBean
     /**
      * Getter for property TaskBacklog.<p>
     * The size of the backlog queue that holds tasks scheduled to be executed
-    * by one of the service threads.
+    * by one of the service workers. For VDP this includes virtual threads
+    * parked behind TaskLimit.
     * 
     * @descriptor rest.collector=sum,metrics.value=_default
      */
     public int getTaskBacklog()
         {
         return 0;
+        }
+
+    // Accessor for the property "TaskLimit"
+    /**
+     * Getter for property TaskLimit.<p>
+    * The maximum number of concurrently executing tasks for VDP-backed services.
+    *
+    * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public int getTaskLimit()
+        {
+        return __m_TaskLimit;
         }
     
     // Accessor for the property "TaskCount"
@@ -2206,8 +2306,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadCount"
     /**
      * Getter for property ThreadCount.<p>
-    * The number of threads in the service thread pool. For services that
-    * support dynamic thread pool sizing, this is the current thread pool size.
+    * The number of live worker threads in the service pool. For VDP-backed
+    * services this is the number of live virtual threads.
     * 
     * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -2219,8 +2319,9 @@ public class ServiceMBean
     // Accessor for the property "ThreadCountMax"
     /**
      * Getter for property ThreadCountMax.<p>
-    * The maximum thread count allowed for this service when dynamic thread
-    * pool sizing is enabled.
+    * The maximum live worker thread count for platform-thread pools. For VDP,
+    * virtual threads are not capped by this value; use TaskLimit for the
+    * active-task cap.
     * 
     * @descriptor rest.collector=set
      */
@@ -2232,8 +2333,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadCountMin"
     /**
      * Getter for property ThreadCountMin.<p>
-    * The minimum thread count for this service when dynamic thread pool sizing
-    * is enabled.
+    * The minimum live worker thread count for platform-thread pools. For VDP,
+    * this is 0 because the pool does not maintain an idle thread floor.
     * 
     * @descriptor rest.collector=set
      */
@@ -2439,7 +2540,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadPoolSizingEnabled"
     /**
      * Getter for property ThreadPoolSizingEnabled.<p>
-    * Whether or not dynamic thread pool sizing is enabled for this service.
+    * Whether or not the backing pool reports dynamic sizing. VDP always reports
+    * dynamic sizing because virtual threads are created and retired on demand.
     * 
     * @descriptor rest.collector=set
      */
@@ -2518,12 +2620,24 @@ public class ServiceMBean
         {
         __m_TaskTimeoutMillis = cMillis;
         }
+
+    // Accessor for the property "TaskLimit"
+    /**
+     * Setter for property TaskLimit.<p>
+    * The maximum number of concurrently executing tasks for VDP-backed services.
+    *
+    * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public void setTaskLimit(int cTaskLimit)
+        {
+        __m_TaskLimit = cTaskLimit;
+        }
     
     // Accessor for the property "ThreadCount"
     /**
      * Setter for property ThreadCount.<p>
-    * The number of threads in the service thread pool. For services that
-    * support dynamic thread pool sizing, this is the current thread pool size.
+    * The number of live worker threads in the service pool. For VDP-backed
+    * services this setter has no effect and emits a warning.
     * 
     * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -2535,8 +2649,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadCountMax"
     /**
      * Setter for property ThreadCountMax.<p>
-    * The maximum thread count allowed for this service when dynamic thread
-    * pool sizing is enabled.
+    * The maximum live worker thread count for platform-thread pools. For VDP,
+    * use TaskLimit instead.
     * 
     * @descriptor rest.collector=set
      */
@@ -2548,8 +2662,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadCountMin"
     /**
      * Setter for property ThreadCountMin.<p>
-    * The minimum thread count for this service when dynamic thread pool sizing
-    * is enabled.
+    * The minimum live worker thread count for platform-thread pools. For VDP
+    * this setter has no effect and emits a warning.
     * 
     * @descriptor rest.collector=set
      */

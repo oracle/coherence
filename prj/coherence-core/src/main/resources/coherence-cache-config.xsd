@@ -10,7 +10,7 @@
             xmlns="http://xmlns.oracle.com/coherence/coherence-cache-config"
             elementFormDefault="qualified"
             attributeFormDefault="unqualified"
-            version="1.3">
+            version="1.4">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -29,6 +29,17 @@
     </xsd:annotation>
 
     <xsd:include schemaLocation="coherence-cache-config-base.xsd" />
+
+    <xsd:group name="daemon-pool-config-group">
+        <xsd:sequence>
+            <xsd:element ref="daemon-pool" minOccurs="0" />
+            <xsd:element ref="thread-count" minOccurs="0" />
+            <xsd:element ref="thread-count-max" minOccurs="0" />
+            <xsd:element ref="thread-count-min" minOccurs="0" />
+            <xsd:element ref="worker-priority" minOccurs="0" />
+            <xsd:element ref="task-limit" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:group>
 
     <xsd:element name="cache-config">
         <xsd:annotation>
@@ -344,10 +355,7 @@
             <xsd:element ref="serializer" minOccurs="0" />
             <xsd:element ref="reliable-transport" minOccurs="0" />
             <xsd:element ref="compressor" minOccurs="0" />
-            <xsd:element ref="thread-count" minOccurs="0" />
-            <xsd:element ref="thread-count-max" minOccurs="0" />
-            <xsd:element ref="thread-count-min" minOccurs="0" />
-            <xsd:element ref="worker-priority" minOccurs="0" />
+            <xsd:group ref="daemon-pool-config-group" />
             <xsd:element ref="lease-granularity" minOccurs="0" />
             <xsd:element ref="local-storage" minOccurs="0" />
             <xsd:element ref="partition-count" minOccurs="0" />
@@ -450,9 +458,7 @@
         <xsd:element ref="serializer" minOccurs="0" />
         <xsd:element ref="reliable-transport" minOccurs="0" />
         <xsd:element ref="compressor" minOccurs="0" />
-        <xsd:element ref="thread-count-max" minOccurs="0" />
-        <xsd:element ref="thread-count-min" minOccurs="0" />
-        <xsd:element ref="worker-priority" minOccurs="0" />
+        <xsd:group ref="daemon-pool-config-group" />
         <xsd:element ref="local-storage" minOccurs="0" />
         <xsd:element ref="partition-count" minOccurs="0" />
         <xsd:element ref="transfer-threshold" minOccurs="0" />
@@ -562,10 +568,7 @@
                 <xsd:element ref="serializer" minOccurs="0" />
                 <xsd:element ref="reliable-transport" minOccurs="0" />
                 <xsd:element ref="compressor" minOccurs="0" />
-                <xsd:element ref="thread-count" minOccurs="0" />
-                <xsd:element ref="thread-count-max" minOccurs="0" />
-                <xsd:element ref="thread-count-min" minOccurs="0" />
-                <xsd:element ref="worker-priority" minOccurs="0" />
+                <xsd:group ref="daemon-pool-config-group" />
                 <xsd:element ref="local-storage" minOccurs="0" />
                 <xsd:element ref="partition-count" minOccurs="0" />
                 <xsd:element ref="high-units" minOccurs="0" />
@@ -771,10 +774,7 @@
                 <xsd:element ref="event-dispatcher-priority" minOccurs="0" />
                 <xsd:element ref="serializer" minOccurs="0" />
                 <xsd:element ref="reliable-transport" minOccurs="0" />
-                <xsd:element ref="thread-count" minOccurs="0" />
-                <xsd:element ref="thread-count-max" minOccurs="0" />
-                <xsd:element ref="thread-count-min" minOccurs="0" />
-                <xsd:element ref="worker-priority" minOccurs="0" />
+                <xsd:group ref="daemon-pool-config-group" />
                 <xsd:element ref="task-hung-threshold" minOccurs="0" />
                 <xsd:element ref="task-timeout" minOccurs="0" />
                 <xsd:element ref="request-timeout" minOccurs="0" />
@@ -885,10 +885,7 @@
               <xsd:element ref="request-timeout" minOccurs="0" />
               <xsd:element ref="serializer" minOccurs="0" />
               <xsd:element name="enable-tracing" type="coherence-boolean-type" minOccurs="0" />
-              <xsd:element ref="thread-count" minOccurs="0" />
-              <xsd:element ref="thread-count-max" minOccurs="0" />
-              <xsd:element ref="thread-count-min" minOccurs="0" />
-              <xsd:element ref="worker-priority" minOccurs="0" />
+              <xsd:group ref="daemon-pool-config-group" />
               <xsd:element ref="listener" minOccurs="0" />
               <xsd:element ref="defer-key-association-check" minOccurs="0" />
               <xsd:element ref="heartbeat-interval" minOccurs="0" />
@@ -966,10 +963,7 @@
               <xsd:element ref="grpc-channel" minOccurs="0" />
               <xsd:element ref="serializer" minOccurs="0" />
               <xsd:element name="enable-tracing" type="coherence-boolean-type" minOccurs="0" />
-              <xsd:element ref="thread-count" minOccurs="0" />
-              <xsd:element ref="thread-count-max" minOccurs="0" />
-              <xsd:element ref="thread-count-min" minOccurs="0" />
-              <xsd:element ref="worker-priority" minOccurs="0" />
+              <xsd:group ref="daemon-pool-config-group" />
               <xsd:element ref="listener" minOccurs="0" />
               <xsd:any namespace="##other" processContents="lax"
                   minOccurs="0" maxOccurs="unbounded" />
@@ -997,10 +991,7 @@
                 <xsd:element ref="service-priority" minOccurs="0" />
                 <xsd:element ref="event-dispatcher-priority" minOccurs="0" />
                 <xsd:element ref="reliable-transport" minOccurs="0" />
-                <xsd:element ref="thread-count" minOccurs="0" />
-                <xsd:element ref="thread-count-max" minOccurs="0" />
-                <xsd:element ref="thread-count-min" minOccurs="0" />
-                <xsd:element ref="worker-priority" minOccurs="0" />
+                <xsd:group ref="daemon-pool-config-group" />
                 <xsd:element ref="task-hung-threshold" minOccurs="0" />
                 <xsd:element ref="task-timeout" minOccurs="0" />
                 <xsd:element ref="request-timeout" minOccurs="0" />
@@ -3973,6 +3964,76 @@
                 Valid values are "true" or "false". Default value is false.
 
                 Used in: remote-cache-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="daemon-pool-enum-type">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="platform" />
+            <xsd:enumeration value="virtual" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="daemon-pool-base-type">
+        <xsd:union memberTypes="coherence-base-type daemon-pool-enum-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="daemon-pool-type">
+        <xsd:simpleContent>
+            <xsd:extension base="daemon-pool-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+                <xsd:anyAttribute namespace="##other" processContents="lax" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="daemon-pool" type="daemon-pool-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The daemon-pool element specifies the worker-pool implementation
+                for the service.
+
+                Valid values are "platform" and "virtual". Default value is
+                "platform".
+
+                Used in: distributed-scheme-type, paged-topic-scheme-type,
+                transactional-scheme, invocation-scheme, proxy-scheme,
+                remote-grpc-cache-scheme, remote-grpc-topic-scheme
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:simpleType name="task-limit-integer-type">
+        <xsd:restriction base="xsd:integer">
+            <xsd:minInclusive value="0" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="task-limit-base-type">
+        <xsd:union memberTypes="coherence-base-type task-limit-integer-type" />
+    </xsd:simpleType>
+
+    <xsd:complexType name="task-limit-type">
+        <xsd:simpleContent>
+            <xsd:extension base="task-limit-base-type">
+                <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+                <xsd:anyAttribute namespace="##other" processContents="lax" />
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+
+    <xsd:element name="task-limit" type="task-limit-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The task-limit element specifies the maximum number of
+                in-flight virtual-thread tasks admitted by a virtual daemon pool.
+
+                A value of 0 means unlimited. Default value is 0.
+
+                Used in: distributed-scheme-type, paged-topic-scheme-type,
+                transactional-scheme, invocation-scheme, proxy-scheme,
+                remote-grpc-cache-scheme, remote-grpc-topic-scheme
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

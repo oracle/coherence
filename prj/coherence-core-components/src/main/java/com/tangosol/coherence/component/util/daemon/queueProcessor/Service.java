@@ -15,9 +15,11 @@ import com.tangosol.coherence.component.net.extend.Message;
 import com.tangosol.coherence.component.net.message.RequestMessage;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
+import com.oracle.coherence.common.base.SingleWaiterCooperativeNotifier;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
 import com.tangosol.internal.util.DaemonPoolSizing;
+import com.tangosol.internal.util.VirtualThreads;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
@@ -28,6 +30,7 @@ import com.tangosol.io.SerializerFactory;
 import com.tangosol.io.WrapperBufferInput;
 import com.tangosol.io.WrapperBufferOutput;
 import com.tangosol.license.LicensedObject;
+import com.tangosol.net.DaemonPoolType;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.run.xml.XmlHelper;
@@ -38,10 +41,20 @@ import com.tangosol.util.SafeLinkedList;
 import com.tangosol.util.ServiceEvent;
 import com.tangosol.util.WrapperException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EventListener;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Base definition of a Service component.
@@ -760,17 +773,12 @@ public abstract class Service
      */
     public com.tangosol.coherence.component.util.DaemonPool getDaemonPool()
         {
-        // import Component.Util.DaemonPool as com.tangosol.coherence.component.util.DaemonPool;
-        
+        boolean fVirtual = shouldUseVirtualDaemonPool(getDependencies());
         com.tangosol.coherence.component.util.DaemonPool pool = __m_DaemonPool;
-        
-        if (pool == null)
-            {
-            pool = (com.tangosol.coherence.component.util.DaemonPool) _findChild("DaemonPool");
-            setDaemonPool(pool);
-            }
-        
-        return pool;
+
+        return pool == null || (pool instanceof Service.VirtualDaemonPool) != fVirtual
+               ? ensureDaemonPool(fVirtual)
+               : pool;
         }
     
     // Accessor for the property "DecoratedThreadName"
@@ -1200,23 +1208,37 @@ public abstract class Service
         {
         // import Component.Util.DaemonPool as com.tangosol.coherence.component.util.DaemonPool;
         
+        validateDaemonPoolConfiguration(deps);
+
         int cThreads = deps.getWorkerThreadCountMin();
         if (cThreads > 0)
             {
+            boolean                 fVirtual     = shouldUseVirtualDaemonPool(deps);
             String                  sServiceName = getServiceName();
             DaemonPoolSizing.Result result       = DaemonPoolSizing.resolveThreadCountMax(deps.getWorkerThreadCountMax(), cThreads);
             int                     cMax         = result.getEffectiveMax();
-            com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
-            // cThreads is WorkerThreadCountMin, and validation guarantees max >= min.
-            pool.setDaemonCount(cThreads);
-            pool.setDaemonCountMax(cMax);
-            pool.setDaemonCountMin(cThreads);
+            com.tangosol.coherence.component.util.DaemonPool pool = ensureDaemonPool(fVirtual);
+            if (this instanceof com.tangosol.net.Guardian)
+                {
+                ((Service.DaemonPool) pool).initializeGuardian((com.tangosol.net.Guardian) this);
+                }
+            if (pool instanceof Service.VirtualDaemonPool)
+                {
+                ((Service.VirtualDaemonPool) pool).setTaskLimit(resolveTaskLimit(deps));
+                }
+            else
+                {
+                // cThreads is WorkerThreadCountMin, and validation guarantees max >= min.
+                pool.setDaemonCount(cThreads);
+                pool.setDaemonCountMax(cMax);
+                pool.setDaemonCountMin(cThreads);
+                }
             pool.setHungThreshold(deps.getTaskHungThresholdMillis());
             pool.setName(sServiceName);
             pool.setTaskTimeout(deps.getTaskTimeoutMillis());
             pool.setThreadPriority(deps.getWorkerThreadPriority());
 
-            if (result.isDerived())
+            if (!fVirtual && result.isDerived())
                 {
                 _trace("DaemonPool \"" + sServiceName
                     + "\": deriving platform thread-count-max=" + cMax
@@ -1228,6 +1250,165 @@ public abstract class Service
         
         setPriority(deps.getThreadPriority());
         setSerializerFactory(deps.getSerializerFactory());
+        }
+
+    /**
+     * Ensure that the correct worker-pool implementation exists for the
+    * current service configuration.
+     *
+     * @param fVirtual  {@code true} if the virtual-thread worker pool should
+    *                  be used
+     *
+     * @return the configured worker pool
+     */
+    protected synchronized com.tangosol.coherence.component.util.DaemonPool ensureDaemonPool(boolean fVirtual)
+        {
+        // import Component.Util.DaemonPool as com.tangosol.coherence.component.util.DaemonPool;
+
+        com.tangosol.coherence.component.util.DaemonPool pool = __m_DaemonPool;
+        if (pool == null || (pool instanceof Service.VirtualDaemonPool) != fVirtual)
+            {
+            String sLocalId = fVirtual ? "VirtualDaemonPool" : "DaemonPool";
+
+            pool = (com.tangosol.coherence.component.util.DaemonPool) _findChild(sLocalId);
+            if (pool == null)
+                {
+                com.tangosol.coherence.component.util.DaemonPool poolNew = instantiateDaemonPool(fVirtual);
+
+                // Child creation can re-enter service startup; re-check before registering.
+                pool = (com.tangosol.coherence.component.util.DaemonPool) _findChild(sLocalId);
+                if (pool == null)
+                    {
+                    try
+                        {
+                        _addChild(poolNew, sLocalId);
+                        pool = poolNew;
+                        }
+                    catch (IllegalStateException e)
+                        {
+                        pool = (com.tangosol.coherence.component.util.DaemonPool) _findChild(sLocalId);
+                        if (pool == null)
+                            {
+                            throw e;
+                            }
+                        }
+                    }
+                }
+
+            setDaemonPool(pool);
+            }
+
+        return pool;
+        }
+
+    /**
+     * Instantiate the service worker pool selected by configuration.
+     *
+     * @param fVirtual  {@code true} if the virtual-thread worker pool should
+    *                  be used
+     *
+     * @return the instantiated worker pool
+     */
+    protected com.tangosol.coherence.component.util.DaemonPool instantiateDaemonPool(boolean fVirtual)
+        {
+        return fVirtual
+               ? new Service.VirtualDaemonPool("VirtualDaemonPool", this, true)
+               : new Service.DaemonPool("DaemonPool", this, true);
+        }
+
+    /**
+     * Resolve the per-service virtual-thread task limit.
+     *
+     * @param deps  the service dependencies
+     *
+     * @return the per-service virtual-thread task limit
+     */
+    protected int resolveTaskLimit(com.tangosol.net.ServiceDependencies deps)
+        {
+        return deps.isTaskLimitConfigured()
+               ? deps.getTaskLimit()
+               : 0;
+        }
+
+    /**
+     * Determine whether the service should use the virtual-thread worker pool.
+     *
+     * @param deps  the service dependencies
+     *
+     * @return {@code true} if the virtual-thread worker pool should be used
+     */
+    protected boolean shouldUseVirtualDaemonPool(com.tangosol.net.ServiceDependencies deps)
+        {
+        return deps != null
+               && deps.isDaemonPoolConfigured()
+               && deps.getDaemonPoolType() == DaemonPoolType.VIRTUAL;
+        }
+
+    /**
+     * Validate daemon-pool configuration combinations after dependencies are
+    * resolved and before the worker pool is instantiated.
+     *
+     * @param deps  the service dependencies
+     */
+    protected void validateDaemonPoolConfiguration(com.tangosol.net.ServiceDependencies deps)
+        {
+        if (!(deps instanceof DefaultServiceDependencies))
+            {
+            return;
+            }
+
+        DefaultServiceDependencies depsService = (DefaultServiceDependencies) deps;
+        DaemonPoolType             type        = depsService.isDaemonPoolConfigured()
+                ? depsService.getDaemonPoolType()
+                : DaemonPoolType.PLATFORM;
+
+        if (type == DaemonPoolType.VIRTUAL)
+            {
+            rejectConfiguredElement(depsService.isWorkerThreadCountConfigured(),
+                    "thread-count", type, true);
+            rejectConfiguredElement(depsService.isWorkerThreadCountMaxConfigured(),
+                    "thread-count-max", type, true);
+            rejectConfiguredElement(depsService.isWorkerThreadCountMinConfigured(),
+                    "thread-count-min", type, true);
+            rejectConfiguredElement(depsService.isWorkerThreadPriorityConfigured(),
+                    "worker-priority", type, true);
+            }
+        else
+            {
+            rejectConfiguredElement(depsService.isTaskLimitConfigured(),
+                    "task-limit", type, false);
+            }
+
+        if (depsService.isWorkerThreadCountConfigured()
+                && (depsService.isWorkerThreadCountMinConfigured()
+                    || depsService.isWorkerThreadCountMaxConfigured()))
+            {
+            _trace("Service \"" + getServiceName()
+                    + "\": combining <thread-count> with <thread-count-min> or <thread-count-max> is ambiguous. "
+                    + "Pick one form: either <thread-count> for a fixed-size pool, or "
+                    + "<thread-count-min>/<thread-count-max> for dynamic resizing within bounds.", 2);
+            }
+        }
+
+    /**
+     * Reject an invalid daemon-pool element combination.
+     *
+     * @param fReject  {@code true} to reject the element
+     * @param sElement  the configured element name
+     * @param type  the selected daemon-pool type
+     * @param fVirtual  {@code true} if the selected pool is virtual
+     */
+    protected void rejectConfiguredElement(boolean fReject, String sElement, DaemonPoolType type, boolean fVirtual)
+        {
+        if (fReject)
+            {
+            String sPoolType = type.getConfigValue();
+            throw new IllegalArgumentException("Service \"" + getServiceName()
+                    + "\": <" + sElement + "> is not valid when <daemon-pool> is \""
+                    + sPoolType + "\". Use "
+                    + (fVirtual ? "<task-limit> instead, or set <daemon-pool> to \"platform\"."
+                                : "<thread-count-min>/<thread-count-max> instead, or set <daemon-pool> to \"virtual\"."));
+            }
         }
     
     // Declared at the super level
@@ -3101,6 +3282,36 @@ public abstract class Service
                 }
             }
 
+        /**
+         * Attempt recovery of a currently executing wrapper task.
+         *
+         * @return true if the pool handled the recovery request
+         */
+        protected boolean recoverWrapperTask(Service.DaemonPool.WrapperTask wrapper)
+            {
+            return false;
+            }
+
+        /**
+         * Attempt termination of a currently executing wrapper task.
+         *
+         * @return true if the pool handled the termination request
+         */
+        protected boolean terminateWrapperTask(Service.DaemonPool.WrapperTask wrapper)
+            {
+            return false;
+            }
+
+        /**
+         * Initialize the worker pool's delegated guardian before the pool is
+         * started so guarded execution paths do not rely on lazy runtime
+         * discovery.
+         */
+        protected void initializeGuardian(com.tangosol.net.Guardian guardian)
+            {
+            setInternalGuardian(guardian);
+            }
+
         // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.Service$DaemonPool$WrapperTask
         
         /**
@@ -3237,6 +3448,30 @@ public abstract class Service
             // Declared at the super level
             public void run()
                 {
+                if (!prepareExecutionForDispatch())
+                    {
+                    return;
+                    }
+
+                executePreparedTask();
+                }
+
+            /**
+             * Prepare this wrapper for an externally managed execution path.
+             *
+             * @return true if the task should execute; false if it has already
+             *         been canceled or handled
+             */
+            protected boolean prepareExecutionForDispatch()
+                {
+                return prepareExecution();
+                }
+
+            /**
+             * Execute the wrapped task after {@link #prepareExecutionForDispatch()}.
+             */
+            protected void executePreparedTask()
+                {
                 Span  span  = null;
                 Scope scope = null;
 
@@ -3265,7 +3500,7 @@ public abstract class Service
                     }
                 try
                     {
-                    super.run();
+                    run(getTask());
                     }
                 catch (RuntimeException e)
                     {
@@ -3284,6 +3519,28 @@ public abstract class Service
                         }
                     }
                 }
+
+            // Declared at the super level
+            public void recover()
+                {
+                Service.DaemonPool pool = (Service.DaemonPool) get_Parent();
+
+                if (!pool.recoverWrapperTask(this))
+                    {
+                    super.recover();
+                    }
+                }
+
+            // Declared at the super level
+            public void terminate()
+                {
+                Service.DaemonPool pool = (Service.DaemonPool) get_Parent();
+
+                if (!pool.terminateWrapperTask(this))
+                    {
+                    super.terminate();
+                    }
+                }
             
             // Accessor for the property "ParentTracingSpan"
             /**
@@ -3295,6 +3552,1525 @@ public abstract class Service
             public void setParentTracingSpan(com.tangosol.internal.tracing.Span spanTracing)
                 {
                 __m_ParentTracingSpan = spanTracing;
+                }
+            }
+        }
+
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.Service$VirtualDaemonPool
+
+    /**
+     * A virtual-thread worker-pool prototype. Phase 1 initially uses this
+     * class as the configuration and lifecycle seam before the keyed mailbox
+     * and direct-dispatch execution model fully replaces the inherited
+     * platform-pool behavior.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class VirtualDaemonPool
+            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool
+        {
+        /**
+         * Property ActiveTaskCount
+         *
+         * The number of currently executing virtual-thread tasks.
+         */
+        private transient java.util.concurrent.atomic.AtomicInteger __m_ActiveTaskCount;
+
+        /**
+         * Property CooperativeNotifierFlushPolicy
+         *
+         * The policy used to flush deferred poll notifications from virtual
+         * daemon-pool workers.
+         */
+        private transient int __m_CooperativeNotifierFlushPolicy;
+
+        /**
+         * Property ActiveExecutions
+         *
+         * The currently executing wrapper tasks keyed by wrapper identity.
+         */
+        private transient java.util.concurrent.ConcurrentHashMap __m_ActiveExecutions;
+
+        /**
+         * Property AssociatedBarrier
+         *
+         * A barrier that blocks associated work while ASSOCIATION_ALL tasks run.
+         */
+        private transient java.util.concurrent.locks.ReadWriteLock __m_AssociatedBarrier;
+
+        /**
+         * Property BacklogCount
+         *
+         * The number of queued keyed-mailbox tasks.
+         */
+        private transient java.util.concurrent.atomic.AtomicInteger __m_BacklogCount;
+
+        /**
+         * Property KeyedMailboxes
+         *
+         * The active keyed mailboxes for associated work.
+         */
+        private transient java.util.concurrent.ConcurrentHashMap __m_KeyedMailboxes;
+
+        /**
+         * Property MailboxBurstDrainerCount
+         *
+         * Benchmark-only count of keyed-mailbox drainer bursts.
+         */
+        private transient java.util.concurrent.atomic.AtomicLong __m_MailboxBurstDrainerCount;
+
+        /**
+         * Property MailboxBurstMaxTasks
+         *
+         * Benchmark-only maximum task count drained by a keyed-mailbox burst.
+         */
+        private transient java.util.concurrent.atomic.AtomicLong __m_MailboxBurstMaxTasks;
+
+        /**
+         * Property MailboxBurstStatsEnabled
+         *
+         * True iff benchmark-only keyed-mailbox burst stats are enabled.
+         */
+        private transient boolean __m_MailboxBurstStatsEnabled;
+
+        /**
+         * Property MailboxBurstTaskCount
+         *
+         * Benchmark-only cumulative task count drained by keyed-mailbox bursts.
+         */
+        private transient java.util.concurrent.atomic.AtomicLong __m_MailboxBurstTaskCount;
+
+        /**
+         * Property TaskLimit
+         *
+         * The configured limit on concurrently active virtual-thread tasks.
+         */
+        private int __m_TaskLimit;
+
+        /**
+         * Property TaskPermits
+         *
+         * Optional semaphore limiting concurrently active virtual-thread tasks.
+         */
+        private transient java.util.concurrent.Semaphore __m_TaskPermits;
+
+        /**
+         * Property Threads
+         *
+         * The currently active virtual and platform threads owned by this pool.
+         */
+        private transient java.util.Set __m_Threads;
+
+        private static final int FLUSH_POLICY_NONE = 0;
+
+        private static final int FLUSH_POLICY_IDLE = 1;
+
+        private static final int FLUSH_POLICY_TASK = 2;
+
+        /**
+         * Cached request-type label per task class.
+         */
+        private static final ClassValue<String> REQUEST_TYPE_LABEL = new ClassValue<>()
+            {
+            @Override
+            protected String computeValue(Class<?> clz)
+                {
+                String sName = clz.getSimpleName();
+                return sName.endsWith("Request") && sName.length() > "Request".length()
+                        ? sName.substring(0, sName.length() - "Request".length())
+                        : sName;
+                }
+            };
+
+        // Default constructor
+        public VirtualDaemonPool()
+            {
+            this(null, null, true);
+            }
+
+        // Initializing constructor
+        public VirtualDaemonPool(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        // Main initializer
+        public void __init()
+            {
+            __initPrivate();
+
+            try
+                {
+                setAbandonThreshold(8);
+                setDaemonCountMax(2147483647);
+                setDaemonCountMin(1);
+                setScheduledTasks(new java.util.HashSet());
+                setStatsTaskAddCount(new java.util.concurrent.atomic.AtomicLong());
+                }
+            catch (java.lang.Exception e)
+                {
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            set_Constructed(true);
+            }
+
+        // Private initializer
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        //++ getter for static property _Instance
+        /**
+         * Getter for property _Instance.<p>
+        * Auto generated
+         */
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool();
+            }
+
+        //++ getter for static property _CLASS
+        /**
+         * Getter for property _CLASS.<p>
+        * Property with auto-generated accessor that returns the Class object
+        * for a given component.
+         */
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/Service$VirtualDaemonPool".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        //++ getter for autogen property _Module
+        /**
+         * This is an auto-generated method that returns the global [design
+        * time] parent component.
+        *
+        * Note: the class generator will ignore any custom implementation for
+        * this behavior.
+         */
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        // Accessor for the property "TaskLimit"
+        /**
+         * Getter for property TaskLimit.<p>
+        * The configured limit on concurrently active virtual-thread tasks.
+         */
+        public int getTaskLimit()
+            {
+            return __m_TaskLimit;
+            }
+
+        /**
+         * Return the currently executing wrapper tasks.
+         */
+        protected java.util.concurrent.ConcurrentHashMap getActiveExecutions()
+            {
+            return __m_ActiveExecutions;
+            }
+
+        /**
+         * Return the number of currently active virtual-thread tasks.
+         */
+        protected java.util.concurrent.atomic.AtomicInteger getActiveTaskCount()
+            {
+            return __m_ActiveTaskCount;
+            }
+
+        /**
+         * Return the cooperative notifier flush policy.
+         */
+        protected int getCooperativeNotifierFlushPolicy()
+            {
+            return __m_CooperativeNotifierFlushPolicy;
+            }
+
+        /**
+         * Return the ASSOCIATION_ALL barrier.
+         */
+        protected java.util.concurrent.locks.ReadWriteLock getAssociatedBarrier()
+            {
+            return __m_AssociatedBarrier;
+            }
+
+        // Declared at the super level
+        /**
+         * A number of tasks that have been added to the pool, but not yet
+        * admitted for execution.
+         */
+        public int getBacklog()
+            {
+            int cQueued  = getBacklogCount() == null ? 0 : getBacklogCount().get();
+            int cParked  = Math.max(0, getDaemonCount() - getActiveDaemonCount());
+            int cBacklog = cQueued + cParked;
+
+            synchronized (STATS_MONITOR)
+                {
+                if (cBacklog > getStatsMaxBacklog())
+                    {
+                    setStatsMaxBacklog(cBacklog);
+                    }
+                }
+
+            return cBacklog;
+            }
+
+        /**
+         * Return the number of queued keyed-mailbox tasks.
+         */
+        protected java.util.concurrent.atomic.AtomicInteger getBacklogCount()
+            {
+            return __m_BacklogCount;
+            }
+
+        // Declared at the super level
+        /**
+         * The number of active task executions.
+         */
+        public int getActiveDaemonCount()
+            {
+            return getActiveTaskCount() == null ? 0 : getActiveTaskCount().get();
+            }
+
+        // Declared at the super level
+        public void checkHungTasks()
+            {
+            if (getActiveExecutions() == null)
+                {
+                super.checkHungTasks();
+                return;
+                }
+
+            getBacklog();
+
+            long cHungThreshold = getHungThreshold();
+            if (cHungThreshold == 0)
+                {
+                return;
+                }
+
+            long ldtNow       = Base.getSafeTimeMillis();
+            com.tangosol.coherence.component.util.DaemonPool.WrapperTask taskLongest = null;
+            long cLongest     = -1L;
+            int  cHung        = 0;
+
+            for (Object oValue : getActiveExecutions().values())
+                {
+                ActiveExecution execution = (ActiveExecution) oValue;
+                com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper = execution.getWrapperTask();
+                long ldtStart = wrapper.getStartTime();
+
+                if (ldtStart <= 0L)
+                    {
+                    continue;
+                    }
+
+                long cDuration = ldtNow - ldtStart;
+                if (cDuration > cHungThreshold)
+                    {
+                    if (cDuration > cLongest)
+                        {
+                        cLongest    = cDuration;
+                        taskLongest = wrapper;
+                        }
+                    ++cHung;
+                    }
+                }
+
+            synchronized (STATS_MONITOR)
+                {
+                if (cHung == 0)
+                    {
+                    setStatsHungCount(0);
+                    setStatsHungDuration(0L);
+                    setStatsHungTaskId("");
+                    }
+                else
+                    {
+                    setStatsHungCount(cHung);
+                    setStatsHungDuration(cLongest);
+                    setStatsHungTaskId(taskLongest.getTaskId());
+                    }
+                }
+            }
+
+        /**
+         * Return the active keyed mailboxes.
+         */
+        protected java.util.concurrent.ConcurrentHashMap getKeyedMailboxes()
+            {
+            return __m_KeyedMailboxes;
+            }
+
+        /**
+         * Return the benchmark-only keyed-mailbox drainer burst count.
+         */
+        protected java.util.concurrent.atomic.AtomicLong getMailboxBurstDrainerCount()
+            {
+            return __m_MailboxBurstDrainerCount;
+            }
+
+        /**
+         * Return the benchmark-only maximum task count drained by a burst.
+         */
+        protected java.util.concurrent.atomic.AtomicLong getMailboxBurstMaxTasks()
+            {
+            return __m_MailboxBurstMaxTasks;
+            }
+
+        /**
+         * Return the benchmark-only keyed-mailbox task count.
+         */
+        protected java.util.concurrent.atomic.AtomicLong getMailboxBurstTaskCount()
+            {
+            return __m_MailboxBurstTaskCount;
+            }
+
+        /**
+         * Return the optional execution semaphore.
+         */
+        protected java.util.concurrent.Semaphore getTaskPermits()
+            {
+            return __m_TaskPermits;
+            }
+
+        /**
+         * Return the currently active threads.
+         */
+        protected java.util.Set getThreads()
+            {
+            return __m_Threads;
+            }
+
+        /**
+         * Return true iff benchmark-only keyed-mailbox burst stats are enabled.
+         */
+        protected boolean isMailboxBurstStatsEnabled()
+            {
+            return __m_MailboxBurstStatsEnabled;
+            }
+
+        // Declared at the super level
+        public void add(Runnable task)
+            {
+            add(task, false);
+            }
+
+        // Declared at the super level
+        public void add(Runnable task, boolean fAggressiveTimeout)
+            {
+            // import com.oracle.coherence.common.util.AssociationPile;
+            // import com.tangosol.net.PriorityTask;
+
+            if (!isStarted())
+                {
+                task.run();
+                return;
+                }
+
+            com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper =
+                    instantiateWrapperTask(task, fAggressiveTimeout);
+            int iPriority = wrapper.getPriority();
+
+            if (iPriority == com.tangosol.net.PriorityTask.SCHEDULE_IMMEDIATE
+                    || iPriority == com.tangosol.net.PriorityTask.SCHEDULE_FIRST)
+                {
+                startPriorityTask(wrapper);
+                return;
+                }
+
+            if (!wrapper.isManagementTask())
+                {
+                getStatsTaskAddCount().getAndIncrement();
+                }
+
+            Object oAssoc = wrapper.getAssociatedKey();
+
+            if (oAssoc == null)
+                {
+                startVirtualTask(formatTaskRole('D', wrapper), () -> runTask(wrapper, null, "direct"));
+                }
+            else if (oAssoc == com.oracle.coherence.common.util.AssociationPile.ASSOCIATION_ALL)
+                {
+                startVirtualTask(formatTaskRole('A', wrapper),
+                        () -> runTask(wrapper, getAssociatedBarrier().writeLock(), "all"));
+                }
+            else
+                {
+                enqueueAssociatedTask(oAssoc, wrapper);
+                }
+            }
+
+        /**
+         * Acquire a task-execution permit if one is configured.
+         */
+        protected boolean acquireTaskPermit()
+            {
+            java.util.concurrent.Semaphore permits = getTaskPermits();
+            if (permits == null)
+                {
+                return true;
+                }
+
+            try
+                {
+                permits.acquire();
+                return true;
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                return false;
+                }
+            }
+
+        /**
+         * Enqueue the task into the keyed mailbox for the specified association.
+         */
+        protected void enqueueAssociatedTask(Object oAssoc, com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper)
+            {
+            java.util.concurrent.atomic.AtomicBoolean fEnqueued = new java.util.concurrent.atomic.AtomicBoolean();
+            KeyedMailbox mailbox = (KeyedMailbox) getKeyedMailboxes().compute(oAssoc, (key, existing) ->
+                {
+                if (!isStarted())
+                    {
+                    return existing;
+                    }
+
+                KeyedMailbox box = existing == null ? new KeyedMailbox() : (KeyedMailbox) existing;
+                getBacklogCount().incrementAndGet();
+                if (!isStarted())
+                    {
+                    getBacklogCount().decrementAndGet();
+                    return existing;
+                    }
+
+                box.getQueue().add(wrapper);
+                fEnqueued.set(true);
+                return box;
+                });
+
+            if (fEnqueued.get() && mailbox.getDraining().compareAndSet(false, true))
+                {
+                String sRole = "M:" + Base.toHexString(System.identityHashCode(mailbox), 8);
+                startVirtualTask(sRole, () -> runMailbox(oAssoc, mailbox));
+                }
+            }
+
+        /**
+         * Return the virtual-thread name prefix for a new worker.
+         */
+        protected String formatVirtualThreadName(String sRole)
+            {
+            return getName() + ':' + sRole;
+            }
+
+        /**
+         * Return the direct or all-association task role.
+         */
+        protected static String formatTaskRole(char chCategory,
+                com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper)
+            {
+            return chCategory + ":" + formatTaskRole(wrapper);
+            }
+
+        /**
+         * Return the active task role suffix.
+         */
+        protected static String formatTaskRole(com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper)
+            {
+            Runnable task = wrapper.getTask();
+            return taskTypeOf(task.getClass()) + ':' + Base.toHexString(System.identityHashCode(task), 8);
+            }
+
+        /**
+         * Register the currently executing wrapper and run it under the
+         * runtime guardian context.
+         */
+        protected void executeTrackedTask(Service.DaemonPool.WrapperTask wrapper, String sDispatch)
+            {
+            if (!wrapper.prepareExecutionForDispatch())
+                {
+                return;
+                }
+
+            try
+                {
+                registerActiveExecution(wrapper, Thread.currentThread(), sDispatch);
+                guardRunningTask(wrapper, wrapper.getStartTime());
+                wrapper.executePreparedTask();
+                }
+            finally
+                {
+                cleanupTrackedTask(wrapper);
+                }
+            }
+
+        // Declared at the super level
+        /**
+         * Factory method: create a new WrapperTask component.
+         */
+        protected com.tangosol.coherence.component.util.DaemonPool.WrapperTask instantiateWrapperTask()
+            {
+            Service.DaemonPool.WrapperTask task = new Service.DaemonPool.WrapperTask();
+            _linkChild(task);
+            return task;
+            }
+
+        // Declared at the super level
+        public int getDaemonCount()
+            {
+            return isStarted() && getThreads() != null ? getThreads().size() : 0;
+            }
+
+        // Declared at the super level
+        public int getDaemonCountMax()
+            {
+            return Integer.MAX_VALUE;
+            }
+
+        // Declared at the super level
+        public int getDaemonCountMin()
+            {
+            return 0;
+            }
+
+        // Declared at the super level
+        public void setDaemonCount(int cDaemons)
+            {
+            traceThreadCountSetterNoEffect("setThreadCount", cDaemons);
+            }
+
+        // Declared at the super level
+        public void setDaemonCountMax(int cDaemons)
+            {
+            traceThreadCountSetterNoEffect("setThreadCountMax", cDaemons);
+            }
+
+        // Declared at the super level
+        public void setDaemonCountMin(int cDaemons)
+            {
+            traceThreadCountSetterNoEffect("setThreadCountMin", cDaemons);
+            }
+
+        // Declared at the super level
+        public boolean isStuck()
+            {
+            synchronized (STATS_MONITOR)
+                {
+                setStatsLastBacklog(getBacklog());
+                setStatsLastTaskAddCount(getStatsTaskAddCount().get());
+                }
+            return false;
+            }
+
+        /**
+         * Release a task-execution permit if one is configured.
+         */
+        protected void releaseTaskPermit()
+            {
+            java.util.concurrent.Semaphore permits = getTaskPermits();
+            if (permits != null)
+                {
+                permits.release();
+                evaluateServiceBacklog();
+                }
+            }
+
+        /**
+         * Evaluate producer-flow continuations that may be waiting on VDP
+         * task-permit backlog.
+         */
+        protected void evaluateServiceBacklog()
+            {
+            Service service = (Service) get_Module();
+            Service.EventDispatcher dispatcher = service.getEventDispatcher();
+            if (dispatcher != null)
+                {
+                dispatcher.evaluateBacklog();
+                }
+            }
+
+        /**
+         * Run the associated mailbox drainer.
+         */
+        protected void runMailbox(Object oAssoc, KeyedMailbox mailbox)
+            {
+            if (isMailboxBurstStatsEnabled())
+                {
+                runMailboxInstrumented(oAssoc, mailbox);
+                return;
+                }
+
+            Thread thread    = Thread.currentThread();
+            String sIdleName = thread.getName();
+
+            try
+                {
+                while (isStarted())
+                    {
+                    com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper =
+                            (com.tangosol.coherence.component.util.DaemonPool.WrapperTask) mailbox.getQueue().poll();
+                    if (wrapper == null)
+                        {
+                        break;
+                        }
+
+                    thread.setName(sIdleName + ':' + formatTaskRole(wrapper));
+
+                    getBacklogCount().decrementAndGet();
+                    runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+
+                    // Recovery interrupts the mailbox drainer VT to unblock the
+                    // current wrapper. Clear that status before polling the next
+                    // queued wrapper so one recovered task does not strand the
+                    // rest of the mailbox behind a stale interrupt.
+                    Thread.interrupted(); // intentional interrupt clear
+                    }
+                }
+            finally
+                {
+                thread.setName(sIdleName);
+                flushCooperativeNotifiersAfterMailboxDrain();
+                mailbox.getDraining().set(false);
+                reconcileMailboxAfterDrain(oAssoc, mailbox);
+                }
+            }
+
+        /**
+         * Run the associated mailbox drainer with benchmark-only burst stats.
+         */
+        protected void runMailboxInstrumented(Object oAssoc, KeyedMailbox mailbox)
+            {
+            Thread thread    = Thread.currentThread();
+            String sIdleName = thread.getName();
+            long   cTasks    = 0L;
+
+            try
+                {
+                while (isStarted())
+                    {
+                    com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper =
+                            (com.tangosol.coherence.component.util.DaemonPool.WrapperTask) mailbox.getQueue().poll();
+                    if (wrapper == null)
+                        {
+                        break;
+                        }
+
+                    ++cTasks;
+                    thread.setName(sIdleName + ':' + formatTaskRole(wrapper));
+
+                    getBacklogCount().decrementAndGet();
+                    runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+
+                    // Recovery interrupts the mailbox drainer VT to unblock the
+                    // current wrapper. Clear that status before polling the next
+                    // queued wrapper so one recovered task does not strand the
+                    // rest of the mailbox behind a stale interrupt.
+                    Thread.interrupted(); // intentional interrupt clear
+                    }
+                }
+            finally
+                {
+                thread.setName(sIdleName);
+                recordMailboxBurst(cTasks);
+                flushCooperativeNotifiersAfterMailboxDrain();
+                mailbox.getDraining().set(false);
+                reconcileMailboxAfterDrain(oAssoc, mailbox);
+                }
+            }
+
+        /**
+         * Flush cooperative poll notifications after a direct one-shot task or,
+         * when configured, after every wrapper execution.
+         */
+        protected void flushCooperativeNotifiersAfterTask(String sDispatch)
+            {
+            int nPolicy = getCooperativeNotifierFlushPolicy();
+            if (nPolicy == FLUSH_POLICY_TASK ||
+                    (nPolicy == FLUSH_POLICY_IDLE && !"mailbox".equals(sDispatch)))
+                {
+                SingleWaiterCooperativeNotifier.flush();
+                }
+            }
+
+        /**
+         * Flush cooperative poll notifications as a keyed-mailbox drainer
+         * reaches its idle boundary.
+         */
+        protected void flushCooperativeNotifiersAfterMailboxDrain()
+            {
+            if (getCooperativeNotifierFlushPolicy() == FLUSH_POLICY_IDLE)
+                {
+                SingleWaiterCooperativeNotifier.flush();
+                }
+            }
+
+        /**
+         * Parse the cooperative notifier flush policy.
+         */
+        protected int parseCooperativeNotifierFlushPolicy(String sPolicy)
+            {
+            return parseCooperativeNotifierFlushPolicy(sPolicy, false);
+            }
+
+        /**
+         * Parse the cooperative notifier flush policy.
+         */
+        protected int parseCooperativeNotifierFlushPolicy(String sPolicy, boolean fAllowNone)
+            {
+            String sValue = sPolicy == null ? "idle" : sPolicy.trim().toLowerCase(java.util.Locale.ROOT);
+
+            switch (sValue)
+                {
+                case "none":
+                case "off":
+                    if (fAllowNone)
+                        {
+                        return FLUSH_POLICY_NONE;
+                        }
+
+                    _trace("Ignoring diagnostic VirtualDaemonPool cooperative notifier flush policy \""
+                            + sPolicy + "\"; no-flush mode requires the benchmark-only property "
+                            + "\"coherence.daemonpool.virtual.benchmark.flushPolicy\".", 2);
+                    return FLUSH_POLICY_IDLE;
+
+                case "task":
+                case "eager":
+                    return FLUSH_POLICY_TASK;
+
+                case "idle":
+                case "default":
+                case "":
+                    return FLUSH_POLICY_IDLE;
+
+                default:
+                    _trace("Ignoring unknown VirtualDaemonPool cooperative notifier flush policy \""
+                            + sPolicy + "\"; using idle.", 2);
+                    return FLUSH_POLICY_IDLE;
+                }
+            }
+
+        /**
+         * Return the display name for the cooperative notifier flush policy.
+         */
+        protected static String flushPolicyName(int nPolicy)
+            {
+            switch (nPolicy)
+                {
+                case FLUSH_POLICY_NONE:
+                    return "none";
+
+                case FLUSH_POLICY_TASK:
+                    return "task";
+
+                case FLUSH_POLICY_IDLE:
+                default:
+                    return "idle";
+                }
+            }
+
+        /**
+         * Record one keyed-mailbox drainer burst for benchmark diagnostics.
+         */
+        protected void recordMailboxBurst(long cTasks)
+            {
+            getMailboxBurstDrainerCount().incrementAndGet();
+            getMailboxBurstTaskCount().addAndGet(cTasks);
+            getMailboxBurstMaxTasks().accumulateAndGet(cTasks, Math::max);
+            }
+
+        /**
+         * Reconcile the keyed-mailbox map after a drainer exits.
+         * Serializing this state change through the map avoids removing a
+         * mailbox that has already been reactivated by a concurrent enqueue.
+         */
+        protected void reconcileMailboxAfterDrain(Object oAssoc, KeyedMailbox mailbox)
+            {
+            java.util.concurrent.atomic.AtomicBoolean fStart = new java.util.concurrent.atomic.AtomicBoolean();
+
+            getKeyedMailboxes().compute(oAssoc, (key, existing) ->
+                {
+                if (existing != mailbox)
+                    {
+                    return existing;
+                    }
+
+                if (!isStarted())
+                    {
+                    return null;
+                    }
+
+                if (mailbox.getQueue().isEmpty())
+                    {
+                    // A replacement drainer may have been started while this
+                    // retiring drainer was entering reconciliation. Do not
+                    // remove its mailbox just because the new drainer has
+                    // already polled the queued work.
+                    return mailbox.getDraining().get() ? mailbox : null;
+                    }
+
+                if (mailbox.getDraining().compareAndSet(false, true))
+                    {
+                    fStart.set(true);
+                    }
+
+                return mailbox;
+                });
+
+            if (fStart.get())
+                {
+                String sRole = "M:" + Base.toHexString(System.identityHashCode(mailbox), 8);
+                startVirtualTask(sRole, () -> runMailbox(oAssoc, mailbox));
+                }
+            }
+
+        /**
+         * Run the wrapped task under the supplied barrier lock.
+         */
+        protected void runTask(com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper,
+                java.util.concurrent.locks.Lock lock, String sDispatch)
+            {
+            long ldtStart = Base.getSafeTimeMillis();
+            boolean fActive = false;
+            boolean fFlush  = false;
+            boolean fLocked = false;
+            boolean fPermit = false;
+            try
+                {
+                if (lock != null)
+                    {
+                    lock.lockInterruptibly();
+                    fLocked = true;
+                    }
+
+                if (!acquireTaskPermit())
+                    {
+                    return;
+                    }
+                fPermit = true;
+
+                getActiveTaskCount().incrementAndGet();
+                fActive = true;
+                // Pool stopped under us between enqueue and dispatch.
+                // We deliberately drop the task here; callers observe
+                // shutdown through the service stop path, not a per-task
+                // cancellation callback. No wrapper-local cooperative
+                // notifications exist to flush unless the task actually
+                // runs below.
+                if (isStarted())
+                    {
+                    fFlush = true;
+                    executeTrackedTask((Service.DaemonPool.WrapperTask) wrapper, sDispatch);
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                }
+            finally
+                {
+                if (fActive)
+                    {
+                    long ldtNow = Base.getSafeTimeMillis();
+
+                    getActiveTaskCount().decrementAndGet();
+
+                    if (!wrapper.isManagementTask())
+                        {
+                        synchronized (STATS_MONITOR)
+                            {
+                            setStatsTaskCount(getStatsTaskCount() + 1L);
+                            setStatsActiveMillis(getStatsActiveMillis() + (ldtNow - ldtStart));
+                            }
+                        }
+                    }
+
+                if (fPermit)
+                    {
+                    releaseTaskPermit();
+                    }
+
+                if (fLocked)
+                    {
+                    lock.unlock();
+                    }
+
+                if (fFlush)
+                    {
+                    flushCooperativeNotifiersAfterTask(sDispatch);
+                    }
+                }
+            }
+
+        // Accessor for the property "TaskLimit"
+        /**
+         * Setter for property TaskLimit.<p>
+        * The configured limit on concurrently active virtual-thread tasks.
+         */
+        public void setTaskLimit(int cTaskLimit)
+            {
+            int cOld = getTaskLimit();
+            __m_TaskLimit = cTaskLimit;
+
+            if (!isStarted())
+                {
+                return;
+                }
+
+            java.util.concurrent.Semaphore permits = getTaskPermits();
+            if (cOld <= 0 && cTaskLimit > 0)
+                {
+                setTaskPermits(new ReducibleSemaphore(cTaskLimit));
+                }
+            else if (cOld > 0 && cTaskLimit <= 0)
+                {
+                if (permits != null)
+                    {
+                    permits.release(Math.max(0, getDaemonCount() - getActiveDaemonCount()));
+                    }
+                setTaskPermits(null);
+                }
+            else if (permits instanceof ReducibleSemaphore)
+                {
+                int cDelta = cTaskLimit - cOld;
+                if (cDelta > 0)
+                    {
+                    permits.release(cDelta);
+                    }
+                else if (cDelta < 0)
+                    {
+                    ((ReducibleSemaphore) permits).reduce(-cDelta);
+                    }
+                }
+            }
+
+        /**
+         * Set the number of currently active virtual-thread tasks.
+         */
+        protected void setActiveTaskCount(java.util.concurrent.atomic.AtomicInteger counter)
+            {
+            __m_ActiveTaskCount = counter;
+            }
+
+        /**
+         * Set the cooperative notifier flush policy.
+         */
+        protected void setCooperativeNotifierFlushPolicy(int nPolicy)
+            {
+            __m_CooperativeNotifierFlushPolicy = nPolicy;
+            }
+
+        /**
+         * Set the currently executing wrapper tasks.
+         */
+        protected void setActiveExecutions(java.util.concurrent.ConcurrentHashMap mapExecutions)
+            {
+            __m_ActiveExecutions = mapExecutions;
+            }
+
+        /**
+         * Set the ASSOCIATION_ALL barrier.
+         */
+        protected void setAssociatedBarrier(java.util.concurrent.locks.ReadWriteLock barrier)
+            {
+            __m_AssociatedBarrier = barrier;
+            }
+
+        /**
+         * Set the queued keyed-mailbox task count.
+         */
+        protected void setBacklogCount(java.util.concurrent.atomic.AtomicInteger counter)
+            {
+            __m_BacklogCount = counter;
+            }
+
+        /**
+         * Set the keyed-mailbox map.
+         */
+        protected void setKeyedMailboxes(java.util.concurrent.ConcurrentHashMap mapMailboxes)
+            {
+            __m_KeyedMailboxes = mapMailboxes;
+            }
+
+        /**
+         * Set the benchmark-only keyed-mailbox drainer burst count.
+         */
+        protected void setMailboxBurstDrainerCount(java.util.concurrent.atomic.AtomicLong counter)
+            {
+            __m_MailboxBurstDrainerCount = counter;
+            }
+
+        /**
+         * Set the benchmark-only maximum task count drained by a burst.
+         */
+        protected void setMailboxBurstMaxTasks(java.util.concurrent.atomic.AtomicLong counter)
+            {
+            __m_MailboxBurstMaxTasks = counter;
+            }
+
+        /**
+         * Set whether benchmark-only keyed-mailbox burst stats are enabled.
+         */
+        protected void setMailboxBurstStatsEnabled(boolean fEnabled)
+            {
+            __m_MailboxBurstStatsEnabled = fEnabled;
+            }
+
+        /**
+         * Set the benchmark-only keyed-mailbox task count.
+         */
+        protected void setMailboxBurstTaskCount(java.util.concurrent.atomic.AtomicLong counter)
+            {
+            __m_MailboxBurstTaskCount = counter;
+            }
+
+        /**
+         * Set the optional execution semaphore.
+         */
+        protected void setTaskPermits(java.util.concurrent.Semaphore permits)
+            {
+            __m_TaskPermits = permits;
+            }
+
+        /**
+         * Set the active thread set.
+         */
+        protected void setThreads(java.util.Set setThreads)
+            {
+            __m_Threads = setThreads;
+            }
+
+        // Declared at the super level
+        public synchronized void start()
+            {
+            _assert(is_Constructed());
+
+            if (!isStarted())
+                {
+                resetStats();
+                setActiveTaskCount(new java.util.concurrent.atomic.AtomicInteger());
+                setActiveExecutions(new java.util.concurrent.ConcurrentHashMap());
+                setAssociatedBarrier(new java.util.concurrent.locks.ReentrantReadWriteLock(true));
+                setBacklogCount(new java.util.concurrent.atomic.AtomicInteger());
+                String sFlushPolicy          = Config.getProperty("coherence.daemonpool.virtual.flushPolicy");
+                String sBenchmarkFlushPolicy = Config.getProperty(
+                        "coherence.daemonpool.virtual.benchmark.flushPolicy");
+                if (sBenchmarkFlushPolicy != null && sFlushPolicy != null)
+                    {
+                    _trace("VirtualDaemonPool benchmark cooperative notifier flush policy \""
+                            + sBenchmarkFlushPolicy + "\" overrides production policy \""
+                            + sFlushPolicy + "\".", 6);
+                    }
+                setCooperativeNotifierFlushPolicy(sBenchmarkFlushPolicy == null
+                        ? parseCooperativeNotifierFlushPolicy(sFlushPolicy)
+                        : parseCooperativeNotifierFlushPolicy(sBenchmarkFlushPolicy, true));
+                setKeyedMailboxes(new java.util.concurrent.ConcurrentHashMap());
+                boolean fMailboxStats = Config.getBoolean(
+                        "coherence.daemonpool.virtual.benchmark.mailboxStats", false);
+                setMailboxBurstStatsEnabled(fMailboxStats);
+                if (fMailboxStats)
+                    {
+                    setMailboxBurstDrainerCount(new java.util.concurrent.atomic.AtomicLong());
+                    setMailboxBurstMaxTasks(new java.util.concurrent.atomic.AtomicLong());
+                    setMailboxBurstTaskCount(new java.util.concurrent.atomic.AtomicLong());
+                    }
+                setTaskPermits(getTaskLimit() > 0 ? new ReducibleSemaphore(getTaskLimit()) : null);
+                setThreads(java.util.Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap()));
+                setDaemons(new Service.DaemonPool.Daemon[0]);
+                setQueues(null);
+                setResizeTask(null);
+                setStarted(true);
+
+                _trace("Started VirtualDaemonPool \"" + getName()
+                    + "\": [TaskLimit=" + (getTaskLimit() > 0 ? String.valueOf(getTaskLimit()) : "unlimited")
+                    + ", FlushPolicy=" + flushPolicyName(getCooperativeNotifierFlushPolicy())
+                    + ']', 4);
+                }
+            }
+
+        /**
+         * Compact request-type label for the supplied task class.
+         */
+        protected static String taskTypeOf(Class<?> taskClass)
+            {
+            return REQUEST_TYPE_LABEL.get(taskClass);
+            }
+
+        /**
+         * Start a dedicated platform thread for an immediate priority task.
+         */
+        protected void startPriorityTask(com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper)
+            {
+            int iPriority = wrapper.getPriority();
+            startPlatformTask("priority-" + iPriority, () ->
+                {
+                // Pool stopped after the priority thread was started but
+                // before it ran. We intentionally skip the task and let the
+                // caller observe shutdown through the service stop path.
+                if (isStarted())
+                    {
+                    try
+                        {
+                        executeTrackedTask((Service.DaemonPool.WrapperTask) wrapper, "priority");
+                        }
+                    finally
+                        {
+                        flushCooperativeNotifiersAfterTask("priority");
+                        }
+                    }
+                }, iPriority == com.tangosol.net.PriorityTask.SCHEDULE_IMMEDIATE
+                        ? Thread.MAX_PRIORITY
+                        : Math.max(getThreadPriority(), Thread.NORM_PRIORITY + 1));
+            }
+
+        /**
+         * Start a new platform thread owned by this pool.
+         */
+        protected void startPlatformTask(String sRole, Runnable task, int nPriority)
+            {
+            Service service = (Service) get_Module();
+            Set     set     = getThreads();
+            Thread  thread  = Base.makeThread(getThreadGroup(), () ->
+                {
+                try
+                    {
+                    task.run();
+                    }
+                finally
+                    {
+                    set.remove(Thread.currentThread());
+                    }
+                }, formatVirtualThreadName(sRole));
+
+            thread.setDaemon(true);
+            thread.setPriority(nPriority);
+            thread.setContextClassLoader(service.getContextClassLoader());
+            set.add(thread);
+            thread.start();
+            }
+
+        /**
+         * Start a new virtual thread owned by this pool.
+         */
+        protected void startVirtualTask(String sRole, Runnable task)
+            {
+            Service service = (Service) get_Module();
+            Set     set     = getThreads();
+            String  sName   = formatVirtualThreadName(sRole);
+
+            Thread thread = VirtualThreads.makeThread(null, () ->
+                {
+                try
+                    {
+                    task.run();
+                    }
+                finally
+                    {
+                    set.remove(Thread.currentThread());
+                    }
+                }, sName);
+
+            thread.setContextClassLoader(service.getContextClassLoader());
+            set.add(thread);
+            thread.start();
+            }
+
+        /**
+         * Trace that a platform-thread pool setter is not applicable to VDP.
+         */
+        protected void traceThreadCountSetterNoEffect(String sSetter, int cDaemons)
+            {
+            if (is_Constructed())
+                {
+                _trace(sSetter + '(' + cDaemons + ") has no effect on virtual-thread pool \""
+                        + getName() + "\"; use setTaskLimit instead.", 2);
+                }
+            }
+
+        /**
+         * Semaphore subclass exposing permit reduction for runtime TaskLimit reshape.
+         */
+        private static class ReducibleSemaphore
+                extends java.util.concurrent.Semaphore
+            {
+            private ReducibleSemaphore(int permits)
+                {
+                super(permits);
+                }
+
+            private void reduce(int reduction)
+                {
+                reducePermits(reduction);
+                }
+            }
+
+        /**
+         * Register the executing wrapper for hung-task detection and recovery.
+         */
+        protected void registerActiveExecution(Service.DaemonPool.WrapperTask wrapper, Thread thread, String sDispatch)
+            {
+            getActiveExecutions().put(wrapper, new ActiveExecution(wrapper, thread, sDispatch));
+            }
+
+        /**
+         * Guard the executing wrapper with either the configured timeout or
+         * the guardian default.
+         */
+        protected void guardRunningTask(Service.DaemonPool.WrapperTask wrapper, long ldtStart)
+            {
+            long cTimeoutMillis = wrapper.getTimeoutMillis();
+            long ldtStop        = wrapper.getStopTime();
+
+            if (ldtStop > 0L)
+                {
+                long cRemaining = Math.max(1L, ldtStop - ldtStart);
+                cTimeoutMillis = cTimeoutMillis == 0L
+                        ? cRemaining
+                        : Math.min(cTimeoutMillis, cRemaining);
+                }
+
+            if (cTimeoutMillis > 0L)
+                {
+                // Preserve legacy aggressive-timeout behavior: an explicit
+                // WrapperTask timeout is a hard deadline, so recovery starts
+                // at the full timeout instead of applying the guardian's
+                // default soft-recovery percentage.
+                guard(wrapper, cTimeoutMillis, 1.0F);
+                }
+            else
+                {
+                guard(wrapper);
+                }
+            }
+
+        /**
+         * Release the runtime guard context and remove the active execution.
+         */
+        protected void cleanupTrackedTask(Service.DaemonPool.WrapperTask wrapper)
+            {
+            com.tangosol.net.Guardian.GuardContext context = wrapper.getGuardContext();
+            if (context != null)
+                {
+                context.release();
+                wrapper.setGuardContext(null);
+                }
+
+            if (getActiveExecutions() != null)
+                {
+                getActiveExecutions().remove(wrapper);
+                }
+            }
+
+        // Declared at the super level
+        protected boolean recoverWrapperTask(Service.DaemonPool.WrapperTask wrapper)
+            {
+            ActiveExecution execution = getActiveExecutions() == null
+                    ? null
+                    : (ActiveExecution) getActiveExecutions().get(wrapper);
+            if (execution == null)
+                {
+                return false;
+                }
+
+            synchronized (STATS_MONITOR)
+                {
+                setStatsTimeoutCount(getStatsTimeoutCount() + 1);
+                }
+
+            Thread thread = execution.getThread();
+            if (thread == null)
+                {
+                return true;
+                }
+
+            int  cInterrupts = execution.getInterruptCount().incrementAndGet();
+            long cElapsed    = Base.getSafeTimeMillis() - wrapper.getStartTime();
+
+            if (cInterrupts == 1)
+                {
+                _trace("A virtual daemon task has been executing task: "
+                     + wrapper.getTaskId() + " for " + cElapsed
+                     + "ms and appears to be stuck; attempting to interrupt: "
+                     + thread.getName(), 2);
+                }
+
+            thread.interrupt();
+
+            return true;
+            }
+
+        // Declared at the super level
+        protected boolean terminateWrapperTask(Service.DaemonPool.WrapperTask wrapper)
+            {
+            ActiveExecution execution = getActiveExecutions() == null
+                    ? null
+                    : (ActiveExecution) getActiveExecutions().get(wrapper);
+            if (execution == null)
+                {
+                return false;
+                }
+
+            recoverWrapperTask(wrapper);
+
+            if (getActiveExecutions().containsKey(wrapper))
+                {
+                long cElapsed = Base.getSafeTimeMillis() - wrapper.getStartTime();
+
+                _trace("Terminating service \"" + getName()
+                     + "\" because guarded virtual daemon wrapper task \""
+                     + wrapper.getTaskId() + "\" on dispatch path \""
+                     + execution.getDispatch() + "\" did not respond to recovery after "
+                     + cElapsed + "ms and "
+                     + execution.getInterruptCount().get()
+                     + " interrupt request(s).", 1);
+                ((Service) get_Module()).getGuardable().terminate();
+                }
+
+            return true;
+            }
+
+        // Declared at the super level
+        public void stop()
+            {
+            // import com.oracle.coherence.common.base.Disposable;
+            // import java.util.Iterator;
+
+            if (isStarted())
+                {
+                synchronized (this)
+                    {
+                    if (!isStarted())
+                        {
+                        return;
+                        }
+
+                    setStarted(false);
+
+                    java.util.Set setScheduled = getScheduledTasks();
+                    synchronized (setScheduled)
+                        {
+                        for (Iterator iter = setScheduled.iterator(); iter.hasNext(); )
+                            {
+                            com.oracle.coherence.common.base.Disposable disposable =
+                                    (com.oracle.coherence.common.base.Disposable) iter.next();
+                            iter.remove();
+                            disposable.dispose();
+                            }
+                        }
+                    }
+
+                for (Iterator iter = getThreads().iterator(); iter.hasNext(); )
+                    {
+                    ((Thread) iter.next()).interrupt();
+                    }
+
+                logMailboxBurstStats();
+                getThreads().clear();
+                getKeyedMailboxes().clear();
+                getBacklogCount().set(0);
+                setInTransition(false);
+                }
+            }
+
+        /**
+         * Log benchmark-only keyed-mailbox drainer burst stats.
+         */
+        protected void logMailboxBurstStats()
+            {
+            if (!isMailboxBurstStatsEnabled())
+                {
+                return;
+                }
+
+            long cDrainers = getMailboxBurstDrainerCount().get();
+            long cTasks    = getMailboxBurstTaskCount().get();
+            double flMean  = cDrainers == 0L ? 0.0D : (double) cTasks / cDrainers;
+
+            _trace("VDP mailbox-burst stats: drainers=" + cDrainers
+                    + ", tasks=" + cTasks
+                    + ", mean=" + flMean
+                    + ", max=" + getMailboxBurstMaxTasks().get(), 2);
+            }
+
+        // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.Service$VirtualDaemonPool$ActiveExecution
+
+        /**
+         * Runtime metadata for a currently executing wrapper task.
+         */
+        protected static class ActiveExecution
+            {
+            public ActiveExecution(Service.DaemonPool.WrapperTask wrapper, Thread thread, String sDispatch)
+                {
+                f_wrapperTask = wrapper;
+                f_thread      = thread;
+                f_sDispatch   = sDispatch;
+                }
+
+            public String getDispatch()
+                {
+                return f_sDispatch;
+                }
+
+            public java.util.concurrent.atomic.AtomicInteger getInterruptCount()
+                {
+                return f_cInterrupts;
+                }
+
+            public Thread getThread()
+                {
+                return f_thread;
+                }
+
+            public Service.DaemonPool.WrapperTask getWrapperTask()
+                {
+                return f_wrapperTask;
+                }
+
+            private final java.util.concurrent.atomic.AtomicInteger f_cInterrupts =
+                    new java.util.concurrent.atomic.AtomicInteger();
+            private final String                         f_sDispatch;
+            private final Thread                         f_thread;
+            private final Service.DaemonPool.WrapperTask f_wrapperTask;
+            }
+
+        // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.Service$VirtualDaemonPool$KeyedMailbox
+
+        /**
+         * State for a single associated-key mailbox.
+         */
+        protected static class KeyedMailbox
+            {
+            private final java.util.concurrent.ConcurrentLinkedQueue f_queue =
+                    new java.util.concurrent.ConcurrentLinkedQueue();
+            private final java.util.concurrent.atomic.AtomicBoolean f_fDraining =
+                    new java.util.concurrent.atomic.AtomicBoolean();
+
+            public java.util.concurrent.ConcurrentLinkedQueue getQueue()
+                {
+                return f_queue;
+                }
+
+            public java.util.concurrent.atomic.AtomicBoolean getDraining()
+                {
+                return f_fDraining;
                 }
             }
         }
@@ -3696,7 +5472,7 @@ public abstract class Service
             
             long cMaxEvents = getCloggedCount();
             
-            if (cMaxEvents > 0 && getQueue().size() > cMaxEvents)
+            if (cMaxEvents > 0 && getFlowControlBacklog() > cMaxEvents)
                 {
                 if (continuation != null)
                     {
@@ -3723,6 +5499,11 @@ public abstract class Service
                         {
                         // no need to add it, but it could have been aready called
                         // by the notifyBacklogNormal()
+                        return !list.remove(continuation);
+                        }
+
+                    if (getFlowControlBacklog() < getBacklogNormalCount())
+                        {
                         return !list.remove(continuation);
                         }
                     }
@@ -3766,7 +5547,7 @@ public abstract class Service
         public long drainOverflow(long cMillisTimeout, int cMaxEvents)
                 throws java.lang.InterruptedException
             {
-            return cMaxEvents <= 0 || getQueue().size() < cMaxEvents
+            return cMaxEvents <= 0 || getFlowControlBacklog() < cMaxEvents
                 ? cMillisTimeout // common case; no overflow
                 : drainOverflowComplex(cMillisTimeout, cMaxEvents);
             }
@@ -3822,10 +5603,10 @@ public abstract class Service
             
             while (isStarted())
                 {
-                int cEvents = queue.size();    
-                if (cEvents < cMaxEvents)
+                int cBacklog = getFlowControlBacklog();
+                if (cBacklog < cMaxEvents)
                     {
-                    // queue is under limit
+                    // backlog is under limit
                     break;
                     }
             
@@ -3834,7 +5615,7 @@ public abstract class Service
                     {
                     oHead          = queue.peekNoWait();
                     ldtGrowthCheck = ldtNow + lGrowthInterval;
-                    cEventsPrev    = cEvents;
+                    cEventsPrev    = cBacklog;
                     
                     if (cMillisTimeout != 0L)
                         {
@@ -3858,7 +5639,7 @@ public abstract class Service
                     {
                     Object oHeadCurrent = queue.peekNoWait();  
             
-                    if (oHead == oHeadCurrent)
+                    if (queue.size() > 0 && oHead == oHeadCurrent)
                         {
                         // after waiting several iterations, the event queue
                         // has made no progress; we may be stuck while holding a
@@ -3875,17 +5656,17 @@ public abstract class Service
             
                     if (ldtNow > ldtGrowthCheck)
                         {
-                        if (cEvents >= cEventsPrev)
+                        if (cBacklog >= cEventsPrev)
                             {
-                            // if the event queue grew in size over the last interval
-                            // while we are not adding to it; it may be growing out of
-                            // control (faster than it can be drained).
+                            // if the backlog grew in size over the last interval
+                            // while we are not adding to it; it may be growing out
+                            // of control (faster than it can be drained).
                             _trace("The events are processed at a slower rate than they arrive."
-                                 + " During the last " + lGrowthInterval + "ms, the event "
-                                 + " backlog went from " + cEventsPrev + " to " + cEvents, 2);
+                                 + " During the last " + lGrowthInterval + "ms, the service "
+                                 + " backlog went from " + cEventsPrev + " to " + cBacklog, 2);
                             }
                         ldtGrowthCheck = ldtNow + lGrowthInterval;
-                        cEventsPrev    = cEvents;
+                        cEventsPrev    = cBacklog;
                         }
                     
                     // we made some progress, but the queue is still backed up;
@@ -3911,15 +5692,41 @@ public abstract class Service
             SafeLinkedList list = getBacklogContinuations();
             if (list != null && !list.isEmpty())
                 {
-                // to avoid thrashing, consider the "normal" threshold
-                // being 3/4 of the CloggedCount
-                long cNormal = (getCloggedCount() >> 2) * 3;
+                Service service = (Service) get_Module();
             
-                if (getQueue().size() < cNormal)
+                if (service.getServiceState() == Service.SERVICE_STOPPED ||
+                    getFlowControlBacklog() < getBacklogNormalCount())
                     {
                     Service.notifyBacklogNormal(list);
                     }
                 }
+            }
+
+        /**
+         * Return the backlog threshold considered back to normal.
+         */
+        protected long getBacklogNormalCount()
+            {
+            // to avoid thrashing, consider the "normal" threshold
+            // being 3/4 of the CloggedCount
+            return (getCloggedCount() >> 2) * 3;
+            }
+
+        /**
+         * Return the backlog used by producer flow control.
+         */
+        protected int getFlowControlBacklog()
+            {
+            Service service = (Service) get_Module();
+            int     cBacklog = getQueue().size();
+
+            com.tangosol.coherence.component.util.DaemonPool pool = service.getDaemonPool();
+            if (pool instanceof Service.VirtualDaemonPool && pool.isStarted())
+                {
+                cBacklog += pool.getBacklog();
+                }
+
+            return cBacklog;
             }
         
         // Accessor for the property "BacklogContinuations"
@@ -4174,7 +5981,6 @@ public abstract class Service
                     task = (Runnable) queue.removeNoWait();
                     if (task == null)
                         {
-                        Service.notifyBacklogNormal(getBacklogContinuations());
                         break;
                         }
                     task.run();

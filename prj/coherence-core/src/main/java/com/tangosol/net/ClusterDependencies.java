@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -684,16 +684,6 @@ public interface ClusterDependencies
      * @since 23.09
      */
     public String getLambdasSerializationMode();
-
-    /**
-     * Determine whether using virtual threads is enabled.
-     *
-     * @return true if using virtual threads is enabled
-     *
-     * @since 24.03
-     */
-    public boolean isVirtualThreadsEnabled();
-
 
     // ----- inner interface: ServiceProvider -------------------------------
 

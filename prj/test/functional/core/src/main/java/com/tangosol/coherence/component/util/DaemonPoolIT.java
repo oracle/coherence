@@ -7,7 +7,17 @@
 package com.tangosol.coherence.component.util;
 
 import com.oracle.coherence.testing.junit.ThreadDumpOnTimeoutRule;
+import com.oracle.coherence.common.util.AssociationPile;
+
+import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
+
+import com.tangosol.internal.net.service.DefaultServiceDependencies;
+
+import com.tangosol.net.DaemonPoolType;
+import com.tangosol.net.Guardable;
+import com.tangosol.net.Guardian;
 import com.tangosol.net.cache.KeyAssociation;
+
 import com.tangosol.util.Base;
 import org.junit.After;
 import org.junit.Before;
@@ -17,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -29,9 +40,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.doAnswer;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 
 public class DaemonPoolIT
     {
@@ -174,7 +185,7 @@ public class DaemonPoolIT
     @Test
     public void shouldDrainHotQueueWithIdleStealers() throws Exception
         {
-        String         sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
+        String          sSlotsPrevious = System.getProperty("coherence.daemonpool.slots");
         TestDaemonPool pool           = new TestDaemonPool();
         CountDownLatch latchDone      = new CountDownLatch(8);
         CountDownLatch latchRelease   = new CountDownLatch(1);
@@ -579,6 +590,201 @@ public class DaemonPoolIT
         assertThat(resizeTask.getEffectiveShakePeriod(), is(10000L));
         }
 
+    @Test
+    public void shouldStopVirtualPoolWithAssociationAllQueuedBehindAssociatedWork()
+            throws Exception
+        {
+        Service.VirtualDaemonPool pool = createVirtualPool(0);
+        pool.start();
+
+        VirtualBlockingTask taskAssociated = new VirtualBlockingTask(1);
+        VirtualBlockingTask taskAll        = new VirtualBlockingTask(AssociationPile.ASSOCIATION_ALL);
+
+        pool.add(taskAssociated);
+        assertTrue(taskAssociated.awaitStarted());
+
+        pool.add(taskAll);
+        assertFalse(taskAll.awaitStarted(200));
+
+        pool.stop();
+
+        assertTrue(taskAssociated.awaitDone());
+        assertFalse(taskAll.awaitStarted(200));
+        assertFalse(pool.isStarted());
+        assertEventually(() -> pool.getActiveDaemonCount() == 0);
+        assertEventually(() -> pool.getBacklog() == 0);
+        }
+
+    @Test
+    public void shouldStopVirtualPoolWithAssociatedWorkBlockedBehindAssociationAll()
+            throws Exception
+        {
+        Service.VirtualDaemonPool pool = createVirtualPool(0);
+        pool.start();
+
+        VirtualBlockingTask taskAll        = new VirtualBlockingTask(AssociationPile.ASSOCIATION_ALL);
+        VirtualBlockingTask taskAssociated = new VirtualBlockingTask(1);
+
+        pool.add(taskAll);
+        assertTrue(taskAll.awaitStarted());
+
+        pool.add(taskAssociated);
+        assertFalse(taskAssociated.awaitStarted(200));
+
+        pool.stop();
+
+        assertTrue(taskAll.awaitDone());
+        assertFalse(taskAssociated.awaitStarted(200));
+        assertFalse(pool.isStarted());
+        assertEventually(() -> pool.getActiveDaemonCount() == 0);
+        assertEventually(() -> pool.getBacklog() == 0);
+        }
+
+    @Test
+    public void shouldRecoverGuardedAssociatedVirtualTask()
+            throws Exception
+        {
+        RecordingGuardian       guardian   = new RecordingGuardian();
+        Service.VirtualDaemonPool pool     = createVirtualPool(0, guardian);
+        pool.start();
+
+        VirtualBlockingTask taskFirst  = new VirtualBlockingTask(1);
+        VirtualBlockingTask taskSecond = new VirtualBlockingTask(1);
+
+        pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+
+        pool.add(taskSecond);
+        assertFalse(taskSecond.awaitStarted(200));
+
+        Guardable guardable = guardian.awaitLatestGuardable(1);
+        guardable.recover();
+
+        assertTrue(taskFirst.awaitDone());
+        assertTrue(taskFirst.wasInterrupted());
+        assertTrue(taskSecond.awaitStarted());
+
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+
+        pool.stop();
+        assertFalse(pool.isStarted());
+        assertEventually(() -> pool.getActiveDaemonCount() == 0);
+        }
+
+    @Test
+    public void shouldEscalateGuardedVirtualTaskTerminateToServiceGuardable()
+            throws Exception
+        {
+        RecordingGuardian     guardian = new RecordingGuardian();
+        TestService           service  = createVirtualService(0, guardian);
+        Service.VirtualDaemonPool pool = (Service.VirtualDaemonPool) service.getDaemonPool();
+        pool.setAbandonThreshold(3);
+        pool.start();
+
+        InterruptSwallowingTask task = new InterruptSwallowingTask(1);
+        pool.add(task);
+        assertTrue(task.awaitStarted());
+
+        Guardable guardable = guardian.awaitLatestGuardable(1);
+        for (int i = 0, c = pool.getAbandonThreshold(); i < c; i++)
+            {
+            guardable.recover();
+            }
+
+        guardable.terminate();
+
+        assertTrue(service.awaitTerminateInvoked());
+        assertEventually(() -> task.getInterruptCount() > 0);
+
+        task.release();
+        assertTrue(task.awaitDone());
+
+        pool.stop();
+        assertFalse(pool.isStarted());
+        assertEventually(() -> pool.getActiveDaemonCount() == 0);
+        }
+
+    private DaemonPool.ResizeTask createResizeTask(ResizeTaskDaemonPoolStub pool, int cThreads, int cMin, int cMax)
+        {
+        pool.setDaemonCountMin(cMin);
+        pool.setDaemonCountMax(cMax);
+        pool.setDaemonCount(cThreads);
+
+        DaemonPool.ResizeTask resizeTask = (DaemonPool.ResizeTask) pool._newChild("ResizeTask");
+        resizeTask.setLastShakeMillis(Base.getSafeTimeMillis());
+        resizeTask.setLastThreadCount(cThreads);
+        return resizeTask;
+        }
+
+    private void configureRun(DaemonPool.ResizeTask resizeTask, ResizeTaskDaemonPoolStub pool, int cThreads,
+            long cTasksLast, long cActiveMillisLast, double dflLastThroughput, int cLastResize, long cPeriod,
+            int cActiveDaemonCount)
+        {
+        long ldtNow = Base.getSafeTimeMillis();
+
+        pool.setStatsTaskCount(cTasksLast);
+        pool.setStatsActiveMillis(cActiveMillisLast);
+        pool.setStatsLastResetMillis(0L);
+        pool.setStatsLastResizeMillis(0L);
+        pool.setActiveDaemonCount(cActiveDaemonCount);
+
+        resizeTask.setLastRunMillis(ldtNow - 1000L);
+        resizeTask.setLastResizeMillis(ldtNow - 2000L);
+        resizeTask.setLastTaskCount(cTasksLast);
+        resizeTask.setLastActiveMillis(cActiveMillisLast);
+        resizeTask.setLastThroughput(dflLastThroughput);
+        resizeTask.setLastResize(cLastResize);
+        resizeTask.setPeriodMillis(cPeriod);
+        resizeTask.setActiveCountAverage(cActiveDaemonCount);
+        resizeTask.setLastShakeMillis(ldtNow);
+        resizeTask.setLastThreadCount(cThreads);
+        }
+
+    private Service.VirtualDaemonPool createVirtualPool(int cTaskLimit)
+        {
+        return createVirtualPool(cTaskLimit, null);
+        }
+
+    private Service.VirtualDaemonPool createVirtualPool(int cTaskLimit, Guardian guardian)
+        {
+        TestService service = createVirtualService(cTaskLimit, guardian);
+        return (Service.VirtualDaemonPool) service.getDaemonPool();
+        }
+
+    private TestService createVirtualService(int cTaskLimit, Guardian guardian)
+        {
+        TestServiceDependencies deps = new TestServiceDependencies();
+        deps.setThreadPriority(Thread.NORM_PRIORITY);
+        deps.setDefaultWorkerThreadCountMin(1);
+        deps.setDaemonPoolType(DaemonPoolType.VIRTUAL);
+        deps.setTaskLimit(cTaskLimit);
+
+        TestService service = new TestService("VirtualDaemonPoolIT-" + cTaskLimit, guardian);
+        service.setDependencies(deps);
+
+        Service.VirtualDaemonPool pool = (Service.VirtualDaemonPool) service.getDaemonPool();
+        pool.setInternalGuardian(service);
+        return service;
+        }
+
+    private void assertEventually(BooleanSupplier supplier)
+            throws Exception
+        {
+        long ldtDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < ldtDeadline)
+            {
+            if (supplier.getAsBoolean())
+                {
+                return;
+                }
+
+            Thread.sleep(10L);
+            }
+
+        assertTrue(supplier.getAsBoolean());
+        }
+
     protected void assertNoTaskFailure(AtomicReference<Throwable> refFailure)
         {
         Throwable failure = refFailure.get();
@@ -628,42 +834,6 @@ public class DaemonPoolIT
             }
 
         assertTrue(sMessage, supplier.getAsBoolean());
-        }
-
-    private DaemonPool.ResizeTask createResizeTask(ResizeTaskDaemonPoolStub pool, int cThreads, int cMin, int cMax)
-        {
-        pool.setDaemonCountMin(cMin);
-        pool.setDaemonCountMax(cMax);
-        pool.setDaemonCount(cThreads);
-
-        DaemonPool.ResizeTask resizeTask = (DaemonPool.ResizeTask) pool._newChild("ResizeTask");
-        resizeTask.setLastShakeMillis(Base.getSafeTimeMillis());
-        resizeTask.setLastThreadCount(cThreads);
-        return resizeTask;
-        }
-
-    private void configureRun(DaemonPool.ResizeTask resizeTask, ResizeTaskDaemonPoolStub pool, int cThreads,
-            long cTasksLast, long cActiveMillisLast, double dflLastThroughput, int cLastResize, long cPeriod,
-            int cActiveDaemonCount)
-        {
-        long ldtNow = Base.getSafeTimeMillis();
-
-        pool.setStatsTaskCount(cTasksLast);
-        pool.setStatsActiveMillis(cActiveMillisLast);
-        pool.setStatsLastResetMillis(0L);
-        pool.setStatsLastResizeMillis(0L);
-        pool.setActiveDaemonCount(cActiveDaemonCount);
-
-        resizeTask.setLastRunMillis(ldtNow - 1000L);
-        resizeTask.setLastResizeMillis(ldtNow - 2000L);
-        resizeTask.setLastTaskCount(cTasksLast);
-        resizeTask.setLastActiveMillis(cActiveMillisLast);
-        resizeTask.setLastThroughput(dflLastThroughput);
-        resizeTask.setLastResize(cLastResize);
-        resizeTask.setPeriodMillis(cPeriod);
-        resizeTask.setActiveCountAverage(cActiveDaemonCount);
-        resizeTask.setLastShakeMillis(ldtNow);
-        resizeTask.setLastThreadCount(cThreads);
         }
 
     // ----- inner class: DaemonPoolStub ------------------------------------
@@ -1144,17 +1314,9 @@ public class DaemonPoolIT
         protected BlockingCountedAssociatedTask(Object association, CountDownLatch latchRelease,
                 CountDownLatch latchDone, AtomicInteger cStarted, AtomicInteger cActive, AtomicInteger cMaxActive)
             {
-            this(association, latchRelease, latchDone, null, cStarted, cActive, cMaxActive);
-            }
-
-        protected BlockingCountedAssociatedTask(Object association, CountDownLatch latchRelease,
-                CountDownLatch latchDone, CountDownLatch latchBlocked, AtomicInteger cStarted, AtomicInteger cActive,
-                AtomicInteger cMaxActive)
-            {
             f_association = association;
             f_latchRelease = latchRelease;
             f_latchDone    = latchDone;
-            f_latchBlocked = latchBlocked;
             f_cStarted     = cStarted;
             f_cActive      = cActive;
             f_cMaxActive   = cMaxActive;
@@ -1169,34 +1331,15 @@ public class DaemonPoolIT
         @Override
         public void run()
             {
-            if (f_cStarted != null)
-                {
-                f_cStarted.incrementAndGet();
-                }
-
-            int cActive = 0;
-            if (f_cActive != null)
-                {
-                cActive = f_cActive.incrementAndGet();
-                if (f_cMaxActive != null)
-                    {
-                    BlockingAssociatedTask.updateMax(f_cMaxActive, cActive);
-                    }
-                }
+            f_cStarted.incrementAndGet();
+            int cActive = f_cActive.incrementAndGet();
+            BlockingAssociatedTask.updateMax(f_cMaxActive, cActive);
 
             try
                 {
-                if (f_latchBlocked != null)
+                if (!f_latchRelease.await(10, TimeUnit.SECONDS))
                     {
-                    f_latchBlocked.countDown();
-                    }
-
-                if (f_latchRelease != null)
-                    {
-                    if (!f_latchRelease.await(10, TimeUnit.SECONDS))
-                        {
-                        throw new AssertionError("timed out waiting to release associated task");
-                        }
+                    throw new AssertionError("timed out waiting to release associated task");
                     }
                 }
             catch (InterruptedException e)
@@ -1206,22 +1349,14 @@ public class DaemonPoolIT
                 }
             finally
                 {
-                if (f_cActive != null)
-                    {
-                    f_cActive.decrementAndGet();
-                    }
-
-                if (f_latchDone != null)
-                    {
-                    f_latchDone.countDown();
-                    }
+                f_cActive.decrementAndGet();
+                f_latchDone.countDown();
                 }
             }
 
         private final Object f_association;
         private final CountDownLatch f_latchRelease;
         private final CountDownLatch f_latchDone;
-        private final CountDownLatch f_latchBlocked;
         private final AtomicInteger f_cStarted;
         private final AtomicInteger f_cActive;
         private final AtomicInteger f_cMaxActive;
@@ -1250,6 +1385,347 @@ public class DaemonPoolIT
 
         private final Object f_association;
         private final CountDownLatch f_latchDone;
+        }
+
+    protected static class TestService
+            extends Service
+            implements Guardian
+        {
+        public TestService(String sName)
+            {
+            this(sName, null);
+            }
+
+        public TestService(String sName, Guardian guardian)
+            {
+            super(sName, null, false);
+
+            __initPrivate();
+            setServiceName(sName);
+            m_guardian = guardian;
+            setGuardable(new TestServiceGuard());
+            }
+
+        @Override
+        public GuardContext guard(Guardable guardable)
+            {
+            Guardian guardian = m_guardian;
+            return guardian == null ? null : guardian.guard(guardable);
+            }
+
+        @Override
+        public GuardContext guard(Guardable guardable, long cMillis, float flPctRecover)
+            {
+            Guardian guardian = m_guardian;
+            return guardian == null ? null : guardian.guard(guardable, cMillis, flPctRecover);
+            }
+
+        @Override
+        public long getDefaultGuardTimeout()
+            {
+            Guardian guardian = m_guardian;
+            return guardian == null ? 0L : guardian.getDefaultGuardTimeout();
+            }
+
+        @Override
+        public float getDefaultGuardRecovery()
+            {
+            Guardian guardian = m_guardian;
+            return guardian == null ? 0.0F : guardian.getDefaultGuardRecovery();
+            }
+
+        public boolean awaitTerminateInvoked()
+                throws InterruptedException
+            {
+            return f_terminated.await(5, TimeUnit.SECONDS);
+            }
+
+        protected class TestServiceGuard
+                extends Service.Guard
+            {
+            public TestServiceGuard()
+                {
+                super("Guard", TestService.this, true);
+                }
+
+            @Override
+            public void terminate()
+                {
+                f_terminated.countDown();
+                }
+            }
+
+        private final CountDownLatch f_terminated = new CountDownLatch(1);
+
+        private final Guardian m_guardian;
+        }
+
+    protected static class VirtualBlockingTask
+            implements Runnable, KeyAssociation
+        {
+        public VirtualBlockingTask(Object oAssociation)
+            {
+            f_oAssociation = oAssociation;
+            }
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_oAssociation;
+            }
+
+        @Override
+        public void run()
+            {
+            f_started.countDown();
+
+            try
+                {
+                f_release.await(5, TimeUnit.SECONDS);
+                }
+            catch (InterruptedException e)
+                {
+                m_fInterrupted = true;
+                Thread.currentThread().interrupt();
+                }
+            finally
+                {
+                f_done.countDown();
+                }
+            }
+
+        public boolean awaitDone()
+                throws InterruptedException
+            {
+            return f_done.await(5, TimeUnit.SECONDS);
+            }
+
+        public boolean awaitStarted()
+                throws InterruptedException
+            {
+            return awaitStarted(5_000L);
+            }
+
+        public boolean awaitStarted(long cMillis)
+                throws InterruptedException
+            {
+            return f_started.await(cMillis, TimeUnit.MILLISECONDS);
+            }
+
+        public void release()
+            {
+            f_release.countDown();
+            }
+
+        public boolean wasInterrupted()
+            {
+            return m_fInterrupted;
+            }
+
+        private final Object         f_oAssociation;
+        private final CountDownLatch f_done    = new CountDownLatch(1);
+        private final CountDownLatch f_release = new CountDownLatch(1);
+        private final CountDownLatch f_started = new CountDownLatch(1);
+
+        private volatile boolean m_fInterrupted;
+        }
+
+    protected static class InterruptSwallowingTask
+            implements Runnable, KeyAssociation
+        {
+        public InterruptSwallowingTask(Object oAssociation)
+            {
+            f_oAssociation = oAssociation;
+            }
+
+        @Override
+        public Object getAssociatedKey()
+            {
+            return f_oAssociation;
+            }
+
+        @Override
+        public void run()
+            {
+            f_started.countDown();
+
+            try
+                {
+                while (!m_fReleased)
+                    {
+                    try
+                        {
+                        m_fReleased = f_release.await(100L, TimeUnit.MILLISECONDS);
+                        }
+                    catch (InterruptedException e)
+                        {
+                        m_cInterrupts++;
+                        Thread.interrupted();
+                        }
+                    }
+                }
+            finally
+                {
+                f_done.countDown();
+                }
+            }
+
+        public boolean awaitDone()
+                throws InterruptedException
+            {
+            return f_done.await(5, TimeUnit.SECONDS);
+            }
+
+        public boolean awaitStarted()
+                throws InterruptedException
+            {
+            return f_started.await(5, TimeUnit.SECONDS);
+            }
+
+        public int getInterruptCount()
+            {
+            return m_cInterrupts;
+            }
+
+        public void release()
+            {
+            m_fReleased = true;
+            f_release.countDown();
+            }
+
+        private final Object         f_oAssociation;
+        private final CountDownLatch f_done    = new CountDownLatch(1);
+        private final CountDownLatch f_release = new CountDownLatch(1);
+        private final CountDownLatch f_started = new CountDownLatch(1);
+
+        private volatile boolean m_fReleased;
+        private volatile int     m_cInterrupts;
+        }
+
+    protected static class RecordingGuardian
+            implements Guardian
+        {
+        @Override
+        public GuardContext guard(Guardable guardable)
+            {
+            return guard(guardable, getDefaultGuardTimeout(), getDefaultGuardRecovery());
+            }
+
+        @Override
+        public GuardContext guard(Guardable guardable, long cMillis, float flPctRecover)
+            {
+            RecordingGuardContext context = new RecordingGuardContext(this, guardable, cMillis);
+            guardable.setContext(context);
+            f_listContext.add(context);
+            return context;
+            }
+
+        @Override
+        public long getDefaultGuardTimeout()
+            {
+            return 1000L;
+            }
+
+        @Override
+        public float getDefaultGuardRecovery()
+            {
+            return 0.5F;
+            }
+
+        public Guardable awaitLatestGuardable(int cExpected)
+                throws InterruptedException
+            {
+            long ldtDeadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+            while (System.nanoTime() < ldtDeadline)
+                {
+                if (f_listContext.size() >= cExpected)
+                    {
+                    return f_listContext.get(cExpected - 1).getGuardable();
+                    }
+
+                Thread.sleep(10L);
+                }
+
+            assertTrue(f_listContext.size() >= cExpected);
+            return f_listContext.get(cExpected - 1).getGuardable();
+            }
+
+        private final CopyOnWriteArrayList<RecordingGuardContext> f_listContext = new CopyOnWriteArrayList<>();
+        }
+
+    protected static class RecordingGuardContext
+            implements Guardian.GuardContext
+        {
+        public RecordingGuardContext(Guardian guardian, Guardable guardable, long cTimeoutMillis)
+            {
+            f_guardian       = guardian;
+            f_guardable      = guardable;
+            f_cTimeoutMillis = cTimeoutMillis;
+            }
+
+        @Override
+        public Guardian getGuardian()
+            {
+            return f_guardian;
+            }
+
+        @Override
+        public Guardable getGuardable()
+            {
+            return f_guardable;
+            }
+
+        @Override
+        public void heartbeat()
+            {
+            m_nState = STATE_HEALTHY;
+            }
+
+        @Override
+        public void heartbeat(long cMillis)
+            {
+            m_nState = STATE_HEALTHY;
+            }
+
+        @Override
+        public int getState()
+            {
+            return m_nState;
+            }
+
+        @Override
+        public void release()
+            {
+            m_nState = STATE_HEALTHY;
+            }
+
+        @Override
+        public long getSoftTimeoutMillis()
+            {
+            return f_cTimeoutMillis;
+            }
+
+        @Override
+        public long getTimeoutMillis()
+            {
+            return f_cTimeoutMillis;
+            }
+
+        private final long      f_cTimeoutMillis;
+        private final Guardable f_guardable;
+        private final Guardian  f_guardian;
+
+        private volatile int m_nState = STATE_HEALTHY;
+        }
+
+    protected static class TestServiceDependencies
+            extends DefaultServiceDependencies
+        {
+        @Override
+        public void setDefaultWorkerThreadCountMin(int cThreads)
+            {
+            super.setDefaultWorkerThreadCountMin(cThreads);
+            }
         }
 
     // ----- data members ---------------------------------------------------

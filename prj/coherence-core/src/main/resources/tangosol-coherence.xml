@@ -393,10 +393,6 @@ to find specific notes on changes suggested for production use.
             <param-name>event-dispatcher-priority</param-name>
             <param-value>10</param-value>
           </init-param>
-          <init-param id="25">
-            <param-name>worker-priority</param-name>
-            <param-value>5</param-value>
-          </init-param>
           <init-param id="26">
             <param-name>reliable-transport</param-name>
             <param-value system-property="coherence.distributed.transport.reliable"></param-value>
@@ -466,10 +462,6 @@ to find specific notes on changes suggested for production use.
           <init-param id="10">
             <param-name>event-dispatcher-priority</param-name>
             <param-value>10</param-value>
-          </init-param>
-          <init-param id="11">
-            <param-name>worker-priority</param-name>
-            <param-value>5</param-value>
           </init-param>
           <init-param id="12">
             <param-name>reliable-transport</param-name>
@@ -564,10 +556,6 @@ to find specific notes on changes suggested for production use.
           <init-param id="13">
             <param-name>service-priority</param-name>
             <param-value>10</param-value>
-          </init-param>
-          <init-param id="14">
-            <param-name>worker-priority</param-name>
-            <param-value>5</param-value>
           </init-param>
           <init-param id="15">
             <param-name>event-dispatcher-priority</param-name>
@@ -751,10 +739,6 @@ to find specific notes on changes suggested for production use.
           <init-param id="24">
             <param-name>event-dispatcher-priority</param-name>
             <param-value>10</param-value>
-          </init-param>
-          <init-param id="25">
-            <param-name>worker-priority</param-name>
-            <param-value>5</param-value>
           </init-param>
           <init-param id="26">
             <param-name>reliable-transport</param-name>
@@ -1064,7 +1048,6 @@ to find specific notes on changes suggested for production use.
       <thread-count-min system-property="coherence.common.pool.min.threads"/>
     </common-daemon-pool>
 
-    <virtual-threads-enabled system-property="coherence.virtualthreads.enabled">false</virtual-threads-enabled>
   </cluster-config>
 
   <logging-config>

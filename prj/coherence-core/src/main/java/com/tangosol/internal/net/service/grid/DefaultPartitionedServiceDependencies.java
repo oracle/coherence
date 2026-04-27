@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -61,7 +61,7 @@ public class DefaultPartitionedServiceDependencies
         if (deps == null)
             {
             // try to default to available processors to avoid expensive initial auto-sizing
-            setWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
+            setDefaultWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
             }
         else
             {

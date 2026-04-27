@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,8 @@ import com.tangosol.config.annotation.Injectable;
 
 import com.tangosol.internal.health.HealthCheckDependencies;
 import com.tangosol.io.SerializerFactory;
+
+import com.tangosol.net.DaemonPoolType;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -53,12 +55,24 @@ public class DefaultServiceDependencies
             m_cWorkerThreadsMax              = deps.getWorkerThreadCountMax();
             m_cWorkerThreadsMin              = deps.getWorkerThreadCountMin();
             m_nWorkerPriority                = deps.getWorkerThreadPriority();
+            m_daemonPoolType                 = deps.getDaemonPoolType();
+            m_nTaskLimit                     = deps.getTaskLimit();
             m_healthCheckDependencies        = deps.getHealthCheckDependencies();
             if (deps instanceof DefaultServiceDependencies)
                 {
                 DefaultServiceDependencies sDeps = (DefaultServiceDependencies) deps;
                 m_fDeprecatedThreadConfiguration = sDeps.m_fDeprecatedThreadConfiguration;
                 m_fThreadConfiguration           = sDeps.m_fThreadConfiguration;
+                m_fWorkerThreadCountMaxConfigured = sDeps.m_fWorkerThreadCountMaxConfigured;
+                m_fWorkerThreadCountMinConfigured = sDeps.m_fWorkerThreadCountMinConfigured;
+                m_fWorkerThreadPriorityConfigured = sDeps.m_fWorkerThreadPriorityConfigured;
+                m_fDaemonPoolConfigured           = sDeps.m_fDaemonPoolConfigured;
+                m_fTaskLimitConfigured          = sDeps.m_fTaskLimitConfigured;
+                }
+            else
+                {
+                m_fDaemonPoolConfigured = deps.isDaemonPoolConfigured();
+                m_fTaskLimitConfigured  = deps.isTaskLimitConfigured();
                 }
             }
         }
@@ -223,8 +237,9 @@ public class DefaultServiceDependencies
     @Injectable("thread-count-max")
     public void setWorkerThreadCountMax(int cThreads)
         {
-        m_fThreadConfiguration = true;
-        m_cWorkerThreadsMax    = cThreads;
+        m_fThreadConfiguration              = true;
+        m_fWorkerThreadCountMaxConfigured   = true;
+        m_cWorkerThreadsMax                 = cThreads;
         }
 
     @Override
@@ -241,8 +256,9 @@ public class DefaultServiceDependencies
     @Injectable("thread-count-min")
     public void setWorkerThreadCountMin(int cThreads)
         {
-        m_fThreadConfiguration = true;
-        m_cWorkerThreadsMin    = cThreads;
+        m_fThreadConfiguration              = true;
+        m_fWorkerThreadCountMinConfigured   = true;
+        m_cWorkerThreadsMin                 = cThreads;
         }
 
     /**
@@ -262,7 +278,78 @@ public class DefaultServiceDependencies
     @Injectable("worker-priority")
     public void setWorkerThreadPriority(int nPriority)
         {
-        m_nWorkerPriority = nPriority;
+        m_fWorkerThreadPriorityConfigured = true;
+        m_nWorkerPriority                 = nPriority;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DaemonPoolType getDaemonPoolType()
+        {
+        return m_daemonPoolType;
+        }
+
+    /**
+     * Set the service worker-pool type.
+     *
+     * @param type  the daemon-pool type
+     */
+    public void setDaemonPoolType(DaemonPoolType type)
+        {
+        m_fDaemonPoolConfigured = true;
+        m_daemonPoolType        = type;
+        }
+
+    /**
+     * Set the service worker-pool type.
+     *
+     * @param sType  the daemon-pool type
+     */
+    @Injectable("daemon-pool")
+    public void setDaemonPoolType(String sType)
+        {
+        setDaemonPoolType(DaemonPoolType.fromString(sType));
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDaemonPoolConfigured()
+        {
+        return m_fDaemonPoolConfigured;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getTaskLimit()
+        {
+        return m_nTaskLimit;
+        }
+
+    /**
+     * Set the per-service virtual-thread task limit.
+     *
+     * @param nTaskLimit  the per-service virtual-thread task limit
+     */
+    @Injectable("task-limit")
+    public void setTaskLimit(int nTaskLimit)
+        {
+        m_fTaskLimitConfigured = true;
+        m_nTaskLimit           = nTaskLimit;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isTaskLimitConfigured()
+        {
+        return m_fTaskLimitConfigured;
         }
 
     /**
@@ -304,7 +391,12 @@ public class DefaultServiceDependencies
                 + ", WorkerThreadCount=" + getWorkerThreadCount()
                 + ", WorkerThreadCountMax=" + getWorkerThreadCountMax()
                 + ", WorkerThreadCountMin=" + getWorkerThreadCountMin()
-                + ", WorkerThreadPriority=" + getWorkerThreadPriority() + "}";
+                + ", WorkerThreadPriority=" + getWorkerThreadPriority()
+                + ", DaemonPoolType=" + getDaemonPoolType()
+                + ", DaemonPoolConfigured=" + isDaemonPoolConfigured()
+                + ", TaskLimit=" + getTaskLimit()
+                + ", TaskLimitConfigured=" + isTaskLimitConfigured()
+                + "}";
         }
 
     // ----- helpers --------------------------------------------------------
@@ -331,6 +423,7 @@ public class DefaultServiceDependencies
                 "WorkerThreadPriority cannot be less than " + Thread.MIN_PRIORITY);
         Base.azzert(getWorkerThreadPriority() <= Thread.MAX_PRIORITY,
                 "WorkerThreadPriority cannot be more than " + Thread.MAX_PRIORITY);
+        Base.azzert(getTaskLimit() >= 0, "TaskLimit cannot be less than 0");
 
         // if deprecated option is explicitly set, it takes precedence
         // of new settings
@@ -338,8 +431,8 @@ public class DefaultServiceDependencies
             {
             int cThreadCount = getWorkerThreadCount();
 
-            setWorkerThreadCountMin(cThreadCount);
-            setWorkerThreadCountMax(cThreadCount);
+            m_cWorkerThreadsMin = cThreadCount;
+            m_cWorkerThreadsMax = cThreadCount;
             }
         else
             {
@@ -349,7 +442,7 @@ public class DefaultServiceDependencies
             if (cWorkerMin > cWorkerMax)
                 {
                 // set max == min
-                setWorkerThreadCountMax(cWorkerMin);
+                m_cWorkerThreadsMax = cWorkerMin;
                 }
             }
 
@@ -364,6 +457,57 @@ public class DefaultServiceDependencies
             }
 
         return this;
+        }
+
+    /**
+     * Return {@code true} if {@code <thread-count>} was configured.
+     *
+     * @return {@code true} if {@code <thread-count>} was configured
+     */
+    public boolean isWorkerThreadCountConfigured()
+        {
+        return m_fDeprecatedThreadConfiguration;
+        }
+
+    /**
+     * Return {@code true} if {@code <thread-count-max>} was configured.
+     *
+     * @return {@code true} if {@code <thread-count-max>} was configured
+     */
+    public boolean isWorkerThreadCountMaxConfigured()
+        {
+        return m_fWorkerThreadCountMaxConfigured;
+        }
+
+    /**
+     * Return {@code true} if {@code <thread-count-min>} was configured.
+     *
+     * @return {@code true} if {@code <thread-count-min>} was configured
+     */
+    public boolean isWorkerThreadCountMinConfigured()
+        {
+        return m_fWorkerThreadCountMinConfigured;
+        }
+
+    /**
+     * Return {@code true} if {@code <worker-priority>} was configured.
+     *
+     * @return {@code true} if {@code <worker-priority>} was configured
+     */
+    public boolean isWorkerThreadPriorityConfigured()
+        {
+        return m_fWorkerThreadPriorityConfigured;
+        }
+
+    /**
+     * Set a default minimum worker-thread count without marking the XML element
+     * as configured.
+     *
+     * @param cThreads  the default minimum worker-thread count
+     */
+    protected void setDefaultWorkerThreadCountMin(int cThreads)
+        {
+        m_cWorkerThreadsMin = cThreads;
         }
 
     // ----- data members ---------------------------------------------------
@@ -419,6 +563,27 @@ public class DefaultServiceDependencies
     private int m_nWorkerPriority = Thread.NORM_PRIORITY;
 
     /**
+     * The configured service worker-pool type.
+     */
+    private DaemonPoolType m_daemonPoolType;
+
+    /**
+     * Flag indicating the service worker-pool type was explicitly configured.
+     */
+    private boolean m_fDaemonPoolConfigured;
+
+    /**
+     * The per-service virtual-thread task limit.
+     */
+    private int m_nTaskLimit;
+
+    /**
+     * Flag indicating the virtual-thread task limit was explicitly configured
+     * for this service.
+     */
+    private boolean m_fTaskLimitConfigured;
+
+    /**
      * Flag indicating deprecated {@code thread-config} used.
      *
      * @since 14.1.1.2206.5
@@ -431,6 +596,21 @@ public class DefaultServiceDependencies
      * @since 14.1.1.2206.5
      */
     private boolean m_fThreadConfiguration;
+
+    /**
+     * Flag indicating {@code thread-count-max} was configured.
+     */
+    private boolean m_fWorkerThreadCountMaxConfigured;
+
+    /**
+     * Flag indicating {@code thread-count-min} was configured.
+     */
+    private boolean m_fWorkerThreadCountMinConfigured;
+
+    /**
+     * Flag indicating {@code worker-priority} was configured.
+     */
+    private boolean m_fWorkerThreadPriorityConfigured;
 
     /**
      * The service health check dependencies.

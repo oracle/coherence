@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -10,14 +10,14 @@
             xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
             elementFormDefault="qualified"
             attributeFormDefault="unqualified"
-            version="1.3">
+            version="1.4">
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -93,7 +93,6 @@
                 <xsd:element ref="resources" minOccurs="0" />
                 <xsd:element ref="secured-production" minOccurs="0" />
                 <xsd:element ref="common-daemon-pool" minOccurs="0" />
-                <xsd:element ref="virtual-threads-enabled" minOccurs="0"/>
 
                 <!-- Must remain last. Next 2 elements are appended to cluster-config
                      child elements in Coherence.loadConfiguration method. -->
@@ -3326,21 +3325,6 @@
                 <xsd:element ref="thread-count-min" minOccurs="0" />
             </xsd:sequence>
         </xsd:complexType>
-    </xsd:element>
-
-    <xsd:element name="virtual-threads-enabled" type="coherence-boolean-type">
-        <xsd:annotation>
-            <xsd:documentation>
-                The virtual-threads-enabled element specifies whether virtual
-                threads are used by Coherence.
-
-                Legal values are true or false.
-
-                Default value is false.
-
-                Used in: cluster-config
-            </xsd:documentation>
-        </xsd:annotation>
     </xsd:element>
 
 </xsd:schema>

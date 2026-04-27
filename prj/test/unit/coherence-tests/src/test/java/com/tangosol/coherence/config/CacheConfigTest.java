@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config;
 
 import com.oracle.coherence.testing.CustomClasses;
 import com.tangosol.coherence.config.builder.MapBuilder;
 import com.tangosol.coherence.config.scheme.CachingScheme;
+import com.tangosol.coherence.config.scheme.DistributedScheme;
 import com.tangosol.coherence.config.scheme.ExternalScheme;
 import com.tangosol.coherence.config.scheme.LocalScheme;
 import com.tangosol.config.ConfigurationException;
+import com.tangosol.internal.net.service.grid.PartitionedCacheDependencies;
 import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory.Dependencies;
@@ -20,6 +22,7 @@ import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -152,6 +155,44 @@ public class CacheConfigTest
             {
             testSimpleAccess(sXml, LocalScheme.class);
             }
+        }
+
+    @Test
+    public void testVersion13DistributedSchemeStillParses()
+        {
+        String sXml =
+              "<cache-config xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+            +               "xmlns=\"http://xmlns.oracle.com/coherence/coherence-cache-config\" "
+            +               "xsi:schemaLocation=\"http://xmlns.oracle.com/coherence/coherence-cache-config "
+            +               "http://xmlns.oracle.com/coherence/coherence-cache-config/1.3/coherence-cache-config.xsd\">"
+            +   "<caching-scheme-mapping>"
+            +     "<cache-mapping>"
+            +       "<cache-name>CustomerCache</cache-name>"
+            +       "<scheme-name>CustomerScheme</scheme-name>"
+            +     "</cache-mapping>"
+            +   "</caching-scheme-mapping>"
+            +   "<caching-schemes>"
+            +     "<distributed-scheme>"
+            +       "<scheme-name>CustomerScheme</scheme-name>"
+            +       "<service-name>CustomerService</service-name>"
+            +       "<thread-count-max>16</thread-count-max>"
+            +       "<thread-count-min>2</thread-count-min>"
+            +       "<backing-map-scheme>"
+            +         "<local-scheme/>"
+            +       "</backing-map-scheme>"
+            +     "</distributed-scheme>"
+            +   "</caching-schemes>"
+            + "</cache-config>";
+
+        Dependencies dependencies = DependenciesHelper.newInstance(XmlHelper.loadXml(sXml));
+        ExtensibleConfigurableCacheFactory eccf = new ExtensibleConfigurableCacheFactory(dependencies);
+        DistributedScheme scheme = (DistributedScheme) eccf.getCacheConfig().findSchemeByCacheName("CustomerCache");
+        PartitionedCacheDependencies deps = scheme.getServiceDependencies();
+
+        assertEquals(2, deps.getWorkerThreadCountMin());
+        assertEquals(16, deps.getWorkerThreadCountMax());
+        assertFalse(deps.isDaemonPoolConfigured());
+        assertFalse(deps.isTaskLimitConfigured());
         }
 
     // ----- helpers --------------------------------------------------------

@@ -5134,6 +5134,14 @@ public abstract class PartitionedService
         setMaxContendMillis(cMaxLockWait);
         setMaxLockAttempt(Config.getInteger("coherence.distributed.lock.attempt", cLockWait == cMaxLockWait ? 1 : 10).intValue());
         }
+
+    // Declared at the super level
+    protected com.tangosol.coherence.component.util.DaemonPool instantiateDaemonPool(boolean fVirtual)
+        {
+        return fVirtual
+               ? new PartitionedService.VirtualDaemonPool("VirtualDaemonPool", this, true)
+               : new PartitionedService.DaemonPool("DaemonPool", this, true);
+        }
     
     // Declared at the super level
     /**
@@ -7176,7 +7184,8 @@ public abstract class PartitionedService
         
             // with active persistence enabled increase the min thread count to
             // allow persistence (blocking on IO tasks) to execute in parallel
-            if (mgrActive != null && cDaemons == 1)
+            if (mgrActive != null && cDaemons == 1
+                    && !(pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool))
                 {
                 int cDaemonsMax = pool.getDaemonCountMax();
                 if (cDaemonsMax > 2)
@@ -15801,9 +15810,9 @@ public abstract class PartitionedService
                 }
             
             // Declared at the super level
-            public void run()
+            protected void executePreparedTask()
                 {
-                super.run();
+                super.executePreparedTask();
                 
                 updatePartitionStats();
                 }
@@ -15868,6 +15877,117 @@ public abstract class PartitionedService
                         }
                     }
                 }
+            }
+        }
+
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService$VirtualDaemonPool
+
+    /**
+     * Partitioned-service-specific virtual-thread worker-pool prototype.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
+    public static class VirtualDaemonPool
+            extends    com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.VirtualDaemonPool
+        {
+        private static com.tangosol.util.ListMap __mapChildren;
+
+        static
+            {
+            __initStatic();
+            }
+
+        private static void __initStatic()
+            {
+            __mapChildren = new com.tangosol.util.ListMap();
+            __mapChildren.put("Daemon", com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid.DaemonPool.Daemon.get_CLASS());
+            __mapChildren.put("ResizeTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.ResizeTask.get_CLASS());
+            __mapChildren.put("ScheduleTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.ScheduleTask.get_CLASS());
+            __mapChildren.put("StartTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.StartTask.get_CLASS());
+            __mapChildren.put("StopTask", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.StopTask.get_CLASS());
+            __mapChildren.put("WorkSlot", com.tangosol.coherence.component.util.daemon.queueProcessor.Service.DaemonPool.WorkSlot.get_CLASS());
+            __mapChildren.put("WrapperTask", PartitionedService.DaemonPool.WrapperTask.get_CLASS());
+            }
+
+        public VirtualDaemonPool()
+            {
+            this(null, null, true);
+            }
+
+        public VirtualDaemonPool(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        public void __init()
+            {
+            __initPrivate();
+
+            try
+                {
+                setAbandonThreshold(8);
+                setDaemonCountMax(2147483647);
+                setDaemonCountMin(1);
+                setScheduledTasks(new java.util.HashSet());
+                setStatsTaskAddCount(new java.util.concurrent.atomic.AtomicLong());
+                }
+            catch (java.lang.Exception e)
+                {
+                throw new com.tangosol.util.WrapperException(e);
+                }
+
+            set_Constructed(true);
+            }
+
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.VirtualDaemonPool();
+            }
+
+        public static Class get_CLASS()
+            {
+            Class clz;
+            try
+                {
+                clz = Class.forName("com.tangosol.coherence/component/util/daemon/queueProcessor/service/grid/PartitionedService$VirtualDaemonPool".replace('/', '.'));
+                }
+            catch (ClassNotFoundException e)
+                {
+                throw new NoClassDefFoundError(e.getMessage());
+                }
+            return clz;
+            }
+
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        protected java.util.Map get_ChildClasses()
+            {
+            return __mapChildren;
+            }
+
+        // Declared at the super level
+        /**
+         * Factory method: create a new WrapperTask component.
+         */
+        protected com.tangosol.coherence.component.util.DaemonPool.WrapperTask instantiateWrapperTask()
+            {
+            // override the super, as it does not use virtual construction
+
+            PartitionedService.DaemonPool.WrapperTask task = new PartitionedService.DaemonPool.WrapperTask();
+            _linkChild(task);
+            return task;
             }
         }
 

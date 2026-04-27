@@ -960,13 +960,28 @@ public class PartitionedCache
         // import com.tangosol.net.ActionPolicy;
         // import com.tangosol.net.CacheService$CacheAction as com.tangosol.net.CacheService.CacheAction;
         // import com.tangosol.net.RequestPolicyException;
-        
+
+        fReadOnly = isQuorumReadOnly(msg, fReadOnly);
+
         ActionPolicy policy = getActionPolicy();
-        if (!policy.isAllowed(this, fReadOnly ? com.tangosol.net.CacheService.CacheAction.READ : com.tangosol.net.CacheService.CacheAction.WRITE))
+        if (!policy.isAllowed(this, fReadOnly
+                ? com.tangosol.net.CacheService.CacheAction.READ
+                : com.tangosol.net.CacheService.CacheAction.WRITE))
             {
             throw new RequestPolicyException(
                     "Cache " + (fReadOnly ? "reads" : "writes") + " are disallowed by " + policy);
             }
+        }
+
+    /**
+     * Return true iff the request should be checked as a read action by the
+     * cache quorum policy.
+     */
+    protected boolean isQuorumReadOnly(com.tangosol.coherence.component.net.message.RequestMessage msg, boolean fReadOnly)
+        {
+        return fReadOnly
+                || msg instanceof PartitionedCache.GetRequest
+                || msg instanceof PartitionedCache.GetAllRequest;
         }
     
     /**
@@ -5796,6 +5811,17 @@ public class PartitionedCache
                     com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
         
                     status = ctxInvoke.lockEntry(storage, binKey, false);
+                    if (status == null)
+                        {
+                        if (isExiting())
+                            {
+                            return;
+                            }
+
+                        msgResponse.setResult(PartitionedCache.Response.RESULT_RETRY);
+                        post(msgResponse);
+                        return;
+                        }
                     try
                         {
                         ctxInvoke.prepareAccess(context,
@@ -7182,6 +7208,17 @@ public class PartitionedCache
             while (true)
                 {
                 status = ctxInvoke.lockEntry(storage, binKey, false);
+                if (status == null)
+                    {
+                    if (isExiting())
+                        {
+                        return;
+                        }
+
+                    msgResponse.setResult(PartitionedCache.Response.RESULT_RETRY);
+                    post(msgResponse);
+                    return;
+                    }
                 try
                     {
                     com.tangosol.net.security.StorageAccessAuthorizer authorizer = storage.getAccessAuthorizer();
@@ -7702,6 +7739,17 @@ public class PartitionedCache
             while (true)
                 {
                 status = ctxInvoke.lockEntry(storage, binKey, false);
+                if (status == null)
+                    {
+                    if (isExiting())
+                        {
+                        return;
+                        }
+
+                    msgResponse.setResult(PartitionedCache.Response.RESULT_RETRY);
+                    post(msgResponse);
+                    return;
+                    }
                 try
                     {
                     com.tangosol.net.security.StorageAccessAuthorizer authorizer = storage.getAccessAuthorizer();
@@ -21992,7 +22040,15 @@ public class PartitionedCache
             {
             return !isAllowBackupRead();
             }
-        
+
+        // Declared at the super level
+        // Phase 1 keeps associated gets on the keyed-mailbox path until
+        // the direct read-only dispatch rules are implemented.
+        public boolean isReadOnly()
+            {
+            return false;
+            }
+
         // Declared at the super level
         public void read(com.tangosol.io.ReadBuffer.BufferInput input)
                 throws java.io.IOException
@@ -22362,6 +22418,16 @@ public class PartitionedCache
         public boolean isCoherentResult()
             {
             return !isAllowBackupRead();
+            }
+
+        // Declared at the super level
+        /**
+         * Phase 1 keeps associated gets on the keyed-mailbox path until the
+         * direct read-only dispatch rules are implemented.
+         */
+        public boolean isReadOnly()
+            {
+            return false;
             }
         
         // Declared at the super level

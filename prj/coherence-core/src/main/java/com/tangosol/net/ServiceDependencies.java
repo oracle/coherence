@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,6 +121,39 @@ public interface ServiceDependencies
      * @return the worker thread priority
      */
     public int getWorkerThreadPriority();
+
+    /**
+     * Obtain the configured daemon-pool type.
+     *
+     * @return the configured daemon-pool type, or {@code null} if the service
+     *         did not explicitly configure one
+     */
+    public DaemonPoolType getDaemonPoolType();
+
+    /**
+     * Determine whether the service explicitly configured the daemon-pool type.
+     *
+     * @return {@code true} if the daemon-pool type was explicitly configured
+     *         for this service
+     */
+    public boolean isDaemonPoolConfigured();
+
+    /**
+     * Obtain the per-service virtual-thread task limit.
+     *
+     * @return the per-service virtual-thread task limit, or {@code 0} if
+     *         unlimited
+     */
+    public int getTaskLimit();
+
+    /**
+     * Determine whether the service explicitly configured the virtual-thread
+     * task limit.
+     *
+     * @return {@code true} if the virtual-thread task limit was explicitly
+     *         configured for this service
+     */
+    public boolean isTaskLimitConfigured();
 
     /**
      * Returns the service's {@link HealthCheckDependencies}.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -92,30 +92,6 @@ public class VirtualThreads
      *         {@code false} otherwise
      */
     public static boolean isSupported()
-        {
-        return false;
-        }
-
-    /**
-     * Return {@code true} if virtual threads are enabled.
-     *
-     * @return {@code true} if the virtual threads are enabled;
-     *         {@code false} otherwise
-     */
-    public static boolean isEnabled()
-        {
-        return false;
-        }
-
-    /**
-     * Return {@code true} if virtual threads are enabled for the specified service.
-     *
-     * @param serviceName  the name of the service to check
-     *
-     * @return {@code true} if the virtual threads are enabled for the specified service;
-     *         {@code false} otherwise
-     */
-    public static boolean isEnabled(String serviceName)
         {
         return false;
         }

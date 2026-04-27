@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -21,9 +21,15 @@ Cache Configuration used for the util test suite.
 
   <caching-schemes>
     <invocation-scheme>
+      <service-name>vdp-backpressure</service-name>
+      <daemon-pool>virtual</daemon-pool>
+      <task-limit>8</task-limit>
+      <autostart>true</autostart>
+    </invocation-scheme>
+
+    <invocation-scheme>
       <service-name>invocation</service-name>
-      <thread-count-max>1</thread-count-max>
-      <thread-count-min>1</thread-count-min>
+      <daemon-pool system-property="coherence.test.daemonpool">platform</daemon-pool>
     </invocation-scheme>
   </caching-schemes>
 </cache-config>

@@ -6,10 +6,6 @@
  */
 package com.tangosol.internal.util;
 
-import com.tangosol.coherence.config.Config;
-
-import com.tangosol.net.CacheFactory;
-
 import com.tangosol.net.security.SecurityHelper;
 
 import java.util.concurrent.ExecutorService;
@@ -21,11 +17,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
-
-import java.util.function.Function;
 
 /**
  * Helper class for virtual threads functionality.
@@ -124,31 +116,17 @@ public class VirtualThreads
         }
 
     /**
-     * Return {@code true} if virtual threads are enabled.
+     * Returns either a new virtual thread per-task executor on Java 21 or higher
+     * or a single threaded executor if lower than Java 21.
      *
-     * @return {@code true} if the virtual threads are enabled;
-     *         {@code false} otherwise
+     * @param factory  the {@link ThreadFactory} to use if not on Java 21
+     *
+     * @return either a new virtual thread per-task executor on Java 21 or higher
+     *         or a single threaded executor if lower than Java 21.
      */
-    public static boolean isEnabled()
+    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
         {
-        // Reserved for VirtualDaemonPool selection; legacy DaemonPool ignores this flag.
-        return CacheFactory.getCluster().getDependencies().isVirtualThreadsEnabled();
-        }
-
-    /**
-     * Return {@code true} if virtual threads are enabled for the specified service.
-     *
-     * @param sServiceName  the name of the service to check
-     *
-     * @return {@code true} if the virtual threads are enabled for the specified service;
-     *         {@code false} otherwise
-     */
-    public static boolean isEnabled(String sServiceName)
-        {
-        // Reserved for VirtualDaemonPool selection; legacy DaemonPool ignores this flag.
-        return sServiceName == null
-               ? isEnabled()
-               : Config.getBoolean(PROPERTY_SERVICE_ENABLED.apply(sServiceName), isEnabled());
+        return Executors.newVirtualThreadPerTaskExecutor();
         }
 
     /**
@@ -166,31 +144,4 @@ public class VirtualThreads
         return thread.isVirtual();
         }
 
-        /**
-         * Returns either a new virtual thread per-task executor on Java 21 or higher
-         * or a single threaded executor if lower than Java 21.
-         *
-         * @param factory  the {@link ThreadFactory} to use if not on Java 21
-         *
-         * @return either a new virtual thread per-task executor on Java 21 or higher
-         *         or a single threaded executor if lower than Java 21.
-         */
-        public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
-            {
-            return Executors.newVirtualThreadPerTaskExecutor();
-            }
-
-    // ---- constants -------------------------------------------------------
-
-    /**
-     * Config property used to globally enable or disable virtual threads.
-     */
-    public static final String PROPERTY_ENABLED = "coherence.virtualthreads.enabled";
-
-    /**
-     * Config property used to selectively enable or disable virtual threads for
-     * a specific service.
-     */
-    public static final Function<String, String> PROPERTY_SERVICE_ENABLED =
-            (sServiceName) -> String.format("coherence.service.%s.virtualthreads.enabled", sServiceName);
     }

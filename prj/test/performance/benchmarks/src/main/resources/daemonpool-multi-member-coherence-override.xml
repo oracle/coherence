@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd">
+  <cluster-config>
+    <persistence-environments>
+      <persistence-environment id="daemonpool-benchmark-bdb">
+        <persistence-mode system-property="benchmark.daemonpool.persistence.mode">active</persistence-mode>
+        <active-directory system-property="benchmark.daemonpool.persistence.active.dir">target/daemonpool-persistence/active</active-directory>
+        <backup-directory system-property="benchmark.daemonpool.persistence.backup.dir">target/daemonpool-persistence/backup</backup-directory>
+        <snapshot-directory system-property="benchmark.daemonpool.persistence.snapshot.dir">target/daemonpool-persistence/snapshot</snapshot-directory>
+        <trash-directory system-property="benchmark.daemonpool.persistence.trash.dir">target/daemonpool-persistence/trash</trash-directory>
+      </persistence-environment>
+    </persistence-environments>
+  </cluster-config>
+</coherence>
