@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package management;
 import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
 
+import com.oracle.bedrock.deferred.options.RetryFrequency;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
@@ -2759,6 +2760,73 @@ public abstract class BaseManagementInfoResourceTests
             assertThat(mapCacheMember.get("size"), instanceOf(Number.class));
             assertThat(mapCacheMember.get("cacheHits"), instanceOf(Number.class));
             }
+        }
+
+    // COH-33210
+    @Test
+    public void testCacheSizeUsesBackTierOnly()
+        {
+        final int    ENTRY_COUNT = 20;
+        final String sCacheName  = "near-coh33210-" + System.nanoTime();
+
+        try
+            {
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
+                {
+                NamedCache cache = CacheFactory.getCache(sCacheName);
+                cache.clear();
+                for (int i = 0; i < ENTRY_COUNT; i++)
+                    {
+                    cache.put("key" + i, "value" + i);
+                    }
+
+                for (int i = 0; i < ENTRY_COUNT; i++)
+                    {
+                    cache.get("key" + i);
+                    }
+                return null;
+                });
+
+            Eventually.assertDeferred(() -> assertBackingMapSize(sCacheName, ENTRY_COUNT), is(true), RetryFrequency.every(1, TimeUnit.SECONDS));
+            }
+        finally
+            {
+            f_inClusterInvoker.accept(f_sClusterName, null, () ->
+                {
+                NamedCache cache = CacheFactory.getCache(sCacheName);
+                cache.destroy();
+                return null;
+                });
+            }
+        }
+
+    protected boolean assertBackingMapSize(String sCacheName, int nExpectedSize)
+        {
+        // query aggregated CacheResource endpoint
+        WebTarget target   = getBaseTarget().path(CACHES).path(sCacheName);
+        Response  response = target.request().get();
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+        Map    mapResponse    = readEntity(target, response);
+        Number aggregatedSize = (Number) mapResponse.get("size");
+        assertThat(aggregatedSize, notNullValue());
+
+        String sMembersUrl = getLink(mapResponse, "members");
+
+        // get back tier size
+        WebTarget backTarget   = m_client.target(sMembersUrl).queryParam("tier", "back");
+        Response  backResponse = backTarget.request().get();
+        assertThat(backResponse.getStatus(), is(Response.Status.OK.getStatusCode()));
+
+
+        Map       mapBackMembers = readEntity(backTarget, backResponse);
+        List<Map> listBackItems  = (List<Map>) mapBackMembers.get("items");
+        int       cBackSizeSum   = 0;
+        for (Map member : listBackItems)
+            {
+            cBackSizeSum += ((Number) member.get("size")).intValue();
+            }
+        return nExpectedSize == cBackSizeSum;
         }
 
     @Test
