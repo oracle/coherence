@@ -86,8 +86,6 @@ jobs:
       run: |
         export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
-        echo "Forcing download of surefire-junit4 before stage verify"
-        mvn --file prj/coherence-http-netty/pom.xml --batch-mode -e -s .github/maven/settings.xml verify
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
