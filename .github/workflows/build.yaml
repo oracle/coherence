@@ -1,7 +1,7 @@
-# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2026, Oracle Corporation and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+# https://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
 # Coherence CE GitHub Actions CI build.
@@ -18,6 +18,8 @@ on:
         type: string
 
 env:
+  MAVEN_VERSION: 3.6.1
+  MAVEN_SHA512: b4880fb7a3d81edd190a029440cdf17f308621af68475a4fe976296e71ff4a4b546dd6d8a58aaafba334d309cc11e638c52808a4b0e818fc0fd544226d952544
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false
 
 jobs:
@@ -50,6 +52,21 @@ jobs:
       with:
         java-version: '1.8'
 
+    - name: Set up Maven
+      shell: bash
+      run: |
+        set -euo pipefail
+        archive="apache-maven-${MAVEN_VERSION}-bin.tar.gz"
+        curl --fail --location --show-error --silent --retry 5 \
+          "https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/${archive}" \
+          --output "${RUNNER_TEMP}/${archive}"
+        echo "${MAVEN_SHA512}  ${archive}" | (cd "${RUNNER_TEMP}" && sha512sum --check -)
+        mkdir -p "${RUNNER_TEMP}/maven"
+        tar -xzf "${RUNNER_TEMP}/${archive}" -C "${RUNNER_TEMP}/maven"
+        maven_home="${RUNNER_TEMP}/maven/apache-maven-${MAVEN_VERSION}"
+        echo "MAVEN_HOME=${maven_home}" >> "${GITHUB_ENV}"
+        echo "${maven_home}/bin" >> "${GITHUB_PATH}"
+
     - name: Print Maven & Java version
       run: mvn -version
 
@@ -69,8 +86,6 @@ jobs:
       run: |
         export DEV_ROOT=$(pwd)
         mvn --file prj/pom.xml --batch-mode -e -s .github/maven/settings.xml -DskipTests clean install
-        echo "Forcing download of surfire-juni4 before full verify"
-        mvn --file prj/coherence-http-netty/pom.xml --batch-mode -e -s .github/maven/settings.xml verify
 
       # If the build job runs successfully then run the verify stages in parallel
     - name: Verify
@@ -81,7 +96,7 @@ jobs:
       run: |
         echo "Running verify ${{ matrix.stage }}"
         export DEV_ROOT=$(pwd)
-        mvn --file prj/pom.xml --batch-mode -e -o -s .github/maven/settings.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
+        mvn --file prj/pom.xml --batch-mode -e -nsu -s .github/maven/settings.xml -P ${{ matrix.stage }},-default,-shell,-javadoc -Doptional -Dcoherence.SkipLargeMemoryTests=true verify
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs

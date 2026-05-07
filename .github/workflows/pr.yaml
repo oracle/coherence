@@ -1,7 +1,7 @@
-# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2026, Oracle Corporation and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
-# http://oss.oracle.com/licenses/upl.
+# https://oss.oracle.com/licenses/upl.
 
 # ---------------------------------------------------------------------------
 # Coherence CE GitHub Actions CI build.
@@ -13,7 +13,7 @@ on:
   pull_request:
     types:
       - opened
-      - committed
+      - synchronize
     branches-ignore:
     - gh-pages
     - p4-integ*
@@ -23,13 +23,6 @@ jobs:
   build:
     name: Parallel Build - Linux
     uses: ./.github/workflows/build.yaml
-    secrets: inherit
-    with:
-      runner: ubuntu-latest
-
-  examples:
-    name: Examples Build
-    uses: ./.github/workflows/build-examples.yaml
     secrets: inherit
     with:
       runner: ubuntu-latest
