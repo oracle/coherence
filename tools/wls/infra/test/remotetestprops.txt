@@ -1,0 +1,192 @@
+# This file holds doc strings that get written to remote.html, the
+# info page called "Remote Testing Ant Targets".  Do not add
+# functional parameters to this file (i.e. parameters that are read
+# by automation). They live in file remotetestprops.env
+
+# remote.all
+
+# remote.everything
+
+# remote.ide
+
+# remote.multiple
+remote.multiple.dirs.doc="<b>...</b><br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/..."
+
+# remote.portal
+
+# remoteBVT_Portal
+
+# remoteBVT_Portal_AdminTools
+
+# remoteBVT_wlp_cm
+
+# remoteBVT_workshop1_ide
+
+# remoteBVT_workshop2_ide
+
+# remoteBVT_workshop_runtime_controls
+
+# remoteBVT_workshop_runtime_controlsOam
+
+# remoteBVT_workshop_runtime_controlsSecurity
+
+# remoteBVT_workshop_runtime_controlsWlwbvt
+
+# remoteBVT_workshop_runtime_netui
+
+# remoteDRT_Lithium
+
+# remoteDRT_P13N
+
+# remoteDRT_Portal
+
+# remoteDRT_Portal_AdminTools
+
+# remoteDRT_Portal_AdminTools_old
+
+# remoteDRT_WLW_platform_ide
+
+# remoteDRT_collab
+
+# remoteDRT_framework_wls
+
+# remoteDRT_framework_wsrp
+
+# remoteDRT_kitdrt
+remoteDRT_kitdrt.dirs.doc="<b>...</b><br>//depot/dev/<br>3rdparty/jdks/..."
+
+# remoteDRT_statesetting
+remoteDRT_statesetting.dirs.doc="<b>...</b><br>//depot/dev/<br>3rdparty/jdks/..."
+
+# remoteDRT_languages
+
+# remoteDRT_null
+
+# remoteDRT_propagation
+
+# remoteDRT_testqueue
+
+# remoteDRT_wli
+
+# remoteDRT_wli_ai
+
+# remoteDRT_wli_bpm
+
+# remoteDRT_wli_eclipse
+
+# remoteDRT_wli_jpd_cluster
+
+# remoteDRT_wli_worklist
+
+# remoteDRT_wlp_cm
+
+# remoteDRT_wlp_eclipse
+
+# remoteDRT_wlpapps
+
+# remoteDRT_wlpappscollab
+
+# remoteDRT_wlpcontentui
+
+# remoteDRT_wlpim
+
+# remoteDRT_workshop_metadata
+
+# remoteDRT_workshop_ide
+
+# remoteDRT_workshop_runtime
+
+# remoteDRT_workshop_runtime_integration
+
+# remoteDRT_workshop_runtime_netui
+
+# remoteDRT_workshop_testClient
+
+# remoteDRT_xbus
+
+# remoteDRT_xbus_cluster
+
+# remoteDRT_xbus_cluster_CR263879
+
+# remotePerf_workshop_ide
+
+# remoteDRT_all
+remoteDRT_all.dirs.doc="(run syncwls)"
+
+# remoteDRT_applib
+remoteDRT_applib.dirs.doc="(run syncwls)"
+
+# remoteDRT_checkintest
+remoteDRT_checkintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_console
+remoteDRT_console.dirs.doc="(run syncwlsconsole)"
+
+# remoteDRT_corecheckintest
+
+# remoteDRT_cts
+remoteDRT_cts.dirs.doc="(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/..."
+
+# remoteDRT_cts_jsp
+remoteDRT_cts_jsp.dirs.doc="(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/..."
+
+# remoteDRT_cts_servlet
+remoteDRT_cts_servlet.dirs.doc="(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/..."
+
+# remoteDRT_ctscheckintest
+remoteDRT_ctscheckintest.dirs.doc="(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>jee5sdk/...<br>//depot/cts/<br>cts5/..."
+
+# remoteDRT_deploycheckintest
+remoteDRT_deploycheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_ejbtests
+remoteDRT_ejbtests.dirs.doc="(run syncwls)"
+
+# remoteDRT_examples
+remoteDRT_examples.dirs.doc="(run syncwls)"
+
+# remoteDRT_j2ee
+remoteDRT_j2ee.dirs.doc="(run syncwls)"
+
+# remoteDRT_jmsall
+remoteDRT_jmsall.dirs.doc="(run syncwls)"
+
+# remoteDRT_jmscheckintest
+remoteDRT_jmscheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_jmsclustercheckintest
+remoteDRT_jmsclustercheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_medrec
+remoteDRT_medrec.dirs.doc="(run syncwls)"
+
+# remoteDRT_oamcheckintest
+remoteDRT_oamcheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_samples
+remoteDRT_samples.dirs.doc="(run syncwls)"
+
+# remoteDRT_tools
+remoteDRT_tools.dirs.doc="(run <br>syncwlsconsole)"
+
+# remoteDRT_webappcheckintest
+remoteDRT_webappcheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_webappcheckintestTL
+remoteDRT_webappcheckintestTL.dirs.doc="(run syncwls)"
+
+# remoteDRT_webapplib
+remoteDRT_webapplib.dirs.doc="(run syncwls)"
+
+# remoteDRT_wsee
+remoteDRT_wsee.dirs.doc="(run syncwls)"
+
+# remoteDRT_wseecheckintest
+remoteDRT_wseecheckintest.dirs.doc="(run syncwls)"
+
+# remoteDRT_wseecheckintestnew
+remoteDRT_wseecheckintestnew.dirs.doc="(run syncwls)"
+
+# remoteDRT_wseesecurity
+remoteDRT_wseewseesecurity.dirs.doc="(run syncwls)"
+

@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Remote Testing Ant Targets</title>
+
+<style type="text/css">
+
+td {
+    font-family: Verdana,Geneva,Arial,Helvetica,sans-serif;
+    color:black;
+    font-size:  8pt;
+    font-weight: normal;
+}
+.right {
+    margin-right:0.20in; 
+    margin-bottom:0in;   
+    text-align:right;    
+    float:right;
+}
+.cctname {
+  /* background:#fffafa; snow */
+  background:#fff8dc;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Remote Testing Ant Targets</h1>
+
+<p> These targets create a remote job that will zip up all the p4 opened
+files on your local machine, sync to the head, sync/resolve
+your changes into the label, build what it needs and runs the requested test(s). Targets named with wls(eg, remote.standard.wls) will create a WLS RQ job to test the coherence bits build by your change after test in coherence RQ passed. You are sent email when the job starts and completes. </p>
+<p>Then use the command "tools/wls/infra/enqueue" to enqueue a remote test. There are several options to enqueue that will modify its behavior.</p>
+<p> An auto-submit job can be used to submit the changes if the build and test succeed. The -a option is used . Here are a few rules related to auto-submit jobs.</p>
+
+<ul>
+<li>
+you must use the -c "your changelist"option to mention the local change list. Create a change using "p4 change" and specify the created change number to this option. 
+<li>
+you must include a comment in the change (add it when you run p4 change). You can also use the -d "your description" option but it's preferable to include it in the change definition (for example, integ'ing the change to another code line will use the description in the change). 
+<li>
+you must revert the change on your local client after the remote submit completes. 
+</ul>
+
+<p> NOTE: If you think a drt failure in the remote queue is machine
+related, or something to do with the remote queue email the <a
+href=mailto:infra-rq_cn_grp@oracle.com> Platform Infrastructure Team</a> </p>
+
+<p>See the end of this document for the details of what labels, build
+and tests are used.  To have additional tests added send email to <a
+href=mailto:infra-rq_cn_grp@oracle.com> Platform Infrastructure Team</a>
+supplying the details listed for the other remote tests.</p>
+
+<p>The URL for machine and job queue...
+<a href="remote.jsp">Remote Status</a></p>
+
+<p>Shows the same thing as "remote.status" in html format.</p>
+
+<p>Ant properties that modify what the remote targets do.  These
+properties can be mixed and matched in most every combination.</p>
+
+<pre>
+    tools/wls/infra/enqueue       	     	<i># just zip up open files in your default change list</i>
+    tools/wls/infra/enqueue -c none          	<i># ignore all opened files, the remote job will run with no changes</i>
+    tools/wls/infra/enqueue -c 123456        	<i># just zip up open files in pending change 123456 on your client</i>
+
+    tools/wls/infra/enqueue -s 123456        	<i># override sync'ing to the head, sync to this change number</i>
+    tools/wls/infra/enqueue -s head          	<i># override sync'ing to the clean label, sync to the head</i>
+    tools/wls/infra/enqueue -a               	<i># if the test(s) are successful submit the changes</i>
+                              		     	<i># requires -c option</i>
+    tools/wls/infra/enqueue -d "my big change"
+                               		     	<i># Displayed on the remote quote status, you can use it
+                                  	       	# to distinguish between multiple similar remote jobs.  If this is a
+                              		 	# -a job then it is used for the p4 submit Description: and the
+                               			# scripts will also grab the description from -c pending change
+                               			# numbers if you supplied one.</i>
+
+    tools/wls/infra/enqueue -m "user@oracle.com"   <i> # send  email to mailto list (comma seperated list) when 
+                                      		        # job starts or completes.  You must fully qualify the email 
+                                      			# address, ie it must contain oracle.com. 
+                                      			# The submitter will always get emailed.</i>
+    tools/wls/infra/enqueue -p         		<i># always publish test logs, not just on test failures</i>
+    tools/wls/infra/enqueue -f "functional test" remote.function     <i> # remote.function run user specified functional test with -f option.
+                                                                     # functional test name is the subfolder name under prj/test/functional
+    tools/wls/infra/enqueue -f "functional test" remote.distribution <i> # remote.distribution run user specified functional test with -f option.
+                                                                     # functional test name is the subfolder name under prj/test/distribution
+    tools/wls/infra/enqueue -S                  <i> # enable -Dtest.security.enabled=true in maven test command
+    tools/wls/infra/enqueue -o Win              <i> # assign job to run on Windows machine, now we support Windows and Linux platform, default is Linux 
+    tools/wls/infra/enqueue -w host_name               <i> # assign job to run specified host
+    tools/wls/infra/enqueue -i branch_name -c 12345    <i> # integ change 12345 from specified branch to your current branch, 
+                                                # only can integ between main branch and branches later than 12.2.1
+</pre>
+<p>Examples:</p>
+
+<pre>
+    tools/wls/infra/enqueue remote.full         <i># mvn clean integration-test</i>
+    tools/wls/infra/enqueue -p remote.full  	<i># by default the remote queue only publishes files when a test fails, setting -p will publish all logs regardless of the drt status</i>
+
+    tools/wls/infra/enqueue -s 123400 -c none remote.full
+    tools/wls/infra/enqueue -s 123450 -c none remote.full
+    tools/wls/infra/enqueue -s 123500 -c none remote.full
+                               <i># Use remote tests to do a binary search for a test.full
+			       # failure.  Set -c none to ignore any p4 opened
+			       # files in the client.</i>
+   tools/wls/infra/enqueue -f jvisualvm remote.function  <i># run jvisualvm functional test
+   tools/wls/infra/enqueue -f examples remote.distribution <i># run examples functional test
+   tools/wls/infra/enqueue -f examples -o Win remote.distribution <i># run examples functional test on Windows machine
+   tools/wls/infra/enqueue -w slc05aud               <i> # assign job to run on slc05aud
+   tools/wls/infra/enqueue -i main -c 12345    <i># integ submitted change 12345 from main branch to your current branch
+</pre>
+
+<h3>Details on how changes are sync/resolved</h3>
+
+<p> First the files are sync'ed and opened to the exact file revision you
+have opened in your p4 client.  The same file revisions shown in <i>p4
+opened</i> command.  Next the entire client is sync'ed to the known clean
+label (or -s "changelist you want to syncto") change number.  Finally three different resolve
+commands are used to sync/resolve the changes.  Those commands are p4 resolve
+-t -as (does binary one sided resolves), p4 resolve -am (merge most text
+files), p4 resolve -dw -am (slow command but resolves various whitespace
+diffs not already resolved by -am).  There is no way to to change these
+sync/resolves except to sync/resolve on your own local p4 client before
+submit. </p>
+
+<a name=failureguide></a>
+<h2>Test Failure Guide</h2>
+
+<p>Your first indication of failure will be via email or from the
+job.jsp status page.  If you do not immediately understand what is
+going on your first stop should be the <b>Results Directory</b>.  This
+is the <i>timestamped</i> directory (YYYYMMDD-HHMMSS). </p>
+
+<p>If you had a build failure then look at build.log.  If you had a
+test failure then check the ant output for that failed test.  The .log
+is named based on the directory and ant target the remote test
+infrastructure used to run the test.  If the ant output doesn't tell
+you what's wrong then you'll have to find the detailed logs and output
+of the test.  The tests aren't entirely consistent about where they
+put their logs but the locations in the <b>Results Directory</b>
+should be anologous to where they are if you run the test locally.
+We try to capture enough so you can debug most
+every problem but we can't capture everything because of disk space
+limitations.  Sometimes you just have to look at all_files.html and
+search for your test name in the list of files.  Remember the remote queue only publishes 
+logs for a test when that test fails, this is done to speed up the cycle time 
+of remote runs.  If you want the test logs published regardless of the test's status, pass -p on your remote run. </p>
+
+<p> If you need a little more detail than job.jsp gives you see
+test.log, this is kind of a verbose listing of the same basic
+information. </p>
+
+<p>If you think a test failure in the remote queue is machine related,
+or something to do with the remote queue email the <a
+href=mailto:infra-rq_cn_grp@oracle.com> Platform Infrastructure Team</a></p>
+
+
+<table width=1700 border=4 cellpadding=0 summary="Details of test runs">
+    <caption><h2>Details of test runs</h2></caption>
+    <tr>
+        <th width=0 >Ant target</th>
+        <th width=0 >Clean P4 Label/Counter</th>
+        <th width=0 align=center>Dirs Sync'd<br>under<br>//depot/dev/<br>&lt;branch&gt; </th>
+        <th width=60 >Build Targets</th>
+        <th width=0 >Test Directory</th>
+        <th width=0 >Test Target</th>
+        <th width=300 >Contains These Tests</th>
+        <th width=350 >Contact Info <a name="contact"></a></th>
+        
+        
+        
+        
+        
+    </tr>
+    <tr>
+        <td>remote.compatibility
+        <a name="remote.compatibility"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>clean<br> build<br>dist</td>
+        <td valign=top> <nobr>test/compatibility</nobr><br></td>
+        <td valign=top> verify<br></td>
+        <td valign=top>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td>remote.distribution
+        <a name="remote.distribution"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>clean<br> build<br>dist</td>
+        <td valign=top> <nobr>test/distribution</nobr><br></td>
+        <td valign=top> verify<br></td>
+        <td valign=top>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td>remote.full
+        <a name="remote.full"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>clean<br> package</td>
+        <td valign=top> <nobr>prj</nobr><br></td>
+        <td valign=top> verify<br></td>
+        <td valign=top>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td>remote.function
+        <a name="remote.function"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>clean<br> build<br>dist</td>
+        <td valign=top> <nobr>test/functional</nobr><br></td>
+        <td valign=top> verify<br></td>
+        <td valign=top>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>
+    <tr>
+        <td>remote.installer
+        <a name="remote.installer"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>clean<br> build_installer</td>
+        <td valign=top> <nobr>none</nobr><br></td>
+        <td valign=top> none<br></td>
+        <td valign=top>&nbsp;</td>
+        <td>&nbsp;</td>
+    </tr>
+<tr><td colspan=8 ><br>
+
+  <b>remote.status</b><br><br>&nbsp; &nbsp; &nbsp; Show the status of
+  remote tests. <br><br>
+
+</td></tr></table>
+</body>
+</html>

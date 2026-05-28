@@ -1,0 +1,786 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Remote Test Internal Docs</title>
+</head>
+<body>
+
+<h1>Remote Test Internal Docs</h1>
+
+<h3> Table of Contents </h3>
+
+<ul>
+  <li><a href="#intro">Introduction to remote test operation</a></li>
+  <li><a href="#remove">How to temporarily remove a machine from the queue</a></li>
+  <li><a href="#restart">How to restart a dead remote queue machine</a></li>
+  <li><a href="#badmachine">BadMachine emails sent by remote queue machines</a></li>
+  <li><a href="#unstick">How to unstick the generic queue</a></li>
+  <li><a href="#add">How to add a new remote test</a></li>
+  <li><a href="#newmachine">How to add a new machine to the remote queue</a></li>
+  <li><a href="#newbranch">How to start remote dequeuer for new branch</a></li>
+  <li><a href="#autosubmit">Description of how auto-submit works</a></li>
+  <li><a href="#sharing">Cruisecontrol and Remote Queue shared test definitions</a></li>
+  <li><a href="#sharing">Format of shared test definitions file remotetestprops.env</a></li>
+</ul>
+
+<a name="intro"><h3>Introduction to remote test operation</h3></a>
+
+<p> To enqueue a remote test you cd to a branch that supports remote tests, run devenv and then run something like </p>
+
+<pre>ant remoteDRT_foobar</pre>
+
+<p> A two or three minutes later you will get email from a machine
+that is starting to run your test and your test will appear on the
+remote.jsp status page.  Many minutes later, usually sometime between
+ten minutes and several hours later, you will get email that the test
+as failed or succeeded.  While the test is running the status page
+will periodically be updated.  You can not monitor a build or
+individual DRT or test log file but as a build or test completes you
+will be able to see the results of that build or test.<p>
+
+<p> The remote test execution can be thought of as two parts.  There
+is the remote queue which is a general machine queue for running
+arbitrary commands and tests on machines.  The remote queue is mostly
+implemented in wls/infra/build/rbt.sh.  The remote queue is not only
+used to run remote tests for individual developers but also used run
+WLS QA nightly tests.  WLS QA nightly tests are filtered out of the
+remote.jsp status page so that you never see them although hardware
+that runs WLS QA nightly tests will often make itself available for
+remote tests when it has no WLS QA tests to run.  You can also
+sometime see WLS QA nightly tests running on the machine.jsp status
+pages.  The remote queue takes job files (job.<timestamp>) that
+contains machine <strong>characteristics</strong> and a command to execute and
+matches them to a machine to execute on.  Here is an example...<p>
+
+<pre>#,OS=Win,SITE=reno,
+run this command
+</pre>
+
+<p> The remote tests use the remote queue to execute the remote test
+scripts that are implemented in wls/infra/test/remotetest*.sh.  They
+also add a zip file of p4 sources that is not really part of the
+remote queue.  The remote tests scripts know where to find the zip
+file because it is named the same as the remote queue job id. </p>
+
+<p> So when you run </p>
+
+<pre>ant remoteDRT_foobar</pre>
+
+<p>It zips up the p4 opened files in your p4 client using the
+<em>zip.opened.files</em> ant task and then ftp's them to rq.us.oracle.com
+to /mounts/centralrq_data/BRANCH/remotetests/zips using the name of the remote
+queue job id it is about to create.  Next it creates a job file that
+looks like...</p>
+
+<pre>#,OS=Win,PLATFORM=ok,
+infra/test/remotetest.sh remoteDRT_foobar joe_smith JV= SUBMIT= SYNCTO= INTEGFROM= SPIN= YIM= PUBLISH= MAILTO= RTARGETS= REVERT= BAREMETAL= METADATA=
+</pre>
+
+<p> At this point the generic dequeuer running on rq.us.oracle.com will see
+this job file and look for a machine to run it on. <a
+href="#newbranch">How to start remote dequeuer for new branch</a>.
+Machines that are in the
+remote queue and are idle will write an available file in
+/mounts/centralrq_data/BRANCH/available/ or /mount/rqueue/common/available/
+(for floater machines) and the generic remote queue script running on
+rq.us.oracle.com will try to match up remote jobs with available machines.
+When it finds a machine it will move the job file (not the zip) to the
+remote machine and the machine will soon start executing the
+remotetest.sh command. <p>
+
+<p> To rephase this with some more details the generic dequeuer is
+running on rq.us.oracle.com and watches the directories on
+/mount/rqueue/BRANCH and /mount/rqueue/common.  It knows which jobs
+need to be run by the existance of the job files in
+/mount/rqueue/BRANCH/queued and it knows which machines are available
+to run jobs by the existance of the machine files in
+/mount/rqueue/BRANCH/available and /mount/rqueue/common/available.  It
+matches the characteristics of the jobs with the characteristics of
+machines.  When it finds a match it moves the job file from
+/mount/rqueue/BRANCH/queued to the
+P4CLIENT/dev/BRANCH/wls/infra/test/queued directory on machine.  You
+can see the rdequeuer_generic shell function in rbt.sh and the rq.pl
+script for more info on the generic dequeuer.  For details on how the
+job file is actually moved to the machine see the rquemove shell
+function in rbt.sh. The quick explaination, ignoring several layers of
+abstraction in rbt.sh is that the generic dequeuer rexec's to the
+machine and runs the MKS or Cygwin command "mv" to move the job from
+the rqueuer Windows share (or NFS mount on UNIX) to the local drive.
+The "mv" is atomic so that even if it fails or is interrupted the job
+file will never be both on the share and the local drive.</p>
+
+<p> The remotetest.sh will fetch the zip ftp'ed by the ant script,
+parse the arguments on the command line and send email to the user
+before and after the remote test has completed.  remotetest*.sh takes
+care of ftp'ing all logs and output files to rq.us.oracle.com so that they
+will be available for users.  At the end the machine will mark the
+remote job as completed and make itself available again to the remote
+queue.</p>
+
+<a name="remove"><h3>How to temporarily remove a machine from the queue</h3></a>
+
+<p> For the most part you can just logon to the box and run
+killbt.sh.  Now this will take it out for less than 24 hours if you
+have WLS kit builds running on the branch.  WLS kit builds <i>rbt</i>
+into each machine and run the restart.sh script (see below) once a
+day.  Therefore killbt.sh'ing a box is a pretty good way to
+temporarily let someone use a box for debugging for the rest of the
+day. </p>
+
+<p> If you want a more permanent solution you must stop the rexecd
+running on the box. </p>
+
+<p> For Windows MKS... </p>
+
+<pre>net stop &quot;MKS rexecd&quot;</pre>
+
+<p>or</p>
+
+<pre>net stop &quot;rexecd&quot;</pre>
+
+<p>or</p>
+
+<pre>net stop &quot;Ataman TCP Remote Logon Services&quot;</pre>
+
+<p> For Windows Cygwin... </p>
+
+<pre>net stop &quot;Cygwin inetd&quot;</pre>
+
+<p> For Linux... </p>
+
+<pre>sudo vi /etc/xinetd.d/rexec # change to disable = yes
+sudo /etc/init.d/xinetd reload</pre>
+
+<p> Of course, to permanently remove it from the remote queue you must
+undo what you did to add it to the remote queue.  Adding it as a
+<i>dynamicexclude</i> in
+//depot/dev/$SRC/wls/infra/build/statuspage/btstat${SRC}rc or removing
+it entirely from the rc file.  Once you remove it from the rc file
+you'll still have to killbt.sh the box and have your change make it
+into the clean and kit label before the machine is safe from being
+restarted into the queue.</p>
+
+<a name="restart"><h3>How to restart a dead remote queue machine</h3></a>
+
+<p> The quickest way to get it back in the queue is with the following
+command </p>
+
+<pre>
+sh c:/weblogic/dev/$SRC/wls/infra/test/at_rdequeuer.sh -r
+</pre>
+
+<p> That command just straight puts it back in the remote queue.  In
+fact if a remote test had been interrupted it will be restarted back
+from the beginning. <p>
+
+<p> That is <b>not</b> exactly what the normal nightly cycle does
+though.  If you want to do that restart cycle, which does certain
+sanity checks (p4 sync -f's of infra, etc), runs any WLS static
+nightlys and then puts itself in the remote queue then run the
+following command. </p>
+
+<pre>
+sh c:/weblogic/dev/$SRC/wls/infra/build/restart.sh
+</pre>
+
+<p> Most of the time both these commands are functionally equivalent
+although restart.sh is somewhat easier to remember so it is probably
+the one to remember if you only have to remember one of them. </p>
+
+<p> NOTE: Even though I used $SRC in both command examples that is just
+a shorthand for the branch name.  devenv does <b>not</b> need to be
+run before either of these commands. </p>
+
+<p> You can also use rbt to restart a remote queue machine.  This way you don't
+have to VNC to the machine:</p>
+
+<pre>
+cd c:/weblogic/dev/$SRC/wls
+. ./devenv.sh
+. ./infra/build/rbt.sh
+rbt MACHINE infra/test/at_rdequeuer.sh -r
+</pre>
+
+<p> This rbt command adds a one time scheduled task on the remote queue "MACHINE", the one time scheduled task will put the remote queue machine back in the queue. In the example "MACHINE" is the name of the machine you wish to restart the remote queue on.  You can also restart all the remote queue machines in a branch with this:</p>
+
+<pre>
+cd c:/weblogic/dev/$SRC/wls
+. ./devenv.sh
+. ./infra/build/rbt.sh
+rbt -p "`get_machines`" infra/test/at_restart.sh
+</pre>
+
+<a name="badmachine"><h3>BadMachine emails sent by remote queue machines</h3></a>
+
+<p> When a remote test starts to run it does a few sanity checks to
+make sure the machine is "fit" to run remote tests.  Most of these
+checks have to do with running GUI tests but a few other things can
+cause failures.  When this happens the remote job is returned to the
+central queue, failure email is sent, the remote machine hangs for 60
+minutes and then it will return to the queue.  If you see one of these
+emails, VNC to the machine and fix the problem.  The machine will
+return itself to the queue within an hour.  If you want to return the
+machine to the queue more quickly you can look for and kill the
+"sleep" process that will be running on the machine. </p>
+
+<p> Exerpt of an email... </p>
+
+<pre>
+To: infra-rq_cn_grp@oracle.com
+Subject: FATAL: Windows Update has windows open on qa501 in src!
+From: &lt;wls-bt_ww@oracle.com&gt;
+Date: Mon, 10 Apr 2006 15:41:19 -0700
+
+Sleeping 1 hour so someone can look at it.
+
+Job id: http://home.us.oracle.com/internal/src/job.jsp?id=job.9.20060410222648.234
++ ps -ef 
+     UID   PID  PPID  C    STIME TTY     TIME CMD
+       0     0     1  0   Feb 05 CONIN$  8d11 Idle
+       0     4     0  0   Feb 05 CONIN$ 15:07 System
+  SYSTEM   723     4  0   Apr 08 CONIN$  0:00 smss
+  SYSTEM   820   724  0   Apr 08 CONIN$ 10:56 C:\WINDOWS\system32\csrss.exe ObjectDirectory=\Windows SharedSection=1024,3072,512 Windows=On SubSystemType=Windows ServerDll=basesrv,1 ServerDll=winsrv:UserServerDllInitialization,3 ServerDll=winsrv:ConServerDllInitialization,2 ProfileControl=Off MaxRequestThreads=16
+  SYSTEM   860   724  0   Apr 08 CONIN$  0:03 winlogon.exe
+  SYSTEM   904   860  0   Apr 08 CONIN$  0:16 C:\WINDOWS\system32\services.exe
+  SYSTEM   932   860  0   Apr 08 CONIN$  0:32 C:\WINDOWS\system32\lsass.exe
+  SYSTEM  1116   904  0   Apr 08 CONIN$  0:00 C:\WINDOWS\system32\svchost.exe -k DcomLaunch
+       0  1276   904  0   Apr 08 CONIN$  0:03 C:\WINDOWS\system32\svchost.exe -k rpcss
+       0  1368   904  0   Apr 08 CONIN$  0:03 C:\WINDOWS\system32\svchost.exe -k NetworkService
+</pre>
+
+
+<table border=3 summary="Errors, Causes and Actions">
+
+<tr>
+   <th> Error Message </th>
+   <th> Probable Cause </th>
+   <th> Required Action </th>
+</tr>
+
+<tr>
+   <td>
+	"unable to remove dev/$SRC/build directory"<br>
+	"could not delete $WEBLOGICHOME/${SRC}_* build directories, a process holding on to them?"<br>
+	"devenv -dl failed (no mydevenv.sh created)"<br>
+	"devenv -dl failed (no java, javac or jar command)"
+   </td>
+   <td>
+	Network Failure cause devenv -dl to fail, some .exe is still
+running out of the build directory or something is running java.exe.
+   </td>
+   <td>
+	Sometimes this error will fix itself with time (network?), but
+sometimes a process needs to be manually killed (and maybe added to
+killbt.sh CMDS=).
+   </td>
+</tr>
+
+<tr>
+   <td>
+	"Windows Update has windows open"<br>
+	"Service Control Manager has windows open"<br>
+	"Eventlog Service has windows open"<br>
+	"Data Execution Prevention has windows open"<br>
+	"Windows - Virtual Memory Minimum Too Low has windows open"<br>
+	"AntiVirus has windows open"
+   </td>
+   <td>
+	These are known bad apps that put up windows that Eclipse and
+Workshop can <b>not</b> do GUI testing in front of.  These windows
+will always be in the foreground and will mess up the GUI tests.
+   </td>
+   <td>
+	Close the window, fix the underlying problem that caused the
+window to open if you can.
+   </td>
+</tr>
+
+<tr>
+    <td>
+	"Console not logged in (auto-login to bt did not work?)"
+    </td>
+    <td>
+	There is no Desktop "console" session (qwinsta | grep console)
+for the GUI tests to use to run.  This frequently happens if the
+machine crashed and Windows
+is prompting you for the reason why it crashed.
+    </td>
+    <td>
+	VNC to the box or mstsc /console and log the machine into the
+bt account.  Send email to the appropriate lab manager to turn off the
+Windows post-crash question.
+    <td>
+</tr>
+
+</table>
+
+<a name="unstick"><h3>How to unstick the generic queue</h3></a>
+
+<p> If the queue is stuck... remote tests are collecting and there are
+idle machines then you should check the rdequeuer.lock file.  It is on
+rq.us.oracle.com/renocakes.us.oracle.com in a branch specific directory.  For
+"src" it is in //rq.us.oracle.com/rqueue/src/rdequeuer.lock and on Unix in
+/mounts/centralrq_data/src/rdequeuer.lock.  This will tell you the machine
+and pid of the process running the generic dequeuer.</p>
+
+<p> At the time I wrote this (Jan 2007) the dequeuer runs on
+ on rq.us.oracle.com (a.k.a. renocakes).  ssh to
+rq.us.oracle.com and check the pid mentioned in the lock file. </p>
+
+<pre>
+-bash-3.00$ cat /mounts/centralrq_data/src/rdequeuer.lock 
+renocakes 9651
+-bash-3.00$ pstree -p 9651
+sh(9651)---sh(13255)---sed(14311)
+                     --sh(14309)---java(14314)
+                     --sh(14313)
+</pre>
+
+<p> I find the "pstree" command very useful on Linux.  You should also
+check the end of the generic dequeuer log.  From the home directory of
+"bt" on rq.us.oracle.com it lives in p4client/dev/src/wls/infra/test and is
+called rdequeuer.sh.log. </p>
+
+<p> So I usually check the end of the .log file and if the queue
+hasn't written anything to the log in a while but the pid is still
+running then it is hung.  In the past I've sometimes seen a hung java
+process trying to connect to a machine... it has a timeout but
+sometime java hangs up pretty good.  A normal kill, kill -HUP or kill
+-TERM won't kill it.  I generally have to use kill -9 on the java pid
+to free up the queue.  After killing it within 60-90 seconds you
+should start to see stuff at the end of the rdequeuer.sh.log. </p>
+
+<p> Another possibility is that the rdequeuer has died and the pid
+won't be on the machine anymore.  Please check the end of the
+rdequeuer.sh.log to see what might have killed it... or check the
+system uptime to see if rq.us.oracle.com has been rebooted.  In this
+either case you can restart it.  The command currently is sh
+./infra/test/at_rdequeuer.sh -g > rdequeuer.sh.log 2 > &1 &.
+The rdequeuer is started in
+/etc/rc.local and you can see the command used to restart it in
+//depot/dev/build/statuspage/start_rq. </p>
+
+<a name="add"><h3>How to add a new remote test</h3></a>
+
+<ol><h4>You need know the following to set up a new remote test...</h4>
+
+<li><p>The remote test ant target name (Ex. remoteDRT_Lithium)</p></li>
+
+<li>The p4 label or counter that the test is known to be clean at.
+
+<p>It is important that the test be known clean at the counter or
+label.  The user of this remote test must be confident that any
+failures of remote tests are only due to her own changes and
+<b>not</b> because the DRT is <b>just</b> broken right now.  We
+(infra-rq) ask users to pressure the dev. or QA group who owns the
+test to make it reliable if erroneously fails in CC or remote queue.
+If there is no known clean change number then we strongly encourage the
+person requesting the new remote test to setup a CruiseControl
+instance to run the test and supply a counter or label.  If they
+refuse but still want it then you can set up an <i>unknown</i> clean
+test (see below).</p>
+
+<p>If you have a choice of known clean change numbers then use the one
+that is likely to be the most up to date based on the context.  For
+example, remoteDRT_wlpapps uses the counter
+"last_clean_test_wlp_apps_src" but when running wlpapps as part of
+remote.portal we use "last_clean_test_platform_src". </p>
+</li>
+
+<li>The directories that need to be sync'ed by p4.
+
+<p>This is usually
+the entire branch but certain tests like WLS only need a subset of the
+tree and tests like CTS or kit building need additional parts of the
+tree.  If you add something to the client that is new and unique be
+sure to remove it from the p4 client at the end of
+remotetestrun.sh</p>
+</li>
+
+<li>The ant build target in //depot/dev/src*/build.xml that minimally
+builds enough to run the test.
+
+<p>It is important that this be smallest quickest target needed to run
+the test, don't just use deploy_all unless that is really required,
+although it probably is best that this matches the CruiseControl
+machine that runs this test so that users will get the same error in
+the remote test as they will from the CruiseControl machine.  Note
+that it <b>must</b> be a target in the top level build.xml.  Generally
+<i>p4clean</i> is run before the build target although remote tests
+called wls.* use wls.p4clean.</p>
+</li>
+
+<li>The test directory that the test is run from.
+
+<p>Generally this is where the build.xml for the test ant target (see
+next item).</p>
+</li> 
+
+<li>The ant target in the test directory that runs the test.
+
+<p> For lots of DRT's this is simply <i>drt</i>.  This must be an ant
+target, no cmd scripts or shell scripts or ant targets that take
+special ant properties etc.  Those types of things could be
+hacked into the remote test scripts but the remote test scripts are
+already complex enough and we'd rather let the requesting person
+hackup <b>his</b> scripts.</p>
+</li>
+
+<p> Once you have all the info then you have to add entries in
+three locations for the great majority of tests:
+<pre>
+  //depot/dev/src*/build.xml
+  //depot/dev/src*/wls/infra/web/remote$NEW.html
+  //depot/dev/src*/wls/infra/test/remotetestprops$NEW.env
+</pre></p>
+
+<p> where $NEW=new when you are initially testing your changes and
+$NEW is null after you have copied your working changes into the
+production versions (see further explanation below).</p>
+
+<p> If your test needs certain unusual adjustments, for example to the
+syncspec or client, then you also have to modify:
+<pre>
+  //depot/dev/src*/wls/infra/test/remotetestrun$NEW.sh
+</pre></p>
+
+<p> In build.xml, add one entry for the usage and another that actually
+enqueues the remote test.</p>
+
+<p> Almost all of the test definition should go in
+remotetestprops.env.  If you've added a test before and your test is
+pretty simple and you feel lucky :-) then just add the new test and
+submit.  Read below for my recommendations for how to test it in the
+"new" scripts without breaking everyones remote tests.</p>
+
+</ol>
+
+<ol><h4>Using the "new" scripts</h4>
+
+<p> The remote test scripts <b>cannot</b> be tested in the remote
+queue in the usual way.  They can't be submitted while they are p4
+opened because the remote test scripts themselves unzip the p4 opened files and
+they can't overwrite themselves to test changes to themselves
+(hopefully that is somewhat clear).  Note that the remote test scripts
+in the remote queue are p4 sync'ed to the #head before the test is
+run.  This means that if you p4 submit a shell syntax error-bug to the
+remote test scripts, <b>everyone's</b> remote tests will start failing
+until you fix the problem.  The remote test scripts do not have to get
+into the clean label in order to start being used.</p>
+
+<p> To test potentially dangerous changes (any change?) there exists a
+parallel set of remote tests scripts called the "new" scripts.  You
+can submit changes to these scripts and test them in the remote queue
+without risking breaking the regular production copy of the remote
+test scripts.</p>
+
+This is how you use the <i>remotetest*new.sh</i> scripts to test
+remote test changes...<br><br>
+
+<li> Sync up the regular copies of the remote test scripts with the
+<i>new</i> copies.   
+<pre>
+  remotetestnew.sh    should be the same as   remotetest.sh
+  remotetestrunnew.sh         =               remotetestrun.sh  
+  remotetestutilsnew.sh       =               remotetestutils.sh
+  remotetestpropsnew.env      =               remotetestprops.env
+  remotetestpropsnew.pl       =               remotetestprops.pl
+</pre>
+</li>
+
+<li> Make your first attempt at changing remotetestpropsnew.sh and/or
+remotetestrunnew.sh and p4 submit it (and any other remotetest*new.sh
+scripts you had to syncronize with the non-new copy).  You can't break
+anything except your personal jobs by modifying the new.sh copy of the
+scripts</li>
+
+<li><p> Make your changes for the new remote test to build.xml.  You
+probably shouldn't submit these until you get them working in the next
+few steps.</p></li>
+
+<li><p> Edit dev/src*/build.xml and change in your p4 workspace the line
+that calls remotetest.sh to call remotetestnew.sh instead.  You will
+<b>never</b> have to p4 submit this particular change but you will
+need it to submit test runs of your changes to the remotetest*new.sh
+scripts.</p></li>
+
+<li><p> Try out your new remote test:  <i>ant
+remoteDRT_newtestname</i></p></li>
+
+<li><p> If it fails then modify remotetestpropsnew.sh again, p4 submit and
+repeat until it works.
+
+<li><p> If your new remote test works congratulations!  You can now merge
+your changes back into the non-new.sh versions of the scripts and p4
+submit the remotetest*.sh scripts and the changes to build.xml and
+remote.html (the doc page -- see below).  Be sure to <b>not</b> submit
+your build.xml change that runs remotetestrunnew.sh.  All done!
+... well, except for the docs.</p></li>
+
+<li><p> Finally, regenerate the doc page called remote.html (published at
+<pre>
+   http://home.us.oracle.com/internal/src_wlp/remote_internal.html)
+</pre>
+by doing something like this:
+<pre>
+   p4 edit //depot/dev/src*/wls/infra/web/remote.html
+   cd <clientroot>/dev/src*/wls/infra/test
+   perl remotetestprops.pl doc remotetestpropsnew.env 2>&1 | tee remote.html
+   mv remote.html <clientroot>/dev/src*/wls/infra/web/remote.html
+   p4 submit
+</pre>
+Those steps copy and format the new test definition from *props.env
+into remote.html.
+</p></li>
+
+</ol>
+
+<a name="newmachine"><h3>How to add a new machine to the remote queue</h3></a>
+
+<p>
+This is how to set up a box to run platform remote tests.  This is
+just about the same as how to setup a box to run dynamic WLS nightly
+tests although you make a slight change to one of the configuration
+files to exclude WLS nightlies from running on the box.</p>
+
+<p>
+First the machine should be setup by the lab appropriately.  We have
+worked with each lab to create an image and set of instructions for
+initial setup.  If you find any major issues I highly recommend that
+you work with the respective lab to resolve the issues and have them
+update their instructions.  Even if you know how to resolve the issue,
+it might take longer for this particular machine to work through the
+labe but in the long run it is so much better for the lab to set all
+the machines up identically so we don't have to do it.</p>
+
+<p> Here is a copy of the lab instructions the Burlington, MA, USA lab
+uses to setup machines</p>
+
+<a href="http://bteam.us.oracle.com/build-windows.doc">Windows Machines</a><br>
+<a href="http://bteam.us.oracle.com/build-linux.doc">Linux Machines</a><br>
+<a href="http://bteam.us.oracle.com/build-solaris.doc">Solaris Machines</a><br>
+
+<p> Login in the machine to the "bt" account.  You can <b>not</b> use
+amer\bt. </p>
+
+<p> Make sure there is no screen saver setup and set the screen
+resolution to 1024x768.  This is for some of the GUI IDE tests that we
+run. </p>
+
+<p> Setup the p4 settings... </p>
+
+<pre>
+p4 set -s P4CLIENT=bt.machine
+p4 set -s P4USER=bt
+p4 set -s P4PORT=p4jrep.us.oracle.com:7999
+</pre>
+
+<p> Now setup your p4 client.  The client root should be called
+"\weblogic" and can be on any drive.  Generally if I have two drives I
+put the client root on the second drive but this isn't a hard
+requirement.  You just need some place with lots of disk space.  Do
+<b>not</b> put it on a network drive since the remote queue creates and
+updates lots of files and network drives are too slow. </p>
+
+<p>  In the following example I'll assume you are putting it on drive
+d:.  Make the Root: setting of the client d:\weblogic note the Windows
+\.  Make the AltRoots: the cygwin style setting /cygdrive/d/weblogic,
+this does not need to be done on machines running MKS but it does not
+hurt anything either. </p>
+
+<p>  Add the entire branch to your client View: </p>
+
+<pre>
+      //depot/dev/src/... //bt.machine/dev/src/...
+</pre>
+
+<p> Add the machine to the <i>rc</i> file for the branch.  It lives in
+//depot/dev/$SRC/wls/infra/build/statuspage/btstat${SRC}rc.  Add a
+line that looks like this... </p>
+
+<pre>
+nightlyexclude machine
+</pre>
+
+<p> or add it to one of the already existing nightlyexclude lines
+since <i>nightlyexclude</i> can take multiple machines per line. </p>
+
+<p> Now you are pretty much ready to do your initial p4 sync.  For
+Cygwin boxes I recommend pre-sync'ing a few files that the Cygwin
+version of p4 has trouble with.  It has trouble p4 sync'ing files
+where there is a directory that matches a .exe name.  There are a few
+cases of this in the tree where there is a directory called
+<i>CmdLine</i> and <i>CmdWindow</i> and there is also .exe's by the
+same names.  To fix this you should do the following p4 sync from a
+cmd window.  Do it twice to make sure all the files get sync'ed
+correctly.<p>
+
+<pre>
+p4 sync //.../CmdLine/... //.../CmdLine* //.../CmdWindow/... //.../CmdWindow*
+</pre>
+
+<p> After this you are all set.  You should sync the entire client and
+then go to the section about <a href="#restart">How to restart a dead remote queue
+machine</a> to get the machine immediately running. </p>
+
+<a name="newbranch"><h3>How to start remote dequeuer for new branch</h3></a>
+
+<p> When you want to setup the remote queue on a new branch I assume you
+already know the info about setting up the btstat*rc file and you can
+use the instructions above to kick start the queue on individual
+machines before the night restart cycle.  This should happen
+automatically when rq.us.oracle.com is rebooted by the unbranched script
+//depot/dev/build/statuspage/start_rq. </p>
+
+<p> You will need to restart the
+central dequeuer for the branch and the load loop script that loads data
+into the MySQL database on tamarac that the remote queue status page
+uses.  These are two independent processes but both run on rq.us.oracle.com.</p>
+
+<p> To check on and (re)start the central dequeuer for the branch
+login to rq.us.oracle.com and cd to
+p4client/dev/<i>BRANCH</i>/wls/infra/test.  If the directory doesn't
+exist then cd to the p4client/dev directory and try to sync the
+branch.  The p4 client has wildcards that can map most branches but
+new branches are not automatically sync'ed onto rq.us.oracle.com.  Look for
+recent logs in the directory.  For the central dequeuer there should
+be a file called rdequeuer.sh.log that has been recently updated.  The
+pid of the process running the central dequeuer is in
+/mounts/centralrq_data/<i>BRANCH</i>/rdequeuer.lock .  For the load loop
+script there should be a file load_rjob_<i>TIMESTAMP</i>.log that has
+been recently updated.  The pid of the process running the load loop
+script is in /tmp/load_loop.lock.<i>BRANCH</i>. </p>
+
+<p> You should check to make sure the pid's do not exist and the logs
+have not been recently updated before restarting either process. While
+cd'ed into the wls/infra/test directory run the following command to
+restart the central dequeuer. <p>
+
+<pre> ./at_rdequeuer.sh -g </pre>
+
+<p> To restart the load loop script run the following command. </p>
+
+<pre> ./at_load_loop.sh </pre>
+
+<p> You should then tail the logs mentioned above to make sure the two
+processes are working properly.  The central dequeuer can take 60
+seconds or so to startup and start looking for dynamic nightlies or
+remote tests to run while the load loop process usually loads all the
+data within 20-30 seconds. <p>
+
+<a name="autosubmit"><h3>Description of how auto-submit works</h3></a>
+
+<p>When a remote job successfully runs the tests and wants to
+auto-submit the p4 diffs it creates a file in
+/mounts/centralrq_data/$SRC/remotetests/autosubmit/ named the same as the
+job id which has the change number used to sync to when running the
+remote job, the name of the remote target and if the remote job is an
+integ the file will also have the INTEGFROM setting.  It may also
+create a refreshed version of the job .zip file in that same directory
+if and only if a modules build was involved.  This is because the .jar
+files build in the remote job are the ones that get submitted not the
+.jar files enqueued by the user.  The remote job then hangs waiting
+for a .log file to appear in the autosubmit directory for the job.</p>
+
+<p> The auto-submit monkey //depot/internal/p4admin/autosubmit.sh
+running on rq.us.oracle.com under the rq.us.oracle.com account is watching all the
+autosubmit directories for all the branches and when it finds one it
+p4 sync's most of the infra related directories and sets up the SYNCTO
+change number and P4USER and fakes a P4PASSWD for the user who
+submitted the remote job.  It then calls
+//depot/dev/$SRC/wls/infra/test/remotetestsubmit(new).sh to actually
+do the submit.  When remotetestsubmit.sh is done the auto-submit
+monkey copies the log back into the autosubmit directory (named
+$JOBID.log).</p>
+
+<p> When the remote job sees the .log file has been created it cat's
+it into the test.log and searches it for FATAL: to make sure it didn't
+fail.  It then removes all the JOBID related files from the autosubmit
+directory and completes the remote job.
+</p>
+
+<p> The auto-submit monkey writes to the end of a log kept in the home
+directory of the p4as account on rq.us.oracle.com.  If you need to restart the
+auto-submit monkey this will do it</p>
+<pre>
+sh ./at.sh ./autosubmit.sh
+</pre>
+
+<p> This is also done in /etc/rc.local when rq.us.oracle.com reboots.  The
+auto-submit monkey creates a .lock file that should prevent more than
+one running at the same time.</p>
+
+<a name="sharing"><h3>Cruisecontrol and Remote Queue shared test defintions(ONLY IN src_wlp branch)</h3></a>
+
+<p>The file remotetestprops.env (depot path below) is read by both
+Remote Queue infrastructure scripts and Cruisecontrol infrastructure
+scripts.  It provides a single shared definition of tests.  CC uses
+the single key &quot;run.drt.name&quot; (drt2, drt3) to retrieve and
+set (currently) the following properties (those in parens are only
+present on multi-DRT CC boxes):</p>
+
+<pre>
+        min.build
+        clean.name
+        drt.dir
+        drt.name
+          (drt2.dir)
+          (drt2.name)
+          (drt3.dir)
+          (drt3.name)
+        last_clean_test_counter.name
+          (last_clean_test2_counter.name)
+          (last_clean_test3_counter.name)
+</pre>
+<p>Values assigned to those properties in the CC file config/build.properties will override values retrieved from *props.env</p>
+
+<p>For CC, the following files are involved in reading *props.env:</p>
+<pre>
+    //depot/dev/${SRC}/wls/infra/test/cc_get_rq_props.pl
+    //depot/dev/${SRC}/wls/infra/test/remotetestprops.env
+    //depot/cruisecontrol/${SRC}/common/config/cc_get_rq_props.xml
+    //depot/cruisecontrol/src_wlp/hosts/${host.name}/config/build.xml
+    //depot/cruisecontrol/src_wlp/hosts/${host.name}/config/build.properties
+</pre>
+
+<p>Also in CC there are test targets in cc_get_rq_props.xml for
+running cc_get_rq_props.pl outside of CC.  This confirms that props
+are being set correctly from the read of *props.env. It helps debug
+the usage of the somewhat touchy ant 'exec' task and resolve context
+and precedence issues in ant.<p>
+
+<p>For the Remote Queue, the following files are used to read *props.env:</p>
+<pre>
+    //depot/dev/${SRC}/wls/infra/test/remotetest.sh
+    //depot/dev/${SRC}/wls/infra/test/remotetestrun.sh
+    //depot/dev/${SRC}/wls/infra/test/remotetestprops.pl
+    //depot/dev/${SRC}/wls/infra/test/remotetestprops.env
+</pre>
+
+<p>See <a href="#add">How to add a new remote test</a> above for detailed instructions on using these files.</p>
+
+<a name="propsenv"><h3>Format of shared test definitions file remotetestprops.env</h3></a>
+
+<p>Here is a typical &quot;singleton&quot; test definition in *props.env:
+<pre>
+    # remoteDRT_Lithium
+    remoteDRT_Lithium.syncto=last_clean_test_DRT_Lithium_${SRC}
+    remoteDRT_Lithium.clean=p4cleanclean
+    remoteDRT_Lithium.build=minprod_wlp
+    remoteDRT_Lithium.infomsg="last_clean_test_DRT_Lithium_${SRC} is change ${SYNCTO}"
+    remoteDRT_Lithium.test=wlp/framework:drt-wlp
+</pre>
+
+<p>Singleton means that the test definition (value of the &quot;.test&quot; property) contains only one colon-delimited value, corresponding to one DRT running on a CC box.  The other type of test definition is &quot;compound&quot;, meaning that the test definition contains multiple singleton tests.  Cruisecontrol uses only singleton tests, by definition, and does nothing with compound tests.</p>
+
+<pre>
+    .syncto  - counter set by CC and sync'd to by the RQ
+    .clean   - the name of the clean target used by both CC and RQ
+    .build   - the target CC builds before running any DRT
+    .infomsg - a notiice written to the RQ log file "test.out"
+    .test    - test definition, dir:name
+</pre>
+
+<p>For a little more detail on the above see notes at the head of file remotetestprops.env</p>
+</body>
+</html>

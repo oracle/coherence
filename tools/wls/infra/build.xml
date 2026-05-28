@@ -1,0 +1,83 @@
+<project name="main" default="wls.remotetest" basedir=".">
+
+<import file="../../../../prj/build-import.xml"/>
+
+<property name="coherence.bits.dir" value="${java.io.tmpdir}/adelabels/coh/dist/oracle.coherence/coherence"/>
+<property name="branch.name" value="src1212"/>
+<property name="DRTTEST" value="remote.all"/>
+
+<target name="copy.coherence.bits" description="Copy coherence bits to tmp dir and organize as WLS path">
+    <mkdir dir="${java.io.tmpdir}"/>
+    <delete dir="${coherence.bits.dir}"/>
+    <mkdir dir="${coherence.bits.dir}"/>
+    <copy todir="${coherence.bits.dir}" includeEmptyDirs="false" overwrite="true">
+       <fileset dir="${dist.coherence.dir}">
+          <include name="*"/>
+          <include name="bin/**"/>
+          <include name="lib/**"/>
+       </fileset>
+    </copy>
+</target>  
+
+<target name="zip.coherence.bits" depends="copy.coherence.bits" description="Zip coherence bits and p4opened.files.">
+    <echo message=""/>
+    <!--generate p4opened.files-->
+    <exec executable="sh" dir=".">
+       <arg line='-c "./get_coherence_bits.sh ${dist.coherence.dir}"'/>
+    </exec>
+    <copy file="p4opened.files" tofile="${java.io.tmpdir}/p4opened.files" overwrite="true"/>
+    <delete file="p4opened.files"/>
+    <tempfile property="myzippedsrc" destDir="${java.io.tmpdir}" suffix=".zip"/>
+    <echo file="${java.io.tmpdir}/p4changes.txt">none
+
+WLS job from coherence (branch: ${env.COH_BRANCH}) build 
+</echo>
+    <echo file="${java.io.tmpdir}/p4branched.files">
+    </echo>
+    <zip update="true" filesonly="true" basedir="${java.io.tmpdir}" destfile="${myzippedsrc}"
+         includes="p4branched.files,p4opened.files,p4changes.txt,adelabels/**"/>
+    <exec executable="jar" resultproperty="unjarresult" output="/dev/null">
+      <arg value="-tf"/>
+      <arg value="${myzippedsrc}"/>
+    </exec>
+    <fail message="bad zipped file caused by unknown system issue, please re-run!">
+      <condition>
+        <not>
+          <equals arg1="${unjarresult}" arg2="0"/>
+        </not>
+      </condition>
+    </fail>
+  </target>
+
+  <target name="wls.remotetest" depends="zip.coherence.bits" description="Capture the coherence bits in a zip and submit a WLS RQ job.">
+    <tstamp>
+      <!-- .9. puts all the remote jobs at the end (ls) of the queue -->
+      <format property="JOBID" pattern="'job.9.'yyyyMMddHHmmss'.'S" timezone="UTC"/>
+    </tstamp>
+    <echo message="Enqueuing ${JOBID} ..."/>
+    <mkdir dir="${java.io.tmpdir}"/>
+    <property name="jobcharacters" value="#,OS=Win,PLATFORM=ok,"/>
+    <fail message="You can not use ${env.P4USER} to run remote tests, use your actual p4 user">
+      <condition>
+        <or>
+          <equals arg1="${env.P4USER}" arg2="build"/>
+          <equals arg1="${env.P4USER}" arg2="echu"/>
+          <equals arg1="${env.P4USER}" arg2="jrbt"/>
+          <equals arg1="${env.P4USER}" arg2="release"/>
+          <equals arg1="${env.P4USER}" arg2="root"/>
+          <equals arg1="${env.P4USER}" arg2="sjbuild"/>
+          <equals arg1="${env.P4USER}" arg2="wlesqa"/>
+        </or>
+      </condition>
+    </fail>
+    <echo file="${java.io.tmpdir}/${JOBID}">${jobcharacters}
+infra/test/remotetest.sh ${DRTTEST} ${env.REMOTE_P4USER}  MAILTO=${env.mailto} COH_JOBID=${env.COH_JOBID} COH_SUBMIT=${env.COH_SUBMIT} COH_FILECOUNT=${env.COH_FILECOUNT} COH_SYNCTO=${env.COH_SYNCTO} COH_BRANCH=${env.COH_BRANCH}
+</echo>
+    <copy file="${myzippedsrc}" tofile="${java.io.tmpdir}/${JOBID}.zip"/>
+    <scp localFile="${java.io.tmpdir}/${JOBID}.zip" remoteTodir="bt@rq.us.oracle.com:/mounts/rqueue/${branch.name}/remotetests/zips" trust="true" password="4sure"/>
+    <scp localFile="${java.io.tmpdir}/${JOBID}" remoteTodir="bt@rq.us.oracle.com:/mounts/rqueue/${branch.name}/queued" trust="true" password="4sure"/>
+    <echo>For job information...</echo>
+    <echo>http://home.us.oracle.com/internal/${branch.name}/job.jsp?id=${JOBID}</echo>
+  </target>
+
+</project>

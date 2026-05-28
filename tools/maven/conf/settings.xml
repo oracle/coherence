@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd"
+          xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <servers>
+    <server>
+      <id>fmw-release</id>
+    </server>
+
+    <server>
+      <id>fmw-snapshot</id>
+    </server>
+
+    <server>
+      <id>tangosol-release</id>
+    </server>
+
+    <server>
+      <id>tangosol-snapshot</id>
+    </server>
+
+    <server>
+      <id>internal-releases</id>
+    </server>
+  </servers>
+
+  <proxies>
+    <proxy>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>www-proxy-hqdc.us.oracle.com</host>
+      <port>80</port>
+      <nonProxyHosts>localhost|*.oracleads.com|*.us.oracle.com|*.uk.oracle.com|*.ca.oracle.com|*.oraclecorp.com|*.oracleportal.com|*.oraclevcn.com</nonProxyHosts>
+    </proxy>
+  </proxies>
+
+  <profiles>
+    <profile>
+      <id>default</id>
+      <properties>
+        <gradle.https.proxyHost>www-proxy-hqdc.us.oracle.com</gradle.https.proxyHost>
+        <gradle.https.proxyPort>80</gradle.https.proxyPort>
+      </properties>
+      <repositories>
+        <repository>
+          <id>tangosol-virtual-releases</id>
+          <name>tangosol-virtual-releases</name>
+          <url>http://tangosol-build.us.oracle.com:8081/artifactory/virtual-release</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </repository>
+
+        <repository>
+          <id>tangosol-virtual-snapshots</id>
+          <name>tangosol-virtual-snapshots</name>
+          <url>http://tangosol-build.us.oracle.com:8081/artifactory/virtual-snapshot</url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+          </snapshots>
+        </repository>
+      </repositories>
+
+      <pluginRepositories>
+        <pluginRepository>
+          <id>virtual-releases</id>
+          <name>virtual-releases</name>
+          <url>http://tangosol-build.us.oracle.com:8081/artifactory/virtual-release</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+        </pluginRepository>
+
+        <pluginRepository>
+          <id>virtual-snapshots</id>
+          <name>virtual-snapshots</name>
+          <url>http://tangosol-build.us.oracle.com:8081/artifactory/virtual-snapshot</url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+            <updatePolicy>always</updatePolicy>
+          </snapshots>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>default</activeProfile>
+  </activeProfiles>
+</settings>

@@ -1,0 +1,6 @@
+branch main
+
+nightlyexclude  slc04yqe slc05aud slc13nxo slc13nxr
+nightlyexclude adc2201770 burgb0505 burgc1607 burgc1608 burhw1101 den01eqq
+nightlyexclude nsh00aie sca00evy sca00jqi sca00jqs slc05any slc07fgi slc07jcv slc13nxg slc13nxm slc13nxo slc13nxr
+nightlyexclude slc15rwk slc15rwu slc15zdb slc16ccy slc04yqe slc05aud

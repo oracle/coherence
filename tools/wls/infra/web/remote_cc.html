@@ -1,0 +1,1308 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<title>Remote Testing Ant Targets</title>
+
+<style type="text/css">
+
+td {
+    font-family: Verdana,Geneva,Arial,Helvetica,sans-serif;
+    color:black;
+    font-size:  8pt;
+    font-weight: normal;
+}
+.right {
+    margin-right:0.20in; 
+    margin-bottom:0in;   
+    text-align:right;    
+    float:right;
+}
+.cctname {
+  /* background:#fffafa; snow */
+  background:#fff8dc;
+}
+
+</style>
+</head>
+
+<table width=2400 border=4 cellpadding=0 summary="Details of test runs">
+    <caption><h2>Details of test runs</h2></caption>
+    <tr>
+        <th width=0 >Ant target</th>
+        <th width=0 >Clean P4 Label/Counter</th>
+        <th width=0 align=center>Dirs Sync'd<br>under<br>//depot/dev/<br>&lt;branch&gt; </th>
+        <th width=60 >Build Targets</th>
+        <th width=0 >Test Directory</th>
+        <th width=0 >Test Target</th>
+        <th width=300 >Contains These Tests</th>
+        <th width=250>CC <br><br>Test Name</td></th>
+        <th width=150>CC <br><br>Build Target</th>
+        <th width=200>CC <br><br>Test Directory</th>
+        <th width=150>CC <br><br>Test Target</th>
+        <th width=150>CC <br><br>Host</th>
+    </tr>
+
+See additional notes at the bottom of this table.
+    <tr>
+        <td>drt.remote
+        <a name="drt.remote"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp<br>wls.checkintest.tools</td>
+        <td valign=top> <nobr>wls</nobr><br> <nobr>workshop/runtime/test/drt</nobr><br> <nobr>p13n</nobr><br> <nobr>wlp/framework</nobr><br></td>
+        <td valign=top> drt<br> drt<br> drt<br> drt-wlp<br></td>
+        <td valign=top>remoteDRT_checkintest <br>remoteDRT_workshop_runtime <br>remoteDRT_P13N <br>remoteDRT_Lithium <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remote.all
+        <a name="remote.all"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> deploy_all</td>
+        <td valign=top> <nobr>wls</nobr><br> <nobr>wlp/framework</nobr><br> <nobr>workshop/runtime/test/drt</nobr><br> <nobr>workshop</nobr><br> <nobr>workshop/runtime/netui</nobr><br> <nobr>common/javelin</nobr><br></td>
+        <td valign=top> drt<br> drt-wsrp<br> drt<br> min-platform-drt<br> server.drt<br> drt<br></td>
+        <td valign=top>remoteDRT_checkintest <br>remoteDRT_framework_wsrp <br>remoteDRT_workshop_runtime <br>remoteDRT_WLW_platform_ide <br>remoteDRT_workshop_runtime_netui <br>remoteDRT_javelinx <br></td>
+        <td valign=top class="cctname">&nbsp<br><b></b><br><b>DRT_workshop_runtime_netui</b><br><b>netui_server</b></td>
+        <td valign=top>&nbsp<br>minprod_workshop<br>minprod_workshop<br>minprod_workshop</td>
+        <td valign=top>&nbsp<br>workshop<br>workshop/runtime/netui<br>workshop/runtime/netui</td>
+        <td valign=top>&nbsp<br>min-platform-drt<br>server.drt<br>server.drt</td>
+        <td valign=top>&nbsp<br>alice<br>rnhp360-c2-36<br>rnpe1750-b7-3</td>
+    </tr>
+    <tr>
+        <td>remote.everything
+        <a name="remote.everything"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> deploy_all</td>
+        <td valign=top> <nobr>wls</nobr><br> <nobr>wlp/framework</nobr><br> <nobr>workshop/runtime/test/drt</nobr><br> <nobr>workshop</nobr><br> <nobr>workshop/runtime/netui</nobr><br> <nobr>common/javelin</nobr><br> <nobr>p13n</nobr><br> <nobr>wlp/framework</nobr><br> <nobr>wlp/portal</nobr><br> <nobr>wlp/tools/admin</nobr><br> <nobr>wlp/light</nobr><br> <nobr>wlp/apps/communities</nobr><br> <nobr>wlp/collab/wlp-collab-api-app-lib</nobr><br> <nobr>wlp/apps/contentui</nobr><br> <nobr>.</nobr><br> <nobr>wls</nobr><br> <nobr>wls</nobr><br> <nobr>wls</nobr><br> <nobr>wls</nobr><br> <nobr>wls</nobr><br> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br></td>
+        <td valign=top> drt<br> drt-wsrp<br> drt<br> min-platform-drt<br> server.drt<br> drt<br> drt<br> drt-wlp<br> drt<br> drt<br> drt<br> drt<br> drt<br> drt<br> wls.tools<br> core.checkintest<br> deploy.checkintest<br> jmsfunc<br> jmsclusterfunc<br> oam.checkintest<br> checkintest<br></td>
+        <td valign=top>* <b>remote.all</b> remoteDRT_checkintest <br>remoteDRT_framework_wsrp <br>remoteDRT_workshop_runtime <br>remoteDRT_WLW_platform_ide <br>remoteDRT_workshop_runtime_netui <br>remoteDRT_javelinx <br>remoteDRT_P13N <br>remoteDRT_Lithium <br>remoteDRT_Portal <br>remoteDRT_Portal_AdminTools <br>remoteDRT_framework_wls <br>* <b>remoteDRT_wlpappscollab</b> remoteDRT_wlpapps <br>remoteDRT_collab <br>remoteDRT_wlpcontentui <br>remoteDRT_tools <br>remoteDRT_corecheckintest <br>remoteDRT_deploycheckintest <br>remoteDRT_jmscheckintest <br>remoteDRT_jmsclustercheckintest <br>remoteDRT_oamcheckintest <br></td>
+        <td valign=top class="cctname">&nbsp<br><b></b><br><b>DRT_workshop_runtime_netui</b><br><b>netui_server</b></td>
+        <td valign=top>&nbsp<br>minprod_workshop<br>minprod_workshop<br>minprod_workshop</td>
+        <td valign=top>&nbsp<br>workshop<br>workshop/runtime/netui<br>workshop/runtime/netui</td>
+        <td valign=top>&nbsp<br>min-platform-drt<br>server.drt<br>server.drt</td>
+        <td valign=top>&nbsp<br>alice<br>rnhp360-c2-36<br>rnpe1750-b7-3</td>
+    </tr>
+    <tr>
+        <td>remote.ide
+        <a name="remote.ide"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> deploy_all</td>
+        <td valign=top> <nobr>workshop</nobr><br> <nobr>wlp/tools/eclipse/test</nobr><br></td>
+        <td valign=top> min-drt<br> drt<br></td>
+        <td valign=top>remoteDRT_workshop_ide <br>remoteDRT_wlp_eclipse <br></td>
+        <td valign=top class="cctname"><b></b><br><b></b></td>
+        <td valign=top><br></td>
+        <td valign=top>workshop<br>workshop</td>
+        <td valign=top>min-drt<br>min-drt</td>
+        <td valign=top>WLWRE2K47<br>rnhp360-c5-19</td>
+    </tr>
+    <tr>
+        <td>remote.multiple
+        <a name="remote.multiple"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b><br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/...</td>
+        <td>p4cleanclean<br> deploy_all</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"></td>
+        <td valign=top></td>
+        <td valign=top></td>
+        <td valign=top></td>
+        <td valign=top></td>
+    </tr>
+    <tr>
+        <td>remote.portal
+        <a name="remote.portal"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>p13n</nobr><br> <nobr>wlp/framework</nobr><br> <nobr>wlp/light</nobr><br> <nobr>wlp/framework</nobr><br> <nobr>wlp/tools/admin</nobr><br> <nobr>wlp/portal</nobr><br> <nobr>wlp/apps/communities</nobr><br> <nobr>wlp/collab/wlp-collab-api-app-lib</nobr><br> <nobr>wlp/apps/contentui</nobr><br> <nobr>wlp/propagation</nobr><br> <nobr>wlp/tools/eclipse/test</nobr><br> <nobr>activityservers/cm</nobr><br></td>
+        <td valign=top> drt<br> drt-wlp<br> drt<br> drt-wsrp<br> drt<br> drt<br> drt<br> drt<br> drt<br> drt<br> drt<br> drt<br></td>
+        <td valign=top>remoteDRT_P13N <br>remoteDRT_Lithium <br>remoteDRT_framework_wls <br>remoteDRT_framework_wsrp <br>remoteDRT_Portal_AdminTools <br>remoteDRT_Portal <br>remoteDRT_wlpapps <br>remoteDRT_collab <br>remoteDRT_wlpcontentui <br>remoteDRT_propagation <br>remoteDRT_wlp_eclipse <br>remoteDRT_wlp_cm <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_Portal
+        <a name="remoteBVT_Portal"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>activityservers/cm</nobr><br> <nobr>wlp/portal</nobr><br></td>
+        <td valign=top> bvt<br> bvt<br></td>
+        <td valign=top>remoteBVT_wlp_cm <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_Portal_AdminTools
+        <a name="remoteBVT_Portal_AdminTools"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/tools/admin/test</nobr><br></td>
+        <td valign=top> bvt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_wlp_cm
+        <a name="remoteBVT_wlp_cm"/></td>
+        <td>last_clean_portal_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>activityservers/cm</nobr><br></td>
+        <td valign=top> bvt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop1_ide
+        <a name="remoteBVT_workshop1_ide"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> min-bvt1<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b></td>
+        <td valign=top>minprod_workshop</td>
+        <td valign=top>workshop</td>
+        <td valign=top>min-bvt1</td>
+        <td valign=top>usbodell1750-12</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop2_ide
+        <a name="remoteBVT_workshop2_ide"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> min-bvt2<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b></td>
+        <td valign=top>minprod_workshop</td>
+        <td valign=top>workshop</td>
+        <td valign=top>min-bvt2</td>
+        <td valign=top>rnhp360-b8-17</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop_runtime_controls
+        <a name="remoteBVT_workshop_runtime_controls"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/controls/test/qa</nobr><br></td>
+        <td valign=top> bvt.controls<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop_runtime_controlsOam
+        <a name="remoteBVT_workshop_runtime_controlsOam"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/controls/test/qa</nobr><br></td>
+        <td valign=top> bvt.oam<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop_runtime_controlsSecurity
+        <a name="remoteBVT_workshop_runtime_controlsSecurity"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/controls/test/qa</nobr><br></td>
+        <td valign=top> bvt.security<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop_runtime_controlsWlwbvt
+        <a name="remoteBVT_workshop_runtime_controlsWlwbvt"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/test/bvt</nobr><br></td>
+        <td valign=top> bvt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteBVT_workshop_runtime_netui
+        <a name="remoteBVT_workshop_runtime_netui"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/netui</nobr><br></td>
+        <td valign=top> server.bvt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b></td>
+        <td valign=top>minprod</td>
+        <td valign=top>workshop/runtime/netui</td>
+        <td valign=top>server.bvt</td>
+        <td valign=top>rnhp360-b8-5</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_Lithium
+        <a name="remoteDRT_Lithium"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/framework</nobr><br></td>
+        <td valign=top> drt-wlp<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_P13N
+        <a name="remoteDRT_P13N"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>p13n</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_Portal
+        <a name="remoteDRT_Portal"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/portal</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_Portal_AdminTools
+        <a name="remoteDRT_Portal_AdminTools"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/tools/admin</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_Portal_AdminTools_old
+        <a name="remoteDRT_Portal_AdminTools_old"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/tools/admin/test</nobr><br></td>
+        <td valign=top> drt-all<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_WLW_platform_ide
+        <a name="remoteDRT_WLW_platform_ide"/></td>
+        <td>last_clean_test_min-platform-drt_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> min-platform-drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b></td>
+        <td valign=top>minprod_workshop</td>
+        <td valign=top>workshop</td>
+        <td valign=top>min-platform-drt</td>
+        <td valign=top>alice</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_all
+        <a name="remoteDRT_all"/></td>
+        <td>last_clean_deploy_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls</nobr><br> <nobr>wls</nobr><br> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> deploy.checkintest<br> core.checkintest<br> wsee.checkintests<br></td>
+        <td valign=top>remoteDRT_deploycheckintest <br>remoteDRT_corecheckintest <br>remoteDRT_wseecheckintest <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_applib
+        <a name="remoteDRT_applib"/></td>
+        <td>last_clean_webapp_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> applib,applib.run<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_checkintest
+        <a name="remoteDRT_checkintest"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_collab
+        <a name="remoteDRT_collab"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/collab/wlp-collab-api-app-lib</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_console
+        <a name="remoteDRT_console"/></td>
+        <td>last_clean_kitdrt_test_${SRC}</td>
+        <td align=center>(run syncwlsconsole)</td>
+        <td>p4cleanclean<br> wls.console<br>wls.extraproduct</td>
+        <td valign=top> <nobr>.</nobr><br></td>
+        <td valign=top> usage<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_corecheckintest
+        <a name="remoteDRT_corecheckintest"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> core.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <!--tr>
+        <td>remoteDRT_cts
+        <a name="remoteDRT_cts"/></td>
+        <td>last_clean_cts_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/...</td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br></td>
+        <td valign=top> cts_jsp<br> cts_servlet<br></td>
+        <td valign=top>remoteDRT_cts_jsp <br>remoteDRT_cts_servlet <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr-->
+    <tr>
+        <td>remoteDRT_cts_jsp
+        <a name="remoteDRT_cts_jsp"/></td>
+        <td>last_clean_cts_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/...</td>
+        <td>p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br></td>
+        <td valign=top> cts_jsp<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_cts_servlet
+        <a name="remoteDRT_cts_servlet"/></td>
+        <td>last_clean_cts_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>j2sdkee1.4/...<br>//depot/cts/<br>cts5/...</td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br></td>
+        <td valign=top> cts_servlet<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <!--tr>
+        <td>remoteDRT_ctscheckintest
+        <a name="remoteDRT_ctscheckintest"/></td>
+        <td>last_clean_cts_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)<br>//depot/dev/<br>sun_j2ee/<br>jee5sdk/...<br>//depot/cts/<br>cts5/...</td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools/weblogic/qa/tests/cts5/config</nobr><br></td>
+        <td valign=top> checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr-->
+    <tr>
+        <td>remoteDRT_deploycheckintest
+        <a name="remoteDRT_deploycheckintest"/></td>
+        <td>last_clean_deploy_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> deploy.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_ejb30tests
+        <a name="remoteDRT_ejb30tests"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/qa/tests/functional/ejb30/remotecheckintest</nobr><br></td>
+        <td valign=top> pers.checkintest,sess.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_ejbtests
+        <a name="remoteDRT_ejbtests"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> ejb.runtests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_examples
+        <a name="remoteDRT_examples"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> examples.runtests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_framework_wls
+        <a name="remoteDRT_framework_wls"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/light</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_framework_wsrp
+        <a name="remoteDRT_framework_wsrp"/></td>
+        <td>last_clean_test_framework_wsrp_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/framework</nobr><br></td>
+        <td valign=top> drt-wsrp<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_j2ee
+        <a name="remoteDRT_j2ee"/></td>
+        <td>last_clean_webapp_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> j2ee,j2ee.run<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_javelinx
+        <a name="remoteDRT_javelinx"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minsrv_wlw</td>
+        <td valign=top> <nobr>common/javelin</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_jmsall
+        <a name="remoteDRT_jmsall"/></td>
+        <td>last_clean_jms_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod<br>wls.jmstests</td>
+        <td valign=top> <nobr>wls</nobr><br> <nobr>wls</nobr><br></td>
+        <td valign=top> jmsfunc<br> jmsclusterfunc<br></td>
+        <td valign=top>remoteDRT_jmscheckintest <br>remoteDRT_jmsclustercheckintest <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_jmscheckintest
+        <a name="remoteDRT_jmscheckintest"/></td>
+        <td>last_clean_jms_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod<br>wls.jmstests</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> jmsfunc<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_jmsclustercheckintest
+        <a name="remoteDRT_jmsclustercheckintest"/></td>
+        <td>last_clean_jms_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod<br>wls.jmstests</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> jmsclusterfunc<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_jtacheckintest
+        <a name="remoteDRT_jtacheckintest"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> jta.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_kitdrt
+        <a name="remoteDRT_kitdrt"/></td>
+        <td>last_clean_kitdrt_test_${SRC}</td>
+        <td align=center><b>...</b><br>//depot/dev/<br>3rdparty/jdks/...</td>
+        <td>none<br> build_kit</td>
+        <td valign=top> <nobr>wls/tools/weblogic/qa/tests</nobr><br></td>
+        <td valign=top> kit_drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_languages
+        <a name="remoteDRT_languages"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minsrv_wlw</td>
+        <td valign=top> <nobr>common/languages</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_medrec
+        <a name="remoteDRT_medrec"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> medrec.runtests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_null
+        <a name="remoteDRT_null"/></td>
+        <td>change</td>
+        <td align=center><b>...</b></td>
+        <td>none<br> usage</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> usage<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_oamcheckintest
+        <a name="remoteDRT_oamcheckintest"/></td>
+        <td>last_clean_oam_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> oam.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_propagation
+        <a name="remoteDRT_propagation"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/propagation</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_samples
+        <a name="remoteDRT_samples"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> samples.runtests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_testqueue
+        <a name="remoteDRT_testqueue"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> usage</td>
+        <td valign=top> <nobr>wls</nobr><br></td>
+        <td valign=top> usage<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_tools
+        <a name="remoteDRT_tools"/></td>
+        <td>cleanftb_${SRC}</td>
+        <td align=center>(run <br>syncwlsconsole)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>.</nobr><br></td>
+        <td valign=top> wls.tools<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_webappcheckintest
+        <a name="remoteDRT_webappcheckintest"/></td>
+        <td>last_clean_webapp_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> webapp.build,webapp.checkintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_webappcheckintestTL
+        <a name="remoteDRT_webappcheckintestTL"/></td>
+        <td>last_clean_webapp_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> minprod_wls</td>
+        <td valign=top> <nobr>wls/qa/tests/functional/webapp/remotecheckintest</nobr><br></td>
+        <td valign=top> webapp.remotecheckintest<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_webapplib
+        <a name="remoteDRT_webapplib"/></td>
+        <td>last_clean_webapp_checkintest_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> webapplib,webapplib.run<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli
+        <a name="remoteDRT_wli"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wli</td>
+        <td valign=top> <nobr>wli</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli_ai
+        <a name="remoteDRT_wli_ai"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wli</td>
+        <td valign=top> <nobr>wli/jpd9/ai</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli_bpm
+        <a name="remoteDRT_wli_bpm"/></td>
+        <td>last_clean_test_wli_bpm_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_jpd</td>
+        <td valign=top> <nobr>wli/jpd9</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli_eclipse
+        <a name="remoteDRT_wli_eclipse"/></td>
+        <td>last_clean_test_wli_eclipse_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> redeploy_all</td>
+        <td valign=top> <nobr>wli/eclipse</nobr><br></td>
+        <td valign=top> run-drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli_jpd_cluster
+        <a name="remoteDRT_wli_jpd_cluster"/></td>
+        <td>last_clean_test_wli_jpd_cluster_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_jpd</td>
+        <td valign=top> <nobr>wli/jpd9</nobr><br></td>
+        <td valign=top> drt_cluster<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wli_worklist
+        <a name="remoteDRT_wli_worklist"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minsrv_wli</td>
+        <td valign=top> <nobr>wli/worklist</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlp_cm
+        <a name="remoteDRT_wlp_cm"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>activityservers/cm</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlp_eclipse
+        <a name="remoteDRT_wlp_eclipse"/></td>
+        <td> last_clean_test_wlp_eclipse_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/tools/eclipse/test</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlpapps
+        <a name="remoteDRT_wlpapps"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/apps/communities</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlpappscollab
+        <a name="remoteDRT_wlpappscollab"/></td>
+        <td>last_clean_test_wlp_apps_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/apps/communities</nobr><br> <nobr>wlp/collab/wlp-collab-api-app-lib</nobr><br> <nobr>wlp/apps/contentui</nobr><br></td>
+        <td valign=top> drt<br> drt<br> drt<br></td>
+        <td valign=top>remoteDRT_wlpapps <br>remoteDRT_collab <br>remoteDRT_wlpcontentui <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlpcontentui
+        <a name="remoteDRT_wlpcontentui"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/apps/contentui</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wlpim
+        <a name="remoteDRT_wlpim"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_wlp</td>
+        <td valign=top> <nobr>wlp/tools/admin</nobr><br> <nobr>wlp/portal</nobr><br> <nobr>wlp/apps/communities</nobr><br> <nobr>wlp/propagation</nobr><br> <nobr>activityservers/cm</nobr><br> <nobr>wlp/apps/contentui</nobr><br></td>
+        <td valign=top> drt<br> drt<br> drt<br> drt<br> drt<br> drt<br></td>
+        <td valign=top>remoteDRT_Portal_AdminTools <br>remoteDRT_Portal <br>remoteDRT_wlpapps <br>remoteDRT_propagation <br>remoteDRT_wlp_cm <br>remoteDRT_wlpcontentui <br></td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_ide
+        <a name="remoteDRT_workshop_ide"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> min-drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b><br><b></b></td>
+        <td valign=top><br></td>
+        <td valign=top>workshop<br>workshop</td>
+        <td valign=top>min-drt<br>min-drt</td>
+        <td valign=top>WLWRE2K47<br>rnhp360-c5-19</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_metadata
+        <a name="remoteDRT_workshop_metadata"/></td>
+        <td>last_clean_portal_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> remoteDRT_workshop_metadata<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_runtime
+        <a name="remoteDRT_workshop_runtime"/></td>
+        <td>last_clean_test_wlw_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/test/drt</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_runtime_integration
+        <a name="remoteDRT_workshop_runtime_integration"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/test/drt</nobr><br></td>
+        <td valign=top> integration<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_runtime_netui
+        <a name="remoteDRT_workshop_runtime_netui"/></td>
+        <td>last_clean_test_netui_server_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop/runtime/netui</nobr><br></td>
+        <td valign=top> server.drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b>DRT_workshop_runtime_netui</b><br><b>netui_server</b></td>
+        <td valign=top>minprod_workshop<br>minprod_workshop</td>
+        <td valign=top>workshop/runtime/netui<br>workshop/runtime/netui</td>
+        <td valign=top>server.drt<br>server.drt</td>
+        <td valign=top>rnhp360-c2-36<br>rnpe1750-b7-3</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_workshop_testClient
+        <a name="remoteDRT_workshop_testClient"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>tools/testclient/test</nobr><br></td>
+        <td valign=top> bvt_all<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b></b></td>
+        <td valign=top>minprod_workshop</td>
+        <td valign=top>tools/testclient/test</td>
+        <td valign=top>bvt_all</td>
+        <td valign=top>rnhp360-c5-9</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wsee
+        <a name="remoteDRT_wsee"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> wsee.tests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wseecheckintest
+        <a name="remoteDRT_wseecheckintest"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> wsee.checkintests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wseecheckintestnew
+        <a name="remoteDRT_wseecheckintestnew"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center>(run syncwls)</td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/modules/wsee/test</nobr><br></td>
+        <td valign=top> all<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_wseesecurity
+        <a name="remoteDRT_wseesecurity"/></td>
+        <td>cleant_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>wls.p4cleanclean<br> wls.minprod</td>
+        <td valign=top> <nobr>wls/tools</nobr><br></td>
+        <td valign=top> wsee.stable.security.tests<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_xbus
+        <a name="remoteDRT_xbus"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_alsb</td>
+        <td valign=top> <nobr>alsb</nobr><br></td>
+        <td valign=top> drt<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b>xbus</b></td>
+        <td valign=top>minprod_alsb</td>
+        <td valign=top>alsb</td>
+        <td valign=top>drt</td>
+        <td valign=top>rnhp360-c2-40</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_xbus_cluster
+        <a name="remoteDRT_xbus_cluster"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_alsb</td>
+        <td valign=top> <nobr>alsb</nobr><br></td>
+        <td valign=top> drt_cluster<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname"><b>cluster</b></td>
+        <td valign=top>minprod_alsb</td>
+        <td valign=top>alsb</td>
+        <td valign=top>drt_cluster</td>
+        <td valign=top>rnhp360-c2-40</td>
+    </tr>
+    <tr>
+        <td>remoteDRT_xbus_cluster_CR263879
+        <a name="remoteDRT_xbus_cluster_CR263879"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_alsb</td>
+        <td valign=top> <nobr>alsb</nobr><br></td>
+        <td valign=top> drt_cluster2<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+    <tr>
+        <td>remotePerf_workshop_ide
+        <a name="remotePerf_workshop_ide"/></td>
+        <td>last_clean_test_platform_${SRC}</td>
+        <td align=center><b>...</b></td>
+        <td>p4cleanclean<br> minprod_workshop</td>
+        <td valign=top> <nobr>workshop</nobr><br></td>
+        <td valign=top> min-perf.remote<br></td>
+        <td valign=top>&nbsp</td>
+        <td valign=top class="cctname">&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+        <td valign=top>&nbsp</td>
+    </tr>
+<tr><td colspan=7 ><br>
+
+  <b>drt.remote</b><br><br>&nbsp &nbsp &nbsp Run WLW, Lithium, P13N,
+  WLI and checkintest. <br><br>
+
+  <b>remote.all:</b><br><br>&nbsp &nbsp &nbsp runs all tests that make up
+  last_clean_test_platform_<branch> except for remoteDRT_buildkit
+  which takes too long.<br><br>
+
+  <b>remote.everything:</b><br><br>&nbsp &nbsp &nbsp Run every
+  possible remote tests. Note that some of these tests are not known
+  to be clean at last_clean_test_platform_&lt;branch&gt;. In fact,
+  since the CruiseControl instances for all these tests are not
+  synchronized there is no single change number that guarantees that
+  all the tests will be clean. The tests that are known clean are run
+  first and if the later on, unknown tests fail the remote test will
+  note that the test is not known to be clean.<br><br>
+
+  <b>remote.multiple:</b><br><br>&nbsp &nbsp &nbsp Run multiple remote
+  tests. This is probably most useful to make a list of tests for
+  auto-submit or so that the tests will only use one machine serially
+  rather than running each remote test in parallel on a group of
+  machines.<br><br>
+
+  <b>remote.status</b><br><br>&nbsp &nbsp &nbsp Show the status of
+  remote tests. <br><br>
+
+  <b>remoteDRT_all</b><br><br>&nbsp &nbsp &nbsp Run
+  deploy.checkintest, core.checkintest and wsee.checkintest.<br><br>
+
+</td></tr></table>
+</body>
+</html>

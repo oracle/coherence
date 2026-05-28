@@ -1,0 +1,40 @@
+body		{ color: black; background: white; }
+
+table.r		{ border: outset 4pt silver; }
+
+.caption	{ background: #6699CC; } /* blue */ 
+
+tr.head		{ background: #DCDCDC; } /* grey */
+
+.r		{ border: inset 1 silver; }
+
+/* .cleantest	{ background: #66AA66; } */
+.cleantest	{ background: #77BB77; } /* green */
+.brokentest	{ background: red; }
+
+/* .cleanbuild{ background: #66CC66; } */
+.cleanbuild	{ background: #77DD77; } /* lighter green */
+.brokenbuild	{ background: red; }
+
+.rlsbld		{ background: #9999FF; } /* blue/purple */
+.fullbuild	{ background: #A0A020; } /* light olive */
+
+.drt		{ background: #00CCFF; }
+.testplat	{ background: #CC99FF; }
+
+span.add,
+span.branch	{ font-size: xx-small; color: green;}
+span.integrate	{ font-size: xx-small; color: blue; }
+span.delete	{ font-size: xx-small; color: red; }
+span.edit	{ font-size: xx-small; }
+span.good	{ color: green; }
+
+p.disclaimer	{ font-size: x-small; }
+
+/* used by describe */
+#change		{ font-weight: bold; color: purple; }
+#delete		{ color: red; }
+#add		{ color: green; }
+#description	{ color: blue; }
+#integrate	{ color: blue; }
+#diffcmd	{ color: olive; }

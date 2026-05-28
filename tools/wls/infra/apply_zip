@@ -1,0 +1,20 @@
+#!/bin/sh
+
+UNAME="`uname`"
+
+echo $UNAME | grep -e Windows_NT -e CYGWIN_NT >/dev/null
+if [ $? -eq 0 ]; then
+    PATH="$PATH;/usr/local/bin;c:/Perl/bin"
+    export PATH
+fi
+
+myperl=perl
+
+which $myperl >/dev/null || myperl="$PERL"
+
+echo $UNAME | grep CYGWIN_NT >/dev/null
+if [ $? -eq 0 ]; then
+    "$myperl" $DEV_ROOT/env/bin/apply_zip.pl "`cygpath -a -w \"$1\"`"
+else
+    "$myperl" $DEV_ROOT/env/bin/apply_zip.pl "$@"
+fi

@@ -1,0 +1,46 @@
+#!/bin/bash
+: ${INFRA_ROOT:?} ${DEV_ROOT:?} ${SRC:?}
+changelist=$2
+description=$3
+cd $DEV_ROOT
+#set -x
+if [ "$changelist" = "none" ]; then
+        echo "change=none, no open files" > p4opened.files
+elif [ -n "$changelist" ]; then
+        p4 opened -c $changelist $DEV_ROOT/... > p4opened.files
+else
+       p4 opened $DEV_ROOT/... > p4opened.files
+fi
+
+if [ $? -ne 0 ]; then
+    echo "p4 opened command failed"
+    exit 1
+fi
+
+#run p4 branch
+if [ ! -f $INFRA_ROOT/test/p4branched.pl ]; then
+   p4 sync -f $INFRA_ROOT/test/p4branched.pl
+fi
+perl $INFRA_ROOT/test/p4branched.pl -p4opened $DEV_ROOT/p4opened.files -p4branched $DEV_ROOT/p4branched.files
+
+#create p4changes.txt
+cat << EOF > p4changes.txt
+$changelist
+
+$description
+EOF
+
+rm -f ${1:-p4opened.zip}
+if [ ! -s p4opened.files ];then
+    echo "$changelist isn't local change, it's only right when you using -i to integ change from other branch!"
+    exit 0
+fi
+if [ "$changelist" != "none" ]; then
+    #update file path of p4openedfiles
+    NEW_SRC="`echo $SRC |sed -e 's|\/|\\\/|g'`"
+    sed -e '/ - delete /d' -e '/ - move\/delete /d' -e "s/\/\/dev\/$NEW_SRC\/\(.*\)#.*/\1/g" p4opened.files > p4openedfiles_save
+    if [ -s p4openedfiles_save ] ; then
+	cd $DEV_ROOT
+	zip -@ ${1:-p4opened.zip} < p4openedfiles_save
+    fi
+fi
