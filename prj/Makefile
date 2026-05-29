@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------------------------------------------------
-# Copyright (c) 2022, 2024, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -104,7 +104,7 @@ HNSW_LIB_DIR   ?= coherence-hnsw/src/main/resources
 
 ##@ HNSW
 .PHONY: hnsw
-hnsw: hnsw-info coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib coherence-hnsw/src/main/resources/libhnswlib-aarch64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll ## Build the HNSW native C++ library and JNA bindings for the current O/S
+hnsw: hnsw-info coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib coherence-hnsw/src/main/resources/libhnswlib-aarch64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.so coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll ## Build the HNSW native C++ library and JNA bindings for the current O/S
 	@echo "Done"
 
 .PHONY: hnsw-info
@@ -120,18 +120,6 @@ coherence-hnsw/src/main/resources/libhnswlib-aarch64.dylib: $(HNSW_HDR_FILES) $(
 		echo "Building HNSW library for MacOS Arm64: $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib"
 		mkdir -p $(HNSW_LIB_DIR) || true
 		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-aarch64.dylib
-    endif
-    endif
-
-.PHONY: hnsw-macos-x86
-hnsw-macos-x86: coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib
-
-coherence-hnsw/src/main/resources/libhnswlib-x86-64.dylib: $(HNSW_HDR_FILES) $(HNSW_CPP_FILES)
-    ifeq ($(OS_NAME),Mac OS X)
-    ifeq ($(OS_ARCH),x86_64)
-		echo "Building HNSW library for MacOS x86_64: $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib"
-		mkdir -p $(HNSW_LIB_DIR) || true
-		g++ -O3 -shared -std=c++11 $(HNSW_CPP_SRC)/bindings.cpp -I $(HNSW_CPP_SRC)/hnswlib -o $(HNSW_LIB_DIR)/libhnswlib-x86-64.dylib
     endif
     endif
 
