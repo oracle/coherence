@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (c) 2020, 2025 Oracle and/or its affiliates.
+# Copyright (c) 2020, 2026 Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
@@ -176,7 +176,8 @@ release() {
   if [[ "false" = "$DRY_RUN" || "true" = "$DO_PUSH" ]]; then
     # deploy to ossrh
     echo "[INFO] Executing mvn $MVN_CMD_OPTS -Pcoherence,-modules,${RELEASE_PROFILES} clean deploy | tee $LOG_RELEASE"
-    mvn $MVN_CMD_OPTS -Pcoherence,-modules,${RELEASE_PROFILES} clean deploy | tee $LOG_RELEASE
+    #mvn $MVN_CMD_OPTS -Pcoherence,-modules,${RELEASE_PROFILES} clean deploy | tee $LOG_RELEASE
+    mvn $MVN_CMD_OPTS -Pcoherence,-modules,${RELEASE_PROFILES} clean install | tee $LOG_RELEASE
     STATUS=$?
 
     BUILD_RESULT=$(tail -n200 $LOG_RELEASE | grep -E "BUILD (SUCCESS|FAILURE|ERROR)" | sed 's/.*BUILD \(.*\)/\1/')
@@ -187,7 +188,8 @@ release() {
 
     echo "" > $LOG_RELEASE
     echo "[INFO] Executing mvn $MVN_CMD_OPTS -P-coherence,modules,${RELEASE_PROFILES} -nsu clean deploy | tee $LOG_RELEASE"
-    mvn $MVN_CMD_OPTS -P-coherence,modules,${RELEASE_PROFILES} -nsu clean deploy | tee $LOG_RELEASE
+    #mvn $MVN_CMD_OPTS -P-coherence,modules,${RELEASE_PROFILES} -nsu clean deploy | tee $LOG_RELEASE
+    mvn $MVN_CMD_OPTS -P-coherence,modules,${RELEASE_PROFILES} -nsu clean install | tee $LOG_RELEASE
     STATUS=$?
 
     BUILD_RESULT=$(tail -n200 $LOG_RELEASE | grep -E "BUILD (SUCCESS|FAILURE|ERROR)" | sed 's/.*BUILD \(.*\)/\1/')
