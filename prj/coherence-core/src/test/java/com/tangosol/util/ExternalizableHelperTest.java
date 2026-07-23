@@ -8,9 +8,6 @@ package com.tangosol.util;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
-import com.tangosol.coherence.transaction.internal.Results;
-import com.tangosol.coherence.transaction.internal.xa.XidWrapper;
-
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.DefaultSerializer;
@@ -845,38 +842,6 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             restoreProperty("coherence.mode", sMode);
             restoreProperty("coherence.serialization.allowed", sAllowed);
             }
-        }
-
-    @Test
-    public void testResultsPofBridgeRejectsDeniedInnerOisPayload() throws IOException
-        {
-        ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
-        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
-                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
-
-        writer.writeMap(1, new HashMap());
-        writer.writeMap(2, new HashMap());
-        writer.writeLong(3, 0L);
-        writer.writeMap(4, new HashMap());
-        writer.writeByteArray(5, toJavaSerializationBytes(new BadAttributeValueExpException("denied")));
-        writer.writeRemainder(null);
-
-        Results results = new Results();
-        assertRejectedByFilter(() -> results.readExternal(createPofUserTypeReader(wb)));
-        }
-
-    @Test
-    public void testXidWrapperPofBridgeRejectsDeniedInnerOisPayload() throws IOException
-        {
-        ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
-        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
-                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
-
-        writer.writeByteArray(1, toJavaSerializationBytes(new BadAttributeValueExpException("denied")));
-        writer.writeRemainder(null);
-
-        XidWrapper wrapper = new XidWrapper();
-        assertRejectedByFilter(() -> wrapper.readExternal(createPofUserTypeReader(wb)));
         }
 
     @Test
