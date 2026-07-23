@@ -13,10 +13,13 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
 import com.tangosol.coherence.reporter.ReportBatch;
 import com.tangosol.coherence.reporter.Reporter;
+import com.tangosol.coherence.reporter.ReporterSecurity;
 import com.tangosol.io.FileHelper;
 
 import com.tangosol.net.CacheFactory;
 import common.AbstractFunctionalTest;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -196,7 +199,7 @@ public class TabularDataTests
         try
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report.xml";
-            try
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
                 {
                 new ReportBatch().runTabularReport(sUrl);
                 fail("remote report URL should be rejected");
@@ -214,10 +217,43 @@ public class TabularDataTests
             }
         }
 
+    @Test
+    public void shouldRunApprovedRemoteReportResource()
+            throws Exception
+        {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/report.xml", exchange ->
+            {
+            byte[] abBody = sXmlReport.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, abBody.length);
+            exchange.getResponseBody().write(abBody);
+            exchange.close();
+            });
+        server.start();
+
+        String sOld = System.getProperty("coherence.management.report.remote.allowed");
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            String sBase = "http://127.0.0.1:" + server.getAddress().getPort();
+            System.setProperty("coherence.management.report.remote.allowed", sBase);
+
+            TabularData data = new ReportBatch().runTabularReport(sBase + "/report.xml");
+            assertNotNull(data);
+            }
+        finally
+            {
+            restoreProperty("coherence.management.report.remote.allowed", sOld);
+            server.stop(0);
+            }
+        }
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectOutOfRootFileUrl()
         {
-        new ReportBatch().runTabularReport(new java.io.File("/etc/passwd").toURI().toString());
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            new ReportBatch().runTabularReport(new java.io.File("/etc/passwd").toURI().toString());
+            }
         }
 
     @Test(expected = IllegalArgumentException.class)
@@ -227,7 +263,7 @@ public class TabularDataTests
         File file = new File("target/unapproved-reporter-input.xml");
         file.getParentFile().mkdirs();
         Files.write(file.toPath(), sXmlReport.getBytes(StandardCharsets.UTF_8));
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
             {
             new ReportBatch().runTabularReport(file.getPath());
             }
@@ -242,7 +278,7 @@ public class TabularDataTests
             throws IOException
         {
         File tempDirectory = FileHelper.createTempDir();
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
             {
             new ReportBatch().setOutputPath(tempDirectory.getAbsolutePath());
             }
@@ -256,6 +292,25 @@ public class TabularDataTests
     public void shouldRejectOutputPathTraversal()
         {
         new ReportBatch().setOutputPath("../reporter-escape");
+        }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldRejectLegacyReportFileOutsideSelectedOutputDirectory()
+            throws IOException
+        {
+        File root = FileHelper.createTempDir();
+        try
+            {
+            File file = new File(root.getParentFile(), root.getName() + "-escape.txt");
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+                {
+                ReporterSecurity.validateOutputFile(file.getCanonicalPath(), root.getCanonicalPath(), "reporter-core");
+                }
+            }
+        finally
+            {
+            FileHelper.deleteDirSilent(root);
+            }
         }
 
     @Test
@@ -310,7 +365,7 @@ public class TabularDataTests
         try
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/group-report.xml";
-            try
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
                 {
                 new ReportBatch().runTabularReport("<report-group><report-list><report-config><location>"
                         + sUrl + "</location></report-config></report-list></report-group>");

@@ -8,6 +8,8 @@ package com.tangosol.coherence.reporter;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
 
@@ -141,7 +143,7 @@ public final class ReporterSecurity
 
         if (!"file".equalsIgnoreCase(sScheme))
             {
-            reject(sScope, sOperation, "reporter-resource-allowlist", "unsupported-uri-scheme", sName);
+            return resolveRemoteReportUrl(uri, sName, sOperation, sScope);
             }
 
         String sHost = uri.getHost();
@@ -155,6 +157,11 @@ public final class ReporterSecurity
             File file = Paths.get(uri).toFile().getCanonicalFile();
             if (!isUnderAny(file, getApprovedReportFileRoots()))
                 {
+                if (CoherenceMode.isLegacy())
+                    {
+                    shadow(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
+                    return file.toURI().toURL();
+                    }
                 reject(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
                 }
             return file.toURI().toURL();
@@ -255,6 +262,11 @@ public final class ReporterSecurity
                     : root.toPath().resolve(path).toFile().getCanonicalFile();
             if (!isUnder(file, root))
                 {
+                if (CoherenceMode.isLegacy())
+                    {
+                    shadow(sScope, "setOutputPath", "reporter-output-allowlist", "output-outside-root", sPath);
+                    return file.getCanonicalPath();
+                    }
                 reject(sScope, "setOutputPath", "reporter-output-allowlist", "output-outside-root", sPath);
                 }
 
@@ -423,7 +435,8 @@ public final class ReporterSecurity
         if (url != null)
             {
             String sProtocol = url.getProtocol();
-            if ("file".equalsIgnoreCase(sProtocol) || "jar".equalsIgnoreCase(sProtocol))
+            if ("file".equalsIgnoreCase(sProtocol) || "jar".equalsIgnoreCase(sProtocol)
+                    || "bundle".equalsIgnoreCase(sProtocol) || "bundleresource".equalsIgnoreCase(sProtocol))
                 {
                 return url;
                 }
@@ -438,6 +451,11 @@ public final class ReporterSecurity
                 {
                 return file.toURI().toURL();
                 }
+            if (file.exists() && CoherenceMode.isLegacy())
+                {
+                shadow(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
+                return file.toURI().toURL();
+                }
             }
         catch (IOException | RuntimeException e)
             {
@@ -446,6 +464,93 @@ public final class ReporterSecurity
 
         reject(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
         return null;
+        }
+
+    private static URL resolveRemoteReportUrl(URI uri, String sName, String sOperation, String sScope)
+        {
+        String sScheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(sScheme) && !"https".equalsIgnoreCase(sScheme))
+            {
+            if (CoherenceMode.isLegacy())
+                {
+                shadow(sScope, sOperation, "reporter-resource-allowlist", "unsupported-uri-scheme", sName);
+                return toUrl(uri, sName, sOperation, sScope);
+                }
+            reject(sScope, sOperation, "reporter-resource-allowlist", "unsupported-uri-scheme", sName);
+            }
+
+        if (isApprovedRemoteReportUrl(uri))
+            {
+            return toUrl(uri, sName, sOperation, sScope);
+            }
+
+        if (CoherenceMode.isLegacy())
+            {
+            shadow(sScope, sOperation, "reporter-resource-allowlist", "remote-source-not-approved", sName);
+            return toUrl(uri, sName, sOperation, sScope);
+            }
+
+        reject(sScope, sOperation, "reporter-resource-allowlist", "remote-source-not-approved", sName);
+        return null;
+        }
+
+    private static URL toUrl(URI uri, String sName, String sOperation, String sScope)
+        {
+        try
+            {
+            return uri.toURL();
+            }
+        catch (IllegalArgumentException | IOException e)
+            {
+            reject(sScope, sOperation, "reporter-resource-allowlist", "invalid-resource-uri", sName);
+            return null;
+            }
+        }
+
+    private static boolean isApprovedRemoteReportUrl(URI uri)
+        {
+        String sAllowed = System.getProperty(PROP_REMOTE_REPORT_ALLOWED);
+        if (sAllowed == null || sAllowed.trim().isEmpty() || uri.getHost() == null)
+            {
+            return false;
+            }
+
+        String sScheme = uri.getScheme();
+        String sHost   = uri.getHost();
+        int    nPort   = normalizePort(sScheme, uri.getPort());
+        for (String sEntry : sAllowed.split(","))
+            {
+            String sTrimmed = sEntry.trim();
+            if (sTrimmed.isEmpty())
+                {
+                continue;
+                }
+
+            try
+                {
+                URI uriAllowed = new URI(sTrimmed);
+                if (sScheme.equalsIgnoreCase(uriAllowed.getScheme())
+                        && sHost.equalsIgnoreCase(uriAllowed.getHost())
+                        && nPort == normalizePort(uriAllowed.getScheme(), uriAllowed.getPort()))
+                    {
+                    return true;
+                    }
+                }
+            catch (URISyntaxException e)
+                {
+                // invalid admin configuration entry is ignored
+                }
+            }
+        return false;
+        }
+
+    private static int normalizePort(String sScheme, int nPort)
+        {
+        if (nPort >= 0)
+            {
+            return nPort;
+            }
+        return "https".equalsIgnoreCase(sScheme) ? 443 : 80;
         }
 
     private static void validateRelativePathName(String sName, String sScope, String sOperation, String sGate)
@@ -481,6 +586,12 @@ public final class ReporterSecurity
         {
         if (name == null || name.isDomainPattern())
             {
+            if (CoherenceMode.isLegacy())
+                {
+                shadow(sScope, "query", "reporter-objectname-allowlist", "object-name-pattern-too-broad",
+                        name == null ? null : name.getDomain());
+                return;
+                }
             reject(sScope, "query", "reporter-objectname-allowlist", "object-name-pattern-too-broad",
                     name == null ? null : name.getCanonicalName());
             }
@@ -489,6 +600,11 @@ public final class ReporterSecurity
         String sType   = name.getKeyProperty("type");
         if (!ALLOWED_DOMAINS.contains(sDomain) || !ALLOWED_TYPES.contains(sType))
             {
+            if (CoherenceMode.isLegacy())
+                {
+                shadow(sScope, "query", "reporter-objectname-allowlist", "object-name-not-allowed", sDomain);
+                return;
+                }
             reject(sScope, "query", "reporter-objectname-allowlist", "object-name-not-allowed",
                     name.getCanonicalName());
             }
@@ -585,6 +701,12 @@ public final class ReporterSecurity
 
     private static void reject(String sScope, String sOperation, String sGate, String sReason, String sValue)
         {
+        if (CoherenceMode.isLegacy() && isLegacyShadowReason(sReason))
+            {
+            shadow(sScope, sOperation, sGate, sReason, sValue);
+            return;
+            }
+
         Logger.warn("Rejected Reporter request: route=reporter"
                 + ", scope=" + sanitize(sScope)
                 + ", operation=" + sanitize(sOperation)
@@ -594,6 +716,31 @@ public final class ReporterSecurity
                 + ", reason=" + sanitize(sReason));
 
         throw new ReporterSecurityException("Unsupported Reporter input");
+        }
+
+    private static void shadow(String sScope, String sOperation, String sGate, String sReason, String sValue)
+        {
+        Logger.warn("Allowed LEGACY Reporter request that hardening mode would reject:"
+                + " route=reporter"
+                + ", scope=" + sanitize(sScope)
+                + ", operation=" + sanitize(sOperation)
+                + ", gate=" + sanitize(sGate)
+                + ", reason=" + sanitize(sReason)
+                + ", mode=legacy"
+                + ", result=would_reject"
+                + ", resource-name=" + sanitize(sValue)
+                + ", principal=unknown");
+        }
+
+    private static boolean isLegacyShadowReason(String sReason)
+        {
+        return "file-outside-root".equals(sReason)
+                || "object-name-not-allowed".equals(sReason)
+                || "object-name-pattern-too-broad".equals(sReason)
+                || "remote-source-not-approved".equals(sReason)
+                || "unsupported-column-class".equals(sReason)
+                || "unsupported-uri-scheme".equals(sReason)
+                || "untrusted-method-column".equals(sReason);
         }
 
     private static String sanitize(String sValue)
@@ -632,6 +779,11 @@ public final class ReporterSecurity
             "PagedTopicSubscriberGroup", "PartitionAssignment", "Platform", "Service",
             "StorageManager", "Test", "TestJoin", "TransactionManager", "View",
             "WebLogicHttpSessionManager"));
+
+    /**
+     * Comma-separated list of approved remote Reporter XML sources.
+     */
+    public static final String PROP_REMOTE_REPORT_ALLOWED = "coherence.management.report.remote.allowed";
 
     private ReporterSecurity()
         {
