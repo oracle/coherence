@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -266,12 +266,15 @@ public class ClusterMemberResource
                                   @QueryParam(OPTIONS)   String sOptions)
             throws Exception
         {
+        if (!isJfrDiagnosticCommand(sCmd))
+            {
+            return unsupportedDiagnosticCommandResponse("member", sCmd);
+            }
+
         String       sBaseQuery  = ":type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand";
         QueryBuilder bldrQuery   = createQueryBuilder().withBaseQuery(sBaseQuery).withMember(sMemberKey);
         Object[]     aoArguments = new Object[]{sOptions.split(",")};
 
-        executeMBeanOperation(bldrQuery,
-                "vmUnlockCommercialFeatures", null, null);
         // execute the JFR operation and return the result message from the operation
         return response(getResponseFromMBeanOperation(bldrQuery,
                 "status", sCmd, aoArguments, new String[]{String[].class.getName()}));

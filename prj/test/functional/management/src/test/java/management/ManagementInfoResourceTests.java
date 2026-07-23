@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -978,6 +978,58 @@ public class ManagementInfoResourceTests
         }
 
     @Test
+    public void testUnsupportedClusterDiagnosticCmdRejected()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        WebTarget target = getBaseTarget().path(DIAGNOSTIC_CMD);
+
+        assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
+        assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
+        assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
+        assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+        }
+
+    @Test
+    public void testUnsupportedMemberDiagnosticCmdRejected()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        Response response = getBaseTarget().request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        Map          mapResponse   = readEntity(getBaseTarget(), response);
+        List<Number> listMemberIds = (List<Number>) mapResponse.get("memberIds");
+
+        assertThat(listMemberIds, notNullValue());
+        assertThat(listMemberIds.size(), greaterThan(0));
+
+        WebTarget target = getBaseTarget().path(MEMBERS).path(String.valueOf(listMemberIds.get(0))).path(DIAGNOSTIC_CMD);
+
+        assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
+        assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
+        assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
+        assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+        }
+
+    private void assertUnsupportedDiagnosticCmdRejected(WebTarget target, String sCmd)
+        {
+        WebTarget targetCmd = target.path(sCmd).queryParam(OPTIONS, "");
+        Response  response  = targetCmd.request(MediaType.APPLICATION_JSON_TYPE).post(null);
+
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+        assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
+
+        String sBody = response.readEntity(String.class);
+
+        assertThat(sBody, not(containsString("java.version")));
+        assertThat(sBody, not(containsString("coherence.cluster")));
+        assertThat(sBody, not(containsString("coherence.member")));
+        }
+
+    @Test
     public void testMemberJfr()
             throws Exception
         {
@@ -1073,7 +1125,8 @@ public class ManagementInfoResourceTests
 
         try
             {
-            String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand,cluster=mgmtRestCluster,member=" + m_aMembers[0].getName() + ",nodeId=" + m_aMembers[0].getLocalMemberId();
+            String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand,cluster="
+                    + CLUSTER_NAME + ",member=" + m_aMembers[0].getName() + ",nodeId=" + m_aMembers[0].getLocalMemberId();
 
             oName = new ObjectName(sName);
             mBeanServer = m_aMembers[0].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
@@ -1087,7 +1140,8 @@ public class ManagementInfoResourceTests
             {
             try
                 {
-                String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand,cluster=mgmtRestCluster,member=" + m_aMembers[1].getName() + ",nodeId=" + m_aMembers[1].getLocalMemberId();
+                String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand,cluster="
+                        + CLUSTER_NAME + ",member=" + m_aMembers[1].getName() + ",nodeId=" + m_aMembers[1].getLocalMemberId();
 
                 mBeanServer = m_aMembers[1].get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
                 oName = new ObjectName(sName);
@@ -3704,7 +3758,7 @@ public class ManagementInfoResourceTests
     /**
      * Name of the Coherence cluster.
      */
-    public static final String CLUSTER_NAME = "mgmtRestCluster";
+    public static final String CLUSTER_NAME = System.getProperty("coherence.cluster", "mgmtRestCluster");
 
     /**
      * The window of time the management server tries to give a consistent response.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -410,6 +410,11 @@ public class ClusterResource
                                   @QueryParam(OPTIONS)   String sOptions,
                                   @QueryParam(ROLE_NAME) String sRole)
         {
+        if (!isJfrDiagnosticCommand(sCmd))
+            {
+            return unsupportedDiagnosticCommandResponse("cluster", sCmd);
+            }
+
         // execute the role based cluster wide JFR operation and return
         // the result message from the operation
         return response(getResponseFromMBeanOperation(getQuery(),

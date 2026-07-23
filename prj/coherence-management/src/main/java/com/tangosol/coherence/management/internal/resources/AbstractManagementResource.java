@@ -1346,6 +1346,84 @@ public abstract class AbstractManagementResource
         return ensureMBeanDomainName();
         }
 
+    /**
+     * Return {@code true} if the specified DiagnosticCommand operation is a supported JFR command.
+     *
+     * @param sCmd  the DiagnosticCommand operation name
+     *
+     * @return {@code true} if the command is supported
+     */
+    protected static boolean isJfrDiagnosticCommand(String sCmd)
+        {
+        if (sCmd == null)
+            {
+            return false;
+            }
+
+        switch (sCmd)
+            {
+            case "jfrStart":
+            case "jfrStop":
+            case "jfrDump":
+            case "jfrCheck":
+                return true;
+            default:
+                return false;
+            }
+        }
+
+    /**
+     * Create a bad request response for an unsupported DiagnosticCommand operation.
+     *
+     * @param sScope  the management REST route scope
+     * @param sCmd    the unsupported DiagnosticCommand operation name
+     *
+     * @return the response
+     */
+    protected Response unsupportedDiagnosticCommandResponse(String sScope, String sCmd)
+        {
+        log("Rejected management REST diagnostic-cmd request: route=diagnostic-cmd"
+                + ", scope=" + sScope
+                + ", cmd-name=" + sanitizeDiagnosticCommandName(sCmd)
+                + ", principal=unknown"
+                + ", gate=jfr-allowlist"
+                + ", reason=command-not-allowed");
+
+        return Response.status(Response.Status.BAD_REQUEST)
+                .entity(Response.Status.BAD_REQUEST.getReasonPhrase() + '\n' + "Unsupported diagnostic command")
+                .build();
+        }
+
+    /**
+     * Return a bounded ASCII-only diagnostic command name for audit logging.
+     *
+     * @param sCmd  the command name
+     *
+     * @return the sanitized command name
+     */
+    protected static String sanitizeDiagnosticCommandName(String sCmd)
+        {
+        if (sCmd == null)
+            {
+            return "redacted";
+            }
+
+        int           cLimit = Math.min(32, sCmd.length());
+        StringBuilder sbName = new StringBuilder(cLimit);
+        for (int i = 0; i < cLimit; i++)
+            {
+            char ch = sCmd.charAt(i);
+            if (ch >= 'a' && ch <= 'z' ||
+                ch >= 'A' && ch <= 'Z' ||
+                ch >= '0' && ch <= '9')
+                {
+                sbName.append(ch);
+                }
+            }
+
+        return sbName.length() == 0 ? "redacted" : sbName.toString();
+        }
+
     // ----- static helper methods ------------------------------------------
 
     private static String ensureMBeanDomainName()
