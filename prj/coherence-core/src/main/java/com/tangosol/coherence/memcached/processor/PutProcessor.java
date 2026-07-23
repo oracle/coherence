@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.memcached.processor;
 
@@ -199,7 +199,7 @@ public class PutProcessor
     protected Binary getDecoratedBinary(BackingMapManagerContext mgrCtx, long lVersion)
         {
         Binary bin = m_fBinaryPassThru
-                       ? new Binary(m_abValue)
+                       ? MemcachedHelper.validatePassThroughValue(m_abValue)
                        : (Binary) mgrCtx.getValueToInternalConverter().convert(m_abValue);
         WriteBuffer bufDeco = new BinaryWriteBuffer(12, 12);
         try
