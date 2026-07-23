@@ -13,6 +13,8 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationLimitAware;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
@@ -203,7 +205,7 @@ import java.util.concurrent.ConcurrentHashMap;
 * @since Coherence 3.2
 */
 public class ConfigurablePofContext
-        implements PofContext, ClassLoaderAware, XmlConfigurable
+        implements PofContext, ClassLoaderAware, XmlConfigurable, SerializationLimitAware
     {
     // ----- constructors ---------------------------------------------------
 
@@ -393,6 +395,19 @@ public class ConfigurablePofContext
             ioex.initCause(e);
             throw ioex;
             }
+        }
+
+    @Override
+    public SerializationLimitPolicy getLimitPolicy()
+        {
+        SerializationLimitPolicy policy = m_policyLimits;
+        return policy == null ? PofContext.super.getLimitPolicy() : policy;
+        }
+
+    @Override
+    public void setLimitPolicy(SerializationLimitPolicy policy)
+        {
+        m_policyLimits = policy;
         }
 
 
@@ -1580,4 +1595,9 @@ public class ConfigurablePofContext
     * The PofConfig for this PofContext to use.
     */
     private volatile PofConfig m_cfg;
+    /**
+     * The optional serializer container limit policy.
+     */
+    private SerializationLimitPolicy m_policyLimits;
+
     }

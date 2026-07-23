@@ -7,6 +7,7 @@
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.SerializerAware;
 import com.tangosol.io.internal.SerializationTelemetry;
@@ -23,6 +24,8 @@ import java.io.StreamCorruptedException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+import java.nio.ByteBuffer;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -35,6 +38,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import java.util.function.IntFunction;
@@ -322,7 +326,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("boolean array", boolean[].class, in.readPackedInt());
                     af = new boolean[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -335,7 +339,7 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("boolean array", boolean[].class, in.readPackedInt());
                     af = new boolean[cElements];
                     switch (nElementType)
                         {
@@ -362,8 +366,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("boolean array", boolean[].class, in.readPackedInt());
                     af = new boolean[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -371,17 +376,19 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         af[iElement] = readAsInt(in, in.readPackedInt()) != 0;
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("boolean array", boolean[].class, in.readPackedInt());
                     af = new boolean[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -389,9 +396,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         af[iElement] = readAsInt(in, nElementType) != 0;
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -445,14 +453,14 @@ public class PofBufferReader
                     break;
 
                 case T_OCTET_STRING:
-                    ab = new byte[in.readPackedInt()];
+                    ab = new byte[validateByteCount("octet string", in.readPackedInt(), in)];
                     in.readFully(ab);
                     break;
 
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("byte array", byte[].class, in.readPackedInt());
                     ab = new byte[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -465,15 +473,17 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("byte array", byte[].class, in.readPackedInt());
 
-                    ab = new byte[cElements];
                     if (nElementType == T_OCTET)
                         {
+                        validateByteCount("byte array", cElements, in);
+                        ab = new byte[cElements];
                         in.readFully(ab);
                         }
                     else
                         {
+                        ab = new byte[cElements];
                         for (int i = 0; i < cElements; ++i)
                             {
                             ab[i] = (byte) readAsInt(in, nElementType);
@@ -484,8 +494,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("byte array", byte[].class, in.readPackedInt());
                     ab = new byte[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -493,17 +504,19 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         ab[iElement] = (byte) readAsInt(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("byte array", byte[].class, in.readPackedInt());
                     ab = new byte[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -511,11 +524,12 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         ab[iElement] = nElementType == T_OCTET
                                        ? in.readByte()
                                        : (byte) readAsInt(in, nElementType);
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -570,12 +584,12 @@ public class PofBufferReader
 
                 case T_OCTET_STRING:
                     {
-                    int    cb = in.readPackedInt();
+                    int    cb = validateByteCount("octet string", in.readPackedInt(), in);
                     byte[] ab = new byte[cb];
                     in.readFully(ab);
 
                     ach = new char[cb];
-                    for (int of = 0; of < cb; ++cb)
+                    for (int of = 0; of < cb; ++of)
                         {
                         ach[of] = (char) (ab[of] & 0xFF);
                         }
@@ -589,7 +603,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("char array", char[].class, in.readPackedInt());
                     ach = new char[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -602,21 +616,34 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
-                    ach = new char[cElements];
-                    for (int i = 0; i < cElements; ++i)
+                    int cElements    = validateElementCount("char array", char[].class, in.readPackedInt());
+
+                    if (nElementType == T_OCTET)
                         {
-                        ach[i] = nElementType == T_CHAR
-                                 ? readChar(in)
-                                 : (char) readAsInt(in, nElementType);
+                        // raw encoding (since 24.09)
+                        int        cb = validateDerivedByteCount("raw array", cElements, 2);
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        ach = new char[cElements];
+                        bb.asCharBuffer().get(ach, 0, cElements);
+                        }
+                    else
+                        {
+                        ach = new char[cElements];
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            ach[i] = nElementType == T_CHAR
+                                     ? readChar(in)
+                                     : (char) readAsInt(in, nElementType);
+                            }
                         }
                     }
                     break;
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("char array", char[].class, in.readPackedInt());
                     ach = new char[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -624,17 +651,19 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         ach[iElement] = (char) readAsInt(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("char array", char[].class, in.readPackedInt());
                     ach = new char[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -642,11 +671,12 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         ach[iElement] = nElementType == T_CHAR
                                         ? readChar(in)
                                         : (char) readAsInt(in, nElementType);
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -696,7 +726,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("short array", short[].class, in.readPackedInt());
                     an = new short[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -709,7 +739,11 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("short array", short[].class, in.readPackedInt());
+                    if (nElementType == T_OCTET)
+                        {
+                        validateDerivedByteCount("raw array", cElements, 2);
+                        }
                     an = new short[cElements];
                     switch (nElementType)
                         {
@@ -721,6 +755,12 @@ public class PofBufferReader
                                 {
                                 an[i] = (short) in.readPackedInt();
                                 }
+                            break;
+
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = validateDerivedByteCount("raw array", cElements, 2);
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asShortBuffer().get(an, 0, cElements);
                             break;
 
                         default:
@@ -735,8 +775,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("short array", short[].class, in.readPackedInt());
                     an = new short[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -744,16 +785,17 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         an[iElement] = (short) readAsInt(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("short array", short[].class, in.readPackedInt());
                     an = new short[cElements];
                     switch (nElementType)
                         {
@@ -761,6 +803,8 @@ public class PofBufferReader
                         case T_INT32:
                         case T_INT64:
                         case T_INT128:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -768,12 +812,16 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = (short) in.readPackedInt();
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
 
                         default:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -781,10 +829,12 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = (short) readAsInt(in, nElementType);
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
                         }
                     }
                     break;
@@ -835,7 +885,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("int array", int[].class, in.readPackedInt());
                     an = new int[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -848,7 +898,11 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("int array", int[].class, in.readPackedInt());
+                    if (nElementType == T_OCTET)
+                        {
+                        validateDerivedByteCount("raw array", cElements, 4);
+                        }
                     an = new int[cElements];
                     switch (nElementType)
                         {
@@ -860,6 +914,12 @@ public class PofBufferReader
                                 {
                                 an[i] = in.readPackedInt();
                                 }
+                            break;
+
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = validateDerivedByteCount("raw array", cElements, 4);
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asIntBuffer().get(an, 0, cElements);
                             break;
 
                         default:
@@ -874,8 +934,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("int array", int[].class, in.readPackedInt());
                     an = new int[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -883,16 +944,17 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         an[iElement] = readAsInt(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("int array", int[].class, in.readPackedInt());
                     an = new int[cElements];
                     switch (nElementType)
                         {
@@ -900,6 +962,8 @@ public class PofBufferReader
                         case T_INT32:
                         case T_INT64:
                         case T_INT128:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -907,12 +971,16 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = in.readPackedInt();
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
 
                         default:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -920,10 +988,12 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = readAsInt(in, nElementType);
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
                         }
                     }
                     break;
@@ -974,7 +1044,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("long array", long[].class, in.readPackedInt());
                     an = new long[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -987,7 +1057,11 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("long array", long[].class, in.readPackedInt());
+                    if (nElementType == T_OCTET)
+                        {
+                        validateDerivedByteCount("raw array", cElements, 8);
+                        }
                     an = new long[cElements];
                     switch (nElementType)
                         {
@@ -999,6 +1073,12 @@ public class PofBufferReader
                                 {
                                 an[i] = in.readPackedLong();
                                 }
+                            break;
+
+                        case T_OCTET:  // raw encoding (since 24.09)
+                            int        cb = validateDerivedByteCount("raw array", cElements, 8);
+                            ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                            bb.asLongBuffer().get(an, 0, cElements);
                             break;
 
                         default:
@@ -1013,8 +1093,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("long array", long[].class, in.readPackedInt());
                     an = new long[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1022,16 +1103,17 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         an[iElement] = readAsLong(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("long array", long[].class, in.readPackedInt());
                     an = new long[cElements];
                     switch (nElementType)
                         {
@@ -1039,6 +1121,8 @@ public class PofBufferReader
                         case T_INT32:
                         case T_INT64:
                         case T_INT128:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -1046,12 +1130,16 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = in.readPackedLong();
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
 
                         default:
+                            {
+                            int cRemaining = cElements;
                             do
                                 {
                                 int iElement = in.readPackedInt();
@@ -1059,10 +1147,12 @@ public class PofBufferReader
                                     {
                                     break;
                                     }
+                                validateSparseIndex("sparse", iElement, cElements, cRemaining);
                                 an[iElement] = readAsLong(in, nElementType);
                                 }
-                            while (--cElements >= 0);
+                            while (--cRemaining >= 0);
                             break;
+                            }
                         }
                     }
                     break;
@@ -1113,7 +1203,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("float array", float[].class, in.readPackedInt());
                     afl = new float[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -1126,21 +1216,37 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
-                    afl = new float[cElements];
-                    for (int i = 0; i < cElements; ++i)
+                    int cElements    = validateElementCount("float array", float[].class, in.readPackedInt());
+                    if (nElementType == T_OCTET)
                         {
-                        afl[i] = nElementType == T_FLOAT32
-                                 ? in.readFloat()
-                                 : readAsFloat(in, nElementType);
+                        validateDerivedByteCount("raw array", cElements, 4);
+                        }
+                    afl = new float[cElements];
+
+                    if (nElementType == T_OCTET)
+                        {
+                        // raw encoding (since 24.09)
+                        int        cb = validateDerivedByteCount("raw array", cElements, 4);
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asFloatBuffer().get(afl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            afl[i] = nElementType == T_FLOAT32
+                                     ? in.readFloat()
+                                     : readAsFloat(in, nElementType);
+                            }
                         }
                     }
                     break;
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("float array", float[].class, in.readPackedInt());
                     afl = new float[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1148,17 +1254,19 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         afl[iElement] = readAsFloat(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("float array", float[].class, in.readPackedInt());
                     afl = new float[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1166,11 +1274,12 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         afl[iElement] = nElementType == T_FLOAT32
                                  ? in.readFloat()
                                  : readAsFloat(in, nElementType);
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -1220,7 +1329,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("double array", double[].class, in.readPackedInt());
                     adfl = new double[cElements];
                     for (int i = 0; i < cElements; ++i)
                         {
@@ -1233,21 +1342,37 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
-                    adfl = new double[cElements];
-                    for (int i = 0; i < cElements; ++i)
+                    int cElements    = validateElementCount("double array", double[].class, in.readPackedInt());
+                    if (nElementType == T_OCTET)
                         {
-                        adfl[i] = nElementType == T_FLOAT64
-                                  ? in.readDouble()
-                                  : readAsDouble(in, nElementType);
+                        validateDerivedByteCount("raw array", cElements, 8);
+                        }
+                    adfl = new double[cElements];
+
+                    if (nElementType == T_OCTET)
+                        {
+                        // raw encoding (since 24.09)
+                        int        cb = validateDerivedByteCount("raw array", cElements, 8);
+                        ByteBuffer bb = in.readBuffer(cb).toByteBuffer();
+                        bb.asDoubleBuffer().get(adfl, 0, cElements);
+                        }
+                    else
+                        {
+                        for (int i = 0; i < cElements; ++i)
+                            {
+                            adfl[i] = nElementType == T_FLOAT64
+                                      ? in.readDouble()
+                                      : readAsDouble(in, nElementType);
+                            }
                         }
                     }
                     break;
 
                 case T_SPARSE_ARRAY:
                     {
-                    int cElements = in.readPackedInt();
+                    int cElements = validateElementCount("double array", double[].class, in.readPackedInt());
                     adfl = new double[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1255,17 +1380,19 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         adfl[iElement] = readAsDouble(in, in.readPackedInt());
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int cElements    = in.readPackedInt();
+                    int cElements    = validateElementCount("double array", double[].class, in.readPackedInt());
                     adfl = new double[cElements];
+                    int cRemaining = cElements;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1273,11 +1400,12 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cElements, cRemaining);
                         adfl[iElement] = nElementType == T_FLOAT64
                                   ? in.readDouble()
                                   : readAsDouble(in, nElementType);
                         }
-                    while (--cElements >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -1469,13 +1597,13 @@ public class PofBufferReader
                     break;
 
                 case T_OCTET_STRING:
-                    bin = readBinary(in);
+                    bin = readBinary(in, true);
                     break;
 
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int    cb = in.readPackedInt();
+                    int    cb = validateElementCount("binary", byte[].class, in.readPackedInt());
                     byte[] ab = new byte[cb];
                     for (int i = 0; i < cb; ++i)
                         {
@@ -1489,28 +1617,32 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int    cb = in.readPackedInt();
-                    byte[] ab = new byte[cb];
+                    int    cb = validateElementCount("binary", byte[].class, in.readPackedInt());
 
                     if (nElementType == T_OCTET)
                         {
+                        validateByteCount("binary", cb, in);
+                        byte[] ab = new byte[cb];
                         in.readFully(ab);
+                        bin = new Binary(ab);
                         }
                     else
                         {
+                        byte[] ab = new byte[cb];
                         for (int i = 0; i < cb; ++i)
                             {
                             ab[i] = (byte) readAsInt(in, nElementType);
                             }
+                        bin = new Binary(ab);
                         }
-                    bin = new Binary(ab);
                     }
                     break;
 
                 case T_SPARSE_ARRAY:
                     {
-                    int    cb = in.readPackedInt();
+                    int    cb = validateElementCount("binary", byte[].class, in.readPackedInt());
                     byte[] ab = new byte[cb];
+                    int cRemaining = cb;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1518,9 +1650,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cb, cRemaining);
                         ab[iElement] = (byte) readAsInt(in, in.readPackedInt());
                         }
-                    while (--cb >= 0);
+                    while (--cRemaining >= 0);
                     bin = new Binary(ab);
                     }
                     break;
@@ -1528,8 +1661,9 @@ public class PofBufferReader
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int    cb = in.readPackedInt();
+                    int    cb = validateElementCount("binary", byte[].class, in.readPackedInt());
                     byte[] ab = new byte[cb];
+                    int cRemaining = cb;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1537,11 +1671,12 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cb, cRemaining);
                         ab[iElement] = nElementType == T_OCTET
                                        ? in.readByte()
                                        : (byte) readAsInt(in, nElementType);
                         }
-                    while (--cb >= 0);
+                    while (--cRemaining >= 0);
                     bin = new Binary(ab);
                     }
                     break;
@@ -1606,7 +1741,7 @@ public class PofBufferReader
 
                 case T_OCTET_STRING:
                     {
-                    int cb = in.readPackedInt();
+                    int cb = validateByteCount("octet string", in.readPackedInt(), in);
                     int of = in.getOffset();
 
                     ReadBuffer buf = in.getBuffer();
@@ -1630,7 +1765,7 @@ public class PofBufferReader
                 case T_COLLECTION:
                 case T_ARRAY:
                     {
-                    int    cch = in.readPackedInt();
+                    int    cch = validateElementCount("string", char[].class, in.readPackedInt());
                     char[] ach = new char[cch];
                     for (int i = 0; i < cch; ++i)
                         {
@@ -1644,7 +1779,7 @@ public class PofBufferReader
                 case T_UNIFORM_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int    cch = in.readPackedInt();
+                    int    cch = validateElementCount("string", char[].class, in.readPackedInt());
                     char[] ach = new char[cch];
                     for (int i = 0; i < cch; ++i)
                         {
@@ -1656,8 +1791,9 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int    cch = in.readPackedInt();
+                    int    cch = validateElementCount("string", char[].class, in.readPackedInt());
                     char[] ach = new char[cch];
+                    int cRemaining = cch;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1665,9 +1801,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cch, cRemaining);
                         ach[iElement] = readAsChar(in, in.readPackedInt());
                         }
-                    while (--cch >= 0);
+                    while (--cRemaining >= 0);
                     s = new String(ach);
                     }
                     break;
@@ -1675,8 +1812,9 @@ public class PofBufferReader
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int    cch = in.readPackedInt();
+                    int    cch = validateElementCount("string", char[].class, in.readPackedInt());
                     char[] ach = new char[cch];
+                    int cRemaining = cch;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -1684,9 +1822,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, cch, cRemaining);
                         ach[iElement] = readAsChar(in, nElementType);
                         }
-                    while (--cch >= 0);
+                    while (--cRemaining >= 0);
                     s = new String(ach);
                     }
                     break;
@@ -2526,7 +2665,7 @@ public class PofBufferReader
                         array = new SparseArray();
                         }
 
-                    int co = in.readPackedInt();
+                    int co = validateElementCount("collection", Object[].class, in.readPackedInt());
                     for (int i = 0; i < co; ++i)
                         {
                         array.set(i, readAsObject(in.readPackedInt()));
@@ -2543,7 +2682,7 @@ public class PofBufferReader
                         }
 
                     int nElementType = in.readPackedInt();
-                    int co           = in.readPackedInt();
+                    int co           = validateElementCount("collection", Object[].class, in.readPackedInt());
                     for (int i = 0; i < co; ++i)
                         {
                         array.set(i, readAsUniformObject(nElementType));
@@ -2558,7 +2697,8 @@ public class PofBufferReader
                         array = new SparseArray();
                         }
 
-                    int co = in.readPackedInt();
+                    int co = validateElementCount("collection", Object[].class, in.readPackedInt());
+                    int cRemaining = co;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -2566,9 +2706,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseEntryCount("sparse", cRemaining);
                         array.set(iElement, readAsObject(in.readPackedInt()));
                         }
-                    while (--co >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -2580,7 +2721,8 @@ public class PofBufferReader
                         }
 
                     int nElementType = in.readPackedInt();
-                    int co           = in.readPackedInt();
+                    int co           = validateElementCount("collection", Object[].class, in.readPackedInt());
+                    int cRemaining = co;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -2588,9 +2730,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseEntryCount("sparse", cRemaining);
                         array.set(iElement, readAsUniformObject(nElementType));
                         }
-                    while (--co >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -2665,7 +2808,7 @@ public class PofBufferReader
                         }
                     else
                         {
-                        int co = in.readPackedInt();
+                        int co = validateElementCount("collection", Object[].class, in.readPackedInt());
                         for (int i = 0; i < co; ++i)
                             {
                             coll.add((T) readAsObject(in.readPackedInt()));
@@ -2685,7 +2828,7 @@ public class PofBufferReader
                     else
                         {
                         int nElementType = in.readPackedInt();
-                        int co           = in.readPackedInt();
+                        int co           = validateElementCount("collection", Object[].class, in.readPackedInt());
                         for (int i = 0; i < co; ++i)
                             {
                             coll.add((T) readAsUniformObject(nElementType));
@@ -2696,12 +2839,13 @@ public class PofBufferReader
 
                 case T_SPARSE_ARRAY:
                     {
-                    int co = in.readPackedInt();
+                    int co = validateElementCount("collection", Object[].class, in.readPackedInt());
                     if (coll == null)
                         {
                         coll = (C) new ArrayList<>(co);
                         }
 
+                    int cRemaining = co;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -2709,21 +2853,23 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, co, cRemaining);
                         coll.add((T) readAsObject(in.readPackedInt()));
                         }
-                    while (--co >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
                 case T_UNIFORM_SPARSE_ARRAY:
                     {
                     int nElementType = in.readPackedInt();
-                    int co           = in.readPackedInt();
+                    int co           = validateElementCount("collection", Object[].class, in.readPackedInt());
                     if (coll == null)
                         {
                         coll = (C) new ArrayList<>(co);
                         }
 
+                    int cRemaining = co;
                     do
                         {
                         int iElement = in.readPackedInt();
@@ -2731,9 +2877,10 @@ public class PofBufferReader
                             {
                             break;
                             }
+                        validateSparseIndex("sparse", iElement, co, cRemaining);
                         coll.add((T) readAsUniformObject(nElementType));
                         }
-                    while (--co >= 0);
+                    while (--cRemaining >= 0);
                     }
                     break;
 
@@ -2781,7 +2928,7 @@ public class PofBufferReader
 
                 case T_MAP:
                     {
-                    int cEntries = in.readPackedInt();
+                    int cEntries = validateMapEntryCount("map", in.readPackedInt());
                     if (map == null)
                         {
                         map = (M) new HashMap(cEntries);
@@ -2799,7 +2946,7 @@ public class PofBufferReader
                 case T_UNIFORM_KEYS_MAP:
                     {
                     int nKeyType = in.readPackedInt();
-                    int cEntries = in.readPackedInt();
+                    int cEntries = validateMapEntryCount("map", in.readPackedInt());
                     if (map == null)
                         {
                         map = (M) new HashMap(cEntries);
@@ -2818,7 +2965,7 @@ public class PofBufferReader
                     {
                     int nKeyType = in.readPackedInt();
                     int nValType = in.readPackedInt();
-                    int cEntries = in.readPackedInt();
+                    int cEntries = validateMapEntryCount("map", in.readPackedInt());
                     if (map == null)
                         {
                         map = (M) new HashMap(cEntries);
@@ -3245,7 +3392,8 @@ public class PofBufferReader
             case T_UNIFORM_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int cElements    = in.readPackedInt();
+                int cElements    = validateElementCount("array", arrayClassForType(nElementType),
+                        in.readPackedInt());
                 switch (nElementType)
                     {
                     case T_BOOLEAN:
@@ -3261,6 +3409,7 @@ public class PofBufferReader
 
                     case T_OCTET:
                         {
+                        validateByteCount("byte array", cElements, in);
                         byte[] ab = new byte[cElements];
                         in.readFully(ab);
                         o = ab;
@@ -3349,7 +3498,9 @@ public class PofBufferReader
             case T_SPARSE_ARRAY:
                 {
                 LongArray array     = new SparseArray();
-                int       cElements = in.readPackedInt();
+                int       cElements = validateElementCount("sparse array", Object[].class,
+                        in.readPackedInt());
+                int cRemaining = cElements;
                 do
                     {
                     int iElement = in.readPackedInt();
@@ -3357,9 +3508,10 @@ public class PofBufferReader
                         {
                         break;
                         }
+                    validateSparseIndex("object", iElement, cElements, cRemaining);
                     array.set(iElement, readAsObject(in.readPackedInt()));
                     }
-                while (--cElements >= 0);
+                while (--cRemaining >= 0);
                 o = array;
                 }
                 break;
@@ -3367,12 +3519,14 @@ public class PofBufferReader
             case T_UNIFORM_SPARSE_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int cElements    = in.readPackedInt();
+                int cElements    = validateElementCount("sparse array", arrayClassForType(nElementType),
+                        in.readPackedInt());
                 switch (nElementType)
                     {
                     case T_BOOLEAN:
                         {
                         boolean[] af = new boolean[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3380,9 +3534,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("boolean", iElement, cElements, cRemaining);
                             af[iElement] = in.readPackedInt() != 0;
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = af;
                         }
                         break;
@@ -3390,6 +3545,7 @@ public class PofBufferReader
                     case T_OCTET:
                         {
                         byte[] ab = new byte[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3397,9 +3553,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("byte", iElement, cElements, cRemaining);
                             ab[iElement] = in.readByte();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = ab;
                         }
                         break;
@@ -3407,6 +3564,7 @@ public class PofBufferReader
                     case T_CHAR:
                         {
                         char[] ach = new char[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3414,9 +3572,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("char", iElement, cElements, cRemaining);
                             ach[iElement] = readChar(in);
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = ach;
                         }
                         break;
@@ -3424,6 +3583,7 @@ public class PofBufferReader
                     case T_INT16:
                         {
                         short[] an = new short[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3431,9 +3591,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("short", iElement, cElements, cRemaining);
                             an[iElement] = (short) in.readPackedInt();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = an;
                         }
                         break;
@@ -3441,6 +3602,7 @@ public class PofBufferReader
                     case T_INT32:
                         {
                         int[] an = new int[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3448,9 +3610,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("int", iElement, cElements, cRemaining);
                             an[iElement] = in.readPackedInt();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = an;
                         }
                         break;
@@ -3458,6 +3621,7 @@ public class PofBufferReader
                     case T_INT64:
                         {
                         long[] an = new long[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3465,9 +3629,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("long", iElement, cElements, cRemaining);
                             an[iElement] = in.readPackedLong();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = an;
                         }
                         break;
@@ -3475,6 +3640,7 @@ public class PofBufferReader
                     case T_FLOAT32:
                         {
                         float[] afl = new float[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3482,9 +3648,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("float", iElement, cElements, cRemaining);
                             afl[iElement] = in.readFloat();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = afl;
                         }
                         break;
@@ -3492,6 +3659,7 @@ public class PofBufferReader
                     case T_FLOAT64:
                         {
                         double[] adfl = new double[cElements];
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3499,9 +3667,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("double", iElement, cElements, cRemaining);
                             adfl[iElement] = in.readDouble();
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = adfl;
                         }
                         break;
@@ -3509,6 +3678,7 @@ public class PofBufferReader
                     default:
                         {
                         LongArray array = new SparseArray();
+                        int cRemaining = cElements;
                         do
                             {
                             int iElement = in.readPackedInt();
@@ -3516,9 +3686,10 @@ public class PofBufferReader
                                 {
                                 break;
                                 }
+                            validateSparseIndex("object", iElement, cElements, cRemaining);
                             array.set(iElement, readAsUniformObject(nElementType));
                             }
-                        while (--cElements >= 0);
+                        while (--cRemaining >= 0);
                         o = array;
                         }
                     }
@@ -3527,8 +3698,8 @@ public class PofBufferReader
 
             case T_MAP:
                 {
+                int cEntries = validateMapEntryCount("map", in.readPackedInt());
                 Map map      = new HashMap();
-                int cEntries = in.readPackedInt();
                 for (int i = 0; i < cEntries; ++i)
                     {
                     Object oKey = readAsObject(in.readPackedInt());
@@ -3541,9 +3712,9 @@ public class PofBufferReader
 
             case T_UNIFORM_KEYS_MAP:
                 {
-                Map map      = new HashMap();
                 int nKeyType = in.readPackedInt();
-                int cEntries = in.readPackedInt();
+                int cEntries = validateMapEntryCount("map", in.readPackedInt());
+                Map map      = new HashMap();
                 for (int i = 0; i < cEntries; ++i)
                     {
                     Object oKey = readAsUniformObject(nKeyType);
@@ -3556,10 +3727,10 @@ public class PofBufferReader
 
             case T_UNIFORM_MAP:
                 {
-                Map map      = new HashMap();
                 int nKeyType = in.readPackedInt();
                 int nValType = in.readPackedInt();
-                int cEntries = in.readPackedInt();
+                int cEntries = validateMapEntryCount("map", in.readPackedInt());
+                Map map      = new HashMap();
                 for (int i = 0; i < cEntries; ++i)
                     {
                     Object oKey = readAsUniformObject(nKeyType);
@@ -3724,7 +3895,7 @@ public class PofBufferReader
             case T_COLLECTION:
             case T_ARRAY:
                 {
-                int co = in.readPackedInt();
+                int co = validateElementCount("object array", Object[].class, in.readPackedInt());
                 aoResult = resizeArray(ao, co);
                 for (int i = 0; i < co; ++i)
                     {
@@ -3737,7 +3908,7 @@ public class PofBufferReader
             case T_UNIFORM_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int co           = in.readPackedInt();
+                int co           = validateElementCount("object array", Object[].class, in.readPackedInt());
                 aoResult = resizeArray(ao, co);
                 for (int i = 0; i < co; ++i)
                     {
@@ -3748,8 +3919,9 @@ public class PofBufferReader
 
             case T_SPARSE_ARRAY:
                 {
-                int co = in.readPackedInt();
+                int co = validateElementCount("object array", Object[].class, in.readPackedInt());
                 aoResult = resizeArray(ao, co);
+                int cRemaining = co;
                 do
                     {
                     int iElement = in.readPackedInt();
@@ -3757,17 +3929,19 @@ public class PofBufferReader
                         {
                         break;
                         }
+                    validateSparseIndex("sparse", iElement, co, cRemaining);
                     aoResult[iElement] = readAsObject(in.readPackedInt());
                     }
-                while (--co >= 0);
+                while (--cRemaining >= 0);
                 }
                 break;
 
             case T_UNIFORM_SPARSE_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int co           = in.readPackedInt();
+                int co           = validateElementCount("object array", Object[].class, in.readPackedInt());
                 aoResult = resizeArray(ao, co);
+                int cRemaining = co;
                 do
                     {
                     int iElement = in.readPackedInt();
@@ -3775,9 +3949,10 @@ public class PofBufferReader
                         {
                         break;
                         }
+                    validateSparseIndex("sparse", iElement, co, cRemaining);
                     aoResult[iElement] = readAsUniformObject(nElementType);
                     }
-                while (--co >= 0);
+                while (--cRemaining >= 0);
                 }
                 break;
 
@@ -3819,7 +3994,7 @@ public class PofBufferReader
             case T_COLLECTION:
             case T_ARRAY:
                 {
-                int co = in.readPackedInt();
+                int co = validateElementCount("typed object array", Object[].class, in.readPackedInt());
                 aoResult = factory.apply(co);
                 for (int i = 0; i < co; ++i)
                     {
@@ -3832,7 +4007,7 @@ public class PofBufferReader
             case T_UNIFORM_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int co           = in.readPackedInt();
+                int co           = validateElementCount("typed object array", Object[].class, in.readPackedInt());
                 aoResult = factory.apply(co);
                 for (int i = 0; i < co; ++i)
                     {
@@ -3843,8 +4018,9 @@ public class PofBufferReader
 
             case T_SPARSE_ARRAY:
                 {
-                int co = in.readPackedInt();
+                int co = validateElementCount("typed object array", Object[].class, in.readPackedInt());
                 aoResult = factory.apply(co);
+                int cRemaining = co;
                 do
                     {
                     int iElement = in.readPackedInt();
@@ -3852,17 +4028,19 @@ public class PofBufferReader
                         {
                         break;
                         }
+                    validateSparseIndex("sparse", iElement, co, cRemaining);
                     aoResult[iElement] = (T) readAsObject(in.readPackedInt());
                     }
-                while (--co >= 0);
+                while (--cRemaining >= 0);
                 }
                 break;
 
             case T_UNIFORM_SPARSE_ARRAY:
                 {
                 int nElementType = in.readPackedInt();
-                int co           = in.readPackedInt();
+                int co           = validateElementCount("typed object array", Object[].class, in.readPackedInt());
                 aoResult = factory.apply(co);
+                int cRemaining = co;
                 do
                     {
                     int iElement = in.readPackedInt();
@@ -3870,9 +4048,10 @@ public class PofBufferReader
                         {
                         break;
                         }
+                    validateSparseIndex("sparse", iElement, co, cRemaining);
                     aoResult[iElement] = (T) readAsUniformObject(nElementType);
                     }
-                while (--co >= 0);
+                while (--cRemaining >= 0);
                 }
                 break;
 
@@ -3884,20 +4063,231 @@ public class PofBufferReader
         return aoResult;
         }
 
+    // ----- container limit helpers ---------------------------------------
+
     /**
-    * Read a Binary object from the specified BufferInput in an optimal way,
-    * depending on the existence of an enclosing ReadBuffer.
-    *
-    * @param in  a BufferInput to read from
-    *
-    * @return a Binary object
-    *
-    * @throws IOException  if an I/O error occurs
-    */
-    protected static Binary readBinary(ReadBuffer.BufferInput in)
+     * Validate a POF element count before allocation or loop use.
+     *
+     * @param sKind      the POF structure kind
+     * @param clzArray   the Java array class, or {@code null}
+     * @param cElements  the element count
+     *
+     * @return the validated count
+     *
+     * @throws IOException if the count is invalid
+     */
+    protected int validateElementCount(String sKind, Class<?> clzArray, int cElements)
+            throws IOException
+        {
+        getLimitPolicy().validateElements(sKind, cElements);
+        if (clzArray != null && getLimitPolicy().getMaxElements() != null)
+            {
+            ExternalizableHelper.validateLoadArray(clzArray, cElements, m_in);
+            }
+        return cElements;
+        }
+
+    /**
+     * Validate a POF map-entry count before allocation or loop use.
+     *
+     * @param sKind     the POF structure kind
+     * @param cEntries  the entry count
+     *
+     * @return the validated count
+     *
+     * @throws IOException if the count is invalid
+     */
+    protected int validateMapEntryCount(String sKind, int cEntries)
+            throws IOException
+        {
+        getLimitPolicy().validateMapEntries(sKind, cEntries);
+        return cEntries;
+        }
+
+    /**
+     * Validate a POF byte count before reading or allocating bytes.
+     *
+     * @param sKind  the POF structure kind
+     * @param cb     the byte count
+     *
+     * @return the validated byte count
+     *
+     * @throws IOException if the count is invalid
+     */
+    protected int validateByteCount(String sKind, int cb)
+            throws IOException
+        {
+        return validateByteCount(sKind, cb, m_in);
+        }
+
+    /**
+     * Validate a POF byte count before reading or allocating bytes.
+     *
+     * @param sKind  the POF structure kind
+     * @param cb     the byte count
+     * @param in     the buffer input to read from
+     *
+     * @return the validated byte count
+     *
+     * @throws IOException if the count is invalid
+     */
+    protected int validateByteCount(String sKind, int cb, ReadBuffer.BufferInput in)
+            throws IOException
+        {
+        getLimitPolicy().validateContainerBytes(sKind, cb);
+        if (in.getBuffer() != null)
+            {
+            int cbRemaining = in.available();
+            if (cb > cbRemaining)
+                {
+                throw new IOException("POF " + sKind + " byte count exceeds remaining input: " + cb + " > " + cbRemaining);
+                }
+            }
+        return cb;
+        }
+
+    /**
+     * Validate a derived POF byte count.
+     *
+     * @param sKind      the POF structure kind
+     * @param cElements  the element count
+     * @param cbElement  the element byte count
+     *
+     * @return the validated byte count
+     *
+     * @throws IOException if the derived count is invalid
+     */
+    protected int validateDerivedByteCount(String sKind, int cElements, int cbElement)
+            throws IOException
+        {
+        long cb = (long) cElements * (long) cbElement;
+        if (cb > Integer.MAX_VALUE)
+            {
+            throw new IOException("POF " + sKind + " byte count overflow: " + cElements + " * " + cbElement);
+            }
+        return validateByteCount(sKind, (int) cb);
+        }
+
+    /**
+     * Validate a sparse-array index.
+     *
+     * @param sKind       the POF structure kind
+     * @param iElement    the sparse element index
+     * @param cElements   the declared logical length
+     * @param cRemaining  the remaining non-sentinel entry budget
+     *
+     * @throws IOException if the index is invalid
+     */
+    protected void validateSparseIndex(String sKind, int iElement, int cElements, int cRemaining)
+            throws IOException
+        {
+        validateSparseEntryCount(sKind, cRemaining);
+        if (iElement >= cElements)
+            {
+            throw new IOException("POF " + sKind + " sparse array index out of range: "
+                    + iElement + " >= " + cElements);
+            }
+        }
+
+    /**
+     * Validate that a sparse array has not exceeded its declared entry budget.
+     *
+     * @param sKind       the POF structure kind
+     * @param cRemaining  the remaining non-sentinel entry budget
+     *
+     * @throws IOException if the entry budget is exhausted
+     */
+    protected void validateSparseEntryCount(String sKind, int cRemaining)
+            throws IOException
+        {
+        if (cRemaining <= 0)
+            {
+            throw new IOException("POF " + sKind + " sparse array has too many entries");
+            }
+        }
+
+    /**
+     * Return the active serializer limit policy.
+     *
+     * @return the active serializer limit policy
+     */
+    protected SerializationLimitPolicy getLimitPolicy()
+        {
+        return getPofContext().getLimitPolicy();
+        }
+
+    /**
+     * Return the Java array class for a POF uniform element type.
+     *
+     * @param nType  the POF type
+     *
+     * @return the Java array class
+     */
+    protected Class<?> arrayClassForType(int nType)
+        {
+        switch (nType)
+            {
+            case T_BOOLEAN:
+                return boolean[].class;
+            case T_OCTET:
+                return byte[].class;
+            case T_CHAR:
+                return char[].class;
+            case T_INT16:
+                return short[].class;
+            case T_INT32:
+                return int[].class;
+            case T_INT64:
+                return long[].class;
+            case T_FLOAT32:
+                return float[].class;
+            case T_FLOAT64:
+                return double[].class;
+            default:
+                return Object[].class;
+            }
+        }
+
+    /**
+     * Read a Binary object from the specified BufferInput in an optimal way,
+     * depending on the existence of an enclosing ReadBuffer.
+     *
+     * @param in  a BufferInput to read from
+     *
+     * @return a Binary object
+     *
+     * @throws IOException  if an I/O error occurs
+     */
+    protected Binary readBinary(ReadBuffer.BufferInput in)
+            throws IOException
+        {
+        return readBinary(in, false);
+        }
+
+    /**
+     * Read a Binary object from the specified BufferInput in an optimal way,
+     * depending on the existence of an enclosing ReadBuffer.
+     *
+     * @param in                  a BufferInput to read from
+     * @param fValidateRemaining  true to validate the byte count against the
+     *                            input before reading
+     *
+     * @return a Binary object
+     *
+     * @throws IOException  if an I/O error occurs
+     */
+    protected Binary readBinary(ReadBuffer.BufferInput in, boolean fValidateRemaining)
             throws IOException
         {
         int cb = in.readPackedInt();
+        if (fValidateRemaining)
+            {
+            validateByteCount("octet string", cb, in);
+            }
+        else
+            {
+            getLimitPolicy().validateContainerBytes("octet string", cb);
+            }
 
         ReadBuffer buf = in.getBuffer();
         if (buf == null)
@@ -4087,10 +4477,23 @@ public class PofBufferReader
                 throws IOException
             {
             UserTypeReader reader;
-            if (advanceTo(iProp))
+            PropertyInfo prop = m_propertyMap == null ? null : m_propertyMap.get(iProp);
+            if (prop != null)
                 {
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext());
+                // ensure that the existing nested stream is closed before creating one for a skipped property
+                closeNested();
+
+                // create new buffer to read skipped property from
+                ReadBuffer.BufferInput in = m_in.getBuffer().getReadBuffer(prop.offset(), prop.length()).getBufferInput();
+
+                reader = new PofBufferReader.UserTypeReader(this, in, getPofContext());
+                
+                // note: there is no complete() call at this point, since the
+                //       property has yet to be read
+                }
+            else if (advanceTo(iProp))
+                {
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext());
 
                 // note: there is no complete() call at this point, since the
                 //       property has yet to be read
@@ -4101,8 +4504,7 @@ public class PofBufferReader
                 complete(iProp);
 
                 // return a "fake" reader that contains no data
-                reader = new PofBufferReader.UserTypeReader(this, m_in,
-                        getPofContext(), getUserTypeId());
+                reader = new PofBufferReader.UserTypeReader(this, m_in, getPofContext(), iProp);
                 }
 
             m_readerNested = reader;
@@ -4226,12 +4628,18 @@ public class PofBufferReader
 
             ReadBuffer.BufferInput in = m_in;
             int ofNextProp = m_ofNextProp;
-            while (iNextProp != EOPS && iNextProp < iProp)
+            while (iNextProp < iProp)
                 {
+                int ofCurrentProp = in.getOffset();
+                int iCurrentProp  = iNextProp;
+
                 skipValue(in);
 
                 ofNextProp = in.getOffset();
                 iNextProp  = in.readPackedInt();
+
+                ensurePropertyMap().put(iCurrentProp, new PropertyInfo(ofCurrentProp, in.getOffset() - ofCurrentProp));
+
                 if (iNextProp < 0)
                     {
                     iNextProp = EOPS;
@@ -4299,6 +4707,44 @@ public class PofBufferReader
             return m_parent;
             }
 
+        /**
+         * Lazily creates a map of skipped properties, if necessary.
+         *
+         * @return a map of skipped properties
+         */
+        private Map<Integer, PropertyInfo> ensurePropertyMap()
+            {
+            Map<Integer, PropertyInfo> map = m_propertyMap;
+            if (map == null)
+                {
+                map = m_propertyMap = new LinkedHashMap<>();
+                }
+            return map;
+            }
+
+        private static final class PropertyInfo
+            {
+            private PropertyInfo(int offset, int length)
+                {
+                m_offset = offset;
+                m_length = length;
+                }
+
+            private int offset()
+                {
+                return m_offset;
+                }
+
+            private int length()
+                {
+                return m_length;
+                }
+
+            private final int m_offset;
+
+            private final int m_length;
+            }
+
         // ----- constants ----------------------------------------------
 
         /**
@@ -4350,6 +4796,11 @@ public class PofBufferReader
         * nested reader is reading from.
         */
         private int m_iNestedProp;
+
+        /**
+         * Map of property indexes to their offset and length.
+         */
+        private Map<Integer, PropertyInfo> m_propertyMap;
         }
 
 

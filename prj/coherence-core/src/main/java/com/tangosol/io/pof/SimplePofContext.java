@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -10,16 +10,20 @@ package com.tangosol.io.pof;
 
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationLimitAware;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.LongArray;
-import com.tangosol.util.SimpleLongArray;
+import com.tangosol.util.SparseArray;
 
 import java.io.IOException;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.inject.Named;
 
 
 /**
@@ -29,8 +33,9 @@ import java.util.Map;
  * @see PortableObjectSerializer
  * @since Coherence 3.2
  */
+@Named("simple-pof")
 public class SimplePofContext
-        implements PofContext
+        implements PofContext, SerializationLimitAware
     {
     // ----- constructors ---------------------------------------------------
 
@@ -97,6 +102,25 @@ public class SimplePofContext
             }
         }
 
+    @Override
+    public String getName()
+        {
+        return "simple-pof";
+        }
+
+
+    @Override
+    public SerializationLimitPolicy getLimitPolicy()
+        {
+        SerializationLimitPolicy policy = m_policyLimits;
+        return policy == null ? PofContext.super.getLimitPolicy() : policy;
+        }
+
+    @Override
+    public void setLimitPolicy(SerializationLimitPolicy policy)
+        {
+        m_policyLimits = policy;
+        }
 
     // ----- PofContext implementation --------------------------------------
 
@@ -292,14 +316,14 @@ public class SimplePofContext
         // add type identifier-to-class mapping
         if (laClass == null)
             {
-            m_laClass = laClass = new SimpleLongArray();
+            m_laClass = laClass = new SparseArray();
             }
         laClass.set(nTypeId, clz);
 
         // add type identifier-to-serializer mapping
         if (laSerializer == null)
             {
-            m_laSerializer = laSerializer = new SimpleLongArray();
+            m_laSerializer = laSerializer = new SparseArray();
             }
         laSerializer.set(nTypeId, serializer);
         }
@@ -435,4 +459,9 @@ public class SimplePofContext
      * legacy types.
      */
     protected boolean m_fPreferJavaTime;
+
+    /**
+     * The optional serializer container limit policy.
+     */
+    protected SerializationLimitPolicy m_policyLimits;
     }

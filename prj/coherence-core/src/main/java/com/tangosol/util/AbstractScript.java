@@ -81,10 +81,14 @@ public class AbstractScript
         m_sLanguage = in.readUTF();
         m_sName     = in.readUTF();
         int numArgs = in.readInt();
-        Base.azzert(numArgs < 256, "Unexpected number of arguments");
+        if (numArgs < 0 || numArgs >= MAX_ARGUMENT_COUNT)
+            {
+            throw new IOException("Unexpected number of script arguments: " + numArgs);
+            }
 
+        ExternalizableHelper.validateLoadArray(Object[].class, numArgs, in);
         m_aoArgs    = new Object[numArgs];
-        for (int i = 0; i< numArgs; i++)
+        for (int i = 0; i < numArgs; i++)
             {
             m_aoArgs[i] = ExternalizableHelper.readObject(in);
             }
@@ -138,4 +142,9 @@ public class AbstractScript
      * The arguments to be passed to the script during evaluation.
      */
     protected Object[] m_aoArgs;
+
+    /**
+     * Exclusive upper bound for the number of script arguments.
+     */
+    private static final int MAX_ARGUMENT_COUNT = 256;
     }

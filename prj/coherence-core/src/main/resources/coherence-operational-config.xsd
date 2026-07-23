@@ -14,10 +14,10 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -983,11 +983,30 @@
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:group ref="instance" />
+                <xsd:element ref="limits" minOccurs="0" />
             </xsd:sequence>
             <xsd:attribute name="xml-override" use="optional" />
             <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:element name="limits" type="serializer-limits-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures serializer-local container bounds.
+
+                Used in: serializer
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="serializer-limits-type">
+        <xsd:sequence>
+            <xsd:element name="max-container-bytes" type="coherence-string-type" minOccurs="0" />
+            <xsd:element name="max-elements" type="coherence-string-type" minOccurs="0" />
+            <xsd:element name="max-map-entries" type="coherence-string-type" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:element name="persistence-environments">
         <xsd:annotation>
