@@ -1,12 +1,18 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.processor;
 
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
+import com.tangosol.internal.util.security.LambdaBytecodeGate.Site;
+import com.tangosol.internal.util.security.RemoteExecutionMode;
+
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.SerializationRole;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -15,14 +21,20 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.OperationReason;
+import com.tangosol.util.RemoteExecutablePolicy;
 
 import com.tangosol.util.extractor.ReflectionExtractor;
 
 import com.tangosol.util.function.Remote;
 
+import com.tangosol.net.security.SecurityHelper;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+
+import javax.security.auth.Subject;
 
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -33,7 +45,8 @@ import javax.json.bind.annotation.JsonbProperty;
  * @author as  2014.11.19
  * @since 12.2.1
  */
-public class MethodInvocationProcessor<K, V, R>
+@Remote.Executable
+public final class MethodInvocationProcessor<K, V, R>
         implements InvocableMap.EntryProcessor<K, V, R>, ExternalizableLite, PortableObject
     {
     // ---- constructors ----------------------------------------------------
@@ -84,30 +97,95 @@ public class MethodInvocationProcessor<K, V, R>
     @Override
     public R process(InvocableMap.Entry<K, V> entry)
         {
-        if (!entry.isPresent())
+        SerializationRole role    = SerializationRole.current();
+        Subject           subject = SecurityHelper.getCurrentSubject();
+
+        RemoteExecutablePolicy.current().enforce(this.getClass(), OperationReason.PROCESS_ENTRY, role, subject);
+
+        if (m_supplier != null)
             {
-            if (m_supplier != null)
-                {
-                entry.setValue(m_supplier.get());
-                }
-            else
-                {
-                return null;
-                }
+            checkDenyList(m_supplier.getClass().getName(), role, subject);
+            }
+
+        V       value;
+        boolean fPresent = entry.isPresent();
+        if (fPresent)
+            {
+            value = entry.getValue();
+            checkTargetDenyList(value, role, subject);
+            enforceMode(role, subject);
+            }
+        else if (m_supplier == null)
+            {
+            return null;
+            }
+        else
+            {
+            enforceMode(role, subject);
+            value = m_supplier.get();
+            checkTargetDenyList(value, role, subject);
+            entry.setValue(value);
             }
 
         ReflectionExtractor extractor = new ReflectionExtractor(m_sMethodName, m_aoArgs);
         if (m_fMutator)
             {
-            V value = entry.getValue();
             R result = (R) extractor.extract(value);
             entry.setValue(value);
             return result;
             }
         else
             {
-            return (R) entry.extract(extractor);
+            return (R) extractor.extract(value);
             }
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    private void enforceMode(SerializationRole role, Subject subject)
+        {
+        if (!RemoteExecutionMode.isDynamicRemoteAllowed())
+            {
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", this.getClass(),
+                    OperationReason.PROCESS_ENTRY, role, subject, SerializationTelemetry.SUB_REASON_MODE_GATE);
+            SerializationTelemetry.logRejection("cache.mip", role.name(), subject, descriptor(null),
+                    REASON_DENIED_BY_MODE);
+            throw new SecurityException(REASON_DENIED_BY_MODE);
+            }
+        }
+
+    private void checkTargetDenyList(V value, SerializationRole role, Subject subject)
+        {
+        if (value == null)
+            {
+            return;
+            }
+
+        String sClass = value.getClass().getName();
+        checkDenyList(sClass, role, subject);
+        checkDenyList(sClass + "#" + m_sMethodName, role, subject);
+        }
+
+    private void checkDenyList(String sDescriptor, SerializationRole role, Subject subject)
+        {
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkDenyListOnly(sDescriptor, Site.MIP_REFLECTION);
+        if (result instanceof LambdaBytecodeGate.Result.Rejected)
+            {
+            LambdaBytecodeGate.Result.Rejected rejected = (LambdaBytecodeGate.Result.Rejected) result;
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", this.getClass(),
+                    OperationReason.PROCESS_ENTRY, role, subject, SerializationTelemetry.SUB_REASON_DENYLIST);
+            SerializationTelemetry.logRejection("cache.mip", role.name(), subject, descriptor(rejected.deniedRef()),
+                    rejected.reason());
+            throw new SecurityException(rejected.reason());
+            }
+        }
+
+    private String descriptor(String sDenied)
+        {
+        String sSupplier = m_supplier == null ? "-" : m_supplier.getClass().getName();
+        return "class=" + (sDenied == null ? "-" : sDenied)
+                + ",method=" + m_sMethodName
+                + ",supplier=" + sSupplier;
         }
 
     // ---- ExternalizableLite implementation -------------------------------
@@ -232,4 +310,9 @@ public class MethodInvocationProcessor<K, V, R>
      */
     @JsonbProperty("args")
     protected Object[] m_aoArgs;
+
+    /**
+     * Mode-gate rejection reason.
+     */
+    private static final String REASON_DENIED_BY_MODE = "method-invocation-denied-by-mode";
     }

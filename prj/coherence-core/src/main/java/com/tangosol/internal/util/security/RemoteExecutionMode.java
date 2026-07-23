@@ -8,6 +8,8 @@ package com.tangosol.internal.util.security;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.util.CoherenceMode;
 
 import java.util.Locale;
@@ -60,8 +62,12 @@ public final class RemoteExecutionMode
 
     private static boolean resolveDynamicRemoteAllowed()
         {
-        String sValue = System.getProperty(PROP_DYNAMIC_REMOTE_UNAUTH);
+        String sValue = Config.getProperty(PROP_DYNAMIC_REMOTE_UNAUTH);
         if (sValue == null || sValue.trim().isEmpty())
+            {
+            sValue = null;
+            }
+        if (sValue == null)
             {
             return !CoherenceMode.isDynamicRemoteDefaultDeny();
             }

@@ -79,7 +79,7 @@ public class SerializationTelemetryTest
         assertCounter(map, "coh.serialization.lambda_bytecode_check{result=rejected,reason=test-lambda,mode="
                 + mode() + ",route=GRPC}");
         assertCounter(map, "coh.executable.policy_check{reason=PROCESS_ENTRY,role=GRPC,result=allowed,mode="
-                + mode() + "}");
+                + mode() + ",sub_reason=policy}");
         assertEquals(SerializationRole.UNCLASSIFIED, SerializationRole.current());
         }
 
@@ -113,6 +113,59 @@ public class SerializationTelemetryTest
             {
             assertEquals(1L, ((DynamicMBean) oBean).getAttribute("Count"));
             }
+        }
+
+    @Test
+    public void testExecutablePolicyCheckSubReasonTags()
+        {
+        SerializationTelemetry.recordExecutablePolicyCheck("allowed", getClass(), OperationReason.PROCESS_ENTRY,
+                SerializationRole.GRPC, null, SerializationTelemetry.SUB_REASON_POLICY);
+        SerializationTelemetry.recordExecutablePolicyCheck("rejected", getClass(), OperationReason.PROCESS_ENTRY,
+                SerializationRole.GRPC, null, SerializationTelemetry.SUB_REASON_MODE_GATE);
+        SerializationTelemetry.recordExecutablePolicyCheck("rejected", getClass(), OperationReason.PROCESS_ENTRY,
+                SerializationRole.GRPC, null, SerializationTelemetry.SUB_REASON_DENYLIST);
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertCounter(map, "coh.executable.policy_check{reason=PROCESS_ENTRY,role=GRPC,result=allowed,mode="
+                + mode() + ",sub_reason=policy}");
+        assertCounter(map, "coh.executable.policy_check{reason=PROCESS_ENTRY,role=GRPC,result=rejected,mode="
+                + mode() + ",sub_reason=mode_gate}");
+        assertCounter(map, "coh.executable.policy_check{reason=PROCESS_ENTRY,role=GRPC,result=rejected,mode="
+                + mode() + ",sub_reason=denylist}");
+        }
+
+    @Test
+    public void testLambdaBytecodeCheckSiteTagIsAdditive()
+        {
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.EXTEND_PROXY))
+            {
+            SerializationTelemetry.recordLambdaBytecodeCheck("rejected", "method-on-denylist", "mip_reflection");
+            SerializationTelemetry.recordLambdaBytecodeCheck("rejected", "legacy-shape");
+            }
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertCounter(map, "coh.serialization.lambda_bytecode_check{result=rejected,reason=method-on-denylist,mode="
+                + mode() + ",route=EXTEND_PROXY,site=mip_reflection}");
+        assertCounter(map, "coh.serialization.lambda_bytecode_check{result=rejected,reason=legacy-shape,mode="
+                + mode() + ",route=EXTEND_PROXY}");
+        assertFalse(map.keySet().stream()
+                .anyMatch(s -> s.contains("reason=legacy-shape") && s.contains("site=")));
+        }
+
+    @Test
+    public void testLegacyWouldRejectKeepsSliceAShape()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            SerializationTelemetry.recordExecutablePolicyCheck("would_reject", getClass(), OperationReason.SCRIPT_EVAL,
+                    SerializationRole.GRPC, null, SerializationTelemetry.SUB_REASON_POLICY);
+            }
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertCounter(map, "coh.executable.policy_check{result=would_reject,class=" + getClass().getName()
+                + ",reason=SCRIPT_EVAL,role=GRPC}");
+        assertFalse(map.keySet().stream()
+                .anyMatch(s -> s.contains("result=would_reject") && s.contains("sub_reason")));
         }
 
     @Test

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.graal;
+
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.util.ScriptException;
 
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 import java.util.stream.Collectors;
 
@@ -50,12 +53,28 @@ public class ScriptManager
             f_handlers.put(handler.getLanguage(), handler);
             }
 
+        Set<String>        setDenied         = LambdaBytecodeGate.denylistedClasses();
+        HostAccess.Builder hostAccessBuilder = HostAccess.newBuilder(HostAccess.ALL);
+        for (String sEntry : setDenied)
+            {
+            String sClass = className(sEntry);
+            try
+                {
+                hostAccessBuilder.denyAccess(Class.forName(sClass, false, ScriptManager.class.getClassLoader()));
+                }
+            catch (ClassNotFoundException ignored)
+                {
+                // not loadable here; the host-class-lookup predicate still blocks the name.
+                }
+            }
+
         // Create the Context builder which can further be configured
         // by the ScriptHandlers.
         Context.Builder builder = Context.newBuilder()
-                .allowAllAccess(true)
-                .allowHostAccess(HostAccess.ALL)
-                .allowPolyglotAccess(PolyglotAccess.ALL);
+                .allowHostAccess(hostAccessBuilder.build())
+                .allowHostClassLookup(sName -> isHostClassAllowed(sName, setDenied))
+                .allowPolyglotAccess(PolyglotAccess.ALL)
+                .allowExperimentalOptions(true);
 
         // Pass the {@code Context.Builder} so that each handler
         // can configure it (by adding Options)
@@ -212,6 +231,29 @@ public class ScriptManager
             // Mark the onReady status to be true.
             m_onReadyCalled.put(sLanguage, true);
             }
+        }
+
+    private static boolean isHostClassAllowed(String sName, Set<String> setDenied)
+        {
+        if (sName == null)
+            {
+            return false;
+            }
+
+        for (String sEntry : setDenied)
+            {
+            if (sName.equals(className(sEntry)))
+                {
+                return false;
+                }
+            }
+        return true;
+        }
+
+    private static String className(String sEntry)
+        {
+        int ofHash = sEntry == null ? -1 : sEntry.indexOf('#');
+        return ofHash < 0 ? sEntry : sEntry.substring(0, ofHash);
         }
 
     // ----- ScriptManager ---------------------------------------------------
