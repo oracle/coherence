@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.aggregator;
 
@@ -120,6 +120,28 @@ public class TopNAggregator<K, V, T, E>
     public int characteristics()
         {
         return PARALLEL | PRESENT_ONLY;
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Obtain the extractor used by this aggregator.
+     *
+     * @return the extractor
+     */
+    public ValueExtractor<? super T, ? extends E> getValueExtractor()
+        {
+        return m_extractor;
+        }
+
+    /**
+     * Obtain the comparator used by this aggregator.
+     *
+     * @return the comparator
+     */
+    public Comparator<? super E> getComparator()
+        {
+        return m_comparator;
         }
 
     // ----- internal methods -----------------------------------------------

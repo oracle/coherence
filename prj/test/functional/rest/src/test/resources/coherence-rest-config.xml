@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -171,6 +171,22 @@
       <name>custom-long-sum-factory</name>
       <class-name>rest.CustomLongSumFactory</class-name>
     </aggregator>
+    <aggregator>
+      <name>annotated-long-sum</name>
+      <class-name>rest.RestEnforcementIntegrationTest$AnnotatedLongSum</class-name>
+    </aggregator>
+    <aggregator>
+      <name>plain-long-sum</name>
+      <class-name>rest.RestEnforcementIntegrationTest$PlainLongSum</class-name>
+    </aggregator>
+    <aggregator>
+      <name>constructor-side-effect-aggregator</name>
+      <class-name>rest.RestEnforcementIntegrationTest$ConstructorSideEffectAggregator</class-name>
+    </aggregator>
+    <aggregator>
+      <name>allowed-constructor-side-effect-aggregator</name>
+      <class-name>rest.RestEnforcementIntegrationTest$AllowedConstructorSideEffectAggregator</class-name>
+    </aggregator>
   </aggregators>
 
   <processors>
@@ -181,6 +197,22 @@
     <processor>
       <name>custom-number-doubler-factory</name>
       <class-name>rest.CustomNumberDoublerFactory</class-name>
+    </processor>
+    <processor>
+      <name>annotated-number-doubler</name>
+      <class-name>rest.RestEnforcementIntegrationTest$AnnotatedNumberDoubler</class-name>
+    </processor>
+    <processor>
+      <name>plain-number-doubler</name>
+      <class-name>rest.RestEnforcementIntegrationTest$PlainNumberDoubler</class-name>
+    </processor>
+    <processor>
+      <name>constructor-side-effect-processor</name>
+      <class-name>rest.RestEnforcementIntegrationTest$ConstructorSideEffectProcessor</class-name>
+    </processor>
+    <processor>
+      <name>allowed-constructor-side-effect-processor</name>
+      <class-name>rest.RestEnforcementIntegrationTest$AllowedConstructorSideEffectProcessor</class-name>
     </processor>
   </processors>
 

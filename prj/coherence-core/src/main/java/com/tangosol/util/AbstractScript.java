@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util;
 
@@ -53,6 +53,25 @@ public class AbstractScript
         m_aoArgs    = args;
         }
 
+    /**
+     * Return the language the script is written in.
+     *
+     * @return the language the script is written in
+     */
+    public String getLanguage()
+        {
+        return m_sLanguage;
+        }
+
+    /**
+     * Return the script object name.
+     *
+     * @return the script object name
+     */
+    public String getName()
+        {
+        return m_sName;
+        }
 
     // ----- ExternalizableLite interface ------------------------------------
 

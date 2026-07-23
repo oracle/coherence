@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -108,6 +108,18 @@ public abstract class AbstractComparableAggregator<T, R>
     protected R finalizeResult(boolean fFinal)
         {
         return m_count == 0 ? null : m_oResult;
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+    * Obtain the comparator used to compare extracted values.
+    *
+    * @return the comparator, or {@code null}
+    */
+    public Comparator<? super R> getComparator()
+        {
+        return m_comparator;
         }
 
 

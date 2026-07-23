@@ -33,5 +33,25 @@
     <class name="extend.SuspectProtocolTests$DisableSendInvocable" source="manual" executable="true"/>
     <class name="extend.SuspectProtocolTests$TestBulkInvocable" source="manual" executable="true"/>
     <class name="extend.TriggerListenerTests$PersonMapTrigger" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedAggregator" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedComparator" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedExtractor" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedProcessor" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaAggregator" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaComparator" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaExtractor" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaFilter" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaProcessor" source="manual" executable="true"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainAggregator" source="manual"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainComparator" source="manual"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainExtractor" source="manual"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainFilter" source="manual"/>
+    <class name="extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainProcessor" source="manual"/>
+    <class name="extend.TriggerInstallModeMatrixIntegrationTest$AnnotatedTrigger" source="manual" executable="true"/>
+    <class name="extend.TriggerInstallModeMatrixIntegrationTest$Generated$$LambdaTrigger" source="manual" executable="true"/>
+    <!-- Synthetic$$LambdaShapedTrigger is intentionally absent; it pins the unallowlisted dynamic-trigger path. -->
+    <class name="extend.TriggerInstallModeMatrixIntegrationTest$ObservableRemovalTrigger" source="manual"/>
+    <class name="extend.TriggerInstallModeMatrixIntegrationTest$PlainTrigger" source="manual"/>
   </allowed-classes>
 </security-config>

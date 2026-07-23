@@ -181,8 +181,94 @@
     </user-type>
 
     <user-type>
+      <type-id>3014</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$AnnotatedTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3015</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$PlainTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3016</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$Generated$$LambdaTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3017</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$Synthetic$$LambdaShapedTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3018</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3019</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3020</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaProcessor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3021</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedAggregator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3022</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainAggregator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3023</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaAggregator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3024</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedFilter</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3025</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainFilter</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3026</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaFilter</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3027</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedExtractor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3028</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainExtractor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3029</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaExtractor</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3030</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$AnnotatedComparator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3031</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$PlainComparator</class-name>
+    </user-type>
+    <user-type>
+      <type-id>3032</type-id>
+      <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaComparator</class-name>
+    </user-type>
+
+    <user-type>
       <type-id>3033</type-id>
       <class-name>extend.DynamicRemoteModeIntegrationTest$ObservableSupplier</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3034</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$ObservableRemovalTrigger</class-name>
     </user-type>
 
   </user-type-list>

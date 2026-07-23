@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.scheme;
 
@@ -13,6 +13,8 @@ import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.ParameterResolver;
 import com.tangosol.config.injection.Injector;
 import com.tangosol.config.injection.SimpleInjector;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
@@ -25,11 +27,14 @@ import com.tangosol.net.ServiceDependencies;
 import com.tangosol.net.cache.BundlingNamedCache;
 import com.tangosol.util.Base;
 import com.tangosol.util.MapListener;
+import com.tangosol.util.MapTriggerListener;
 import com.tangosol.util.ObservableMap;
 import com.tangosol.util.ResourceResolver;
 import com.tangosol.util.ResourceResolverHelper;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * An {@link AbstractCachingScheme} is a base implementation for an
@@ -38,6 +43,7 @@ import java.util.Map;
  * @author pfm  2011.12.28
  * @since Coherence 12.1.2
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractCachingScheme<D extends ServiceDependencies>
         extends AbstractServiceScheme<D>
         implements ObservableCachingScheme
@@ -150,6 +156,13 @@ public abstract class AbstractCachingScheme<D extends ServiceDependencies>
                 listener = injector.inject(listener, resourceResolver);
 
                 ObservableMap mapObservable = (ObservableMap) map;
+                Set<String> setAdvisoryDedup = new HashSet<>();
+
+                if (listener instanceof MapTriggerListener)
+                    {
+                    RemoteInstallGate.adviseDeclaredMapTrigger(((MapTriggerListener) listener).getTrigger(),
+                            setAdvisoryDedup);
+                    }
 
                 mapObservable.addMapListener(listener);
 
