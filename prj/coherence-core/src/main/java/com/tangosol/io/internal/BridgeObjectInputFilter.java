@@ -277,7 +277,8 @@ public final class BridgeObjectInputFilter
      */
     private static final Set<String> EXCEPTION_INFRASTRUCTURE = allowed(
             "java.lang.StackTraceElement",
-            "java.util.Collections$EmptyList");
+            "java.util.Collections$EmptyList",
+            "java.util.Collections$UnmodifiableList");
 
     /**
      * Narrow JDK checked/runtime exception classes accepted by JCache exception
