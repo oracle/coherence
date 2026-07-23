@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml;
 
@@ -43,6 +43,7 @@ import com.tangosol.coherence.config.xml.preprocessor.ExtendPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.OperationalDefaultsPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.PofSerializerPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SchemeRefPreprocessor;
+import com.tangosol.coherence.config.xml.preprocessor.SSLHostnameVerifierPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.TCPAcceptorPreprocessor;
 
@@ -191,6 +192,9 @@ public class CacheConfigNamespaceHandler
 
         // add the pre-processor for POF serializer
         dep.addElementPreprocessor(new PofSerializerPreprocessor());
+
+        // resolve hostname-verifier system-property fallback before generic system-property preprocessing
+        dep.addElementPreprocessor(SSLHostnameVerifierPreprocessor.INSTANCE);
 
         // add the system property pre-processor
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);

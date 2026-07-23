@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -12,10 +12,10 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -1314,7 +1314,8 @@
                     <xsd:documentation>
                         Allow all connections, even where the URL's host
                         name and the server's identification
-                        host name do not match.
+                        host name do not match. This action is only allowed
+                        in legacy mode.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1362,7 +1363,9 @@
                 will call back to this instance to determine if the connection
                 should be allowed.
 
-                The default action is to allow connections.
+                The default action is mode-aware: legacy mode allows
+                connections for compatibility, while dev and prod mode use
+                the default hostname verifier.
 
                 Used in: ssl
             </xsd:documentation>

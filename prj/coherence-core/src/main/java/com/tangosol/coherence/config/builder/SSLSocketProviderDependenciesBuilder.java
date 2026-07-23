@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.InetAddressHelper;
@@ -45,6 +46,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import java.util.concurrent.Executor;
 
@@ -203,6 +205,28 @@ public class SSLSocketProviderDependenciesBuilder
     public ParameterizedBuilder<HostnameVerifier> getHostnameVerifierBuilder()
         {
         return m_bldrHostnameVerifier;
+        }
+
+    /**
+     * Create the built-in default hostname verifier.
+     *
+     * @return the default hostname verifier
+     */
+    public static HostnameVerifier createDefaultHostnameVerifier()
+        {
+        return createDefaultHostnameVerifier(true);
+        }
+
+    /**
+     * Create the built-in default hostname verifier.
+     *
+     * @param fLogReject  {@code true} to log verifier rejections
+     *
+     * @return the default hostname verifier
+     */
+    public static HostnameVerifier createDefaultHostnameVerifier(boolean fLogReject)
+        {
+        return new DefaultHostnameVerifier(fLogReject);
         }
 
     /**
@@ -980,6 +1004,28 @@ public class SSLSocketProviderDependenciesBuilder
             return m_sAction;
             }
 
+        /**
+         * Specify whether the configured action came from an unset system
+         * property fallback in shipped configuration.
+         *
+         * @param fSystemPropertyDefault  {@code true} for a system-property default
+         */
+        public void setSystemPropertyDefault(boolean fSystemPropertyDefault)
+            {
+            m_fSystemPropertyDefault = fSystemPropertyDefault;
+            }
+
+        /**
+         * Return whether the configured action came from an unset system
+         * property fallback in shipped configuration.
+         *
+         * @return {@code true} for a system-property default
+         */
+        public boolean isSystemPropertyDefault()
+            {
+            return m_fSystemPropertyDefault;
+            }
+
         @Injectable("instance")
         public void setBuilder(ParameterizedBuilder<HostnameVerifier> builder)
             {
@@ -987,6 +1033,7 @@ public class SSLSocketProviderDependenciesBuilder
             }
 
         @Override
+        @SuppressWarnings("removal")
         public HostnameVerifier realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
             {
             if (m_builder != null)
@@ -994,13 +1041,25 @@ public class SSLSocketProviderDependenciesBuilder
                 // A custom verifier was specified so use it
                 return m_builder.realize(resolver, loader, listParameters);
                 }
-            else if (ACTION_DEFAULT.equals(m_sAction))
+            else if (ACTION_ALLOW.equals(m_sAction))
                 {
-                // the action was set to "default" - so use the default verifier
-                return new DefaultHostnameVerifier();
+                if (CoherenceMode.isLegacy())
+                    {
+                    return new AllowHostnameVerifier();
+                    }
+                else if (m_fSystemPropertyDefault)
+                    {
+                    return createDefaultHostnameVerifier();
+                    }
+                else
+                    {
+                    throw new IllegalArgumentException("Hostname verifier action 'allow' is not permitted in "
+                            + CoherenceMode.current().name().toLowerCase(Locale.ROOT)
+                            + " mode; use coherence.mode=legacy only for compatibility.");
+                    }
                 }
-            // the action is "allow" or no builder or action was specified - so allow all connections
-            return (s, sslSession) -> true;
+            // the action is "default" or no builder or action was specified - so use the default verifier
+            return createDefaultHostnameVerifier();
             }
 
         // ----- data members ------------------------------------------------
@@ -1008,6 +1067,28 @@ public class SSLSocketProviderDependenciesBuilder
         private String m_sAction;
 
         private ParameterizedBuilder<HostnameVerifier> m_builder;
+
+        private boolean m_fSystemPropertyDefault;
+        }
+
+    // ----- inner class: AllowHostnameVerifier ----------------------------
+
+    /**
+     * Legacy compatibility verifier for {@code action=allow}.
+     */
+    static class AllowHostnameVerifier
+            implements HostnameVerifier
+        {
+        @Override
+        public boolean verify(String sUrlHostname, SSLSession sslSession)
+            {
+            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession))
+                {
+                CacheFactory.log("TLS hostname verification would_reject; mode=legacy; source=allow; peer="
+                        + sUrlHostname, Base.LOG_WARN);
+                }
+            return true;
+            }
         }
 
     /**
@@ -1081,6 +1162,16 @@ public class SSLSocketProviderDependenciesBuilder
     static class DefaultHostnameVerifier
             implements HostnameVerifier
         {
+        DefaultHostnameVerifier()
+            {
+            this(true);
+            }
+
+        DefaultHostnameVerifier(boolean fLogReject)
+            {
+            m_fLogReject = fLogReject;
+            }
+
         @Override
         public boolean verify(String sUrlHostname, SSLSession sslSession)
             {
@@ -1123,12 +1214,14 @@ public class SSLSocketProviderDependenciesBuilder
                     }
                 }
 
-            if (!fMatched)
+            if (!fMatched && m_fLogReject)
                 {
                 CacheFactory.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname);
                 }
             return fMatched;
             }
+
+        private final boolean m_fLogReject;
 
         private boolean doVerify(String sUrlHostname, String sCertHostname)
             {
@@ -1482,6 +1575,11 @@ public class SSLSocketProviderDependenciesBuilder
      * The value of the hostname-verifier action to use the default verifier.
      */
     public static final String ACTION_DEFAULT = "default";
+
+    /**
+     * The value of the hostname-verifier action to allow all peers.
+     */
+    public static final String ACTION_ALLOW = "allow";
 
     // RFC 6125 indicates not to seek a match against CN if SAN DNS Names are present
     // Setting this system property to true allows CN to be checked if SAN is present but has no match
