@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.topic.impl.paged;
 
@@ -25,6 +25,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 import com.tangosol.internal.util.Primes;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.FlowControl;
@@ -947,7 +948,10 @@ public class PagedTopicSubscriber<V>
                         }
                     else
                         {
-                        m_value    = value = ExternalizableHelper.fromBinary(binValue, f_serializer);
+                        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.TOPICS))
+                            {
+                            m_value = value = ExternalizableHelper.fromBinary(binValue, f_serializer);
+                            }
                         m_binValue = null;
                         }
                     }

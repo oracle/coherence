@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -737,6 +737,7 @@ public interface InvocableMap<K, V>
      * @param <R> the type of value returned by the EntryProcessor
      */
     @FunctionalInterface
+    @Remote.Executable
     public interface EntryProcessor<K, V, R>
             extends Serializable
         {
@@ -818,6 +819,8 @@ public interface InvocableMap<K, V>
      * @param <V> the type of the Map entry values
      * @param <R> the type of the value returned by the EntryAggregator
      */
+    @FunctionalInterface
+    @Remote.Executable
     public interface EntryAggregator<K, V, R>
             extends Serializable
         {

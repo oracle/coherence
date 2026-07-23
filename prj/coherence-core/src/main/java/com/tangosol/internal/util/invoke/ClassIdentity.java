@@ -1,10 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
+
+import com.tangosol.io.internal.ClassIdentityAllowlist;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -170,6 +173,7 @@ public class ClassIdentity
         m_sPackage  = ExternalizableHelper.readSafeUTF(in);
         m_sBaseName = ExternalizableHelper.readSafeUTF(in);
         m_sVersion  = ExternalizableHelper.readSafeUTF(in);
+        validateIdentity();
         }
 
     @Override
@@ -190,6 +194,7 @@ public class ClassIdentity
         m_sPackage  = in.readString(0);
         m_sBaseName = in.readString(1);
         m_sVersion  = in.readString(2);
+        validateIdentity();
         }
 
     @Override
@@ -295,6 +300,44 @@ public class ClassIdentity
             {
             throw Base.ensureRuntimeException(e);
             }
+        }
+
+    // ----- validation helpers ----------------------------------------------
+
+    /**
+     * Validate this identity before it can be used for class resolution.
+     *
+     * @throws IOException if the identity package is not allowlisted
+     */
+    private void validateIdentity()
+            throws IOException
+        {
+        if (!ClassIdentityAllowlist.isAllowed(m_sPackage, m_sBaseName))
+            {
+            SerializationTelemetry.recordFilterCheck("rejected", "class-identity-package-not-allowed",
+                    ClassIdentity.class, null);
+            SerializationTelemetry.logRejection("class-validation", null, null,
+                    boundedValue(m_sPackage) + "." + boundedValue(m_sBaseName), "package-not-allowed");
+            throw new IOException("ClassIdentity package is not allowed: " + boundedValue(m_sPackage));
+            }
+        }
+
+    /**
+     * Bound and sanitize a value for logging.
+     *
+     * @param sValue  the value
+     *
+     * @return the bounded value
+     */
+    private static String boundedValue(String sValue)
+        {
+        if (sValue == null)
+            {
+            return "";
+            }
+
+        String sClean = sValue.replaceAll("[^\\p{Print}]", "?");
+        return sClean.length() <= 160 ? sClean : sClean.substring(0, 160);
         }
 
     // ---- data members ----------------------------------------------------

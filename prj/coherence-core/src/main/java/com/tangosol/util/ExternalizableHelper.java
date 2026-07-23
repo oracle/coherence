@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ package com.tangosol.util;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.internal.util.invoke.RemotableSupport;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -39,6 +40,8 @@ import com.tangosol.io.WrapperObjectOutputStream;
 import com.tangosol.io.WrapperOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.WriteBuffer.BufferOutput;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.PofContext;
@@ -2408,10 +2411,13 @@ public abstract class ExternalizableHelper
         else
             {
             // instantiate the object
+            ensureDefaultObjectInputFilter(in);
             String sClass = readUTF(in);
             try
                 {
-                value = (XmlSerializable) loadClass(sClass, loader, null).newInstance();
+                Class<?> clz = loadClass(sClass, loader, null);
+                validateLoadClass(clz, in);
+                value = (XmlSerializable) clz.getDeclaredConstructor().newInstance();
                 }
             catch (Exception e)
                 {
@@ -2498,6 +2504,7 @@ public abstract class ExternalizableHelper
         else
             {
             // instantiate the object
+            ensureDefaultObjectInputFilter(in);
             String sClass = readUTF(in);
 
             WrapperDataInputStream inWrapper = in instanceof WrapperDataInputStream
@@ -2566,8 +2573,10 @@ public abstract class ExternalizableHelper
     protected static void validateLoadClass(Class clz, DataInput in)
             throws InvalidClassException
         {
+        ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "class-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " was rejected");
             }
         }
@@ -2586,8 +2595,10 @@ public abstract class ExternalizableHelper
     public static void validateLoadArray(Class clz, int cLength, DataInput in)
             throws InvalidClassException
         {
+        ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, cLength, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "array-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " with array length " + cLength + " was rejected");
             }
         }
@@ -2644,6 +2655,7 @@ public abstract class ExternalizableHelper
                 }
             else
                 {
+                ensureDefaultObjectInputFilter(in);
                 try
                     {
                     Class clz = XMLBEAN_CLASS_CACHE.getClass(nBeanId, loader);
@@ -2742,6 +2754,7 @@ public abstract class ExternalizableHelper
             }
         else
             {
+            ensureDefaultObjectInputFilter(in);
             // read the object; theoretically speaking only the following
             // exceptions are thrown:
             //
@@ -2849,6 +2862,7 @@ public abstract class ExternalizableHelper
             return (T) ((PofInputStream) in).readObject();
             }
 
+        ensureDefaultObjectInputFilter(in);
         Object o = readObjectInternal(in, in.readUnsignedByte(), loader);
         return (T) safeRealize(o, ensureSerializer(loader), in);
         }
@@ -2896,6 +2910,7 @@ public abstract class ExternalizableHelper
         switch (nType)
             {
             default:
+                SerializationTelemetry.recordFmtCheck("rejected", "invalid-format", nType);
                 throw new StreamCorruptedException("invalid type: " + nType);
 
             case FMT_UNKNOWN:
@@ -3483,6 +3498,7 @@ public abstract class ExternalizableHelper
             in = supplierBufferIn.apply(in);
             }
 
+        ensureDefaultObjectInputFilter(in);
         Object o = nType == FMT_EXT
                    ? serializer.deserialize(in, clazz)
                    : readObjectInternal(in, nType,
@@ -5763,7 +5779,7 @@ public abstract class ExternalizableHelper
             loader = ensureClassLoader(loader == null && in instanceof WrapperDataInputStream
                          ? ((WrapperDataInputStream) in).getClassLoader()
                          : loader);
-            return new ResolvingObjectInputStream(stream, loader);
+            return newFilteredObjectInputStream(stream, loader);
 
             }
 
@@ -5798,6 +5814,70 @@ public abstract class ExternalizableHelper
             }
         }
 
+
+    /**
+     * Construct an ObjectInputStream with Coherence's default filter attached.
+     *
+     * @param stream  the stream to read from
+     * @param loader  the class loader to use
+     *
+     * @return a filtered ObjectInputStream
+     *
+     * @throws IOException if an I/O exception occurs
+     */
+    public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader)
+            throws IOException
+        {
+        ObjectInputStream ois = new ResolvingObjectInputStream(stream,
+                RemotableSupport.get(ensureClassLoader(loader)));
+        setObjectInputFilter(ois, DefaultObjectInputFilter.create());
+        return ois;
+        }
+
+    /**
+     * Attach an ObjectInputFilter to an ObjectInputStream when the runtime
+     * supports JEP-290 filtering.
+     *
+     * @param ois      the stream
+     * @param oFilter  the ObjectInputFilter
+     */
+    private static void setObjectInputFilter(ObjectInputStream ois, Object oFilter)
+        {
+        if (HANDLE_SET_FILTER != null && oFilter != null)
+            {
+            try
+                {
+                HANDLE_SET_FILTER.invoke(ois, oFilter);
+                }
+            catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e)
+                {
+                err("Unable to invoke method handle " + HANDLE_SET_FILTER + " on " + ois.getClass().getName() +
+                    " due to exception " + e.getClass().getName() + ": " + e.getMessage());
+                }
+            catch (Throwable ignored)
+                {
+                }
+            }
+        }
+
+    /**
+     * Attach Coherence's default ObjectInputFilter to a BufferInput.
+     *
+     * @param in  the input to update
+     */
+    private static void ensureDefaultObjectInputFilter(DataInput in)
+        {
+        if (in instanceof BufferInput)
+            {
+            try
+                {
+                ((BufferInput) in).setObjectInputFilter(DefaultObjectInputFilter.create());
+                }
+            catch (IllegalStateException ignored)
+                {
+                }
+            }
+        }
 
     // ----- Expiry-decoration helpers --------------------------------------
 
@@ -6144,7 +6224,11 @@ public abstract class ExternalizableHelper
             {
             if (oFilter == null)
                 {
-                return true;
+                if (in instanceof ObjectInputStream)
+                    {
+                    return false;
+                    }
+                oFilter = DefaultObjectInputFilter.create();
                 }
 
             DynamicFilterInfo dynamic = s_tloHandler.get();
@@ -7287,6 +7371,11 @@ public abstract class ExternalizableHelper
     private static final MethodHandle HANDLE_GET_FILTER;
 
     /**
+     * MethodHandle for setfilter from ObjectInputStream.
+     */
+    private static final MethodHandle HANDLE_SET_FILTER;
+
+    /**
      * MethodHandle for checkInput from ObjectInputFilter.
      */
     private static final MethodHandle HANDLE_CHECKINPUT;
@@ -7440,6 +7529,7 @@ public abstract class ExternalizableHelper
 
         Class<?>     clzFilterInfo                = null;
         MethodHandle handleGetFilter              = null;
+        MethodHandle handleSetFilter              = null;
         MethodHandle handleCheckInput             = null;
         MethodHandle handleConfigGetSerialFilter  = null;
         MethodHandle handleConfigGetFilterFactory = null;
@@ -7454,13 +7544,16 @@ public abstract class ExternalizableHelper
             Class<? extends Enum> clzFilterStatus = null;
             Class<?>              clzConfig       = null;
             String                sFilterMethod   = null;
+            String                sSetFilterMethod = null;
             Method                methodGet       = null;
+            Method                methodSet       = null;
 
             if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
                 {
                 clzFilterInfo       = Class.forName("java.io.ObjectInputFilter$FilterInfo");
                 clzFilterStatus     = (Class<? extends Enum>) Class.forName("java.io.ObjectInputFilter$Status");
                 sFilterMethod       = "getObjectInputFilter";
+                sSetFilterMethod    = "setObjectInputFilter";
                 clzConfig           = Class.forName("java.io.ObjectInputFilter$Config");
                 }
             else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
@@ -7468,6 +7561,7 @@ public abstract class ExternalizableHelper
                 clzFilterInfo   = Class.forName("sun.misc.ObjectInputFilter$FilterInfo");
                 clzFilterStatus = (Class<? extends Enum>) Class.forName("sun.misc.ObjectInputFilter$Status");
                 sFilterMethod   = "getInternalObjectInputFilter";
+                sSetFilterMethod = "setInternalObjectInputFilter";
                 clzConfig       = Class.forName("sun.misc.ObjectInputFilter$Config");
                 }
 
@@ -7477,6 +7571,8 @@ public abstract class ExternalizableHelper
 
                 methodGet = clzObjectInputStream.getDeclaredMethod(sFilterMethod);
                 methodGet.setAccessible(true);
+                methodSet = clzObjectInputStream.getDeclaredMethod(sSetFilterMethod, clzFilter);
+                methodSet.setAccessible(true);
 
                 methodConfigGetSerialFilter = clzConfig.getDeclaredMethod("getSerialFilter");
                 methodConfigGetSerialFilter.setAccessible(true);
@@ -7500,6 +7596,7 @@ public abstract class ExternalizableHelper
                 MethodHandles.Lookup lookup = MethodHandles.lookup();
 
                 handleGetFilter              = lookup.unreflect(methodGet);
+                handleSetFilter              = lookup.unreflect(methodSet);
                 handleCheckInput             = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
                 handleConfigGetSerialFilter  = lookup.unreflect(methodConfigGetSerialFilter);
                 handleConfigGetFilterFactory = methodConfigGetFilterFactory == null ? null : lookup.unreflect(methodConfigGetFilterFactory);
@@ -7513,6 +7610,7 @@ public abstract class ExternalizableHelper
 
         s_clzFilterInfo                  = clzFilterInfo;
         HANDLE_GET_FILTER                = handleGetFilter;
+        HANDLE_SET_FILTER                = handleSetFilter;
         HANDLE_CHECKINPUT                = handleCheckInput;
         HANDLE_CONFIG_GET_FILTER         = handleConfigGetSerialFilter;
         HANDLE_CONFIG_GET_FILTER_FACTORY = handleConfigGetFilterFactory;

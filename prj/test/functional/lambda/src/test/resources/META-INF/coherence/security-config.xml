@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.tangosol.internal.util.invoke.RemotableTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.invoke.RemotableTest$SplitProcessor$BC5681EC668C72AC0304BFD271962FF3" source="manual" executable="true"/>
+    <class name="com.tangosol.util.AbstractStreamTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.DoubleStreamTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.FilterDslTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.IntStreamTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.InvocableMapTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.LongStreamTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.QueryMapTest" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.StreamTest" source="manual" lambda-target="true"/>
+    <class name="data.Trade" source="manual"/>
+    <class name="data.pof.Person" source="manual" lambda-target="true"/>
+    <class name="data.pof.PortablePerson" source="manual" lambda-target="true"/>
+    <class name="lambda.DoubleStreamTests" source="manual" lambda-target="true"/>
+    <class name="lambda.ExtendStreamTests" source="manual" lambda-target="true"/>
+    <class name="lambda.FilterDslTests" source="manual" lambda-target="true"/>
+    <class name="lambda.IntStreamTests" source="manual" lambda-target="true"/>
+    <class name="lambda.InvocableMapTests" source="manual" lambda-target="true"/>
+    <class name="lambda.LongStreamTests" source="manual" lambda-target="true"/>
+    <class name="lambda.QueryMapTests" source="manual" lambda-target="true"/>
+    <class name="lambda.StreamTests" source="manual" lambda-target="true"/>
+    <class name="remotable.RemotableTests" source="manual" lambda-target="true"/>
+  </allowed-classes>
+</security-config>

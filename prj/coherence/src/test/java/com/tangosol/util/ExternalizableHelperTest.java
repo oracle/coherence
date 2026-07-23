@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -649,7 +649,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         stop(ldtStart, "ObjectInputStream: filter: " + sFilter + " count=" + nCount);
 
-        if (!fFilter || !fFail)
+        if (fFilter && !fFail)
             {
             assertEquals("expected deserialized collection to be equal to serialized collection for ObjectInputFilter=" + sFilter,
                          setPersons.size(), setRead.size());
@@ -657,7 +657,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         else
             {
             assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter,
-                       exception != null && exception.getCause() instanceof InvalidClassException);
+                       exception != null && hasCause(exception, InvalidClassException.class));
             }
         }
 
@@ -745,7 +745,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         else
             {
             assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter + " Exception=" + exception,
-                       exception != null && exception.getCause() instanceof InvalidClassException);
+                       exception != null && hasCause(exception, InvalidClassException.class));
             }
         }
 
@@ -1151,6 +1151,20 @@ public class ExternalizableHelperTest extends ExternalizableHelper
                 }
             }
         return null;
+        }
+
+    private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)
+        {
+        while (t != null)
+            {
+            if (clz.isInstance(t))
+                {
+                return true;
+                }
+            t = t.getCause();
+            }
+
+        return false;
         }
 
     /**

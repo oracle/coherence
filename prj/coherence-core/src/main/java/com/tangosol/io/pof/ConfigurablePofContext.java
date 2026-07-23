@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -436,7 +436,7 @@ public class ConfigurablePofContext
         int nTypeId = getUserTypeIdentifierInternal(clz);
         if (nTypeId < 0)
             {
-            throw new IllegalArgumentException("unknown user type: " + clz.getName());
+            throw new IllegalArgumentException(unknownUserTypeMessage(clz.getName()));
             }
 
         return nTypeId;
@@ -450,7 +450,7 @@ public class ConfigurablePofContext
         int nTypeId = getUserTypeIdentifierInternal(sClass);
         if (nTypeId < 0)
             {
-            throw new IllegalArgumentException("unknown user type: " + sClass);
+            throw new IllegalArgumentException(unknownUserTypeMessage(sClass));
             }
 
         return nTypeId;
@@ -1264,6 +1264,14 @@ public class ConfigurablePofContext
             {
             throw Base.ensureRuntimeException(e);
             }
+        }
+
+    private static String unknownUserTypeMessage(String sClass)
+        {
+        return "unknown user type: " + sClass
+                + ". Unregistered POF type '" + sClass + "' encountered in strict mode. "
+                + "Register the class via <pof-config> or annotate it with @PortableType or @Remote.Allowed "
+                + "and ensure the security-config-maven-plugin / coherence-gradle-plugin has run on the producing artifact.";
         }
 
     /**

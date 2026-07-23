@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="processor.AbstractDistEntryProcessorTests$ExpiryProcessor" source="manual" executable="true"/>
+    <class name="processor.AbstractDistEntryProcessorTests$OffloadProcessor" source="manual" executable="true"/>
+    <class name="processor.AbstractDistEntryProcessorTests$OptimizedGetAllProcessor" source="manual" executable="true"/>
+    <class name="processor.AbstractDistEntryProcessorTests$SerializationCountingKey" source="manual"/>
+    <class name="processor.AbstractEntryProcessorTests$CustomProcessor" source="manual" executable="true"/>
+    <class name="processor.AbstractEntryProcessorTests$TestValue" source="manual"/>
+    <class name="processor.AsyncProcessorTests" source="manual" lambda-target="true"/>
+    <class name="processor.AsyncProcessorTests$ContinuationAsyncProcessor" source="manual" executable="true"/>
+    <class name="processor.AsyncProcessorTests$IncrementProcessor" source="manual" executable="true"/>
+    <class name="processor.Coh10098Tests$ContinuationAsyncProcessor" source="manual" executable="true"/>
+    <class name="processor.Coh10098Tests$IncrementProcessor" source="manual" executable="true"/>
+    <class name="processor.Coh10098Tests$ServiceStartInvocable" source="manual" executable="true"/>
+    <class name="processor.Coh12875Tests$VolatileProcessor" source="manual" executable="true"/>
+    <class name="processor.Coh22443Tests" source="manual" lambda-target="true"/>
+    <class name="processor.Coh7207RegressionTests$MyProcessor" source="manual" executable="true"/>
+    <class name="processor.ContentionTests$CheckProcessor" source="manual" executable="true"/>
+    <class name="processor.IndexIntegrityTests$BackdoorMutatingProcessor" source="manual" executable="true"/>
+    <class name="processor.IndexIntegrityTests$IndexVerifierProcessor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$AtomicUpdateProcessor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$Coh14323Processor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$Coh4090Processor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$Coh4435Processor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$Coh9931Processor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$DeadlockInvocable" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$DeadlockProcessor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$TestChildCacheMutateProcessor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$TestGetReadonlyEntryProcessor" source="manual" executable="true"/>
+    <class name="processor.LiteTxnProcessorTests$ValidateProcessor" source="manual" executable="true"/>
+    <class name="processor.PriorityProcessor" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

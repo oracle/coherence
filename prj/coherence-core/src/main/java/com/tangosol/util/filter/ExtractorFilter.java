@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.filter;
 
@@ -27,6 +27,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
@@ -84,6 +85,29 @@ public abstract class ExtractorFilter<T, E>
                 : new ChainedExtractor(sMethod);
         }
 
+    /**
+     * Return the string representation of the extractor name.
+     *
+     * @return the string representation of the extractor name
+     */
+    @SuppressWarnings("rawtypes")
+    protected String getExtractorName()
+        {
+        return getExtractorName(getValueExtractor());
+        }
+
+    /**
+     * Return the string representation of the extractor name.
+     *
+     * @param extractor  the extractor
+     *
+     * @return the string representation of the extractor name
+     */
+    @SuppressWarnings("rawtypes")
+    static String getExtractorName(ValueExtractor extractor)
+        {
+        return extractor.toString();
+        }
 
     // ----- Filter interface -----------------------------------------------
 
@@ -255,6 +279,98 @@ public abstract class ExtractorFilter<T, E>
         return set == null ? Collections.emptySet() : set;
         }
 
+    /**
+     * Return {@code true} if the index cannot be used for optimization.
+     *
+     * @param index  the index to test
+     *
+     * @return {@code true} if the index cannot be used for optimization
+     */
+    protected static boolean isInapplicableIndex(MapIndex index)
+        {
+        return index == null || isIncompletePartitionedIndex(index);
+        }
+
+    /**
+     * Return {@code true} if the specified index is a partitioned composite
+     * index in an incomplete state.
+     *
+     * @param index  the index to test
+     *
+     * @return {@code true} if the index is an incomplete partitioned index
+     */
+    protected static boolean isIncompletePartitionedIndex(MapIndex index)
+        {
+        return index != null
+                && "com.tangosol.internal.util.PartitionedIndexMap$PartitionedIndex".equals(index.getClass().getName())
+                && index.isPartial();
+        }
+
+    /**
+     * Return {@code true} if it is cheaper to evaluate keys using a forward index.
+     *
+     * @param setKeys       the current candidate key set
+     * @param colIndexSets  the index sets contributing to the matching range
+     *
+     * @return {@code true} if forward-index evaluation should be used
+     */
+    protected static boolean shouldEvaluateUsingForwardIndex(Set setKeys, Collection<? extends Set> colIndexSets)
+        {
+        return shouldEvaluateUsingForwardIndex(setKeys, colIndexSets, FORWARD_INDEX_EVAL_CARDINALITY_FACTOR);
+        }
+
+    /**
+     * Return {@code true} if it is cheaper to evaluate keys using a forward index.
+     *
+     * @param setKeys       the current candidate key set
+     * @param colIndexSets  the index sets contributing to the matching range
+     * @param nFactor       the cardinality factor used to determine threshold
+     *
+     * @return {@code true} if forward-index evaluation should be used
+     */
+    protected static boolean shouldEvaluateUsingForwardIndex(Set setKeys, Collection<? extends Set> colIndexSets,
+                                                             int nFactor)
+        {
+        if (setKeys == null || setKeys.isEmpty())
+            {
+            return false;
+            }
+
+        long cThreshold = (long) setKeys.size() * nFactor;
+        long cEntries   = 0;
+
+        for (Set set : colIndexSets)
+            {
+            cEntries += ensureSafeSet(set).size();
+            if (cEntries > cThreshold)
+                {
+                return true;
+                }
+            }
+
+        return false;
+        }
+
+    /**
+     * Return {@code true} if the supplied index appears to have forward-index
+     * support for the supplied keys.
+     *
+     * @param index    the index to test
+     * @param setKeys  the current candidate key set
+     *
+     * @return {@code true} if forward-index access is available
+     */
+    protected static boolean isForwardIndexSupported(MapIndex index, Set setKeys)
+        {
+        if (index == null || setKeys == null || setKeys.isEmpty())
+            {
+            return false;
+            }
+
+        Object oKey = setKeys.iterator().next();
+        return index.get(oKey) != MapIndex.NO_VALUE;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -263,6 +379,12 @@ public abstract class ExtractorFilter<T, E>
     * @see IndexAwareFilter#calculateEffectiveness(Map, Set)
     */
     public static int EVAL_COST = 1000;
+
+    /**
+     * Cardinality factor used to determine when to switch from inverse-index
+     * retain/remove to forward-index key evaluation.
+     */
+    public static int FORWARD_INDEX_EVAL_CARDINALITY_FACTOR = 1;
 
 
     // ----- data members ---------------------------------------------------

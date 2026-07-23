@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache;
 
@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 
 import com.oracle.bedrock.runtime.options.Console;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 import com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheConfiguration;
 
 import com.tangosol.net.CacheFactory;
@@ -203,7 +204,7 @@ public class PartitionedCacheMultipleServersTests
         String cacheconfigfile = System.getProperty("tangosol.coherence.cacheconfig",
                                      "coherence-jcache-cache-config.xml");
 
-        return  OptionsByType.of(
+        OptionsByType optionsByType = OptionsByType.of(
                 CacheConfig.of(cacheconfigfile),
                 JmxProfile.enabled(),
                 JMXManagementMode.LOCAL_ONLY,
@@ -214,6 +215,8 @@ public class PartitionedCacheMultipleServersTests
                 HeapSize.of(64, HeapSize.Units.MB, 256, HeapSize.Units.MB),
                 IPv4Preferred.yes()
                 );
+
+        return BedrockInvocationProperties.inherit(optionsByType);
         }
 
     /**

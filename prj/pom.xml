@@ -1569,6 +1569,10 @@
         <module>coherence-tracing</module>
         <module>coherence-docker</module>
 
+        <!-- build-time dependencies of coherence.jar that must be built before
+             the coherence module's shade configuration resolves them -->
+        <module>plugins/maven/security-config-shade-transformer</module>
+
         <module>test/functional</module>
         <module>test/endurance</module>
 
@@ -1814,6 +1818,7 @@
         <module>coherence-core</module>
         <module>coherence-discovery</module>
         <module>coherence-testing-support</module>
+        <module>plugins/maven/security-config-shade-transformer</module>
         <module>coherence</module>
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>

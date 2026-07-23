@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.SerializerAware;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -3614,9 +3615,11 @@ public class PofBufferReader
                 try
                     {
                     ser = ctx.getPofSerializer(nType);
+                    SerializationTelemetry.recordPofCheck("allowed", "registered-type", nType);
                     }
                 catch (IllegalArgumentException e)
                     {
+                    SerializationTelemetry.recordPofCheck("rejected", "unknown-type", nType);
                     throw new StreamCorruptedException(e.getMessage());
                     }
                 PofReader reader = new PofBufferReader.UserTypeReader(

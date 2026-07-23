@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.examples;
 
@@ -28,6 +28,8 @@ import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.util.Capture;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.tangosol.coherence.jcache.CoherenceBasedCache;
 
@@ -192,7 +194,7 @@ public class ExtendClientJCacheExampleTests
         optionsByType.add(SystemProperty.of(PROPERTY_POF_ENABLED, S_POF_ENABLED));
         optionsByType.add(SystemProperty.of(PROPERTY_POF_CONFIG, POF_CONFIG));
 
-        return optionsByType;
+        return BedrockInvocationProperties.inherit(optionsByType);
         }
 
     /**
@@ -228,7 +230,7 @@ public class ExtendClientJCacheExampleTests
             optionsByType.add(CacheConfig.of(JCacheConfig));
             }
 
-        return optionsByType;
+        return BedrockInvocationProperties.inherit(optionsByType);
         }
 
     /**

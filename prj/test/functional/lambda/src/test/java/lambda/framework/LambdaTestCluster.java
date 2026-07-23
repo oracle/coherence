@@ -1,19 +1,18 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package lambda.framework;
 
 import com.oracle.bedrock.junit.CoherenceClusterOrchestration;
 import com.oracle.bedrock.runtime.LocalPlatform;
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.tangosol.coherence.config.Config;
-
-import com.tangosol.internal.util.invoke.Lambdas;
 
 /**
  * Common cluster ExternalResource used by all Lambda tests
@@ -25,10 +24,13 @@ public class LambdaTestCluster extends CoherenceClusterOrchestration
     public LambdaTestCluster()
         {
         super();
-        this.withOptions(SystemProperty.of("coherence.nameservice.address",
+        this.withOptions(ClusterName.of(Config.getProperty("coherence.cluster", this.getClass().getSimpleName())))
+            .withOptions(SystemProperty.of("coherence.nameservice.address",
                 LocalPlatform.get().getLoopbackAddress().getHostAddress()))
             .withOptions(LocalHost.only())
-            .withOptions(SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,
-                Config.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY)));
+            .withOptions(SystemProperty.of("coherence.lambdas", Config.getProperty("coherence.lambdas")))
+            .withOptions(SystemProperty.of("coherence.mode", Config.getProperty("coherence.mode", "dev")))
+            .withOptions(SystemProperty.of("coherence.extend.enabled", "true"))
+            .withOptions(SystemProperty.of("coherence.clusterport", "7574"));
         }
     }

@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
 
 
 import com.tangosol.io.BinaryStore;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
@@ -85,7 +86,14 @@ public class BinaryStoreCacheStore<K, V>
     public V load(K key)
         {
         Binary bin = getBinaryStore().load(toBinary(key));
-        return bin == null ? null : (V) fromBinary(bin);
+        if (bin == null)
+            {
+            return null;
+            }
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.CACHE_STORE))
+            {
+            return (V) fromBinary(bin);
+            }
         }
 
     /**

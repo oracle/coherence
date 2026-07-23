@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -72,6 +72,8 @@ public class DefaultCacheServerTests
             }
 
         System.setProperty("tangosol.coherence.distributed.localstorage", "true");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
 
         s_scheduler = Executors.newScheduledThreadPool(1);
 

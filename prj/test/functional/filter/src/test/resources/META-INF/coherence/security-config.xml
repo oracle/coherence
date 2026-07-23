@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="data.Person" source="manual"/>
+    <class name="data.Person$Key" source="manual"/>
+    <class name="filter.DistMultiFilterTests$CustomFilter" source="manual" executable="true"/>
+    <class name="filter.DomainObject" source="manual"/>
+    <class name="filter.IndexTests$BadFilter" source="manual" executable="true"/>
+    <class name="filter.IndexTests$EvenIntFilter" source="manual" executable="true"/>
+    <class name="filter.IndexTests$EveryOtherTimeExtractor" source="manual" executable="true"/>
+    <class name="filter.IndexTests$LastDigit" source="manual" executable="true"/>
+    <class name="filter.IndexTests$StringIntegerExtractor" source="manual" executable="true"/>
+    <class name="filter.IndexTests$UpdateAgent" source="manual" executable="true"/>
+    <class name="filter.QueryRecordReporterTests$Person" source="manual"/>
+    <class name="filter.nestinglevel1.nestinglevel2.nestinglevel3.IntegerToStringPersonKeyExtractor" source="manual" executable="true"/>
+    <class name="filter.nestinglevel1.nestinglevel2.nestinglevel3.StringToIntegerPersonAddressZipExtractor" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

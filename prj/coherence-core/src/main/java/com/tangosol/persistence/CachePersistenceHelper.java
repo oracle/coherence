@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.internal.net.cluster.ClusterDependencies;
 import com.tangosol.internal.net.service.ServiceDependencies;
 import com.tangosol.internal.net.service.grid.PartitionedServiceDependencies;
 import com.tangosol.internal.net.service.grid.PersistenceDependencies;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.FileHelper;
@@ -299,9 +300,15 @@ public class CachePersistenceHelper
         {
         Binary binMembers = readQuorumRaw(store);
 
-        return binMembers == null ? null :
-            (QuorumInfo) ExternalizableHelper.fromBinary(
-                binMembers.toBinary(), serializer());
+        if (binMembers == null)
+            {
+            return null;
+            }
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
+            {
+            return (QuorumInfo) ExternalizableHelper.fromBinary(
+                    binMembers.toBinary(), serializer());
+            }
         }
 
     /**
@@ -446,8 +453,14 @@ public class CachePersistenceHelper
     public static int getPartitionCount(PersistentStore<ReadBuffer> store)
         {
         ReadBuffer bufPartsCount = store.load(META_EXTENT, BINARY_PARTITION_COUNT);
-        return bufPartsCount == null ? -1 :
-            (Integer) ExternalizableHelper.fromBinary(bufPartsCount.toBinary(), serializer());
+        if (bufPartsCount == null)
+            {
+            return -1;
+            }
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
+            {
+            return (Integer) ExternalizableHelper.fromBinary(bufPartsCount.toBinary(), serializer());
+            }
         }
 
     /**
@@ -482,7 +495,11 @@ public class CachePersistenceHelper
         int nVersion = 0;
         if (bufVersion != null)
             {
-            Object oVersion = ExternalizableHelper.fromBinary(bufVersion.toBinary(), serializer());
+            Object oVersion;
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
+                {
+                oVersion = ExternalizableHelper.fromBinary(bufVersion.toBinary(), serializer());
+                }
             try
                 {
                 nVersion = oVersion instanceof Integer

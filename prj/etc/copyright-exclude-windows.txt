@@ -130,6 +130,7 @@ cache-config-UTF8-BOM.xml
 .jks
 .jpg
 .json
+.md
 .key
 .p12
 .pem

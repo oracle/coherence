@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
 
@@ -14,6 +14,8 @@ import com.tangosol.coherence.rest.io.MarshallerRegistry;
 import com.tangosol.coherence.rest.util.PropertySet;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 
@@ -161,7 +163,10 @@ public class EntryResource
                 return Response.status(Response.Status.UNSUPPORTED_MEDIA_TYPE).build();
                 }
 
-            return putInternal(marshaller.unmarshal(in, mediaType));
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.REST))
+                {
+                return putInternal(marshaller.unmarshal(in, mediaType));
+                }
             }
         catch (IOException e)
             {

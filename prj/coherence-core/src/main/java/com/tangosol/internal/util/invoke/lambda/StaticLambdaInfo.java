@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.internal.util.invoke.lambda;
 
 import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.SerializationSupport;
@@ -24,14 +25,18 @@ import javax.json.bind.annotation.JsonbProperty;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 
 import java.io.ObjectStreamException;
+
+import java.lang.ReflectiveOperationException;
 
 import java.lang.invoke.MethodHandleInfo;
 import java.lang.invoke.SerializedLambda;
 
 import java.lang.reflect.Method;
 import java.security.AccessController;
+import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.Objects;
@@ -219,7 +224,62 @@ public class StaticLambdaInfo<T>
     @Override
     public Object readResolve() throws ObjectStreamException
         {
-        return createLambda(toSerializedLambda(Base.getContextClassLoader(this)));
+        String           sName            = m_sCapturingClass.replace('/', '.');
+        SerializedLambda serializedLambda = null;
+        try
+            {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+
+            // optimization: inline call to createLambda(toSerializedLambda(Base.getContextClassLoader(this))) to avoid calling loadClass twice.
+            final Class clzCapturing = Base.getContextClassLoader(this).loadClass(sName);
+
+            serializedLambda =  new SerializedLambda(
+                    clzCapturing,
+                    m_sFunctionalInterfaceClass,
+                    m_sFunctionalInterfaceMethodName,
+                    m_sFunctionalInterfaceMethodSignature,
+                    m_nImplMethodKind,
+                    m_sImplClass,
+                    m_sImplMethodName,
+                    m_sImplMethodSignature,
+                    m_sInstantiatedMethodType,
+                    m_aoCapturedArgs);
+
+            // inlined from private SerializedLambda.readResolve method to avoid requiring --add-opens java.base/java.lang.invoke=com.oracle.coherence JPMS.
+            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<Method>()
+                {
+                @Override
+                public Method run() throws Exception
+                    {
+                    // Since all JDK generated lambda methods are private, applications using Coherence distributed lambda
+                    // must open themselves to module com.oracle.coherence for reflection call below to succeed.
+                    Method m = clzCapturing.getDeclaredMethod("$deserializeLambda$", SerializedLambda.class);
+                    m.setAccessible(true);
+                    return m;
+                    }
+                });
+
+            return deserialize.invoke(null, serializedLambda);
+            }
+        catch (ClassNotFoundException e)
+            {
+            throw new RuntimeException("Failed to deserialize static lambda " +
+                                       m_sImplClass + "$" + m_sImplMethodName + m_sImplMethodSignature +
+                                       " due to missing context class " + sName + ".", e);
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e);
+            }
+        catch (PrivilegedActionException e)
+            {
+            throw Base.ensureRuntimeException(e.getCause(), "Exception in StaticLambdaInfo.readResolve processing " + serializedLambda);
+            }
         }
     
     // ----- ExternalizableLite interface -----------------------------------
@@ -381,21 +441,57 @@ public class StaticLambdaInfo<T>
         {
         Objects.requireNonNull(serializedLambda);
 
+        // inefficient to use this method now, only keeping for backwards compatibility.
+        // this code is inlined in #readResolve() to avoid having to loadClass twice.
         try
             {
-            Method methReadResolve = AccessController.doPrivileged((PrivilegedExceptionAction<Method>) () ->
+            Method deserialize = AccessController.doPrivileged(new PrivilegedExceptionAction<Method>()
                 {
-                Method m = SerializedLambda.class.getDeclaredMethod("readResolve");
-                m.setAccessible(true);
-                return m;
+                public Method run() throws Exception
+                    {
+                    String sName = serializedLambda.getCapturingClass().replace('/', '.');
+                    LambdaBytecodeGate.ensureAllowed(
+                            LambdaBytecodeGate.checkLambdaTarget(serializedLambda, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                            LambdaBytecodeGate.Site.STATIC_LAMBDA);
+                    LambdaBytecodeGate.ensureAllowed(
+                            LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                            LambdaBytecodeGate.Site.STATIC_LAMBDA);
+                    Method m     = Base.getContextClassLoader(serializedLambda).loadClass(sName)
+                                        .getDeclaredMethod("$deserializeLambda$", SerializedLambda.class);
+                    m.setAccessible(true);
+                    return m;
+                    }
                 });
 
-            return methReadResolve.invoke(serializedLambda);
+            return deserialize.invoke(null, serializedLambda);
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw new RuntimeException(createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e));
+            }
+        catch (PrivilegedActionException e)
+            {
+            throw Base.ensureRuntimeException(e.getCause(), "Exception in StaticLambdaInfo.readResolve processing " + serializedLambda);
             }
         catch (Exception e)
             {
             throw new RuntimeException("Exception resolving static lambda " + serializedLambda, e);
             }
+        }
+
+    /**
+     * Create an {@link InvalidObjectException} with a cause.
+     *
+     * @param sMessage  the exception message
+     * @param cause     the cause
+     *
+     * @return the exception
+     */
+    private static InvalidObjectException createInvalidObjectException(String sMessage, Throwable cause)
+        {
+        InvalidObjectException exception = new InvalidObjectException(sMessage);
+        exception.initCause(cause);
+        return exception;
         }
 
     /**
@@ -428,6 +524,12 @@ public class StaticLambdaInfo<T>
 
         try
             {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
             return new SerializedLambda(
                 loader.loadClass(sName),
                 m_sFunctionalInterfaceClass,

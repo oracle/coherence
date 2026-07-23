@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="cache.BackingMapTests$CustomMap" source="manual"/>
+    <class name="cache.BinaryEntryExpiryTest$TestProcessor" source="manual" executable="true"/>
+    <class name="cache.CQCTests$InsertProcessor" source="manual" executable="true"/>
+    <class name="cache.ContinuousQueryCacheTests$TestValueUpdater" source="manual"/>
+    <class name="cache.EvictionTests$TestProcessor" source="manual" executable="true"/>
+    <class name="cache.MapListenerTests$COH9787Processor" source="manual" executable="true"/>
+    <class name="cache.MapListenerTests$UnforgivingCSC$UnforgivingDeferredCacheEvent" source="manual"/>
+    <class name="cache.SessionBackingMapTests$Session" source="manual"/>
+  </allowed-classes>
+</security-config>

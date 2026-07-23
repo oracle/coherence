@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
 
@@ -16,6 +16,7 @@ import com.tangosol.internal.util.invoke.lambda.RemotableLambdaGenerator;
 import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
 import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.net.CacheFactory;
 
@@ -109,6 +110,32 @@ public abstract class Lambdas
         }
 
     /**
+     * Return whether the supplied class-identity name refers to a DYNAMIC
+     * (wire-synthesised) lambda.
+     *
+     * @param sName  the identity name, typically {@link ClassIdentity#getName()}
+     *
+     * @return {@code true} if the name carries the JDK lambda marker
+     */
+    public static boolean isDynamicLambdaName(String sName)
+        {
+        return sName != null && sName.contains(LAMBDA_CLASS_MARKER);
+        }
+
+    /**
+     * Return whether the supplied class identity refers to a DYNAMIC
+     * (wire-synthesised) lambda.
+     *
+     * @param identity  the class identity
+     *
+     * @return {@code true} if the identity describes a DYNAMIC lambda
+     */
+    public static boolean isDynamicLambdaIdentity(ClassIdentity identity)
+        {
+        return identity instanceof LambdaIdentity || identity != null && isDynamicLambdaName(identity.getName());
+        }
+
+    /**
      * Return true if the provided {@link SerializedLambda} represents a method
      * reference.
      *
@@ -136,12 +163,22 @@ public abstract class Lambdas
         {
         SerializedLambda lambdaMetadata = getSerializedLambda(lambda);
 
+        LambdaBytecodeGate.ensureAllowed(
+                LambdaBytecodeGate.checkLambdaTarget(lambdaMetadata, LambdaBytecodeGate.Site.LAMBDA),
+                LambdaBytecodeGate.Site.LAMBDA);
+
         if (lambdaMetadata.getImplMethodKind() == MethodHandleInfo.REF_invokeStatic ||
             isMethodReference(lambdaMetadata))
             {
-            ClassDefinition definition = new ClassDefinition(
-                    id,
-                    RemotableLambdaGenerator.createRemoteLambdaClass(id.getName(), lambdaMetadata, loader));
+            byte[] abClass = RemotableLambdaGenerator.createRemoteLambdaClass(id.getName(), lambdaMetadata, loader);
+
+            // the other ensureRemotable branch lands in RemotableSupport.realize(...) -> defineClass(...)
+            // and is gated at Site.CLASS_DEFINITION, so both branches are covered
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkBytecode(abClass, LambdaBytecodeGate.Site.LAMBDA),
+                    LambdaBytecodeGate.Site.LAMBDA);
+
+            ClassDefinition definition = new ClassDefinition(id, abClass);
 
             definition.dumpClass(DUMP_LAMBDAS);
 
@@ -313,6 +350,11 @@ public abstract class Lambdas
      */
     private static final String DUMP_LAMBDAS = Config.getProperty("coherence.remotable.dumpLambdas",
                                                                   Config.getProperty("coherence.remotable.dumpAll"));
+
+    /**
+     * Token indicating a class is or is not a lambda.
+     */
+    private static final String LAMBDA_CLASS_MARKER = "$$Lambda";
 
     /**
      * System property to control lambda serialization. Valid values are defined by enumeration {@link SerializationMode}.

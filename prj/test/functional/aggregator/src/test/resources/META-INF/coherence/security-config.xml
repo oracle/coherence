@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="aggregator.AbstractEntryAggregatorTests$FirstNameComparator" source="manual" executable="true"/>
+    <class name="aggregator.AbstractEntryAggregatorTests$NotEmptyAggregator" source="manual" executable="true"/>
+    <class name="aggregator.IndexCheckAggregator" source="manual" executable="true"/>
+    <class name="aggregator.IndexDumpAggregator" source="manual" executable="true"/>
+    <class name="aggregator.PriorityAggregatorTests$SlowAggregator" source="manual" executable="true"/>
+    <class name="aggregator.async.AbstractAsyncEntryAggregatorTests$CustomAggregator" source="manual" executable="true"/>
+    <class name="aggregator.async.AbstractAsyncEntryAggregatorTests$CustomFilter" source="manual" executable="true"/>
+    <class name="aggregator.async.AbstractAsyncEntryAggregatorTests$CustomKey" source="manual"/>
+    <class name="aggregator.async.PriorityAggregatorTests$SlowAggregator" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

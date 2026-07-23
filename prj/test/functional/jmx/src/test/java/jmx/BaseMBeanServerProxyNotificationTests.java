@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 package jmx;
 
 import com.oracle.bedrock.io.FileHelper;
+
+import com.oracle.bedrock.OptionsByType;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
@@ -40,6 +42,8 @@ import com.tangosol.net.management.Registry;
 import com.tangosol.util.Base;
 
 import common.AbstractTestInfrastructure;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import org.junit.Rule;
 import org.junit.rules.TestName;
@@ -79,16 +83,16 @@ public abstract class BaseMBeanServerProxyNotificationTests
         folderOut.mkdirs();
 
         CoherenceClusterBuilder builder = new CoherenceClusterBuilder();
+        OptionsByType           options = OptionsByType.of(ClusterName.of(sClusterName),
+                                                           DisplayName.of("Server"),
+                                                           LocalHost.only(),
+                                                           Headless.enabled(),
+                                                           IPv4Preferred.autoDetect(),
+                                                           FileWriterApplicationConsole.builder(folderOut.getCanonicalPath(), null));
 
-        builder.include(cMember,
-                        CoherenceClusterMember.class,
-                        ClusterName.of(sClusterName),
-                        DisplayName.of("Server"),
-                        LocalHost.only(),
-                        Headless.enabled(),
-                        IPv4Preferred.autoDetect(),
-                        FileWriterApplicationConsole.builder(folderOut.getCanonicalPath(), null)
-                        );
+        BedrockInvocationProperties.inherit(options);
+
+        builder.include(cMember, CoherenceClusterMember.class, options.asArray());
 
         return builder.build();
         }

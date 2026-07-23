@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache;
 
@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.DisplayName;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.tangosol.net.CacheFactory;
 
@@ -231,7 +232,7 @@ public class ExtendClientTests
         optionsByType.add(SystemProperty.of(PROPERTY_POF_ENABLED, S_POF_ENABLED));
         optionsByType.add(SystemProperty.of(PROPERTY_POF_CONFIG, POF_CONFIG));
 
-        return optionsByType;
+        return BedrockInvocationProperties.inherit(optionsByType);
         }
 
     /**
@@ -245,11 +246,11 @@ public class ExtendClientTests
     private static OptionsByType createExtendProxyOption(String jcacheConfig)
             throws Exception
         {
-        return configureExtendClientSystemProperties(getJCacheOption(jcacheConfig).addAll(
+        return BedrockInvocationProperties.inherit(configureExtendClientSystemProperties(getJCacheOption(jcacheConfig).addAll(
                 DisplayName.of("JCacheProxy"),
                 Pof.enabled(Boolean.valueOf(S_POF_ENABLED)),
                 LocalStorage.enabled(false),
-                SystemProperty.of("tangosol.coherence.extend.enabled", true)));
+                SystemProperty.of("tangosol.coherence.extend.enabled", true))));
         }
 
     /**

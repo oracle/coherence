@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.filter;
@@ -69,6 +69,20 @@ public abstract class ComparisonFilter<T, E, C>
         m_value = value;
         }
 
+    // ----- Filter interface -----------------------------------------------
+
+    public String toExpression()
+        {
+        return getClass().getSimpleName() +
+            '(' + getExtractorName() + ", " + toStringValue() + ')';
+        }
+
+    protected String getOperator()
+        {
+        // it should really be abstract, but that would break custom filters that extend it,
+        // se let's just return an "unknown" operator
+        return "?";
+        }
 
     // ----- accessors ------------------------------------------------------
 
