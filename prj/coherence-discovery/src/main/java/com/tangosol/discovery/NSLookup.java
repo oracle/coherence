@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,10 +22,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,7 +97,7 @@ public class NSLookup
             throws IOException
         {
         String sURL = lookup(sCluster, JMX_CONNECTOR_URL, socketAddr, DEFAULT_TIMEOUT);
-        return sURL == null ? null : new JMXServiceURL(sURL);
+        return sURL == null ? null : validateJMXServiceURL(new JMXServiceURL(sURL));
         }
 
     /**
@@ -181,11 +185,129 @@ public class NSLookup
     public static Collection<URL> lookupHTTPMetricsURL(String sCluster, SocketAddress socketAddr)
         throws IOException
         {
+        return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_METRICS_URL);
+        }
+
+    /**
+     * Lookup the current health check HTTP connector URLs for current cluster.
+     *
+     * @param socketAddr  Unicast socket address of the coherence cluster node
+     *
+     * @return a collection of URLs which can be used to access a HTTP health check endpoints
+     *
+     * @throws IOException if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06
+     */
+    public static Collection<URL> lookupHTTPHealthURL(SocketAddress socketAddr)
+        throws IOException
+        {
+        return lookupHTTPHealthURL(null, socketAddr);
+        }
+
+    /**
+     * Lookup the current health check HTTP connector URLs for a specified cluster.
+     *
+     * @param sCluster    the target cluster
+     * @param socketAddr  Unicast socket address of the coherence cluster node
+     *
+     * @return a collection of URLs which can be used to access a HTTP health check endpoint
+     *
+     * @throws IOException if an I/O error occurs while doing the URL lookup
+     *
+     * @since 22.06
+     */
+    public static Collection<URL> lookupHTTPHealthURL(String sCluster, SocketAddress socketAddr)
+        throws IOException
+        {
+        return lookupURL(sCluster, socketAddr, NS_STRING_PREFIX + HTTP_HEALTH_URL);
+        }
+
+    public static Collection<SocketAddress> lookupGrpcProxy(SocketAddress socketAddr)
+            throws IOException
+        {
+        return lookupGrpcProxy(null, socketAddr);
+        }
+
+    public static Collection<SocketAddress> lookupGrpcProxy(String sCluster, SocketAddress socketAddr)
+            throws IOException
+        {
+        String sName   = NS_STRING_PREFIX + GRPC_PROXY_URL;
+        String sResult = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
+        // do not use streams as this class needs to be buildable on Java 7
+        // format is "[URL1, URL2, URL3, ...]"
+        String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
+
+        List<SocketAddress> list = new ArrayList<>();
+        if (asResult != null)
+            {
+            // skip element 0 which will be an empty string
+            for (int i = 1; i < asResult.length; i += 2)
+                {
+                list.add(new InetSocketAddress(asResult[i], Integer.parseInt(asResult[i+1])));
+                }
+            }
+        return list;
+        }
+
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for current cluster.
+     *
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket address(es) which can be used to access extend client proxy's endpoint(s)
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 14.1.1.0
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        return lookupExtendProxy(null, socketAddr, sName);
+        }
+
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for specified cluster.
+     *
+     * @param sCluster    the target cluster name
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket addresses which can be used to access extend proxy endpoints in the target cluster
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 14.1.1.0
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(String sCluster, SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        List<SocketAddress> list    = new ArrayList<>();
+        String              sResult = lookup(sCluster, NS_STRING_PREFIX + sName, socketAddr, DEFAULT_TIMEOUT);
+
+        // do not use streams as this class needs to be buildable on Java 7
+        // format is "[URL1, URL2, URL3, ...]"
+        String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
+        if (asResult != null)
+            {
+            for (int i = 1; i < asResult.length; i += 2)
+                {
+                list.add(new InetSocketAddress(asResult[i], Integer.parseInt(asResult[i+1])));
+                }
+            }
+        return list;
+        }
+
+    private static Collection<URL> lookupURL(String sCluster, SocketAddress socketAddr, String sName)
+            throws IOException
+        {
         // NSLookup only knows how to deserialize strings, so must request the string form
         // and then reverse engineer it to the collection of URLs
 
         Collection<URL> colUrl = new ArrayList<>();
-        String          sURL   = lookup(sCluster, NS_STRING_PREFIX + HTTP_METRICS_URL, socketAddr, DEFAULT_TIMEOUT);
+        String          sURL   = lookup(sCluster, sName, socketAddr, DEFAULT_TIMEOUT);
 
         // do not use streams as this class needs to be buildable on Java 7
         // format is "[URL1, URL2, URL3, ...]"
@@ -414,6 +536,10 @@ public class NSLookup
             {
             throw new IOException("Received a message with a length of zero");
             }
+        else if (cb > MAX_MESSAGE_BYTES)
+            {
+            throw new IOException("Received a message with a length greater than " + MAX_MESSAGE_BYTES + ": " + cb);
+            }
         else
             {
             byte[] ab = new byte[cb];
@@ -430,7 +556,7 @@ public class NSLookup
      *
      * @throws IOException if an I/O error occurs while writing to the socket stream
      */
-    private static void writePackedInt(DataOutputStream outStream, int n)
+    protected static void writePackedInt(DataOutputStream outStream, int n)
             throws IOException
         {
         // first byte contains sign bit (bit 7 set if neg)
@@ -852,25 +978,88 @@ public class NSLookup
         {
         try
             {
-            int cbResult = in.readInt();
-            if (cbResult == 0)
+            int nHeader = in.readInt();
+            if (nHeader == 0)
                 {
                 return null;
                 }
+            else if (nHeader < 0)
+                {
+                throw new IOException("Received a NameService result with an invalid header: " + nHeader);
+                }
             else
                 {
-                in.readShort(); // pof header we know it can only be a string;
+                int nStringHeader = in.readUnsignedShort();
+                if ((nStringHeader & 0xFF) != POF_TYPE_STRING)
+                    {
+                    throw new IOException("Received a NameService result with an invalid string header: " + nStringHeader);
+                    }
 
-                byte[] abResult = new byte[readPackedInt(in)];
+                int cbString = readPackedInt(in);
+                if (cbString < 0)
+                    {
+                    throw new IOException("Received a NameService string with a negative length");
+                    }
+                else if (cbString > MAX_STRING_BYTES)
+                    {
+                    throw new IOException("Received a NameService string greater than " + MAX_STRING_BYTES + ": " + cbString);
+                    }
+
+                byte[] abResult = new byte[cbString];
 
                 in.readFully(abResult);
-                return new String(abResult);
+                return new String(abResult, StandardCharsets.UTF_8);
                 }
             }
         catch (IOException e)
             {
             throw new RuntimeException(e);
             }
+        }
+
+    /**
+     * Validate a JMX service URL returned by NameService.
+     *
+     * @param url  the URL
+     *
+     * @return the validated URL
+     *
+     * @throws IOException if the URL is not supported
+     */
+    protected static JMXServiceURL validateJMXServiceURL(JMXServiceURL url)
+            throws IOException
+        {
+        String sProtocol = url.getProtocol();
+        if (!"rmi".equalsIgnoreCase(sProtocol))
+            {
+            throw new IOException("Unsupported JMX service URL protocol: " + sProtocol);
+            }
+
+        String sPath = url.getURLPath();
+        if (sPath == null || sPath.isEmpty())
+            {
+            return url;
+            }
+        if (!sPath.startsWith("/jndi/"))
+            {
+            throw new IOException("Unsupported JMX service URL path: " + sPath);
+            }
+
+        String sUri = sPath.substring("/jndi/".length());
+        try
+            {
+            URI uri = new URI(sUri);
+            if (!"rmi".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null)
+                {
+                throw new IOException("Unsupported JMX service URL provider protocol: " + uri.getScheme());
+                }
+            }
+        catch (URISyntaxException e)
+            {
+            throw new IOException("Invalid JMX service URL provider path: " + sPath, e);
+            }
+
+        return url;
         }
 
     /**
@@ -1156,7 +1345,21 @@ public class NSLookup
      * @since 12.2.1.4.0
      */
     public static final String HTTP_METRICS_URL = "metrics/HTTPMetricsURL";
-    
+
+    /**
+     * HTTP Health URL lookup name.
+     *
+     * @since 22.06
+     */
+    public static final String HTTP_HEALTH_URL = "health/HTTPHealthURL";
+
+    /**
+     * The gRPC Proxy lookup name.
+     *
+     * @since 22.06.2
+     */
+    public static final String GRPC_PROXY_URL = "$GRPC:GrpcProxy";
+
     /**
      * Cluster info lookup name.
      *
@@ -1170,7 +1373,7 @@ public class NSLookup
      * @since 25.03
      */
     public static final String[] VALID_PREDEFINED_LOOKUP_NAMES =
-            {JMX_CONNECTOR_URL, HTTP_MANAGEMENT_URL, HTTP_METRICS_URL, CLUSTER_INFO};
+            {JMX_CONNECTOR_URL, HTTP_MANAGEMENT_URL, HTTP_METRICS_URL, HTTP_HEALTH_URL, GRPC_PROXY_URL, CLUSTER_INFO};
     /**
      * Default timeout in milliseconds
      */
@@ -1195,6 +1398,21 @@ public class NSLookup
      * Default name.
      */
     public static final String DEFAULT_NAME = "Cluster/info";
+
+    /**
+     * Maximum TCP NameService frame length.
+     */
+    protected static final int MAX_MESSAGE_BYTES = 16 * 1024 * 1024;
+
+    /**
+     * Maximum NameService string result length.
+     */
+    protected static final int MAX_STRING_BYTES = 64 * 1024;
+
+    /**
+     * POF type identifier for a NameService string result.
+     */
+    protected static final int POF_TYPE_STRING = 0x4E;
 
     /**
      * Multiplexed Socket ID. See com.oracle.coherence.common.internal.net.ProtocolIdentifiers.
