@@ -522,6 +522,8 @@ public final class SerializationBridgeFilters
             "java.security.KeyRep$Type",
             "java.security.cert.CertPath$CertPathRep",
             "java.security.cert.Certificate$CertificateRep",
+            "sun.security.provider.certpath.X509CertPath",
+            "sun.security.x509.X509CertImpl",
             "java.util.ArrayList",
             "java.util.CollSer",
             "java.util.Collections$EmptySet",
@@ -537,9 +539,7 @@ public final class SerializationBridgeFilters
             "java.util.LinkedList",
             "javax.security.auth.Subject",
             "javax.security.auth.Subject$SecureSet",
-            "javax.security.auth.x500.X500Principal",
-            "sun.security.provider.certpath.X509CertPath",
-            "sun.security.x509.X509CertImpl");
+            "javax.security.auth.x500.X500Principal");
 
     /**
      * The runtime ObjectInputFilter class.
