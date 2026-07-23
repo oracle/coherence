@@ -13,14 +13,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 
-import com.tangosol.util.Base;
-import com.tangosol.util.Resources;
-
-import java.io.File;
 import java.io.IOException;
-
-import java.net.URISyntaxException;
-import java.net.URL;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -38,14 +31,12 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.is;
 
-import static org.junit.Assert.assertTrue;
-
 import static test.matcher.CoherenceMatchers.hasThreadGroupSize;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Test the functionality of DefaultCacheServer in both normal and gar modes.
+ * Test the functionality of DefaultCacheServer.
  *
  * @author hr 2012.08.03
  */
@@ -60,17 +51,6 @@ public class DefaultCacheServerTests
     @BeforeClass
     public static void _startup()
         {
-        try
-            {
-            URL url   = Resources.findFileOrResource("coh_new_examples.gar", getContextClassLoader());
-            File file = new File(url.toURI());
-            GAR_FILE_NAME = file.getAbsolutePath();
-            }
-        catch (URISyntaxException e)
-            {
-            throw Base.ensureRuntimeException(e);
-            }
-
         System.setProperty("tangosol.coherence.distributed.localstorage", "true");
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
@@ -195,11 +175,6 @@ public class DefaultCacheServerTests
 
         private final DefaultCacheServer m_server;
         }
-
-    /**
-     * The GAR file to be exploded by the tests
-     */
-    public static String GAR_FILE_NAME;
 
     /**
      * Scheduler service commonly used to start or shutdown DCS in a
