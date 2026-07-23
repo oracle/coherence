@@ -16,5 +16,10 @@
     <class name="topics.data.Customer" source="manual"/>
     <class name="topics.data.CustomerExternalizableLite" source="manual"/>
     <class name="topics.data.CustomerPof" source="manual"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$AnnotatedConverter" source="manual" executable="true"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$PlainConverter" source="manual"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$PlainExtractor" source="manual"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$PlainFilter" source="manual"/>
   </allowed-classes>
 </security-config>

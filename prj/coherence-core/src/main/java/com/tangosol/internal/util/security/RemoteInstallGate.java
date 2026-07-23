@@ -149,6 +149,23 @@ public final class RemoteInstallGate
         }
 
     /**
+     * Enforce remote topic subscriber filter/converter installation policy.
+     *
+     * @param filter     the subscriber filter being installed
+     * @param converter  the subscriber converter being installed
+     * @param role       the serialization role
+     * @param subject    the current subject, or {@code null}
+     */
+    public static final void enforceTopicSubscriberInstall(Filter<?> filter, Function<?, ?> converter,
+                                                           SerializationRole role, Subject subject)
+        {
+        enforceFilterInstall(filter, role, subject, 0, TOPIC_SUBSCRIBER_INSTALL,
+                REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
+        enforceFunctionInstall(converter, role, subject, 0, TOPIC_SUBSCRIBER_INSTALL,
+                REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
+        }
+
+    /**
      * Enforce persisted topic subscriber filter/extractor replay policy.
      *
      * @param filter     the persisted subscriber filter
@@ -443,6 +460,24 @@ public final class RemoteInstallGate
         cascadeConditionalExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
         cascadeSingleExtractorWrapper(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
         cascadeComparisonValueExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
+        }
+
+    private static void enforceFunctionInstall(Function<?, ?> function, SerializationRole role,
+                                               Subject subject, int cDepth, String sTopic, String sModeReason)
+        {
+        if (function == null)
+            {
+            return;
+            }
+
+        if (function instanceof ValueExtractor)
+            {
+            enforceExtractorInstall((ValueExtractor<?, ?>) function, role, subject, cDepth, sTopic, sModeReason);
+            return;
+            }
+
+        enforceDepth(cDepth, function.getClass(), OperationReason.EXTRACT, role, subject, sTopic);
+        enforceInstall(function.getClass(), OperationReason.EXTRACT, role, subject, sTopic, sModeReason);
         }
 
     private static void enforceComparatorInstall(Comparator<?> comparator, SerializationRole role, Subject subject,
@@ -1200,13 +1235,44 @@ public final class RemoteInstallGate
             }
 
         RemoteExecutablePolicy policy = RemoteExecutablePolicy.current();
-        if (CoherenceMode.isLegacy() && !policy.isExecutable(clz)
+        if ((CoherenceMode.isLegacy() || !TopicsPersistedPolicyDrift.isReject()) && !policy.isExecutable(clz)
                 && !recordReplayDedup(clz, reason, setDedup))
             {
             return;
             }
 
-        policy.enforce(clz, reason, role, subject);
+        try
+            {
+            policy.enforce(clz, reason, role, subject);
+            return;
+            }
+        catch (SecurityException e)
+            {
+            if (TopicsPersistedPolicyDrift.isReject())
+                {
+                SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
+                        SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+                SerializationTelemetry.logRejection(TOPIC_SUBSCRIBER_REPLAY, roleName(role), subject,
+                        className(clz), SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+                throw new SecurityException("topic-subscriber-replay-drift-rejected", e);
+                }
+
+            SerializationTelemetry.recordExecutablePolicyCheck("allowed", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            warnReplayDrift(clz, setDedup);
+            }
+        }
+
+    private static void warnReplayDrift(Class<?> clz, Set<String> setDedup)
+        {
+        String sClassName = clz.getName();
+        if (setDedup == null || setDedup.add("warn:" + sClassName))
+            {
+            s_advisoryLogger.accept("Persisted topic subscriber class " + sClassName
+                    + " is no longer executable; replay allowed by "
+                    + TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT + "="
+                    + TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW + ".");
+            }
         }
 
     private static String replayDedupKey(Class<?> clz, OperationReason reason)

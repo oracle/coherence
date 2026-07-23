@@ -23,6 +23,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
 
 import com.tangosol.internal.util.Primes;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializationRole;
@@ -89,8 +90,6 @@ public class PagedTopicSubscriber<V>
             ? SubscriberGroupId.anonymous()
             : SubscriberGroupId.withName(sName);
 
-        registerDeactivationListener();
-
         // TODO: error out on unprocessed (therefor unsupported) Options
         // TODO: should there be an option to control how we behave with unsupported/unrecognized options, should this
         // be an an option by option basis?
@@ -102,6 +101,8 @@ public class PagedTopicSubscriber<V>
         Filter   filter   = filtered == null ? null : filtered.getFilter();
         Convert  convert  = optionsMap.get(Convert.class);
         Function function = convert == null ? null : convert.getFunction();
+
+        RemoteInstallGate.enforceTopicSubscriberInstall(filter, function, SerializationRole.TOPICS, null);
 
         // TODO: it would be good to limit backlog to a page size, but we don't know how many values this will be
         // we could average out received value sizes over time and build this up, but making the DebouncedFlowControl
@@ -225,6 +226,8 @@ public class PagedTopicSubscriber<V>
             f_nChannelStep = Primes.random(cChannel);
 
             m_nChannel = Base.mod(f_nChannelStep, cChannel);
+
+            registerDeactivationListener();
 
             // register a subscriber listener in each partition, we must be completely setup before doing this
             // as the callbacks assume we're fully initialized
