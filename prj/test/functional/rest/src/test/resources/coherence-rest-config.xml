@@ -4,7 +4,7 @@
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
--->
+  -->
 
 <rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
@@ -14,6 +14,35 @@
       <cache-name>dist-test1</cache-name>
       <key-class>java.lang.Integer</key-class>
       <value-class>data.pof.PortablePerson</value-class>
+      <!-- rest-01 prompt 04 design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md:
+           alias aggregator arguments so PROD requests reach executable policy enforcement instead of stopping at the URL expression gate -->
+      <expression-aliases>
+        <aggregator-argument-alias>
+          <aggregator>long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>custom-long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>plain-long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>constructor-side-effect-aggregator</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>allowed-constructor-side-effect-aggregator</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test2</cache-name>
@@ -34,6 +63,30 @@
       <cache-name>dist-test-proc</cache-name>
       <key-class>java.lang.Integer</key-class>
       <value-class>rest.Persona</value-class>
+      <!-- rest-01 prompt 04 design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md:
+           map the stable age alias to the historical property expression so constructor and policy telemetry assertions stay focused -->
+      <expression-aliases>
+        <processor-argument-alias>
+          <processor>custom-number-doubler</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>plain-number-doubler</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>constructor-side-effect-processor</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>allowed-constructor-side-effect-processor</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test-basic</cache-name>
@@ -53,6 +106,14 @@
         <expression>age = 37</expression>
       </query>
       <direct-query enabled="true" engine="DEFAULT"/>
+      <!-- rest-01 prompt 04 design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md:
+           expose only the by-age sort alias so the comparator gate is exercised in PROD mode -->
+      <expression-aliases>
+        <sort-alias>
+          <name>by-age</name>
+          <expression>age</expression>
+        </sort-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test-max-results</cache-name>

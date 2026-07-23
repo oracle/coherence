@@ -7,6 +7,7 @@
 package com.tangosol.coherence.rest;
 
 import com.tangosol.coherence.rest.config.DirectQuery;
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
 import com.tangosol.coherence.rest.config.NamedQuery;
 import com.tangosol.coherence.rest.config.QueryConfig;
 
@@ -37,8 +38,6 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.FilterBuildingException;
 import com.tangosol.util.InvocableMap;
-import com.tangosol.util.QueryHelper;
-import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 
@@ -112,8 +111,11 @@ public class CacheResource
      * @param nStart       starting index of result set to be returned
      * @param cResults     size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
-     * @param propertySet  the subset of properties to return for each value
-     *                     (if null, the complete values will be returned)
+     * @param sProjection  URL projection request from the {@code p} matrix
+     *                     parameter. DEV/PROD resolve this value as a
+     *                     configured projection alias, while LEGACY preserves
+     *                     raw property expression syntax; if null or blank,
+     *                     complete values will be returned
      * @param sQuery       where predicate of Coherence Query Language to
      *                     filter cache entries. If null, all cache values
      *                     will be returned
@@ -127,24 +129,19 @@ public class CacheResource
             @MatrixParam("start") @DefaultValue("0") int nStart,
             @MatrixParam("count") @DefaultValue("-1") int cResults,
             @MatrixParam("sort") String sSort,
-            @MatrixParam("p") PropertySet propertySet,
+            @MatrixParam("p") String sProjection,
             @QueryParam("q") String sQuery)
         {
-        boolean fDirectQuery = sQuery != null && sQuery.length() > 0;
-        if (fDirectQuery && !m_queryConfig.isDirectQueryEnabled())
+        Response responseReject = RestQueryPolicy.checkDirectQuery(m_queryConfig, sQuery);
+        if (responseReject != null)
             {
-            return Response.status(Response.Status.FORBIDDEN)
-                           .entity("Direct query is not allowed").build();
-            }
-
-        ValueExtractor<Map.Entry, ?> extractor = Map.Entry::getValue;
-        if (propertySet != null)
-            {
-            extractor = extractor.andThen(propertySet);
+            return responseReject;
             }
 
         try
             {
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            ValueExtractor<Map.Entry, ?> extractor = RestValueExtractors.valueExtractor(propertySet);
             return Response.ok(executeQuery(sQuery, extractor, nStart, cResults, sSort)).build();
             }
         catch (FilterBuildingException | QueryException | IllegalArgumentException e)
@@ -160,8 +157,11 @@ public class CacheResource
      * @param nStart       starting index of result set to be returned
      * @param cResults     size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
-     * @param propertySet  the subset of properties to return for each value
-     *                     (if null, the complete values will be returned)
+     * @param sProjection  URL projection request from the {@code p} matrix
+     *                     parameter. DEV/PROD resolve this value as a
+     *                     configured projection alias, while LEGACY preserves
+     *                     raw property expression syntax; if null or blank,
+     *                     complete values will be returned
      * @param sQuery       where predicate of Coherence Query Language to
      *                     filter cache entries. If null, all cache entries
      *                     will be returned
@@ -175,22 +175,19 @@ public class CacheResource
             @MatrixParam("start") @DefaultValue("0") int nStart,
             @MatrixParam("count") @DefaultValue("-1") int cResults,
             @MatrixParam("sort") String sSort,
-            @MatrixParam("p") PropertySet propertySet,
+            @MatrixParam("p") String sProjection,
             @QueryParam("q") String sQuery)
         {
-        boolean fDirectQuery = sQuery != null && sQuery.length() > 0;
-        if (fDirectQuery && !m_queryConfig.isDirectQueryEnabled())
+        Response responseReject = RestQueryPolicy.checkDirectQuery(m_queryConfig, sQuery);
+        if (responseReject != null)
             {
-            return Response.status(Response.Status.FORBIDDEN)
-                           .entity("Direct query is not allowed").build();
+            return responseReject;
             }
-
-        ValueExtractor<Map.Entry, ?> extractor = propertySet == null
-                ? ValueExtractor.identity()
-                : (entry) -> new SimpleMapEntry<>(entry.getKey(), propertySet.extract(entry.getValue()));
 
         try
             {
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            ValueExtractor<Map.Entry, ?> extractor = RestValueExtractors.entryExtractor(propertySet);
             return Response.ok(executeQuery(sQuery, extractor, nStart, cResults, sSort)).build();
             }
         catch (FilterBuildingException | QueryException | IllegalArgumentException e)
@@ -213,11 +210,10 @@ public class CacheResource
     @Produces({APPLICATION_JSON, APPLICATION_XML, TEXT_PLAIN})
     public Response getKeys(@QueryParam("q") String sQuery)
         {
-        boolean fDirectQuery = sQuery != null && sQuery.length() > 0;
-        if (fDirectQuery && !m_queryConfig.isDirectQueryEnabled())
+        Response responseReject = RestQueryPolicy.checkDirectQuery(m_queryConfig, sQuery);
+        if (responseReject != null)
             {
-            return Response.status(Response.Status.FORBIDDEN)
-                           .entity("Direct query is not allowed").build();
+            return responseReject;
             }
 
         try
@@ -250,18 +246,19 @@ public class CacheResource
         {
         QueryConfig queryConfig  = m_queryConfig;
         NamedCache  cache        = m_cache;
-        boolean     fDirectQuery = sQuery != null && sQuery.length() > 0;
+        boolean     fDirectQuery = RestQueryPolicy.hasDirectQuery(sQuery);
 
-        if (fDirectQuery && !queryConfig.isDirectQueryEnabled())
+        Response responseReject = RestQueryPolicy.checkDirectQuery(queryConfig, sQuery);
+        if (responseReject != null)
             {
-            return Response.status(Response.Status.FORBIDDEN)
-                           .entity("Direct query is not allowed").build();
+            return responseReject;
             }
 
         InvocableMap.EntryAggregator aggregator;
         try
             {
-            aggregator = m_aggregatorRegistry.getAggregator(sAggr);
+            aggregator = m_aggregatorRegistry.getAggregator(
+                    RestExpressionPolicy.resolveAggregator(m_expressionAliases, sAggr));
             RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
@@ -271,14 +268,22 @@ public class CacheResource
             }
 
         Object oResult;
-        if (fDirectQuery)
+        try
             {
-            Set setKeys = keys(sQuery);
-            oResult     = cache.aggregate(setKeys, aggregator);
+            if (fDirectQuery)
+                {
+                Set setKeys = keys(sQuery);
+                oResult     = cache.aggregate(setKeys, aggregator);
+                }
+            else
+                {
+                oResult = cache.aggregate(AlwaysFilter.INSTANCE, aggregator);
+                }
             }
-        else
+        catch (FilterBuildingException | QueryException | IllegalArgumentException e)
             {
-            oResult = cache.aggregate(AlwaysFilter.INSTANCE, aggregator);
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
 
         return Response.ok(oResult).build();
@@ -305,18 +310,19 @@ public class CacheResource
         {
         QueryConfig queryConfig  = m_queryConfig;
         NamedCache  cache        = m_cache;
-        boolean     fDirectQuery = sQuery != null && sQuery.length() > 0;
+        boolean     fDirectQuery = RestQueryPolicy.hasDirectQuery(sQuery);
 
-        if (fDirectQuery && !queryConfig.isDirectQueryEnabled())
+        Response responseReject = RestQueryPolicy.checkDirectQuery(queryConfig, sQuery);
+        if (responseReject != null)
             {
-            return Response.status(Response.Status.FORBIDDEN)
-                           .entity("Direct query is not allowed").build();
+            return responseReject;
             }
 
         InvocableMap.EntryProcessor processor;
         try
             {
-            processor = m_processorRegistry.getProcessor(sProc);
+            processor = m_processorRegistry.getProcessor(
+                    RestExpressionPolicy.resolveProcessor(m_expressionAliases, sProc));
             RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
@@ -326,14 +332,22 @@ public class CacheResource
             }
 
         Map mapResult;
-        if (fDirectQuery)
+        try
             {
-            Set setKeys = keys(sQuery);
-            mapResult   = cache.invokeAll(setKeys, processor);
+            if (fDirectQuery)
+                {
+                Set setKeys = keys(sQuery);
+                mapResult   = cache.invokeAll(setKeys, processor);
+                }
+            else
+                {
+                mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, processor);
+                }
             }
-        else
+        catch (FilterBuildingException | QueryException | IllegalArgumentException e)
             {
-            mapResult = cache.invokeAll(AlwaysFilter.INSTANCE, processor);
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(BAD_REQUEST_MSG).build();
             }
 
         return Response.ok(mapResult).build();
@@ -351,10 +365,13 @@ public class CacheResource
     @Produces(SseFeature.SERVER_SENT_EVENTS)
     public EventOutput addListener(@MatrixParam("lite") boolean fLite, @QueryParam("q") String sQuery)
         {
+        RestQueryPolicy.assertDirectQueryAllowed(m_queryConfig, sQuery);
+
         MapEventOutput eventOutput = new MapEventOutput(m_cache, fLite);
-        if (sQuery != null)
+        if (RestQueryPolicy.hasDirectQuery(sQuery))
             {
-            eventOutput.setFilter(QueryHelper.createFilter(sQuery));
+            eventOutput.setFilter(RestQueryPolicy.withDirectQueryTypePolicy(
+                    () -> RestQueryPolicy.createDirectQueryFilter(sQuery)));
             }
         eventOutput.register();
 
@@ -378,8 +395,9 @@ public class CacheResource
         QueryConfig config = m_queryConfig;
         if (config.containsNamedQuery(sKey))
             {
-            return InjectionBinder.inject(instantiateNamedQueryResource(m_cache, config.getNamedQuery(sKey), m_cMaxResults),
-                    m_serviceLocator);
+            NamedQueryResource resource = instantiateNamedQueryResource(m_cache, config.getNamedQuery(sKey), m_cMaxResults);
+            resource.setExpressionAliases(m_expressionAliases);
+            return InjectionBinder.inject(resource, m_serviceLocator);
             }
         else
             {
@@ -394,7 +412,9 @@ public class CacheResource
                         + m_clzKey, 2);
                 throw new NotFoundException();
                 }
-            return InjectionBinder.inject(instantiateEntryResource(m_cache, oKey, m_clzValue), m_serviceLocator);
+            EntryResource resource = instantiateEntryResource(m_cache, oKey, m_clzValue);
+            resource.setExpressionAliases(m_expressionAliases);
+            return InjectionBinder.inject(resource, m_serviceLocator);
             }
         }
 
@@ -426,7 +446,9 @@ public class CacheResource
                 }
             }
 
-        return InjectionBinder.inject(instantiateEntrySetResource(m_cache, setKeys, m_clzValue), m_serviceLocator);
+        EntrySetResource resource = instantiateEntrySetResource(m_cache, setKeys, m_clzValue);
+        resource.setExpressionAliases(m_expressionAliases);
+        return InjectionBinder.inject(resource, m_serviceLocator);
         }
 
     // ---- helper methods --------------------------------------------------
@@ -454,9 +476,11 @@ public class CacheResource
         QueryEngine queryEngine      = m_queryEngineRegistry.getQueryEngine(sQueryEngine);
         int         cQueryMaxResults = (directQuery == null || !fDirectQuery) ? -1 : directQuery.getMaxResults();
         int         cMaxResults      = RestHelper.resolveMaxResults(cResults, cQueryMaxResults, m_cMaxResults);
-        Query       query            = queryEngine.prepareQuery(sQuery, null);
+        Query       query            = RestQueryPolicy.withDirectQueryTypePolicy(
+                () -> queryEngine.prepareQuery(sQuery, null));
+        String      sResolvedSort    = RestExpressionPolicy.resolveSort(m_expressionAliases, sSort);
 
-        return query.execute(m_cache, extractor, sSort, nStart, cMaxResults);
+        return query.execute(m_cache, extractor, sResolvedSort, nStart, cMaxResults);
         }
 
     /**
@@ -471,9 +495,33 @@ public class CacheResource
         DirectQuery directQuery  = m_queryConfig.getDirectQuery();
         String      sQueryEngine = directQuery == null ? null : directQuery.getQueryEngineName();
         QueryEngine queryEngine  = m_queryEngineRegistry.getQueryEngine(sQueryEngine);
-        Query       query        = queryEngine.prepareQuery(sQuery, null);
+        Query       query        = RestQueryPolicy.withDirectQueryTypePolicy(
+                () -> queryEngine.prepareQuery(sQuery, null));
 
         return query.keySet(m_cache);
+        }
+
+    /**
+     * Set expression aliases for this resource.
+     * <p>
+     * Uses these aliases as the resource-local URL expression allowlist in
+     * DEV/PROD mode.
+     *
+     * @param aliases  expression aliases
+     */
+    public void setExpressionAliases(ExpressionAliasConfig aliases)
+        {
+        m_expressionAliases = aliases == null ? ExpressionAliasConfig.EMPTY : aliases;
+        }
+
+    /**
+     * Return expression aliases for this resource.
+     *
+     * @return expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_expressionAliases;
         }
 
     /**
@@ -563,6 +611,11 @@ public class CacheResource
      * Query configuration for this resource.
      */
     protected QueryConfig m_queryConfig;
+
+    /**
+     * Expression aliases configured for this resource.
+     */
+    protected ExpressionAliasConfig m_expressionAliases = ExpressionAliasConfig.EMPTY;
 
     /**
      * Query engine registry to obtain query engines from.

@@ -11,11 +11,16 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
+import com.tangosol.io.SerializationGeneratedClasses;
+
+import java.lang.invoke.MethodHandles;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -71,7 +76,8 @@ public final class SerializationAllowlist
             return clzComponent.isPrimitive() || isAllowlisted(clzComponent);
             }
 
-        return isAllowlistedName(clz.getName(), clz.isSynthetic());
+        return isRegisteredRestGeneratedPartialClass(clz)
+               || isAllowlistedName(clz.getName(), clz.isSynthetic());
         }
 
     /**
@@ -130,6 +136,27 @@ public final class SerializationAllowlist
     public static boolean isProdMode()
         {
         return CoherenceMode.isAllowlistEnforced();
+        }
+
+    /**
+     * Register a REST-generated partial projection class.
+     *
+     * @param lookup  caller proof from the REST {@code PartialObject} class
+     * @param clz     generated partial projection class
+     */
+    public static void registerRestGeneratedPartialClass(MethodHandles.Lookup lookup, Class<?> clz)
+        {
+        Class<?> clzAnchor = validateRestGeneratedPartialClass(lookup, clz);
+        synchronized (s_mapRestGeneratedPartialClasses)
+            {
+            Set<Class<?>> setClasses = s_mapRestGeneratedPartialClasses.get(clzAnchor);
+            if (setClasses == null)
+                {
+                setClasses = Collections.newSetFromMap(new WeakHashMap<>());
+                s_mapRestGeneratedPartialClasses.put(clzAnchor, setClasses);
+                }
+            setClasses.add(clz);
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -214,6 +241,98 @@ public final class SerializationAllowlist
     private static boolean matchesPrefix(String sName, Set<String> setPrefix)
         {
         return setPrefix.stream().anyMatch(sName::startsWith);
+        }
+
+    /**
+     * Return {@code true} if a class is a registered REST-generated projection
+     * type.
+     *
+     * @param clz  the class to check
+     *
+     * @return {@code true} if the class was registered by REST generation
+     */
+    private static boolean isRegisteredRestGeneratedPartialClass(Class<?> clz)
+        {
+        if (!clz.getName().startsWith(REST_PARTIAL_CLASS_PREFIX))
+            {
+            return false;
+            }
+
+        Class<?> clzAnchor = clz.getSuperclass();
+        if (clzAnchor == null)
+            {
+            return false;
+            }
+
+        synchronized (s_mapRestGeneratedPartialClasses)
+            {
+            Set<Class<?>> setClasses = s_mapRestGeneratedPartialClasses.get(clzAnchor);
+            return setClasses != null && setClasses.contains(clz);
+            }
+        }
+
+    /**
+     * Validate a REST-generated projection class registration.
+     *
+     * @param lookup  caller proof from the REST {@code PartialObject} class
+     * @param clz     generated partial projection class
+     *
+     * @return trusted REST {@code PartialObject} anchor class
+     */
+    private static Class<?> validateRestGeneratedPartialClass(MethodHandles.Lookup lookup, Class<?> clz)
+        {
+        if (lookup == null || clz == null)
+            {
+            throw new IllegalArgumentException("lookup and class are required");
+            }
+
+        Class<?> clzAnchor = lookup.lookupClass();
+        if (!REST_PARTIAL_OBJECT_CLASS.equals(clzAnchor.getName())
+                || !isTrustedRestPartialObject(clzAnchor))
+            {
+            throw new SecurityException("REST generated partial registration caller is not trusted");
+            }
+
+        // private access is the strongest caller proof available on this Java 8 release line
+        if ((lookup.lookupModes() & MethodHandles.Lookup.PRIVATE) == 0)
+            {
+            throw new SecurityException("REST generated partial registration caller is not trusted");
+            }
+
+        ClassLoader loader = clz.getClassLoader();
+        if (!clz.getName().startsWith(REST_PARTIAL_CLASS_PREFIX)
+                || clz.getSuperclass() != clzAnchor
+                || loader == null
+                || !REST_PARTIAL_CLASS_LOADER.equals(loader.getClass().getName())
+                || loader.getClass().getDeclaringClass() != clzAnchor)
+            {
+            throw new SecurityException("REST generated partial class shape is not trusted");
+            }
+
+        return clzAnchor;
+        }
+
+    /**
+     * Return {@code true} if the supplied class is the real REST
+     * {@code PartialObject} class.
+     *
+     * @param clz  the class to check
+     *
+     * @return {@code true} if the class is trusted
+     */
+    private static boolean isTrustedRestPartialObject(Class<?> clz)
+        {
+        ClassLoader loader = SerializationGeneratedClasses.class.getClassLoader();
+        try
+            {
+            // REST-01 prompt 09 projection alias allowlist follow-up: unnamed
+            // deployments fail closed unless core resolves the exact REST anchor
+            return Class.forName(REST_PARTIAL_OBJECT_CLASS, false, loader) == clz;
+            }
+        catch (ClassNotFoundException e)
+            {
+            return false;
+            }
         }
 
     /**
@@ -549,13 +668,6 @@ public final class SerializationAllowlist
     private static final Pattern PATTERN_METHOD_REFERENCE_METHOD = Pattern.compile(
             "[A-Za-z_$][A-Za-z0-9_$]*|<init>");
 
-    private static Set<String> immutableSet(String... asValue)
-        {
-        Set<String> set = new LinkedHashSet<>();
-        Collections.addAll(set, asValue);
-        return Collections.unmodifiableSet(set);
-        }
-
     /**
      * Coherence-generated method-reference version pattern.
      */
@@ -572,10 +684,41 @@ public final class SerializationAllowlist
      */
     private static final String LAMBDA_PROXY_MARKER = "$$Lambda";
 
+    /**
+     * REST partial object class name.
+     */
+    private static final String REST_PARTIAL_OBJECT_CLASS =
+            "com.tangosol.coherence.rest.util.PartialObject";
+
+    /**
+     * REST partial class loader class name.
+     */
+    private static final String REST_PARTIAL_CLASS_LOADER =
+            "com.tangosol.coherence.rest.util.PartialObject$PartialClassLoader";
+
+    /**
+     * REST-generated partial class package prefix.
+     */
+    private static final String REST_PARTIAL_CLASS_PREFIX =
+            "com.tangosol.coherence.rest.util.gen.partial.";
+
+    private static Set<String> immutableSet(String... asValue)
+        {
+        Set<String> set = new LinkedHashSet<>();
+        Collections.addAll(set, asValue);
+        return Collections.unmodifiableSet(set);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * Cached manual allowlist.
      */
     private static final AtomicReference<Allowlist> s_allowlist = new AtomicReference<>();
+
+    /**
+     * Registered REST-generated partial projection classes grouped by
+     * {@code PartialObject} identity.
+     */
+    private static final Map<Class<?>, Set<Class<?>>> s_mapRestGeneratedPartialClasses = new WeakHashMap<>();
     }

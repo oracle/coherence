@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
 
 
-import com.tangosol.net.CacheFactory;
+import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.util.CoherenceMode;
 
 import com.tangosol.util.Base;
 
@@ -35,15 +37,17 @@ import java.util.WeakHashMap;
 public class MvelHelper
     {
     /**
-     * Return true if optional {@code org.mvel.mvel2} module is loaded from path.
-     * Due to security concerns, Mvel is removed from default implementation and
-     * only optionally available for backwards compatibility mode.
+     * Return true if optional {@code org.mvel.mvel2} module is loaded from path
+     * and Coherence is running in LEGACY mode. Due to security concerns, Mvel is
+     * removed from default implementation and only optionally available for
+     * backwards compatibility mode.
      *
      * @return true if mvel implementation is available
      */
     public static boolean isEnabled()
         {
-        return s_fEnabled;
+        // rest-01 Slice C 14.1.1.2206 MVEL POF backport: keep the jar probe static while mode remains resettable in tests
+        return s_fEnabled && CoherenceMode.isLegacy();
         }
 
     /**
@@ -85,7 +89,7 @@ public class MvelHelper
         catch (InstantiationException | IllegalAccessException | InvocationTargetException |
                NoSuchMethodException e)
             {
-            CacheFactory.err("MvelHelper.makeParserContext: handled unexpected exception " + e.getClass().getName() + " : " + e.getLocalizedMessage());
+            Logger.err("MvelHelper.makeParserContext: handled unexpected exception " + e.getClass().getName() + " : " + e.getLocalizedMessage());
             }
         catch (Throwable throwable)
             {}
@@ -183,9 +187,9 @@ public class MvelHelper
      */
     private static void ensureMvel2()
         {
-        if (!s_fEnabled)
+        if (!isEnabled())
             {
-            throw new UnsupportedOperationException("Invalid usage of optional module \"org.mvel.mvel2\" without its implementation being provided on path");
+            throw new UnsupportedOperationException("Invalid usage of optional module \"org.mvel.mvel2\" outside LEGACY mode or without its implementation being provided on path");
             }
         }
 
@@ -247,16 +251,15 @@ public class MvelHelper
             }
         catch (NoSuchMethodException | NoSuchFieldException | IllegalAccessException e)
             {
-            CacheFactory.log("Deprecated org.mvel2.mvel implementation jar found on classpath but MVEL is disabled due to unexpected exception " +
-                        e.getClass().getName() + " : " + e.getLocalizedMessage(), Base.LOG_WARN);
+            Logger.warn("Deprecated org.mvel2.mvel implementation jar found on classpath but MVEL is disabled due to unexpected exception " +
+                        e.getClass().getName() + " : " + e.getLocalizedMessage());
             fMvelEnabled = false;
             }
 
         s_fEnabled = fMvelEnabled;
         if (fMvelEnabled)
             {
-            CacheFactory.log("Deprecated org.mvel2.mvel jar found on classpath. Backwards compatible REST query using MVEL evaluation is enabled.",
-                             Base.LOG_WARN);
+            Logger.warn("Deprecated org.mvel2.mvel jar found on classpath. Backwards compatible REST query using MVEL evaluation is available in LEGACY mode.");
             }
 
         s_clzMVEL                                      = clzMVEL;
@@ -276,6 +279,8 @@ public class MvelHelper
 
     /**
      * True iff mvel2 jar is on classpath and all reflection lookups succeeded.
+     * Mode gating remains in {@link #isEnabled()} so tests can reset the
+     * memoized Coherence mode without reloading this class.
      */
     public static final boolean s_fEnabled;
 

@@ -294,6 +294,22 @@ public class SerializationAllowlistTest
         }
 
     @Test
+    public void testRestGeneratedPartialNamesAreNotAllowlistedByPrefix()
+        {
+        withProperties("prod", null, () ->
+            {
+            // rest-01 prompt 09 projection alias allowlist follow-up: generated
+            // REST projection names require exact class registration, not prefix trust
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "com.tangosol.coherence.rest.util.gen.partial.Person_1234567890",
+                    false));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "com.tangosol.coherence.rest.util.gen.partial.Person_1234567890",
+                    true));
+            });
+        }
+
+    @Test
     public void testProdModeRejectsCoherenceGeneratedMethodReferenceWithoutAllowedOwner()
         {
         withProperties("prod", "example.Allowed", () ->

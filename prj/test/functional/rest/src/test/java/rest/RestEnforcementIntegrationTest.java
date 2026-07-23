@@ -143,7 +143,7 @@ public class RestEnforcementIntegrationTest
     @Test
     public void registryProcessorAllowsXmlExecutableClass()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(Age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
@@ -154,7 +154,7 @@ public class RestEnforcementIntegrationTest
     @Test
     public void registryProcessorRejectsPlainClass()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/plain-number-doubler(Age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/plain-number-doubler(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
@@ -165,7 +165,7 @@ public class RestEnforcementIntegrationTest
     @Test
     public void defaultProcessorFactoryRejectsBeforeConstructorSideEffect()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/constructor-side-effect-processor(Age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/constructor-side-effect-processor(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
@@ -177,7 +177,7 @@ public class RestEnforcementIntegrationTest
     @Test
     public void defaultProcessorFactoryAllowsConstructorAfterPolicyCheck()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/allowed-constructor-side-effect-processor(Age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/allowed-constructor-side-effect-processor(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
@@ -227,7 +227,8 @@ public class RestEnforcementIntegrationTest
     @Test
     public void cohqlQueryGatesFilterAndComparator()
         {
-        Response response = getWebTarget("dist-test-named-query;start=0;sort=age:asc")
+        // keeps PROD REST URL expressions alias-only so this route reaches the comparator gate
+        Response response = getWebTarget("dist-test-named-query;start=0;sort=by-age:asc")
                 .queryParam("q", "age < 100")
                 .request(MediaType.APPLICATION_JSON)
                 .get();

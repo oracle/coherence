@@ -6,7 +6,10 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
+
 import com.tangosol.coherence.rest.util.PropertySet;
+import com.tangosol.coherence.rest.util.RestHelper;
 
 import com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry;
 
@@ -76,34 +79,53 @@ public class EntrySetResource
     /**
      * Return the entries' values or a subset of their properties.
      *
-     * @param propertySet  properties to return (if null, values will be
-     *                     returned)
+     * @param sProjection  projection alias from the {@code p} matrix parameter;
+     *                     a null value returns full values, while a configured
+     *                     alias returns only the allowed property set
      *
      * @return entries' values or a subset of their properties
      */
     @GET
     @Produces({APPLICATION_JSON, APPLICATION_XML, APPLICATION_OCTET_STREAM})
-    public Response getValues(@MatrixParam("p") PropertySet propertySet)
+    public Response getValues(@MatrixParam("p") String sProjection)
         {
-        Collection colValues = values();
-        return Response.ok(propertySet == null
-                ? colValues
-                : propertySet.extract(colValues)).build();
+        try
+            {
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            Collection  colValues   = values();
+            return Response.ok(propertySet == null
+                    ? colValues
+                    : propertySet.extract(colValues)).build();
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
+            }
         }
 
     @GET
     @Path("entries")
     @Produces({APPLICATION_JSON, APPLICATION_XML, TEXT_PLAIN})
-    public Response getEntries(@MatrixParam("p") PropertySet propertySet)
+    public Response getEntries(@MatrixParam("p") String sProjection)
         {
-        Map<Object, Object> mapResults = m_cache.getAll(m_setKeys);
-        Collection colResults = mapResults.entrySet().stream()
-                .map(entry -> propertySet == null
-                              ? entry
-                              : new SimpleMapEntry<>(entry.getKey(), propertySet.extract(entry.getValue())))
-                .collect(Collectors.toList());
+        try
+            {
+            PropertySet         propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            Map<Object, Object> mapResults  = m_cache.getAll(m_setKeys);
+            Collection colResults = mapResults.entrySet().stream()
+                    .map(entry -> propertySet == null
+                                  ? entry
+                                  : new SimpleMapEntry<>(entry.getKey(), propertySet.extract(entry.getValue())))
+                    .collect(Collectors.toList());
 
-        return Response.ok(colResults).build();
+            return Response.ok(colResults).build();
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
+            }
         }
 
     /**
@@ -118,7 +140,17 @@ public class EntrySetResource
     @Produces({APPLICATION_JSON, APPLICATION_XML, TEXT_PLAIN})
     public Response aggregate(@PathParam("aggr") String sAggr)
         {
-        InvocableMap.EntryAggregator aggr = m_aggregatorRegistry.getAggregator(sAggr);
+        InvocableMap.EntryAggregator aggr;
+        try
+            {
+            aggr = m_aggregatorRegistry.getAggregator(
+                    RestExpressionPolicy.resolveAggregator(m_expressionAliases, sAggr));
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
+            }
         RemoteInstallGate.enforceCacheAggregatorInstall(aggr, SerializationRole.REST, null);
 
         Object oResult = m_cache.aggregate(m_setKeys, aggr);
@@ -138,7 +170,18 @@ public class EntrySetResource
     @Produces({APPLICATION_JSON, APPLICATION_XML})
     public Response process(@PathParam("proc") String sProc)
         {
-        InvocableMap.EntryProcessor proc = m_processorRegistry.getProcessor(sProc);
+
+        InvocableMap.EntryProcessor proc;
+        try
+            {
+            proc = m_processorRegistry.getProcessor(
+                    RestExpressionPolicy.resolveProcessor(m_expressionAliases, sProc));
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
+            }
         RemoteInstallGate.enforceCacheProcessorInstall(proc, SerializationRole.REST, null);
 
         Map mapResult = m_cache.invokeAll(m_setKeys, proc);
@@ -177,6 +220,29 @@ public class EntrySetResource
         m_cache.invokeAll(m_setKeys, new ConditionalRemove(AlwaysFilter.INSTANCE));
         }
 
+    /**
+     * Set expression aliases for this resource.
+     * <p>
+     * Passes the parent resource's alias allowlist down to entry-set operations
+     * so projection, aggregation, and processor inputs stay centralized.
+     *
+     * @param aliases  expression aliases
+     */
+    public void setExpressionAliases(ExpressionAliasConfig aliases)
+        {
+        m_expressionAliases = aliases == null ? ExpressionAliasConfig.EMPTY : aliases;
+        }
+
+    /**
+     * Return expression aliases for this resource.
+     *
+     * @return expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_expressionAliases;
+        }
+
     // ---- data members -----------------------------------------------------
 
     /**
@@ -193,6 +259,11 @@ public class EntrySetResource
      * Class of the referenced entries' values.
      */
     protected Class m_clzValue;
+
+    /**
+     * Expression aliases configured for this resource.
+     */
+    protected ExpressionAliasConfig m_expressionAliases = ExpressionAliasConfig.EMPTY;
 
     /**
      * Aggregator registry that is used to map the given aggregator name to

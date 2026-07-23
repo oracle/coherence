@@ -6,12 +6,15 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
+
 import com.tangosol.coherence.rest.events.MapEventOutput;
 
 import com.tangosol.coherence.rest.io.Marshaller;
 import com.tangosol.coherence.rest.io.MarshallerRegistry;
 
 import com.tangosol.coherence.rest.util.PropertySet;
+import com.tangosol.coherence.rest.util.RestHelper;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
 
@@ -87,51 +90,60 @@ public class EntryResource
     /**
      * Return the entry value or a subset of its properties.
      *
-     * @param propertySet  properties to return (if null, value itself will
+     * @param sProjection  properties to return (if null, value itself will
      *                     be returned)
      * @param request      current HTTP request
      *
      * @return entry value or a subset of its properties
      */
     @GET
-    public Response get(@MatrixParam("p") PropertySet propertySet, @Context Request request)
+    public Response get(@MatrixParam("p") String sProjection, @Context Request request)
         {
-        Object oValue = getValue();
-        if (oValue == null)
+        try
             {
-            return Response.status(Response.Status.NOT_FOUND).build();
-            }
-        else
-            {
-            Response.ResponseBuilder rb   = null;
-            EntityTag                eTag = null;
-
-            // if the value is Versionable, we need to check if the version is
-            // different than the value specified in the ETag request header
-            // and return 304: Not Modified if it isn't
-            if (oValue instanceof Versionable &&
-                    ((Versionable) oValue).isVersioningEnabled())
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            Object      oValue      = getValue();
+            if (oValue == null)
                 {
-                String sVersion = ((Versionable) oValue).getVersionIndicator().toString();
-                eTag = new EntityTag(sVersion);
-                // this will create 304 response if the ETag matches current version
-                rb   = request.evaluatePreconditions(eTag);
+                return Response.status(Response.Status.NOT_FOUND).build();
                 }
-
-            if (rb == null)
+            else
                 {
-                rb = Response.ok(propertySet == null
-                                 ? oValue
-                                 : propertySet.extract(oValue));
+                Response.ResponseBuilder rb   = null;
+                EntityTag                eTag = null;
 
-                // if we have an ETag we need to send it to the client
-                if (eTag != null)
+                // if the value is Versionable, we need to check if the version is
+                // different than the value specified in the ETag request header
+                // and return 304: Not Modified if it isn't
+                if (oValue instanceof Versionable &&
+                        ((Versionable) oValue).isVersioningEnabled())
                     {
-                    rb.tag(eTag);
+                    String sVersion = ((Versionable) oValue).getVersionIndicator().toString();
+                    eTag = new EntityTag(sVersion);
+                    // this will create 304 response if the ETag matches current version
+                    rb   = request.evaluatePreconditions(eTag);
                     }
-                }
 
-            return rb.build();
+                if (rb == null)
+                    {
+                    rb = Response.ok(propertySet == null
+                                     ? oValue
+                                     : propertySet.extract(oValue));
+
+                    // if we have an ETag we need to send it to the client
+                    if (eTag != null)
+                        {
+                        rb.tag(eTag);
+                        }
+                    }
+
+                return rb.build();
+                }
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
             }
         }
 
@@ -204,7 +216,17 @@ public class EntryResource
     @Produces({APPLICATION_JSON, APPLICATION_XML, TEXT_PLAIN})
     public Response process(@PathParam("proc") String sProc)
         {
-        InvocableMap.EntryProcessor proc = m_processorRegistry.getProcessor(sProc);
+        InvocableMap.EntryProcessor proc;
+        try
+            {
+            proc = m_processorRegistry.getProcessor(
+                    RestExpressionPolicy.resolveProcessor(m_expressionAliases, sProc));
+            }
+        catch (IllegalArgumentException e)
+            {
+            RestHelper.log(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
+            }
         RemoteInstallGate.enforceCacheProcessorInstall(proc, SerializationRole.REST, null);
 
         Object oResult = m_cache.invoke(m_oKey, proc);
@@ -302,6 +324,29 @@ public class EntryResource
         return m_cache.keySet().contains(m_oKey);
         }
 
+    /**
+     * Set expression aliases for this resource.
+     * <p>
+     * Passes the parent resource's alias allowlist down to entry operations so
+     * projection and processor inputs keep the same policy boundary.
+     *
+     * @param aliases  expression aliases
+     */
+    public void setExpressionAliases(ExpressionAliasConfig aliases)
+        {
+        m_expressionAliases = aliases == null ? ExpressionAliasConfig.EMPTY : aliases;
+        }
+
+    /**
+     * Return expression aliases for this resource.
+     *
+     * @return expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_expressionAliases;
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -318,6 +363,11 @@ public class EntryResource
      * Class of the referenced entry's value.
      */
     protected Class m_clzValue;
+
+    /**
+     * Expression aliases configured for this resource.
+     */
+    protected ExpressionAliasConfig m_expressionAliases = ExpressionAliasConfig.EMPTY;
 
     /**
      * Marshaller registry to obtain marshallers from.
