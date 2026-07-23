@@ -127,8 +127,15 @@ public class RemoteExecutablePolicyTest
     @Test
     public void enforce_succeedsWhenExecutable()
         {
+        setMode("prod");
+
         RemoteExecutablePolicy.current().enforce(AnnotatedExecutable.class, OperationReason.PROCESS_ENTRY,
                 SerializationRole.UNCLASSIFIED, null);
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertEquals(Long.valueOf(1L), map.get("coh.executable.policy_check{reason="
+                + OperationReason.PROCESS_ENTRY.name() + ",role=" + SerializationRole.UNCLASSIFIED.name()
+                + ",result=allowed,mode=prod}"));
         }
 
     @Test
