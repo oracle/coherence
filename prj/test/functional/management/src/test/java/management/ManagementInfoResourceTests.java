@@ -2844,7 +2844,7 @@ public class ManagementInfoResourceTests
 
         Eventually.assertDeferred(
                 () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(CLEAR).request().post(null).getStatus(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
         m_aMembers[0].invoke((RemoteCallable<Object>) () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);
@@ -2901,7 +2901,7 @@ public class ManagementInfoResourceTests
 
         Eventually.assertDeferred(
                 () -> getBaseTarget().path(STORAGE).path(CACHE_NAME).path(TRUNCATE).request().post(null).getStatus(),
-                is(Response.Status.BAD_REQUEST.getStatusCode()));
+                is(Response.Status.UNAUTHORIZED.getStatusCode()));
         m_aMembers[0].invoke((RemoteCallable<Object>) () ->
             {
             NamedCache cache = CacheFactory.getCache(CACHE_NAME);

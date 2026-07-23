@@ -1341,6 +1341,11 @@
             <systemPropertyVariables>
               <java.awt.headless>true</java.awt.headless>
               <java.net.preferIPv4Stack>true</java.net.preferIPv4Stack>
+              <oracle.coherence.lib>${projects.path}/coherence/target</oracle.coherence.lib>
+              <test.root.dir>${projects.path}</test.root.dir>
+              <test.tmp.dir>${java.io.tmpdir}</test.tmp.dir>
+              <test.project.dir>${project.basedir}</test.project.dir>
+              <test.project.version>${project.version}</test.project.version>
               <test.maven.repository>${settings.localRepository}</test.maven.repository>
               <jacoco.dest.folder>${project.build.directory}</jacoco.dest.folder>
             </systemPropertyVariables>

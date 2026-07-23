@@ -19,6 +19,7 @@ import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.util.extractor.KeyExtractor;
 import com.tangosol.util.filter.EqualsFilter;
@@ -222,7 +223,7 @@ public class TopicsSubscriberReplayGateTest
         Subscription subscription = new Subscription();
         subscription.setFilter(new PlainFilter());
 
-        PagedTopicSubscriptionsBackingMap map = new PagedTopicSubscriptionsBackingMap(new ObservableHashMap<>(),
+        PagedTopicSubscriptionsBackingMap map = new PagedTopicSubscriptionsBackingMap(new LocalCache(),
                 mock(BackingMapManagerContext.class));
 
         try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
