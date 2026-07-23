@@ -73,8 +73,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.Properties;
 
-import static com.tangosol.util.ExternalizableHelper.toBinary;
-
 /**
  * Static helper methods used in the persistence of a partitioned cache.
  *
@@ -163,11 +161,11 @@ public class CachePersistenceHelper
             fCommit = true;
             }
 
-        Binary binPartsCount = toBinary(service.getPartitionCount(), serializer());
+        Binary binPartsCount = PersistenceMetadataCodec.encodePartitionCount(service.getPartitionCount());
 
         // prior to 12.2.1.1.0 the version was serialized as a string;
         // need to maintain it for backward compatibility
-        Binary binServiceVersion = toBinary(String.valueOf(PERSISTENCE_VERSION), serializer());
+        Binary binServiceVersion = PersistenceMetadataCodec.encodePersistenceVersion(PERSISTENCE_VERSION);
 
         store.store(META_EXTENT, BINARY_PARTITION_COUNT, binPartsCount, oToken);
         store.store(META_EXTENT, BINARY_PERSISTENCE_VERSION, binServiceVersion, oToken);
@@ -304,10 +302,22 @@ public class CachePersistenceHelper
             {
             return null;
             }
+
+        return readQuorum(binMembers);
+        }
+
+    /**
+     * Read the membership information from its encoded form.
+     *
+     * @param binMembers  the encoded membership information
+     *
+     * @return the membership information
+     */
+    public static QuorumInfo readQuorum(Binary binMembers)
+        {
         try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
             {
-            return (QuorumInfo) ExternalizableHelper.fromBinary(
-                    binMembers.toBinary(), serializer());
+            return PersistenceMetadataCodec.decodeQuorum(binMembers, serializer());
             }
         }
 
@@ -457,10 +467,7 @@ public class CachePersistenceHelper
             {
             return -1;
             }
-        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
-            {
-            return (Integer) ExternalizableHelper.fromBinary(bufPartsCount.toBinary(), serializer());
-            }
+        return PersistenceMetadataCodec.decodePartitionCount(bufPartsCount);
         }
 
     /**
@@ -492,24 +499,7 @@ public class CachePersistenceHelper
         {
         ReadBuffer bufVersion = store.load(META_EXTENT, BINARY_PERSISTENCE_VERSION);
 
-        int nVersion = 0;
-        if (bufVersion != null)
-            {
-            Object oVersion;
-            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
-                {
-                oVersion = ExternalizableHelper.fromBinary(bufVersion.toBinary(), serializer());
-                }
-            try
-                {
-                nVersion = oVersion instanceof Integer
-                    ? ((Integer) oVersion).intValue()
-                    : Integer.parseInt((String) oVersion);
-                }
-            catch (NumberFormatException ignore) {}
-            }
-
-        return nVersion;
+        return bufVersion == null ? 0 : PersistenceMetadataCodec.decodePersistenceVersion(bufVersion);
         }
 
     /**
@@ -1350,6 +1340,18 @@ public class CachePersistenceHelper
         return deps.getMemberIdentity().getClusterName();
         }
 
+    /**
+     * Validate that the supplied snapshot name is already a safe file name.
+     *
+     * @param sSnapshot  the snapshot name
+     *
+     * @return the validated snapshot name
+     */
+    public static String validateSnapshotName(String sSnapshot)
+        {
+        return PersistenceMetadataCodec.validateSnapshotName(sSnapshot);
+        }
+
     // ----- recovery support -----------------------------------------------
 
     /**
@@ -1501,6 +1503,8 @@ public class CachePersistenceHelper
      */
     public static String getSnapshotStatus(PersistenceEnvironment env, String sName)
         {
+        sName = validateSnapshotName(sName);
+
         if (!(env instanceof BerkeleyDBEnvironment))
             {
             return null;
@@ -1535,6 +1539,8 @@ public class CachePersistenceHelper
      */
     public static String getSnapshotRecoveryStatus(PersistenceEnvironment env, String sName)
         {
+        sName = validateSnapshotName(sName);
+
         if (!(env instanceof BerkeleyDBEnvironment))
             {
             return null;

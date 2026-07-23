@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.tangosol.coherence.management.internal.resources;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
+
+import com.tangosol.persistence.CachePersistenceHelper;
 
 import com.tangosol.util.Filter;
 
@@ -88,6 +90,8 @@ public class PersistenceResource
     @Path("snapshots/{" + SNAPSHOT_NAME + "}/status")
     public Response getSnapshotStatus(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -105,6 +109,8 @@ public class PersistenceResource
     @Path("snapshots/{" + SNAPSHOT_NAME + "}/recover/status")
     public Response getSnapshotRecoveryStatus(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -151,6 +157,8 @@ public class PersistenceResource
     @Path("archiveStores/{" + SNAPSHOT_NAME + "}")
     public Response getArchiveStores(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -185,6 +193,8 @@ public class PersistenceResource
     @Path("snapshots/{" + SNAPSHOT_NAME + "}")
     public Response executeSnapshotOperation(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -203,6 +213,8 @@ public class PersistenceResource
     @Path("snapshots/{" + SNAPSHOT_NAME + "}" + "/recover")
     public Response recoverSnapshot(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -221,6 +233,8 @@ public class PersistenceResource
     @Path("archives/{" + SNAPSHOT_NAME + "}")
     public Response executeArchiveOperation(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -239,6 +253,8 @@ public class PersistenceResource
     @Path("archives/{" + SNAPSHOT_NAME + "}/retrieve")
     public Response retrieveArchivedSnapshot(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -259,6 +275,8 @@ public class PersistenceResource
     @Path("snapshots/{" + SNAPSHOT_NAME + "}")
     public Response deleteSnapshot(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -277,6 +295,8 @@ public class PersistenceResource
     @Path("archives/{" + SNAPSHOT_NAME + "}")
     public Response deleteArchive(@PathParam(SNAPSHOT_NAME) String sSnapshotName)
         {
+        sSnapshotName = getSnapshotName(sSnapshotName);
+
         String[] asSignature = {String.class.getName()};
         Object[] aoArguments = {sSnapshotName};
 
@@ -303,6 +323,18 @@ public class PersistenceResource
     protected QueryBuilder getQuery()
         {
         return createQueryBuilder().withBaseQuery(PERSISTENCE_CONTROLLER_QUERY).withService(getService());
+        }
+
+    /**
+     * Return a validated snapshot name.
+     *
+     * @param sSnapshotName  the raw snapshot name
+     *
+     * @return the validated snapshot name
+     */
+    protected String getSnapshotName(String sSnapshotName)
+        {
+        return CachePersistenceHelper.validateSnapshotName(sSnapshotName);
         }
 
     // ----- constants ------------------------------------------------------
