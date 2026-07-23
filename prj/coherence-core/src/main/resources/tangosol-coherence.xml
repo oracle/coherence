@@ -790,6 +790,15 @@ to find specific notes on changes suggested for production use.
       <storage-authorizer id="auditing">
         <class-name>com.tangosol.net.security.AuditingAuthorizer</class-name>
       </storage-authorizer>
+      <storage-authorizer id="strict-auditing">
+        <class-name>com.tangosol.net.security.AuditingAuthorizer</class-name>
+        <init-params>
+          <init-param>
+            <param-type>boolean</param-type>
+            <param-value>true</param-value>
+          </init-param>
+        </init-params>
+      </storage-authorizer>
     </storage-authorizers>
   </cluster-config>
 

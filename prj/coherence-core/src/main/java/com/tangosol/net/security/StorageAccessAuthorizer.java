@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.security;
 
@@ -115,6 +115,10 @@ public interface StorageAccessAuthorizer
                 return "removeInterceptor";
             case REASON_CLEAR:
                 return "clear";
+            case REASON_LOCK:
+                return "lock";
+            case REASON_UNLOCK:
+                return "unlock";
             default:
                 return "<unknown>";
             }
@@ -140,4 +144,6 @@ public interface StorageAccessAuthorizer
     public static final int REASON_TRIGGER_REMOVE = 15;
     public static final int REASON_INTERCEPTOR_ADD = 16;
     public static final int REASON_INTERCEPTOR_REMOVE = 17;
+    public static final int REASON_LOCK = 18;
+    public static final int REASON_UNLOCK = 19;
     }
