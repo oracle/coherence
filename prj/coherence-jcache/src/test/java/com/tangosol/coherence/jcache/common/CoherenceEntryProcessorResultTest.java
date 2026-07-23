@@ -7,9 +7,14 @@
 package com.tangosol.coherence.jcache.common;
 
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ReadBuffer;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.io.pof.PofBufferReader;
+import com.tangosol.io.pof.PofBufferWriter;
 import com.tangosol.io.pof.ConfigurablePofContext;
+import com.tangosol.io.pof.SimplePofContext;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
@@ -18,6 +23,11 @@ import java.io.InvalidClassException;
 
 import java.util.Arrays;
 import java.util.Collection;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InvalidClassException;
+import java.io.ObjectOutputStream;
 
 import javax.management.BadAttributeValueExpException;
 
@@ -105,6 +115,51 @@ public class CoherenceEntryProcessorResultTest
             {
             assertThat(hasCause(e, InvalidClassException.class), is(true));
             }
+        }
+
+    @Test
+    public void testPofSerializationRejectsUnexpectedJavaSerializedExceptionObject() throws IOException
+        {
+        Assume.assumeTrue(f_serializer instanceof ConfigurablePofContext);
+
+        ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
+        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
+                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
+
+        writer.writeObject(0, null);
+        writer.writeBoolean(1, true);
+        writer.writeByteArray(2, toJavaSerializationBytes(new java.util.Date(12345L)));
+        writer.writeRemainder(null);
+
+        CoherenceEntryProcessorResult result = new CoherenceEntryProcessorResult();
+        try
+            {
+            result.readExternal(createPofUserTypeReader(wb));
+            fail("expected unexpected exception payload to be rejected");
+            }
+        catch (IOException e)
+            {
+            assertThat(hasCause(e, InvalidClassException.class), is(true));
+            }
+        }
+
+    private static byte[] toJavaSerializationBytes(Object o) throws IOException
+        {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(out))
+            {
+            oos.writeObject(o);
+            }
+        return out.toByteArray();
+        }
+
+    private static PofBufferReader.UserTypeReader createPofUserTypeReader(ByteArrayWriteBuffer wb)
+            throws IOException
+        {
+        ReadBuffer.BufferInput in       = wb.getReadBuffer().getBufferInput();
+        int                    nType    = in.readPackedInt();
+        int                    nVersion = in.readPackedInt();
+        return new PofBufferReader.UserTypeReader(in, new SimplePofContext(), nType, nVersion);
         }
 
     private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)

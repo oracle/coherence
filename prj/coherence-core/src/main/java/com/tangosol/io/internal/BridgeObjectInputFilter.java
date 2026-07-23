@@ -6,63 +6,54 @@
  */
 package com.tangosol.io.internal;
 
-import com.tangosol.util.ExternalizableHelper;
+import java.io.InvalidClassException;
+import java.io.IOException;
+import java.io.ObjectStreamException;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * Coherence default ObjectInputFilter.
+ * Expected-type filters for product-owned Java serialization bridge fields.
  *
- * @author Aleks Seovic  2026.04.29
+ * @author Aleks Seovic  2026.05.15
  * @since 26.04
  */
-public final class DefaultObjectInputFilter
+public final class BridgeObjectInputFilter
         implements InvocationHandler
     {
-    /**
-     * Return a filter that intersects the Coherence default filter with any
-     * JVM-wide user-configured serial filter.
-     *
-     * @return the effective serial filter
-     */
-    public static Object create()
-        {
-        Object filterUser = ExternalizableHelper.getConfigSerialFilter();
-        return filterUser == null ? INSTANCE.proxy() : new IntersectingFilter(INSTANCE.proxy(), filterUser).proxy();
-        }
+    // ----- factory methods -----------------------------------------------
 
     /**
-     * Return a filter that intersects the Coherence default filter, any
-     * JVM-wide user-configured serial filter, and the specified bridge filter.
+     * Return a filter for JCache exception bridges.
      *
-     * @param filterBridge  the bridge-local filter
-     *
-     * @return the effective serial filter
+     * @return an exception bridge filter
      */
-    public static Object create(Object filterBridge)
+    public static Object exception()
         {
-        Object filterDefault = create();
-        if (filterDefault == null)
-            {
-            return filterBridge;
-            }
-        return filterBridge == null ? filterDefault : new IntersectingFilter(filterDefault, filterBridge).proxy();
+        return EXCEPTION_FILTER.proxy();
         }
 
+    // ----- constructors ---------------------------------------------------
+
     /**
-     * Return a filter that intersects the Coherence default filter with the
-     * specified user filter.
+     * Construct a bridge filter.
      *
-     * @param filterUser  the user filter
-     *
-     * @return the effective serial filter
+     * @param sReason       the telemetry rejection reason
+     * @param setAllowed    the exact allowed class names
      */
-    static Object forTesting(Object filterUser)
+    private BridgeObjectInputFilter(String sReason, Set<String> setAllowed)
         {
-        return filterUser == null ? INSTANCE.proxy() : new IntersectingFilter(INSTANCE.proxy(), filterUser).proxy();
+        f_sReason    = sReason;
+        f_setAllowed = setAllowed;
         }
+
+    // ----- InvocationHandler interface -----------------------------------
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
@@ -71,12 +62,18 @@ public final class DefaultObjectInputFilter
         if ("checkInput".equals(sName))
             {
             Class<?> clz = serialClass(args[0]);
-            boolean  fAllowed = SerializationAllowlist.isAllowed(clz);
-            if (!fAllowed)
+            if (clz == null)
                 {
-                SerializationTelemetry.recordFilterCheck("rejected", "serialization-allowlist-rejected", clz, null);
+                return status("UNDECIDED");
                 }
-            return status(fAllowed ? "ALLOWED" : "REJECTED");
+
+            if (isAllowed(clz))
+                {
+                return status("ALLOWED");
+                }
+
+            SerializationTelemetry.recordFilterCheck("rejected", f_sReason, clz, null);
+            return status("REJECTED");
             }
         else if ("toString".equals(sName))
             {
@@ -91,6 +88,55 @@ public final class DefaultObjectInputFilter
             return proxy == args[0];
             }
         return null;
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Return {@code true} if the specified class is expected by this bridge.
+     *
+     * @param clz  the class to check
+     *
+     * @return {@code true} if the class is expected
+     */
+    private boolean isAllowed(Class<?> clz)
+        {
+        if (clz.isArray())
+            {
+            Class<?> clzComponent = clz.getComponentType();
+            return clzComponent.isPrimitive() || isAllowed(clzComponent);
+            }
+
+        return clz.isPrimitive() || f_setAllowed.contains(clz.getName());
+        }
+
+    /**
+     * Return a set containing all entries from the specified sets.
+     *
+     * @param setFirst   the first set
+     * @param setSecond  the second set
+     *
+     * @return a combined set
+     */
+    private static Set<String> allowed(Set<String> setFirst, Set<String> setSecond)
+        {
+        Set<String> setAllowed = new HashSet<>(setFirst);
+        setAllowed.addAll(setSecond);
+        return Collections.unmodifiableSet(setAllowed);
+        }
+
+    /**
+     * Return a set containing all specified class names.
+     *
+     * @param asClassNames  the class names
+     *
+     * @return a set containing all specified class names
+     */
+    private static Set<String> allowed(String... asClassNames)
+        {
+        Set<String> setAllowed = new HashSet<>();
+        Collections.addAll(setAllowed, asClassNames);
+        return Collections.unmodifiableSet(setAllowed);
         }
 
     /**
@@ -108,80 +154,6 @@ public final class DefaultObjectInputFilter
             }
         return proxy;
         }
-
-    // ----- inner class: IntersectingFilter --------------------------------
-
-    /**
-     * Filter that rejects when either delegate rejects.
-     */
-    private static class IntersectingFilter
-            implements InvocationHandler
-        {
-        IntersectingFilter(Object defaultFilter, Object userFilter)
-            {
-            f_defaultFilter = defaultFilter;
-            f_userFilter    = userFilter;
-            }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
-            {
-            String sName = method.getName();
-            if ("checkInput".equals(sName))
-                {
-                Enum statusDefault = (Enum) method.invoke(f_defaultFilter, args);
-                if ("REJECTED".equals(statusDefault.name()))
-                    {
-                    return statusDefault;
-                    }
-
-                Enum statusUser = (Enum) method.invoke(f_userFilter, args);
-                if ("REJECTED".equals(statusUser.name()))
-                    {
-                    return statusUser;
-                    }
-
-                return "ALLOWED".equals(statusDefault.name()) || "ALLOWED".equals(statusUser.name())
-                        ? status("ALLOWED")
-                        : status("UNDECIDED");
-                }
-            else if ("toString".equals(sName))
-                {
-                return getClass().getName();
-                }
-            else if ("hashCode".equals(sName))
-                {
-                return System.identityHashCode(this);
-                }
-            else if ("equals".equals(sName))
-                {
-                return proxy == args[0];
-                }
-            return null;
-            }
-
-        /**
-         * Return this handler's ObjectInputFilter proxy.
-         *
-         * @return this handler's ObjectInputFilter proxy
-         */
-        private Object proxy()
-            {
-            Object proxy = m_proxy;
-            if (proxy == null && CLZ_FILTER != null)
-                {
-                proxy = Proxy.newProxyInstance(CLZ_FILTER.getClassLoader(), new Class<?>[] {CLZ_FILTER}, this);
-                m_proxy = proxy;
-                }
-            return proxy;
-            }
-
-        private final Object f_defaultFilter;
-        private final Object f_userFilter;
-        private       Object m_proxy;
-        }
-
-    // ----- helper methods -------------------------------------------------
 
     /**
      * Return the serial class from an ObjectInputFilter.FilterInfo proxy.
@@ -301,9 +273,43 @@ public final class DefaultObjectInputFilter
     // ----- constants ------------------------------------------------------
 
     /**
-     * Singleton default filter.
+     * Java serialization classes needed by ordinary exception state.
      */
-    private static final DefaultObjectInputFilter INSTANCE = new DefaultObjectInputFilter();
+    private static final Set<String> EXCEPTION_INFRASTRUCTURE = allowed(
+            "java.lang.StackTraceElement",
+            "java.util.Collections$EmptyList");
+
+    /**
+     * Narrow JDK checked/runtime exception classes accepted by JCache exception
+     * bridges.
+     */
+    private static final Set<String> EXCEPTION_TYPES = allowed(
+            Throwable.class.getName(),
+            Exception.class.getName(),
+            RuntimeException.class.getName(),
+            ArithmeticException.class.getName(),
+            ArrayStoreException.class.getName(),
+            ClassCastException.class.getName(),
+            IllegalArgumentException.class.getName(),
+            IllegalMonitorStateException.class.getName(),
+            IllegalStateException.class.getName(),
+            IndexOutOfBoundsException.class.getName(),
+            NegativeArraySizeException.class.getName(),
+            NullPointerException.class.getName(),
+            NumberFormatException.class.getName(),
+            SecurityException.class.getName(),
+            UnsupportedOperationException.class.getName(),
+            IOException.class.getName(),
+            ObjectStreamException.class.getName(),
+            InvalidClassException.class.getName());
+
+    /**
+     * Exception bridge filter singleton.
+     */
+    private static final BridgeObjectInputFilter EXCEPTION_FILTER =
+            new BridgeObjectInputFilter("bridge-exception-type-rejected",
+                    allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
+
 
     /**
      * The runtime ObjectInputFilter class.
@@ -326,6 +332,16 @@ public final class DefaultObjectInputFilter
     private static final Method METHOD_SERIAL_CLASS = serialClassMethod();
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Telemetry rejection reason.
+     */
+    private final String f_sReason;
+
+    /**
+     * Exact allowed class names.
+     */
+    private final Set<String> f_setAllowed;
 
     /**
      * This handler's ObjectInputFilter proxy.

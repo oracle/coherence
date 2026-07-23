@@ -58,8 +58,26 @@ public class SerializationHelper
     public static <T> T fromByteArray(byte[] aBytes, Class<T> clz)
             throws IOException
         {
+        return fromByteArray(aBytes, clz, null);
+        }
+
+    /**
+     * Deserializes an {@link Object} from a byte array representation
+     * (using Java Serialization).
+     *
+     * @param aBytes        the byte array
+     * @param clz           the expected type of the object
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return  an {@link Object}
+     * @throws java.io.IOException  should deserialization fail
+     */
+    public static <T> T fromByteArray(byte[] aBytes, Class<T> clz, Object filterBridge)
+            throws IOException
+        {
         ByteArrayInputStream streamByteArray = new ByteArrayInputStream(aBytes);
-        ObjectInputStream    streamObject    = ExternalizableHelper.newFilteredObjectInputStream(streamByteArray, null);
+        ObjectInputStream    streamObject    = ExternalizableHelper.newFilteredObjectInputStream(
+                streamByteArray, null, filterBridge);
 
         try
             {

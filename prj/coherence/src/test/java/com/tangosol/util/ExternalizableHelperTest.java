@@ -9,6 +9,7 @@ package com.tangosol.util;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
 
@@ -18,6 +19,8 @@ import com.tangosol.io.pof.PofContext;
 import com.tangosol.io.pof.PofInputStream;
 import com.tangosol.io.pof.PofOutputStream;
 import com.tangosol.io.pof.PortableObjectSerializer;
+import com.tangosol.io.pof.SafeConfigurablePofContext;
+import com.tangosol.io.pof.SerializableSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
 import data.Person;
@@ -53,6 +56,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import test.CheckJDK;
+
+import javax.management.BadAttributeValueExpException;
 
 import static org.junit.Assert.*;
 
@@ -695,6 +700,49 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         testExternalizableLiteObjectInputFilter(true, false, 500000 );
         }
 
+    @Test
+    public void testSerializableSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
+        {
+        ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
+        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
+                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
+
+        writer.writeBinary(0, ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"),
+                new DefaultSerializer()));
+        writer.writeRemainder(null);
+
+        final ByteArrayWriteBuffer wbResult = wb;
+        assertRejectedByFilter(new ThrowingRunnable()
+            {
+            public void run() throws Exception
+                {
+                new SerializableSerializer().deserialize(createPofUserTypeReader(wbResult));
+                }
+            });
+        }
+
+    @Test
+    public void testJavaPofSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
+        {
+        ByteArrayWriteBuffer       wb     = new ByteArrayWriteBuffer(0);
+        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
+                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
+        final SafeConfigurablePofContext ctx = new SafeConfigurablePofContext();
+
+        writer.writeBinary(0, ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"),
+                new DefaultSerializer()));
+        writer.writeRemainder(null);
+
+        final ByteArrayWriteBuffer wbResult = wb;
+        assertRejectedByFilter(new ThrowingRunnable()
+            {
+            public void run() throws Exception
+                {
+                ctx.new JavaPofSerializer().deserialize(createPofUserTypeReader(wbResult));
+                }
+            });
+        }
+
     /**
      * Test deserialization filter on {@link ReadBuffer.BufferInput}.
      */
@@ -1153,6 +1201,44 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         return null;
         }
 
+    private static byte[] toJavaSerializationBytes(Object o) throws IOException
+        {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream    oos = new ObjectOutputStream(out);
+        try
+            {
+            oos.writeObject(o);
+            }
+        finally
+            {
+            oos.close();
+            }
+        return out.toByteArray();
+        }
+
+    private static PofBufferReader.UserTypeReader createPofUserTypeReader(ByteArrayWriteBuffer wb)
+            throws IOException
+        {
+        ReadBuffer.BufferInput in       = wb.getReadBuffer().getBufferInput();
+        int                    nType    = in.readPackedInt();
+        int                    nVersion = in.readPackedInt();
+        return new PofBufferReader.UserTypeReader(in, new SimplePofContext(), nType, nVersion);
+        }
+
+    private static void assertRejectedByFilter(ThrowingRunnable runnable)
+        {
+        try
+            {
+            runnable.run();
+            fail("expected deserialization to be rejected");
+            }
+        catch (Throwable t)
+            {
+            assertTrue("expected InvalidClassException in cause chain but got " + t,
+                    hasCause(t, InvalidClassException.class));
+            }
+        }
+
     private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)
         {
         while (t != null)
@@ -1161,10 +1247,19 @@ public class ExternalizableHelperTest extends ExternalizableHelper
                 {
                 return true;
                 }
+            if (t.getMessage() != null && t.getMessage().contains(clz.getName()))
+                {
+                return true;
+                }
             t = t.getCause();
             }
 
         return false;
+        }
+
+    private interface ThrowingRunnable
+        {
+        void run() throws Exception;
         }
 
     /**

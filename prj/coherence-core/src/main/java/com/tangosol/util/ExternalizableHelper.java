@@ -5828,9 +5828,28 @@ public abstract class ExternalizableHelper
     public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader)
             throws IOException
         {
+        return newFilteredObjectInputStream(stream, loader, null);
+        }
+
+    /**
+     * Construct an ObjectInputStream with Coherence's default filter and a
+     * caller-supplied bridge filter attached.
+     *
+     * @param stream        the stream to read from
+     * @param loader        the class loader to use
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return a filtered ObjectInputStream
+     *
+     * @throws IOException if an I/O exception occurs
+     */
+    public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader,
+            Object filterBridge)
+            throws IOException
+        {
         ObjectInputStream ois = new ResolvingObjectInputStream(stream,
                 RemotableSupport.get(ensureClassLoader(loader)));
-        setObjectInputFilter(ois, DefaultObjectInputFilter.create());
+        setObjectInputFilter(ois, DefaultObjectInputFilter.create(filterBridge));
         return ois;
         }
 
