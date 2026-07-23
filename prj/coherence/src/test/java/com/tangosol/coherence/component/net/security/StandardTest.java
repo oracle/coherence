@@ -6,28 +6,43 @@
  */
 package com.tangosol.coherence.component.net.security;
 
+import com.tangosol.coherence.component.net.Cluster;
+import com.tangosol.coherence.component.net.Cluster$ClusterService;
 import com.tangosol.internal.net.security.DefaultStandardDependencies;
 import com.tangosol.net.ClusterPermission;
+import com.tangosol.net.Service;
+import com.tangosol.net.ServiceInfo;
+import com.tangosol.net.cache.LocalCache;
 import com.tangosol.net.security.AccessController;
+import com.tangosol.net.security.PermissionInfo;
 import org.junit.Test;
 
 import javax.security.auth.Subject;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.SignedObject;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author jk 2016.04.21
@@ -56,6 +71,89 @@ public class StandardTest
         testValidate(controller);
         }
 
+    @Test
+    public void shouldUseSecureValidationToken() throws Exception
+        {
+        CapturingAccessController   controller   = new CapturingAccessController();
+        DefaultStandardDependencies dependencies = new DefaultStandardDependencies();
+        Subject                     subject      = new Subject();
+
+        dependencies.setAccessController(controller);
+
+        Standard standard = new Standard();
+
+        standard.setDependencies(dependencies);
+        standard.validateSubject("DistributedService", subject);
+
+        assertTrue(controller.getPayload() instanceof Long);
+        assertFalse(controller.getPayload() instanceof Double);
+        }
+
+    @Test
+    public void shouldUseDocumentedValidSubjectsExpiry() throws Exception
+        {
+        Standard   standard = createStandard(new AccessControllerStub(), new Subject(), "DistributedService");
+        LocalCache cache    = (LocalCache) getField(standard, "__m_ValidSubjects");
+
+        assertEquals(10000, cache.getExpiryDelay());
+        }
+
+    @Test
+    public void shouldVerifyMatchingSecureResponse() throws Exception
+        {
+        AccessControllerStub controller = new AccessControllerStub();
+        Subject              subject    = new Subject();
+        String               sService   = "DistributedService";
+        Standard             standard   = createStandard(controller, subject, sService);
+        ClusterPermission    permission = permission(sService, "*", "join");
+
+        registerPendingSecureResponse(standard, sService, permission);
+
+        standard.verifySecureResponse(mockService(sService), permissionInfo(controller, permission, subject));
+        }
+
+    @Test
+    public void shouldRejectMismatchedSecureResponse() throws Exception
+        {
+        AccessControllerStub controller  = new AccessControllerStub();
+        Subject              subject     = new Subject();
+        String               sService    = "DistributedService";
+        Standard             standard    = createStandard(controller, subject, sService);
+        ClusterPermission    requested   = permission(sService, "Orders", "join");
+        ClusterPermission    replayed    = permission(sService, "Accounts", "join");
+
+        registerPendingSecureResponse(standard, sService, requested);
+
+        SecurityException exception = assertThrows(SecurityException.class,
+                () -> standard.verifySecureResponse(mockService(sService), permissionInfo(controller, replayed, subject)));
+
+        assertTrue(exception.getMessage().contains("mismatch"));
+        }
+
+    @Test
+    public void shouldRecordPendingSecureResponseFromCheckPermission() throws Exception
+        {
+        AccessControllerStub        controller        = new AccessControllerStub();
+        Subject                     subject           = new Subject();
+        String                      sService          = "DistributedService";
+        Standard                    standard          = createStandard(controller, subject, sService);
+        ClusterPermission           permission        = permission(sService, "Orders", "join");
+        Cluster                     cluster           = mock(Cluster.class);
+        Cluster$ClusterService      serviceCluster    = mock(Cluster$ClusterService.class);
+        Map<String, PermissionInfo> mapServiceContext = new HashMap<>();
+
+        when(cluster.isRunning()).thenReturn(true);
+        when(cluster.getClusterService()).thenReturn(serviceCluster);
+        when(serviceCluster.getService(sService)).thenReturn(null);
+        when(serviceCluster.getServiceContext()).thenReturn(mapServiceContext);
+
+        standard.checkPermission(cluster, permission, subject);
+
+        assertTrue(mapServiceContext.containsKey(sService));
+        assertEquals(permission, mapServiceContext.get(sService).getPermission());
+
+        standard.verifySecureResponse(mockService(sService), permissionInfo(controller, permission, subject));
+        }
 
     void testValidate(AccessController controller) throws Exception
         {
@@ -94,7 +192,62 @@ public class StandardTest
         verify(controllerSpy, times(1)).decrypt(nullable(SignedObject.class), same(subject), nullable(Subject.class));
         }
 
+    private Standard createStandard(AccessController controller, Subject subject, String sService)
+            throws Exception
+        {
+        DefaultStandardDependencies dependencies = new DefaultStandardDependencies();
 
+        dependencies.setAccessController(controller);
+
+        Standard standard = new Standard();
+
+        standard.setDependencies(dependencies);
+        standard.validateSubject(sService, subject);
+
+        return standard;
+        }
+
+    private ClusterPermission permission(String sService, String sCache, String sAction)
+        {
+        return new ClusterPermission("service=" + sService + (sCache == null ? "" : ",cache=" + sCache), sAction);
+        }
+
+    private PermissionInfo permissionInfo(AccessController controller, ClusterPermission permission, Subject subject)
+            throws IOException, GeneralSecurityException
+        {
+        return new PermissionInfo(permission, permission.getServiceName(), controller.encrypt(permission, subject), subject);
+        }
+
+    private Service mockService(String sService)
+        {
+        ServiceInfo info    = mock(ServiceInfo.class);
+        Service     service = mock(Service.class);
+
+        when(info.getServiceName()).thenReturn(sService);
+        when(service.getInfo()).thenReturn(info);
+
+        return service;
+        }
+
+    @SuppressWarnings("unchecked")
+    private void registerPendingSecureResponse(Standard standard, String sService, ClusterPermission permission)
+            throws Exception
+        {
+        Map<String, ClusterPermission> map =
+                (Map<String, ClusterPermission>) getField(standard, "__m_PendingSecureResponses");
+
+        map.put(sService, permission);
+        }
+
+    private Object getField(Standard standard, String sName)
+            throws Exception
+        {
+        Field field = Standard.class.getDeclaredField(sName);
+
+        field.setAccessible(true);
+
+        return field.get(standard);
+        }
 
     public static class AccessControllerStub implements AccessController
         {
@@ -138,6 +291,29 @@ public class StandardTest
         public void checkPermission(ClusterPermission permission, Subject subject)
             {
             }
+        }
+
+    public static class CapturingAccessController
+            extends AccessControllerStub
+        {
+        public CapturingAccessController() throws Exception
+            {
+            }
+
+        @Override
+        public SignedObject encrypt(Object o, Subject subjEncryptor)
+                throws IOException, GeneralSecurityException
+            {
+            m_oPayload = o;
+            return super.encrypt(o, subjEncryptor);
+            }
+
+        public Object getPayload()
+            {
+            return m_oPayload;
+            }
+
+        private Object m_oPayload;
         }
 
     public static class AccessControllerStubRSA implements AccessController
