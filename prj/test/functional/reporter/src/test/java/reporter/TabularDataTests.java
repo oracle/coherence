@@ -265,7 +265,7 @@ public class TabularDataTests
         Files.write(file.toPath(), sXmlReport.getBytes(StandardCharsets.UTF_8));
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
             {
-            new ReportBatch().runTabularReport(file.getPath());
+            new ReportBatch().runTabularReport(file.toURI().toString());
             }
         finally
             {
