@@ -23,6 +23,7 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.WrapperException;
 
 import java.io.ByteArrayInputStream;
 
@@ -48,6 +49,7 @@ import javax.management.AttributeList;
 import javax.management.AttributeNotFoundException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.RuntimeMBeanException;
 
 import javax.ws.rs.WebApplicationException;
 
@@ -163,6 +165,24 @@ public abstract class AbstractManagementResource
             throw new WebApplicationException(Response.status(status).
                 entity("HTTP " + status.getStatusCode() + ' ' + status.getReasonPhrase() + '\n' +
                     iae.getMessage()).build());
+            }
+        catch (RuntimeMBeanException e)
+            {
+            if (isSecurityException(e.getTargetException()))
+                {
+                return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
+
+            CacheFactory.log("Exception occurred while updating an MBean with query "
+                + bldrQuery.toString() + ", " + e + '\n'
+                + Base.getStackTrace(e), CacheFactory.LOG_ERR);
+
+            // internal server error
+            throw new WebApplicationException();
+            }
+        catch (SecurityException e)
+            {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
             }
         catch (Exception e)
             {
@@ -332,6 +352,12 @@ public abstract class AbstractManagementResource
                 }
 
             response.addFailure(sOperationName + " failed, Cause=" + sCause);
+
+            if (isSecurityException(tCause))
+                {
+                return Response.status(Response.Status.UNAUTHORIZED).entity(response.toJson()).build();
+                }
+
             return Response.status(Response.Status.BAD_REQUEST).entity(response.toJson()).build();
             }
         return response(new MBeanResponse(getRequestContext()).toJson());
@@ -1422,6 +1448,20 @@ public abstract class AbstractManagementResource
             }
 
         return sbName.length() == 0 ? "redacted" : sbName.toString();
+        }
+
+    /**
+     * Return true if the {@link Throwable} is a {@link SecurityException} or wraps one.
+     *
+     * @param tCause  the {@link Throwable} to inspect
+     *
+     * @return true if the {@link Throwable} is a {@link SecurityException}
+     */
+    private boolean isSecurityException(Throwable tCause)
+        {
+        return tCause instanceof SecurityException ||
+               (tCause instanceof RuntimeException && tCause.getCause() instanceof WrapperException &&
+                ((WrapperException) tCause.getCause()).getRootCause() instanceof SecurityException);
         }
 
     // ----- static helper methods ------------------------------------------

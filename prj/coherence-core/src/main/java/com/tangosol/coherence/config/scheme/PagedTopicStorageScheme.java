@@ -9,6 +9,7 @@ package com.tangosol.coherence.config.scheme;
 import com.tangosol.config.expression.ParameterResolver;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicContentBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriptionsBackingMap;
 
 import com.tangosol.net.BackingMapManagerContext;
@@ -55,6 +56,10 @@ public class PagedTopicStorageScheme
             {
             BackingMapManagerContext context = service.getBackingMapManager().getContext();
             map = new PagedTopicSubscriptionsBackingMap(map, context);
+            }
+        else if (PagedTopicCaches.Names.CONTENT.equals(PagedTopicCaches.Names.fromCacheName(sName)))
+            {
+            map = new PagedTopicContentBackingMap(map);
             }
         return map;
         }

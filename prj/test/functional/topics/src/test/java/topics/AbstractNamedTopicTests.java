@@ -1988,14 +1988,22 @@ public abstract class AbstractNamedTopicTests
         Subscriber<String> subscriber = topic.createSubscriber();
         Publisher<String>  publisher  = topic.createPublisher();
 
-        populate(publisher, nMsgSizeBytes, cMsg);
+        try
+            {
+            populate(publisher, nMsgSizeBytes, cMsg);
 
-        MBeanServer        server     = MBeanHelper.findMBeanServer();
+            MBeanServer server = MBeanHelper.findMBeanServer();
 
-        validateTopicMBean(server, "Cache", sTopicName, nMsgSizeBytes, cMsg);
-        validateTopicMBean(server, "StorageManager", sTopicName, nMsgSizeBytes, cMsg);
+            validateTopicMBean(server, "Cache", sTopicName, nMsgSizeBytes, cMsg);
+            validateTopicMBean(server, "StorageManager", sTopicName, nMsgSizeBytes, cMsg);
 
-        topic.destroy();
+            topic.destroy();
+            }
+        finally
+            {
+            publisher.close();
+            subscriber.close();
+            }
         }
 
 

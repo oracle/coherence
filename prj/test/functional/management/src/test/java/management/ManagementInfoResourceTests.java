@@ -11,6 +11,7 @@ import com.oracle.bedrock.runtime.coherence.ServiceStatus;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.coherence.component.util.SafeService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
@@ -979,19 +980,24 @@ public class ManagementInfoResourceTests
 
     @Test
     public void testUnsupportedClusterDiagnosticCmdRejected()
+            throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
         WebTarget target = getBaseTarget().path(DIAGNOSTIC_CMD);
 
-        assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
-        assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
-        assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
-        assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+        withClusterMode(MODE_PROD, () ->
+            {
+            assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
+            assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
+            assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
+            assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+            });
         }
 
     @Test
     public void testUnsupportedMemberDiagnosticCmdRejected()
+            throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
@@ -1008,10 +1014,13 @@ public class ManagementInfoResourceTests
 
         WebTarget target = getBaseTarget().path(MEMBERS).path(String.valueOf(listMemberIds.get(0))).path(DIAGNOSTIC_CMD);
 
-        assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
-        assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
-        assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
-        assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+        withClusterMode(MODE_PROD, () ->
+            {
+            assertUnsupportedDiagnosticCmdRejected(target, "vmSystemProperties");
+            assertUnsupportedDiagnosticCmdRejected(target, "jvmtiAgentLoad");
+            assertUnsupportedDiagnosticCmdRejected(target, "managementAgentStart");
+            assertUnsupportedDiagnosticCmdRejected(target, "vmUnlockCommercialFeatures");
+            });
         }
 
     private void assertUnsupportedDiagnosticCmdRejected(WebTarget target, String sCmd)
@@ -1482,46 +1491,37 @@ public class ManagementInfoResourceTests
 
     @Test
     public void testClusterMemberUpdateFailure()
+            throws Exception
         {
-        LinkedHashMap map = new LinkedHashMap();
-        map.put("cpuCount", 9);
-        WebTarget target   = getBaseTarget().path("members").path(SERVER_PREFIX + "-1");
-        Entity    entity   = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
-        Response  response = target.request().post(entity);
+        Response response = withClusterMode(MODE_PROD, () ->
+            {
+            LinkedHashMap map = new LinkedHashMap();
+            map.put("cpuCount", 9);
+            WebTarget target = getBaseTarget().path("members").path(SERVER_PREFIX + "-1");
+            Entity entity = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
+            return target.request().post(entity);
+            });
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        LinkedHashMap mapResponse = readEntity(target, response, entity);
-
-        List<LinkedHashMap> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        LinkedHashMap mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cpuCount"));
-        assertThat(mapMessages.get("severity"), is("FAILURE"));
         }
 
     @Test
     public void testCacheMemberUpdateFailure()
+            throws Exception
         {
-        LinkedHashMap mapEntity = new LinkedHashMap();
-        mapEntity.put("cacheHits", 100005);
-        WebTarget target  = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
-                .path("members").path(SERVER_PREFIX + "-1");
-        Entity   entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
-        Response response = target.request().post(entity);
+        Response response = withClusterMode(MODE_PROD, () ->
+            {
+            LinkedHashMap mapEntity = new LinkedHashMap();
+            mapEntity.put("cacheHits", 100005);
+            WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+                    .path("members").path(SERVER_PREFIX + "-1");
+            Entity entity = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+            return target.request().post(entity);
+            });
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        LinkedHashMap mapResponse = readEntity(target, response, entity);
-
-        List<LinkedHashMap> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        LinkedHashMap mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cacheHits"));
         }
 
     @Test
@@ -3587,6 +3587,39 @@ public class ManagementInfoResourceTests
         private final String f_sCacheName;
         }
 
+    public static class SetCoherenceMode
+            implements RemoteCallable<String>
+        {
+        public SetCoherenceMode(String sMode)
+            {
+            m_sMode = sMode;
+            }
+
+        @Override
+        public String call()
+            {
+            String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
+            CoherenceModeHelper.restore(m_sMode);
+            return sPrevious;
+            }
+
+        private final String m_sMode;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable
+        {
+        void run()
+                throws Exception;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingCallable<T>
+        {
+        T call()
+                throws Exception;
+        }
+
     // ----- static helpers -------------------------------------------------
 
     /**
@@ -3623,6 +3656,37 @@ public class ManagementInfoResourceTests
     protected static boolean isReadOnly()
         {
         return s_fIsReadOnly;
+        }
+
+    private void withClusterMode(String sMode, ThrowingRunnable runnable)
+            throws Exception
+        {
+        withClusterMode(sMode, () ->
+            {
+            runnable.run();
+            return null;
+            });
+        }
+
+    private <T> T withClusterMode(String sMode, ThrowingCallable<T> callable)
+            throws Exception
+        {
+        Map<CoherenceClusterMember, String> mapPrevious = new LinkedHashMap<>();
+        try
+            {
+            for (CoherenceClusterMember member : m_aMembers)
+                {
+                mapPrevious.put(member, member.invoke(new SetCoherenceMode(sMode)));
+                }
+            return callable.call();
+            }
+        finally
+            {
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
+                {
+                entry.getKey().invoke(new SetCoherenceMode(entry.getValue()));
+                }
+            }
         }
 
     // ----- data members ------------------------------------------------------
@@ -3754,6 +3818,16 @@ public class ManagementInfoResourceTests
      * Cache config used by the test and spawned processes.
      */
     protected static final String CACHE_CONFIG  = "server-cache-config-mgmt.xml";
+
+    /**
+     * The hardened management mode.
+     */
+    protected static final String MODE_PROD = "prod";
+
+    /**
+     * The Coherence mode system property.
+     */
+    protected static final String PROP_COHERENCE_MODE = "coherence.mode";
 
     /**
      * Name of the Coherence cluster.

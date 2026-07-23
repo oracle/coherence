@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
@@ -21,6 +21,8 @@ import com.tangosol.config.expression.NullParameterResolver;
 
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicContentBackingMap;
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriptionsBackingMap;
 import com.tangosol.internal.net.topic.impl.paged.model.Position;
 
 import com.tangosol.net.BackingMapContext;
@@ -348,12 +350,20 @@ public class LocalNamedTopicTests
             BackingMapContext context   = manager.getContext().getBackingMapContext(cacheName);
             ObservableMap     map       = context.getBackingMap();
 
-            assertThat(map.getClass().getCanonicalName(), is(LocalCache.class.getCanonicalName()));
+            if (names.equals(PagedTopicCaches.Names.SUBSCRIPTIONS))
+                {
+                assertThat(map.getClass().getCanonicalName(), is(PagedTopicSubscriptionsBackingMap.class.getCanonicalName()));
+                }
+            else if (names.equals(PagedTopicCaches.Names.CONTENT))
+                {
+                assertThat(map.getClass().getCanonicalName(), is(PagedTopicContentBackingMap.class.getCanonicalName()));
+                }
+            else
+                {
+                assertThat(map.getClass().getCanonicalName(), is(LocalCache.class.getCanonicalName()));
+                }
             }
         }
-
-    // ----- helper methods -------------------------------------------------
-
 
     @Override
     protected Session getSession()

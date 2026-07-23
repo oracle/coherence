@@ -16,7 +16,6 @@ import com.tangosol.net.BackingMapManagerContext;
 import com.tangosol.util.Converter;
 import com.tangosol.util.Filter;
 import com.tangosol.util.ObservableMap;
-import com.tangosol.util.WrapperObservableMap;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,7 +32,7 @@ import java.util.function.Function;
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class PagedTopicSubscriptionsBackingMap
-        extends WrapperObservableMap
+        extends PagedTopicBackingMap
     {
     /**
      * Create a {@link PagedTopicSubscriptionsBackingMap}.
@@ -55,10 +54,10 @@ public class PagedTopicSubscriptionsBackingMap
         }
 
     @Override
-    public Object put(Object key, Object value)
+    public Object put(Object key, Object value, long cMillis)
         {
         enforceReplay(resolveSubscription(value), f_setReplayDedup);
-        return super.put(key, value);
+        return super.put(key, value, cMillis);
         }
 
     @Override
