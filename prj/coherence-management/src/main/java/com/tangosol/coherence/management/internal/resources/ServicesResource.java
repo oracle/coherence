@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.management.internal.resources;
 
@@ -24,8 +24,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -315,8 +313,8 @@ public class ServicesResource extends AbstractManagementResource
     public Filter<String> createDomainPartitionPredicate(String sDomainPartitionName)
         {
         return sDomainPartitionName == null
-                ? Objects::isNull
-                : s -> s.equals(sDomainPartitionName);
+                ? new QueryBuilder.NullValueFilter()
+                : new QueryBuilder.EqualsValueFilter(sDomainPartitionName);
 
         /*
         return uriInfo ->

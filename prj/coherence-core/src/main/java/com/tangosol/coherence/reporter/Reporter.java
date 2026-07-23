@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,16 +137,19 @@ public class Reporter
         {
         setBatch(lBatch);
 
-        TabularData tabData   = null;
-        XmlElement  xmlConfig = m_xml;
+        TabularData                   tabData   = null;
+        XmlElement                    xmlConfig = m_xml;
+        ReporterSecurity.ReportSource source    = m_reportSource;
         if (xmlConfig == null)
             {
             boolean fURI = isURI(sReport);
 
             XmlElement xmlReports = fURI
-                        ? XmlHelper.loadFileOrResource(sReport, "Reporter configuration", loader)
+                        ? ReporterSecurity.loadTrustedReportXml(sReport, "Reporter configuration", loader,
+                                "runReport", "reporter-core")
                         : XmlHelper.loadXml(sReport);
 
+            source     = fURI ? ReporterSecurity.ReportSource.TRUSTED : ReporterSecurity.ReportSource.INLINE;
             xmlReports = replaceParams(xmlReports, xmlParams);
             xmlConfig  = xmlReports.getElement(TAG_REPORT);
             if (xmlConfig == null)
@@ -155,39 +158,48 @@ public class Reporter
                 }
 
             setConfig(xmlConfig);
+            m_reportSource = source;
             }
 
-        XmlElement   xmlQuery = xmlConfig.getElement(TAG_QUERY);
-        QueryHandler handler  = ensureQueryHandler(xmlConfig, xmlQuery, lBatch);
-
-        // Execute the query.
-        handler.execute();
-
-        Set<MBeanQuery.Entry> setBeans = handler.getKeys();
-
-        if (setBeans.size() > 0)
+        ReporterSecurity.ReportSource previous = ReporterSecurity.enterReportSource(source);
+        try
             {
-            if (!m_fInitialized)
+            XmlElement   xmlQuery = xmlConfig.getElement(TAG_QUERY);
+            QueryHandler handler  = ensureQueryHandler(xmlConfig, xmlQuery, lBatch);
+
+            // Execute the query.
+            handler.execute();
+
+            Set<MBeanQuery.Entry> setBeans = handler.getKeys();
+
+            if (setBeans.size() > 0)
                 {
-                initDisplayColumns(handler.isMultiTenant());
-                m_fInitialized = true;
+                if (!m_fInitialized)
+                    {
+                    initDisplayColumns(handler.isMultiTenant());
+                    m_fInitialized = true;
+                    }
+
+                if (fReportFile)
+                    {
+                    writeReportFile(sPathTemplate, handler);
+                    }
+
+                if (fTabular)
+                    {
+                    tabData = tabular(handler, sTabularType);
+                    }
                 }
 
-            if (fReportFile)
-                {
-                writeReportFile(sPathTemplate, handler);
-                }
+            // apply deltas and clean up
+            handler.postProcess();
 
-            if (fTabular)
-                {
-                tabData = tabular(handler, sTabularType);
-                }
+            return tabData;
             }
-
-        // apply deltas and clean up
-        handler.postProcess();
-
-        return tabData;
+        finally
+            {
+            ReporterSecurity.restoreReportSource(previous);
+            }
         }
 
     /**
@@ -692,7 +704,7 @@ public class Reporter
                 return null;
                 }
 
-            File fOut = new File(sFileName);
+            File fOut = ReporterSecurity.validateOutputFile(sFileName, sPathTempl, "reporter-core");
             if (!fOut.exists())
                 {
                 fOut.createNewFile();
@@ -747,9 +759,13 @@ public class Reporter
 
         try
             {
-            sFileName = new File(sPath).getCanonicalPath() + File.separatorChar + sFileName;
+            sFileName = ReporterSecurity.validateOutputPath(sPath, "reporter-core") + File.separatorChar + sFileName;
             }
-        catch (IOException e)
+        catch (ReporterSecurity.ReporterSecurityException e)
+            {
+            throw e;
+            }
+        catch (RuntimeException e)
             {
             // leave the problem for caller
             sFileName = sPath + sFileName;
@@ -983,6 +999,7 @@ public class Reporter
             m_fHeaders        = !xmlReportCfg.getSafeElement(Reporter.TAG_HEADERS).getBoolean(false);
             m_listXmlCol      = xmlRow.getElementList();
             m_sFileTempl      = xmlReportCfg.getSafeElement(TAG_FILENAME).getString();
+            ReporterSecurity.validateOutputFileNameTemplate(m_sFileTempl, "reporter-core");
             }
         }
 
@@ -1060,11 +1077,14 @@ public class Reporter
         QueryHandler qh = m_queryHandler;
         if (qh == null)
             {
-            qh = new JMXQueryHandler();
-            qh.setContext(xmlQuery, xmlConfig);
+            JMXQueryHandler jmxQueryHandler = new JMXQueryHandler();
+            jmxQueryHandler.setReportSource(ReporterSecurity.currentReportSource());
+            jmxQueryHandler.setContext(xmlQuery, xmlConfig);
+            qh = jmxQueryHandler;
             m_queryHandler = qh;
             }
 
+        ((JMXQueryHandler) qh).setReportSource(ReporterSecurity.currentReportSource());
         ((JMXQueryHandler)qh).setBatch(lBatch);
 
         return qh;
@@ -1162,6 +1182,11 @@ public class Reporter
     * The Query Handler for the report.
     */
     protected QueryHandler m_queryHandler;
+
+    /**
+    * The provenance of this Reporter's parsed report definition.
+    */
+    protected ReporterSecurity.ReportSource m_reportSource = ReporterSecurity.ReportSource.UNKNOWN;
 
     /**
     * true if the report has run once before

@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package metrics;
 
-import com.oracle.bedrock.deferred.DeferredHelper;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
@@ -27,7 +26,6 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import static com.tangosol.internal.net.metrics.MetricsHttpHelper.DEFAULT_PROMETHEUS_METRICS_PORT;
 import static org.hamcrest.CoreMatchers.is;
@@ -83,6 +81,7 @@ public class MetricsStartupModeTests
         // Use ephemeral port
         propServer.put("coherence.metrics.http.port", "0");
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
         try (CoherenceClusterMember member1 = startCacheServer(SERVER_MEMBERNAME_PREFIX + "1", "metrics", null, propServer, true);
@@ -110,6 +109,7 @@ public class MetricsStartupModeTests
         Properties propServer        = new Properties();
 
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
@@ -157,6 +157,7 @@ public class MetricsStartupModeTests
         Properties            propServer            = new Properties();
 
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.metrics.http.port", Integer.toString(nMetricsPort));
         propServer.put("coherence.management.extendedmbeanname", "true");
 
@@ -180,6 +181,20 @@ public class MetricsStartupModeTests
         }
 
     @Test
+    public void validateCertAuthRequiresSSL()
+        throws IOException, InterruptedException
+        {
+        testFailedMetricsSSLConfiguration("coherence.metrics.http.auth", "cert");
+        }
+
+    @Test
+    public void validateCertBasicAuthRequiresSSL()
+        throws IOException, InterruptedException
+        {
+        testFailedMetricsSSLConfiguration("coherence.metrics.http.auth", "cert+basic");
+        }
+
+    @Test
     public void validateMissingSockerProvider()
         throws IOException, InterruptedException
         {
@@ -197,7 +212,9 @@ public class MetricsStartupModeTests
     private void testFailedMetricsSSLConfiguration(String sName, String sValue)
         throws IOException, InterruptedException
         {
-        String     SERVER_MEMBERNAME = "MetricsSSLConfigTestsFor" + sName.substring(sName.lastIndexOf('.') + 1);
+        String     SERVER_MEMBERNAME = "MetricsSSLConfigTestsFor"
+                + sName.substring(sName.lastIndexOf('.') + 1)
+                + '-' + safeName(sValue);
         int        nPort             = Integer.getInteger("test.multicast.port");
         Properties propServer        = new Properties();
 
@@ -210,20 +227,34 @@ public class MetricsStartupModeTests
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, "metrics", FILE_SERVER_CFG_CACHE, propServer, true))
             {
-            Eventually.assertDeferred(() -> member.isServiceRunning(MetricsHttpHelper.getServiceName()),
-                is( false), DeferredHelper.delayedBy(1L, TimeUnit.SECONDS));
+            File fileLog = new File(ensureOutputDir("metrics"), SERVER_MEMBERNAME  + ".out");
+            Eventually.assertDeferred(() -> safeValidateLogFileContainsAuthConfigurationException(fileLog), is(true));
 
             Collection<URL> colMetricsURL = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
 
             assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL, none since auth set to invalid value",
                 colMetricsURL.size(), is(0));
-            assertThat("failed to find log message detecting metrics proxy configuration invalid in server log",
-                validateLogFileContainsIllegalArgumentException(new File(ensureOutputDir("metrics"),
-                    SERVER_MEMBERNAME  + ".out")));
             }
         }
 
-    private static boolean validateLogFileContainsIllegalArgumentException(File fileLog)
+    private static String safeName(String sValue)
+        {
+        return sValue.replace('+', '-');
+        }
+
+    private static boolean safeValidateLogFileContainsAuthConfigurationException(File fileLog)
+        {
+        try
+            {
+            return validateLogFileContainsAuthConfigurationException(fileLog);
+            }
+        catch (IOException e)
+            {
+            return false;
+            }
+        }
+
+    private static boolean validateLogFileContainsAuthConfigurationException(File fileLog)
         throws IOException
         {
         FileReader     fileReader     = new FileReader( fileLog);
@@ -232,7 +263,8 @@ public class MetricsStartupModeTests
         String line;
         while ((line = bufferedReader.readLine()) != null)
             {
-            if (line.contains("<Error>") && line.contains("Metrics") && line.contains("IllegalArgumentException"))
+            if (line.contains("<Error>") && line.contains("Metrics")
+                    && (line.contains("IllegalArgumentException") || line.contains("IllegalStateException")))
                 {
                 return true;
                 }

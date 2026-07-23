@@ -228,7 +228,7 @@
     <class name="com.tangosol.internal.metrics.MetricsMBeanAttributeFilter" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.InetAddressRangeFilter" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.management.CacheMBeanAttribute" source="manual"/>
-    <class name="com.tangosol.internal.net.management.MBeanCollectorFunction" source="manual"/>
+    <class name="com.tangosol.internal.net.management.MBeanCollectorFunction" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.management.ServiceMBeanAttribute" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.BatchingOperationsQueue$OnErrorAction" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names$Storage" source="manual"/>
@@ -398,11 +398,13 @@
     <class name="com.tangosol.net.internal.SessionOptimisticRemove" source="manual" executable="true"/>
     <class name="com.tangosol.net.internal.SessionUpdateTimestamp" source="manual" executable="true"/>
     <class name="com.tangosol.net.internal.SimpleConverterEntry" source="manual"/>
-    <class name="com.tangosol.net.management.MBeanAccessor$GetAttributes" source="manual"/>
-    <class name="com.tangosol.net.management.MBeanAccessor$Invoke" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$GetAttributes" source="manual" executable="true"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$Invoke" source="manual" executable="true"/>
     <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder$EqualsValueFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder$NullValueFilter" source="manual" executable="true"/>
     <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder$ParsedQuery" source="manual"/>
-    <class name="com.tangosol.net.management.MBeanAccessor$SetAttributes" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$SetAttributes" source="manual" executable="true"/>
     <class name="com.tangosol.net.management.MBeanHelper$QueryExpFilter" source="manual"/>
     <class name="com.tangosol.net.management.ObjectNameExcludeFilter" source="manual" executable="true"/>
     <class name="com.tangosol.net.messaging.ConnectionEvent" source="manual"/>

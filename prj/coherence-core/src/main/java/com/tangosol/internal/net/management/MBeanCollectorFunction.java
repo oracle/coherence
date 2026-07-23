@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.management;
 
@@ -11,6 +11,7 @@ import com.tangosol.net.Member;
 
 import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MBeanHelper.QueryExpFilter;
+import com.tangosol.net.management.ManagementInvocationPolicy;
 import com.tangosol.net.management.Registry;
 
 import com.tangosol.util.Base;
@@ -98,6 +99,9 @@ public class MBeanCollectorFunction
     @Override
     public Map<String, Object> apply(MBeanServer mbs)
         {
+        ManagementInvocationPolicy.validateCollectorFunction(this, "mbean-accessor");
+        ManagementInvocationPolicy.validateParsedQuery(f_query, "mbean-accessor");
+
         boolean  fAllAttributes = isOmitted(f_sAttribute);
         QueryExp query          = createQuery();
         String   sObjectQuery   = f_query.getQuery();
@@ -119,6 +123,7 @@ public class MBeanCollectorFunction
         try
             {
             colNames = mbs.queryNames(objName, query);
+            ManagementInvocationPolicy.validateReadQueryResult(new HashSet<>(colNames), "mbean-accessor");
             }
         catch (RuntimeException e)
             {
@@ -195,6 +200,8 @@ public class MBeanCollectorFunction
                     {
                     try
                         {
+                        ManagementInvocationPolicy.validateGetAttribute(mbs, objectName, sAttributeName,
+                                "mbean-accessor");
                         return mbs.getAttribute(objectName, sAttributeName);
                         }
                     catch (InstanceNotFoundException ex)

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.http;
 
@@ -380,27 +380,19 @@ public abstract class AbstractHttpServer
      */
     protected Subject authenticate(String sAuth)
         {
-        if (sAuth != null && sAuth.startsWith("Basic "))
+        try
             {
-            sAuth = sAuth.substring("Basic ".length());
-
-            String[] values = fromBase64(sAuth).split(":");
-            if (values.length == 2)
+            BasicAuthentication.Credentials credentials = BasicAuthentication.parse(sAuth);
+            if (credentials != null)
                 {
-                String sUsername = values[0];
-                String sPassword = values[1];
-
-                try
-                    {
-                    return getIdentityAsserter().assertIdentity(
-                            new UsernameAndPassword(sUsername, sPassword),
-                            getParentService());
-                    }
-                catch (SecurityException ignore)
-                    {
-                    // fall through and return null
-                    }
+                return getIdentityAsserter().assertIdentity(
+                        new UsernameAndPassword(credentials.getUsername(), credentials.getPassword()),
+                        getParentService());
                 }
+            }
+        catch (SecurityException | IllegalArgumentException ignore)
+            {
+            // fall through and return null
             }
 
         return null;

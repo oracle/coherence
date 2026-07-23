@@ -1,0 +1,31 @@
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<report-config>
+  <report>
+    <file-name>{date}-federation-stats.txt</file-name>
+    <delim>{tab}</delim>
+    <filters/>
+    <query>
+      <pattern>Coherence:type=Federation,responsibility=Coordinator,*</pattern>
+    </query>
+    <row>
+      <column id="PendingIncomingMessageCount">
+        <type>method</type>
+        <name>retrievePendingIncomingMessages</name>
+      </column>
+      <column id="PendingOutgoingMessageCount">
+        <type>method</type>
+        <name>retrievePendingOutgoingMessages</name>
+      </column>
+      <column id="NonFederatedCaches">
+        <type>method</type>
+        <name>listNonFederatedCaches</name>
+        <delim>,</delim>
+      </column>
+    </row>
+  </report>
+</report-config>
