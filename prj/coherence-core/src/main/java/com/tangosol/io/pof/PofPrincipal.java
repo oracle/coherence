@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
 
+
+import java.io.Serializable;
 
 import java.security.Principal;
 
@@ -21,7 +23,7 @@ import java.security.Principal;
 */
 public class PofPrincipal
         extends PofHelper
-        implements Principal
+        implements Principal, Serializable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -95,4 +97,9 @@ public class PofPrincipal
     * The name of the identity represented by this Principal.
     */
     protected String m_sName;
+
+    /**
+    * Serialization version.
+    */
+    private static final long serialVersionUID = 1L;
     }

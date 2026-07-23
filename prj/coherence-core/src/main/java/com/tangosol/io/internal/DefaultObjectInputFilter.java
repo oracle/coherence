@@ -64,6 +64,38 @@ public final class DefaultObjectInputFilter
         return filterUser == null ? INSTANCE.proxy() : new IntersectingFilter(INSTANCE.proxy(), filterUser).proxy();
         }
 
+    /**
+     * Apply a bridge-local filter to the current thread.
+     *
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return a scope that restores the previous bridge filter when closed
+     */
+    public static Scope bridge(Object filterBridge)
+        {
+        final Object filterPrevious = s_filterBridge.get();
+        Object       filterCurrent  = filterBridge == null || filterPrevious == null
+                ? filterBridge
+                : new IntersectingFilter(filterPrevious, filterBridge).proxy();
+
+        s_filterBridge.set(filterCurrent);
+        return new Scope()
+            {
+            @Override
+            public void close()
+                {
+                if (filterPrevious == null)
+                    {
+                    s_filterBridge.remove();
+                    }
+                else
+                    {
+                    s_filterBridge.set(filterPrevious);
+                    }
+                }
+            };
+        }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
         {
@@ -75,8 +107,17 @@ public final class DefaultObjectInputFilter
             if (!fAllowed)
                 {
                 SerializationTelemetry.recordFilterCheck("rejected", "serialization-allowlist-rejected", clz, null);
+                return status("REJECTED");
                 }
-            return status(fAllowed ? "ALLOWED" : "REJECTED");
+
+            Object filterBridge = s_filterBridge.get();
+            if (filterBridge == null)
+                {
+                return status("ALLOWED");
+                }
+
+            Enum statusBridge = (Enum) method.invoke(filterBridge, args);
+            return "REJECTED".equals(statusBridge.name()) ? statusBridge : status("ALLOWED");
             }
         else if ("toString".equals(sName))
             {
@@ -107,6 +148,18 @@ public final class DefaultObjectInputFilter
             m_proxy = proxy;
             }
         return proxy;
+        }
+
+    // ----- inner interface: Scope ----------------------------------------
+
+    /**
+     * A bridge-filter scope.
+     */
+    public interface Scope
+            extends AutoCloseable
+        {
+        @Override
+        void close();
         }
 
     // ----- inner class: IntersectingFilter --------------------------------
@@ -324,6 +377,11 @@ public final class DefaultObjectInputFilter
      * The FilterInfo.serialClass method.
      */
     private static final Method METHOD_SERIAL_CLASS = serialClassMethod();
+
+    /**
+     * Bridge filter scoped to the current deserialization operation.
+     */
+    private static final ThreadLocal<Object> s_filterBridge = new ThreadLocal<>();
 
     // ----- data members ---------------------------------------------------
 
