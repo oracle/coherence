@@ -280,7 +280,8 @@ public final class BridgeObjectInputFilter
             "java.util.ArrayList",
             "java.util.Collections$EmptyList",
             "java.util.Collections$UnmodifiableCollection",
-            "java.util.Collections$UnmodifiableList");
+            "java.util.Collections$UnmodifiableList",
+            "java.util.Collections$UnmodifiableRandomAccessList");
 
     /**
      * Narrow JDK checked/runtime exception classes accepted by JCache exception
