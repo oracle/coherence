@@ -278,6 +278,7 @@ public final class BridgeObjectInputFilter
     private static final Set<String> EXCEPTION_INFRASTRUCTURE = allowed(
             "java.lang.StackTraceElement",
             "java.util.Collections$EmptyList",
+            "java.util.Collections$UnmodifiableCollection",
             "java.util.Collections$UnmodifiableList");
 
     /**
