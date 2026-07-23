@@ -98,7 +98,7 @@ public class NSLookupTests
 
         Eventually.assertDeferred(s_testCluster::getClusterSize, is(1));
         CoherenceClusterMember member = s_testCluster.iterator().next();
-        Eventually.assertThat(invoking(member).isServiceRunning("TcpProxyService"), is(true));
+        Eventually.assertThat(invoking(member).isServiceRunning(PROXY_SERVICE_NAME), is(true));
         }
 
     @AfterClass
@@ -139,7 +139,7 @@ public class NSLookupTests
     @Test
     public void testLookupProxy() throws Exception
         {
-        Collection<SocketAddress> col = NSLookup.lookupExtendProxy("NSLookup", s_addrNameService, "TcpProxyService");
+        Collection<SocketAddress> col = NSLookup.lookupExtendProxy("NSLookup", s_addrNameService, PROXY_SERVICE_NAME);
 
         assertThat(col.size(), is(1));
         assertThat("confirm known proxy address and port returned by NSLookup.lookupExtendProxy",
@@ -147,6 +147,8 @@ public class NSLookupTests
         }
 
     // ----- data members ---------------------------------------------------
+
+    public static final String PROXY_SERVICE_NAME = "TcpProxyService";
 
     public static CoherenceCluster s_testCluster;
     public static String           s_sHostName;
