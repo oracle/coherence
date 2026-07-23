@@ -98,7 +98,7 @@ public final class DefaultController
     * @param filePermits  the permissions file
     *
     * @throws IOException          if an I/O error occurs
-    * @throws PermissionException  if an access control error occurs
+    * @throws AccessControlException  if an access control error occurs
     */
     public DefaultController(File fileKeyStore, File filePermits)
             throws IOException
@@ -115,7 +115,7 @@ public final class DefaultController
     * @param fAudit       the audit flag; if true, log all the access requests
     *
     * @throws IOException          if an I/O error occurs
-    * @throws PermissionException  if an access control error occurs
+    * @throws AccessControlException  if an access control error occurs
     */
     public DefaultController(File fileKeyStore, File filePermits, boolean fAudit)
             throws IOException
@@ -134,7 +134,7 @@ public final class DefaultController
      * @param pwdProvider  the key store password provider
      *
      * @throws IOException          if an I/O error occurs
-     * @throws PermissionException  if an access control error occurs
+     * @throws AccessControlException  if an access control error occurs
      *
      * @since 12.2.1.4.13
      */
@@ -154,7 +154,7 @@ public final class DefaultController
     * @param sPwd         the key store password
     *
     * @throws IOException          if an I/O error occurs
-    * @throws PermissionException  if an access control error occurs
+    * @throws AccessControlException  if an access control error occurs
     *
     * @since 12.2.1.4.0
     */
@@ -226,14 +226,14 @@ public final class DefaultController
     * Subject (requestor).
     * <p>
     * This method quietly returns if the access request is permitted,
-    * or throws a suitable PermissionException if the specified
+    * or throws a suitable AccessControlException if the specified
     * authentication is invalid or insufficient.
     *
     * @param permission  the permission object that represents access
     *                    to a clustered resource
     * @param subject     the Subject object representing the requestor
     *
-    * @throws PermissionException if the specified permission
+    * @throws AccessControlException if the specified permission
     *         is not permitted, based on the current security policy
     */
     public void checkPermission(ClusterPermission permission, Subject subject)
