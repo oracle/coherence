@@ -18,6 +18,8 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
@@ -38,6 +40,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,6 +77,7 @@ public class InvocationServiceEnforcementTest
         CacheFactory.shutdown();
         setFactory(null);
         stopCacheServer(SERVER_NAME);
+        m_sMemberMode = null;
         CoherenceModeHelper.restore(m_sModeOld);
         CoherenceModeHelper.restoreSecurityMode(m_sSecurityModeOld);
         restoreProperty(PROP_INVOCATION_ENABLED, m_sInvocationEnabledOld);
@@ -239,6 +243,7 @@ public class InvocationServiceEnforcementTest
             {
             Eventually.assertThat(invoking(m_memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
             }
+        m_sMemberMode = m_memberProxy.invoke(new GetCoherenceMode());
         m_memberProxy.invoke(new ResetTelemetry());
         }
 
@@ -308,9 +313,10 @@ public class InvocationServiceEnforcementTest
 
     private void assertCounter(String sMode, String sResult, long cExpected)
         {
+        String sCounterMode = m_sMemberMode == null ? sMode : m_sMemberMode;
         assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=" + sResult + ",mode=" + sMode + ",sub_reason=policy}", cExpected);
+                + ",result=" + sResult + ",mode=" + sCounterMode + ",sub_reason=policy}", cExpected);
         }
 
     private void assertCounter(String sKey, long cExpected)
@@ -637,6 +643,21 @@ public class InvocationServiceEnforcementTest
             }
         }
 
+    // ----- inner class: GetCoherenceMode ---------------------------------
+
+    /**
+     * Returns the effective Coherence mode from a remote member.
+     */
+    public static class GetCoherenceMode
+            implements RemoteCallable<String>
+        {
+        @Override
+        public String call()
+            {
+            return CoherenceMode.current().name().toLowerCase(Locale.ROOT);
+            }
+        }
+
     // ----- inner class: ResetPriorityTaskCallbacks -----------------------
 
     /**
@@ -704,6 +725,8 @@ public class InvocationServiceEnforcementTest
     // ----- data members ---------------------------------------------------
 
     private CoherenceClusterMember m_memberProxy;
+
+    private String m_sMemberMode;
 
     private final String m_sModeOld = System.getProperty("coherence.mode");
 
