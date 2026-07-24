@@ -930,7 +930,7 @@ to find specific notes on changes suggested for production use.
 
   <license-config>
     <edition-name system-property="coherence.edition">CE</edition-name>
-    <license-mode system-property="coherence.mode">prod</license-mode>
+    <license-mode system-property="coherence.mode">dev</license-mode>
     <build-number>${project.build.number}</build-number>
     <build-description>${project.impl.description}</build-description>
     <version>${project.version.official}</version>

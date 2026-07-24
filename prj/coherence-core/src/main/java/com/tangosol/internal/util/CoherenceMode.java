@@ -6,27 +6,21 @@
  */
 package com.tangosol.internal.util;
 
-import com.oracle.coherence.common.base.Logger;
-
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
- * Central resolver for the {@code coherence.mode} runtime mode.
+ * Central resolver for the {@code coherence.mode} runtime mode and the
+ * {@code coherence.security.mode} security hardening opt-in.
  *
  * @author Aleks Seovic  2026.05.01
  * @since 26.04
  */
 public enum CoherenceMode
     {
+    EVAL,
     DEV,
-    PROD,
-    /**
-     * Compatibility mode for existing deployments.
-     */
-    @Deprecated
-    LEGACY;
+    PROD;
 
     /**
      * Return the current Coherence mode.
@@ -36,13 +30,14 @@ public enum CoherenceMode
     public static CoherenceMode current()
         {
         CoherenceMode mode = S_MODE.get();
-        if (mode == null)
+        while (mode == null)
             {
             mode = resolve();
-            if (!S_MODE.compareAndSet(null, mode))
+            if (S_MODE.compareAndSet(null, mode))
                 {
-                mode = S_MODE.get();
+                return mode;
                 }
+            mode = S_MODE.get();
             }
         return mode;
         }
@@ -68,24 +63,33 @@ public enum CoherenceMode
         }
 
     /**
-     * Return {@code true} if Coherence is running in legacy mode.
+     * Return {@code true} if security hardening is enabled.
      *
-     * @return {@code true} if Coherence is running in legacy mode
+     * @return {@code true} if security hardening is enabled
      */
-    @SuppressWarnings("removal")
-    public static boolean isLegacy()
+    public static boolean isSecurityHardeningEnabled()
         {
-        return current() == LEGACY;
+        Boolean fEnabled = S_SECURITY_HARDENING_ENABLED.get();
+        while (fEnabled == null)
+            {
+            fEnabled = resolveSecurityHardeningEnabled();
+            if (S_SECURITY_HARDENING_ENABLED.compareAndSet(null, fEnabled))
+                {
+                return fEnabled;
+                }
+            fEnabled = S_SECURITY_HARDENING_ENABLED.get();
+            }
+        return fEnabled;
         }
 
     /**
-     * Return {@code true} if serialization allowlists are enforced.
+     * Return {@code true} if serialization allowlists are enforced by default.
      *
      * @return {@code true} if serialization allowlists are enforced
      */
     public static boolean isAllowlistEnforced()
         {
-        return !isLegacy();
+        return isSecurityHardeningEnabled();
         }
 
     /**
@@ -97,7 +101,7 @@ public enum CoherenceMode
      */
     public static boolean isDynamicRemoteDefaultDeny()
         {
-        return isProd();
+        return isSecurityHardeningEnabled();
         }
 
     /**
@@ -107,52 +111,42 @@ public enum CoherenceMode
      */
     public static boolean isRemoteExecutableEnforced()
         {
-        return !isLegacy();
+        return isSecurityHardeningEnabled();
         }
 
     /**
-     * Return {@code true} if Coherence REST authentication is enforced when
-     * REST authentication is engaged. The REST auth policy from
-     * design/features/security-bugs/plans/rest-01/prompts/02-slice-b-auth-passthrough-implementation.md
-     * follows the SER-01 compatibility shape: DEV/PROD fail closed only once
-     * the container has engaged authentication, while LEGACY keeps the
-     * historical fail-open behavior.
+     * Return {@code true} if Coherence REST authentication is enforced when REST
+     * authentication is engaged.
      *
      * @return {@code true} if Coherence REST authentication is enforced
      */
     public static boolean isCoherenceRestAuthEnforced()
         {
-        return !isLegacy();
+        return isSecurityHardeningEnabled();
         }
 
     /**
      * Return {@code true} if Coherence REST pass-through resources require an
-     * explicit REST resource configuration. Prompt
-     * design/features/security-bugs/plans/rest-01/prompts/02-slice-b-auth-passthrough-implementation.md
-     * makes arbitrary cache-name auto-publish a LEGACY-only compatibility path
-     * so DEV/PROD expose only operator-configured resources.
+     * explicit REST resource configuration.
      *
      * @return {@code true} if Coherence REST pass-through resources require
      *         an explicit configuration
      */
     public static boolean isCoherenceRestPassThroughAllowlistRequired()
         {
-        return !isLegacy();
+        return isSecurityHardeningEnabled();
         }
 
     /**
-     * Return {@code true} if XML parser external-entity protections are
-     * required to fail closed. The XML policy from
-     * design/features/security-bugs/plans/rest-01/prompts/06-slice-e-saxparser-xxe-implementation.md
-     * intentionally follows the standard hardened-mode boundary: DEV/PROD
-     * require protection enforcement, while LEGACY keeps compatibility behavior.
+     * Return {@code true} if XML parser external-entity protections are required
+     * to fail closed.
      *
      * @return {@code true} if XML parser external-entity protections are
      *         required
      */
     public static boolean isXmlExternalEntityProtectionRequired()
         {
-        return !isLegacy();
+        return isSecurityHardeningEnabled();
         }
 
     /**
@@ -161,17 +155,7 @@ public enum CoherenceMode
     static void resetForTesting()
         {
         S_MODE.set(null);
-        s_warningLogger = Logger::warn;
-        }
-
-    /**
-     * Set the warning logger for tests.
-     *
-     * @param logger  the logger to use, or {@code null} to restore default
-     */
-    static void setWarningLoggerForTesting(Consumer<String> logger)
-        {
-        s_warningLogger = logger == null ? Logger::warn : logger;
+        S_SECURITY_HARDENING_ENABLED.set(null);
         }
 
     // ----- helper methods -------------------------------------------------
@@ -179,45 +163,49 @@ public enum CoherenceMode
     private static CoherenceMode resolve()
         {
         String sMode = System.getProperty(PROP_COHERENCE_MODE);
-        if (sMode == null || sMode.trim().isEmpty())
+        if (sMode == null)
             {
-            return logResolved(LEGACY);
+            return DEV;
             }
 
-        switch (sMode.trim().toLowerCase(Locale.ROOT))
+        switch (sMode.toLowerCase(Locale.ROOT))
             {
+            case "eval":
+                return EVAL;
             case "dev":
             case "development":
-                return logResolved(DEV);
-            case "legacy":
-            case "legacy-compatibility":
-                return logResolved(LEGACY);
+                return DEV;
             case "prod":
             case "production":
-                return logResolved(PROD);
+                return PROD;
             default:
-                Logger.err("Invalid coherence.mode value '" + sMode
-                        + "'; defaulting to legacy. Expected 'dev', 'prod', or 'legacy'.");
-                return logResolved(LEGACY);
+                throw new IllegalArgumentException("Invalid mode " + sMode);
             }
         }
 
-    @SuppressWarnings("removal")
-    private static CoherenceMode logResolved(CoherenceMode mode)
+    private static boolean resolveSecurityHardeningEnabled()
         {
-        if (mode == DEV)
+        String sSecurityMode = System.getProperty(PROP_SECURITY_MODE);
+        if (sSecurityMode == null)
             {
-            s_warningLogger.accept(DEV_WARNING);
+            return false;
             }
-        else if (mode == LEGACY)
+
+        String sTrimmed = sSecurityMode.trim();
+        if (sTrimmed.isEmpty())
             {
-            s_warningLogger.accept(LEGACY_WARNING);
+            throw new IllegalArgumentException("Invalid security mode " + sSecurityMode);
             }
-        else
+
+        switch (sTrimmed.toLowerCase(Locale.ROOT))
             {
-            Logger.info("Coherence is running in PROD mode.");
+            case SECURITY_MODE_COMPATIBILITY:
+                return false;
+            case SECURITY_MODE_HARDENED:
+                return true;
+            default:
+                throw new IllegalArgumentException("Invalid security mode " + sSecurityMode);
             }
-        return mode;
         }
 
     // ----- constants ------------------------------------------------------
@@ -228,20 +216,23 @@ public enum CoherenceMode
     public static final String PROP_COHERENCE_MODE = "coherence.mode";
 
     /**
-     * Prominent dev-mode warning.
+     * Security mode system property.
+     *
+     * @since 15.1.2.0
      */
-    public static final String DEV_WARNING = "Coherence is running in DEV mode. DO NOT use dev mode in production. "
-            + "Set -Dcoherence.mode=prod to restore production-safe defaults.";
+    public static final String PROP_SECURITY_MODE = "coherence.security.mode";
 
     /**
-     * Prominent legacy-mode warning.
+     * Security mode value that preserves prior-patch compatibility.
      */
-    public static final String LEGACY_WARNING = "Coherence is running in LEGACY mode.\n"
-            + "Legacy mode is deprecated for removal and is intended only as a compatibility escape for existing deployments.\n"
-            + "Watch coh.executable.policy_check{result=would_reject} shadow telemetry before migrating.\n"
-            + "Set -Dcoherence.mode=prod for production or -Dcoherence.mode=dev for development.";
+    public static final String SECURITY_MODE_COMPATIBILITY = "compatibility";
+
+    /**
+     * Security mode value that enables compatibility-sensitive hardening.
+     */
+    public static final String SECURITY_MODE_HARDENED = "hardened";
 
     private static final AtomicReference<CoherenceMode> S_MODE = new AtomicReference<>();
 
-    private static volatile Consumer<String> s_warningLogger = Logger::warn;
+    private static final AtomicReference<Boolean> S_SECURITY_HARDENING_ENABLED = new AtomicReference<>();
     }

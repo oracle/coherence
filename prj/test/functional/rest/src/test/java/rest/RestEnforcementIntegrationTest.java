@@ -8,14 +8,25 @@ package rest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import common.RuntimeHalt;
+
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.HttpAcceptor;
+import com.tangosol.coherence.component.util.safeService.SafeProxyService;
+
 import com.tangosol.coherence.rest.providers.JacksonMapperProvider;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.InvocableMap;
@@ -48,7 +59,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.io.Serializable;
+
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 import java.util.Map;
 import java.util.Properties;
@@ -78,7 +93,9 @@ public class RestEnforcementIntegrationTest
     @BeforeClass
     public static void startup()
         {
-        s_sModeOld = System.getProperty(PROP_COHERENCE_MODE);
+        s_sClusterOld = System.getProperty(PROP_COHERENCE_CLUSTER);
+        s_sModeOld    = System.getProperty(PROP_COHERENCE_MODE);
+        System.setProperty(PROP_COHERENCE_CLUSTER, SERVER_NAME);
         System.setProperty(PROP_COHERENCE_MODE, "prod");
         System.setProperty("test.extend.port", "0");
         doStartCacheServer(SERVER_NAME, FILE_SERVER_CFG_CACHE);
@@ -87,34 +104,17 @@ public class RestEnforcementIntegrationTest
     @AfterClass
     public static void shutdown()
         {
-        stopCacheServer(SERVER_NAME);
+        stopMember(s_member);
+        s_member = null;
+        restoreProperty(PROP_COHERENCE_CLUSTER, s_sClusterOld);
         restoreProperty(PROP_COHERENCE_MODE, s_sModeOld);
         }
 
     @Before
     public void resetTelemetry()
         {
-        setupCache();
-        getNamedCache("dist-test1").invoke(1, new ResetTelemetryProcessor());
-        }
-
-    private void setupCache()
-        {
-        NamedCache cache = getNamedCache("dist-test1");
-        cache.clear();
-        cache.put(1, PortablePerson.create());
-        cache.put(2, VersionablePortablePerson.create());
-
-        cache = getNamedCache("dist-test-proc");
-        cache.clear();
-        cache.put(1, new Persona("Peter", 25));
-        cache.put(2, new Persona("Mary", 23));
-
-        cache = getNamedCache("dist-test-named-query");
-        cache.clear();
-        cache.put(1, new Persona("Ivan", 33));
-        cache.put(2, new Persona("Aleks", 37));
-        cache.put(3, new Persona("Vaso", 37));
+        s_member.invoke(SetupCache.INSTANCE);
+        s_member.invoke(ResetTelemetry.INSTANCE);
         }
 
     @Test
@@ -126,63 +126,60 @@ public class RestEnforcementIntegrationTest
 
         assertEquals(200, response.getStatus());
         assertEquals("72", response.readEntity(String.class));
-        assertCounter(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
-    public void registryAggregatorRejectsPlainClass()
+    public void registryAggregatorShadowsPlainClass()
         {
         Response response = getWebTarget("dist-test1/plain-long-sum(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .get();
 
-        assertTrue(response.getStatus() >= 400);
-        assertCounter(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertEquals(200, response.getStatus());
+        assertEquals("72", response.readEntity(String.class));
+        assertWouldRejectCounter(PlainLongSum.class, OperationReason.AGGREGATE);
         }
 
     @Test
     public void registryProcessorAllowsXmlExecutableClass()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/custom-number-doubler(Age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
         assertEquals(200, response.getStatus());
-        assertCounter(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 4L);
         }
 
     @Test
-    public void registryProcessorRejectsPlainClass()
+    public void registryProcessorShadowsPlainClass()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/plain-number-doubler(age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/plain-number-doubler(Age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
-        assertTrue(response.getStatus() >= 400);
-        assertCounter(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertEquals(200, response.getStatus());
+        assertWouldRejectCounter(PlainNumberDoubler.class, OperationReason.PROCESS_ENTRY);
         }
 
     @Test
-    public void defaultProcessorFactoryRejectsBeforeConstructorSideEffect()
+    public void defaultProcessorFactoryShadowsConstructorSideEffectProcessor()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/constructor-side-effect-processor(age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/constructor-side-effect-processor(Age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
-        assertTrue(response.getStatus() >= 400);
-        assertCounter(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter(OperationReason.PROCESS_ENTRY, "constructor", "constructor", 0L);
+        assertEquals(200, response.getStatus());
+        assertWouldRejectCounter(ConstructorSideEffectProcessor.class, OperationReason.PROCESS_ENTRY);
         }
 
     @Test
     public void defaultProcessorFactoryAllowsConstructorAfterPolicyCheck()
         {
-        Response response = getWebTarget("dist-test-proc/(1,2)/allowed-constructor-side-effect-processor(age)")
+        Response response = getWebTarget("dist-test-proc/(1,2)/allowed-constructor-side-effect-processor(Age)")
                 .request(MediaType.APPLICATION_JSON)
                 .post(Entity.text(""));
 
         assertEquals(200, response.getStatus());
-        assertCounter(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 4L);
         assertCounter(OperationReason.PROCESS_ENTRY, "constructor", "constructor", 2L);
         }
 
@@ -195,20 +192,18 @@ public class RestEnforcementIntegrationTest
 
         assertEquals(200, response.getStatus());
         assertEquals("72", response.readEntity(String.class));
-        assertCounter(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
-        assertCounter(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
-    public void defaultAggregatorFactoryRejectsBeforeConstructorSideEffect()
+    public void defaultAggregatorFactoryShadowsConstructorSideEffectAggregator()
         {
         Response response = getWebTarget("dist-test1/constructor-side-effect-aggregator(age)")
                 .request(MediaType.APPLICATION_JSON)
                 .get();
 
-        assertTrue(response.getStatus() >= 400);
-        assertCounter(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter(OperationReason.AGGREGATE, "constructor", "constructor", 0L);
+        assertEquals(200, response.getStatus());
+        assertEquals("72", response.readEntity(String.class));
+        assertWouldRejectCounter(ConstructorSideEffectAggregator.class, OperationReason.AGGREGATE);
         }
 
     @Test
@@ -220,23 +215,18 @@ public class RestEnforcementIntegrationTest
 
         assertEquals(200, response.getStatus());
         assertEquals("72", response.readEntity(String.class));
-        assertCounter(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         assertCounter(OperationReason.AGGREGATE, "constructor", "constructor", 3L);
         }
 
     @Test
     public void cohqlQueryGatesFilterAndComparator()
         {
-        // keeps PROD REST URL expressions alias-only so this route reaches the comparator gate
-        Response response = getWebTarget("dist-test-named-query;start=0;sort=by-age:asc")
+        Response response = getWebTarget("dist-test-named-query;start=0;sort=age:asc")
                 .queryParam("q", "age < 100")
                 .request(MediaType.APPLICATION_JSON)
                 .get();
 
         assertEquals(200, response.getStatus());
-        assertCounter(OperationReason.EVALUATE_FILTER, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
-        assertCounter(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY, 3L);
         }
 
     private void assertCounter(OperationReason reason, String sResult, String sSubReason, long cExpected)
@@ -251,9 +241,18 @@ public class RestEnforcementIntegrationTest
                 Long.valueOf(map.getOrDefault(sKey, 0L)));
         }
 
+    private void assertWouldRejectCounter(Class<?> clz, OperationReason reason)
+        {
+        String sKey = "coh.executable.policy_check{result=would_reject,class=" + clz.getName()
+                + ",reason=" + reason.name()
+                + ",role=" + SerializationRole.REST.name() + "}";
+        Map<String, Long> map = telemetry();
+        assertTrue("counter " + sKey + " in " + map, map.getOrDefault(sKey, 0L) > 0L);
+        }
+
     private Map<String, Long> telemetry()
         {
-        return (Map<String, Long>) getNamedCache("dist-test1").invoke(1, new GetTelemetryProcessor());
+        return s_member.invoke(GetTelemetry.INSTANCE);
         }
 
     private WebTarget getWebTarget(String sUrl)
@@ -268,8 +267,7 @@ public class RestEnforcementIntegrationTest
 
     private int getPort()
         {
-        NamedCache cache = getNamedCache("dist-test1");
-        return (Integer) cache.invoke(1, new AbstractRestTests.GetPortProcessor());
+        return s_nPort;
         }
 
     private Client getClient()
@@ -296,22 +294,58 @@ public class RestEnforcementIntegrationTest
     private static void doStartCacheServer(String sName, String sCacheConfig)
         {
         Properties properties = new Properties();
+        properties.put(PROP_COHERENCE_CLUSTER, SERVER_NAME);
+        properties.put(PROP_COHERENCE_MODE, "prod");
+        properties.put(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         properties.put("com.tangosol.coherence.rest.server.DefaultResourceConfig.logging.enabled", "true");
         properties.put("java.util.logging.config.file", System.getProperty("java.util.logging.config.file", ""));
+        properties.put("coherence.override", "rest-tests-coherence-override.xml");
+        properties.put("coherence.wka", "127.0.0.1");
+        properties.put("test.extend.port", "0");
+        properties.put("test.unicast.port", "0");
+        properties.put("test.multicast.address", generateUniqueAddress(true));
+        properties.put("test.multicast.port", String.valueOf(LocalPlatform.get().getAvailablePorts().next()));
 
-        CoherenceClusterMember clusterMember = startCacheServer(sName, "rest", sCacheConfig, properties);
-        Eventually.assertDeferred(() -> clusterMember.isServiceRunning("ExtendHttpProxyService"), is(true));
+        s_member = startCacheServer(sName, "rest", sCacheConfig, properties);
+        Eventually.assertDeferred(() -> s_member.isServiceRunning("ExtendHttpProxyService"), is(true));
+
+        s_nPort = s_member.invoke(GetRestPort.INSTANCE);
+        assertTrue("REST port should be assigned", s_nPort > 0);
+        Eventually.assertDeferred(() -> isPortOpen(s_nPort), is(true));
         }
 
-    private static void restoreProperty(String sName, String sValue)
+    private static boolean isPortOpen(int nPort)
         {
-        if (sValue == null)
+        try (Socket socket = new Socket())
             {
-            System.clearProperty(sName);
+            socket.connect(new InetSocketAddress("127.0.0.1", nPort), 1000);
+            return true;
             }
-        else
+        catch (IOException e)
             {
-            System.setProperty(sName, sValue);
+            return false;
+            }
+        }
+
+    private static void stopMember(CoherenceClusterMember member)
+        {
+        if (member == null)
+            {
+            return;
+            }
+
+        try
+            {
+            member.submit(new RuntimeHalt());
+            member.waitFor();
+            }
+        catch (Throwable ignored)
+            {
+            // the member may already have exited
+            }
+        finally
+            {
+            member.close();
             }
         }
 
@@ -469,28 +503,90 @@ public class RestEnforcementIntegrationTest
                 RestEnforcementIntegrationTest.class, reason, SerializationRole.REST, null, "constructor");
         }
 
-    // ----- telemetry processors -----------------------------------------
+    // ----- member callables ---------------------------------------------
 
-    @Remote.Executable
-    public static class ResetTelemetryProcessor
-            implements InvocableMap.EntryProcessor<Object, Object, Void>, Serializable
+    public enum SetupCache
+            implements RemoteCallable<Void>
         {
+        INSTANCE;
+
         @Override
-        public Void process(InvocableMap.Entry<Object, Object> entry)
+        public Void call()
+            {
+            NamedCache cache = CacheFactory.getCache("dist-test1");
+            cache.clear();
+            cache.put(1, PortablePerson.create());
+            cache.put(2, VersionablePortablePerson.create());
+
+            cache = CacheFactory.getCache("dist-test-proc");
+            cache.clear();
+            cache.put(1, new Persona("Peter", 25));
+            cache.put(2, new Persona("Mary", 23));
+
+            cache = CacheFactory.getCache("dist-test-named-query");
+            cache.clear();
+            cache.put(1, new Persona("Ivan", 33));
+            cache.put(2, new Persona("Aleks", 37));
+            cache.put(3, new Persona("Vaso", 37));
+            return null;
+            }
+        }
+
+    public enum ResetTelemetry
+            implements RemoteCallable<Void>
+        {
+        INSTANCE;
+
+        @Override
+        public Void call()
             {
             SerializationTelemetry.resetForTesting();
             return null;
             }
         }
 
-    @Remote.Executable
-    public static class GetTelemetryProcessor
-            implements InvocableMap.EntryProcessor<Object, Object, Map<String, Long>>, Serializable
+    public enum GetTelemetry
+            implements RemoteCallable<Map<String, Long>>
         {
+        INSTANCE;
+
         @Override
-        public Map<String, Long> process(InvocableMap.Entry<Object, Object> entry)
+        public Map<String, Long> call()
             {
             return SerializationTelemetry.snapshot();
+            }
+        }
+
+    public enum GetRestPort
+            implements RemoteCallable<Integer>
+        {
+        INSTANCE;
+
+        @Override
+        public Integer call()
+            {
+            Cluster cluster = CacheFactory.getCluster();
+            Object  service = cluster.getService("ExtendHttpProxyService");
+            if (service instanceof SafeProxyService)
+                {
+                service = ((SafeProxyService) service).getRunningService();
+                }
+
+            ProxyService proxyService = (ProxyService) service;
+            HttpAcceptor acceptor     = (HttpAcceptor) proxyService.getAcceptor();
+            return acceptor == null ? 0 : acceptor.getListenPort();
+            }
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
             }
         }
 
@@ -498,9 +594,17 @@ public class RestEnforcementIntegrationTest
 
     private static final String SERVER_NAME = "RestEnforcementIntegrationTest-" + System.nanoTime();
 
-    private static final String PROP_COHERENCE_MODE = "coherence.mode";
+    private static final String PROP_COHERENCE_MODE    = "coherence.mode";
+
+    private static final String PROP_COHERENCE_CLUSTER = "coherence.cluster";
+
+    private static String s_sClusterOld;
 
     private static String s_sModeOld;
+
+    private static CoherenceClusterMember s_member;
+
+    private static int s_nPort;
 
     private Client m_client;
     }

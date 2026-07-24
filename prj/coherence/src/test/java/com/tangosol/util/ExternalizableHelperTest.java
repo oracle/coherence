@@ -6,6 +6,7 @@
  */
 package com.tangosol.util;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -23,7 +24,12 @@ import com.tangosol.io.pof.SafeConfigurablePofContext;
 import com.tangosol.io.pof.SerializableSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
+import com.tangosol.internal.util.CoherenceMode;
+
+import com.tangosol.run.xml.SimpleElement;
+
 import data.Person;
+import data.TestXmlSerializable;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -35,6 +41,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
@@ -701,6 +708,138 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     @Test
+    public void testCheckObjectInputFilterUsesDefaultForDataInput()
+        {
+        String sMode = System.getProperty("coherence.mode");
+        try
+            {
+            restoreProperty("coherence.mode", "prod");
+
+            DataInput in = new DataInputStream(new ByteArrayInputStream(new byte[0]));
+            assertTrue(checkObjectInputFilter(String.class, in));
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            }
+        }
+
+    @Test
+    public void testReadStringArrayDirectBufferInputAllowsBaselineArray() throws IOException
+        {
+        String sMode    = System.getProperty("coherence.mode");
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        try
+            {
+            restoreProperty("coherence.mode", "prod");
+            restoreProperty("coherence.serialization.allowed", null);
+
+            String[] as = {"message"};
+            ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+            writeStringArray(wb.getBufferOutput(), as);
+
+            assertArrayEquals(as, readStringArray(wb.getReadBuffer().getBufferInput()));
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
+    public void testValidateLoadArrayDirectBufferInputRejectsDeniedArray()
+        {
+        ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+        assertRejectedByFilter(() -> validateLoadArray(ProcessBuilder[].class, 1,
+                wb.getReadBuffer().getBufferInput()));
+        }
+
+    @Test
+    public void testDefaultSerializerReadObjectAllowsBaselineExternalizableLite() throws IOException
+        {
+        String sMode    = System.getProperty("coherence.mode");
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        try
+            {
+            restoreProperty("coherence.mode", "prod");
+            restoreProperty("coherence.serialization.allowed", null);
+
+            SimpleElement element = new SimpleElement("test", "value");
+            ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+            ExternalizableHelper.writeObject(wb.getBufferOutput(), element);
+
+            Object o = new DefaultSerializer().deserialize(wb.getReadBuffer().getBufferInput());
+            assertEquals(element, o);
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
+    public void testReadObjectDirectBufferInputRejectsDeniedExternalizableLiteClass() throws IOException
+        {
+        ByteArrayWriteBuffer wb = fmtExternalizableLite(ProcessBuilder.class.getName());
+        assertRejectedByFilter(() -> ExternalizableHelper.readObject(wb.getReadBuffer().getBufferInput(),
+                getClass().getClassLoader()));
+        }
+
+    @Test
+    public void testFmtObjSerRejectsDeniedClass()
+        {
+        Binary bin = ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"));
+        assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+        }
+
+    @Test
+    public void testFmtObjSerAllowsLegitimateSerializable()
+        {
+        java.util.Date date = new java.util.Date(12345L);
+        assertEquals(date, ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(date)));
+        }
+
+    @Test
+    public void testFmtXmlSerValidateLoadClassRejectsDeniedClass() throws IOException
+        {
+        Binary bin = fmtXmlSerializable(BadAttributeValueExpException.class.getName(), "<test/>");
+        assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+        }
+
+    @Test
+    public void testFmtXmlSerAllowsConfiguredClassInHardenedMode() throws IOException
+        {
+        String sMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        String sSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+        String sAllowed      = System.getProperty("coherence.serialization.allowed");
+        Binary bin           = fmtXmlSerializable(TestXmlSerializable.class.getName(), "<test/>");
+        try
+            {
+            restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, "prod");
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
+            restoreProperty("coherence.serialization.allowed", null);
+
+            assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+
+            System.setProperty("coherence.serialization.allowed", TestXmlSerializable.class.getName());
+
+            Object o = ExternalizableHelper.fromBinary(bin);
+            assertTrue(o instanceof TestXmlSerializable);
+            }
+        finally
+            {
+            restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
     public void testSerializableSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
         {
         ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
@@ -1255,6 +1394,41 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
 
         return false;
+        }
+
+    private static Binary fmtXmlSerializable(String sClass, String sXml) throws IOException
+        {
+        ByteArrayWriteBuffer     wb  = new ByteArrayWriteBuffer(0);
+        WriteBuffer.BufferOutput out = wb.getBufferOutput();
+        out.writeByte(FMT_XML_SER);
+        writeUTF(out, sClass);
+        writeUTF(out, sXml);
+        return wb.toBinary();
+        }
+
+    private static ByteArrayWriteBuffer fmtExternalizableLite(String sClass) throws IOException
+        {
+        ByteArrayWriteBuffer     wb  = new ByteArrayWriteBuffer(0);
+        WriteBuffer.BufferOutput out = wb.getBufferOutput();
+        out.writeByte(FMT_OBJ_EXT);
+        writeUTF(out, sClass);
+        return wb;
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        if (CoherenceMode.PROP_COHERENCE_MODE.equals(sName) || CoherenceMode.PROP_SECURITY_MODE.equals(sName))
+            {
+            CoherenceModeHelper.reset();
+            }
         }
 
     private interface ThrowingRunnable

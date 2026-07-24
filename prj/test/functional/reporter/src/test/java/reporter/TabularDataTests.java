@@ -199,7 +199,7 @@ public class TabularDataTests
         try
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report.xml";
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
                 {
                 new ReportBatch().runTabularReport(sUrl);
                 fail("remote report URL should be rejected");
@@ -232,7 +232,7 @@ public class TabularDataTests
         server.start();
 
         String sOld = System.getProperty("coherence.management.report.remote.allowed");
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             String sBase = "http://127.0.0.1:" + server.getAddress().getPort();
             System.setProperty("coherence.management.report.remote.allowed", sBase);
@@ -250,7 +250,7 @@ public class TabularDataTests
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectOutOfRootFileUrl()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             new ReportBatch().runTabularReport(new java.io.File("/etc/passwd").toURI().toString());
             }
@@ -263,7 +263,7 @@ public class TabularDataTests
         File file = new File("target/unapproved-reporter-input.xml");
         file.getParentFile().mkdirs();
         Files.write(file.toPath(), sXmlReport.getBytes(StandardCharsets.UTF_8));
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             new ReportBatch().runTabularReport(file.toURI().toString());
             }
@@ -278,7 +278,7 @@ public class TabularDataTests
             throws IOException
         {
         File tempDirectory = FileHelper.createTempDir();
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             new ReportBatch().setOutputPath(tempDirectory.getAbsolutePath());
             }
@@ -295,14 +295,14 @@ public class TabularDataTests
         }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldRejectLegacyReportFileOutsideSelectedOutputDirectory()
+    public void shouldRejectCompatibilityReportFileOutsideSelectedOutputDirectory()
             throws IOException
         {
         File root = FileHelper.createTempDir();
         try
             {
             File file = new File(root.getParentFile(), root.getName() + "-escape.txt");
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
                 {
                 ReporterSecurity.validateOutputFile(file.getCanonicalPath(), root.getCanonicalPath(), "reporter-core");
                 }
@@ -365,7 +365,7 @@ public class TabularDataTests
         try
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/group-report.xml";
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
                 {
                 new ReportBatch().runTabularReport("<report-group><report-list><report-config><location>"
                         + sUrl + "</location></report-config></report-list></report-group>");

@@ -19,13 +19,13 @@ public final class CoherenceMode
         }
 
     /**
-     * Return {@code true} if Coherence is running in legacy mode.
+     * Return {@code true} if security hardening is enabled.
      *
-     * @return {@code true} if Coherence is running in legacy mode
+     * @return {@code true} if security hardening is enabled
      */
-    public static boolean isLegacy()
+    public static boolean isSecurityHardeningEnabled()
         {
-        return com.tangosol.internal.util.CoherenceMode.isLegacy();
+        return com.tangosol.internal.util.CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**

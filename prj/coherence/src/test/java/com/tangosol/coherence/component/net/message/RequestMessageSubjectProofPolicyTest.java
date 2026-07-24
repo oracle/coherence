@@ -76,13 +76,14 @@ public class RequestMessageSubjectProofPolicyTest
             throws Exception
         {
         setMode(m_sOriginalMode);
+        setSecurityMode(m_sOriginalSecurityMode);
         }
 
     @Test
     public void shouldPreserveBehaviorWhenProofIsNotRequired()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = serviceWithProvider(SubjectProofProviders.disabled());
         TestStorage          storage = new TestStorage(service, false);
         RequestContext       context = contextWithSubject();
@@ -94,7 +95,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectMissingProofBeforeAuthorizerInProd()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
 
@@ -106,7 +107,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectDisabledProviderWhenProofIsRequired()
             throws Exception
         {
-        setMode("dev");
+        setDevHardenedMode();
         TestPartitionedCache service = serviceWithProvider(SubjectProofProviders.disabled());
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -122,14 +123,13 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectInvalidProofBeforeAuthorizer()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
 
-        context.setSubjectProof(service.getProvider().createProof(service.payload(context, storage)));
+        context.setSubjectProof(new SubjectProof(service.payload(context, storage), new byte[] {0}).toByteArray());
         context.setSubjectProofSenderId(ISSUER);
-        context.getSubjectProof()[context.getSubjectProof().length - 1] ^= 0x01;
 
         assertThrows(SecurityException.class,
                 () -> service.getStorageAccessSubject(context, storage));
@@ -139,7 +139,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldAllowValidProofBeforeAuthorizer()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -156,7 +156,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldLeaveNullSubjectToConfiguredAuthorizer()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = new RequestContext();
@@ -168,10 +168,11 @@ public class RequestMessageSubjectProofPolicyTest
         }
 
     @Test
-    public void shouldPreserveUnsignedSubjectPropagationInLegacy()
+    public void shouldPreserveUnsignedSubjectPropagationInCompatibilityMode()
             throws Exception
         {
-        setMode("legacy");
+        setProdHardenedMode();
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         TestPartitionedCache service = serviceWithProvider(SubjectProofProviders.disabled());
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -183,7 +184,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectIncompatibleProofRequiredSend()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         RequestMessage       request = requestWithSubject(service);
 
@@ -198,7 +199,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldVerifyWritePathProofWithReceiverStablePayload()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestMessage       request = requestWithSubject(service);
@@ -221,7 +222,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectReusedMiniIdWithDifferentStableSender()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         Member               issuer   = member(7, 100L);
         Member               rejoined = member(7, 200L);
         String               sIssuer  = stableMemberId(issuer);
@@ -241,7 +242,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldAllowStableRemoteIssuerOnDifferentReceiver()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         Member               issuer   = member(8, 300L);
         String               sIssuer  = stableMemberId(issuer);
         TestPartitionedCache producer = serviceWithProvider(new DeterministicSubjectProofProvider(sIssuer));
@@ -274,7 +275,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldVerifyRemoteIssuerProofOnDifferentReceiver()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache issuer   = enabledService();
         TestPartitionedCache receiver = enabledService();
         TestStorage          storage  = new TestStorage(receiver, true);
@@ -291,7 +292,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectProofReplayedByNonForwarder()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -306,7 +307,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectTopologyInvalidForwarder()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -322,7 +323,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldAllowTopologyValidForwarder()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -338,7 +339,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectClusterIdentityMismatch()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache issuer   = enabledService();
         TestPartitionedCache receiver = enabledService();
         TestStorage          storage  = new TestStorage(receiver, true);
@@ -356,7 +357,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectServiceTypeMismatch()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache issuer   = enabledService();
         TestPartitionedCache receiver = enabledService();
         TestStorage          storage  = new TestStorage(receiver, true);
@@ -373,7 +374,7 @@ public class RequestMessageSubjectProofPolicyTest
     public void shouldRejectReplayEpochMismatch()
             throws Exception
         {
-        setMode("prod");
+        setProdHardenedMode();
         TestPartitionedCache service = enabledService();
         TestStorage          storage = new TestStorage(service, true);
         RequestContext       context = contextWithSubject();
@@ -472,6 +473,37 @@ public class RequestMessageSubjectProofPolicyTest
         else
             {
             System.setProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+            }
+
+        Method method = CoherenceMode.class.getDeclaredMethod("resetForTesting");
+        method.setAccessible(true);
+        method.invoke(null);
+        }
+
+    private static void setProdHardenedMode()
+            throws Exception
+        {
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        }
+
+    private static void setDevHardenedMode()
+            throws Exception
+        {
+        setMode("dev");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        }
+
+    private static void setSecurityMode(String sSecurityMode)
+            throws Exception
+        {
+        if (sSecurityMode == null)
+            {
+            System.clearProperty(CoherenceMode.PROP_SECURITY_MODE);
+            }
+        else
+            {
+            System.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
             }
 
         Method method = CoherenceMode.class.getDeclaredMethod("resetForTesting");
@@ -774,5 +806,6 @@ public class RequestMessageSubjectProofPolicyTest
 
     private static final byte[] SECRET = "deterministic-secret".getBytes(StandardCharsets.UTF_8);
 
-    private final String m_sOriginalMode = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sOriginalMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sOriginalSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     }

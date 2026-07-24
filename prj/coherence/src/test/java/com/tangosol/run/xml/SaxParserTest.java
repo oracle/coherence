@@ -107,7 +107,7 @@ public class SaxParserTest
         try
             {
             System.setProperty("javax.xml.catalog.resolve", "strict");
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
                 {
                 // design/features/security-bugs/plans/rest-01/prompts/06-slice-e-saxparser-xxe-implementation.md closes
                 // external schema access, so strict catalog validation must still use bundled local schemas
@@ -132,7 +132,7 @@ public class SaxParserTest
     public void testLegacyValidateXsdStillUsesRealParserAndLocalSchemas()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             // design/features/security-bugs/plans/rest-01/prompts/06-slice-e-saxparser-xxe-implementation.md keeps
             // LEGACY compatibility on the real parser path, not only on fake unsupported-protection paths
@@ -170,7 +170,7 @@ public class SaxParserTest
             throws Exception
         {
         try (LoopbackRequestCounter counter = new LoopbackRequestCounter();
-             CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+             CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             IOException e = expectIOException(() -> validateXmlWithSchemaLocation(
                     "jar:http://127.0.0.1:" + counter.getPort() + "/evil.jar!/external.xsd"));
@@ -191,7 +191,7 @@ public class SaxParserTest
             out.closeEntry();
             }
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             validateXmlWithSchemaLocation("jar:" + fileJar.toURI().toURL() + "!/schema.xsd");
             }
@@ -253,7 +253,7 @@ public class SaxParserTest
     public void testDevFailsClosedWhenParserProtectionUnsupported()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(
                     () -> SaxParser.configureRequiredParserProtections(new UnsupportedParser()));
@@ -265,7 +265,7 @@ public class SaxParserTest
     public void testLegacyContinuesWhenParserProtectionUnsupported()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             SaxParser.configureRequiredParserProtections(new UnsupportedParser());
             }
@@ -275,7 +275,7 @@ public class SaxParserTest
     public void testDevFailsClosedWhenSchemaFactoryProtectionUnsupported()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(
                     () -> SaxParser.configureRequiredSchemaFactoryProtections(new UnsupportedSchemaFactory()));
@@ -287,7 +287,7 @@ public class SaxParserTest
     public void testDevFailsClosedWhenValidatorProtectionUnsupported()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(
                     () -> SaxParser.configureRequiredValidatorProtections(new UnsupportedValidator()));
@@ -299,7 +299,7 @@ public class SaxParserTest
     public void testRequiredProtectionSetAppliesToParserAndValidatorPaths()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             RecordingParser parser = new RecordingParser();
             RecordingValidator validator = new RecordingValidator();
@@ -317,19 +317,19 @@ public class SaxParserTest
         }
 
     @Test
-    public void testParserCacheIsModeAware()
+    public void testParserCacheIsSecurityHardeningAware()
             throws Exception
         {
-        Parser parserLegacy;
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        Parser parserCompatibility;
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
-            parserLegacy = SaxParser.getParser();
+            parserCompatibility = SaxParser.getParser();
             }
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
-            Parser parserDev = SaxParser.getParser();
-            assertNotSame(parserLegacy, parserDev);
+            Parser parserHardened = SaxParser.getParser();
+            assertNotSame(parserCompatibility, parserHardened);
             }
         }
 
@@ -345,7 +345,7 @@ public class SaxParserTest
                 + "<xs:element name=\"root\" type=\"xs:string\"/>"
                 + "</xs:schema>").getBytes(StandardCharsets.UTF_8));
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(() -> validateXmlWithSchema(fileSchema));
             assertThat(e.getMessage(), containsString("accessExternalSchema"));
@@ -364,7 +364,7 @@ public class SaxParserTest
                 + "<xs:element name=\"root\" type=\"xs:string\"/>"
                 + "</xs:schema>").getBytes(StandardCharsets.UTF_8));
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(() -> validateXmlWithSchema(fileSchema));
             assertThat(e.getMessage(), containsString("accessExternalDTD"));
@@ -413,13 +413,13 @@ public class SaxParserTest
     private static void assertDevAndProdRejectXml(String sXml)
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SaxParser.resetForTesting();
             expectSaxException(() -> new SaxParser().parseXml(sXml));
             }
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SaxParser.resetForTesting();
             expectSaxException(() -> new SaxParser().parseXml(sXml));

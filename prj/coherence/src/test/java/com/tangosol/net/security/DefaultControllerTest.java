@@ -72,7 +72,7 @@ public class DefaultControllerTest
     public void shouldUseIndependentSignatureInstances()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
 
@@ -89,7 +89,7 @@ public class DefaultControllerTest
     public void shouldAllowHonestManagerSubject()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -108,7 +108,7 @@ public class DefaultControllerTest
     public void shouldAllowLegacyCertificateSubjectWithUnboundExtraPrincipal()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -124,7 +124,7 @@ public class DefaultControllerTest
     public void shouldDenyHonestWorkerHigherPrivilegePermission()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -144,7 +144,7 @@ public class DefaultControllerTest
     public void shouldRejectWorkerCertificateWithManagerPrincipal()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -160,7 +160,7 @@ public class DefaultControllerTest
     public void shouldAllowLegacyExtraManagerPrincipalAfterWorkerSignerVerified()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -180,7 +180,7 @@ public class DefaultControllerTest
     public void shouldAllowLegacyExtraManagerPrincipalWithAdditionalCertificateAfterWorkerSignerVerified()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -200,7 +200,7 @@ public class DefaultControllerTest
     public void shouldRejectExtraManagerPrincipalAfterWorkerSignerVerifiedInDev()
             throws Exception
         {
-        assertProbe(0, "dev", rsaConfig(), null, "expect-signed-extra-principal-rejected",
+        assertProbe(0, "dev", rsaConfig(), SECURITY_MODE_HARDENED_ARG, "expect-signed-extra-principal-rejected",
                 path(rsaKeystore()), path(permissions()), "PKCS12");
         }
 
@@ -208,7 +208,7 @@ public class DefaultControllerTest
     public void shouldRejectCertificateSubjectWithUnboundExtraPrincipalWithoutSignerVerificationInDev()
             throws Exception
         {
-        assertProbe(0, "dev", rsaConfig(), null, "expect-extra-principal-rejected",
+        assertProbe(0, "dev", rsaConfig(), SECURITY_MODE_HARDENED_ARG, "expect-extra-principal-rejected",
                 path(rsaKeystore()), path(permissions()), "PKCS12");
         }
 
@@ -216,7 +216,7 @@ public class DefaultControllerTest
     public void shouldRejectMutableSubjectCacheBypass()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -239,7 +239,7 @@ public class DefaultControllerTest
     public void shouldRoundTripPermissionInfoWithCertificateSubject()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             DefaultController controller = controller(jksKeystore(), permissions(), "password");
             KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
@@ -274,22 +274,22 @@ public class DefaultControllerTest
     public void shouldUseModernDefaultInProdInForkedVm()
             throws Exception
         {
-        assertProbe(0, "prod", null, null, "algorithm", "SHA256withRSA");
+        assertProbe(0, "prod", null, SECURITY_MODE_HARDENED_ARG, "algorithm", "SHA256withRSA");
         }
 
     @Test
     public void shouldAllowExplicitModernAlgorithmInProdInForkedVm()
             throws Exception
         {
-        assertProbe(0, "prod", rsaConfig(), null, "round-trip", path(rsaKeystore()), path(permissions()), "PKCS12",
-                "manager", "manager");
+        assertProbe(0, "prod", rsaConfig(), SECURITY_MODE_HARDENED_ARG, "round-trip", path(rsaKeystore()),
+                path(permissions()), "PKCS12", "manager", "manager");
         }
 
     @Test
-    public void shouldAllowExplicitWeakAlgorithmInLegacyInForkedVm()
+    public void shouldAllowExplicitWeakAlgorithmWhenHardeningDisabledInForkedVm()
             throws Exception
         {
-        assertProbe(0, "legacy", weakConfig("SHA1withDSA"), null,
+        assertProbe(0, "prod", weakConfig("SHA1withDSA"), SECURITY_MODE_COMPATIBILITY_ARG,
                 "round-trip", path(jksKeystore()), path(permissions()), "JKS", "manager", "manager");
         }
 
@@ -297,28 +297,32 @@ public class DefaultControllerTest
     public void shouldRejectExplicitWeakAlgorithmInDevInForkedVm()
             throws Exception
         {
-        assertProbe(0, "dev", weakConfig("SHA1withDSA"), null, "expect-init-failure", null, null, null);
+        assertProbe(0, "dev", weakConfig("SHA1withDSA"), SECURITY_MODE_HARDENED_ARG,
+                "expect-init-failure", null, null, null);
         }
 
     @Test
     public void shouldRejectExplicitWeakAlgorithmInProdInForkedVm()
             throws Exception
         {
-        assertProbe(0, "prod", weakConfig("SHA1withDSA"), null, "expect-init-failure", null, null, null);
+        assertProbe(0, "prod", weakConfig("SHA1withDSA"), SECURITY_MODE_HARDENED_ARG,
+                "expect-init-failure", null, null, null);
         }
 
     @Test
     public void shouldRejectDashedShaOneAlgorithmInDevInForkedVm()
             throws Exception
         {
-        assertProbe(0, "dev", weakConfig("SHA-1withDSA"), null, "expect-init-failure", null, null, null);
+        assertProbe(0, "dev", weakConfig("SHA-1withDSA"), SECURITY_MODE_HARDENED_ARG,
+                "expect-init-failure", null, null, null);
         }
 
     @Test
     public void shouldRejectTrailingShaOneAlgorithmInDevInForkedVm()
             throws Exception
         {
-        assertProbe(0, "dev", weakConfig("DSAwithSHA1"), null, "expect-init-failure", null, null, null);
+        assertProbe(0, "dev", weakConfig("DSAwithSHA1"), SECURITY_MODE_HARDENED_ARG,
+                "expect-init-failure", null, null, null);
         }
 
     @Test
@@ -327,7 +331,8 @@ public class DefaultControllerTest
         {
         for (String sAlgorithm : new String[] {"DSA", "DSS", "SHA/DSA", "SHAwithDSA"})
             {
-            assertProbe(0, "dev", weakConfig(sAlgorithm), null, "expect-init-failure", null, null, null);
+            assertProbe(0, "dev", weakConfig(sAlgorithm), SECURITY_MODE_HARDENED_ARG,
+                    "expect-init-failure", null, null, null);
             }
         }
 
@@ -337,7 +342,8 @@ public class DefaultControllerTest
         {
         for (String sAlgorithm : new String[] {"DSA", "DSS", "SHA/DSA", "SHAwithDSA"})
             {
-            assertProbe(0, "prod", weakConfig(sAlgorithm), null, "expect-init-failure", null, null, null);
+            assertProbe(0, "prod", weakConfig(sAlgorithm), SECURITY_MODE_HARDENED_ARG,
+                    "expect-init-failure", null, null, null);
             }
         }
 
@@ -347,7 +353,8 @@ public class DefaultControllerTest
         {
         for (String sAlgorithm : missedWeakDsaAliases())
             {
-            assertProbe(0, "dev", weakConfig(sAlgorithm), null, "expect-init-failure", null, null, null);
+            assertProbe(0, "dev", weakConfig(sAlgorithm), SECURITY_MODE_HARDENED_ARG,
+                    "expect-init-failure", null, null, null);
             }
         }
 
@@ -357,7 +364,8 @@ public class DefaultControllerTest
         {
         for (String sAlgorithm : missedWeakDsaAliases())
             {
-            assertProbe(0, "prod", weakConfig(sAlgorithm), null, "expect-init-failure", null, null, null);
+            assertProbe(0, "prod", weakConfig(sAlgorithm), SECURITY_MODE_HARDENED_ARG,
+                    "expect-init-failure", null, null, null);
             }
         }
 
@@ -365,7 +373,7 @@ public class DefaultControllerTest
     public void shouldRejectMismatchedSubjectInDevInForkedVm()
             throws Exception
         {
-        assertProbe(0, "dev", rsaConfig(), null, "expect-mismatch-rejected",
+        assertProbe(0, "dev", rsaConfig(), SECURITY_MODE_HARDENED_ARG, "expect-mismatch-rejected",
                 path(rsaKeystore()), path(permissions()), "PKCS12", "worker", "manager");
         }
 
@@ -373,7 +381,7 @@ public class DefaultControllerTest
     public void shouldRejectMismatchedSubjectInProdInForkedVm()
             throws Exception
         {
-        assertProbe(0, "prod", rsaConfig(), null, "expect-mismatch-rejected",
+        assertProbe(0, "prod", rsaConfig(), SECURITY_MODE_HARDENED_ARG, "expect-mismatch-rejected",
                 path(rsaKeystore()), path(permissions()), "PKCS12", "worker", "manager");
         }
 
@@ -437,6 +445,10 @@ public class DefaultControllerTest
                 + "</config>\n").getBytes(StandardCharsets.UTF_8));
         return file;
         }
+
+    private static final String SECURITY_MODE_HARDENED_ARG = "-Dcoherence.security.mode=hardened";
+
+    private static final String SECURITY_MODE_COMPATIBILITY_ARG = "-Dcoherence.security.mode=compatibility";
 
     private File rsaConfig()
         {

@@ -32,9 +32,9 @@ public class MvelHelperTest
         }
 
     @Test
-    public void shouldEnableMvelOnlyInLegacyMode()
+    public void shouldEnableMvelOnlyInCompatibilityMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             JsonMap map = new JsonMap();
             map.put("age", 41);
@@ -54,15 +54,9 @@ public class MvelHelperTest
         }
 
     @Test
-    public void shouldDisableMvelInDevEvenWhenMvel2IsPresent()
+    public void shouldDisableMvelInHardenedModeEvenWhenMvel2IsPresent()
         {
-        assertDisabled(CoherenceModeHelper.dev());
-        }
-
-    @Test
-    public void shouldDisableMvelInProdEvenWhenMvel2IsPresent()
-        {
-        assertDisabled(CoherenceModeHelper.prod());
+        assertDisabled(CoherenceModeHelper.securityHardened());
         }
 
     private static void assertDisabled(CoherenceModeHelper.ModeScope scope)
@@ -74,7 +68,7 @@ public class MvelHelperTest
 
             assertFalse(MvelHelper.isEnabled());
 
-            // rest-01 Slice C 14.1.1.2206 MVEL POF backport: direct MVEL APIs stay closed in hardened modes even with mvel2 present
+            // direct MVEL APIs stay closed in hardened mode even with mvel2 present
             assertUnsupported(() -> MvelHelper.getMvelParserContext());
             assertUnsupported(() -> MvelHelper.compileExpression("age", null));
             assertUnsupported(() -> MvelHelper.executeExpression("age", map));

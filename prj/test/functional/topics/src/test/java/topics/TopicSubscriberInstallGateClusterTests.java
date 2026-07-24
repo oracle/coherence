@@ -62,6 +62,7 @@ public class TopicSubscriberInstallGateClusterTests
         s_sCacheConfigOld  = System.getProperty(PROP_CACHE_CONFIG);
         s_sLocalStorageOld = System.getProperty(PROP_LOCAL_STORAGE);
         s_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        s_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         s_sWkaOld          = System.getProperty(PROP_WKA);
         s_sLocalhostOld    = System.getProperty(PROP_LOCALHOST);
 
@@ -72,7 +73,9 @@ public class TopicSubscriberInstallGateClusterTests
         setProperty(PROP_CACHE_CONFIG, "topic-cache-config.xml");
         setProperty(PROP_LOCAL_STORAGE, "true");
         setProperty(CoherenceMode.PROP_COHERENCE_MODE, "prod");
-        CoherenceModeHelper.reset();
+        setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
+        CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
         resetSecurityConfig();
 
         ClassLoader loader = Base.getContextClassLoader();
@@ -104,6 +107,7 @@ public class TopicSubscriberInstallGateClusterTests
         restoreProperty(PROP_CACHE_CONFIG, s_sCacheConfigOld);
         restoreProperty(PROP_LOCAL_STORAGE, s_sLocalStorageOld);
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, s_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, s_sSecurityModeOld);
         restoreProperty(PROP_WKA, s_sWkaOld);
         restoreProperty(PROP_LOCALHOST, s_sLocalhostOld);
         CoherenceModeHelper.reset();
@@ -267,6 +271,7 @@ public class TopicSubscriberInstallGateClusterTests
     private static String                             s_sCacheConfigOld;
     private static String                             s_sLocalStorageOld;
     private static String                             s_sModeOld;
+    private static String                             s_sSecurityModeOld;
     private static String                             s_sWkaOld;
     private static String                             s_sLocalhostOld;
     }

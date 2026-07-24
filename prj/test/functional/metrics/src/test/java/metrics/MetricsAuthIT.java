@@ -7,13 +7,19 @@
 package metrics;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.HttpAcceptor;
+import com.tangosol.coherence.component.util.safeService.SafeProxyService;
 import com.tangosol.coherence.http.AbstractHttpServer;
-import com.tangosol.discovery.NSLookup;
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+import com.tangosol.internal.util.CoherenceMode;
 
+import com.tangosol.net.CacheFactory;
+import com.tangosol.net.Cluster;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -23,11 +29,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import java.net.HttpURLConnection;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URL;
 
-import java.util.Collection;
 import java.util.Properties;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
@@ -50,10 +54,11 @@ public class MetricsAuthIT
         }
 
     @Test
-    public void shouldRejectUnauthenticatedScrapeInProdDefault()
+    public void shouldRejectUnauthenticatedScrapeInHardenedModeDefault()
             throws Exception
         {
-        try (CoherenceClusterMember member = startServer("MetricsAuthProdDefault", props("prod", null)))
+        try (CoherenceClusterMember member = startServer("MetricsAuthHardenedDefault",
+                props("prod", CoherenceMode.SECURITY_MODE_HARDENED, null)))
             {
             HttpURLConnection con = connection(metricsUrl(member), null);
             assertThat(con.getResponseCode(), is(HttpURLConnection.HTTP_UNAUTHORIZED));
@@ -61,10 +66,11 @@ public class MetricsAuthIT
         }
 
     @Test
-    public void shouldAllowBasicWithColonPassword()
+    public void shouldAllowBasicWithColonPasswordInHardenedMode()
             throws Exception
         {
-        try (CoherenceClusterMember member = startServer("MetricsAuthBasicColon", props("dev", null)))
+        try (CoherenceClusterMember member = startServer("MetricsAuthBasicColon",
+                props("prod", CoherenceMode.SECURITY_MODE_HARDENED, null)))
             {
             HttpURLConnection con = connection(metricsUrl(member), "client:pass:word");
             assertThat(con.getResponseCode(), is(HttpURLConnection.HTTP_OK));
@@ -76,7 +82,8 @@ public class MetricsAuthIT
             throws Exception
         {
         String sName = "MetricsAuthExplicitNone";
-        try (CoherenceClusterMember member = startServer(sName, props("prod", "none")))
+        try (CoherenceClusterMember member = startServer(sName,
+                props("prod", CoherenceMode.SECURITY_MODE_HARDENED, "none")))
             {
             HttpURLConnection con = connection(metricsUrl(member), null);
             assertThat(con.getResponseCode(), is(HttpURLConnection.HTTP_OK));
@@ -106,6 +113,7 @@ public class MetricsAuthIT
 
     private CoherenceClusterMember startServer(String sName, Properties props)
         {
+        props.put("coherence.cluster", sName + "-" + System.nanoTime());
         CoherenceClusterMember member = startCacheServer(sName, PROJECT_NAME, FILE_SERVER_CFG_CACHE, props, true);
         Eventually.assertThat(invoking(member).isServiceRunning(MetricsHttpHelper.getServiceName()), is(true));
         return member;
@@ -114,10 +122,9 @@ public class MetricsAuthIT
     private URL metricsUrl(CoherenceClusterMember member)
             throws Exception
         {
-        int nPort = Integer.getInteger("test.multicast.port");
-        Collection<URL> urls = NSLookup.lookupHTTPMetricsURL(new InetSocketAddress("127.0.0.1", nPort));
-        assertThat(urls.size(), is(1));
-        return urls.iterator().next();
+        int nPort = member.invoke(GetMetricsPort.INSTANCE);
+        assertThat(nPort > 0, is(true));
+        return URI.create("http://127.0.0.1:" + nPort + "/metrics").toURL();
         }
 
     private HttpURLConnection connection(URL url, String sCredentials)
@@ -135,8 +142,18 @@ public class MetricsAuthIT
     private Properties props(String sMode, String sAuth)
             throws IOException
         {
+        return props(sMode, null, sAuth);
+        }
+
+    private Properties props(String sMode, String sSecurityMode, String sAuth)
+            throws IOException
+        {
         Properties props = new Properties();
         props.put("coherence.mode", sMode);
+        if (sSecurityMode != null)
+            {
+            props.put(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            }
         props.put(MetricsHttpHelper.PROP_METRICS_ENABLED, "true");
         props.put("coherence.metrics.http.port", "0");
         props.put("coherence.management.extendedmbeanname", "true");
@@ -163,6 +180,30 @@ public class MetricsAuthIT
     private interface HttpAuthProperty
         {
         String METRICS = "coherence.metrics.http.auth";
+        }
+
+    /**
+     * Return the assigned metrics HTTP acceptor port from inside the remote member.
+     */
+    public enum GetMetricsPort
+            implements RemoteCallable<Integer>
+        {
+        INSTANCE;
+
+        @Override
+        public Integer call()
+            {
+            Cluster cluster = CacheFactory.getCluster();
+            Object  service = cluster.getService(MetricsHttpHelper.getServiceName());
+            if (service instanceof SafeProxyService)
+                {
+                service = ((SafeProxyService) service).getRunningService();
+                }
+
+            ProxyService proxyService = (ProxyService) service;
+            HttpAcceptor acceptor     = (HttpAcceptor) proxyService.getAcceptor();
+            return acceptor == null ? 0 : acceptor.getListenPort();
+            }
         }
 
     private static final String PROJECT_NAME = "metrics";

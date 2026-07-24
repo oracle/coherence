@@ -131,7 +131,7 @@ public class EntrySetResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasesInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             EntrySetResource resource = new EntrySetResource(m_cache, Collections.singleton(1), Person.class);
             resource.setExpressionAliases(createExpressionAliases());

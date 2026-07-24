@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * Configured Coherence REST expression aliases.
  * <p>
- * Makes these aliases the operator-owned contract for DEV/PROD URL sort,
+ * Makes these aliases the operator-owned contract for hardened URL sort,
  * projection, aggregator, and processor expression inputs.
  *
  * @author Vaso Putica  2026.05.08

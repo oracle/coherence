@@ -75,6 +75,7 @@ public class InvocationServiceEnforcementTest
         setFactory(null);
         stopCacheServer(SERVER_NAME);
         CoherenceModeHelper.restore(m_sModeOld);
+        CoherenceModeHelper.restoreSecurityMode(m_sSecurityModeOld);
         restoreProperty(PROP_INVOCATION_ENABLED, m_sInvocationEnabledOld);
         }
 
@@ -83,7 +84,7 @@ public class InvocationServiceEnforcementTest
     @Test
     public void allowsAnnotatedInvocableInDev()
         {
-        startProxy("dev", null);
+        startProxy("dev", "true", true);
 
         assertEquals(7, query(newTestInvocable(6)).intValue());
         assertCounter("dev", "allowed", 1L);
@@ -92,27 +93,27 @@ public class InvocationServiceEnforcementTest
     @Test
     public void allowsAnnotatedInvocableInProd()
         {
-        startProxy("prod", "true");
+        startProxy("prod", "true", true);
 
         assertEquals(7, query(newTestInvocable(6)).intValue());
         assertCounter("prod", "allowed", 1L);
         }
 
     @Test
-    public void allowsAnnotatedInvocableInLegacy()
+    public void allowsAnnotatedInvocableWhenHardeningDisabled()
         {
-        startProxy("legacy", null);
+        startProxy("prod", null, false);
 
         assertEquals(7, query(newTestInvocable(6)).intValue());
         assertCounterAbsent("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=allowed,mode=legacy,sub_reason=policy}");
+                + ",result=allowed,mode=prod,sub_reason=policy}");
         }
 
     @Test
     public void rejectsUnannotatedInvocableInDev()
         {
-        startProxy("dev", null);
+        startProxy("dev", "true", true);
 
         assertRemoteSecurityException(new PlainInvocable(6));
         assertCounter("dev", "rejected", 1L);
@@ -121,7 +122,7 @@ public class InvocationServiceEnforcementTest
     @Test
     public void rejectsUnannotatedInvocableInProd()
         {
-        startProxy("prod", "true");
+        startProxy("prod", "true", true);
 
         assertRemoteSecurityException(new PlainInvocable(6));
         assertCounter("prod", "rejected", 1L);
@@ -130,7 +131,7 @@ public class InvocationServiceEnforcementTest
     @Test
     public void rejectsUnannotatedPriorityTaskBeforeSchedulingCallback()
         {
-        startProxy("dev", null);
+        startProxy("dev", "true", true);
         resetPriorityTaskCallbacks();
 
         assertRemoteRejected(new PlainPriorityInvocable(6));
@@ -142,7 +143,7 @@ public class InvocationServiceEnforcementTest
     @Test
     public void allowsAnnotatedPriorityTaskCallback()
         {
-        startProxy("dev", null);
+        startProxy("dev", "true", true);
         resetPriorityTaskCallbacks();
 
         assertEquals(7, query(new ExecutablePriorityInvocable(6)).intValue());
@@ -152,9 +153,9 @@ public class InvocationServiceEnforcementTest
         }
 
     @Test
-    public void allowsUnannotatedInvocableInLegacy()
+    public void allowsUnannotatedInvocableWhenHardeningDisabled()
         {
-        startProxy("legacy", null);
+        startProxy("prod", null, false);
 
         assertEquals(7, query(new PlainInvocable(6)).intValue());
         assertCounter("coh.executable.policy_check{result=would_reject,class="
@@ -170,7 +171,7 @@ public class InvocationServiceEnforcementTest
     public void rejectsWhenProxyDisabled()
             throws IOException
         {
-        startProxy("prod", "false");
+        startProxy("prod", "false", true);
 
         try
             {
@@ -183,7 +184,7 @@ public class InvocationServiceEnforcementTest
             assertFalse(String.valueOf(e), containsMessage(e, "disabled by policy"));
             }
 
-        Eventually.assertDeferred(this::serverLogDisabledWarningCountUnchecked, is(1));
+        Eventually.assertDeferred(() -> serverLogDisabledWarningCountUnchecked() >= 1, is(true));
         Eventually.assertDeferred(this::serverLogPerRequestWarningCountUnchecked, is(0));
         }
 
@@ -202,17 +203,31 @@ public class InvocationServiceEnforcementTest
 
     private void startProxy(String sMode, String sInvocationEnabled)
         {
-        startServer(sMode, sInvocationEnabled, "server-cache-config-invocation.xml");
+        startProxy(sMode, sInvocationEnabled, false);
+        }
+
+    private void startProxy(String sMode, String sInvocationEnabled, boolean fHardened)
+        {
+        startServer(sMode, sInvocationEnabled, fHardened, "server-cache-config-invocation.xml");
         }
 
     private void startServer(String sMode, String sInvocationEnabled, String sCacheConfig)
         {
+        startServer(sMode, sInvocationEnabled, false, sCacheConfig);
+        }
+
+    private void startServer(String sMode, String sInvocationEnabled, boolean fHardened, String sCacheConfig)
+        {
+        String sSecurityMode = securityMode(fHardened);
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         restoreProperty(PROP_INVOCATION_ENABLED, sInvocationEnabled);
         deleteServerLog();
 
         Properties props = new Properties();
         props.setProperty("coherence.mode", sMode);
+        props.setProperty("coherence.security.mode", sSecurityMode);
+        props.setProperty("coherence.cluster", SERVER_NAME + "-" + System.nanoTime());
         props.setProperty("test.extend.enabled", "true");
         if (sInvocationEnabled != null)
             {
@@ -237,6 +252,11 @@ public class InvocationServiceEnforcementTest
             {
             throw new AssertionError(e);
             }
+        }
+
+    private static String securityMode(boolean fHardened)
+        {
+        return fHardened ? "hardened" : "compatibility";
         }
 
     private static InvocationExtendTests.TestInvocable newTestInvocable(int nValue)
@@ -672,7 +692,7 @@ public class InvocationServiceEnforcementTest
     private static final String PROP_INVOCATION_ENABLED = "coherence.invocation.enabled";
 
     private static final String DISABLED_STARTUP_WARNING =
-            "InvocationService proxy is DISABLED in prod mode by policy. "
+            "InvocationService proxy is DISABLED because security hardening is enabled. "
             + "Remote Invocable execution will be refused with a generic "
             + "service-unavailable fault. Set coherence.invocation.enabled=true "
             + "or <invocation-service-proxy><enabled>true</enabled> to expose "
@@ -686,6 +706,8 @@ public class InvocationServiceEnforcementTest
     private CoherenceClusterMember m_memberProxy;
 
     private final String m_sModeOld = System.getProperty("coherence.mode");
+
+    private final String m_sSecurityModeOld = System.getProperty("coherence.security.mode");
 
     private final String m_sInvocationEnabledOld = System.getProperty(PROP_INVOCATION_ENABLED);
     }

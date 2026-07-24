@@ -301,7 +301,7 @@ public class SocketProviderProcessorTest
         {
         String sValue = System.getProperty(HOSTNAME_VERIFICATION);
         System.clearProperty(HOSTNAME_VERIFICATION);
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());
 
@@ -319,7 +319,7 @@ public class SocketProviderProcessorTest
         {
         String sValue = System.getProperty(HOSTNAME_VERIFICATION);
         System.clearProperty(HOSTNAME_VERIFICATION);
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());
 
@@ -335,7 +335,7 @@ public class SocketProviderProcessorTest
     @Test
     public void testExplicitAllowSystemPropertyRejectedInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev();
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened();
              SystemPropertyResource p1 = new SystemPropertyResource(HOSTNAME_VERIFICATION, "allow"))
             {
             try
@@ -353,7 +353,7 @@ public class SocketProviderProcessorTest
     @Test
     public void testExplicitDefaultSystemPropertyAllowedInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev();
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened();
              SystemPropertyResource p1 = new SystemPropertyResource(HOSTNAME_VERIFICATION, "default"))
             {
             HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());

@@ -46,8 +46,8 @@ public class MvelHelper
      */
     public static boolean isEnabled()
         {
-        // rest-01 Slice C 14.1.1.2206 MVEL POF backport: keep the jar probe static while mode remains resettable in tests
-        return s_fEnabled && CoherenceMode.isLegacy();
+        // keep the jar probe static while mode remains resettable in tests
+        return s_fEnabled && !CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**

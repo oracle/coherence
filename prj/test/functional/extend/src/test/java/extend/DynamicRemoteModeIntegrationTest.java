@@ -63,6 +63,7 @@ public class DynamicRemoteModeIntegrationTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         m_sClusterOld       = System.getProperty(PROP_COHERENCE_CLUSTER);
         }
@@ -81,8 +82,9 @@ public class DynamicRemoteModeIntegrationTest
             {
             stopCacheServer(m_sServerName);
             m_sServerName = null;
-            }
+        }
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         restoreProperty(PROP_COHERENCE_CLUSTER, m_sClusterOld);
         CoherenceModeHelper.reset();
@@ -90,21 +92,22 @@ public class DynamicRemoteModeIntegrationTest
         }
 
     @Test
-    public void mipDevAllowedByDefault()
+    public void mipDevCompatibilityAllowedByDefault()
         {
-        assertMipAllowed("dev", null);
+        assertMipAllowed("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         }
 
     @Test
-    public void mipProdDeniedByDefault()
+    public void mipCompatibilityRejectedWhenPropertyDeny()
         {
-        assertMipRejected("prod", null, "method-invocation-denied-by-mode");
+        assertMipRejected("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny",
+                "method-invocation-denied-by-mode");
         }
 
     @Test
     public void absentMipSupplierDeniedBeforeExecutionInProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
         NamedCache<String, String> cache = getCache();
         String sKey = "absent-mip-supplier";
         m_memberProxy.invoke(new ResetObservableSupplierCalls());
@@ -121,45 +124,46 @@ public class DynamicRemoteModeIntegrationTest
         }
 
     @Test
-    public void mipProdAllowedWhenPropertyAllow()
+    public void mipCompatibilityAllowedWhenPropertyAllow()
         {
-        assertMipAllowed("prod", "allow");
+        assertMipAllowed("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "allow");
         }
 
     @Test
-    public void mipLegacyAllowedByDefault()
+    public void mipCompatibilityAllowedByDefault()
         {
-        assertMipAllowed("legacy", null);
+        assertMipAllowed("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         }
 
     @Test
-    public void spDevAllowedByDefault()
+    public void spDevCompatibilityAllowedByDefault()
         {
-        assertScriptAllowed("dev", null);
+        assertScriptAllowed("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         }
 
     @Test
-    public void spProdDeniedByDefault()
+    public void spCompatibilityRejectedWhenPropertyDeny()
         {
-        assertScriptRejected("prod", null, "script-eval-denied-by-mode");
+        assertScriptRejected("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny",
+                "script-eval-denied-by-mode");
         }
 
     @Test
-    public void spProdAllowedWhenPropertyAllow()
+    public void spCompatibilityAllowedWhenPropertyAllow()
         {
-        assertScriptAllowed("prod", "allow");
+        assertScriptAllowed("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "allow");
         }
 
     @Test
-    public void spLegacyAllowedByDefault()
+    public void spCompatibilityAllowedByDefault()
         {
-        assertScriptAllowed("legacy", null);
+        assertScriptAllowed("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         }
 
     @Test
-    public void legacyScriptHostAccessIsHardFloor()
+    public void compatibilityScriptHostAccessIsHardFloor()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         NamedCache<String, String> cache = getCache();
         cache.put("key", "value");
 
@@ -167,9 +171,9 @@ public class DynamicRemoteModeIntegrationTest
                 "java.lang.Runtime");
         }
 
-    private void assertMipAllowed(String sMode, String sDynamicRemote)
+    private void assertMipAllowed(String sMode, String sSecurityMode, String sDynamicRemote)
         {
-        startProxy(sMode, sDynamicRemote);
+        startProxy(sMode, sSecurityMode, sDynamicRemote);
         NamedCache<String, String> cache = getCache();
         cache.put("key", "value");
 
@@ -177,45 +181,47 @@ public class DynamicRemoteModeIntegrationTest
                 new MethodInvocationProcessor<String, String, Integer>("length", false)));
         }
 
-    private void assertMipRejected(String sMode, String sDynamicRemote, String sMessage)
+    private void assertMipRejected(String sMode, String sSecurityMode, String sDynamicRemote, String sMessage)
         {
-        startProxy(sMode, sDynamicRemote);
+        startProxy(sMode, sSecurityMode, sDynamicRemote);
         NamedCache<String, String> cache = getCache();
         cache.put("key", "value");
 
         assertRemoteFailure(cache, new MethodInvocationProcessor<String, String, Integer>("length", false), sMessage);
         }
 
-    private void assertScriptAllowed(String sMode, String sDynamicRemote)
+    private void assertScriptAllowed(String sMode, String sSecurityMode, String sDynamicRemote)
         {
-        startProxy(sMode, sDynamicRemote);
+        startProxy(sMode, sSecurityMode, sDynamicRemote);
         NamedCache<String, String> cache = getCache();
         cache.put("key", "value");
 
         assertEquals("value", cache.invoke("key", new ScriptProcessor<String, String, String>("js", "EntryEcho")));
         }
 
-    private void assertScriptRejected(String sMode, String sDynamicRemote, String sMessage)
+    private void assertScriptRejected(String sMode, String sSecurityMode, String sDynamicRemote, String sMessage)
         {
-        startProxy(sMode, sDynamicRemote);
+        startProxy(sMode, sSecurityMode, sDynamicRemote);
         NamedCache<String, String> cache = getCache();
         cache.put("key", "value");
 
         assertRemoteFailure(cache, new ScriptProcessor<String, String, String>("js", "EntryEcho"), sMessage);
         }
 
-    private void startProxy(String sMode, String sDynamicRemote)
+    private void startProxy(String sMode, String sSecurityMode, String sDynamicRemote)
         {
         String sCluster = SERVER_NAME + '-' + sMode + '-' + (sDynamicRemote == null ? "default" : sDynamicRemote)
                 + '-' + System.nanoTime();
 
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         restoreProperty(PROP_COHERENCE_CLUSTER, sCluster);
         RemoteExecutionMode.resetForTesting();
 
         Properties props = new Properties();
         props.setProperty("coherence.mode", sMode);
+        props.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         props.setProperty(PROP_COHERENCE_CLUSTER, sCluster);
         props.setProperty("test.extend.enabled", "true");
         if (sDynamicRemote != null)
@@ -348,6 +354,7 @@ public class DynamicRemoteModeIntegrationTest
     private static final String PROP_COHERENCE_CLUSTER = "coherence.cluster";
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     private String m_sClusterOld;
     }

@@ -154,10 +154,10 @@ public final class SerializationTelemetry
     /**
      * Record a remote executable policy check.
      * <p>
-     * LEGACY shadow checks ({@code result=would_reject}) keep the Slice A tuple
-     * shape and are keyed by {@code result}, {@code class}, {@code reason}, and
-     * {@code role}; the mode is implicit and the class is retained for per-class
-     * dry-run diagnostics. Live DEV and PROD checks
+     * Compatibility shadow checks ({@code result=would_reject}) keep the Slice A
+     * tuple shape and are keyed by {@code result}, {@code class},
+     * {@code reason}, and {@code role}; the security mode is implicit and the
+     * class is retained for per-class dry-run diagnostics. Hardened checks
      * ({@code result=allowed|rejected}) are keyed by {@code reason},
      * {@code role}, {@code result}, {@code mode}, and additive
      * {@code sub_reason}; the class is omitted to bound MBean cardinality, and

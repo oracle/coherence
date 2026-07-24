@@ -29,7 +29,7 @@ import org.junit.Test;
 import static org.hamcrest.CoreMatchers.is;
 
 /**
- * Tests mixed legacy security mode and existing dev/prod license mode clusters.
+ * Tests released license mode rolling compatibility.
  *
  * @author Aleks Seovic  2026.05.13
  */
@@ -37,56 +37,44 @@ public class LicenseModeCompatibilityTests
         extends AbstractFunctionalTest
     {
     @Test
-    public void shouldRollDevelopmentClusterToLegacyMode()
+    public void shouldRollDevelopmentClusterWithUnsetSecurityMode()
         {
-        assertRollingRestart("dev", "legacy");
+        assertRollingRestart("dev");
         }
 
     @Test
-    public void shouldRollProductionClusterToLegacyMode()
+    public void shouldRollProductionClusterWithUnsetSecurityMode()
         {
-        assertRollingRestart("prod", "legacy");
+        assertRollingRestart("prod");
         }
 
-    @Test
-    public void shouldRollLegacyClusterToDevelopmentMode()
+    private void assertRollingRestart(String sMode)
         {
-        assertRollingRestart("legacy", "dev");
-        }
-
-    @Test
-    public void shouldRollLegacyClusterToProductionMode()
-        {
-        assertRollingRestart("legacy", "prod");
-        }
-
-    private void assertRollingRestart(String sModeOne, String sModeTwo)
-        {
-        String sCluster = clusterName(sModeOne + "-to-" + sModeTwo);
+        String sCluster = clusterName(sMode);
         int    nPort    = LocalPlatform.get().getAvailablePorts().next();
 
         List<CoherenceClusterMember> listMembers = new ArrayList<>();
         try
             {
-            CoherenceClusterMember memberOne = startMember(sCluster, nPort, sModeOne, sModeOne + "-one");
+            CoherenceClusterMember memberOne = startMember(sCluster, nPort, sMode, sMode + "-one");
             listMembers.add(memberOne);
             assertClusterSize(1, memberOne);
 
-            CoherenceClusterMember memberTwo = startMember(sCluster, nPort, sModeOne, sModeOne + "-two");
+            CoherenceClusterMember memberTwo = startMember(sCluster, nPort, sMode, sMode + "-two");
             listMembers.add(memberTwo);
             assertClusterSize(2, memberOne, memberTwo);
 
             closeMember(listMembers, memberTwo);
             assertClusterSize(1, memberOne);
 
-            memberTwo = startMember(sCluster, nPort, sModeTwo, sModeTwo + "-two");
+            memberTwo = startMember(sCluster, nPort, sMode, sMode + "-two-restarted");
             listMembers.add(memberTwo);
             assertClusterSize(2, memberOne, memberTwo);
 
             closeMember(listMembers, memberOne);
             assertClusterSize(1, memberTwo);
 
-            memberOne = startMember(sCluster, nPort, sModeTwo, sModeTwo + "-one");
+            memberOne = startMember(sCluster, nPort, sMode, sMode + "-one-restarted");
             listMembers.add(memberOne);
             assertClusterSize(2, memberOne, memberTwo);
             }

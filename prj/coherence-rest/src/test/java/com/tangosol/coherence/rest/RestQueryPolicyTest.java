@@ -38,7 +38,7 @@ public class RestQueryPolicyTest
     @Test
     public void shouldBuildAcceptedStrictDirectQueries()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             // rest-01 prompt 04 design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md:
             // accepted syntax must parse, validate, and build through the single strict REST direct-query path
@@ -58,7 +58,7 @@ public class RestQueryPolicyTest
     @Test
     public void shouldRejectUnsafeStrictDirectQueries()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertStrictQueryRejected("new Person() == \"Ivan\"");
             assertStrictQueryRejected("address.city == \"Tampa\"");

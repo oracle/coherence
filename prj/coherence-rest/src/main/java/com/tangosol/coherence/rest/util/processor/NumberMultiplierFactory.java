@@ -62,8 +62,8 @@ public class NumberMultiplierFactory
                         m_fPostFactor);
 
             case 2:
-                // rest-01 Slice C 14.1.1.2206 MVEL POF backport: preserve LEGACY wire type while DEV/PROD use the core manipulator
-                return new NumberMultiplier(CoherenceMode.isLegacy()
+                // preserve compatibility wire type while hardened mode uses the core manipulator
+                return new NumberMultiplier(!CoherenceMode.isSecurityHardeningEnabled()
                         ? new MvelManipulator(asArgs[0])
                         : new UniversalManipulator(asArgs[0]),
                         toNumber(asArgs[1]), m_fPostFactor);

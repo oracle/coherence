@@ -44,6 +44,7 @@ public class SeniorMetadataProofPolicyTest
             throws Exception
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sOriginalMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sOriginalSecurityMode);
         restoreProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED, m_sOriginalRequired);
         resetMode();
         }
@@ -78,44 +79,44 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldRecordLegacyWouldRejectAndAllow()
+    public void shouldRejectExplicitRequiredCompatibilityDisabledProvider()
             throws Exception
         {
-        setMode("legacy");
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         setProofRequired(true);
         PolicyClusterService service = new PolicyClusterService(false, true);
         ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
 
-        writeHeartbeat(heartbeat);
-
+        java.io.IOException e = assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals("senior metadata proof required: proof not produced", e.getMessage());
         assertNull(heartbeat.getSeniorMetadataProof());
-        assertEquals(1, service.getWouldRejectCount());
-        assertEquals("proof not produced", service.getLastWouldRejectReason());
+        assertEquals(0, service.getWouldRejectCount());
         assertEquals(0, service.getDebugAllowCount());
         }
 
     @Test
-    public void shouldRecordDevDebugAllow()
+    public void shouldNotRequireSeniorMetadataProofForHardenedModeAlone()
             throws Exception
         {
         setMode("dev");
-        setProofRequired(true);
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        setProofRequired(false);
         PolicyClusterService service = new PolicyClusterService(false, true);
         ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
 
         writeHeartbeat(heartbeat);
-
         assertNull(heartbeat.getSeniorMetadataProof());
         assertEquals(0, service.getWouldRejectCount());
-        assertEquals(1, service.getDebugAllowCount());
-        assertEquals("proof not produced", service.getLastDebugAllowReason());
+        assertEquals(0, service.getDebugAllowCount());
         }
 
     @Test
-    public void shouldEnforceInProdOnlyWhenRequired()
+    public void shouldNotEnforceUnlessExplicitlyRequired()
             throws Exception
         {
         setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         setProofRequired(false);
         PolicyClusterService service = new PolicyClusterService(false, true);
         ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
@@ -128,7 +129,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldRejectProofRequiredProdIncompatibleRecipients()
+    public void shouldRejectProofRequiredIncompatibleRecipients()
             throws Exception
         {
         setMode("prod");
@@ -144,7 +145,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldRejectProofRequiredProdDisabledProvider()
+    public void shouldRejectProofRequiredDisabledProvider()
             throws Exception
         {
         setMode("prod");
@@ -158,7 +159,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldAllowProofRequiredProdCompatibleEnabledProvider()
+    public void shouldAllowProofRequiredCompatibleEnabledProvider()
             throws Exception
         {
         setMode("prod");
@@ -174,7 +175,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldAllowProofRequiredProdDirectedHeartbeatWithToMemberOnly()
+    public void shouldAllowProofRequiredDirectedHeartbeatWithToMemberOnly()
             throws Exception
         {
         setMode("prod");
@@ -190,7 +191,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldAllowProofRequiredProdDirectedKillWithToMemberOnly()
+    public void shouldAllowProofRequiredDirectedKillWithToMemberOnly()
             throws Exception
         {
         setMode("prod");
@@ -206,7 +207,7 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
-    public void shouldRejectProofRequiredProdIncompatibleToMemberOnly()
+    public void shouldRejectProofRequiredIncompatibleToMemberOnly()
             throws Exception
         {
         setMode("prod");
@@ -227,23 +228,40 @@ public class SeniorMetadataProofPolicyTest
         {
         setProofRequired(true);
 
-        setMode("legacy");
-        PolicyClusterService legacy = new PolicyClusterService(true, true);
-        writeHeartbeat(noRecipientHeartbeat(legacy));
-        assertEquals(1, legacy.getWouldRejectCount());
-        assertEquals("unknown recipient set", legacy.getLastWouldRejectReason());
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        PolicyClusterService prodCompatibility = new PolicyClusterService(true, true);
+        java.io.IOException eCompatibility = assertThrows(java.io.IOException.class,
+                () -> writeHeartbeat(noRecipientHeartbeat(prodCompatibility)));
+        assertEquals("senior metadata proof required: unknown recipient set", eCompatibility.getMessage());
 
         setMode("dev");
-        PolicyClusterService dev = new PolicyClusterService(true, true);
-        writeHeartbeat(noRecipientHeartbeat(dev));
-        assertEquals(1, dev.getDebugAllowCount());
-        assertEquals("unknown recipient set", dev.getLastDebugAllowReason());
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        PolicyClusterService devCompatibility = new PolicyClusterService(true, true);
+        java.io.IOException eDev = assertThrows(java.io.IOException.class,
+                () -> writeHeartbeat(noRecipientHeartbeat(devCompatibility)));
+        assertEquals("senior metadata proof required: unknown recipient set", eDev.getMessage());
 
         setMode("prod");
-        PolicyClusterService prod = new PolicyClusterService(true, true);
-        java.io.IOException e = assertThrows(java.io.IOException.class,
-                () -> writeHeartbeat(noRecipientHeartbeat(prod)));
-        assertEquals("senior metadata proof required: unknown recipient set", e.getMessage());
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        PolicyClusterService hardened = new PolicyClusterService(true, true);
+        java.io.IOException eHardened = assertThrows(java.io.IOException.class,
+                () -> writeHeartbeat(noRecipientHeartbeat(hardened)));
+        assertEquals("senior metadata proof required: unknown recipient set", eHardened.getMessage());
+        }
+
+    @Test
+    public void shouldNotRequireSeniorMetadataProofForHardenedModeTrueBroadcast()
+            throws Exception
+        {
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        setProofRequired(false);
+        PolicyClusterService hardened = new PolicyClusterService(true, true);
+
+        writeHeartbeat(noRecipientHeartbeat(hardened));
+        assertEquals(0, hardened.getWouldRejectCount());
+        assertEquals(0, hardened.getDebugAllowCount());
         }
 
     private static ClusterService$SeniorMemberHeartbeat heartbeat(PolicyClusterService service, boolean fDirected)
@@ -316,6 +334,13 @@ public class SeniorMetadataProofPolicyTest
             throws Exception
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        resetMode();
+        }
+
+    private static void setSecurityMode(String sSecurityMode)
+            throws Exception
+        {
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
         }
 
@@ -412,6 +437,7 @@ public class SeniorMetadataProofPolicyTest
 
     private static final long TIMESTAMP = 123456789L;
 
-    private final String m_sOriginalMode     = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
-    private final String m_sOriginalRequired = System.getProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED);
+    private final String m_sOriginalMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sOriginalSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+    private final String m_sOriginalRequired     = System.getProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED);
     }

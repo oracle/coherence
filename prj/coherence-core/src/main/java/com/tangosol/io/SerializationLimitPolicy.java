@@ -197,7 +197,7 @@ public class SerializationLimitPolicy
      */
     public static SerializationLimitPolicy getDefault()
         {
-        boolean fUnlimited = CoherenceMode.isLegacy();
+        boolean fUnlimited = !CoherenceMode.isSecurityHardeningEnabled();
 
         Long    cbMax = parseBytesProperty(PROP_MAX_CONTAINER_BYTES,
                 fUnlimited ? null : DEFAULT_MAX_CONTAINER_BYTES, fUnlimited);
@@ -210,7 +210,7 @@ public class SerializationLimitPolicy
             {
             if (cbMax == null || cElem == null || cMap == null)
                 {
-                throw new IllegalArgumentException("unlimited serializer limits are allowed only in LEGACY mode");
+                throw new IllegalArgumentException("unlimited serializer limits are allowed only when security hardening is disabled");
                 }
             }
         return new SerializationLimitPolicy(cbMax, cElem, cMap);
@@ -272,7 +272,7 @@ public class SerializationLimitPolicy
 
     private void shadow(String sKind, long cActual, long cRecommended)
         {
-        if (!CoherenceMode.isLegacy() || cActual <= cRecommended)
+        if (CoherenceMode.isSecurityHardeningEnabled() || cActual <= cRecommended)
             {
             return;
             }
@@ -282,7 +282,7 @@ public class SerializationLimitPolicy
             {
             Logger.warn("POF " + sKind + " " + cActual
                     + " exceeds recommended hardening threshold " + cRecommended
-                    + "; LEGACY mode allows this payload for compatibility.");
+                    + "; security hardening is disabled, so this payload is allowed for compatibility.");
             }
         }
 
@@ -330,11 +330,11 @@ public class SerializationLimitPolicy
         {
         if (isUnlimited(sValue))
             {
-            if (fAllowUnlimited && CoherenceMode.isLegacy())
+            if (fAllowUnlimited && !CoherenceMode.isSecurityHardeningEnabled())
                 {
                 return null;
                 }
-            throw new IllegalArgumentException(sSource + " may be unlimited only in LEGACY mode");
+            throw new IllegalArgumentException(sSource + " may be unlimited only when security hardening is disabled");
             }
         long cb = Base.parseMemorySize(sValue);
         if (cb < 0)
@@ -348,11 +348,11 @@ public class SerializationLimitPolicy
         {
         if (isUnlimited(sValue))
             {
-            if (fAllowUnlimited && CoherenceMode.isLegacy())
+            if (fAllowUnlimited && !CoherenceMode.isSecurityHardeningEnabled())
                 {
                 return null;
                 }
-            throw new IllegalArgumentException(sSource + " may be unlimited only in LEGACY mode");
+            throw new IllegalArgumentException(sSource + " may be unlimited only when security hardening is disabled");
             }
         int c = Integer.parseInt(sValue);
         if (c < 0)
@@ -445,17 +445,17 @@ public class SerializationLimitPolicy
     public static final String XML_MAX_MAP_ENTRIES = "max-map-entries";
 
     /**
-     * Initial DEV/PROD serialized container byte cap.
+     * Initial hardened serialized container byte cap.
      */
     public static final long DEFAULT_MAX_CONTAINER_BYTES = 64L * 1024L * 1024L;
 
     /**
-     * Initial DEV/PROD array/collection/object element cap.
+     * Initial hardened array/collection/object element cap.
      */
     public static final int DEFAULT_MAX_ELEMENTS = 262144;
 
     /**
-     * Initial DEV/PROD map-entry cap.
+     * Initial hardened map-entry cap.
      */
     public static final int DEFAULT_MAX_MAP_ENTRIES = 131072;
 

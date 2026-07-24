@@ -24,21 +24,15 @@ public class MvelHelperTest
         }
 
     @Test
-    public void shouldRemainDisabledWithoutMvel2InLegacy()
+    public void shouldRemainDisabledWithoutMvel2InCompatibility()
         {
-        assertDisabled(CoherenceModeHelper.legacy());
+        assertDisabled(CoherenceModeHelper.securityCompatibility());
         }
 
     @Test
-    public void shouldRemainDisabledWithoutMvel2InDev()
+    public void shouldRemainDisabledWithoutMvel2InHardened()
         {
-        assertDisabled(CoherenceModeHelper.dev());
-        }
-
-    @Test
-    public void shouldRemainDisabledWithoutMvel2InProd()
-        {
-        assertDisabled(CoherenceModeHelper.prod());
+        assertDisabled(CoherenceModeHelper.securityHardened());
         }
 
     private static void assertDisabled(CoherenceModeHelper.ModeScope scope)
@@ -50,7 +44,7 @@ public class MvelHelperTest
 
             assertFalse(MvelHelper.isEnabled());
 
-            // rest-01 Slice C 14.1.1.2206 MVEL POF backport: direct MVEL APIs stay closed unless both LEGACY and mvel2 are present
+            // direct MVEL APIs stay closed unless both compatibility mode and mvel2 are present
             assertUnsupported(() -> MvelHelper.getMvelParserContext());
             assertUnsupported(() -> MvelHelper.compileExpression("age", null));
             assertUnsupported(() -> MvelHelper.executeExpression("age", map));

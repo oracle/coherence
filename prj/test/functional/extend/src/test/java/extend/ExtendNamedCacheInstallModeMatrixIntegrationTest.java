@@ -74,6 +74,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         m_sClusterOld       = System.getProperty(PROP_COHERENCE_CLUSTER);
         }
@@ -94,6 +95,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
             m_sServerName = null;
             }
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         restoreProperty(PROP_COHERENCE_CLUSTER, m_sClusterOld);
         CoherenceModeHelper.reset();
@@ -106,11 +108,11 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         startProxy("prod", null);
 
         assertAllOperationsInstall(PayloadKind.ANNOTATED);
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.EVALUATE_FILTER, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.AGGREGATE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.EXTRACT, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -119,43 +121,22 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertAllOperationsInstall(PayloadKind.ANNOTATED);
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void annotatedRequestsInstallInLegacy()
+    public void annotatedRequestsInstallInCompatibility()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllOperationsInstall(PayloadKind.ANNOTATED);
         assertNoRejectedCounters();
         }
 
     @Test
-    public void plainRequestsRejectInProd()
+    public void plainRequestsShadowInProd()
         {
         startProxy("prod", null);
-
-        assertAllOperationsRejected(PayloadKind.PLAIN, "Remote execution denied");
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.EVALUATE_FILTER, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        }
-
-    @Test
-    public void plainRequestsRejectInDev()
-        {
-        startProxy("dev", null);
-
-        assertAllOperationsRejected(PayloadKind.PLAIN, "Remote execution denied");
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        }
-
-    @Test
-    public void plainRequestsShadowInLegacy()
-        {
-        startProxy("legacy", null);
 
         assertAllOperationsInstall(PayloadKind.PLAIN);
         assertWouldRejectCounterPresent(PlainProcessor.class, OperationReason.PROCESS_ENTRY);
@@ -165,31 +146,59 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void dynamicRequestsRejectInProd()
-        {
-        startProxy("prod", null);
-
-        assertAllOperationsRejected(PayloadKind.DYNAMIC, "denied-by-mode");
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
-        assertCounterPresent(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
-        assertCounterPresent(OperationReason.EVALUATE_FILTER, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
-        assertCounterPresent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
-        }
-
-    @Test
-    public void dynamicRequestsInstallInDev()
+    public void plainRequestsShadowInDev()
         {
         startProxy("dev", null);
 
+        assertAllOperationsInstall(PayloadKind.PLAIN);
+        assertWouldRejectCounterPresent(PlainProcessor.class, OperationReason.PROCESS_ENTRY);
+        }
+
+    @Test
+    public void plainRequestsShadowInCompatibility()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertAllOperationsInstall(PayloadKind.PLAIN);
+        assertWouldRejectCounterPresent(PlainProcessor.class, OperationReason.PROCESS_ENTRY);
+        assertWouldRejectCounterPresent(PlainAggregator.class, OperationReason.AGGREGATE);
+        assertWouldRejectCounterPresent(PlainFilter.class, OperationReason.EVALUATE_FILTER);
+        assertWouldRejectCounterPresent(PlainExtractor.class, OperationReason.EXTRACT);
+        }
+
+    @Test
+    public void dynamicRequestsShadowInProd()
+        {
+        startProxy("prod", null);
+
         assertAllOperationsInstall(PayloadKind.DYNAMIC);
-        assertCounterPresent(OperationReason.PROCESS_ENTRY, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertWouldRejectCounterPresent(Generated$$LambdaProcessor.class, OperationReason.PROCESS_ENTRY);
+        assertWouldRejectCounterPresent(Generated$$LambdaAggregator.class, OperationReason.AGGREGATE);
+        assertWouldRejectCounterPresent(Generated$$LambdaFilter.class, OperationReason.EVALUATE_FILTER);
+        assertWouldRejectCounterPresent(Generated$$LambdaExtractor.class, OperationReason.EXTRACT);
+        assertCounterAbsent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void dynamicRequestsInstallInDevCompatibility()
+        {
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertAllOperationsInstall(PayloadKind.DYNAMIC);
+        assertWouldRejectCounterPresent(Generated$$LambdaProcessor.class, OperationReason.PROCESS_ENTRY);
+        assertWouldRejectCounterPresent(Generated$$LambdaAggregator.class, OperationReason.AGGREGATE);
+        assertWouldRejectCounterPresent(Generated$$LambdaFilter.class, OperationReason.EVALUATE_FILTER);
+        assertWouldRejectCounterPresent(Generated$$LambdaExtractor.class, OperationReason.EXTRACT);
         assertCounterAbsent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void dynamicRequestsShadowInLegacy()
+    public void dynamicRequestsShadowInCompatibility()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllOperationsInstall(PayloadKind.DYNAMIC);
         assertWouldRejectCounterPresent(Generated$$LambdaProcessor.class, OperationReason.PROCESS_ENTRY);
@@ -199,9 +208,21 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void scriptBackedCacheExecutablesRejectInProd()
+    public void dynamicRequestsRejectInCompatibilityWithExplicitDeny()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
+
+        assertAllOperationsRejected(PayloadKind.DYNAMIC, "denied-by-mode");
+        assertCounterPresent(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterPresent(OperationReason.AGGREGATE, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterPresent(OperationReason.EVALUATE_FILTER, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterPresent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void scriptBackedCacheExecutablesRejectWhenPropertyDeny()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
 
         NamedCache<String, Integer> cacheQuery = getCache(Operation.QUERY);
         assertRemoteFailure(() -> cacheQuery.keySet(new ScriptFilter<>("js", "ValuePresentFilter")),
@@ -219,24 +240,24 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void extractorBackedIndexComparatorRejectsNestedPlainExtractorInProd()
+    public void extractorBackedIndexComparatorShadowsNestedPlainExtractorInCompatibility()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         NamedCache<String, Integer> cache = getCache(Operation.INDEX);
         Comparator comparator = new KeyExtractor<>(new PlainExtractor());
-        assertRemoteFailure(() -> cache.addIndex(new AnnotatedExtractor(), true, comparator),
-                "Remote execution denied");
+        cache.addIndex(new AnnotatedExtractor(), true, comparator);
+        cache.removeIndex(new AnnotatedExtractor());
 
-        assertCounterPresent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterPresent(OperationReason.COMPARE, "allowed", SerializationTelemetry.SUB_REASON_POLICY);
+        assertWouldRejectCounterPresent(PlainExtractor.class, OperationReason.EXTRACT);
+        assertCounterAbsent(OperationReason.EXTRACT, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
         assertCounterAbsent(OperationReason.COMPARE, "rejected", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
     public void scriptBackedCacheExecutablesInstallWhenOverrideAllowsDynamicRemote()
         {
-        startProxy("prod", "allow");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "allow");
 
         NamedCache<String, Integer> cache = getCache(Operation.QUERY);
         assertEquals(3, cache.keySet(new ScriptFilter<>("js", "ValuePresentFilter")).size());
@@ -291,9 +312,15 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
 
     private void startProxy(String sMode, String sDynamicRemote)
         {
+        startProxy(sMode, null, sDynamicRemote);
+        }
+
+    private void startProxy(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         String sCluster = SERVER_NAME + '-' + sMode + '-' + System.nanoTime();
 
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         restoreProperty(PROP_COHERENCE_CLUSTER, sCluster);
         RemoteExecutionMode.resetForTesting();
@@ -305,6 +332,10 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
         props.setProperty("coherence.mode", sMode);
         props.setProperty(PROP_COHERENCE_CLUSTER, sCluster);
         props.setProperty("test.extend.enabled", "true");
+        if (sSecurityMode != null)
+            {
+            props.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            }
         if (sDynamicRemote != null)
             {
             props.setProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
@@ -720,6 +751,7 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
     private String m_sServerName;
     private String m_sMode;
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     private String m_sClusterOld;
     }

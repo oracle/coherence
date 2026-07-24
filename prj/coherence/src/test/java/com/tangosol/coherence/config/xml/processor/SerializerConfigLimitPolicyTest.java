@@ -68,7 +68,7 @@ public class SerializerConfigLimitPolicyTest
     @Before
     public void init()
         {
-        CoherenceModeHelper.prod();
+        CoherenceModeHelper.securityHardened();
         }
 
     @After
