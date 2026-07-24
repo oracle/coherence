@@ -459,8 +459,7 @@ public final class ReporterSecurity
         if (url != null)
             {
             String sProtocol = url.getProtocol();
-            if ("file".equalsIgnoreCase(sProtocol) || "jar".equalsIgnoreCase(sProtocol)
-                    || "bundle".equalsIgnoreCase(sProtocol) || "bundleresource".equalsIgnoreCase(sProtocol))
+            if (isTrustedResourceProtocol(sProtocol))
                 {
                 return url;
                 }
@@ -488,6 +487,15 @@ public final class ReporterSecurity
 
         reject(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
         return null;
+        }
+
+    private static boolean isTrustedResourceProtocol(String sProtocol)
+        {
+        return "file".equalsIgnoreCase(sProtocol)
+                || "jar".equalsIgnoreCase(sProtocol)
+                || "bundle".equalsIgnoreCase(sProtocol)
+                || "bundleresource".equalsIgnoreCase(sProtocol)
+                || "vfs".equalsIgnoreCase(sProtocol); // WildFly/JBoss/EAP-style classloader resources
         }
 
     private static URL resolveRemoteReportUrl(URI uri, String sName, String sOperation, String sScope)
