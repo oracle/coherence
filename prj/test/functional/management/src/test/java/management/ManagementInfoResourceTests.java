@@ -23,6 +23,7 @@ import com.tangosol.discovery.NSLookup;
 import com.tangosol.internal.net.management.HttpHelper;
 
 import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.io.FileHelper;
 
@@ -1493,16 +1494,20 @@ public class ManagementInfoResourceTests
     public void testClusterMemberUpdateFailure()
             throws Exception
         {
-        Response response = withClusterMode(MODE_PROD, () ->
-            {
-            LinkedHashMap map = new LinkedHashMap();
-            map.put("cpuCount", 9);
-            WebTarget target = getBaseTarget().path("members").path(SERVER_PREFIX + "-1");
-            Entity entity = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
-            return target.request().post(entity);
-            });
+        assertClusterMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
+                assertClusterMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
+        }
 
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+    private void assertClusterMemberUpdateFailureStatus(Response.Status status)
+        {
+        LinkedHashMap map = new LinkedHashMap();
+        map.put("cpuCount", 9);
+        WebTarget target = getBaseTarget().path(MEMBERS).path(SERVER_PREFIX + "-1");
+        Entity entity = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
+        Response response = target.request().post(entity);
+
+        assertThat(response.getStatus(), is(status.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
 
@@ -1510,17 +1515,21 @@ public class ManagementInfoResourceTests
     public void testCacheMemberUpdateFailure()
             throws Exception
         {
-        Response response = withClusterMode(MODE_PROD, () ->
-            {
-            LinkedHashMap mapEntity = new LinkedHashMap();
-            mapEntity.put("cacheHits", 100005);
-            WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
-                    .path("members").path(SERVER_PREFIX + "-1");
-            Entity entity = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
-            return target.request().post(entity);
-            });
+        assertCacheMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
+                assertCacheMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
+        }
 
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+    private void assertCacheMemberUpdateFailureStatus(Response.Status status)
+        {
+        LinkedHashMap mapEntity = new LinkedHashMap();
+        mapEntity.put("cacheHits", 100005);
+        WebTarget target = getBaseTarget().path(SERVICES).path(SERVICE_NAME).path(CACHES).path(CACHE_NAME)
+                .path(MEMBERS).path(SERVER_PREFIX + "-1");
+        Entity entity = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
+        Response response = target.request().post(entity);
+
+        assertThat(response.getStatus(), is(status.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
 
@@ -3606,6 +3615,33 @@ public class ManagementInfoResourceTests
         private final String m_sMode;
         }
 
+    public static class SetCoherenceSecurityMode
+            implements RemoteCallable<String>
+        {
+        public SetCoherenceSecurityMode(String sMode)
+            {
+            m_sMode = sMode;
+            }
+
+        @Override
+        public String call()
+            {
+            String sPrevious = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+            if (m_sMode == null)
+                {
+                System.clearProperty(CoherenceMode.PROP_SECURITY_MODE);
+                }
+            else
+                {
+                System.setProperty(CoherenceMode.PROP_SECURITY_MODE, m_sMode);
+                }
+            CoherenceModeHelper.reset();
+            return sPrevious;
+            }
+
+        private final String m_sMode;
+        }
+
     @FunctionalInterface
     private interface ThrowingRunnable
         {
@@ -3661,7 +3697,7 @@ public class ManagementInfoResourceTests
     private void withClusterMode(String sMode, ThrowingRunnable runnable)
             throws Exception
         {
-        withClusterMode(sMode, () ->
+        withClusterMode(sMode, null, () ->
             {
             runnable.run();
             return null;
@@ -3671,17 +3707,42 @@ public class ManagementInfoResourceTests
     private <T> T withClusterMode(String sMode, ThrowingCallable<T> callable)
             throws Exception
         {
+        return withClusterMode(sMode, null, callable);
+        }
+
+    private void withClusterMode(String sMode, String sSecurityMode, ThrowingRunnable runnable)
+            throws Exception
+        {
+        withClusterMode(sMode, sSecurityMode, () ->
+            {
+            runnable.run();
+            return null;
+            });
+        }
+
+    private <T> T withClusterMode(String sMode, String sSecurityMode, ThrowingCallable<T> callable)
+            throws Exception
+        {
         Map<CoherenceClusterMember, String> mapPrevious = new LinkedHashMap<>();
+        Map<CoherenceClusterMember, String> mapPreviousSecurityMode = new LinkedHashMap<>();
         try
             {
             for (CoherenceClusterMember member : m_aMembers)
                 {
                 mapPrevious.put(member, member.invoke(new SetCoherenceMode(sMode)));
+                if (sSecurityMode != null)
+                    {
+                    mapPreviousSecurityMode.put(member, member.invoke(new SetCoherenceSecurityMode(sSecurityMode)));
+                    }
                 }
             return callable.call();
             }
         finally
             {
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPreviousSecurityMode.entrySet())
+                {
+                entry.getKey().invoke(new SetCoherenceSecurityMode(entry.getValue()));
+                }
             for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
                 {
                 entry.getKey().invoke(new SetCoherenceMode(entry.getValue()));
