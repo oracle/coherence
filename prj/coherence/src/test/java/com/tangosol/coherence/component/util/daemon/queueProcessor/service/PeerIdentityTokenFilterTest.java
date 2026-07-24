@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.component.util.daemon.queueProcessor.service;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.internal.SerializationAllowlist;
 import com.tangosol.io.pof.PofPrincipal;
@@ -26,6 +28,7 @@ import javax.security.auth.Subject;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -54,7 +57,29 @@ public class PeerIdentityTokenFilterTest
 
         assertTrue(oToken instanceof Subject);
         assertTrue(((Subject) oToken).getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
-        assertThrows(SecurityException.class, () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            assertSame(oToken, DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+            }
+        }
+
+    @Test
+    public void shouldRejectPassiveSubjectIdentityTokenInHardenedMode()
+        {
+        Peer    peer    = peer();
+        Subject subject = new Subject();
+
+        subject.getPrincipals().add(new PofPrincipal("CN=Manager, OU=MyUnit"));
+
+        Object oToken = peer.deserializeIdentityToken(peer.serializeIdentityToken(subject));
+
+        assertTrue(oToken instanceof Subject);
+        assertTrue(((Subject) oToken).getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertThrows(SecurityException.class, () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+            }
         }
 
     @Test

@@ -11,6 +11,7 @@ package com.tangosol.io;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.invoke.RemoteConstructor;
 import com.tangosol.io.ReadBuffer.BufferInput;
 import com.tangosol.io.nio.ByteBufferReadBuffer;
@@ -289,10 +290,25 @@ public class ObjectInputFilterTests
     public void testWithoutObjectInputFilter()
         {
         Properties props = new Properties();
-        props.put("test.expect.fail.closed", "true");
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithoutObjectInputFilter",
+                                                              "com.tangosol.io.ObjectInputFilterTests$TestObjectInputStream",
+                                                              "io", "", props);
+
+        int result = member.waitFor(Timeout.after("30s"));
+        assertThat(result, is(0));
+        }
+
+    @Test
+    public void testWithoutObjectInputFilterRejectsInHardenedMode()
+        {
+        Properties props = new Properties();
+        props.put("test.expect.fail.closed", "true");
+        props.put(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
+        props.putAll(propsCommon);
+
+        CoherenceClusterMember member = startCacheApplication("OIFtestWithoutObjectInputFilterRejectsInHardenedMode",
                                                               "com.tangosol.io.ObjectInputFilterTests$TestObjectInputStream",
                                                               "io", "", props);
 

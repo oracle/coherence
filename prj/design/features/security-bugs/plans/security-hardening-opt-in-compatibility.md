@@ -21,6 +21,30 @@
 
 ## Changelog
 
+- 2026-06-13: WLS integration RQ `job.9.20260613165439.7991` completed with
+  only stage2 and stage5 failing. Stage2's Extend identity-chain hardened test
+  now explicitly enables the invocation-service proxy because hardened mode
+  disables that proxy by default before the identity rejection path is reached.
+  Stage5's ObjectInputFilter compatibility test now expects success with
+  unset `coherence.security.mode`, while fail-closed coverage runs in an
+  explicit `coherence.security.mode=hardened` test path.
+- 2026-06-13: Main RQ `job.9.20260613151729.8329` exposed stale
+  hardened-mode assumptions in stage1, stage2, and stage9 tests. Remote model
+  management invocation validation, Extend default identity-chain rejection,
+  and Management REST cluster-member update rejection are hardened-mode
+  assertions and now opt in with `coherence.security.mode=hardened` before
+  expecting fail-closed behavior.
+- 2026-06-13: WLS 15.1.2.0 integration triage found three additional
+  compatibility misses after the opt-in CL landed on main. Default Extend
+  identity assertion must continue to accept a raw `javax.security.auth.Subject`
+  token when `coherence.security.mode` is unset or `compatibility`, while
+  `hardened` rejects that token. Coherence's default/JVM-wide
+  `ObjectInputFilter` attachment to otherwise unfiltered `BufferInput` streams
+  must also be a hardened-mode gate so existing WLS Java-security deployments
+  do not fail cluster join on WLS serial-filter rules. Management REST
+  cache-member updates to non-writable attributes preserve the old 200
+  response with per-attribute failure details in compatibility mode, and fail
+  closed with 401 in hardened mode.
 - 2026-06-12: Stage 1 RQ triage found a concurrency race in the memoized
   `CoherenceMode` / `coherence.security.mode` resolver. A thread that lost
   the lazy `AtomicReference` initialization race could return a stale `null`
@@ -727,6 +751,14 @@ Implementation-time RQ triage refined the test contract:
   that label intentionally reports runtime mode, but hardening posture should
   be identified separately as `security-mode=compatibility` or
   `security-mode=hardened`;
+- tests that directly validate management method-dispatch hardening or default
+  Extend identity-chain rejection should run under
+  `coherence.security.mode=hardened`; compatibility-mode tests should assert the
+  historical allow behavior instead of expecting those hardening rejections;
+- Management REST cluster-member updates to non-writable attributes should
+  mirror cache-member update coverage: compatibility mode preserves the
+  historical successful response with per-attribute failure details, while
+  hardened mode rejects the request;
 - RQ failures caused by stale prod-default hardening assumptions are test
   contract fixes, not product behavior changes.
 

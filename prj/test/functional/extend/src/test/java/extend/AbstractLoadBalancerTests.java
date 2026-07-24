@@ -15,6 +15,9 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
+import com.tangosol.internal.net.service.extend.proxy.DefaultInvocationServiceProxyDependencies;
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
@@ -25,6 +28,8 @@ import com.tangosol.net.Service;
 import com.tangosol.net.messaging.ConnectionException;
 
 import common.AbstractFunctionalTest;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import java.io.IOException;
 
@@ -284,9 +289,11 @@ public abstract class AbstractLoadBalancerTests
         {
         String sServer1 = getClass().getSimpleName() + "SubjectDefault-1";
 
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Properties props = new Properties();
+            props.setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
+            props.setProperty(DefaultInvocationServiceProxyDependencies.PROP_INVOCATION_ENABLED, "true");
 
             // start just one proxy server for this test - no redirects needed
             setPortBefore1(props);

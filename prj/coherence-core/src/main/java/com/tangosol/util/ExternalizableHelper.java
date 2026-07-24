@@ -10,6 +10,7 @@ package com.tangosol.util;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.invoke.RemotableSupport;
 
@@ -6103,7 +6104,7 @@ public abstract class ExternalizableHelper
      */
     private static void ensureDefaultObjectInputFilter(DataInput in)
         {
-        if (in instanceof BufferInput)
+        if (CoherenceMode.isSecurityHardeningEnabled() && in instanceof BufferInput)
             {
             try
                 {
@@ -6460,11 +6461,7 @@ public abstract class ExternalizableHelper
             {
             if (oFilter == null)
                 {
-                if (in instanceof ObjectInputStream)
-                    {
-                    return false;
-                    }
-                oFilter = DefaultObjectInputFilter.create();
+                return !CoherenceMode.isSecurityHardeningEnabled();
                 }
 
             DynamicFilterInfo dynamic = s_tloHandler.get();
