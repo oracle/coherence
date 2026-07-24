@@ -1764,6 +1764,7 @@
         <module>coherence-core</module>
         <module>coherence-testing-support</module>
         <module>coherence-tracing</module>
+        <module>plugins/maven/security-config-shade-transformer</module>
         <module>coherence</module>
         <module>coherence-jcache</module>
         <module>coherence-loadbalancer</module>
