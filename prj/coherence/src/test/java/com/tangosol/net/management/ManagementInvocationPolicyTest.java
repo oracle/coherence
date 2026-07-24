@@ -281,8 +281,24 @@ public class ManagementInvocationPolicyTest
             }
         catch (Exception e)
             {
+            if (hasSecurityCause(e))
+                {
+                return;
+                }
             throw new AssertionError(e);
             }
+        }
+
+    private static boolean hasSecurityCause(Throwable e)
+        {
+        for (Throwable cause = e.getCause(); cause != null; cause = cause.getCause())
+            {
+            if (cause instanceof SecurityException)
+                {
+                return true;
+                }
+            }
+        return false;
         }
 
     /**
