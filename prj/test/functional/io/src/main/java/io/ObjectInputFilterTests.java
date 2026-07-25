@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -69,6 +69,7 @@ public class ObjectInputFilterTests
         setupProps();
         propsCommon = new Properties();
         propsCommon.put("test.log.level", "6");
+        propsCommon.put("coherence.serialization.allowed", "data.*");
         // configure JDK java.io.serialization filter logging for the Java Serialization tests
         propsCommon.put("java.util.logging.config.file", sFile);
         //propsCommon.put("jdk.serialFilterFactory", "io.SerialFilterFactoryTests$FilterInThread");
@@ -292,6 +293,7 @@ public class ObjectInputFilterTests
     public void testWithoutObjectInputFilter()
         {
         Properties props = new Properties();
+        props.put("test.expect.fail.closed", "true");
         props.putAll(propsCommon);
 
         CoherenceClusterMember member = startCacheApplication("OIFtestWithoutObjectInputFilter",
@@ -310,7 +312,9 @@ public class ObjectInputFilterTests
     public static void testObjectInputFilter(boolean fExternalizableLite)
         {
         boolean  fFilter  = s_fFilterEnabled;
-        boolean  fFail    = s_fFilterEnabled && m_filterProcessWide.toString().contains("!data.");
+        boolean  fFail    = fFilter
+                ? m_filterProcessWide.toString().contains("!data.")
+                : Config.getBoolean("test.expect.fail.closed", false);
         Customer customer = generateCustomer(fExternalizableLite);
 
         Exception   exception  = null;
@@ -339,14 +343,14 @@ public class ObjectInputFilterTests
             exception = e;
             }
 
-        if (!fFilter || !fFail)
+        if (!fFail)
             {
             assertEquals("compare serialized and deserialized value, should be equal", customer, deserialized);
             }
         else
             {
             assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter,
-                       exception != null && (exception.getCause() instanceof InvalidClassException  || exception instanceof InvalidClassException));
+                       containsInvalidClassExceptionCause(exception));
             }
         }
 

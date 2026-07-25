@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
 
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.util.Base;
 
@@ -181,6 +183,20 @@ public class RemotableSupport
         String  sBinClassName = definition.getId().getName();
         String  sClassName    = sBinClassName.replace('/', '.');
         byte[]  abClass       = definition.getBytes();
+
+        if (Lambdas.isDynamicLambdaIdentity(definition.getId()))
+            {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(abClass, LambdaBytecodeGate.Site.LAMBDA),
+                    LambdaBytecodeGate.Site.LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkDynamicLambdaMode(),
+                    LambdaBytecodeGate.Site.LAMBDA);
+            }
+
+        LambdaBytecodeGate.ensureAllowed(
+                LambdaBytecodeGate.checkBytecode(abClass, LambdaBytecodeGate.Site.CLASS_DEFINITION),
+                LambdaBytecodeGate.Site.CLASS_DEFINITION);
 
         definition.dumpClass(DUMP_REMOTABLE);
 

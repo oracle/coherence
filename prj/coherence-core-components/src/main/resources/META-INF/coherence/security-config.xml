@@ -1,0 +1,184 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$CloseChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$CloseConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$CreateChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$EncodedMessage" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$NotifyChannelClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$NotifyConnectionClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$NotifyShutdown" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$NotifyStartup" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$OpenConnectionResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$PingRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$PingResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.Member" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.MemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.RequestContext" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.message.request.NamedTopicRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.message.request.TopicPublisherRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.message.request.TopicSubscriberRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.BaseTopicMessageFactory$TopicsResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.CacheServiceFactory$DestroyCacheRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.CacheServiceFactory$EnsureCacheRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.CacheServiceFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.InvocationServiceFactory$InvocationRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.InvocationServiceFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory$BindRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory$LookupRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$AggregateAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$AggregateFilterRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ClearRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContainsAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContainsKeyRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContainsValueRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$GetAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$GetRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$IndexRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeFilterRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$InvokeRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ListenerFilterRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ListenerKeyRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$LockRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$MapEvent" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$NoStorageMembers" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$PartialResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$PutAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$PutRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$QueryRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ReadyRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$RemoveAllRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$RemoveRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$SizeRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$UnlockRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$CommitRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$DestroyEvent" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$DestroySubscriberGroupRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$EnsureSubscriberGroupRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$EnsureSubscriptionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetHeadsRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetLastCommitedRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetOwnedChannelsRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetRemainingMessagesRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetSubscriptionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$GetTailsRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$HeartbeatRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$InitializeSubscriptionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$IsCommitedRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$PeekRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$PublishRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$PublisherEvent" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$ReceiveRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$SeekRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$SimpleReceiveRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.NamedTopicFactory$SubscriberChannelEvent" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$ChannelCountRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$DestroyPublisherRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$DestroySubscriberRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$DestroyTopicRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$EnsureChannelCountRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$EnsurePublisherRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$EnsureSimpleSubscriberRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$EnsureSubscriberRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$EnsureTopicRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.extend.messageFactory.TopicServiceFactory$GetSubscriberGroupsRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Announce" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$InvokeRemote" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Notify" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Publish" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Register" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Subscribe" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.Connector$Unregister" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.listenerHolder.RemoteHolder" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.RemoteModel" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.CacheModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ClusterModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ClusterNodeModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ConnectionManagerModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ConnectionModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ManagementModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.PointToPointModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ReporterModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.ServiceModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.StorageManagerModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.TransactionManagerModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.WrapperModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.management.model.localModel.wrapperModel.WrapperJmxModel" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.ActualMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.DependentMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.EmptyMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.LiteSingleMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.SingleMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.requestContext.asyncContext.AsyncAggregatorContext" source="manual"/>
+    <class name="com.tangosol.coherence.component.net.requestContext.asyncContext.AsyncProcessorContext" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$AcceptChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$AcceptChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$AcceptChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$CloseChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$CloseConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$CreateChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$EncodedMessage" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$NotifyChannelClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$NotifyConnectionClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$NotifyShutdown" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$NotifyStartup" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$OpenConnectionResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$PingRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$PingResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.NameService$TcpAcceptor$MessageFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$AcceptChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$AcceptChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$AcceptChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CloseChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CloseConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$CreateChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$EncodedMessage" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$NotifyChannelClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$NotifyConnectionClosed" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$NotifyShutdown" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$NotifyStartup" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenChannel" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenChannelRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$OpenChannelResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$PingRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$PingResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer$MessageFactory$Response" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor$MessageFactory$OpenConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor$MessageFactory$OpenConnectionResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator$MessageFactory$OpenConnection" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Initiator$MessageFactory$OpenConnectionResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor$MessageFactory$OpenConnectionResponse" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor$MessageFactory$PingRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator$MessageFactory$OpenConnectionRequest" source="manual"/>
+    <class name="com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator$MessageFactory$OpenConnectionResponse" source="manual"/>
+  </allowed-classes>
+</security-config>

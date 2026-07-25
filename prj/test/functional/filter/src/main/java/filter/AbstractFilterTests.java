@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,6 @@ import com.tangosol.net.partition.PartitionSet;
 import com.tangosol.net.cache.NearCache;
 import com.tangosol.net.cache.WrapperNamedCache;
 
-import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.comparator.ChainedComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
@@ -69,13 +68,6 @@ import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import data.Person;
 
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.DataOutputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.Collections;
 import org.junit.Test;
 
@@ -295,11 +287,7 @@ public abstract class AbstractFilterTests
             }
 
         // 2) fill the cache and just execute all the queries
-        if (!loadData(cacheTest, "people-" + cItems + ".bin", fDebug))
-            {
-            Person.fillRandom(cacheTest, cItems);
-            saveData(cacheTest, "people-" + cItems + ".bin");
-            }
+        Person.fillRandom(cacheTest, cItems);
         if (filterControl == null)
             {
             cacheControl.putAll(cacheTest);
@@ -564,41 +552,6 @@ public abstract class AbstractFilterTests
             }
 
         testLikeFilter(cacheTest, cacheControl);
-        }
-
-    private void saveData(NamedCache cache, String sFileName)
-        {
-        try (FileOutputStream outFile = new FileOutputStream(sFileName))
-            {
-            Map        data = new HashMap(cache);
-            DataOutput out  = new DataOutputStream(outFile);
-            ExternalizableHelper.writeMap(out, data);
-            System.out.printf("\nSaved %d cache entries to %s", data.size(), sFileName);
-            }
-        catch (IOException e)
-            {
-            throw new RuntimeException(e);
-            }
-        }
-
-    private boolean loadData(NamedCache cache, String sFileName, boolean fDebug)
-        {
-        try (FileInputStream inFile = new FileInputStream(sFileName))
-            {
-            Map       data = new HashMap(cache);
-            DataInput in   = new DataInputStream(inFile);
-            ExternalizableHelper.readMap(in, data, getClass().getClassLoader());
-            cache.putAll(data);
-            if (fDebug)
-                {
-                System.out.printf("Loaded %d cache entries from %s\n", cache.size(), sFileName);
-                }
-            return true;
-            }
-        catch (IOException e)
-            {
-            return false;
-            }
         }
 
     /**

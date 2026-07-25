@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.serialization;
+
+import com.tangosol.util.ExternalizableHelper;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -57,7 +59,7 @@ public class SerializationHelper
             throws IOException
         {
         ByteArrayInputStream streamByteArray = new ByteArrayInputStream(aBytes);
-        ObjectInputStream    streamObject    = new ObjectInputStream(streamByteArray);
+        ObjectInputStream    streamObject    = ExternalizableHelper.newFilteredObjectInputStream(streamByteArray, null);
 
         try
             {

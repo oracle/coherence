@@ -1,21 +1,23 @@
 /*
- * Copyright (c) 2000, 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.clientevents;
 
 import java.io.Serializable;
-
 import java.util.Objects;
+
+import com.tangosol.util.function.Remote;
 
 /**
  * A class to represent a customer.
  *
  * @author Tim Middleton 2021.04.30
  */
+@Remote.Allowed
 public class Customer
         implements Serializable {
 

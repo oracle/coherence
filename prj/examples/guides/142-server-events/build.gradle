@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
@@ -43,3 +44,6 @@ task runServer(type: Exec) {
     commandLine "java", "-classpath", sourceSets.test.runtimeClasspath.getAsPath(), "com.tangosol.net.Coherence"
 }
 
+securityConfig {
+    processTestClasses = true
+}

@@ -396,6 +396,10 @@
         <module>coherence-core-components</module>
         <module>coherence-tracing</module>
 
+        <!-- build-time dependencies of coherence.jar that must be built before
+             the coherence module's shade configuration resolves them -->
+        <module>plugins/maven/security-config-shade-transformer</module>
+
         <!-- distributed modules -->
         <module>coherence-bom</module>
         <module>coherence-discovery</module>

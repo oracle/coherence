@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,9 +16,6 @@ import com.tangosol.util.ValueExtractor;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
-import java.util.Collection;
-import java.util.Map;
 
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -73,13 +70,8 @@ public abstract class ComparisonFilter<T, E, C>
 
     public String toExpression()
         {
-        C value = getValue();
-        String sValue = value instanceof Number
-                        || value instanceof Collection
-                        || value instanceof Map
-                        || value.getClass().isArray()
-                        ? toStringValue() : "'" + value + "'";
-        return getValueExtractor().getCanonicalName() + " " + getOperator() + " " + sValue;
+        return getClass().getSimpleName() +
+            '(' + getExtractorName() + ", " + toStringValue() + ')';
         }
 
     protected String getOperator()

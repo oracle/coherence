@@ -14,6 +14,7 @@ import com.tangosol.coherence.component.manageable.ModelAdapter;
 import com.tangosol.coherence.component.net.management.Gateway;
 import com.tangosol.coherence.component.net.management.model.EmptyModel;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
+import com.tangosol.io.internal.SerializationTelemetry;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.Base;
@@ -402,6 +403,7 @@ public class Local
      */
     public static Local instantiate(com.tangosol.coherence.component.util.SafeCluster cluster, com.tangosol.coherence.component.net.management.Connector connector, com.tangosol.internal.net.management.GatewayDependencies deps)
         {
+        // import com.tangosol.io.internal.SerializationTelemetry;
         // import com.tangosol.net.management.Registry;
         
         Local gateway = new Local();
@@ -412,6 +414,7 @@ public class Local
         gateway.makePrimary(); // this registers the Cluster MBean
         
         gateway.register(gateway.ensureGlobalName(Registry.MANAGEMENT_TYPE), connector);
+        SerializationTelemetry.register(gateway);
         
         return gateway;
         }

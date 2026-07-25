@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.coherence.component.net.management.listenerHolder.LocalHolde
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.util.Base;
@@ -1144,13 +1145,16 @@ public class RemoteModel
         
         set_ModelName(ExternalizableHelper.readSafeUTF(in));
         setInvokeName(ExternalizableHelper.readSafeUTF(in));
-        setInvokeParam((Object[]) ExternalizableHelper.readObject(in));
-        setInvokeOp(ExternalizableHelper.readInt(in));
-        
-        boolean fSig = in.readBoolean(); // Boolean to determine if Signature array is not null.
-        if (fSig)
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.JMX))
             {
-            setInvokeSignature((String[]) ExternalizableHelper.readObject(in));
+            setInvokeParam((Object[]) ExternalizableHelper.readObject(in));
+            setInvokeOp(ExternalizableHelper.readInt(in));
+
+            boolean fSig = in.readBoolean(); // Boolean to determine if Signature array is not null.
+            if (fSig)
+                {
+                setInvokeSignature((String[]) ExternalizableHelper.readObject(in));
+                }
             }
         }
     

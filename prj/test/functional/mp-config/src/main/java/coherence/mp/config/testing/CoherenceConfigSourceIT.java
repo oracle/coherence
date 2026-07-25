@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,10 @@ import com.oracle.coherence.cdi.server.CoherenceServerExtension;
 
 import com.oracle.coherence.mp.config.CoherenceConfigSource;
 import com.oracle.coherence.mp.config.ConfigPropertyChanged;
+
+import com.tangosol.coherence.component.application.console.Coherence;
+import com.tangosol.net.Service;
+
 import org.eclipse.microprofile.config.Config;
 
 import org.eclipse.microprofile.config.spi.ConfigBuilder;
@@ -20,10 +24,10 @@ import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.eclipse.microprofile.config.spi.ConfigSource;
 
 import org.hamcrest.MatcherAssert;
+
 import org.jboss.weld.junit5.WeldInitiator;
 import org.jboss.weld.junit5.WeldJunit5Extension;
 import org.jboss.weld.junit5.WeldSetup;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,6 +57,7 @@ import static org.hamcrest.Matchers.nullValue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class CoherenceConfigSourceIT
     {
+
     @WeldSetup
     private final WeldInitiator weld = WeldInitiator.of(WeldInitiator.createWeld()
                                                         .addExtension(new CoherenceExtension())
@@ -66,15 +71,27 @@ class CoherenceConfigSourceIT
     static void setup()
         {
         System.setProperty("coherence.member", "sysprop01");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("config.value", "sysprop");
+        }
+
+    @BeforeEach
+    void clearSystemProperties()
+        {
+        MatcherAssert.assertThat(System.getProperty("coherence.config.ordinal"), is(nullValue()));
+
+        config = getConfig();
+        source = getCoherenceSource(config);
+        source.getConfigMap().truncate();
         }
 
     private static Config getConfig()
         {
         ConfigProviderResolver resolver = ConfigProviderResolver.instance();
-        ConfigBuilder builder = resolver.getBuilder();
-        return builder
-                .addDefaultSources()
+        ConfigBuilder          builder  = resolver.getBuilder();
+
+        return builder.addDefaultSources()
                 .addDiscoveredSources()
                 .build();
         }
@@ -91,19 +108,7 @@ class CoherenceConfigSourceIT
         throw new IllegalStateException("CoherenceConfigSource is not in a list of sources");
         }
 
-    @Inject
-    private TestObserver observer;
-
-    private Config config;
-    private CoherenceConfigSource source;
-
-    @BeforeEach
-    void clearSystemProperties()
-        {
-        config = getConfig();
-        source = getCoherenceSource(config);
-        source.getConfigMap().truncate();
-        }
+    // ----- test methods ---------------------------------------------
 
     @Test
     void testDefaults()
@@ -124,11 +129,13 @@ class CoherenceConfigSourceIT
         {
         source.setValue("config.value", "cache");
 
-        MatcherAssert.assertThat(config.getValue("coherence.cluster", String.class), is("test"));
+        MatcherAssert.assertThat(config.getValue("coherence.cluster", String.class),
+                is(System.getProperty("coherence.cluster", "test")));
         MatcherAssert.assertThat(config.getValue("coherence.role", String.class), is("proxy"));
         MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
         MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("cache"));
+        MatcherAssert.assertThat(source.getValue("config.value"), is("cache"));
         }
 
     @Test
@@ -138,15 +145,27 @@ class CoherenceConfigSourceIT
 
         Config config = getConfig();
         MatcherAssert.assertThat(config.getValue("config.value", String.class), is("sysprop"));
+
+        System.clearProperty("coherence.config.ordinal");
+        MatcherAssert.assertThat(System.getProperty("coherence.config.ordinal"), is(nullValue()));
         }
 
     @Test
     void testChangeNotification()
+            throws InterruptedException
         {
+        Service proxyService = Coherence.getCluster().getService("Proxy");
+        Eventually.assertDeferred(() -> proxyService.isRunning(), is(true));
+        Thread.sleep(3000);
+        Service sysProxyService = Coherence.getCluster().getService("$SYS:SystemProxy");
+        Eventually.assertDeferred(() -> sysProxyService.isRunning(), is(true));
+
         source.setValue("config.value", "one");
+        MatcherAssert.assertThat(source.getValue("config.value"), is("one"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("one"));
 
         source.setValue("config.value", "two");
+        MatcherAssert.assertThat(source.getValue("config.value"), is("two"));
         Eventually.assertDeferred(() -> observer.getLatestValue(), is("two"));
 
         source.getConfigMap().remove("config.value");
@@ -156,7 +175,7 @@ class CoherenceConfigSourceIT
     @ApplicationScoped
     static class TestObserver
         {
-        volatile String latestValue;
+        String latestValue;
 
         public String getLatestValue()
             {
@@ -165,8 +184,17 @@ class CoherenceConfigSourceIT
 
         void observer(@Observes ConfigPropertyChanged event)
             {
-            System.out.println(event);
+            System.out.println("[TestObserver.observer] : " + event);
             latestValue = event.getValue();
+            System.out.println("[TestObserver.observer event latest val] : " + latestValue);
             }
         }
+
+    // ----- data members ---------------------------------------------
+
+    @Inject
+    private TestObserver observer;
+
+    private Config config;
+    private CoherenceConfigSource source;
     }

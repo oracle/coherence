@@ -210,10 +210,12 @@ public class BetweenFilter<T, E extends Comparable<? super E>>
 
     public String toExpression()
         {
-        return getValueExtractor().getCanonicalName() + " BETWEEN " +
-               (isLowerBoundInclusive() ? '[' : '(') +
-               getLowerBound() + ", " + getUpperBound() +
-               (isUpperBoundInclusive() ? ']' : ')');
+        String sExtractor = ExtractorFilter.getExtractorName(getValueExtractor());
+
+        return getClass().getSimpleName() + "(" + sExtractor
+                + (isLowerBoundInclusive() ? " >= " : " > ") + getLowerBound() +
+                " and " + sExtractor
+                + (isUpperBoundInclusive() ? " <= " : " < ") + getUpperBound() + ")";
         }
 
     // ----- EntryFilter interface ------------------------------------------

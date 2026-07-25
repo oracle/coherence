@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
@@ -19,9 +19,7 @@ import com.tangosol.util.aggregator.QueryRecorder;
 import com.tangosol.util.filter.GreaterFilter;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -176,7 +174,7 @@ public class SimpleQueryRecordTest
 
         SimpleQueryRecord.PartialResult resultNew = new SimpleQueryRecord.PartialResult();
 
-        resultNew.readExternal(new DataInputStream(new ByteArrayInputStream(stream.toByteArray())));
+        resultNew.readExternal(new ByteArrayReadBuffer(stream.toByteArray()).getBufferInput());
 
         assertTrue(result.isMatching(resultNew));
         assertTrue(resultNew.isMatching(result));
@@ -291,7 +289,7 @@ public class SimpleQueryRecordTest
 
         SimpleQueryRecord.PartialResult.Step step = new SimpleQueryRecord.PartialResult.Step(filter1);
 
-        assertEquals(filter1.toString(), step.getFilterDescription());
+        assertEquals(filter1.toExpression(), step.getFilterDescription());
         }
 
     /**
@@ -385,7 +383,7 @@ public class SimpleQueryRecordTest
 
         SimpleQueryRecord.PartialResult.Step stepNew = new SimpleQueryRecord.PartialResult.Step();
 
-        stepNew.readExternal(new DataInputStream(new ByteArrayInputStream(stream.toByteArray())));
+        stepNew.readExternal(new ByteArrayReadBuffer(stream.toByteArray()).getBufferInput());
 
         assertTrue(step.isMatching(stepNew));
         assertTrue(stepNew.isMatching(step));

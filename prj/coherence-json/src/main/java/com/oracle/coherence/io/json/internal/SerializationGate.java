@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.io.json.internal;
 
-import com.oracle.coherence.common.collections.ConcurrentHashMap;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import java.io.ObjectInputFilter;
 
 /**
  * Utility class to determine if a type is allowed to be serialized or
- * deserialized.  In order to do so, this class relies on using
- * the configuration defined by {@link ObjectInputFilter.Config#getSerialFilter()}.
- * The configuration returned is controlled by the {@code jdk.SerialFilter} system
- * property.
+ * deserialized. In order to do so, this class relies on the Coherence default
+ * filter intersected with any configuration defined by
+ * {@link ObjectInputFilter.Config#getSerialFilter()}.
  *
  * See <a href="https://www.oracle.com/pls/topic/lookup?ctx=javase11&id=serialization_filter_guide">Serialization Filter Guide</a>
  * for details.
@@ -36,14 +36,13 @@ public class SerializationGate
      */
     public static boolean isValid(Class<?> clz)
         {
-        String sClass = clz.getName();
-
-        return RESULT_CACHE.computeIfAbsent(sClass, s ->
+        ObjectInputFilter filter = DefaultObjectInputFilter.create();
+        boolean fAllowed = filter.checkInput(new FilterInfo(clz)) != ObjectInputFilter.Status.REJECTED;
+        if (!fAllowed)
             {
-            ObjectInputFilter filter = ObjectInputFilter.Config.getSerialFilter();
-            return filter == null || ObjectInputFilter.Config.getSerialFilter()
-                                             .checkInput(new FilterInfo(clz)) != ObjectInputFilter.Status.REJECTED;
-            });
+            SerializationTelemetry.recordFilterCheck("rejected", "json-class-rejected", clz, null);
+            }
+        return fAllowed;
         }
 
     // ----- inner class: FilterInfo ----------------------------------------
@@ -101,10 +100,4 @@ public class SerializationGate
         private final Class<?> f_clz;
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * A {@code Map} to cache the serialization filter result.
-     */
-    private static final ConcurrentHashMap<String, Boolean> RESULT_CACHE = new ConcurrentHashMap<>();
     }

@@ -55,6 +55,7 @@ cache-config-UTF8-BOM.xml
 .jpg
 .json
 .key
+.md
 .p12
 .pem
 .png

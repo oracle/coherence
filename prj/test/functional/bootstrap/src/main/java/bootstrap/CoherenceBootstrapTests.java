@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,6 @@ import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
-import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.Session;
 
 import com.tangosol.net.SessionConfiguration;
@@ -50,7 +49,7 @@ class CoherenceBootstrapTests
         {
         s_availablePorts = LocalPlatform.get().getAvailablePorts();
 
-        String sAddress = InetAddressHelper.getLocalHost().getHostAddress();
+        String sAddress = "127.0.0.1";
 
         System.setProperty("coherence.wka", sAddress);
         System.setProperty("coherence.localhost", sAddress);

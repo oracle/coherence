@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -43,6 +43,7 @@ import com.oracle.bedrock.util.Capture;
 import com.oracle.coherence.common.base.Classes;
 
 import com.oracle.coherence.common.net.SSLSocketProvider;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 
@@ -128,6 +129,7 @@ public class GlobalSocketProviderTests
                 ClusterPort.of(m_nClusterPort),
                 JMXManagementMode.ALL,
                 JmxProfile.enabled(),
+                SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                 WellKnownAddress.of("127.0.0.1"),
                 LocalHost.only(),
                 IPv4Preferred.yes(),
@@ -135,6 +137,7 @@ public class GlobalSocketProviderTests
                 DisplayName.of("storage"));
 
         optionsByType.addAll(m_exOptionsByType);
+        BedrockInvocationProperties.inherit(optionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
                 .include(3, CoherenceClusterMember.class, optionsByType.asArray());
 
@@ -175,6 +178,7 @@ public class GlobalSocketProviderTests
                 SystemProperty.of("coherence.transport.reliable", "datagram"),
                 JMXManagementMode.ALL,
                 JmxProfile.enabled(),
+                SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                 WellKnownAddress.of("127.0.0.1"),
                 LocalHost.only(),
                 IPv4Preferred.yes(),
@@ -182,6 +186,7 @@ public class GlobalSocketProviderTests
                 DisplayName.of("storage"));
 
         optionsByType.addAll(m_exOptionsByType);
+        BedrockInvocationProperties.inherit(optionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
                 .include(3, CoherenceClusterMember.class, optionsByType.asArray());
 
@@ -210,20 +215,24 @@ public class GlobalSocketProviderTests
         LocalPlatform    platform   = LocalPlatform.get();
         Capture<Integer> extendPort = new Capture<>(platform.getAvailablePorts());
 
+        OptionsByType optionsByType = OptionsByType.of(
+                OperationalOverride.of("global-ssl-test-override.xml"),
+                SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
+                SystemProperty.of("coherence.extend.port", extendPort),
+                ClusterName.of(m_sClusterName),
+                ClusterPort.of(m_nClusterPort),
+                JMXManagementMode.ALL,
+                JmxProfile.enabled(),
+                SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
+                WellKnownAddress.of("127.0.0.1"),
+                LocalHost.only(),
+                IPv4Preferred.yes(),
+                m_logs,
+                DisplayName.of("storage"));
+
+        BedrockInvocationProperties.inherit(optionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
-                .include(3, CoherenceClusterMember.class,
-                         OperationalOverride.of("global-ssl-test-override.xml"),
-                         SystemProperty.of(SocketProviderFactory.PROP_GLOBAL_PROVIDER, "one"),
-                         SystemProperty.of("coherence.extend.port", extendPort),
-                         ClusterName.of(m_sClusterName),
-                         ClusterPort.of(m_nClusterPort),
-                         JMXManagementMode.ALL,
-                         JmxProfile.enabled(),
-                         WellKnownAddress.of("127.0.0.1"),
-                         LocalHost.only(),
-                         IPv4Preferred.yes(),
-                         m_logs,
-                         DisplayName.of("storage"));
+                .include(3, CoherenceClusterMember.class, optionsByType.asArray());
 
         try (CoherenceCluster cluster = clusterBuilder.build(platform))
             {
@@ -236,25 +245,29 @@ public class GlobalSocketProviderTests
                 assertThat(member.invoke(new IsSecureProxy()), is(true));
                 }
 
-            System.setProperty(PROP_METRICS_ENABLED, "false");
-            System.setProperty("coherence.extend.address", "127.0.0.1");
-            System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
+                // Because of the way the certs are generated using an Ant script this test fails
+                // when running with native image because the Ant script runs again after the native
+                // image has built overwriting the certs, so the native image contains different certs
+                // to those being used by this client.
+                System.setProperty(PROP_METRICS_ENABLED, "false");
+                System.setProperty("coherence.extend.address", "127.0.0.1");
+                System.setProperty("coherence.extend.port", String.valueOf(extendPort.get()));
 
-            Coherence coherence = Coherence.client().start().get(5, TimeUnit.MINUTES);
-            Session session = coherence.getSession();
-            try (NamedCache<String, String> cache = session.getCache("nameservice-test"))
-                {
-                String value = new UUID().toString();
-                cache.put("key-1", value);
-                assertThat(cache.get("key-1"), is(value));
-                }
+                Coherence coherence = Coherence.client().start().get(5, TimeUnit.MINUTES);
+                Session session = coherence.getSession();
+                try (NamedCache<String, String> cache = session.getCache("nameservice-test"))
+                    {
+                    String value = new UUID().toString();
+                    cache.put("key-1", value);
+                    assertThat(cache.get("key-1"), is(value));
+                    }
 
-            try (NamedCache<String, String> cache = session.getCache("fixed-test"))
-                {
-                String value = new UUID().toString();
-                cache.put("key-1", value);
-                assertThat(cache.get("key-1"), is(value));
-                }
+                try (NamedCache<String, String> cache = session.getCache("fixed-test"))
+                    {
+                    String value = new UUID().toString();
+                    cache.put("key-1", value);
+                    assertThat(cache.get("key-1"), is(value));
+                    }
             }
         }
 
@@ -273,6 +286,7 @@ public class GlobalSocketProviderTests
                 ClusterPort.of(m_nClusterPort),
                 JMXManagementMode.ALL,
                 JmxProfile.enabled(),
+                SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                 WellKnownAddress.of("127.0.0.1"),
                 LocalHost.only(),
                 IPv4Preferred.yes(),
@@ -280,6 +294,7 @@ public class GlobalSocketProviderTests
                 DisplayName.of("storage"));
 
         optionsByType.addAll(m_exOptionsByType);
+        BedrockInvocationProperties.inherit(optionsByType);
         CoherenceClusterBuilder clusterBuilder = new CoherenceClusterBuilder()
                 .include(1, CoherenceClusterMember.class, optionsByType.asArray());
 

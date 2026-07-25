@@ -88,6 +88,29 @@ public abstract class ExtractorFilter<T, E>
                 : new ChainedExtractor<>(sMethod);
         }
 
+    /**
+     * Return the string representation of the extractor name.
+     *
+     * @return the string representation of the extractor name
+     */
+    @SuppressWarnings("rawtypes")
+    protected String getExtractorName()
+        {
+        return getExtractorName(getValueExtractor());
+        }
+
+    /**
+     * Return the string representation of the extractor name.
+     *
+     * @param extractor  the extractor
+     *
+     * @return the string representation of the extractor name
+     */
+    @SuppressWarnings("rawtypes")
+    static String getExtractorName(ValueExtractor extractor)
+        {
+        return extractor.toString();
+        }
 
     // ----- Filter interface -----------------------------------------------
 

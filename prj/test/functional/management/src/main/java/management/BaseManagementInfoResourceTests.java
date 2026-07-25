@@ -73,6 +73,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.filter.AlwaysFilter;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import java.math.BigDecimal;
 
@@ -4981,7 +4982,8 @@ public abstract class BaseManagementInfoResourceTests
             propsServer1.add(SystemProperty.of("java.security.debug", sDebug));
             }
 
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer1).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer1)).asArray());
 
         OptionsByType propsServer2 = OptionsByType.of(propsServer1);
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
@@ -4989,7 +4991,8 @@ public abstract class BaseManagementInfoResourceTests
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.persistence.snapshot.dir", m_dirSnapshot2.getAbsolutePath()));
 
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer2)).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());
 

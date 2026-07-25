@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 	id "org.kordamp.gradle.jandex" version "0.9.0"
 }
 
 ext {
 	mainClass='io.helidon.microprofile.cdi.Main'
 }
+
 group = 'com.oracle.coherence.guides'
 version = '1.0.0-SNAPSHOT'
 sourceCompatibility = '11'
@@ -87,3 +89,7 @@ task moveBeansXML {
 }
 compileTestJava.dependsOn jandex
 test.dependsOn moveBeansXML
+
+securityConfig {
+    processTestClasses = true
+}

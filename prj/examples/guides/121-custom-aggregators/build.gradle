@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,10 +7,30 @@
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
 version = '${coherenceVersion}'
+
+// read shared dependency versions from pom.xml so the Maven and Gradle example builds stay aligned
+def pomProperty = { String name ->
+    File directory = projectDir
+    while (directory != null) {
+        File pomFile = new File(directory, 'pom.xml')
+        if (pomFile.exists()) {
+            def value = new XmlSlurper().parse(pomFile).properties.children().find { it.name() == name }?.text()
+            if (value) {
+                return value
+            }
+        }
+        directory = directory.parentFile
+    }
+    throw new GradleException("Missing '${name}' property in pom.xml hierarchy for ${projectDir}")
+}
+def hamcrestVersion = pomProperty('hamcrest.version')
+def junitVersion = pomProperty('junit.jupiter.version')
+def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 sourceCompatibility = '11'
 
 repositories {
@@ -23,6 +43,7 @@ dependencies {
     testImplementation platform("org.junit:junit-bom:${junitVersion}")
     implementation "${coherenceGroupId}:coherence"
 
+    testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
     testImplementation "org.junit.platform:junit-platform-launcher"
     testImplementation "org.junit.jupiter:junit-jupiter"
 
@@ -41,4 +62,8 @@ task runServer(type: Exec) {
     group = "Execution"
     description = "Run a Coherence Cache Server"
     commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "com.tangosol.net.Coherence"
+}
+
+securityConfig {
+    processTestClasses = true
 }

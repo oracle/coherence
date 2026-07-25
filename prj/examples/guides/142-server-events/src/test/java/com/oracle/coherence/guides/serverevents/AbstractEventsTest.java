@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.coherence.options.MachineName;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
@@ -108,6 +109,9 @@ public abstract class AbstractEventsTest {
         String        hostName      = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         OptionsByType optionsByType = OptionsByType.empty();
 
+        String clusterName = System.getProperty("coherence.cluster", "server-events");
+        String mode        = System.getProperty("coherence.mode");
+
         optionsByType.addAll(JMXManagementMode.ALL,
                 JmxProfile.enabled(),
                 LocalStorage.enabled(),
@@ -116,8 +120,12 @@ public abstract class AbstractEventsTest {
                 CacheConfig.of(CACHE_CONFIG),
                 Logging.at(2),
                 MachineName.of(testName + "-" + memberId),
-                ClusterName.of("server-events"),
+                ClusterName.of(clusterName),
                 ClusterPort.of(clusterPort));
+
+        if (mode != null && !mode.isBlank()) {
+            optionsByType.add(SystemProperty.of("coherence.mode", mode));
+        }
 
         return optionsByType;
     }

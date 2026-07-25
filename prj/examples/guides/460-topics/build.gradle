@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 plugins {
     id "application"
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 apply plugin: "java"
 
@@ -53,4 +54,8 @@ task runClient(type: Exec) {
     commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), 
             "-Dcoherence.cacheconfig=topics-cache-config.xml", "-Xms128m", "-Xmx128m",
             "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.guides.topics.ChatApplication", userId
+}
+
+securityConfig {
+    processTestClasses = true
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -197,8 +197,15 @@ import static org.junit.Assert.fail;
  * @author jk 2015.05.28
  */
 @SuppressWarnings({"unchecked", "rawtypes", "resource"})
+@Remote.Allowed(recursive = false)
 public abstract class AbstractNamedTopicTests
     {
+    static
+        {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        }
+
     // ----- constructors ---------------------------------------------------
 
     protected AbstractNamedTopicTests(String sSerializer)
@@ -5062,6 +5069,7 @@ public abstract class AbstractNamedTopicTests
 
     // ----- inner class: ChannelPosition -----------------------------------
 
+    @Remote.Allowed(recursive = false)
     public static class CallableInvocable<R>
             extends AbstractInvocable
             implements ExternalizableLite, PortableObject

@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="grpc.client.GetEntryExpiry" source="manual" executable="true"/>
+    <class name="grpc.client.GetEntryPartition" source="manual" executable="true"/>
+    <class name="grpc.client.Person" source="manual"/>
+    <class name="grpc.client.PersonMapTrigger" source="manual" executable="true"/>
+    <class name="grpc.client.TestAssociatedKey" source="manual"/>
+    <class name="grpc.client.TestPartitionKey" source="manual"/>
+    <class name="grpc.client.UnusableAggregator" source="manual" executable="true"/>
+    <class name="grpc.client.Uppercase" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

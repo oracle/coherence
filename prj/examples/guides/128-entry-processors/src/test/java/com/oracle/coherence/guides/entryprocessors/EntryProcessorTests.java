@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,9 +12,11 @@ import com.tangosol.net.Coherence;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.GreaterEqualsFilter;
+import com.tangosol.util.function.Remote;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Gunnar Hillert  2022.05.04
  */
+@Remote.Allowed
 class EntryProcessorTests {
     // # tag::bootstrap[]
     @BeforeAll
@@ -99,7 +102,7 @@ class EntryProcessorTests {
         NamedCache<String, Country> map = getMap("countries"); // <1>
         Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
 
-        final Map<String, Double> results = map.invokeAll(filter, new IncrementingEntryProcessor()); // <3>
+        Map<String, Double> results = map.invokeAll(filter, new IncrementingEntryProcessor()); // <3>
 
         assertThat(results).hasSize(2); // <4>
         assertThat(results.get("de")).isEqualTo(84.2d);
@@ -111,8 +114,8 @@ class EntryProcessorTests {
     @Test
     void testIncreasePopulationForSingleEntry() {
         NamedCache<String, Country> map = getMap("countries"); // <1>
-        final Double result = map.invoke("de", new IncrementingEntryProcessor()); // <2>
-        assertThat(result).isEqualTo(84.2d);
+        Double result = map.invoke("de", new IncrementingEntryProcessor()); // <2>
+        assertThat(result).isEqualTo(84.2d); // <3>
     }
     // # end::testIncreasePopulationForSingleEntry[]
 
@@ -122,7 +125,7 @@ class EntryProcessorTests {
         NamedCache<String, Country> map = getMap("countries"); // <1>
         Filter filter = new GreaterEqualsFilter("getPopulation", 60.0); // <2>
 
-        final Map<String, Double> results = map.invokeAll(filter, entry -> {  // <3>
+        Map<String, Double> results = map.invokeAll(filter, entry -> {  // <3>
             Country country = entry.getValue();
             country.setPopulation(country.getPopulation() + 1);
             return country.getPopulation();
@@ -139,7 +142,7 @@ class EntryProcessorTests {
     void testIncreasePopulationUsingInvokeForSingleCountry() {
         NamedCache<String, Country> map = getMap("countries"); // <1>
 
-        final Double results = map.invoke("de", entry -> {  // <2>
+        Double results = map.invoke("de", entry -> {  // <2>
             Country country = entry.getValue();
             country.setPopulation(country.getPopulation() + 1);
             entry.setValue(country);  // <3>
@@ -156,7 +159,7 @@ class EntryProcessorTests {
     void testIncreasePopulationUsingComputeForSingleCountry() {
         NamedCache<String, Country> map = getMap("countries"); // <1>
 
-        final Country results = map.compute("de", (key, country) -> { // <2>
+        Country results = map.compute("de", (key, country) -> { // <2>
             country.setPopulation(country.getPopulation() + 1);  // <3>
             return country;
         });
@@ -173,7 +176,7 @@ class EntryProcessorTests {
         NamedCache<String, Country> map = getMap("countries"); // <1>
         Filter filter = AlwaysFilter.INSTANCE(); // <2>
 
-        final Map<String, Double> results = map.invokeAll(filter, entry -> { // <3>
+        Map<String, Double> results = map.invokeAll(filter, entry -> { // <3>
             Country country = entry.getValue();
             country.setPopulation(country.getPopulation() + 1);
             return country.getPopulation();
@@ -188,6 +191,37 @@ class EntryProcessorTests {
         assertThat(results.get("fr")).isEqualTo(68.4d);
     }
     // # end::testIncreasePopulationForAllCountries[]
+
+    // # tag::testIncreasePopulationForAllCountriesWithExpiration[]
+    @Test
+    void testIncreasePopulationForAllCountriesWithExpiration() throws InterruptedException {
+
+        NamedCache<String, Country> map = getMap("countries"); // <1>
+        Filter filter = AlwaysFilter.INSTANCE(); // <2>
+
+        Map<String, Double> results = map.invokeAll(filter, entry -> { // <3>
+            BinaryEntry<String, Double> binEntry = (BinaryEntry) entry; // <4>
+            binEntry.expire(2000); // <5>
+            Country country = entry.getValue();
+            country.setPopulation(country.getPopulation() + 1);
+            return country.getPopulation();
+        });
+
+        assertThat(results).hasSize(5); // <4>
+        assertThat(map).hasSize(5); // <5>
+
+        assertThat(results.get("ua")).isEqualTo(42.2d);
+        assertThat(results.get("co")).isEqualTo(51.4d);
+        assertThat(results.get("au")).isEqualTo(27d);
+        assertThat(results.get("de")).isEqualTo(84.2d);
+        assertThat(results.get("fr")).isEqualTo(68.4d);
+
+        Thread.sleep(4000); // <6>
+
+        assertThat(results).hasSize(5); // <7>
+        assertThat(map).hasSize(0); // <8>
+    }
+    // # end::testIncreasePopulationForAllCountriesWithExpiration[]
 
     // # tag::get-map[]
     <K, V> NamedCache<K, V> getMap(String name) {

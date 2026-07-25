@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.repository;
+
+import com.tangosol.util.function.Remote;
 
 import java.io.Serializable;
 
@@ -18,6 +20,7 @@ import java.io.Serializable;
  * @since 21.06
  */
 // tag::doc[]
+@Remote.Executable
 @FunctionalInterface
 public interface EntityFactory<ID, T>
         extends Serializable

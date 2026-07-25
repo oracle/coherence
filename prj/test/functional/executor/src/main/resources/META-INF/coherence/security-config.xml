@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$CountingTask" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$GetExecutorIdTask" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$GetTaskIdTask" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$MultipleResultsTask" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$MyCallable" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$MyCompletion" source="manual"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$MyRunnable" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$SleeperTask" source="manual" executable="true"/>
+    <class name="executor.common.AbstractTaskExecutorServiceTests$UpdatePropertiesTask" source="manual" executable="true"/>
+    <class name="executor.common.ExceptionTask" source="manual" executable="true"/>
+    <class name="executor.common.LongRunningTask" source="manual" executable="true"/>
+    <class name="executor.common.NullTask" source="manual" executable="true"/>
+    <class name="executor.common.RandomSleepTask" source="manual" executable="true"/>
+    <class name="executor.common.RepeatedTask" source="manual" executable="true"/>
+    <class name="executor.common.YieldingTask" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.io.SerializerAware;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -90,7 +91,10 @@ public class PageElement<V>
         {
         if (m_oValue == null)
             {
-            m_oValue = m_converter.convert(m_binValue.toBinary());
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.TOPICS))
+                {
+                m_oValue = m_converter.convert(m_binValue.toBinary());
+                }
             }
         return m_oValue;
         }

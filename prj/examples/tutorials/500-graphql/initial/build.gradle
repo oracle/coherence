@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,9 +7,10 @@
 
 plugins {
     id "application"
+    id "java"
     id "org.kordamp.gradle.jandex" version "0.12.0"
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
-apply plugin : "java"
 
 
 group = 'com.oracle.coherence.tutorials'
@@ -30,10 +31,10 @@ dependencies {
 	implementation "${coherenceGroupId}:coherence"
 	implementation "${coherenceGroupId}:coherence-cdi-server"
 
-    testtestImplementation platform("org.junit:junit-bom:${junitVersion}")
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
     testImplementation "org.junit.platform:junit-platform-launcher"
     testImplementation "org.junit.jupiter:junit-jupiter"
-    testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5"
+    testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5"
 }
 
 // define a custom task to copy all dependencies in the runtime classpath
@@ -88,4 +89,8 @@ tasks.named('compileTestJava') {
 tasks.withType(Jar) {
     duplicatesStrategy = 'exclude'
     dependsOn('moveBeansXML')
+}
+
+securityConfig {
+    processTestClasses = true
 }

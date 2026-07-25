@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="concurrent.ClusteredRemoteCountDownLatchIT" source="manual"/>
+    <class name="concurrent.ClusteredRemoteSemaphoreExtendIT" source="manual"/>
+    <class name="concurrent.ClusteredRemoteSemaphoreExtendProxyIT" source="manual"/>
+    <class name="concurrent.ClusteredRemoteSemaphoreIT" source="manual"/>
+    <class name="concurrent.PofClusteredRemoteCountDownLatchIT" source="manual"/>
+    <class name="concurrent.PofClusteredRemoteSemaphoreExtendIT" source="manual"/>
+    <class name="concurrent.PofClusteredRemoteSemaphoreExtendProxyIT" source="manual"/>
+    <class name="concurrent.PofClusteredRemoteSemaphoreIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteLockExtendIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteLockExtendProxyIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteLockIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteReadWriteLockExtendIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteReadWriteLockExtendProxyIT" source="manual"/>
+    <class name="concurrent.locks.ClusteredRemoteReadWriteLockIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteLockExtendIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteLockExtendProxyIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteLockIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendProxyIT" source="manual"/>
+    <class name="concurrent.locks.PofClusteredRemoteReadWriteLockIT" source="manual"/>
+  </allowed-classes>
+</security-config>

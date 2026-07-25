@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMem
 import com.tangosol.coherence.component.net.message.DiscoveryMessage;
 import com.tangosol.coherence.component.net.message.RequestMessage;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
+import com.tangosol.io.SerializationRole;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.base.Disposable;
@@ -1006,8 +1007,11 @@ public abstract class Grid
                 }
         
             // read the message contents
-            msg.readInternal(input);
-            msg.read(input);
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.CLUSTER))
+                {
+                msg.readInternal(input);
+                msg.read(input);
+                }
         
             if (fWrapped)
                 {

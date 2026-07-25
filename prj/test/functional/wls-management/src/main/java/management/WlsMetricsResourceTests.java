@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.tangosol.coherence.management.internal.MapProvider;
 
@@ -259,14 +260,16 @@ public class WlsMetricsResourceTests
             propsServer1.add(SystemProperty.of("java.security.debug", sDebug));
             }
 
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer1).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer1)).asArray());
 
         OptionsByType propsServer2 = OptionsByType.of(propsServer1);
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.role", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
 
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer2)).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());
 
