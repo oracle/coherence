@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,8 +15,11 @@ import com.oracle.coherence.concurrent.RemoteCountDownLatch;
 import com.tangosol.net.Coherence;
 
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -46,10 +49,23 @@ public class RemoteCountDownLatchTest
         Coherence.closeAll();
         }
 
+    @BeforeEach
+    void beforeEach(TestInfo info)
+        {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+        }
+
+    @AfterEach
+    void clear()
+        {
+        ConcurrentHelper.clearLatches();
+        }
+
     @Test
     void shouldAcquireAndCountDown() throws InterruptedException
         {
-        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", 1);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch(latchName("foo"), 1);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -74,7 +90,8 @@ public class RemoteCountDownLatchTest
     void shouldAcquireAndTimedOut() throws InterruptedException
         {
         int                       count     = 1;
-        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", count);
+        String                    sName     = latchName("foo");
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch(sName, count);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -100,9 +117,9 @@ public class RemoteCountDownLatchTest
 
         try
             {
-            RemoteCountDownLatch latch1 = Latches.remoteCountDownLatch("foo", 2 * count);
+            RemoteCountDownLatch latch1 = Latches.remoteCountDownLatch(sName, 2 * count);
             assertThat((int) latch.getCount(), is(2*count));
-            RemoteCountDownLatch latch2 = Latches.remoteCountDownLatch("foo", count);
+            RemoteCountDownLatch latch2 = Latches.remoteCountDownLatch(sName, count);
             fail("Should return IllegalArgumentException") ;
             }
         catch (IllegalArgumentException e)
@@ -115,7 +132,7 @@ public class RemoteCountDownLatchTest
     void shouldAcquireAndCountDownMany() throws InterruptedException
         {
         final int                 size      = 5;
-        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("manyFoo", size);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch(latchName("manyFoo"), size);
         Semaphore                 semaphore = new Semaphore(0);
         Thread[]                  workers   = new Thread[size];
 
@@ -140,4 +157,23 @@ public class RemoteCountDownLatchTest
         latch.await();
         Eventually.assertDeferred(ConcurrentHelper.latchesMap()::size, is(0));
         }
+
+    /**
+     * Return a test-scoped latch name.
+     *
+     * @param sSuffix  the latch name suffix
+     *
+     * @return a test-scoped latch name
+     */
+    private String latchName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The current test name, used to scope latch names.
+     */
+    private String m_sTestName;
     }

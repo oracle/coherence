@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,9 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.Timeout;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -50,6 +52,13 @@ public class RemoteSemaphoreTest
         Coherence.closeAll();
         }
 
+    @BeforeEach
+    void beforeEach(TestInfo info)
+        {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+        }
+
     @AfterEach
     void clear()
         {
@@ -60,7 +69,7 @@ public class RemoteSemaphoreTest
     @Timeout(60)
     void shouldAcquireAndReleasePermits()
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 5);
         semaphore.acquireUninterruptibly();
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -72,7 +81,7 @@ public class RemoteSemaphoreTest
     void shouldAcquireAndReleasePermitsnterruptibly()
             throws InterruptedException
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 5);
         semaphore.acquire();
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -83,7 +92,7 @@ public class RemoteSemaphoreTest
     @Timeout(60)
     void shouldAcquireAndReleasePermitWithoutBlocking()
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 5);
         assertThat(semaphore.tryAcquire(), is(true));
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -94,7 +103,7 @@ public class RemoteSemaphoreTest
     @Timeout(60)
     void shouldAcquireAndReleasePermitWithTimeout() throws InterruptedException
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 5);
         assertThat(semaphore.tryAcquire(1L, TimeUnit.SECONDS), is(true));
         assertThat(semaphore.availablePermits(), is(4));
         semaphore.release();
@@ -105,7 +114,7 @@ public class RemoteSemaphoreTest
     @Timeout(60)
     void shouldAcquireAndReleaseMultipleTimes() throws InterruptedException
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 5);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 5);
         semaphore.acquire();
         semaphore.acquire();
         semaphore.acquire();
@@ -120,7 +129,7 @@ public class RemoteSemaphoreTest
     void shouldAcquireAndReleasePermitFromMultipleThreads()
             throws Throwable
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 1);
         Semaphore s0 = new Semaphore(0);
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
@@ -172,7 +181,7 @@ public class RemoteSemaphoreTest
     void shouldTimeOutIfAcquiredByAnotherThread()
         throws InterruptedException
         {
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 1);
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -199,7 +208,7 @@ public class RemoteSemaphoreTest
     void shouldBeAbleToInterruptAcquireRequest() throws Throwable
         {
         CountDownLatch latch = new CountDownLatch(1);
-        RemoteSemaphore semaphore = Semaphores.remoteSemaphore("foo", 1);
+        RemoteSemaphore semaphore = Semaphores.remoteSemaphore(semaphoreName("foo"), 1);
         Thread thread = new Thread(() ->
                {
                try
@@ -230,6 +239,24 @@ public class RemoteSemaphoreTest
 
         assertThat(exceptionThrown.get(), nullValue());
         }
-    }
 
+    /**
+     * Return a test-scoped semaphore name.
+     *
+     * @param sSuffix  the semaphore name suffix
+     *
+     * @return a test-scoped semaphore name
+     */
+    private String semaphoreName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The current test name, used to scope semaphore names.
+     */
+    private String m_sTestName;
+    }
 
