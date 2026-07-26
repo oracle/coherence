@@ -436,5 +436,6 @@ class GrpcNamedCacheInstallGateIntegrationTest
             .setProperty("coherence.cluster", "GrpcNamedCacheInstallGateIntegrationTest-" + System.nanoTime())
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.mode", "prod")
+            .setProperty("coherence.security.mode", "hardened")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");
     }
