@@ -29,5 +29,20 @@ dependency-reduced-pom.xml
 !.ignore
 !.github
 !.gitignore
+!.ai
+!.ai/**
+!prj/.ai
+!prj/.ai/**
 !prj/.mvn
 !prj/.mvn/**
+!tools/**/*.jar
+!tools/maven/boot/*.jar
+!tools/maven/lib/*.jar
+
+# ignore local AI runtime artifacts but keep committed context/docs
+.ai/runs/**
+.ai/scratch/**
+.ai/rq-monitor/**
+prj/.ai/runs/**
+prj/.ai/scratch/**
+prj/.ai/rq-monitor/**
