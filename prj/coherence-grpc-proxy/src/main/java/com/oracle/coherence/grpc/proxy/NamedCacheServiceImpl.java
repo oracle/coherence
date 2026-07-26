@@ -31,6 +31,8 @@ import com.oracle.coherence.grpc.EntrySetRequest;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.GetAllRequest;
 import com.oracle.coherence.grpc.GetRequest;
+import com.oracle.coherence.grpc.GrpcSecurityContext;
+import com.oracle.coherence.grpc.GrpcSerializerPolicy;
 import com.oracle.coherence.grpc.InvokeAllRequest;
 import com.oracle.coherence.grpc.InvokeRequest;
 import com.oracle.coherence.grpc.IsEmptyRequest;
@@ -1599,7 +1601,8 @@ public class NamedCacheServiceImpl
                                                                            String sCacheName,
                                                                            String format)
         {
-        return CompletableFuture.supplyAsync(() -> createRequestHolder(request, sScope, sCacheName, format), f_executor);
+        return CompletableFuture.supplyAsync(() -> createRequestHolder(request, sScope, sCacheName, format),
+                GrpcSecurityContext.contextAware(f_executor));
         }
 
     /**
@@ -1637,6 +1640,7 @@ public class NamedCacheServiceImpl
         AsyncNamedCache<Binary, Binary> cache          = c.async();
         CacheService                    cacheService   = cache.getNamedCache().getCacheService();
         String                          cacheFormat    = CacheRequestHolder.getCacheFormat(cacheService);
+        GrpcSerializerPolicy.validateClientFormat(format);
         Serializer                      serializer     = getSerializer(format, cacheFormat, cacheService::getSerializer, cacheService::getContextClassLoader);
 
         return new CacheRequestHolder<>(request, cache, () -> nonPassThrough, format, serializer, f_executor);

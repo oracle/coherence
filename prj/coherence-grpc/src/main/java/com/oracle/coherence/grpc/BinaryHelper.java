@@ -216,7 +216,7 @@ public final class BinaryHelper
         {
         if (bytes != null && !bytes.isEmpty())
             {
-            return ExternalizableHelper.fromBinary(BinaryHelper.toBinary(bytes), serializer);
+            return fromBinary(BinaryHelper.toBinary(bytes), serializer);
             }
 
         return null;

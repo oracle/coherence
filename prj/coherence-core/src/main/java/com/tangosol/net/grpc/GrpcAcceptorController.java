@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,9 @@ import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 import com.tangosol.internal.util.DaemonPool;
 
 import java.util.ServiceLoader;
+import java.util.function.Function;
+
+import javax.security.auth.Subject;
 
 /**
  * A class responsible for controlling a gRPC server.
@@ -39,6 +42,15 @@ public interface GrpcAcceptorController
      * @param pool  the {@link DaemonPool} to be used
      */
     void setDaemonPool(DaemonPool pool);
+
+    /**
+     * Set the function used to assert identity tokens for authenticated gRPC calls.
+     *
+     * @param asserter  the identity token asserter
+     */
+    default void setIdentityTokenAsserter(Function<Object, Subject> asserter)
+        {
+        }
 
     /**
      * Start the gRPC server.

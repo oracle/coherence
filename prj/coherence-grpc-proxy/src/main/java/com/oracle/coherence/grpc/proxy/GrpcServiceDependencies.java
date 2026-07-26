@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -67,6 +67,13 @@ public interface GrpcServiceDependencies
      */
     Optional<Context> getContext();
 
+    /**
+     * Return the gRPC error-disclosure policy.
+     *
+     * @return the gRPC error-disclosure policy
+     */
+    Optional<String> getErrorDisclosure();
+
     // ----- inner class: DefaultDependencies -------------------------------
 
     /**
@@ -89,6 +96,7 @@ public interface GrpcServiceDependencies
                 deps.getTransferThreshold().ifPresent(this::setTransferThreshold);
                 deps.getContext().ifPresent(this::setContext);
                 deps.getDaemonPool().ifPresent(this::setDaemonPool);
+                deps.getErrorDisclosure().ifPresent(this::setErrorDisclosure);
                 }
             }
 
@@ -179,6 +187,12 @@ public interface GrpcServiceDependencies
             return Optional.ofNullable(m_context);
             }
 
+        @Override
+        public Optional<String> getErrorDisclosure()
+            {
+            return Optional.ofNullable(m_sErrorDisclosure);
+            }
+
         /**
          * Set the {@link Context}.
          *
@@ -187,6 +201,16 @@ public interface GrpcServiceDependencies
         public void setContext(Context context)
             {
             m_context = context;
+            }
+
+        /**
+         * Set the gRPC error-disclosure policy.
+         *
+         * @param sErrorDisclosure  the gRPC error-disclosure policy
+         */
+        public void setErrorDisclosure(String sErrorDisclosure)
+            {
+            m_sErrorDisclosure = sErrorDisclosure;
             }
 
         // ----- data members -----------------------------------------------
@@ -220,5 +244,10 @@ public interface GrpcServiceDependencies
          * The {@link Context}.
          */
         private Context m_context;
+
+        /**
+         * The gRPC error-disclosure policy.
+         */
+        private String m_sErrorDisclosure;
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,9 @@ import com.oracle.coherence.grpc.Requests;
 
 import com.oracle.coherence.grpc.proxy.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.NamedCacheServiceImpl;
+import com.oracle.coherence.io.json.JsonSerializer;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
 
@@ -90,10 +93,12 @@ import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 
 import org.junit.jupiter.params.provider.MethodSource;
@@ -121,6 +126,84 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class NamedCacheServiceImplIT
         extends BaseNamedCacheServiceImplIT
     {
+    @Test
+    public void shouldRejectUnsafePerRequestSerializerInProd() throws Exception
+        {
+        String sScope     = GrpcDependencies.DEFAULT_SCOPE;
+        String sCacheName = "reject-unsafe-serializer-cache";
+        ensureEmptyCache(sScope, sCacheName);
+
+        NamedCacheService service    = createService();
+        DefaultSerializer serializer = new DefaultSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            CompletionStage<BoolValue> response = service.containsKey(
+                    Requests.containsKey(sScope, sCacheName, "java", toByteString("key", serializer)));
+
+            ExecutionException thrown = assertThrows(ExecutionException.class,
+                    () -> response.toCompletableFuture().get(1, TimeUnit.MINUTES));
+            assertThat(thrown.getCause(), is(instanceOf(StatusRuntimeException.class)));
+            assertThat(((StatusRuntimeException) thrown.getCause()).getStatus().getCode(),
+                    is(Status.INVALID_ARGUMENT.getCode()));
+            }
+        }
+
+    @Test
+    public void shouldAllowJsonPerRequestSerializerInProd() throws Exception
+        {
+        String                     sScope     = GrpcDependencies.DEFAULT_SCOPE;
+        String                     sCacheName = "allow-json-serializer-cache";
+        NamedCache<String, String> cache      = ensureEmptyCache(sScope, sCacheName);
+        cache.clear();
+
+        NamedCacheService service    = createService();
+        JsonSerializer    serializer = new JsonSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            ByteString                  key      = toByteString("key-1", serializer);
+            ByteString                  value    = toByteString("value-1", serializer);
+            CompletionStage<BytesValue> response = service.put(Requests.put(sScope, sCacheName, "json", key, value));
+
+            BytesValue oResult = response.toCompletableFuture().get(1, TimeUnit.MINUTES);
+            assertThat(fromBytesValue(oResult, serializer, String.class), is(nullValue()));
+            assertThat(cache.get("key-1"), is("value-1"));
+            }
+        }
+
+    @Test
+    public void shouldRejectJsonClassMetadataGadgetPerRequestInProd() throws Exception
+        {
+        String sScope     = GrpcDependencies.DEFAULT_SCOPE;
+        String sCacheName = "reject-json-gadget-cache";
+        ensureEmptyCache(sScope, sCacheName);
+
+        NamedCacheService service = createService();
+        ByteString        key     = jsonPayload(
+                "{\"@class\":\"internal.util.invoke.RemoteConstructor\"}");
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            CompletionStage<BoolValue> response = service.containsKey(
+                    Requests.containsKey(sScope, sCacheName, "json", key));
+
+            ExecutionException thrown = assertThrows(ExecutionException.class,
+                    () -> response.toCompletableFuture().get(1, TimeUnit.MINUTES));
+            assertThat(thrown.getCause(), is(instanceOf(StatusRuntimeException.class)));
+            StatusRuntimeException status = (StatusRuntimeException) thrown.getCause();
+            assertThat(status.getStatus().getCode(), is(Status.UNKNOWN.getCode()));
+            assertThat(String.valueOf(status.getStatus().getDescription())
+                    .contains("Could not deserialize to type class java.lang.Object"), is(true));
+            }
+        }
+
+    private static ByteString jsonPayload(String sJson)
+        {
+        return ByteString.copyFrom(new byte[] {(byte) ExternalizableHelper.FMT_EXT})
+                .concat(ByteString.copyFromUtf8(sJson));
+        }
+
     // ----- AddIndex -------------------------------------------------------
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")

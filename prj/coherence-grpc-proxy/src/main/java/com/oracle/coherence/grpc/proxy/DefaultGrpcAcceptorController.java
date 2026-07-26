@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,8 @@ import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 import io.grpc.Grpc;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -38,6 +40,9 @@ import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+
+import javax.security.auth.Subject;
 
 /**
  * The default {@link GrpcAcceptorController} implementation.
@@ -72,6 +77,12 @@ public class DefaultGrpcAcceptorController
         }
 
     @Override
+    public void setIdentityTokenAsserter(Function<Object, Subject> asserter)
+        {
+        m_identityTokenAsserter = asserter;
+        }
+
+    @Override
     public void start()
         {
         if (m_fRunning)
@@ -95,6 +106,7 @@ public class DefaultGrpcAcceptorController
             GrpcServiceDependencies.DefaultDependencies serviceDeps = new GrpcServiceDependencies.DefaultDependencies();
 
             serviceDeps.setContext(context);
+            serviceDeps.setErrorDisclosure(deps.getErrorDisclosure());
 
             if (m_daemonPool != null)
                 {
@@ -106,7 +118,8 @@ public class DefaultGrpcAcceptorController
             for (BindableGrpcProxyService service : m_listServices)
                 {
                 GrpcMetricsInterceptor  interceptor = new GrpcMetricsInterceptor(service.getMetrics());
-                ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor);
+                ServerServiceDefinition definition  = ServerInterceptors.intercept(service, interceptor,
+                        new GrpcAuthenticationInterceptor(deps, m_identityTokenAsserter));
                 serverBuilder.addService(definition);
                 inProcessBuilder.addService(definition);
                 listServiceNames.add(definition.getServiceDescriptor().getName());
@@ -114,7 +127,10 @@ public class DefaultGrpcAcceptorController
 
             m_healthStatusManager = new HealthStatusManager();
             serverBuilder.addService(m_healthStatusManager.getHealthService());
-            serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
+            if (GrpcDiagnosticsPolicy.isChannelzEnabled(deps.getChannelz()))
+                {
+                serverBuilder.addService(ChannelzService.newInstance(deps.getChannelzPageSize()));
+                }
 //            serverBuilder.intercept(new ServerLoggingInterceptor());
 
             configure(serverBuilder, inProcessBuilder);
@@ -227,6 +243,7 @@ public class DefaultGrpcAcceptorController
 
     protected ServerBuilder<?> createServerBuilder(GrpcAcceptorDependencies deps)
         {
+        GrpcTransportSecurity.enforce(deps.getSocketProviderBuilder(), deps.getSecureTransport());
         ServerCredentials credentials = CredentialsHelper.createServerCredentials(deps.getSocketProviderBuilder());
         return Grpc.newServerBuilderForPort(deps.getLocalPort(), credentials);
         }
@@ -316,6 +333,11 @@ public class DefaultGrpcAcceptorController
      * The dependencies to use to configure the server.
      */
     private GrpcAcceptorDependencies m_dependencies;
+
+    /**
+     * The identity token asserter.
+     */
+    private Function<Object, Subject> m_identityTokenAsserter;
 
     /**
      * Whether the server is running.

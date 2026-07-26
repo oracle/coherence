@@ -111,6 +111,28 @@ public final class SerializationTelemetry
         }
 
     /**
+     * Record a serializer-name policy check.
+     *
+     * @param sResult  the check result
+     * @param sReason  the check reason
+     */
+    public static void recordSerializerCheck(String sResult, String sReason)
+        {
+        SerializationRole role = SerializationRole.current();
+        String            sMode = modeTag();
+        record(METRIC_SERIALIZER_CHECK, sResult, sReason, role, null, null,
+                "result", sResult,
+                "reason", sReason,
+                "mode", sMode,
+                "route", role.name());
+
+        if ("rejected".equals(sResult) || "would_reject".equals(sResult))
+            {
+            logRejection("serializer", role.name(), currentSubject(), null, sReason);
+            }
+        }
+
+    /**
      * Record a lambda bytecode check.
      * <p>
      * This two-argument form preserves the original Slice F tuple shape:
@@ -431,6 +453,9 @@ public final class SerializationTelemetry
                 case METRIC_POF_CHECK:
                     return new AnnotatedStandardMBean((SerializationPofCheckMBean) counter,
                             SerializationPofCheckMBean.class);
+                case METRIC_SERIALIZER_CHECK:
+                    return new AnnotatedStandardMBean((SerializationSerializerCheckMBean) counter,
+                            SerializationSerializerCheckMBean.class);
                 case METRIC_LAMBDA_BYTECODE_CHECK:
                     return new AnnotatedStandardMBean((SerializationLambdaBytecodeCheckMBean) counter,
                             SerializationLambdaBytecodeCheckMBean.class);
@@ -675,6 +700,8 @@ public final class SerializationTelemetry
     private static final String METRIC_FMT_CHECK = "fmt_check";
 
     private static final String METRIC_POF_CHECK = "pof_check";
+
+    private static final String METRIC_SERIALIZER_CHECK = "serializer_check";
 
     private static final String METRIC_LAMBDA_BYTECODE_CHECK = "lambda_bytecode_check";
 

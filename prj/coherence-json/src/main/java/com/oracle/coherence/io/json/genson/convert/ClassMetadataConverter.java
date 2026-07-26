@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -103,24 +103,30 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
 
   public T deserialize(ObjectReader reader, Context ctx) throws Exception {
     if (ValueType.OBJECT.equals(reader.getValueType()) && !isJsonValue(tClass)) {
-      String className = reader.nextObjectMetadata().metadata("class");
-      if (className != null) {
-        try {
-          Class<?> classFromMetadata = ctx.genson.classFor(className);
+      int depth = SerializationGate.enterJsonClassMetadata();
+      try {
+        String className = reader.nextObjectMetadata().metadata("class");
+        if (className != null) {
+          try {
+            Class<?> classFromMetadata = ctx.genson.classFor(className);
 
-          if (!SerializationGate.isValid(classFromMetadata)) {
-            throw new JsonBindingException("Unable to de-serialize " + classFromMetadata.getName());
-          }
+            if (!SerializationGate.isValidClassMetadata(className, classFromMetadata, tClass, depth)) {
+              throw new JsonBindingException("Unable to de-serialize " + classFromMetadata.getName());
+            }
 
-          if (!classFromMetadata.equals(tClass)) {
-            Converter<T> deser = ctx.genson.provideConverter(classFromMetadata);
-            return deser.deserialize(reader, ctx);
+            if (!classFromMetadata.equals(tClass)) {
+              Converter<T> deser = ctx.genson.provideConverter(classFromMetadata);
+              return deser.deserialize(reader, ctx);
+            }
+          } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            throw new JsonBindingException(
+              "Could not use @class metadata, no such class: " + className, e);
           }
-        } catch (ClassNotFoundException e) {
-          e.printStackTrace();
-          throw new JsonBindingException(
-            "Could not use @class metadata, no such class: " + className, e);
         }
+        return wrapped.deserialize(reader, ctx);
+      } finally {
+        SerializationGate.exitJsonClassMetadata();
       }
     }
     return wrapped.deserialize(reader, ctx);
