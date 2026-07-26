@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -74,7 +74,7 @@ public class StreamTests
         {
         ConfigurableCacheFactory cacheFactory = CLUSTER.createSession(m_bldrSession);
 
-        InvocableMap<String, Person> map = cacheFactory.ensureTypedCache(
+        InvocableMap<String, Person> map = cacheFactory.<String, Person>ensureTypedCache(
                 m_sSerializer,
                 null,
                 withoutTypeChecking());
