@@ -5,6 +5,8 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
+import groovy.xml.XmlSlurper
+
 plugins {
   id 'java'
     id 'com.oracle.coherence' version "${coherenceVersion}"
@@ -13,6 +15,25 @@ plugins {
 group = 'com.oracle.coherence.guides'
 version = '${coherenceVersion}'
 sourceCompatibility = '17'
+
+// read shared dependency versions from pom.xml so the Maven and Gradle example builds stay aligned
+def pomProperty = { String name ->
+    File directory = projectDir
+    while (directory != null) {
+        File pomFile = new File(directory, 'pom.xml')
+        if (pomFile.exists()) {
+            def value = new XmlSlurper().parse(pomFile).properties.children().find { it.name() == name }?.text()
+            if (value) {
+                return value
+            }
+        }
+        directory = directory.parentFile
+    }
+    throw new GradleException("Missing '${name}' property in pom.xml hierarchy for ${projectDir}")
+}
+def hamcrestVersion = pomProperty('hamcrest.version')
+def junitVersion = pomProperty('junit.jupiter.version')
+def mockitoVersion = pomProperty('mockito.version')
 
 repositories {
   mavenLocal()
