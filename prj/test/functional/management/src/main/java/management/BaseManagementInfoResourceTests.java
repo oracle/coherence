@@ -1956,6 +1956,14 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testClusterMemberUpdateFailure()
+            throws Exception
+        {
+        assertClusterMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
+                assertClusterMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
+        }
+
+    private void assertClusterMemberUpdateFailureStatus(Response.Status status)
         {
         Map map = new LinkedHashMap();
         map.put("cpuCount", 9L);
@@ -1963,12 +1971,20 @@ public abstract class BaseManagementInfoResourceTests
         Entity    entity   = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
         Response  response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        assertThat(response.getStatus(), is(status.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
 
     @Test
     public void testCacheMemberUpdateFailure()
+            throws Exception
+        {
+        assertCacheMemberUpdateFailureStatus(Response.Status.OK);
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
+                assertCacheMemberUpdateFailureStatus(Response.Status.UNAUTHORIZED));
+        }
+
+    private void assertCacheMemberUpdateFailureStatus(Response.Status status)
         {
         Map mapEntity = new LinkedHashMap();
         mapEntity.put("cacheHits", 100005L);
@@ -1977,7 +1993,7 @@ public abstract class BaseManagementInfoResourceTests
         Entity   entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
         Response response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+        assertThat(response.getStatus(), is(status.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
         }
 

@@ -601,6 +601,15 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         testObjectInputFilter(false, false, 500000);
         }
 
+    @Test
+    public void testObjectInputStreamWithoutFilterRejectsInHardenedMode()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            testObjectInputFilter(false, true, 10);
+            }
+        }
+
     /**
      * Test a filter that disallow testing object to be deserialized.
      */
@@ -662,7 +671,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         stop(ldtStart, "ObjectInputStream: filter: " + sFilter + " count=" + nCount);
 
-        if (fFilter && !fFail)
+        if (!fFail)
             {
             assertEquals("expected deserialized collection to be equal to serialized collection for ObjectInputFilter=" + sFilter,
                          setPersons.size(), setRead.size());
@@ -718,19 +727,22 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     @Test
-    public void testCheckObjectInputFilterUsesDefaultForDataInput()
+    public void testCheckObjectInputFilterRejectsNullFilter()
         {
-        String sMode = System.getProperty("coherence.mode");
-        try
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
-            restoreProperty("coherence.mode", "prod");
+            DataInput in = new DataInputStream(new ByteArrayInputStream(new byte[0]));
+            assertFalse(checkObjectInputFilter(String.class, in));
+            }
+        }
 
+    @Test
+    public void testCheckObjectInputFilterAllowsNullFilterInCompatibilityMode()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
             DataInput in = new DataInputStream(new ByteArrayInputStream(new byte[0]));
             assertTrue(checkObjectInputFilter(String.class, in));
-            }
-        finally
-            {
-            restoreProperty("coherence.mode", sMode);
             }
         }
 
@@ -763,8 +775,11 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         {
         ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
 
-        assertRejectedByFilter(() -> validateLoadArray(ProcessBuilder[].class, 1,
-                wb.getReadBuffer().getBufferInput()));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertRejectedByFilter(() -> validateLoadArray(ProcessBuilder[].class, 1,
+                    wb.getReadBuffer().getBufferInput()));
+            }
         }
 
     @Test
@@ -796,8 +811,11 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     public void testReadObjectDirectBufferInputRejectsDeniedExternalizableLiteClass() throws IOException
         {
         ByteArrayWriteBuffer wb = fmtExternalizableLite(ProcessBuilder.class.getName());
-        assertRejectedByFilter(() -> ExternalizableHelper.readObject(wb.getReadBuffer().getBufferInput(),
-                getClass().getClassLoader()));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertRejectedByFilter(() -> ExternalizableHelper.readObject(wb.getReadBuffer().getBufferInput(),
+                    getClass().getClassLoader()));
+            }
         }
 
     @Test
@@ -818,7 +836,10 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     public void testFmtXmlSerValidateLoadClassRejectsDeniedClass() throws IOException
         {
         Binary bin = fmtXmlSerializable(BadAttributeValueExpException.class.getName(), "<test/>");
-        assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+            }
         }
 
     @Test
