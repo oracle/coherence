@@ -15,16 +15,20 @@ import com.oracle.bedrock.runtime.concurrent.callable.RemoteCallableStaticMethod
 import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.concurrent.locks.LockOwner;
 import com.oracle.coherence.concurrent.locks.Locks;
 import com.oracle.coherence.concurrent.locks.RemoteReadWriteLock;
+import com.oracle.coherence.concurrent.locks.internal.ReadWriteLockHolder;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.UUID;
 
 import java.io.Serializable;
 
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import java.time.Duration;
 
@@ -425,18 +429,135 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendIT
         foo1.awaitWriteAcquired(Duration.ofMinutes(1));
         bar1.awaitReadAcquired(Duration.ofMinutes(1));
 
+        UUID fooOwnerId = getWriteLockOwnerId(member1, sFooName);
+        UUID barOwnerId = getReadLockOwnerId(member1, sBarName);
+
         // Acquire write locks on second member
-        member2.submit(new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sFooName, Duration.ofSeconds(5)));
-        member2.submit(new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sBarName, Duration.ofSeconds(5)));
+        CompletableFuture<Void> futureFoo = member2.submit(
+                new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sFooName, Duration.ofSeconds(5)));
+        CompletableFuture<Void> futureBar = member2.submit(
+                new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sBarName, Duration.ofSeconds(5)));
 
         // Kill first member
         member1.close();
 
+        awaitLocksReleasedBy(member2, sFooName, fooOwnerId, CLIENT_CLEANUP_TIMEOUT);
+        awaitLocksReleasedBy(member2, sBarName, barOwnerId, CLIENT_CLEANUP_TIMEOUT);
+
         // wait for the lock acquired and released events from the second member
-        foo2.awaitWriteAcquired(Duration.ofMinutes(1));
-        bar2.awaitWriteAcquired(Duration.ofMinutes(1));
-        foo2.awaitWriteReleased(Duration.ofMinutes(1));
-        bar2.awaitWriteReleased(Duration.ofMinutes(1));
+        foo2.awaitWriteAcquired(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT);
+        bar2.awaitWriteAcquired(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT);
+        foo2.awaitWriteReleased(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT);
+        bar2.awaitWriteReleased(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT);
+        futureFoo.get(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+        futureBar.get(LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS);
+        }
+
+    /**
+     * Return the current write-lock owner member ID for a lock.
+     *
+     * @param member     the member to query from
+     * @param sLockName  the lock name
+     *
+     * @return the write-lock owner member ID
+     */
+    private UUID getWriteLockOwnerId(CoherenceClusterMember member, String sLockName)
+        {
+        return member.invoke(() ->
+            {
+            ReadWriteLockHolder holder = Locks.readWriteLocksMap().get(sLockName);
+            if (holder == null || holder.getWriteLock() == null)
+                {
+                throw new IllegalStateException("No write lock owner for " + sLockName + "; holder=" + holder);
+                }
+            return holder.getWriteLock().getMemberId();
+            });
+        }
+
+    /**
+     * Return the current read-lock owner member ID for a lock.
+     *
+     * @param member     the member to query from
+     * @param sLockName  the lock name
+     *
+     * @return the read-lock owner member ID
+     */
+    private UUID getReadLockOwnerId(CoherenceClusterMember member, String sLockName)
+        {
+        return member.invoke(() ->
+            {
+            ReadWriteLockHolder holder = Locks.readWriteLocksMap().get(sLockName);
+            if (holder == null || holder.getReadLocks().isEmpty())
+                {
+                throw new IllegalStateException("No read lock owner for " + sLockName + "; holder=" + holder);
+                }
+            LockOwner owner = holder.getReadLocks().iterator().next();
+            return owner.getMemberId();
+            });
+        }
+
+    /**
+     * Wait until the server-side lock holder no longer references a failed owner.
+     *
+     * @param member     the member to query from
+     * @param sLockName  the lock name
+     * @param ownerId    the failed owner's member ID
+     * @param timeout    the maximum time to wait for cleanup
+     */
+    private void awaitLocksReleasedBy(CoherenceClusterMember member, String sLockName, UUID ownerId, Duration timeout)
+        {
+        long   ldtStart = System.nanoTime();
+        long   ldtEnd   = ldtStart + timeout.toNanos();
+        String sHolder   = null;
+
+        while (System.nanoTime() < ldtEnd)
+            {
+            if (!isLockedByMember(member, sLockName, ownerId))
+                {
+                sHolder = getReadWriteLockHolderDescription(member, sLockName);
+                long cMillis = Duration.ofNanos(System.nanoTime() - ldtStart).toMillis();
+                Logger.info("Lock " + sLockName + " no longer owned by failed member " + ownerId
+                        + " after " + cMillis + "ms; holder=" + sHolder);
+                return;
+                }
+
+            Base.sleep(500);
+            }
+
+        sHolder = getReadWriteLockHolderDescription(member, sLockName);
+        throw new AssertionError("Timed out after " + timeout + " waiting for lock " + sLockName
+                + " to remove failed owner " + ownerId + "; holder=" + sHolder);
+        }
+
+    /**
+     * Return {@code true} if a lock is still held by the specified member.
+     *
+     * @param member     the member to query from
+     * @param sLockName  the lock name
+     * @param ownerId    the owner member ID
+     *
+     * @return {@code true} if a lock is still held by the specified member
+     */
+    private boolean isLockedByMember(CoherenceClusterMember member, String sLockName, UUID ownerId)
+        {
+        return member.invoke(() ->
+            {
+            ReadWriteLockHolder holder = Locks.readWriteLocksMap().get(sLockName);
+            return holder != null && holder.isLockedByMember(ownerId);
+            });
+        }
+
+    /**
+     * Return the server-side read/write lock holder description for a lock.
+     *
+     * @param member     the member to query from
+     * @param sLockName  the lock name
+     *
+     * @return the server-side read/write lock holder description
+     */
+    private String getReadWriteLockHolderDescription(CoherenceClusterMember member, String sLockName)
+        {
+        return member.invoke(() -> String.valueOf(Locks.readWriteLocksMap().get(sLockName)));
         }
 
 
@@ -446,6 +567,16 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendIT
      * System property to enable the Concurrent service proxy.
      */
     protected static final String EXTEND_ENABLED_PROPERTY = "coherence.concurrent.extend.enabled";
+
+    /**
+     * The maximum time to wait for a failed Extend client to be removed from lock holders.
+     */
+    protected static final Duration CLIENT_CLEANUP_TIMEOUT = Duration.ofMinutes(3);
+
+    /**
+     * The maximum time to wait for queued lock acquisition after cleanup is observed.
+     */
+    protected static final Duration LOCK_ACQUIRE_AFTER_CLEANUP_TIMEOUT = Duration.ofSeconds(15);
 
     /**
      * A Bedrock JUnit5 extension with a Coherence cluster for the tests.
