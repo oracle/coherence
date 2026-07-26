@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -370,6 +370,12 @@ public class ClusterResource
     public Response diagnosticCmd(HttpRequest request)
         {
         String sCmd     = request.getFirstPathParameter(JFR_CMD);
+
+        if (!isJfrDiagnosticCommand(sCmd))
+            {
+            return unsupportedDiagnosticCommandResponse("cluster", sCmd);
+            }
+
         String sOptions = request.getFirstQueryParameter(OPTIONS);
         String sRole    = request.getFirstQueryParameter(ROLE_NAME);
         // execute the role based cluster wide JFR operation and return
