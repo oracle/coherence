@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -14,10 +14,10 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -1640,8 +1640,7 @@
                 Valid values are "dynamic" and "static".
 
                 It is optional to provide a value for this element.
-                The default value is calculated based on the value of coherence license mode:
-                "static" for production mode and "dynamic" for eval/dev mode.
+                The default value is "dynamic".
 
                 Used in: cluster-config
             </xsd:documentation>

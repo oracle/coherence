@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@ package lambda;
 
 import com.tangosol.internal.util.invoke.Lambdas;
 
-import com.tangosol.net.CacheFactory;
 import com.oracle.coherence.testing.SystemPropertyIsolation;
 
 import org.junit.ClassRule;
@@ -29,12 +28,10 @@ public class LambdasSerializationModeInvalidValueTest
         {
         System.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, "InvalidValue");
 
-        boolean fProductionMode = CacheFactory.getLicenseMode().equalsIgnoreCase("prod");
-        
-        assertThat("ensure default mode by checking if coherence running in production mode",
-                   Lambdas.isDynamicLambdas(), is(!fProductionMode));
-        assertThat("ensure default mode by checking if coherence running in production mode",
-                   Lambdas.isStaticLambdas(), is(fProductionMode));
+        assertThat("ensure invalid lambda serialization mode defaults to dynamic",
+                   Lambdas.isDynamicLambdas(), is(true));
+        assertThat("ensure invalid lambda serialization mode defaults to dynamic",
+                   Lambdas.isStaticLambdas(), is(false));
         }
 
     /**

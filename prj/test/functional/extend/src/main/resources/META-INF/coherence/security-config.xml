@@ -25,7 +25,6 @@
     <class name="extend.JmxMBeanTests$MBeanHostIPInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MBeanInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MessagingDebugInvocable" source="manual" executable="true"/>
-    <class name="extend.LambdaBytecodeDenyListTests$AllowedProcessors" source="manual" lambda-target="true"/>
     <class name="extend.ProxyServiceDynamicThreadSizingTests$ThreadCountInvocable" source="manual" executable="true"/>
     <class name="extend.SuspectProtocolTests$DisableSendInvocable" source="manual" executable="true"/>
     <class name="extend.SuspectProtocolTests$TestBulkInvocable" source="manual" executable="true"/>

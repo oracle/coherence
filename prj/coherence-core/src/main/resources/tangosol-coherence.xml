@@ -842,9 +842,7 @@ to find specific notes on changes suggested for production use.
 
     <!--
      configure lambdas serialization mode to either "dynamic" or "static".
-     Default value is not specified since it is calculated based on
-     the value of coherence mode: "static" for production mode and
-     "dynamic" for eval/dev mode.
+     Default value is not specified and resolves to "dynamic".
      -->
     <lambdas-serialization system-property="coherence.lambdas"></lambdas-serialization>
 

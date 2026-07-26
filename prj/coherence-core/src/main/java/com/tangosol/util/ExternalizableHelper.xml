@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <config>
   <!-- if deploying Coherence in CLASSPATH and deploying application
@@ -57,8 +57,6 @@
   <enable-pof-serialization system-property="coherence.pof.enabled">false</enable-pof-serialization>
 
   <!-- configure lambdas serialization mode to either "dynamic" or "static".
-       Default value is not specified since it is calculated based on
-       the value of coherence mode: "static" for production mode and
-       "dynamic" for eval/dev mode -->
+       Default value is not specified and resolves to "dynamic" -->
   <lambdas-serialization system-property="coherence.lambdas"></lambdas-serialization>
 </config>

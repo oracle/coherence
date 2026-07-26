@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -81,11 +81,7 @@ public class RemotableTests
     public void testRemotableClass()
         {
         String sLambdas = Config.getProperty("coherence.lambdas");
-        String sMode    = Config.getProperty("coherence.mode", "dev");
-
-        boolean fDynamic = sLambdas == null
-                           ? !sMode.equalsIgnoreCase("prod")
-                           : sLambdas.equalsIgnoreCase("dynamic");
+        boolean fDynamic = sLambdas == null || sLambdas.equalsIgnoreCase("dynamic");
 
         Assume.assumeTrue("skip test using an instance of AbstractRemotable if dynamic lambdas disabled", fDynamic);
         super.testRemotableClass();
