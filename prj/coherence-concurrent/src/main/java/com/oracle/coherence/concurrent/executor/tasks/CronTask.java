@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -93,6 +93,16 @@ public class CronTask<T>
     public Task<T> getTask()
         {
         return m_task;
+        }
+
+    /**
+     * Obtains the original {@link Task} used for clone resets.
+     *
+     * @return the original {@link Task}, or {@code null}
+     */
+    public Task<T> getOriginalTask()
+        {
+        return m_origTask;
         }
 
     /**
