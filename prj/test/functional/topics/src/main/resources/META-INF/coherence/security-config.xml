@@ -13,7 +13,9 @@
     <class name="topics.AbstractTopicsStorageRecoveryTests$Message" source="manual"/>
     <class name="topics.AddInvocable" source="manual" executable="true"/>
     <class name="topics.TopicAssertions$AssertPublishedOrderInvocable" source="manual" executable="true"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$AnnotatedExtractor" source="manual" executable="true"/>
     <class name="topics.TopicSubscriberInstallGateClusterTests$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="topics.TopicSubscriberInstallGateClusterTests$PlainExtractor" source="manual"/>
     <class name="topics.TopicSubscriberInstallGateClusterTests$PlainFilter" source="manual"/>
     <class name="topics.TopicsRecoveryTests$Message" source="manual"/>
     <class name="topics.data.Address" source="manual"/>
