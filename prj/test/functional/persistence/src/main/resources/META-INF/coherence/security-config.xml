@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="persistence.AbstractSimplePersistenceTests" source="manual" lambda-target="true"/>
     <class name="persistence.AbstractCohQLPersistenceTests$CohQLInvocable" source="manual" executable="true"/>
     <class name="persistence.AbstractSnapshotAnalyzerTests$ValidatorInvocable" source="manual" executable="true"/>
     <class name="persistence.BerkeleyDBSimplePersistenceTests$PartitionIndexCheckProcessor" source="manual" executable="true"/>
