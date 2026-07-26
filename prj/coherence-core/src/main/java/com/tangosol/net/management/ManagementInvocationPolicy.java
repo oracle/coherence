@@ -9,6 +9,7 @@ package com.tangosol.net.management;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.net.management.MBeanCollectorFunction;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.io.SerializationRole;
 
@@ -108,6 +109,10 @@ public final class ManagementInvocationPolicy
      */
     public static ObjectName validateQueryPattern(String sPattern, String sDomain, String sScope)
         {
+        if (sPattern == null || sPattern.trim().isEmpty())
+            {
+            return null;
+            }
         return validateQueryObjectName(toObjectName(sPattern, sDomain, sScope), sScope);
         }
 
@@ -140,7 +145,12 @@ public final class ManagementInvocationPolicy
             }
 
         String sDomain = name.getDomain();
-        if (name.isDomainPattern() || !isCoherenceDomain(sDomain))
+        if (name.isDomainPattern())
+            {
+            reject(sScope, "object-name", "invalid-name", "domain-pattern", null);
+            }
+
+        if (isPlatformDomain(sDomain))
             {
             reject(sScope, "object-name", "foreign-domain", sDomain, null);
             }
@@ -464,6 +474,12 @@ public final class ManagementInvocationPolicy
      */
     public static void reject(String sScope, String sGate, String sReason, String sValue, Subject subject)
         {
+        if (CoherenceMode.isLegacy() && isLegacyShadowReason(sReason))
+            {
+            shadow(sScope, sGate, sReason, sValue, subject);
+            return;
+            }
+
         Logger.warn("Rejected management TCMP request: route=management-tcmp"
                 + ", scope=" + sanitize(sScope)
                 + ", gate=" + sanitize(sGate)
@@ -476,6 +492,29 @@ public final class ManagementInvocationPolicy
         }
 
     // ----- helper methods -------------------------------------------------
+
+    private static void shadow(String sScope, String sGate, String sReason, String sValue, Subject subject)
+        {
+        Logger.warn("Allowed LEGACY management TCMP request that hardening mode would reject:"
+                + " route=management-tcmp"
+                + ", scope=" + sanitize(sScope)
+                + ", gate=" + sanitize(sGate)
+                + ", reason=" + sanitize(sReason)
+                + ", mode=legacy"
+                + ", result=would_reject"
+                + ", value=" + sanitize(sValue)
+                + ", principal=" + sanitize(subject == null || subject.getPrincipals().isEmpty()
+                    ? null : subject.getPrincipals().iterator().next().getName()));
+        }
+
+    private static boolean isLegacyShadowReason(String sReason)
+        {
+        return "executable-value".equals(sReason)
+                || "filter-not-allowed".equals(sReason)
+                || "foreign-domain".equals(sReason)
+                || "function-not-allowed".equals(sReason)
+                || "unsupported-value".equals(sReason);
+        }
 
     private static ObjectName toObjectName(String sName, String sDomain, String sScope)
         {
@@ -515,18 +554,15 @@ public final class ManagementInvocationPolicy
         return DEFAULT_DOMAIN.equals(sDomain) || sDomain != null && sDomain.startsWith(DEFAULT_DOMAIN + '@');
         }
 
-    private static boolean isCoherenceDomainQueryPattern(ObjectName name)
-        {
-        return name != null && (isCoherenceDomain(name.getDomain())
-                || name.isDomainPattern() && (DEFAULT_DOMAIN + '*').equals(name.getDomain()));
-        }
-
-    private static boolean isPlatformReadDomain(String sDomain)
+    private static boolean isPlatformDomain(String sDomain)
         {
         return "java.lang".equals(sDomain)
                 || "java.nio".equals(sDomain)
                 || "java.util.logging".equals(sDomain)
-                || "com.sun.management".equals(sDomain);
+                || "com.sun.management".equals(sDomain)
+                || "JMImplementation".equals(sDomain)
+                || "jdk.management.jfr".equals(sDomain)
+                || "javax.management.loading".equals(sDomain);
         }
 
     private static boolean allowsPlatformReadScope(String sScope)
@@ -542,9 +578,9 @@ public final class ManagementInvocationPolicy
             }
 
         String sDomain = name.getDomain();
-        if (name.isDomainPattern() || !isCoherenceDomain(sDomain) && !isPlatformReadDomain(sDomain))
+        if (name.isDomainPattern())
             {
-            reject(sScope, "object-name", "foreign-domain", sDomain, null);
+            reject(sScope, "object-name", "invalid-name", "domain-pattern", null);
             }
 
         return name;
@@ -552,10 +588,9 @@ public final class ManagementInvocationPolicy
 
     private static ObjectName validateQueryObjectName(ObjectName name, String sScope)
         {
-        if (!isCoherenceDomainQueryPattern(name))
+        if (name == null)
             {
-            reject(sScope, "object-name", "foreign-domain",
-                    name == null ? null : name.getDomain(), null);
+            return null;
             }
 
         return name;

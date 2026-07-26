@@ -13,6 +13,8 @@ import com.tangosol.util.function.Remote;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.NeverFilter;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,6 +50,7 @@ public class ManagementInvocationPolicyTest
     public void registerMBean()
             throws Exception
         {
+        m_mode = CoherenceModeHelper.prod();
         m_server = ManagementFactory.getPlatformMBeanServer();
         m_name   = new ObjectName("Coherence:type=PolicyTest,name=unit");
         if (m_server.isRegistered(m_name))
@@ -64,6 +67,10 @@ public class ManagementInvocationPolicyTest
         if (m_server != null && m_name != null && m_server.isRegistered(m_name))
             {
             m_server.unregisterMBean(m_name);
+            }
+        if (m_mode != null)
+            {
+            m_mode.close();
             }
         }
 
@@ -89,12 +96,14 @@ public class ManagementInvocationPolicyTest
         }
 
     @Test
-    public void shouldValidateCoherenceObjectNamesOnly()
+    public void shouldValidateConcreteMutationObjectNames()
             throws Exception
         {
         assertEquals("Coherence", ManagementInvocationPolicy.validateObjectName("type=Cluster",
                 "Coherence", "test").getDomain());
         assertEquals("Coherence@unit", ManagementInvocationPolicy.validateObjectName("Coherence@unit:type=Cluster",
+                "Coherence", "test").getDomain());
+        assertEquals("Test", ManagementInvocationPolicy.validateObjectName("Test:type=Service",
                 "Coherence", "test").getDomain());
 
         expectSecurity(() -> ManagementInvocationPolicy.validateObjectName(
@@ -104,16 +113,15 @@ public class ManagementInvocationPolicyTest
         }
 
     @Test
-    public void shouldAllowCoherenceDomainQueryPattern()
+    public void shouldAllowBroadQueryPatterns()
             throws Exception
         {
         assertEquals("Coherence*", ManagementInvocationPolicy.validateQueryPattern(
                 "Coherence*:type=Cache,*", "Coherence", "test").getDomain());
         assertEquals("Coherence*", ManagementInvocationPolicy.validateQueryPattern(
                 new ObjectName("Coherence*:type=Cache,*"), "test").getDomain());
-
-        expectSecurity(() -> ManagementInvocationPolicy.validateQueryPattern(
-                "java.*:type=Runtime,*", "Coherence", "test"));
+        assertEquals("java.*", ManagementInvocationPolicy.validateQueryPattern(
+                "java.*:type=Runtime,*", "Coherence", "test").getDomain());
         expectSecurity(() -> ManagementInvocationPolicy.validateObjectName(
                 "Coherence*:type=Cache,*", "Coherence", "test"));
         }
@@ -415,4 +423,6 @@ public class ManagementInvocationPolicyTest
     private MBeanServer m_server;
 
     private ObjectName m_name;
+
+    private CoherenceModeHelper.ModeScope m_mode;
     }
