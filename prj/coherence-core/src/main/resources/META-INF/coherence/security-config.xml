@@ -690,7 +690,7 @@
     <class name="com.tangosol.util.extractor.ChainedFragmentExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.CollectionExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.ComparisonValueExtractor" source="manual" executable="true"/>
-    <class name="com.tangosol.util.extractor.CompositeUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.CompositeUpdater" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.ConditionalExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.DeserializationAccelerator" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.FragmentExtractor" source="manual" executable="true"/>
@@ -698,12 +698,12 @@
     <class name="com.tangosol.util.extractor.KeyExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.MultiExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.PofExtractor" source="manual" executable="true"/>
-    <class name="com.tangosol.util.extractor.PofUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.PofUpdater" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.ReflectionExtractor" source="manual" executable="true"/>
-    <class name="com.tangosol.util.extractor.ReflectionUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.ReflectionUpdater" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.ScriptValueExtractor" source="manual" executable="true"/>
     <class name="com.tangosol.util.extractor.UniversalExtractor" source="manual" executable="true"/>
-    <class name="com.tangosol.util.extractor.UniversalUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.UniversalUpdater" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AllFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AlwaysFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AndFilter" source="manual" executable="true"/>
@@ -824,7 +824,7 @@
     <class name="com.tangosol.util.processor.NumberMultiplier" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.PreloadRequest" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.PriorityProcessor" source="manual" executable="true"/>
-    <class name="com.tangosol.util.processor.PropertyManipulator" source="manual"/>
+    <class name="com.tangosol.util.processor.PropertyManipulator" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.ScriptProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.SingleEntryAsynchronousProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.StreamingAsynchronousProcessor" source="manual" executable="true"/>
