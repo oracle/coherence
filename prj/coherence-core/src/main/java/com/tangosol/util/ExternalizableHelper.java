@@ -25,6 +25,7 @@ import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.InputStreaming;
 import com.tangosol.io.MultiBufferReadBuffer;
 import com.tangosol.io.MultiBufferWriteBuffer;
+import com.tangosol.io.MultiplexingSerializer;
 import com.tangosol.io.ObjectStreamFactory;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.ReadBuffer.BufferInput;
@@ -57,6 +58,7 @@ import com.tangosol.io.pof.RawTime;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheMap;
+import com.tangosol.net.internal.WrapperSerializer;
 
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.XmlBean;
@@ -3491,7 +3493,12 @@ public abstract class ExternalizableHelper
                 // get a BufferInput that corresponds just to the portion of
                 // the value within the decorated binary
                 int cb = in.readPackedInt();
-                in = buf.getReadBuffer(in.getOffset(), cb).getBufferInput();
+                ReadBuffer bufValue = buf.getReadBuffer(in.getOffset(), cb);
+                if ((nMask & (1L << DECO_MEMCACHED)) != 0L)
+                    {
+                    validateMemcachedPassThroughValue(bufValue, serializer);
+                    }
+                in = bufValue.getBufferInput();
                 nType = in.readUnsignedByte();
                 break;
             }
@@ -5208,6 +5215,291 @@ public abstract class ExternalizableHelper
         return buf == null ? null : buf.toBinary();
         }
 
+    /**
+     * Validate a Memcached pass-through value before it can be materialized as
+     * an ordinary Coherence value.
+     *
+     * @param binValue  the pass-through binary value
+     *
+     * @return the validated binary value
+     */
+    public static Binary validateMemcachedPassThroughValue(Binary binValue)
+        {
+        validateMemcachedPassThroughValue((ReadBuffer) binValue);
+        return binValue;
+        }
+
+    /**
+     * Validate a Memcached pass-through value before it can be materialized as
+     * an ordinary Coherence value.
+     *
+     * @param binValue    the pass-through binary value
+     * @param serializer  the active materialization serializer
+     *
+     * @return the validated binary value
+     */
+    public static Binary validateMemcachedPassThroughValue(Binary binValue, Serializer serializer)
+        {
+        validateMemcachedPassThroughValue((ReadBuffer) binValue, serializer);
+        return binValue;
+        }
+
+    /**
+     * Validate a Memcached pass-through value before it can be materialized as
+     * an ordinary Coherence value.
+     *
+     * @param bufValue  the pass-through value
+     *
+     * @return the validated value
+     */
+    public static ReadBuffer validateMemcachedPassThroughValue(ReadBuffer bufValue)
+        {
+        inspectMemcachedPassThroughValue(bufValue, null, false, 0);
+        return bufValue;
+        }
+
+    /**
+     * Validate a Memcached pass-through value before it can be materialized as
+     * an ordinary Coherence value.
+     *
+     * @param bufValue    the pass-through value
+     * @param serializer  the active materialization serializer
+     *
+     * @return the validated value
+     */
+    public static ReadBuffer validateMemcachedPassThroughValue(ReadBuffer bufValue, Serializer serializer)
+        {
+        inspectMemcachedPassThroughValue(bufValue, serializer, true, 0);
+        return bufValue;
+        }
+
+    /**
+     * Validate the terminal format for a Memcached pass-through value without
+     * materializing it.
+     *
+     * @param bufValue             the value to inspect
+     * @param serializer           the active materialization serializer
+     * @param fValidateSerializer  true to validate serializer-sensitive formats
+     * @param cDepth               the wrapper depth
+     */
+    private static void inspectMemcachedPassThroughValue(ReadBuffer bufValue, Serializer serializer,
+            boolean fValidateSerializer, int cDepth)
+        {
+        if (bufValue == null || bufValue.length() == 0)
+            {
+            throw new IllegalArgumentException("Unsupported Memcached pass-through value format");
+            }
+        if (cDepth > MAX_MEMCACHED_PASS_THROUGH_FORMAT_DEPTH)
+            {
+            throw new IllegalArgumentException("Memcached pass-through value format is too deeply wrapped");
+            }
+
+        int nFormat = bufValue.byteAt(0) & 0xFF;
+        switch (nFormat)
+            {
+            case FMT_BIN_DECO:
+            case FMT_BIN_EXT_DECO:
+                inspectMemcachedPassThroughValue(getMemcachedUndecoratedValue(bufValue), serializer,
+                        fValidateSerializer, cDepth + 1);
+                break;
+
+            case FMT_IDO:
+                inspectMemcachedPassThroughValue(removeIntDecoration(bufValue), serializer,
+                        fValidateSerializer, cDepth + 1);
+                break;
+
+            case FMT_OPT:
+                inspectMemcachedOptionalValue(bufValue, serializer, fValidateSerializer, cDepth + 1);
+                break;
+
+            case FMT_UNKNOWN:
+            case FMT_XML_SER:
+            case FMT_OBJ_EXT:
+            case FMT_OBJ_SER:
+            case FMT_XML_BEAN:
+                throw new IllegalArgumentException("Unsupported Memcached pass-through value format");
+
+            case FMT_NULL:
+            case FMT_INT:
+            case FMT_LONG:
+            case FMT_DOUBLE:
+            case FMT_INTEGER:
+            case FMT_DECIMAL:
+            case FMT_STRING:
+            case FMT_BINARY:
+            case FMT_B_ARRAY:
+            case FMT_FLOAT:
+            case FMT_SHORT:
+            case FMT_BYTE:
+            case FMT_BOOLEAN:
+            case FMT_OPT_INT:
+            case FMT_OPT_LONG:
+            case FMT_OPT_DOUBLE:
+                break;
+
+            case FMT_EXT:
+                if (fValidateSerializer && !isMemcachedExternalFormatAllowed(
+                        bufValue.getReadBuffer(1, bufValue.length() - 1), serializer, cDepth + 1))
+                    {
+                    throw new IllegalArgumentException("Unsupported Memcached pass-through value format");
+                    }
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unsupported Memcached pass-through value format");
+            }
+        }
+
+    /**
+     * Validate the nested value inside an object Optional without
+     * materializing it.
+     *
+     * @param bufValue             the Optional value
+     * @param serializer           the active materialization serializer
+     * @param fValidateSerializer  true to validate serializer-sensitive formats
+     * @param cDepth               the wrapper depth
+     */
+    private static void inspectMemcachedOptionalValue(ReadBuffer bufValue, Serializer serializer,
+            boolean fValidateSerializer, int cDepth)
+        {
+        try
+            {
+            BufferInput in = bufValue.getBufferInput();
+            in.readUnsignedByte();
+            if (in.readBoolean())
+                {
+                int of = in.getOffset();
+                inspectMemcachedPassThroughValue(bufValue.getReadBuffer(of, bufValue.length() - of), serializer,
+                        fValidateSerializer, cDepth);
+                }
+            }
+        catch (IOException | RuntimeException e)
+            {
+            throw ensureRuntimeException(e, "Invalid Memcached pass-through Optional value");
+            }
+        }
+
+    /**
+     * Determine whether a Memcached pass-through {@link #FMT_EXT} value can be
+     * delegated to the active serializer without returning to
+     * DefaultSerializer's ExternalizableHelper format dispatch.
+     *
+     * @param bufPayload  the FMT_EXT payload bytes
+     * @param serializer  the active materialization serializer
+     * @param cDepth      the wrapper depth
+     *
+     * @return true iff FMT_EXT may be delegated to the serializer
+     */
+    private static boolean isMemcachedExternalFormatAllowed(ReadBuffer bufPayload, Serializer serializer, int cDepth)
+        {
+        if (cDepth > MAX_MEMCACHED_PASS_THROUGH_FORMAT_DEPTH)
+            {
+            return false;
+            }
+
+        serializer = unwrapSerializer(serializer);
+
+        String sName = serializer == null ? null : serializer.getName();
+        if (serializer == null
+                || serializer instanceof DefaultSerializer
+                || sName == null
+                || DefaultSerializer.NAME.equals(sName))
+            {
+            return false;
+            }
+
+        if (serializer instanceof MultiplexingSerializer)
+            {
+            return isMemcachedMultiplexingFormatAllowed(bufPayload, (MultiplexingSerializer) serializer, cDepth);
+            }
+
+        return true;
+        }
+
+    /**
+     * Determine whether a Memcached pass-through {@link #FMT_EXT} value can be
+     * safely delegated through a {@link MultiplexingSerializer}.
+     *
+     * @param bufPayload  the multiplexing payload bytes
+     * @param serializer  the multiplexing serializer
+     * @param cDepth      the wrapper depth
+     *
+     * @return true iff the selected delegate is proven safe for FMT_EXT
+     */
+    private static boolean isMemcachedMultiplexingFormatAllowed(ReadBuffer bufPayload,
+            MultiplexingSerializer serializer, int cDepth)
+        {
+        if (bufPayload == null || bufPayload.length() < Integer.BYTES)
+            {
+            return false;
+            }
+
+        try
+            {
+            BufferInput in        = bufPayload.getBufferInput();
+            int         cbPayload = in.readInt();
+
+            if (cbPayload < 0)
+                {
+                return false;
+                }
+
+            String     sSerializer = in.readUTF();
+            int        ofPayload   = in.getOffset();
+            int        cbAvailable = bufPayload.length() - ofPayload;
+            Serializer delegate    = serializer.getSerializer(sSerializer);
+
+            return cbPayload <= cbAvailable
+                    && isMemcachedExternalFormatAllowed(
+                            bufPayload.getReadBuffer(ofPayload, cbPayload), delegate, cDepth + 1);
+            }
+        catch (IOException | RuntimeException e)
+            {
+            return false;
+            }
+        }
+
+    /**
+     * Unwrap known Coherence serializer wrappers.
+     *
+     * @param serializer  the serializer to unwrap
+     *
+     * @return the unwrapped serializer
+     */
+    private static Serializer unwrapSerializer(Serializer serializer)
+        {
+        while (serializer instanceof WrapperSerializer)
+            {
+            serializer = ((WrapperSerializer) serializer).getSerializer();
+            }
+        return serializer;
+        }
+
+    /**
+     * Return the undecorated value from a decorated Memcached pass-through
+     * value.
+     *
+     * @param bufValue  the decorated value
+     *
+     * @return the undecorated value
+     */
+    private static ReadBuffer getMemcachedUndecoratedValue(ReadBuffer bufValue)
+        {
+        try
+            {
+            ReadBuffer bufUndecorated = getUndecorated(bufValue);
+            if (bufUndecorated == null)
+                {
+                throw new IllegalArgumentException("Decorated Memcached pass-through value is missing a value");
+                }
+            return bufUndecorated;
+            }
+        catch (RuntimeException e)
+            {
+            throw ensureRuntimeException(e, "Invalid decorated Memcached pass-through value");
+            }
+        }
+
 
     // ----- SerializationSupport helpers -----------------------------------
 
@@ -5607,6 +5899,12 @@ public abstract class ExternalizableHelper
      * Binary overhead.
      */
     public static final int BINARY_SIZE = 5;
+
+    /**
+     * Maximum supported nesting depth for Memcached pass-through wrapper
+     * formats.
+     */
+    public static final int MAX_MEMCACHED_PASS_THROUGH_FORMAT_DEPTH = 16;
 
 
     // ----- converters -----------------------------------------------------
