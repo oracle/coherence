@@ -10,6 +10,7 @@
   <allowed-classes>
     <class name="com.tangosol.coherence.config.xml.processor.AuthorizedHostsProcessorTest$AuthorizedHostsFilter" source="manual" executable="true"/>
     <class name="com.tangosol.coherence.dslquery.TermMockitoMatcher" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriptionTest" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.invoke.RemotableSupportTest" source="manual"/>
     <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$NumberPredicate" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$Thing" source="manual"/>
@@ -59,6 +60,7 @@
     <class name="com.tangosol.net.cache.OldOldCache$KeySet" source="manual"/>
     <class name="com.tangosol.net.cache.OldOldCache$ValuesCollection" source="manual"/>
     <class name="com.tangosol.net.topic.PublisherOptionTest" source="manual"/>
+    <class name="com.tangosol.net.topic.SubscriberOptionTest" source="manual" lambda-target="true"/>
     <class name="com.tangosol.run.xml.XmlBeanTest$NarrowBean" source="manual"/>
     <class name="com.tangosol.util.ExternalizableHelperTest$Point" source="manual"/>
     <class name="com.tangosol.util.LongArrayTest$ReferenceImpl" source="manual"/>

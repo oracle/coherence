@@ -93,7 +93,7 @@ public class LambdaBytecodeDenyListTests
             }
         catch (RuntimeException e)
             {
-            assertTrue(containsSecurityException(e));
+            assertTrue(containsSecurityRejection(e));
             }
         }
 
@@ -103,17 +103,22 @@ public class LambdaBytecodeDenyListTests
         NamedCache<String, String> cache = getNamedCache();
         cache.put("key", "value");
 
-        String sValue = cache.invoke("key",
-                (InvocableMap.EntryProcessor<String, String, String>) InvocableMap.Entry::getValue);
+        String sValue = cache.invoke("key", AllowedProcessors.getValue());
 
         assertEquals("value", sValue);
         }
 
-    private static boolean containsSecurityException(Throwable t)
+    private static boolean containsSecurityRejection(Throwable t)
         {
         while (t != null)
             {
             if (t instanceof SecurityException)
+                {
+                return true;
+                }
+            String sMessage = t.getMessage();
+            if (sMessage != null &&
+                    (sMessage.contains("SecurityException") || sMessage.contains("Lambda bytecode rejected")))
                 {
                 return true;
                 }
@@ -126,6 +131,15 @@ public class LambdaBytecodeDenyListTests
         {
         m_cache = getNamedCache(AbstractExtendTests.CACHE_DIST_EXTEND_DIRECT);
         return m_cache;
+        }
+
+    // keep the accepted lambda owner separate from the test class that verifies denial
+    static class AllowedProcessors
+        {
+        static InvocableMap.EntryProcessor<String, String, String> getValue()
+            {
+            return InvocableMap.Entry::getValue;
+            }
         }
 
     private NamedCache<String, String> m_cache;

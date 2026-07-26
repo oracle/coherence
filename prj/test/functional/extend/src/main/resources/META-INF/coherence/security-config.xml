@@ -17,6 +17,7 @@
     <class name="extend.AbstractLoadBalancerTests$GetSubjectInvocable" source="manual" executable="true"/>
     <class name="extend.CacheDestroyInvocable" source="manual" executable="true"/>
     <class name="extend.CustomKeyClass" source="manual"/>
+    <class name="extend.DistExtendNearAllTests" source="manual" lambda-target="true"/>
     <class name="extend.DistExtendDeferKeyCheckTests$ItemId" source="manual"/>
     <class name="extend.DistExtendDeferKeyCheckTests$OrderId" source="manual"/>
     <class name="extend.InvocationExtendTests$TestInvocable" source="manual" executable="true"/>
@@ -24,6 +25,7 @@
     <class name="extend.JmxMBeanTests$MBeanHostIPInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MBeanInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MessagingDebugInvocable" source="manual" executable="true"/>
+    <class name="extend.LambdaBytecodeDenyListTests$AllowedProcessors" source="manual" lambda-target="true"/>
     <class name="extend.ProxyServiceDynamicThreadSizingTests$ThreadCountInvocable" source="manual" executable="true"/>
     <class name="extend.SuspectProtocolTests$DisableSendInvocable" source="manual" executable="true"/>
     <class name="extend.SuspectProtocolTests$TestBulkInvocable" source="manual" executable="true"/>

@@ -369,6 +369,7 @@
     <class name="com.tangosol.io.pof.reflect.SimplePofPath" source="manual"/>
     <class name="com.tangosol.license.LicenseException" source="manual"/>
     <class name="com.tangosol.license.LicensedObject$LicenseData" source="manual"/>
+    <class name="com.tangosol.net.AsyncNamedMap" source="manual" lambda-target="true"/>
     <class name="com.tangosol.net.ClusterException" source="manual"/>
     <class name="com.tangosol.net.ClusterPermission" source="manual"/>
     <class name="com.tangosol.net.Coherence$Mode" source="manual"/>
