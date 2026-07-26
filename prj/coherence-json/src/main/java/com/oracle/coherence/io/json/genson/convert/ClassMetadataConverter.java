@@ -15,6 +15,7 @@
 package com.oracle.coherence.io.json.genson.convert;
 
 
+import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.io.json.genson.Context;
 import com.oracle.coherence.io.json.genson.Converter;
 import com.oracle.coherence.io.json.genson.Genson;
@@ -108,23 +109,20 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
         String className = reader.nextObjectMetadata().metadata("class");
         if (className != null) {
           try {
-            Class<?> classFromMetadata = ctx.genson.classFor(className);
-
+            Class<?> classFromMetadata = ctx.genson.classForJsonClassMetadata(className);
             if (!SerializationGate.isValidClassMetadata(className, classFromMetadata, tClass, depth)) {
               throw new JsonBindingException("Unable to de-serialize " + classFromMetadata.getName());
             }
-
             if (!classFromMetadata.equals(tClass)) {
               Converter<T> deser = ctx.genson.provideConverter(classFromMetadata);
               return deser.deserialize(reader, ctx);
             }
           } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            Logger.warn("Unable to resolve JSON @class metadata class: " + boundedMetadataValue(className));
             throw new JsonBindingException(
               "Could not use @class metadata, no such class: " + className, e);
           }
         }
-        return wrapped.deserialize(reader, ctx);
       } finally {
         SerializationGate.exitJsonClassMetadata();
       }
@@ -138,5 +136,14 @@ public class ClassMetadataConverter<T> extends Wrapper<Converter<T>> implements 
 
   private boolean isJsonValue(Class<?> clazz) {
     return JsonValue.class.isAssignableFrom(clazz);
+  }
+
+  private static String boundedMetadataValue(String value) {
+    if (value == null) {
+      return "";
+    }
+
+    String clean = value.replaceAll("[^\\p{Print}]", "?");
+    return clean.length() <= 160 ? clean : clean.substring(0, 160);
   }
 }

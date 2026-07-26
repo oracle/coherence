@@ -10,9 +10,9 @@ import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
+import com.tangosol.coherence.rest.RestQueryPolicy;
+
 import com.tangosol.coherence.rest.util.ComparatorHelper;
-import com.tangosol.coherence.rest.util.MvelHelper;
-import com.tangosol.coherence.rest.util.extractor.MvelExtractor;
 
 import com.tangosol.internal.util.security.RemoteInstallGate;
 
@@ -81,12 +81,11 @@ public class CoherenceQueryLanguageEngine
         Map<String, Object> mapBindings = createBindings(mapParams,
                 parsedQuery.getParameterTypes());
 
-        Filter filter = QueryHelper.createFilter(
-                parsedQuery.getQuery(),
-                new Object[0],
-                mapBindings,
-                f_language
-                );
+        // strict REST direct-query validation and execution must parse the same stripped text
+        // ParsedQuery.getQuery() makes hinted input such as :age;i execute as :age and prevents parser drift
+        Filter filter = RestQueryPolicy.isDirectQueryTypePolicyActive()
+                ? RestQueryPolicy.createDirectQueryFilter(parsedQuery.getQuery(), new Object[0], mapBindings, f_language)
+                : QueryHelper.createFilter(parsedQuery.getQuery(), new Object[0], mapBindings, f_language);
         RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.REST, null);
 
         return new CoherenceQueryLanguageQuery(filter);
@@ -166,19 +165,9 @@ public class CoherenceQueryLanguageEngine
     // ----- constants ------------------------------------------------------
 
     /**
-     * ExtractorBuilder to use if optional {@code org.mvel.Mvel2} module is on path.
+     * ExtractorBuilder to use {@link UniversalExtractorBuilder}.
      */
-    public static final ExtractorBuilder MVEL_EXTRACTOR_BUILDER = (sCacheName, nTarget, sProperties) ->
-            new MvelExtractor(sProperties, nTarget);
-
-    /**
-     * ExtractorBuilder to use. If optional {@code org.mvel.Mvel2} module is available on path,
-     * use {@link #MVEL_EXTRACTOR_BUILDER}; otherwise, use {@link UniversalExtractorBuilder}.
-     */
-    public static final ExtractorBuilder EXTRACTOR_BUILDER =
-            MvelHelper.isEnabled()
-                ? MVEL_EXTRACTOR_BUILDER
-                : new UniversalExtractorBuilder();
+    public static final ExtractorBuilder EXTRACTOR_BUILDER = new UniversalExtractorBuilder();
 
     // ----- data members ---------------------------------------------------
 

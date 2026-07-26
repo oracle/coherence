@@ -647,7 +647,8 @@
     <class name="com.tangosol.util.Tree" source="manual"/>
     <class name="com.tangosol.util.UID" source="manual"/>
     <class name="com.tangosol.util.UUID" source="manual"/>
-    <class name="com.tangosol.util.UniversalManipulator" source="manual"/>
+    <!-- rest-01-14.1.1.2206-backport-plan.md: processor aliases use this core manipulator instead of legacy REST MVEL manipulators -->
+    <class name="com.tangosol.util.UniversalManipulator" source="manual" executable="true"/>
     <class name="com.tangosol.util.ValueExtractor" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperCollection" source="manual"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperList" source="manual"/>

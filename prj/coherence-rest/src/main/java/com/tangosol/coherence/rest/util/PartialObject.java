@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.io.SerializationGeneratedClasses;
 
 import com.tangosol.util.asm.BaseClassReaderInternal;
 
@@ -16,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.lang.reflect.Constructor;
+
+import java.lang.invoke.MethodHandles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -426,8 +430,22 @@ public class PartialObject
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cn.accept(cw);
 
-        return getPartialClassLoader().defineClass(cn.name.replace('/', '.'),
+        Class clzPartial = getPartialClassLoader().defineClass(cn.name.replace('/', '.'),
                 cw.toByteArray());
+        registerPartialClass(clzPartial);
+        return clzPartial;
+        }
+
+    /**
+     * Register a generated partial class as REST-owned serialization output.
+     *
+     * @param clzPartial  generated partial class
+     */
+    private static void registerPartialClass(Class clzPartial)
+        {
+        // Projection classes use per-run UIDs, so register the exact generated
+        // class identity
+        SerializationGeneratedClasses.registerRestGeneratedPartialClass(MethodHandles.lookup(), clzPartial);
         }
 
     /**

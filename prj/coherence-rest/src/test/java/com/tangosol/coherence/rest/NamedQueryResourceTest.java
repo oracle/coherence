@@ -1,18 +1,21 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
 import com.tangosol.coherence.rest.config.NamedQuery;
+
+import com.tangosol.coherence.rest.events.MapEventOutput;
 
 import com.tangosol.coherence.rest.query.QueryEngineRegistry;
 
 import com.tangosol.coherence.rest.util.PartialObject;
-import com.tangosol.coherence.rest.util.PropertySet;
-
 import com.tangosol.coherence.rest.util.aggregator.AggregatorFactory;
 import com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry;
 
@@ -42,6 +45,7 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,6 +71,12 @@ public class NamedQueryResourceTest
         m_cache.put(1, new Person("Ivan",  new Date(78, 3, 25), 36));
         m_cache.put(2, new Person("Aleks", new Date(74, 7, 24), 39));
         m_cache.put(3, new Person("Vaso", new Date(74, 7, 7), 40));
+        }
+
+    @After
+    public void cleanup()
+        {
+        CoherenceModeHelper.clear();
         }
 
     @Test
@@ -145,7 +155,7 @@ public class NamedQueryResourceTest
         NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
         NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
         UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
-        Response           response = resource.getValues(uriInfo, 0, -1, null, PropertySet.fromString("name"));
+        Response           response = resource.getValues(uriInfo, 0, -1, null, "name");
 
         assertEquals(200 /* OK */, response.getStatus());
 
@@ -283,6 +293,7 @@ public class NamedQueryResourceTest
         Response           response = resource.aggregate(uriInfo, "bad-aggr(dateOfBirth)");
 
         assertEquals(400 /* Bad Request */, response.getStatus());
+        assertEquals(CacheResource.BAD_REQUEST_MSG, response.getEntity());
         }
 
     @Test
@@ -376,6 +387,101 @@ public class NamedQueryResourceTest
         Response           response = resource.process(uriInfo, "my-proc()");
 
         assertEquals(400 /* Bad Request */, response.getStatus());
+        }
+
+    @Test
+    public void shouldRejectRawAndAllowAliasesInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
+            NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+            resource.setExpressionAliases(createExpressionAliases());
+            UriInfo            uriInfo  = getUriInfo(new MultivaluedHashMap());
+
+            assertEquals(400 /* Bad Request */, resource.getValues(uriInfo, 0, -1, "name:desc", null).getStatus());
+            assertEquals(200 /* OK */, resource.getValues(uriInfo, 0, -1, "by-name:desc", null).getStatus());
+
+            assertEquals(400 /* Bad Request */, resource.getValues(uriInfo, 0, -1, null, "name").getStatus());
+            assertEquals(200 /* OK */, resource.getValues(uriInfo, 0, -1, null, "names").getStatus());
+
+            Response response = resource.aggregate(uriInfo, "long-sum(dateOfBirth)");
+            assertEquals(400 /* Bad Request */, response.getStatus());
+            assertEquals(CacheResource.BAD_REQUEST_MSG, response.getEntity());
+
+            assertEquals(200 /* OK */, resource.aggregate(uriInfo, "long-sum(age)").getStatus());
+
+            assertEquals(400 /* Bad Request */, resource.process(uriInfo, "increment(dateOfBirth,1)").getStatus());
+            assertEquals(200 /* OK */, resource.process(uriInfo, "increment(age,1)").getStatus());
+            }
+        }
+
+    @Test
+    public void shouldAllowOperatorConfiguredFqnNamedQueryTypeHintInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            NamedQuery         query    = new NamedQuery("age-query", "age is :age;java.lang.Integer", "DEFAULT", 10);
+            NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+            MultivaluedMap     params   = new MultivaluedHashMap();
+            params.add("age", "36");
+            UriInfo            uriInfo  = getUriInfo(params);
+
+            Response response = resource.getValues(uriInfo, 0, -1, null, null);
+
+            assertEquals(200 /* OK */, response.getStatus());
+            assertEquals(1, ((List) response.getEntity()).size());
+            }
+        }
+
+    @Test
+    public void shouldAllowDefaultNamedQuerySseInDev() throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            NamedQuery         query    = new NamedQuery("name-query", "name is :name", "DEFAULT", 10);
+            NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+            MultivaluedMap     params   = new MultivaluedHashMap();
+            params.add("name", "Ivan");
+
+            // rest-01 Prompt 04 treats named-query SSE as operator-owned config.
+            // This verifies centralization keeps the listener path working while
+            // leaving HTTP direct-query restrictions to CacheResource.addListener.
+            MapEventOutput output = resource.addListener(false, getUriInfo(params));
+            try
+                {
+                assertNotNull(output);
+                }
+            finally
+                {
+                output.close();
+                }
+            }
+        }
+
+    @Test
+    public void shouldAllowOperatorConfiguredNamedQuerySseExpressionInDev() throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            NamedQuery         query    = new NamedQuery("city-query", "address.city is :city", "DEFAULT", 10);
+            NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
+            MultivaluedMap     params   = new MultivaluedHashMap();
+            params.add("city", "Tampa");
+
+            // rest-01 Prompt 04 intentionally does not apply the HTTP direct-query
+            // subset to configured named-query SSE; the expected effect is that
+            // generic CohQL expressions remain compatible through the policy helper.
+            MapEventOutput output = resource.addListener(false, getUriInfo(params));
+            try
+                {
+                assertNotNull(output);
+                }
+            finally
+                {
+                output.close();
+                }
+            }
         }
 
     @Test
@@ -488,6 +594,16 @@ public class NamedQueryResourceTest
         resource.m_registry            = new QueryEngineRegistry();
 
         return resource;
+        }
+
+    protected ExpressionAliasConfig createExpressionAliases()
+        {
+        return ExpressionAliasConfig.builder()
+                .addSortAlias("by-name", "name")
+                .addProjectionAlias("names", "name")
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addProcessorArgumentAlias("increment", "age", "age")
+                .build();
         }
 
     protected UriInfo getUriInfo(final MultivaluedMap<String, String> queryParameters)

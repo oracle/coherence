@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -654,6 +654,12 @@ descriptor: pof-config.xsd.
     <user-type>
       <type-id>196</type-id>
       <class-name>com.tangosol.util.extractor.ChainedFragmentExtractor</class-name>
+    </user-type>
+
+    <!-- rest-01 Slice C 14.1.1.2206 MVEL POF backport: register the core manipulator used by hardened numeric processors -->
+    <user-type>
+      <type-id>197</type-id>
+      <class-name>com.tangosol.util.UniversalManipulator</class-name>
     </user-type>
 
     <!-- com.tangosol.util.filter package (continued) (200-209) -->

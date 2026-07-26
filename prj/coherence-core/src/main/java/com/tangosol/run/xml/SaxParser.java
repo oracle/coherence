@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,8 +9,9 @@ package com.tangosol.run.xml;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.util.Base;
-import com.tangosol.util.ClassHelper;
 import com.tangosol.util.Resources;
 
 import java.io.FileInputStream;
@@ -27,11 +28,10 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import  java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.xml.XMLConstants;
 
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParserFactory;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -51,6 +51,7 @@ import org.xml.sax.Locator;
 import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.ParserFactory;
 
 
@@ -275,57 +276,36 @@ public class SaxParser
                 return;
                 }
 
-            ResourceResolver resolver      = null;
+            ResourceResolver resolver      = new ResourceResolver(this.getClass());
             SchemaFactory    schemaFactory = SchemaFactory
                     .newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+            configureRequiredSchemaFactoryProtections(schemaFactory);
 
-            if (s_fJdk22 && "strict".equalsIgnoreCase(System.getProperty("javax.xml.catalog.resolve")))
+            schemaFactory.setResourceResolver(resolver);
+            // sets accessExternalSchema to empty, so bundled schema includes
+            // always resolve through this local resolver
+            try
                 {
-                // specifying a custom resolver is a workaround for issue reported in OWLS-116652
-                resolver = new ResourceResolver(this.getClass());
-                schemaFactory.setResourceResolver(resolver);
-                }
+                Schema            schema    = schemaFactory.newSchema(resolveSchemaSources(listSchemaURIs));
+                Source            source    = new StreamSource(new StringReader(sXml));
+                Validator         validator = schema.newValidator();
+                ValidationHandler handler   = new ValidationHandler();
 
-            Schema            schema    = schemaFactory.newSchema(resolveSchemaSources(listSchemaURIs));
-            Source            source    = new StreamSource(new StringReader(sXml));
-            Validator         validator = schema.newValidator();
-            ValidationHandler handler   = new ValidationHandler();
+                configureRequiredValidatorProtections(validator);
+                validator.setErrorHandler(handler);
+                validator.validate(source);
 
-            if (ATTEMPT_RESTRICT_EXTERNAL.get())
-                {
-                try
+                // optimize error handling to report all errors
+                // prior to failing; this is easier for user that
+                // has multiple problems to config files.
+                if (handler.isError())
                     {
-                    // Disable access during parsing to external resolution to avoid XXE vulnerabilities
-
-                    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
-                    validator.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
-                    }
-                catch (Exception e)
-                    {
-                    // property not supported, warn once and don't attempt to set property again
-                    if (ATTEMPT_RESTRICT_EXTERNAL.compareAndSet(true, false))
-                        {
-                        Logger.warn("Validator does not support JAXP 1.5 properties to restrict access to external XML DTDs and Schemas." + System.lineSeparator() +
-                            "To guard against XXE vulnerabilities, ensure provided XML parser is secure." + System.lineSeparator() +
-                            "Validator: " + validator.getClass().getCanonicalName() + System.lineSeparator() +
-                            "Error: " + e.getLocalizedMessage());
-                        }
+                    throw (handler.getException());
                     }
                 }
-            validator.setErrorHandler(handler);
-            validator.validate(source);
-
-            if (resolver != null)
+            finally
                 {
                 resolver.closeStreams();
-                }
-
-            // optimize error handling to report all errors
-            // prior to failing; this is easier for user that
-            // has multiple problems to config files.
-            if (handler.isError())
-                {
-                throw (handler.getException());
                 }
             }
         }
@@ -349,10 +329,7 @@ public class SaxParser
             URL url = Resources.findFileOrResource(
                     sUri, getClass().getClassLoader());
 
-            // do not load schemas over http or https;
-            // strip the URL to just ending file name and load from classpath
-            if (url != null && ("http".equalsIgnoreCase(url.getProtocol()) ||
-                                "https".equalsIgnoreCase(url.getProtocol())))
+            if (url != null && isExternalSchemaSourceUrl(url))
                 {
                 url = Resources.findFileOrResource(
                         sUri.substring(sUri.lastIndexOf('/') + 1),
@@ -380,6 +357,42 @@ public class SaxParser
                 }
             }
         return listSources.toArray(new Source[listUri.size()]);
+        }
+
+    private static boolean isExternalSchemaSourceUrl(URL url)
+        {
+        return isExternalSchemaSourceSpec(url.toExternalForm(), false);
+        }
+
+    private static boolean isExternalSchemaSourceSpec(String sSpec, boolean fInJar)
+        {
+        int ofColon = sSpec.indexOf(':');
+        if (ofColon <= 0)
+            {
+            return fInJar;
+            }
+
+        String sProtocol = sSpec.substring(0, ofColon);
+        if ("http".equalsIgnoreCase(sProtocol) || "https".equalsIgnoreCase(sProtocol))
+            {
+            return true;
+            }
+        if ("file".equalsIgnoreCase(sProtocol))
+            {
+            return false;
+            }
+        if ("jar".equalsIgnoreCase(sProtocol))
+            {
+            return isExternalJarSchemaSourceSpec(sSpec.substring(ofColon + 1));
+            }
+        return fInJar;
+        }
+
+    private static boolean isExternalJarSchemaSourceSpec(String sSpec)
+        {
+        int ofSeparator = sSpec.indexOf("!/");
+        String sNested = ofSeparator < 0 ? sSpec : sSpec.substring(0, ofSeparator);
+        return sNested.isEmpty() || isExternalSchemaSourceSpec(sNested, true);
         }
 
 
@@ -508,6 +521,122 @@ public class SaxParser
         }
 
     /**
+     * Apply the required parser-factory protections.
+     *
+     * @param factory  the parser factory to protect
+     *
+     * @throws SAXException if a required protection cannot be applied
+     */
+    static void configureRequiredParserFactoryProtections(SAXParserFactory factory)
+            throws SAXException
+        {
+        for (RequiredXmlProtection protection : REQUIRED_XML_PROTECTIONS)
+            {
+            if (protection.isParserFeature())
+                {
+                try
+                    {
+                    factory.setFeature(protection.getName(), protection.getBooleanValue());
+                    }
+                catch (Exception e)
+                    {
+                    handleRequiredProtectionFailure("parser factory", factory.getClass(), protection, e);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Apply the required parser protections.
+     *
+     * @param parser  the parser to protect
+     *
+     * @throws SAXException if a required protection cannot be applied
+     */
+    static void configureRequiredParserProtections(Parser parser)
+            throws SAXException
+        {
+        for (RequiredXmlProtection protection : REQUIRED_XML_PROTECTIONS)
+            {
+            if (protection.isParserFeature())
+                {
+                try
+                    {
+                    setParserFeature(parser, protection);
+                    }
+                catch (Exception e)
+                    {
+                    handleRequiredProtectionFailure("parser", parser.getClass(), protection, e);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Apply the required schema-factory protections.
+     *
+     * @param factory  the schema factory to protect
+     *
+     * @throws SAXException if a required protection cannot be applied
+     */
+    static void configureRequiredSchemaFactoryProtections(SchemaFactory factory)
+            throws SAXException
+        {
+        for (RequiredXmlProtection protection : REQUIRED_XML_PROTECTIONS)
+            {
+            if (protection.isValidationProperty())
+                {
+                try
+                    {
+                    factory.setProperty(protection.getName(), protection.getStringValue());
+                    }
+                catch (Exception e)
+                    {
+                    handleRequiredProtectionFailure("schema factory", factory.getClass(), protection, e);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Apply the required validator protections.
+     *
+     * @param validator  the validator to protect
+     *
+     * @throws SAXException if a required protection cannot be applied
+     */
+    static void configureRequiredValidatorProtections(Validator validator)
+            throws SAXException
+        {
+        for (RequiredXmlProtection protection : REQUIRED_XML_PROTECTIONS)
+            {
+            if (protection.isValidationProperty())
+                {
+                try
+                    {
+                    validator.setProperty(protection.getName(), protection.getStringValue());
+                    }
+                catch (Exception e)
+                    {
+                    handleRequiredProtectionFailure("validator", validator.getClass(), protection, e);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Reset static parser state for tests.
+     */
+    static void resetForTesting()
+        {
+        synchronized (SaxParser.class)
+            {
+            s_parser     = null;
+            s_parserMode = null;
+            }
+        }
+
+    /**
     * Get an instance of non-validating SAX parser.
     *
     * @return a SAX parser
@@ -517,42 +646,112 @@ public class SaxParser
     protected static Parser getParser()
             throws Exception
         {
-        Parser parser = s_parser;
+        CoherenceMode mode   = CoherenceMode.current();
+        Parser        parser = s_parser;
 
-        if (parser == null)
+        if (parser == null || s_parserMode != mode)
             {
-            // first try to use the SAX plugability layer
-            // (using reflection to allow for a legacy environment like WL5.1)
-            // if that fails, use the SAX API directly
-            try
+            synchronized (SaxParser.class)
                 {
-                // SAXParserFactory factory = SAXParserFactory.newInstance();
-                Class  clzFactory = Class.forName("javax.xml.parsers.SAXParserFactory");
-                Object factory    = ClassHelper.invokeStatic(clzFactory,
-                                        "newInstance", ClassHelper.VOID);
-
-                // factory.setValidating(false);
-                ClassHelper.invoke(factory,
-                    "setValidating", new Object[] {Boolean.FALSE});
-
-                // parser = factory.newSAXParser().getParser();
-                Object SAXParser = ClassHelper.invoke(factory,
-                    "newSAXParser", ClassHelper.VOID);
-                parser = (Parser) ClassHelper.invoke(SAXParser,
-                    "getParser", ClassHelper.VOID);
+                parser = s_parser;
+                if (parser == null || s_parserMode != mode)
+                    {
+                    parser = createParser();
+                    configureRequiredParserProtections(parser);
+                    s_parser     = parser;
+                    s_parserMode = mode;
+                    }
                 }
-            catch (Throwable e)
-                {
-                }
-
-            if (parser == null)
-                {
-                parser = ParserFactory.makeParser();
-                }
-
-            s_parser = parser;
             }
         return parser;
+        }
+
+    /**
+     * Create a parser instance using the modern factory path, with LEGACY
+     * retaining the old fallback.
+     *
+     * @return a parser instance
+     *
+     * @throws Exception if the parser cannot be created safely
+     */
+    private static Parser createParser()
+            throws Exception
+        {
+        SAXParserFactory factory = null;
+        try
+            {
+            factory = SAXParserFactory.newInstance();
+
+            factory.setValidating(false);
+            configureRequiredParserFactoryProtections(factory);
+            return factory.newSAXParser().getParser();
+            }
+        catch (Exception e)
+            {
+            if (CoherenceMode.isXmlExternalEntityProtectionRequired())
+                {
+                // keeps DEV/PROD from falling back to a parser that may not
+                // support the required XXE protections
+                throw new SAXException("Unable to create a SAX parser with required XML external-entity protections", e);
+                }
+            String sFactoryClass = factory == null ? "unavailable" : factory.getClass().getName();
+            Logger.warn("SaxParser legacy compatibility is using the deprecated parser fallback after protected "
+                    + "parser factory setup failed. Parser factory: " + sFactoryClass
+                    + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
+            return ParserFactory.makeParser();
+            }
+        }
+
+    /**
+     * Set a parser feature on either a SAX2-capable parser or a legacy parser
+     * implementation with a compatible reflective method.
+     *
+     * @param parser      the parser
+     * @param protection  the protection to apply
+     *
+     * @throws Exception if the feature cannot be applied
+     */
+    private static void setParserFeature(Parser parser, RequiredXmlProtection protection)
+            throws Exception
+        {
+        if (parser instanceof XMLReader)
+            {
+            ((XMLReader) parser).setFeature(protection.getName(), protection.getBooleanValue());
+            }
+        else
+            {
+            parser.getClass().getMethod("setFeature", String.class, boolean.class)
+                    .invoke(parser, protection.getName(), protection.getBooleanValue());
+            }
+        }
+
+    /**
+     * Fail closed in hardened modes or keep LEGACY warn-and-continue
+     * compatibility.
+     *
+     * @param sTarget     the protected target type
+     * @param clzTarget   the protected target class
+     * @param protection  the missing protection
+     * @param e           the failure
+     *
+     * @throws SAXException if the current mode requires the protection
+     */
+    private static void handleRequiredProtectionFailure(String sTarget, Class<?> clzTarget,
+                                                       RequiredXmlProtection protection, Exception e)
+            throws SAXException
+        {
+        String sMessage = "XML protection '" + protection.getName() + "' could not be applied to "
+                + sTarget + " " + clzTarget.getName();
+
+        if (CoherenceMode.isXmlExternalEntityProtectionRequired())
+            {
+            // requires DEV/PROD to fail closed instead of parsing XML when an
+            // XXE protection is unavailable
+            throw new SAXException(sMessage, e);
+            }
+
+        Logger.warn(sMessage + "; continuing in LEGACY compatibility mode"
+                + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
         }
 
 
@@ -562,6 +761,124 @@ public class SaxParser
     * Non-validating SAX parser
     */
     private static Parser s_parser;
+
+    /*
+    * Coherence mode used when the cached SAX parser was created
+    */
+    private static CoherenceMode s_parserMode;
+
+    /**
+     * Required parser and validation protections for XXE hardening.
+     */
+    private static final RequiredXmlProtection[] REQUIRED_XML_PROTECTIONS =
+        {
+        RequiredXmlProtection.parserFeature("http://apache.org/xml/features/disallow-doctype-decl", true),
+        RequiredXmlProtection.parserFeature("http://xml.org/sax/features/external-general-entities", false),
+        RequiredXmlProtection.parserFeature("http://xml.org/sax/features/external-parameter-entities", false),
+        RequiredXmlProtection.parserFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false),
+        RequiredXmlProtection.validationProperty(XMLConstants.ACCESS_EXTERNAL_DTD, ""),
+        RequiredXmlProtection.validationProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
+        };
+
+    // ----- inner class: RequiredXmlProtection -----------------------------
+
+    /**
+     * One member of the central XML hardening set.
+     */
+    private static final class RequiredXmlProtection
+        {
+        private RequiredXmlProtection(String sName, Boolean oBooleanValue, String sStringValue, int nTarget)
+            {
+            f_sName         = sName;
+            f_oBooleanValue = oBooleanValue;
+            f_sStringValue  = sStringValue;
+            f_nTarget       = nTarget;
+            }
+
+        /**
+         * Create a parser feature protection.
+         *
+         * @param sName   the feature name
+         * @param fValue  the required value
+         *
+         * @return the parser feature protection
+         */
+        static RequiredXmlProtection parserFeature(String sName, boolean fValue)
+            {
+            return new RequiredXmlProtection(sName, Boolean.valueOf(fValue), null, TARGET_PARSER_FEATURE);
+            }
+
+        /**
+         * Create a validation property protection.
+         *
+         * @param sName   the property name
+         * @param sValue  the required value
+         *
+         * @return the validation property protection
+         */
+        static RequiredXmlProtection validationProperty(String sName, String sValue)
+            {
+            return new RequiredXmlProtection(sName, null, sValue, TARGET_VALIDATION_PROPERTY);
+            }
+
+        /**
+         * Return the protection name.
+         *
+         * @return the protection name
+         */
+        String getName()
+            {
+            return f_sName;
+            }
+
+        /**
+         * Return the required boolean value.
+         *
+         * @return the required boolean value
+         */
+        boolean getBooleanValue()
+            {
+            return f_oBooleanValue.booleanValue();
+            }
+
+        /**
+         * Return the required string value.
+         *
+         * @return the required string value
+         */
+        String getStringValue()
+            {
+            return f_sStringValue;
+            }
+
+        /**
+         * Return {@code true} if this protection is a parser feature.
+         *
+         * @return {@code true} for parser features
+         */
+        boolean isParserFeature()
+            {
+            return f_nTarget == TARGET_PARSER_FEATURE;
+            }
+
+        /**
+         * Return {@code true} if this protection is a validation property.
+         *
+         * @return {@code true} for validation properties
+         */
+        boolean isValidationProperty()
+            {
+            return f_nTarget == TARGET_VALIDATION_PROPERTY;
+            }
+
+        private static final int TARGET_PARSER_FEATURE      = 1;
+        private static final int TARGET_VALIDATION_PROPERTY = 2;
+
+        private final String  f_sName;
+        private final Boolean f_oBooleanValue;
+        private final String  f_sStringValue;
+        private final int     f_nTarget;
+        }
 
 
     // ----- SimpleHandler inner class --------------------------------------
@@ -950,15 +1267,4 @@ public class SaxParser
         private Class<?> clazz;
         }
 
-    // ----- constants ------------------------------------------------------
-
-    /**
-     * Record if resolved SaxParser supports JAXP 1.5 {@link XMLConstants#ACCESS_EXTERNAL_DTD} and {@link XMLConstants#ACCESS_EXTERNAL_SCHEMA} properties. Only report warning once if does not.
-     */
-    private static final AtomicBoolean ATTEMPT_RESTRICT_EXTERNAL = new AtomicBoolean(true);
-
-    /**
-     * True iff if jvm runtime is JDK 22 or higher.
-     */
-    private static boolean s_fJdk22 = Runtime.version().feature() > 21;
     }

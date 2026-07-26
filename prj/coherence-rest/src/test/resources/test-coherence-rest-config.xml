@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 
 <rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -17,6 +17,27 @@
       </marshaller>
     </marshallers>
   </defaults>
+
+  <expression-aliases>
+    <sort-alias>
+      <name>by-name</name>
+      <expression>name</expression>
+    </sort-alias>
+    <projection-alias>
+      <name>summary</name>
+      <properties>name,age</properties>
+    </projection-alias>
+    <aggregator-argument-alias>
+      <aggregator>long-sum</aggregator>
+      <name>age</name>
+      <expression>age</expression>
+    </aggregator-argument-alias>
+    <processor-argument-alias>
+      <processor>increment</processor>
+      <name>age</name>
+      <expression>age</expression>
+    </processor-argument-alias>
+  </expression-aliases>
 
   <resources>
     <resource>
@@ -117,6 +138,12 @@
         <key-class>java.lang.String</key-class>
         <value-class>java.lang.String</value-class>
         <direct-query enabled="true" engine="null-engine" max-results="500"/>
+        <expression-aliases>
+          <sort-alias>
+            <name>by-name</name>
+            <expression>lastName</expression>
+          </sort-alias>
+        </expression-aliases>
     </resource>
     <resource>
         <cache-name>test-cache-direct-query2</cache-name>

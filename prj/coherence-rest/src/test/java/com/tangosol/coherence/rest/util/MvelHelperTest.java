@@ -1,46 +1,74 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import org.junit.After;
 import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 
 public class MvelHelperTest
     {
+    @After
+    public void cleanup()
+        {
+        CoherenceModeHelper.clear();
+        }
+
     @Test
-    public void validateDisabledByDefault()
+    public void shouldRemainDisabledWithoutMvel2InLegacy()
         {
-        assertFalse(MvelHelper.isEnabled());
+        assertDisabled(CoherenceModeHelper.legacy());
         }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testGetMvelParserContextThrows()
+    @Test
+    public void shouldRemainDisabledWithoutMvel2InDev()
         {
-        MvelHelper.getMvelParserContext();
+        assertDisabled(CoherenceModeHelper.dev());
         }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testGetMvelExecuteThrows()
+    @Test
+    public void shouldRemainDisabledWithoutMvel2InProd()
         {
-        JsonMap map = new JsonMap();
-
-        map.put("age", 41);
-        MvelHelper.executeExpression("age", map);
+        assertDisabled(CoherenceModeHelper.prod());
         }
 
-    @Test(expected=UnsupportedOperationException.class)
-    public void testGetMvelExecuteSetThrows()
+    private static void assertDisabled(CoherenceModeHelper.ModeScope scope)
         {
-        JsonMap map = new JsonMap();
+        try (CoherenceModeHelper.ModeScope ignored = scope)
+            {
+            JsonMap map = new JsonMap();
+            map.put("age", 41);
 
-        map.put("age", 41);
-        MvelHelper.executeSetExpression("age", map, 43);
+            assertFalse(MvelHelper.isEnabled());
+
+            // rest-01 Slice C 14.1.1.2206 MVEL POF backport: direct MVEL APIs stay closed unless both LEGACY and mvel2 are present
+            assertUnsupported(() -> MvelHelper.getMvelParserContext());
+            assertUnsupported(() -> MvelHelper.compileExpression("age", null));
+            assertUnsupported(() -> MvelHelper.executeExpression("age", map));
+            assertUnsupported(() -> MvelHelper.compileSetExpression("age", null));
+            assertUnsupported(() -> MvelHelper.executeSetExpression(null, map, 43));
+            }
+        }
+
+    private static void assertUnsupported(Runnable action)
+        {
+        try
+            {
+            action.run();
+            fail("expected UnsupportedOperationException");
+            }
+        catch (UnsupportedOperationException expected)
+            {
+            // expected
+            }
         }
     }

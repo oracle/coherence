@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
 
@@ -82,14 +82,15 @@ public class DefaultRootResource
             {
             NamedCache cache = m_session.getCache(configResource.getCacheName(),
                                                   withoutTypeChecking());
-            return InjectionBinder.inject(
-                    instantiateCacheResource(cache,
-                                            configResource.getKeyClass(),
-                                            configResource.getValueClass(),
-                                            configResource.getKeyConverter(),
-                                            configResource.getQueryConfig(),
-                                            configResource.getMaxResults()),
-                    m_serviceLocator);
+            CacheResource resource = instantiateCacheResource(cache,
+                    configResource.getKeyClass(),
+                    configResource.getValueClass(),
+                    configResource.getKeyConverter(),
+                    configResource.getQueryConfig(),
+                    configResource.getMaxResults());
+            // propagate operator-configured aliases so resource routes enforce the same URL expression policy
+            resource.setExpressionAliases(configResource.getExpressionAliases());
+            return InjectionBinder.inject(resource, m_serviceLocator);
             }
         catch (Exception e)
             {

@@ -1,16 +1,19 @@
 /*
- * Copyright (c) 2019, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.io.json.internal;
 
 import com.oracle.coherence.io.json.genson.Genson;
 import com.oracle.coherence.io.json.genson.GensonBuilder;
+import com.oracle.coherence.io.json.genson.JsonBindingException;
 
 import com.oracle.coherence.io.json.genson.reflect.VisibilityFilter;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import java.util.Objects;
 
@@ -18,9 +21,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test for {@link ClassConverter}.
+ * <p>
+ * Prompt 05 at
+ * design/features/security-bugs/plans/rest-01/prompts/05-slice-d-json-class-metadata-implementation.md
+ * requires explicit LEGACY/DEV/PROD coverage for JSON {@link Class} literal
+ * compatibility and rejection.
  *
  * @since 20.06
  */
@@ -47,8 +57,40 @@ class ClassConverterTest
     @Test
     void testBeanWithClassField() throws Exception
         {
-        final BeanWithClassField expected = new BeanWithClassField(Long.class);
-        assertEquals(expected, s_genson.deserialize(s_genson.serialize(expected), BeanWithClassField.class));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            final BeanWithClassField expected = new BeanWithClassField(Long.class);
+            assertEquals(expected, s_genson.deserialize(s_genson.serialize(expected), BeanWithClassField.class));
+            }
+        }
+
+    @Test
+    void shouldPreserveLegacyClassLiteralCompatibility()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            assertSame(String.class, s_genson.deserialize("\"java.lang.String\"", Class.class));
+            }
+        }
+
+    @Test
+    void shouldRejectClassLiteralInDevMode()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            assertThrows(JsonBindingException.class,
+                    () -> s_genson.deserialize("\"java.lang.String\"", Class.class));
+            }
+        }
+
+    @Test
+    void shouldRejectClassLiteralInProdMode()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertThrows(JsonBindingException.class,
+                    () -> s_genson.deserialize("\"java.lang.String\"", Class.class));
+            }
         }
 
     // ----- inner class: BeanWithClassField --------------------------------

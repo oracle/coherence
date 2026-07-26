@@ -111,6 +111,51 @@ public enum CoherenceMode
         }
 
     /**
+     * Return {@code true} if Coherence REST authentication is enforced when
+     * REST authentication is engaged. The REST auth policy from
+     * design/features/security-bugs/plans/rest-01/prompts/02-slice-b-auth-passthrough-implementation.md
+     * follows the SER-01 compatibility shape: DEV/PROD fail closed only once
+     * the container has engaged authentication, while LEGACY keeps the
+     * historical fail-open behavior.
+     *
+     * @return {@code true} if Coherence REST authentication is enforced
+     */
+    public static boolean isCoherenceRestAuthEnforced()
+        {
+        return !isLegacy();
+        }
+
+    /**
+     * Return {@code true} if Coherence REST pass-through resources require an
+     * explicit REST resource configuration. Prompt
+     * design/features/security-bugs/plans/rest-01/prompts/02-slice-b-auth-passthrough-implementation.md
+     * makes arbitrary cache-name auto-publish a LEGACY-only compatibility path
+     * so DEV/PROD expose only operator-configured resources.
+     *
+     * @return {@code true} if Coherence REST pass-through resources require
+     *         an explicit configuration
+     */
+    public static boolean isCoherenceRestPassThroughAllowlistRequired()
+        {
+        return !isLegacy();
+        }
+
+    /**
+     * Return {@code true} if XML parser external-entity protections are
+     * required to fail closed. The XML policy from
+     * design/features/security-bugs/plans/rest-01/prompts/06-slice-e-saxparser-xxe-implementation.md
+     * intentionally follows the standard hardened-mode boundary: DEV/PROD
+     * require protection enforcement, while LEGACY keeps compatibility behavior.
+     *
+     * @return {@code true} if XML parser external-entity protections are
+     *         required
+     */
+    public static boolean isXmlExternalEntityProtectionRequired()
+        {
+        return !isLegacy();
+        }
+
+    /**
      * Reset the memoized mode for tests.
      */
     static void resetForTesting()

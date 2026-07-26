@@ -175,6 +175,18 @@ public class CoherenceModeTest
         assertEquals("allowlist:" + sMode, fAllowlist, CoherenceMode.isAllowlistEnforced());
         assertEquals("dynamic:" + sMode, fDynamicRemoteDeny, CoherenceMode.isDynamicRemoteDefaultDeny());
         assertEquals("executable:" + sMode, fExecutable, CoherenceMode.isRemoteExecutableEnforced());
+        // rest-01 prompts 02 and 05 add mode predicates that intentionally follow the SER-01 allowlist boundary
+        assertEquals("rest-auth:" + sMode, fAllowlist, CoherenceMode.isCoherenceRestAuthEnforced());
+        assertEquals("rest-passthrough:" + sMode, fAllowlist,
+                CoherenceMode.isCoherenceRestPassThroughAllowlistRequired());
+        assertEquals("xml-xxe:" + sMode, fAllowlist,
+                CoherenceMode.isXmlExternalEntityProtectionRequired());
+        // rest-01 osgi mode import plan: prove the exported REST facade follows the internal source of truth
+        assertEquals("public-legacy:" + sMode, !fAllowlist, com.tangosol.util.CoherenceMode.isLegacy());
+        assertEquals("public-rest-auth:" + sMode, fAllowlist,
+                com.tangosol.util.CoherenceMode.isCoherenceRestAuthEnforced());
+        assertEquals("public-rest-passthrough:" + sMode, fAllowlist,
+                com.tangosol.util.CoherenceMode.isCoherenceRestPassThroughAllowlistRequired());
         }
 
     private static void assertExactlyOneMode(String sMode)
