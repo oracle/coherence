@@ -317,6 +317,7 @@ public class GlobalSocketProviderTests
                 ClusterPort.of(m_nClusterPort),
                 JMXManagementMode.ALL,
                 JmxProfile.enabled(),
+                SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                 WellKnownAddress.of("127.0.0.1"),
                 LocalHost.only(),
                 IPv4Preferred.yes(),
