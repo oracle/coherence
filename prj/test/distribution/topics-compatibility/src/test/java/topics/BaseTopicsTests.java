@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.JvmOptions;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Argument;
 import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.runtime.options.StabilityPredicate;
@@ -146,6 +147,7 @@ public abstract class BaseTopicsTests
                 Logging.atMax(),
                 LocalHost.only(),
                 IPv4Preferred.yes(),
+                SystemProperty.of("coherence.mode", "dev"),
                 JvmOptions.include("-XX:+ExitOnOutOfMemoryError", "-XX:HeapDumpPath=" + file.getAbsolutePath()),
                 HeapSize.of(64, HeapSize.Units.MB, 1, HeapSize.Units.GB, true),
                 StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()),
