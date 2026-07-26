@@ -35,7 +35,6 @@ import com.oracle.coherence.common.internal.continuations.Continuations;
 import com.oracle.coherence.common.net.InetAddresses;
 import com.oracle.coherence.common.util.Duration;
 import com.tangosol.coherence.config.Config;
-import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.MemberEvent;
@@ -5819,7 +5818,7 @@ public class ClusterService
         }
 
     /**
-     * Return {@code true} if the two legacy license modes are compatible.
+     * Return {@code true} if the two license modes are compatible.
      *
      * @param nModeNew   the new member's license mode
      * @param nModeThis  this member's license mode
@@ -5828,44 +5827,9 @@ public class ClusterService
      */
     protected boolean isLicenseModeCompatible(int nModeNew, int nModeThis)
         {
-        return nModeNew == nModeThis
-                || CoherenceMode.isLegacy()
-                    && isDevOrProdLicenseMode(nModeNew)
-                    && isDevOrProdLicenseMode(nModeThis);
+        return nModeNew == nModeThis;
         }
 
-    /**
-     * Adjust the joining member's advertised license mode when LEGACY security
-     * mode joins an existing dev/prod cluster.
-     *
-     * @param memberThis    the joining member
-     * @param memberSenior  the senior member
-     */
-    protected void matchLegacyLicenseMode(com.tangosol.coherence.component.net.Member memberThis,
-            com.tangosol.coherence.component.net.Member memberSenior)
-        {
-        if (CoherenceMode.isLegacy()
-                && isDevOrProdLicenseMode(memberThis.getMode())
-                && isDevOrProdLicenseMode(memberSenior.getMode()))
-            {
-            memberThis.setLegacyCompatibleMode(memberSenior.getMode());
-            }
-        }
-
-    /**
-     * Return {@code true} if the mode is one of the supported cluster license
-     * modes used by LEGACY compatibility.
-     *
-     * @param nMode  the license mode
-     *
-     * @return {@code true} for development or production license modes
-     */
-    protected boolean isDevOrProdLicenseMode(int nMode)
-        {
-        return nMode == ClusterDependencies.LICENSE_MODE_DEVELOPMENT
-                || nMode == ClusterDependencies.LICENSE_MODE_PRODUCTION;
-        }
-    
     /**
      * Validates the sender (new member) when broadcasting to announce presence
     * and request an ID. Uses this information to implement death detection by
@@ -8882,7 +8846,6 @@ public class ClusterService
                             // a Member id
                             Member memberThis = service.instantiateMember();                
                             memberThis.configure(memberAnnounce, cThisSentMillis); // this member's timestamp is the time at which the senior replied
-                            service.matchLegacyLicenseMode(memberThis, memberFrom);
                             service.setRequestMember(memberThis);
                             service.setState(ClusterService.STATE_JOINING);
                             }

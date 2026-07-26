@@ -7,6 +7,8 @@
 package com.tangosol.io.internal;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
 
 import java.io.IOException;
@@ -59,9 +61,10 @@ public class SerializationAllowlistTest
         }
 
     @Test
-    public void testLegacyModeAllowsNonDenylistedClass()
+    public void testCompatibilityModeAllowsNonDenylistedClass()
         {
-        withProperties("legacy", null, () -> assertEquals(ObjectInputFilter.Status.ALLOWED,
+        withProperties("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null,
+                () -> assertEquals(ObjectInputFilter.Status.ALLOWED,
                 check(java.io.File.class)));
         }
 
@@ -388,11 +391,18 @@ public class SerializationAllowlistTest
 
     private static void withProperties(String sMode, String sAllowed, Runnable runnable)
         {
+        withProperties(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sAllowed, runnable);
+        }
+
+    private static void withProperties(String sMode, String sSecurityMode, String sAllowed, Runnable runnable)
+        {
         String sModeOld    = System.getProperty("coherence.mode");
+        String sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         String sAllowedOld = System.getProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED);
         try
             {
             restoreProperty("coherence.mode", sMode);
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
             CoherenceModeHelper.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowed);
             runnable.run();
@@ -400,6 +410,7 @@ public class SerializationAllowlistTest
         finally
             {
             restoreProperty("coherence.mode", sModeOld);
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityModeOld);
             CoherenceModeHelper.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowedOld);
             }

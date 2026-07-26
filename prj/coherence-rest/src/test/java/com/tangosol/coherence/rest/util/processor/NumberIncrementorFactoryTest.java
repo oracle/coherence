@@ -35,21 +35,21 @@ public class NumberIncrementorFactoryTest
         }
 
     @Test
-    public void shouldUseLegacyMvelManipulatorInLegacyMode()
+    public void shouldUseMvelManipulatorInCompatibilityMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             NumberIncrementor processor = (NumberIncrementor) new NumberIncrementorFactory(false).getProcessor("age", "1");
 
-            // rest-01 Slice C 14.1.1.2206 MVEL POF backport: LEGACY keeps the POF-registered REST wire type
+            // compatibility mode keeps the POF-registered REST wire type
             assertThat(processor.getValueManipulator(), instanceOf(MvelManipulator.class));
             }
         }
 
     @Test
-    public void shouldUseUniversalManipulatorInDevMode()
+    public void shouldUseUniversalManipulatorInHardenedMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NumberIncrementor processor = (NumberIncrementor) new NumberIncrementorFactory(false).getProcessor("age", "1");
 
@@ -57,14 +57,4 @@ public class NumberIncrementorFactoryTest
             }
         }
 
-    @Test
-    public void shouldUseUniversalManipulatorInProdMode()
-        {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-            {
-            NumberIncrementor processor = (NumberIncrementor) new NumberIncrementorFactory(false).getProcessor("age", "1");
-
-            assertThat(processor.getValueManipulator(), instanceOf(UniversalManipulator.class));
-            }
-        }
     }

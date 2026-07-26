@@ -49,6 +49,7 @@ public class SecurityConfigIntegrationTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         Thread.currentThread().setContextClassLoader(m_loaderOld);
         SecurityConfig.resetForTesting();
         SerializationTelemetry.resetForTesting();
@@ -60,6 +61,7 @@ public class SecurityConfigIntegrationTest
             throws Exception
         {
         setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
         withConfig();
         SerializationTelemetry.resetForTesting();
 
@@ -76,10 +78,11 @@ public class SecurityConfigIntegrationTest
         }
 
     @Test
-    public void shouldShadowApplicationClassNameMissingFromSecurityConfigInLegacyMode()
+    public void shouldShadowApplicationClassNameMissingFromSecurityConfigWhenHardeningDisabled()
             throws Exception
         {
-        setMode("legacy");
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         withConfig();
         SerializationTelemetry.resetForTesting();
 
@@ -91,7 +94,7 @@ public class SecurityConfigIntegrationTest
 
         Map<String, Long> map = SerializationTelemetry.snapshot();
         assertTrue(map.containsKey("coh.serialization.lambda_bytecode_check{result=would_reject,"
-                + "reason=security-config-missing,mode=legacy,route=UNCLASSIFIED,site=static_lambda}"));
+                + "reason=security-config-missing,mode=prod,route=UNCLASSIFIED,site=static_lambda}"));
         }
 
     @Test
@@ -99,6 +102,7 @@ public class SecurityConfigIntegrationTest
             throws Exception
         {
         setMode("dev");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
         withConfig();
         SerializationTelemetry.resetForTesting();
 
@@ -192,6 +196,12 @@ public class SecurityConfigIntegrationTest
         CoherenceModeHelper.reset();
         }
 
+    private static void setSecurityMode(String sSecurityMode)
+        {
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+        CoherenceModeHelper.reset();
+        }
+
     private static void restoreProperty(String sName, String sValue)
         {
         if (sValue == null)
@@ -211,4 +221,5 @@ public class SecurityConfigIntegrationTest
 
     private final ClassLoader m_loaderOld = Thread.currentThread().getContextClassLoader();
     private final String      m_sModeOld  = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String      m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     }

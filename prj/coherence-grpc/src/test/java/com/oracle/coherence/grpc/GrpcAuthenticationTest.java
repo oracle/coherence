@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.security.auth.Subject;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -42,10 +43,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  */
 class GrpcAuthenticationTest
     {
+    @BeforeEach
+    void setUp()
+        {
+        m_sModeOld         = System.getProperty(PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(PROP_SECURITY_MODE);
+        }
+
     @AfterEach
     void restore()
         {
         restoreProperty(PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(PROP_SECURITY_MODE, m_sSecurityModeOld);
         resetMode();
         }
 
@@ -115,9 +124,10 @@ class GrpcAuthenticationTest
         }
 
     @Test
-    void shouldRejectCleartextBasicInProd()
+    void shouldRejectCleartextBasicWhenHardeningIsEnabled()
         {
         mode("prod");
+        securityMode("hardened");
         Attributes attributes = Attributes.newBuilder()
                 .set(Grpc.TRANSPORT_ATTR_REMOTE_ADDR, new InetSocketAddress("127.0.0.1", 1234))
                 .build();
@@ -126,13 +136,13 @@ class GrpcAuthenticationTest
         }
 
     @Test
-    void shouldAllowCleartextBasicInLegacyAndDev()
+    void shouldAllowCleartextBasicWhenHardeningIsDisabled()
         {
         Attributes attributes = Attributes.newBuilder()
                 .set(Grpc.TRANSPORT_ATTR_REMOTE_ADDR, new InetSocketAddress("127.0.0.1", 1234))
                 .build();
 
-        mode("legacy");
+        mode("prod");
         assertDoesNotThrow(() -> GrpcAuthentication.validateBasicTransport(attributes));
 
         mode("dev");
@@ -211,11 +221,13 @@ class GrpcAuthenticationTest
 
     private void mode(String sMode)
         {
-        if (m_sModeOld == null)
-            {
-            m_sModeOld = System.getProperty(PROP_COHERENCE_MODE);
-            }
         restoreProperty(PROP_COHERENCE_MODE, sMode);
+        resetMode();
+        }
+
+    private void securityMode(String sSecurityMode)
+        {
+        restoreProperty(PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
         }
 
@@ -247,9 +259,13 @@ class GrpcAuthenticationTest
 
     private static final String PROP_COHERENCE_MODE = "coherence.mode";
 
+    private static final String PROP_SECURITY_MODE = "coherence.security.mode";
+
     private static final String COHERENCE_MODE_CLASS = "com.tangosol.internal.util.CoherenceMode";
 
     private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
 
     @FunctionalInterface
     private interface ThrowingRunnable

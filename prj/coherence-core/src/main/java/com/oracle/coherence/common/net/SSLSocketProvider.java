@@ -196,9 +196,9 @@ public class SSLSocketProvider
 
         if (verifier == null)
             {
-            boolean fLegacy = CoherenceMode.isLegacy();
-            fValid = verifyDefaultHostname(sPeer, session, !fLegacy);
-            if (!fValid && fLegacy)
+            boolean fHardened = CoherenceMode.isSecurityHardeningEnabled();
+            fValid = verifyDefaultHostname(sPeer, session, fHardened);
+            if (!fValid && !fHardened)
                 {
                 logHostnameVerificationWouldReject("null", sPeer);
                 fValid = true;
@@ -248,7 +248,7 @@ public class SSLSocketProvider
         }
 
     /**
-     * Log a conservative legacy-mode shadow rejection diagnostic.
+     * Log a conservative compatibility shadow rejection diagnostic.
      *
      * @param sSource  the verifier source
      * @param sPeer    the peer host name
@@ -256,7 +256,7 @@ public class SSLSocketProvider
     protected void logHostnameVerificationWouldReject(String sSource, String sPeer)
         {
         getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
-                "TLS hostname verification would_reject; mode=legacy; source=%s; peer=%s",
+                "TLS hostname verification would_reject; security-mode=compatibility; source=%s; peer=%s",
                 sSource, sPeer));
         }
 

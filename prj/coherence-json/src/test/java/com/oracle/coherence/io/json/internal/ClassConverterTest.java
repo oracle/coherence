@@ -57,7 +57,7 @@ class ClassConverterTest
     @Test
     void testBeanWithClassField() throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             final BeanWithClassField expected = new BeanWithClassField(Long.class);
             assertEquals(expected, s_genson.deserialize(s_genson.serialize(expected), BeanWithClassField.class));
@@ -67,7 +67,7 @@ class ClassConverterTest
     @Test
     void shouldPreserveLegacyClassLiteralCompatibility()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             assertSame(String.class, s_genson.deserialize("\"java.lang.String\"", Class.class));
             }
@@ -76,7 +76,7 @@ class ClassConverterTest
     @Test
     void shouldRejectClassLiteralInDevMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class,
                     () -> s_genson.deserialize("\"java.lang.String\"", Class.class));
@@ -86,7 +86,7 @@ class ClassConverterTest
     @Test
     void shouldRejectClassLiteralInProdMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class,
                     () -> s_genson.deserialize("\"java.lang.String\"", Class.class));

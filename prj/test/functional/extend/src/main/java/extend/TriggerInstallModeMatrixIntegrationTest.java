@@ -15,6 +15,7 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.RemoteExecutionMode;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
@@ -36,10 +37,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.Serializable;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import java.util.Map;
 import java.util.Properties;
@@ -75,6 +72,7 @@ public class TriggerInstallModeMatrixIntegrationTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         m_sClusterOld       = System.getProperty(PROP_COHERENCE_CLUSTER);
         }
@@ -95,6 +93,7 @@ public class TriggerInstallModeMatrixIntegrationTest
             m_sServerName = null;
             }
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         restoreProperty(PROP_COHERENCE_CLUSTER, m_sClusterOld);
         CoherenceModeHelper.reset();
@@ -107,7 +106,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("prod", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
+        assertCounterAbsent("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -116,107 +115,107 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
+        assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void annotatedTriggerInstallsInLegacy()
+    public void annotatedTriggerInstallsInCompatibility()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
         assertWouldRejectCounterAbsent(AnnotatedTrigger.class);
         }
 
     @Test
-    public void unannotatedTriggerRejectedInProd()
+    public void unannotatedTriggerShadowedInProd()
         {
         startProxy("prod", null);
 
-        assertInstallRejected(new PlainTrigger(), "Remote execution denied");
-        assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void unannotatedTriggerRejectedInDev()
-        {
-        startProxy("dev", null);
-
-        assertInstallRejected(new PlainTrigger(), "Remote execution denied");
-        assertCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void dynamicTriggerRejectedInProd()
-        {
-        startProxy("prod", null);
-
-        assertInstallRejected(new Generated$$LambdaTrigger(), "map-trigger-install-denied-by-mode");
-        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+        assertTriggerInstalled(new PlainTrigger());
+        assertWouldRejectCounter(PlainTrigger.class, 2L);
         assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void dynamicTriggerInstallsInDev()
+    public void unannotatedTriggerShadowedInDev()
         {
         startProxy("dev", null);
 
+        assertTriggerInstalled(new PlainTrigger());
+        assertWouldRejectCounter(PlainTrigger.class, 2L);
+        assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY);
+        }
+
+    @Test
+    public void dynamicTriggerShadowedInProd()
+        {
+        startProxy("prod", null);
+
         assertTriggerInstalled(new Generated$$LambdaTrigger());
-        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
-        assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertWouldRejectCounter(Generated$$LambdaTrigger.class, 2L);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY);
+        }
+
+    @Test
+    public void dynamicTriggerInstallsInDevCompatibility()
+        {
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertTriggerInstalled(new Generated$$LambdaTrigger());
+        assertWouldRejectCounter(Generated$$LambdaTrigger.class, 2L);
         assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void legacyShadowsUnannotatedTrigger()
+    public void compatibilityShadowsUnannotatedTrigger()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new PlainTrigger());
         assertWouldRejectCounter(PlainTrigger.class, 2L);
         }
 
     @Test
-    public void legacyShadowsDynamicTrigger()
+    public void compatibilityShadowsDynamicTrigger()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new Generated$$LambdaTrigger());
         assertWouldRejectCounter(Generated$$LambdaTrigger.class, 2L);
         }
 
     @Test
-    public void unallowlistedDynamicTriggerRejectedInProd()
+    public void unallowlistedDynamicTriggerShadowedInProd()
         {
         startProxy("prod", null);
 
-        assertInstallRejected(new Synthetic$$LambdaShapedTrigger(), "map-trigger-install-denied-by-mode");
-        assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+        assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
+        assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 4L);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         assertCounterAbsent("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void unallowlistedDynamicTriggerInstallsInDev()
+    public void unallowlistedDynamicTriggerInstallsInDevCompatibility()
         {
-        startProxy("dev", null);
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
-        assertCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 2L);
-        assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
-        assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 4L);
         assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void unallowlistedDynamicTriggerShadowedInLegacy()
+    public void unallowlistedDynamicTriggerShadowedInCompatibility()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
         assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 4L);
-        assertCounterAbsent("legacy", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
@@ -236,13 +235,13 @@ public class TriggerInstallModeMatrixIntegrationTest
         cache.put("key", "after");
 
         assertEquals("after", cache.get("key"));
-        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
+        assertCounterAbsent("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void unannotatedTriggerRemovalRejectedBeforeCallbacksInProd()
+    public void unannotatedTriggerRemovalRejectedBeforeCallbacksInHardenedProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         NamedCache<String, String> cache    = getCache();
         MapTriggerListener        listener = new MapTriggerListener(new AnnotatedTrigger());
@@ -263,9 +262,9 @@ public class TriggerInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void unannotatedKeyTriggerRemovalRejectedBeforeCallbacksInProd()
+    public void unannotatedKeyTriggerRemovalRejectedBeforeCallbacksInHardenedProd()
         {
-        startProxy("prod", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         NamedCache<String, String> cache    = getCache();
         MapTriggerListener        listener = new MapTriggerListener(new AnnotatedTrigger());
@@ -286,9 +285,9 @@ public class TriggerInstallModeMatrixIntegrationTest
         }
 
     @Test
-    public void legacyShadowsUnannotatedTriggerRemoval()
+    public void compatibilityShadowsUnannotatedTriggerRemoval()
         {
-        startProxy("legacy", null);
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         NamedCache<String, String> cache    = getCache();
         MapTriggerListener        listener = new MapTriggerListener(new PlainTrigger());
@@ -305,13 +304,13 @@ public class TriggerInstallModeMatrixIntegrationTest
         {
         startProxy("prod", null);
 
+        m_memberProxy.invoke(new ResetDeclaredAdvisoryRecorder());
         NamedCache<String, String> cache = getCache(CACHE_DECLARED_TRIGGER);
         cache.clear();
         cache.put("key", "value");
 
         assertEquals("declared", cache.get("key"));
-        Eventually.assertDeferred(() -> countLogOccurrences(m_sServerName,
-                "Declared MapTrigger class " + CacheConfigDeclaredTrigger.class.getName()), is(1));
+        Eventually.assertDeferred(() -> m_memberProxy.invoke(new GetDeclaredAdvisoryCount()), is(1));
         assertNoRejectedTriggerCounters();
         }
 
@@ -377,10 +376,16 @@ public class TriggerInstallModeMatrixIntegrationTest
 
     private void startProxy(String sMode, String sDynamicRemote)
         {
+        startProxy(sMode, null, sDynamicRemote);
+        }
+
+    private void startProxy(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         String sCluster = SERVER_NAME + '-' + sMode + '-' + (sDynamicRemote == null ? "default" : sDynamicRemote)
                 + '-' + System.nanoTime();
 
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         restoreProperty(PROP_COHERENCE_CLUSTER, sCluster);
         RemoteExecutionMode.resetForTesting();
@@ -389,6 +394,10 @@ public class TriggerInstallModeMatrixIntegrationTest
         props.setProperty("coherence.mode", sMode);
         props.setProperty(PROP_COHERENCE_CLUSTER, sCluster);
         props.setProperty("test.extend.enabled", "true");
+        if (sSecurityMode != null)
+            {
+            props.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            }
         if (sDynamicRemote != null)
             {
             props.setProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
@@ -470,32 +479,6 @@ public class TriggerInstallModeMatrixIntegrationTest
     private int removalSideEffects()
         {
         return m_memberProxy.invoke(new GetRemovalSideEffects());
-        }
-
-    private static int countLogOccurrences(String sServerName, String sText)
-        {
-        Path path = Paths.get(System.getProperty("test.project.dir"), "target/test-output/functional",
-                sServerName + ".out");
-        if (!Files.exists(path))
-            {
-            return 0;
-            }
-        try
-            {
-            String sLog = Files.readString(path);
-            int    c    = 0;
-            int    of   = 0;
-            while ((of = sLog.indexOf(sText, of)) >= 0)
-                {
-                c++;
-                of += sText.length();
-                }
-            return c;
-            }
-        catch (IOException e)
-            {
-            throw new AssertionError(e);
-            }
         }
 
     private static boolean containsMessage(Throwable t, String sMessage)
@@ -595,6 +578,40 @@ public class TriggerInstallModeMatrixIntegrationTest
             }
         }
 
+    public static class Generated$$LambdaTrigger
+            implements MapTrigger<String, String>, PortableObject, Serializable
+        {
+        @Override
+        public void process(Entry<String, String> entry)
+            {
+            entry.setValue("triggered");
+            }
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            return o != null && o.getClass() == getClass();
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return getClass().getName().hashCode();
+            }
+        }
+
     public static class ObservableRemovalTrigger
             implements MapTrigger<String, String>, PortableObject, Serializable
         {
@@ -632,40 +649,6 @@ public class TriggerInstallModeMatrixIntegrationTest
             }
 
         private static final AtomicInteger SIDE_EFFECTS = new AtomicInteger();
-        }
-
-    public static class Generated$$LambdaTrigger
-            implements MapTrigger<String, String>, PortableObject, Serializable
-        {
-        @Override
-        public void process(Entry<String, String> entry)
-            {
-            entry.setValue("triggered");
-            }
-
-        @Override
-        public void readExternal(PofReader in)
-                throws IOException
-            {
-            }
-
-        @Override
-        public void writeExternal(PofWriter out)
-                throws IOException
-            {
-            }
-
-        @Override
-        public boolean equals(Object o)
-            {
-            return o != null && o.getClass() == getClass();
-            }
-
-        @Override
-        public int hashCode()
-            {
-            return getClass().getName().hashCode();
-            }
         }
 
     // the $$Lambda substring is intentional and pairs with RemoteInstallGate's lambda heuristic.
@@ -723,6 +706,38 @@ public class TriggerInstallModeMatrixIntegrationTest
         return new MapTriggerListener(new CacheConfigDeclaredTrigger());
         }
 
+    // ----- inner class: ResetDeclaredAdvisoryRecorder -----------------------
+
+    public static class ResetDeclaredAdvisoryRecorder
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            DECLARED_ADVISORIES.set(0);
+            RemoteInstallGate.setAdvisoryLoggerForTesting(sMessage ->
+                {
+                if (sMessage.contains("Declared MapTrigger class " + CacheConfigDeclaredTrigger.class.getName()))
+                    {
+                    DECLARED_ADVISORIES.incrementAndGet();
+                    }
+                });
+            return null;
+            }
+        }
+
+    // ----- inner class: GetDeclaredAdvisoryCount ----------------------------
+
+    public static class GetDeclaredAdvisoryCount
+            implements RemoteCallable<Integer>
+        {
+        @Override
+        public Integer call()
+            {
+            return DECLARED_ADVISORIES.get();
+            }
+        }
+
     // ----- inner class: ResetTelemetry -----------------------------------
 
     public static class ResetTelemetry
@@ -773,16 +788,20 @@ public class TriggerInstallModeMatrixIntegrationTest
             }
         }
 
+
     private static final String SERVER_NAME = "TriggerGateIT";
 
     private static final String PROP_COHERENCE_CLUSTER = "coherence.cluster";
 
     private static final String CACHE_DECLARED_TRIGGER = "dist-extend-declared-trigger";
 
+    private static final AtomicInteger DECLARED_ADVISORIES = new AtomicInteger();
+
     private CoherenceClusterMember m_memberProxy;
     private NamedCache<String, String> m_cache;
     private String m_sServerName;
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     private String m_sClusterOld;
     }

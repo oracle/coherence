@@ -67,7 +67,7 @@ public final class GrpcDiagnosticsPolicy
             {
             return false;
             }
-        return !CoherenceMode.isProd();
+        return !CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**
@@ -112,11 +112,11 @@ public final class GrpcDiagnosticsPolicy
             {
             return false;
             }
-        return CoherenceMode.isProd();
+        return CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**
-     * Mode-aware Channelz policy.
+     * Hardening-aware Channelz policy.
      */
     public static final String CHANNELZ_AUTO = "auto";
 
@@ -131,7 +131,7 @@ public final class GrpcDiagnosticsPolicy
     public static final String CHANNELZ_DISABLED = "disabled";
 
     /**
-     * Mode-aware error-disclosure policy.
+     * Hardening-aware error-disclosure policy.
      */
     public static final String ERROR_DISCLOSURE_AUTO = "auto";
 

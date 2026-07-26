@@ -45,6 +45,7 @@ public class TopicsSubscriberReplayGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld        = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sPolicyDriftOld = System.getProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT);
         m_listMessages    = new ArrayList<>();
         SerializationTelemetry.resetForTesting();
@@ -59,6 +60,7 @@ public class TopicsSubscriberReplayGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, m_sPolicyDriftOld);
         resetMode();
         resetSecurityConfig();
@@ -120,19 +122,20 @@ public class TopicsSubscriberReplayGateTest
         }
 
     @Test
-    public void legacyShadowsReplayRegardlessOfKnob()
+    public void compatibilityWithExplicitRejectRefusesReplay()
         {
-        setMode("legacy", TopicsPersistedPolicyDrift.VALUE_REJECT);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, TopicsPersistedPolicyDrift.VALUE_REJECT);
 
         HashSet<String> setDedup = new HashSet<>();
-        RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
-                SerializationRole.PERSISTENCE, null, setDedup);
-        RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
-                SerializationRole.PERSISTENCE, null, setDedup);
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                        SerializationRole.PERSISTENCE, null, setDedup));
 
-        assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
-        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "legacy", "rejected",
-                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+        assertEquals("topic-subscriber-replay-drift-rejected", e.getMessage());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
         }
 
     @Test
@@ -225,7 +228,13 @@ public class TopicsSubscriberReplayGateTest
 
     private static void setMode(String sMode, String sPolicyDrift)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sPolicyDrift);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sPolicyDrift)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, sPolicyDrift);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -305,7 +314,8 @@ public class TopicsSubscriberReplayGateTest
             }
         }
 
-    private String       m_sModeOld;
-    private String       m_sPolicyDriftOld;
+    private String m_sModeOld;
+    private String m_sSecurityModeOld;
+    private String m_sPolicyDriftOld;
     private List<String> m_listMessages;
     }

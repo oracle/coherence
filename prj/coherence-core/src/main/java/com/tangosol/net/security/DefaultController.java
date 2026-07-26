@@ -58,7 +58,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -671,7 +670,7 @@ public final class DefaultController
                 {
                 throw new PermissionException("Verified signing principal is not present in the subject");
                 }
-            if (CoherenceMode.isLegacy())
+            if (!CoherenceMode.isSecurityHardeningEnabled())
                 {
                 return subject.getPrincipals();
                 }
@@ -685,12 +684,12 @@ public final class DefaultController
                 {
                 Set setSigners = findTrustedSigners(subject);
                 if (setSigners.size() == 1
-                        && (CoherenceMode.isLegacy() || subject.getPrincipals().size() == 1))
+                        && (!CoherenceMode.isSecurityHardeningEnabled() || subject.getPrincipals().size() == 1))
                     {
                     VerifiedSigner signer = (VerifiedSigner) setSigners.iterator().next();
                     if (subject.getPrincipals().contains(signer.getPrincipal()))
                         {
-                        return CoherenceMode.isLegacy()
+                        return !CoherenceMode.isSecurityHardeningEnabled()
                                 ? subject.getPrincipals()
                                 : Collections.singleton(signer.getPrincipal());
                         }
@@ -992,12 +991,12 @@ public final class DefaultController
     public static final Signature SIGNATURE_ENGINE;
 
     /**
-    * Legacy signature algorithm retained only for LEGACY compatibility.
+    * Legacy signature algorithm retained for compatibility when hardening is disabled.
     */
     private static final String LEGACY_SIGNATURE_ALGORITHM = "SHA1withDSA";
 
     /**
-    * Modern signature algorithm used by hardened modes.
+    * Modern signature algorithm used when security hardening is enabled.
     */
     private static final String MODERN_SIGNATURE_ALGORITHM = "SHA256withRSA";
 
@@ -1006,7 +1005,7 @@ public final class DefaultController
         String      sConfig       = Config.getProperty(PROPERTY_CONFIG);
         XmlDocument xml           = null;
         String      sKeystoreType = "JKS";
-        String      sAlgorithm    = CoherenceMode.isLegacy()
+        String      sAlgorithm    = !CoherenceMode.isSecurityHardeningEnabled()
                 ? LEGACY_SIGNATURE_ALGORITHM
                 : MODERN_SIGNATURE_ALGORITHM;
         boolean     fExternal     = false;
@@ -1058,15 +1057,15 @@ public final class DefaultController
             {
             if (isWeakSignatureAlgorithm(sAlgorithm))
                 {
-                if (CoherenceMode.isLegacy())
+                if (!CoherenceMode.isSecurityHardeningEnabled())
                     {
-                    Logger.warn("DefaultController signature algorithm would_reject; mode=legacy; algorithm="
+                    Logger.warn("DefaultController signature algorithm would_reject; security-mode=compatibility; algorithm="
                             + sAlgorithm);
                     }
                 else
                     {
                     throw new GeneralSecurityException("Weak DefaultController signature algorithm is not allowed "
-                            + "in " + CoherenceMode.current().name().toLowerCase(Locale.ROOT) + " mode: "
+                            + "when security hardening is enabled: "
                             + sAlgorithm);
                     }
                 }

@@ -185,7 +185,7 @@ public class ResourceConfig
     /**
      * Return configured expression aliases for this resource.
      * <p>
-     * Stores operator-owned aliases on the resource so DEV/PROD URL inputs can
+     * Stores operator-owned aliases on the resource so hardened URL inputs can
      * select configured expressions without carrying raw extractor text.
      *
      * @return configured expression aliases

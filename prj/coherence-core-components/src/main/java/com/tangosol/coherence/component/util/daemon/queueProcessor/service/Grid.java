@@ -4784,13 +4784,9 @@ public abstract class Grid
             throw new SecurityException("senior metadata proof rejected: " + sReason);
             }
 
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             onSeniorMetadataProofWouldReject(msg, sReason);
-            }
-        else if (CoherenceMode.isDev())
-            {
-            onSeniorMetadataProofDebugAllow(msg, sReason);
             }
         return true;
         }
@@ -5185,11 +5181,11 @@ public abstract class Grid
         }
 
     /**
-     * Return true iff subject-proof policy is enforced in the current mode.
+     * Return true iff subject-proof policy is enforced.
      */
     protected boolean isSubjectProofEnforced()
         {
-        return !CoherenceMode.isLegacy();
+        return CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**
@@ -5451,18 +5447,14 @@ public abstract class Grid
             throw new IOException("senior metadata proof required: " + sReason);
             }
 
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             onSeniorMetadataProofWouldReject(msg, sReason);
-            }
-        else if (CoherenceMode.isDev())
-            {
-            onSeniorMetadataProofDebugAllow(msg, sReason);
             }
         }
 
     /**
-     * Return true iff senior-metadata proof policy is explicitly required.
+     * Return true iff senior-metadata proof policy is required.
      */
     protected boolean isSeniorMetadataProofRequired(Message msg)
         {
@@ -5470,15 +5462,15 @@ public abstract class Grid
         }
 
     /**
-     * Return true iff senior-metadata proof policy is enforced in this mode.
+     * Return true iff senior-metadata proof policy is enforced.
      */
     protected boolean isSeniorMetadataProofEnforced(Message msg)
         {
-        return isSeniorMetadataProofRequired(msg) && CoherenceMode.isProd();
+        return isSeniorMetadataProofRequired(msg);
         }
 
     /**
-     * Record a LEGACY would-reject senior-metadata proof policy result.
+     * Record a compatibility would-reject senior-metadata proof policy result.
      */
     protected void onSeniorMetadataProofWouldReject(Message msg, String sReason)
         {

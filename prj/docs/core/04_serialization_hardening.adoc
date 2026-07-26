@@ -15,15 +15,19 @@ application classes across Coherence wire boundaries.
 
 == Overview
 
-SER-01 makes Coherence fail closed for common deserialization entry points. It
-adds bytecode deny-list checks, JEP-290 filter enforcement, strict POF type
-handling, dynamic class-definition validation, generated application allowlists,
-mode-aware defaults, and per-boundary telemetry.
+SER-01 makes Coherence able to fail closed for common deserialization entry
+points. It adds bytecode deny-list checks, JEP-290 filter enforcement, strict
+POF type handling, dynamic class-definition validation, generated application
+allowlists, security-mode-aware defaults, and per-boundary telemetry.
 
-The most visible behavior change is the new three-mode compatibility posture.
-Coherence starts in `LEGACY` mode when `coherence.mode` is unset, which keeps
-existing deployments running while emitting remote-executable shadow telemetry.
-Set `-Dcoherence.mode=prod` to enable the hardening-on production posture.
+The compatibility model has two independent axes:
+
+* `coherence.mode` remains the released runtime/license mode switch. It is not
+  the global security-hardening opt-in.
+* `coherence.security.mode` controls the compatibility-sensitive SER-01
+  hardening gates. When unset, or set to `compatibility`, Coherence preserves
+  prior-patch compatibility. Set `-Dcoherence.security.mode=hardened` to opt in
+  to the hardening-on posture.
 
 === Why not JEP-290 alone?
 
@@ -43,106 +47,80 @@ settings still compose normally for non-Coherence streams.
 
 == Compatibility
 
-`coherence.mode` controls how SER-01 gates are applied while applications
-migrate to generated `security-config.xml` and explicit remote-executable
-classification.
+`coherence.security.mode` controls how SER-01 gates are applied while
+applications migrate to generated `security-config.xml` and explicit
+remote-executable classification.
 
 [cols="1,2,2,2,3", options="header"]
 |===
-|Mode |Allowlist gate: `isAllowlistEnforced()` |DYNAMIC remote default: `isDynamicRemoteDefaultDeny()` |Remote executable gate: `isRemoteExecutableEnforced()` |Use
+|Security mode |Allowlist gate: `isAllowlistEnforced()` |DYNAMIC remote default: `isDynamicRemoteDefaultDeny()` |Remote executable gate: `isRemoteExecutableEnforced()` |Use
 
-|`LEGACY`
+|unset / `compatibility`
 |`false`
 |`false`
 |`false`
-|Default when `coherence.mode` is unset, blank, or invalid. Use only as an
-upgrade compatibility posture while watching
-`coh.executable.policy_check{result=would_reject}`.
+|Default patch-compatible posture. Existing deployments, including
+`coherence.mode=dev` and `coherence.mode=prod` deployments, continue to run
+without configuration changes while selected gates emit
+`result=would_reject` shadow telemetry.
 
-|`DEV`
-|`true`
-|`false`
-|`true`
-|Development-time posture. Generated allowlists and remote-executable
-classification are enforced, but unauthenticated DYNAMIC lambda bytecode
-defaults to allow.
-
-|`PROD`
+|`hardened`
 |`true`
 |`true`
 |`true`
-|Hardening-on production target. Generated allowlists, remote-executable
-classification, and unauthenticated DYNAMIC lambda default-deny are enforced.
+|Hardening-on target. Generated allowlists, remote-executable classification,
+and unauthenticated DYNAMIC lambda default-deny are enforced unless a
+feature-specific override explicitly allows the behavior.
 |===
 
 == Quick Migration Guide
 
 For an existing application:
 
-* Start from the post-upgrade default, `LEGACY`, when `coherence.mode` is
-  unset.
+* Apply the patch with the existing `coherence.mode` value. Leave
+  `coherence.security.mode` unset during the rolling upgrade so the cluster
+  keeps prior-patch compatibility.
 * Add the Maven or Gradle security-config generation step to every application
   artifact that sends filters, processors, extractors, aggregators, or other
   application payload classes over Coherence services.
 * Annotate application payload types with `@Remote.Allowed` or `@PortableType`,
   rebuild, and verify that each artifact contains
   `META-INF/coherence/security-config.xml`.
-* Watch `coh.executable.policy_check{result=would_reject}` in `LEGACY` mode
-  and annotate or XML-list every remote executable class that appears there.
-* Test rolling upgrades and client/server workflows with
-  `-Dcoherence.mode=prod`. Use `-Dcoherence.mode=dev` only as a temporary
-  development or triage setting.
+* Watch `coh.executable.policy_check{result=would_reject}` in compatibility
+  security mode and annotate or XML-list every remote executable class that
+  appears there.
+* After the full deployment is upgraded and the shadow telemetry is clean, test
+  client/server workflows with `-Dcoherence.security.mode=hardened`.
+* Enable `coherence.security.mode=hardened` only after all members and clients
+  that need to participate in the hardened workflow are ready.
 
 Applications that skip this migration will most commonly see two
 `SecurityException` reasons at runtime: `security-config-missing` when an
 application payload class is not in any generated allowlist, and
-`dynamic-remote-denied-by-mode` when a DYNAMIC lambda is received under
-`coherence.mode=prod`. Both are documented in <<Error Message Reference>>.
+`dynamic-remote-denied-by-mode` when a DYNAMIC lambda is received while
+security mode is hardened and unauthenticated dynamic remote payloads resolve
+to `deny`. Both are documented in <<Error Message Reference>>.
 
 == Runtime Modes
 
-Coherence runs in one of three modes, selected by the `coherence.mode` system
-property. `coherence.mode` accepts `legacy`, `legacy-compatibility`, `dev`,
-`development`, `prod`, or `production`.
+Coherence runtime mode is selected by the `coherence.mode` system property.
+The released values are `eval`, `dev`, `development`, `prod`, and
+`production`. When `coherence.mode` is unset, Coherence defaults to `dev`.
+Blank, unknown, `legacy`, and `legacy-compatibility` values fail fast.
 
-`LEGACY` mode is the default when `coherence.mode` is unset, blank, or invalid.
-It is deprecated for removal and exists only as an upgrade compatibility
-posture. It leaves allowlist and remote-executable enforcement disabled while
-keeping shadow telemetry for remote-executable migration readiness.
+Runtime mode controls the released license/runtime mode behavior. It does not
+enable the compatibility-sensitive SER-01 hardening gates.
 
-`DEV` mode is for development-time iteration. It enforces the generated
-allowlist and remote-executable classification, but DYNAMIC lambda bytecode
-from unauthenticated peers defaults to allow.
+Security mode is selected by the `coherence.security.mode` system property.
+Supported values trim whitespace and compare case-insensitively:
 
-`PROD` mode is the hardening-on target for deployed clusters. Application
-classes that arrive as polymorphic payloads must be known to the receiving
-member through ordinary POF registration, generated `security-config.xml`, or
-an explicit allowlist property. DYNAMIC lambda bytecode arriving from an
-unauthenticated peer is denied by default.
+* unset or `compatibility` keeps the compatibility-sensitive hardening gates
+  disabled by default and emits bounded shadow telemetry where available.
+* `hardened` enables the compatibility-sensitive hardening gates.
 
-A member that starts in `DEV` mode logs the warning:
-
-[source,text]
-----
-Coherence is running in DEV mode. DO NOT use dev mode in production. Set -Dcoherence.mode=prod to restore production-safe defaults.
-----
-
-A member that starts in `LEGACY` mode logs the exact `LEGACY_WARNING` banner:
-
-[source,text]
-----
-Coherence is running in LEGACY mode.
-Legacy mode is deprecated for removal and is intended only as a compatibility escape for existing deployments.
-Watch coh.executable.policy_check{result=would_reject} shadow telemetry before migrating.
-Set -Dcoherence.mode=prod for production or -Dcoherence.mode=dev for development.
-----
-
-`PROD` mode logs:
-
-[source,text]
-----
-Coherence is running in PROD mode.
-----
+Blank, unknown, shorthand, and boolean-style values such as `true`, `false`,
+`on`, `off`, `enabled`, or `disabled` fail fast. The removed pre-release
+`coherence.security.hardened` property is not an alias.
 
 == Build-time Allowlist Generation
 
@@ -288,9 +266,10 @@ class-version coordination: a new lambda can flow from an upgraded sender to
 an older receiver without both sides first deploying the same compiled
 class.
 
-Under `coherence.mode=prod` the DYNAMIC lambda gate denies wire-supplied
-bytecode from unauthenticated peers before class definition. Production
-applications have two supported migration paths:
+When `coherence.security.mode=hardened`, the DYNAMIC lambda gate denies
+wire-supplied bytecode from unauthenticated peers before class definition
+unless `coherence.remote.dynamic.unauthenticated=allow` is set. Applications
+that opt in to hardened mode have two supported migration paths:
 
 * Set `-Dcoherence.remote.dynamic.unauthenticated=allow` (the recommended
   path). This preserves DYNAMIC lambda serialization and the rolling-upgrade
@@ -366,6 +345,256 @@ Runtime merge semantics are the same as generated allowlist entries: Coherence
 unions every visible classpath source into one view. See
 <<Generated `security-config.xml`>> for the full merge story.
 
+=== InvocationService
+
+When security hardening disables the Coherence*Extend `InvocationService`
+proxy by default, operators who intentionally expose remote invocation can set
+`coherence.invocation.enabled=true` or configure
+`<proxy-config><invocation-service-proxy><enabled>true</enabled></invocation-service-proxy></proxy-config>`.
+The system property overrides operational configuration when both are present.
+
+When the proxy is enabled, every remote `Invocable` submitted through Extend is
+checked by `RemoteExecutablePolicy` before `InvocationService.query(...)`
+executes it and before any delegated `PriorityTask` scheduling, timeout, or
+cancellation callback can run. The invocable class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`security-config.xml`. Cluster-internal `Invocable` dispatch is not gated by
+the Extend proxy flag.
+
+If the proxy is disabled, the server log records
+`InvocationService proxy is DISABLED in <mode> mode by policy` once at proxy
+startup, while the client receives the same generic service-unavailable shape
+used for an unbound Extend receiver. The wire response intentionally does not
+name the policy decision. See the Coherence security guide section "Securing
+Extend Client Connections" for Extend authentication setup.
+
+=== MethodInvocationProcessor / ScriptProcessor
+
+`MethodInvocationProcessor` and `ScriptProcessor` are built-in
+`EntryProcessor` implementations that execute behavior described by their
+serialized state. Both classes are `final`, annotated with
+`@Remote.Executable`, and checked by `RemoteExecutablePolicy` before their
+dynamic-remote gates run.
+
+When `coherence.security.mode=hardened`, both processors are denied by default
+unless `coherence.remote.dynamic.unauthenticated=allow` is set. With
+`coherence.security.mode` unset or set to `compatibility`, the dynamic-remote
+mode gate allows them by default while preserving hard-floor deny-list checks.
+The same property therefore controls unauthenticated DYNAMIC lambda bytecode,
+reflective method invocation through `MethodInvocationProcessor`, and script
+evaluation through `ScriptProcessor`.
+
+`MethodInvocationProcessor` also applies the lambda bytecode deny-list before
+reflection. The supplier class, the runtime target class, and the
+`targetClass#methodName` pair are each checked against
+`META-INF/coherence/lambda-bytecode-denylist.txt` and extension resources such
+as `META-INF/coherence/lambda-bytecode-denylist.d/*.txt`. Entries such as
+`java.lang.Runtime` and `java.lang.System#exit` are hard floors in every
+security mode. When a processor targets an absent cache entry, the
+supplier class is checked first, but the supplier is not executed and the
+entry is not populated until the dynamic-remote mode gate allows MIP.
+
+`ScriptProcessor` runs scripts in the singleton Graal `Context` with explicit
+host access. `allowAllAccess(true)` is not enabled. Host class lookup rejects
+deny-listed classes, and loadable deny-listed classes are also blocked through
+Graal `HostAccess.denyAccess(...)`. These HostAccess checks are hard floors in
+every mode.
+
+=== MapTrigger Remote Install and Removal
+
+Remote `MapTrigger` installation and removal through Coherence*Extend are
+checked before the listener is registered with or removed from the storage
+tier. The trigger class must carry `@Remote.Executable` or appear with
+`executable="true"` in merged `META-INF/coherence/security-config.xml`;
+unannotated trigger classes are rejected in hardened security mode and shadowed
+in compatibility security mode.
+
+After the class policy check, dynamic trigger classes use the same mode gate as
+DYNAMIC lambdas, `MethodInvocationProcessor`, and `ScriptProcessor`. Hardened
+security mode denies dynamic trigger installation by default unless
+`coherence.remote.dynamic.unauthenticated=allow` is set. Compatibility mode
+permits dynamic trigger installation by default while emitting
+`result=would_reject` shadow telemetry where the hardened policy would reject.
+
+Classes declared in cache configuration remain server-trusted and are not
+blocked at startup. Coherence logs a WARN for each unannotated declared
+`MapTrigger` or `EventInterceptor` class, de-duplicated by class name and kind,
+so operators can classify those classes before allowing equivalent remote
+installs. The Slice C audit did not find a remote-supplied `EventInterceptor`
+install path; interceptor coverage is therefore limited to this startup
+advisory.
+
+=== Topic Subscriber Filter / Extractor Install
+
+Remote topic subscriber group and subscriber creation through Coherence*Extend
+and gRPC are checked before the subscriber metadata is installed on the storage
+tier. Subscriber filters use `OperationReason.EVALUATE_FILTER`; subscriber
+extractors and converters use `OperationReason.EXTRACT`; both publish
+`role=TOPICS` in telemetry. The filter or extractor class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
+hardened security mode and shadowed in compatibility security mode.
+
+Coherence also walks shipped topic subscriber containers that can hide nested
+executable state before install and again during persisted replay. This
+includes filter wrappers such as `ArrayFilter`, `ExtractorFilter`,
+`LimitFilter`, and `FilterWrapper`; extractor wrappers such as
+`ConditionalExtractor`, `CollectionExtractor`, `KeyExtractor`, fragment
+extractors, and transaction wrappers; comparator wrappers such as
+`ExtractorComparator`, `ChainedComparator`, and `SafeComparator`; and
+script-backed subscriber filters and extractors. Each nested class is checked
+with topic subscriber telemetry and replay-drift handling. Customer-defined
+composites with opaque fields are not inspected reflectively; annotate or
+allowlist the composite class and any nested classes exposed through the
+built-in containers.
+
+Dynamic or lambda-shaped subscriber filter and extractor classes use the same
+dynamic remote mode gate as DYNAMIC lambdas, `MethodInvocationProcessor`,
+`ScriptProcessor`, and remote `MapTrigger` installs. Hardened security mode
+denies dynamic subscriber metadata by default unless
+`coherence.remote.dynamic.unauthenticated=allow` is set. Compatibility security
+mode permits dynamic subscriber metadata by default while emitting
+`result=would_reject` shadow telemetry where the hardened policy would reject.
+
+Persisted subscriber metadata is rechecked when topic subscription metadata is
+activated from persistence. The
+`coherence.topics.persisted.policy-drift` property controls how Coherence
+handles metadata whose class was valid at install time but is no longer
+executable at replay time:
+
+* `reject` refuses the replayed subscription and emits
+  `sub_reason=replay_drift`.
+* `warn-allow` emits a deduped WARN for the drifted class and allows replay.
+
+The default is `reject` in hardened security mode and `warn-allow` in
+compatibility security mode. An explicit `reject` value fails closed in both
+security modes. Operators should use
+`warn-allow` only as a migration bridge while annotating the affected
+filter/extractor classes, regenerating `security-config.xml`, and redeploying
+the owning artifacts.
+
+Cache-config-declared topic subscriber advisory logging is deferred. The topic
+scheme bootstrap paths currently do not materialize the declared filter or
+extractor instances early enough to emit a startup advisory without moving
+topic subscription realization. Remote topic subscriber installs and persisted
+replay rechecks are still enforced as described above.
+
+=== Cache Data-Plane Processor / Aggregator / Filter / Extractor / Comparator Install
+
+Remote `NamedCache` data-plane operations through Coherence*Extend, REST, and
+gRPC are checked after the wire payload or registry alias resolves to a
+concrete executable object and before dispatch to the storage tier. Entry
+processors use `OperationReason.PROCESS_ENTRY`; aggregators use
+`AGGREGATE`; filters use `EVALUATE_FILTER`; value extractors use `EXTRACT`;
+comparators use `COMPARE`. Telemetry publishes `role=EXTEND_PROXY`,
+`role=REST`, or `role=GRPC` depending on the transport.
+
+The processor, aggregator, filter, extractor, or comparator class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
+hardened security mode and shadowed in compatibility security mode. Dynamic,
+lambda-shaped, or script-backed cache data-plane executables also pass through
+the dynamic remote mode gate: hardened security mode denies them by default
+unless `coherence.remote.dynamic.unauthenticated=allow` is set; compatibility
+security mode permits them by default while emitting `result=would_reject`
+shadow telemetry where the hardened policy would reject. The shared script
+gate covers `ScriptProcessor`, `ScriptFilter`,
+`ScriptValueExtractor`, and `ScriptAggregator`; the check runs at remote
+install time where the transport exposes the script object and again directly
+before script execution or delegate creation.
+
+Coherence also walks the built-in composite containers that can hide nested
+executables. This includes processor wrappers such as `CompositeProcessor`,
+`ConditionalProcessor`, asynchronous / priority processor wrappers,
+`ExtractorProcessor`, `PropertyProcessor`, and `UpdaterProcessor`; aggregator
+wrappers such as `CompositeAggregator`, `GroupAggregator`, `ReducerAggregator`,
+asynchronous / priority aggregators, and `TopNAggregator`; filter wrappers such
+as `ArrayFilter`, `ExtractorFilter`, `LimitFilter`, `MapEventTransformerFilter`,
+`WrapperQueryRecorderFilter`, and transaction `FilterWrapper`; extractor
+wrappers such as `ConditionalExtractor`, `CollectionExtractor`,
+`DeserializationAccelerator`, transaction `ExtractorWrapper`, and the fragment
+extractors; and comparator wrappers such as `ExtractorComparator`,
+`ChainedComparator`, and `SafeComparator`. Comparator payloads that are also
+`ValueExtractor` instances, such as `KeyExtractor`, `ChainedExtractor`,
+`ConditionalExtractor`, `CollectionExtractor`, and other `AbstractExtractor`
+subclasses, are routed through the extractor cascade as well as the comparator
+gate; this also applies when they are wrapped by `SafeComparator`,
+`InverseComparator`, `EntryComparator`, or transaction `ComparatorWrapper`.
+`ValueManipulator` and `ValueUpdater` instances nested inside property and
+updater processors are treated as executable mutation state under the
+processor install check. Each cascaded class records its own policy telemetry
+event. Customer-defined composites with opaque fields are not inspected
+reflectively; annotate or allowlist the composite class and any nested classes
+that are exposed through the built-in containers above.
+
+REST default processor and aggregator factories preflight the configured class
+before invoking its constructor. REST resources still check the produced
+processor or aggregator instance before dispatch so nested cascade checks are
+not lost. Custom REST `ProcessorFactory` and `AggregatorFactory`
+implementations remain a trusted compatibility boundary: Coherence cannot
+preflight arbitrary factory side effects before the custom factory chooses to
+construct or return an executable object.
+
+To migrate an application, identify each rejected or would-reject class,
+annotate the supported remote executable type with `@Remote.Executable` or add
+an `executable="true"` entry to generated security config, redeploy the owning
+jar, and rerun the workload with `-Dcoherence.security.mode=hardened`. For REST
+registry entries, classify the registry factory output. For CohQL queries and
+gRPC bytes-based requests, classify the concrete filter, comparator, extractor,
+aggregator, or processor class that is sent by the client.
+
+=== Coherence Concurrent Executor
+
+Coherence Concurrent executor submissions are checked before task execution,
+scheduling, executor selection, result collection, completion callbacks, and
+subscriber callbacks. Submitted `Task`, `Callable`, `Runnable`,
+`ExecutionStrategy`, `Task.Collector`, completion predicate, completion
+runnable, and `Task.Subscriber` classes must carry `@Remote.Executable` or
+appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Enforcement telemetry uses
+`OperationReason.CONCURRENT_TASK` and `role=CONCURRENT`.
+
+The concurrent gate also walks shipped executor wrappers that can carry nested
+callback state. `CallableTask`, `RunnableTask`, `RunnableWithResultTask`,
+scheduled task wrappers, and `CronTask` gate their nested callable, runnable,
+or task state after the task-manager subject is available. `CronTask` gates
+both the original and current task. `StandardExecutionStrategy` gates its
+candidate predicate, and `ConditionalCollector` gates its predicate and nested
+collector. Concurrent cache-processor wrappers such as `LocalOnlyProcessor`
+and `ClusteredTaskManager.ChainedProcessor` gate their nested processors before
+they can invoke them. Built-in predicate wrappers such as
+`Predicates.not(...)` and typed composites such as `Predicates.and(...)` are
+unwrapped and their nested predicates are checked before use. Value-style
+predicate wrappers gate nested payloads that could otherwise dispatch
+application code through `equals(...)` or `toString()`: unsafe
+`Predicates.equalTo(...)` values, non-built-in `Predicates.has(...)`
+registration options, and non-JDK `Predicates.onException(...)` throwables are
+checked before the predicate can run. Common scalar values, built-in
+registration options, exact product `Member` registration metadata, and
+bootstrap `java.*` throwables remain data-only. Crafted or non-product nested
+members inside `Predicates.has(Member.of(...))` are checked before comparison.
+`ValueTask` is gated as a task, but its value is result data and is not treated
+as an executable callback merely because it implements a callback interface.
+Task properties, task options, execution plans, retained results, and tracing
+context are data-only for this gate.
+
+Local member submissions capture the current caller `Subject` as advisory gate
+context and serialize it with `ClusteredTaskManager` at POF index `20` and as a
+final appended ExternalizableLite field. Remote-client submissions through
+remote cache services, including `RemoteExecutor` client paths, serialize a
+`null` subject; client JVM subjects are not authorization-bearing. The subject
+is not used with `Subject.doAs(...)` and does not grant per-subject execution
+permission.
+
+The `ConcurrentProxy` Extend service uses the existing
+`coherence.concurrent.extend.enabled` property with a security-mode-aware
+default: enabled in compatibility security mode and disabled in hardened
+security mode. A disabled proxy logs the resolved runtime mode, security mode,
+property/config source, and enabled state at startup, plus a startup WARN in
+hardened mode naming the override property. Clients still see a generic
+service-unavailable shape rather than policy-specific wire text.
+Cluster-internal executor use is independent of this proxy switch.
+
 === Functional-Interface Lambda Targets
 
 A lambda target is the functional interface named by a serialized lambda. For
@@ -408,9 +637,10 @@ The build-time scanner emits:
 You can also author that XML entry by hand. In that case the entry must name
 the functional interface, not the generated lambda implementation class.
 
-Unannotated functional interfaces are denied in `DEV` and `PROD` before
-lambda bytecode is materialized. In `LEGACY`, allowlist and lambda-target
-enforcement are disabled; use `DEV` or `PROD` in pre-production to validate
+Unannotated functional interfaces are denied in hardened security mode before
+lambda bytecode is materialized. In compatibility security mode, allowlist and
+lambda-target enforcement are disabled; use
+`-Dcoherence.security.mode=hardened` in pre-production to validate
 lambda-target readiness before migration. The supported migration is to
 annotate the functional interface or add a manual `lambda-target="true"` entry
 to the artifact that owns it.
@@ -422,55 +652,22 @@ serializable functional interfaces should rebuild those artifacts with
 `@Remote.Executable`, verify the generated `security-config.xml`, and redeploy
 receivers before sending lambdas that target the new interface.
 
-=== MethodInvocationProcessor / ScriptProcessor
-
-`MethodInvocationProcessor` and `ScriptProcessor` are built-in
-`EntryProcessor` implementations that execute behavior described by their
-serialized state. Both classes are `final`, annotated with
-`@Remote.Executable`, and checked by `RemoteExecutablePolicy` before their
-mode-specific gates run.
-
-In `PROD` mode, both processors are denied by default unless
-`coherence.remote.dynamic.unauthenticated=allow` is set. In `DEV` and
-`LEGACY`, the mode gate allows them by default. The same property therefore
-controls unauthenticated DYNAMIC lambda bytecode, reflective method invocation
-through `MethodInvocationProcessor`, and script evaluation through
-`ScriptProcessor`.
-
-`MethodInvocationProcessor` also applies the lambda bytecode deny-list before
-reflection. The supplier class, the runtime target class, and the
-`targetClass#methodName` pair are each checked against
-`META-INF/coherence/lambda-bytecode-denylist.txt` and extension resources such
-as `META-INF/coherence/lambda-bytecode-denylist.d/*.txt`. Entries such as
-`java.lang.Runtime` and `java.lang.ProcessBuilder` are hard floors in every
-mode, including `LEGACY`. When a processor targets an absent cache entry, the
-supplier class is checked first, but the supplier is not executed and the entry
-is not populated until the dynamic-remote mode gate allows MIP.
-
-`ScriptProcessor` runs scripts in the singleton Graal `Context` with explicit
-host access. `allowAllAccess(true)` is not enabled. Host class lookup rejects
-deny-listed classes, and loadable deny-listed classes are also blocked through
-Graal `HostAccess.denyAccess(...)`. These HostAccess checks are hard floors in
-every mode.
-
 === Migration
 
 `@Remote.Executable` covers two distinct cases that have different
 runtime-enforcement timelines in 26.04:
 
 * *Functional interfaces* annotated with `@Remote.Executable` are enforced
-  today. In `DEV` and `PROD`, lambdas that target an unannotated functional
-  interface are rejected with `lambda-target-not-allowed` before bytecode
-  is materialized. Migrate by annotating every custom serializable
+  today when security mode is hardened. Lambdas that target an unannotated
+  functional interface are rejected with `lambda-target-not-allowed` before
+  bytecode is materialized. Migrate by annotating every custom serializable
   functional interface used as a remote lambda target and rebuilding the
   artifact that owns it. See <<Functional-Interface Lambda Targets>>.
 * *Concrete executable classes* (entry processors, aggregators, invocables,
   filters, value extractors, comparators, triggers, server-side event
   interceptors, `coherence-concurrent` tasks) are classified by the build
-  in 26.04. Runtime enforcement is rolling out by sink. Extend
-  `InvocationService`, `MethodInvocationProcessor`, and `ScriptProcessor`
-  enforce the classification today; other execution sinks will be wired in
-  follow-on CACHE-01 slices. Classify executable classes now, regenerate
+  in 26.04. Runtime enforcement covers the CACHE-01 remote execution sinks
+  described above. Classify executable classes now, regenerate
   `security-config.xml`, and use
   `coh.executable.policy_check{result=would_reject}` shadow telemetry to
   drive the migration; see <<Telemetry>>.
@@ -495,24 +692,70 @@ silently grant it execution privileges.
 |Property |Type |Default |Since |Description |See
 
 |`coherence.mode`
-|enum: `legacy`, `legacy-compatibility`, `dev`, `development`, `prod`, `production`
-|`LEGACY`
+|enum: `eval`, `dev`, `development`, `prod`, `production`
+|`dev`
 |26.04
-|Selects the serialization posture. `LEGACY` is the default compatibility
-posture; `DEV` is the development-time posture; `PROD` is the hardening-on
-production target. `DEV` and `LEGACY` log prominent warnings.
+|Selects the released runtime/license mode. It does not enable the
+compatibility-sensitive SER-01 hardening gates. Blank, unknown, `legacy`, and
+`legacy-compatibility` values fail fast.
+|<<Runtime Modes>>
+
+|`coherence.security.mode`
+|enum: `compatibility`, `hardened`
+|`compatibility`
+|15.1.2.0
+|Selects the global SER-01 security hardening posture. Unset or
+`compatibility` preserves prior-patch behavior and shadow telemetry where
+available; `hardened` enables the compatibility-sensitive hardening gates.
+The removed pre-release `coherence.security.hardened` property is not an alias.
 |<<Runtime Modes>>
 
 |`coherence.remote.dynamic.unauthenticated`
 |enum: `allow`, `deny`
-|`LEGACY`: `allow`; `DEV`: `allow`; `PROD`: `deny`
+|security mode `compatibility`: `allow`; security mode `hardened`: `deny`
 |26.04
 |Controls whether unauthenticated wire-arriving DYNAMIC lambda bytecode,
 reflective `MethodInvocationProcessor` execution, and `ScriptProcessor`
-evaluation are accepted before subject-aware authorization is available. Does
-not bypass functional-interface target allowlisting, the MIP deny-list, or
-Graal HostAccess hardening.
+evaluation are accepted before subject-aware authorization is available. The
+property is resolved through Coherence `Config`, so the
+`COHERENCE_REMOTE_DYNAMIC_UNAUTHENTICATED` environment variable alias is also
+honoured. Does not bypass functional-interface target allowlisting, the MIP
+deny-list, or Graal HostAccess hardening.
 |<<Lambda Serialization>>, <<MethodInvocationProcessor / ScriptProcessor>>
+
+|`coherence.invocation.enabled`
+|boolean
+|operational config value unless explicitly set
+|26.04
+|Overrides whether the Coherence*Extend `InvocationService` proxy is exposed.
+When unset, operational config `<invocation-service-proxy><enabled>` is used.
+This property does not bypass `@Remote.Executable` enforcement when the proxy
+is enabled.
+|<<InvocationService>>
+
+|`coherence.concurrent.extend.enabled`
+|boolean
+|security mode `compatibility`: `true`; security mode `hardened`: `false`
+|26.04
+|Overrides whether the Coherence Concurrent `ConcurrentProxy` Extend service is
+exposed. When unset, the shipped `ConcurrentProxy` autostart marker resolves to
+the security-mode-aware default. An explicit cache-config autostart override
+without the shipped system-property marker wins when the property is absent.
+This property does not bypass `@Remote.Executable` enforcement when the proxy
+is enabled.
+|<<Coherence Concurrent Executor>>
+
+|`coherence.topics.persisted.policy-drift`
+|enum: `reject`, `warn-allow`
+|security mode `compatibility`: `warn-allow`; security mode `hardened`: `reject`
+|26.04
+|Controls persisted topic subscriber filter/extractor policy drift on replay.
+`reject` refuses persisted metadata whose class is no longer executable;
+`warn-allow` logs a deduped WARN and allows replay for migration. The property
+is resolved through Coherence `Config`, so the
+`COHERENCE_TOPICS_PERSISTED_POLICY_DRIFT` environment variable alias is also
+honoured.
+|<<Topic Subscriber Filter / Extractor Install>>
 
 |`coherence.serialization.allowed`
 |class-fqn-list
@@ -560,10 +803,12 @@ table below.
   not allowed`, `unknown user type`, `Deserialization of class ... was
   rejected`. The class is not known to the receiver; fix by annotating and
   regenerating, or by registering with POF.
-* *Lambda policy* — `dynamic-remote-denied-by-mode`,
-  `lambda-target-not-allowed`, `class-name-on-denylist`. A lambda-shaped
-  payload was refused by mode policy, target-interface policy, or by the
-  explicit deny-list.
+* *Remote execution policy* — `dynamic-remote-denied-by-mode`,
+  `method-invocation-denied-by-mode`, `script-eval-denied-by-mode`,
+  `lambda-target-not-allowed`, `class-name-on-denylist`,
+  `method-on-denylist`. A lambda-shaped payload, MIP reflection request, or
+  script request was refused by mode policy, target-interface policy, or by
+  the explicit deny-list.
 * *Bytecode shape* — `bytecode-references-gadget`, `native-method-declared`,
   `dynamic-class-forname`, `invalid-bytecode`. Wire-supplied bytecode failed
   structural or deny-list checks.
@@ -584,10 +829,26 @@ the Maven or Gradle generator, and package the generated config.
 
 |`Lambda bytecode rejected: site=LAMBDA, reason=dynamic-remote-denied-by-mode`
 |Lambda mode gate
-|A DYNAMIC lambda arrived while `coherence.mode=prod` and
+|A DYNAMIC lambda arrived while security mode was hardened and
 `coherence.remote.dynamic.unauthenticated` resolved to `deny`.
 |Switch to STATIC lambda serialization or explicitly set
 `-Dcoherence.remote.dynamic.unauthenticated=allow`.
+
+|`method-invocation-denied-by-mode`
+|MIP mode gate
+|A `MethodInvocationProcessor` arrived while security mode was hardened and
+`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
+|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where reflective
+method invocation is intentionally exposed, or replace the call with a
+purpose-built `@Remote.Executable` processor.
+
+|`script-eval-denied-by-mode`
+|Script mode gate
+|A `ScriptProcessor` arrived while security mode was hardened and
+`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
+|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where remote
+script evaluation is intentionally exposed, or replace the script with a
+purpose-built `@Remote.Executable` processor.
 
 |`Lambda bytecode rejected: site=%s, reason=lambda-target-not-allowed, denied=%s`
 |Lambda target
@@ -606,9 +867,23 @@ method.
 `coherence.lambda.bytecode.allow` only for emergency class-reference overrides.
 
 |`reason=class-name-on-denylist`
-|Bytecode scan
-|A static lambda or class-name payload names a deny-listed class.
-|Remove the deny-listed class from the payload path.
+|Bytecode scan / MIP reflection
+|A static lambda, class-name payload, MIP supplier, or MIP target value names a
+deny-listed class.
+|Remove the deny-listed class from the payload path or reflective MIP target.
+
+|`reason=method-on-denylist`
+|MIP reflection
+|A `MethodInvocationProcessor` targets a deny-listed `class#method` pair.
+|Remove the reflective method call and use a purpose-built safe server-side
+processor.
+
+|Graal `PolyglotException` or script error naming a denied Java type
+|Script HostAccess
+|A script attempted `Java.type(...)` or guest-side host access for a
+deny-listed class such as `java.lang.Runtime` or `java.lang.ProcessBuilder`.
+|Remove the host access from the script. `coherence.remote.dynamic.unauthenticated`
+does not bypass the HostAccess hard floor.
 
 |`reason=native-method-declared`
 |Bytecode scan
@@ -649,35 +924,6 @@ shape.
 |A class-definition payload contains bytes after the parsed class file.
 |Reject the payload source; resend a clean class definition.
 
-|`method-invocation-denied-by-mode`
-|MIP mode gate
-|A `MethodInvocationProcessor` arrived while `coherence.mode=prod` and
-`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
-|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where reflective
-method invocation is intentionally exposed, or replace the call with a
-purpose-built `@Remote.Executable` processor.
-
-|`script-eval-denied-by-mode`
-|Script mode gate
-|A `ScriptProcessor` arrived while `coherence.mode=prod` and
-`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
-|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where remote
-script evaluation is intentionally exposed, or replace the script with a
-purpose-built `@Remote.Executable` processor.
-
-|`reason=method-on-denylist`
-|MIP reflection
-|A `MethodInvocationProcessor` targets a deny-listed `class#method` pair.
-|Remove the reflective method call and use a purpose-built safe server-side
-processor.
-
-|Graal `PolyglotException` or script error naming a denied Java type
-|Script HostAccess
-|A script attempted `Java.type(...)` or guest-side host access for a
-deny-listed class such as `java.lang.Runtime` or `java.lang.ProcessBuilder`.
-|Remove the host access from the script. `coherence.remote.dynamic.unauthenticated`
-does not bypass the HostAccess hard floor.
-
 |`ClassIdentity package is not allowed: %s`
 |Class identity / Allowlist
 |A dynamic class identity names a package not present in generated security
@@ -699,11 +945,13 @@ config or `coherence.serialization.allowed`.
 
 |`coh.executable.policy_check{result=would_reject, class=<FQN>, reason=<OperationReason>, role=<SerializationRole>}`
 |Executable policy (shadow)
-|`LEGACY` mode classified a remote executable object that would be rejected by
-`DefaultRemoteExecutablePolicy.enforce(...)` in `DEV` or `PROD`.
+|Compatibility security mode classified a remote executable object that would
+be rejected by `DefaultRemoteExecutablePolicy.enforce(...)` in hardened
+security mode.
 |Treat each tuple as migration work: annotate the class with
 `@Remote.Executable`, regenerate `security-config.xml`, or add a manual
-`executable="true"` entry before setting `-Dcoherence.mode=prod`.
+`executable="true"` entry before setting
+`-Dcoherence.security.mode=hardened`.
 |===
 
 == Telemetry
@@ -727,7 +975,31 @@ coh.lambda.bytecode_check{result=rejected,reason=dynamic-remote-denied-by-mode,s
 Use these counters to identify which boundary is rejecting traffic before
 loosening any runtime property.
 
-Remote executable policy shadow checks in `LEGACY` mode maintain:
+Live remote executable enforcement checks in hardened security mode maintain:
+
+[source,text]
+----
+coh.executable.policy_check{reason=<OperationReason>, role=<SerializationRole>, result=allowed|rejected, mode=<runtime-mode>}
+----
+
+For Extend `InvocationService`, the tuple uses `reason=INVOKE` and
+`role=EXTEND_PROXY`. `MethodInvocationProcessor` and `ScriptProcessor` use
+`reason=PROCESS_ENTRY` and `reason=SCRIPT_EVAL`, respectively. Remote
+`MapTrigger` installation uses `reason=TRIGGER` and `role=EXTEND_PROXY`.
+Topic subscriber filter/extractor installation and persisted replay use
+`reason=EVALUATE_FILTER|EXTRACT` and `role=TOPICS`. Cache data-plane
+processor, aggregator, filter, extractor, and comparator installs through
+Extend, REST, and gRPC use
+`reason=PROCESS_ENTRY|AGGREGATE|EVALUATE_FILTER|EXTRACT|COMPARE` and
+`role=EXTEND_PROXY|REST|GRPC`. Coherence Concurrent executor task and callback
+installs use `reason=CONCURRENT_TASK` and `role=CONCURRENT`. Live tuples may also include
+`sub_reason=policy|mode_gate|denylist|replay_drift`; the tag is additive and
+callers must not assume a closed set. Successful policy checks use
+`sub_reason=policy`; mode and deny-list sub-reasons are emitted only for
+refusals. Topic replay under `warn-allow` records
+`result=allowed,sub_reason=replay_drift` to make migration drift visible.
+
+Remote executable policy shadow checks in compatibility security mode maintain:
 
 [source,text]
 ----
@@ -736,7 +1008,11 @@ coh.executable.policy_check{result=would_reject, class=<FQN>, reason=<OperationR
 
 This counter is emitted only by `DefaultRemoteExecutablePolicy.enforce(...)`.
 It tells you which remote executable classes would be rejected after migration
-to `DEV` or `PROD`. It does not measure serialization allowlist or lambda
-bytecode readiness; validate those gates by running the workload under
-`-Dcoherence.mode=dev` or `-Dcoherence.mode=prod` in a non-production
-environment.
+to hardened security mode. The `mode` tag is intentionally absent from these
+shadow tuples, while `class` is included to make per-class dry-run diagnostics
+possible. It does not measure serialization allowlist or lambda bytecode
+readiness; validate those gates by running the workload under
+`-Dcoherence.security.mode=hardened` in a non-production environment. Topic
+subscriber replay records one `would_reject` tuple per compatibility shadow;
+install-time dynamic shadows can record policy and mode-gate tuples because
+replay has no dynamic mode-gate analog.

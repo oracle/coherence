@@ -123,7 +123,7 @@ public class MapConverter<K, V>
             }
         catch (JsonBindingException e)
             {
-            if (fMetadataClass && !CoherenceMode.isLegacy())
+            if (fMetadataClass && CoherenceMode.isSecurityHardeningEnabled())
                 {
                 throw e;
                 }

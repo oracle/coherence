@@ -151,45 +151,6 @@ public final class RemoteInstallGate
         }
 
     /**
-     * Enforce persisted topic subscriber filter/extractor replay policy.
-     *
-     * @param filter     the persisted subscriber filter
-     * @param extractor  the persisted subscriber extractor
-     * @param role       the serialization role
-     * @param subject    the current subject, or {@code null}
-     */
-    public static final void enforceTopicSubscriberReplay(Filter<?> filter, Function<?, ?> extractor,
-                                                          SerializationRole role, Subject subject)
-        {
-        enforceTopicSubscriberReplay(filter, extractor, role, subject, null);
-        }
-
-    /**
-     * Enforce persisted topic subscriber filter/extractor replay policy.
-     *
-     * @param filter     the persisted subscriber filter
-     * @param extractor  the persisted subscriber extractor
-     * @param role       the serialization role
-     * @param subject    the current subject, or {@code null}
-     * @param setDedup   warning keys already emitted for this replay pass
-     */
-    public static final void enforceTopicSubscriberReplay(Filter<?> filter, Function<?, ?> extractor,
-                                                          SerializationRole role, Subject subject,
-                                                          Set<String> setDedup)
-        {
-        enforceFilterReplay(filter, role, subject, setDedup, 0);
-        if (extractor instanceof ValueExtractor)
-            {
-            enforceExtractorReplay((ValueExtractor<?, ?>) extractor, role, subject, setDedup, 0);
-            }
-        else
-            {
-            enforceReplay(extractor == null ? null : extractor.getClass(), OperationReason.EXTRACT, role, subject,
-                    setDedup);
-            }
-        }
-
-    /**
      * Enforce remote NamedCache entry processor installation policy.
      *
      * @param processor  the processor being installed
@@ -279,6 +240,49 @@ public final class RemoteInstallGate
                                                            SerializationRole role, Subject subject)
         {
         enforceCacheComparatorInstall(comparator, role, subject, 0);
+        }
+
+    /**
+     * Enforce persisted topic subscriber filter/extractor replay policy.
+     * Compatibility shadow telemetry is owned by {@link RemoteExecutablePolicy#enforce(Class, OperationReason,
+     * SerializationRole, Subject)}; replay adds no additional shadow tuple.
+     *
+     * @param filter     the persisted subscriber filter
+     * @param extractor  the persisted subscriber extractor
+     * @param role       the serialization role
+     * @param subject    the current subject, or {@code null}
+     */
+    public static final void enforceTopicSubscriberReplay(Filter<?> filter, Function<?, ?> extractor,
+                                                          SerializationRole role, Subject subject)
+        {
+        enforceTopicSubscriberReplay(filter, extractor, role, subject, null);
+        }
+
+    /**
+     * Enforce persisted topic subscriber filter/extractor replay policy.
+     * Compatibility replay records one {@code would_reject} tuple per policy shadow,
+     * unlike install-time dynamic compatibility shadows which record policy and mode-gate tuples.
+     *
+     * @param filter     the persisted subscriber filter
+     * @param extractor  the persisted subscriber extractor
+     * @param role       the serialization role
+     * @param subject    the current subject, or {@code null}
+     * @param setDedup   replay warning keys already emitted in this replay pass
+     */
+    public static final void enforceTopicSubscriberReplay(Filter<?> filter, Function<?, ?> extractor,
+                                                          SerializationRole role, Subject subject,
+                                                          Set<String> setDedup)
+        {
+        enforceFilterReplay(filter, role, subject, setDedup, 0);
+        if (extractor instanceof ValueExtractor)
+            {
+            enforceExtractorReplay((ValueExtractor<?, ?>) extractor, role, subject, setDedup, 0);
+            }
+        else
+            {
+            enforceReplay(extractor == null ? null : extractor.getClass(), OperationReason.EXTRACT, role, subject,
+                    setDedup);
+            }
         }
 
     /**
@@ -1213,14 +1217,6 @@ public final class RemoteInstallGate
     private static void enforceDynamicInstall(Class<?> clz, OperationReason reason, SerializationRole role,
                                               Subject subject, String sTopic, String sModeReason)
         {
-        if (CoherenceMode.isLegacy())
-            {
-            // policy owns class shadow telemetry; the install gate owns the dynamic-mode shadow.
-            SerializationTelemetry.recordExecutablePolicyCheck("would_reject", clz, reason, role, subject,
-                    SerializationTelemetry.SUB_REASON_MODE_GATE);
-            return;
-            }
-
         if (!RemoteExecutionMode.isDynamicRemoteAllowed())
             {
             SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
@@ -1228,6 +1224,13 @@ public final class RemoteInstallGate
             SerializationTelemetry.logRejection(sTopic, roleName(role), subject, className(clz),
                     SerializationTelemetry.SUB_REASON_MODE_GATE);
             throw new SecurityException(sModeReason);
+            }
+
+        if (!CoherenceMode.isSecurityHardeningEnabled())
+            {
+            // policy owns class shadow telemetry; the install gate owns the dynamic-mode shadow.
+            SerializationTelemetry.recordExecutablePolicyCheck("would_reject", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_MODE_GATE);
             }
         }
 
@@ -1240,7 +1243,19 @@ public final class RemoteInstallGate
             }
 
         RemoteExecutablePolicy policy = RemoteExecutablePolicy.current();
-        if ((CoherenceMode.isLegacy() || !TopicsPersistedPolicyDrift.isReject()) && !policy.isExecutable(clz)
+        boolean fExecutable = policy.isExecutable(clz);
+        if (TopicsPersistedPolicyDrift.isReject() && !fExecutable)
+            {
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_POLICY);
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            SerializationTelemetry.logRejection(TOPIC_SUBSCRIBER_REPLAY, roleName(role), subject,
+                    className(clz), SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            throw new SecurityException("topic-subscriber-replay-drift-rejected");
+            }
+
+        if (!fExecutable
                 && !recordReplayDedup(clz, reason, setDedup))
             {
             return;
@@ -1389,6 +1404,9 @@ public final class RemoteInstallGate
 
     private static volatile Consumer<String> s_advisoryLogger = Logger::warn;
 
+    /**
+     * JVM-local replay warning and shadow-telemetry deduplication keys.
+     */
     private static final Set<String> s_setReplayDedup = ConcurrentHashMap.newKeySet();
 
     private RemoteInstallGate()

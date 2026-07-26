@@ -215,9 +215,9 @@ public final class LambdaBytecodeGate
 
     /**
      * Check whether wire-arriving DYNAMIC lambda bytecode is permitted by the
-     * current mode and property policy.
+     * current security mode and property policy.
      * <p>
-     * When the resolved policy is {@code deny} (prod default), the lambda
+     * When the resolved policy is {@code deny} (hardened default), the lambda
      * payload is refused before its bytecode is parsed.
      *
      * @return the gate result
@@ -321,7 +321,7 @@ public final class LambdaBytecodeGate
                 }
             else if (REASON_DYNAMIC_REMOTE_DENIED_BY_MODE.equals(rejected.reason()))
                 {
-                sRemediation = "; DYNAMIC lambdas from unauthenticated callers are refused in prod mode "
+                sRemediation = "; DYNAMIC lambdas from unauthenticated callers are refused when security hardening is enabled "
                         + "(set coherence.remote.dynamic.unauthenticated=allow to opt in, or switch to STATIC "
                         + "lambda serialisation)";
                 }
@@ -393,7 +393,8 @@ public final class LambdaBytecodeGate
 
     private static boolean isCompatibilityShadow(Result.Rejected rejected)
         {
-        return REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()) && CoherenceMode.isLegacy();
+        return REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason())
+                && !CoherenceMode.isSecurityHardeningEnabled();
         }
 
     private static String metricKey(String sResult, String sReason, Site site)
