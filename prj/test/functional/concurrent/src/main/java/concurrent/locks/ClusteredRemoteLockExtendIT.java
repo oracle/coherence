@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,12 +12,14 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 
+import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 
 import com.oracle.bedrock.runtime.java.options.ClassName;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
@@ -46,6 +48,9 @@ public class ClusteredRemoteLockExtendIT
 
     // ----- data members ---------------------------------------------------
 
+    private static final String CLUSTER_NAME = ClusteredRemoteLockExtendIT.class.getSimpleName()
+            + '-' + Long.toString(System.nanoTime(), 36);
+
     /**
      * A Bedrock utility to capture logs of spawned processes into files
      * under target/test-output. This is added as an option to the cluster
@@ -64,7 +69,9 @@ public class ClusteredRemoteLockExtendIT
                     .using(LocalPlatform.get())
                     .with(ClassName.of(Coherence.class),
                           Logging.at(9),
+                          ClusterName.of(CLUSTER_NAME),
                           LocalHost.only(),
+                          WellKnownAddress.loopback(),
                           Multicast.ttl(0),
                           IPv4Preferred.yes(),
                           logs,
