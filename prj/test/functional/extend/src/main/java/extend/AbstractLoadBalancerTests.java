@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,6 +33,7 @@ import java.security.PrivilegedAction;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CompletionException;
 
 import javax.security.auth.Subject;
 
@@ -208,6 +209,10 @@ public abstract class AbstractLoadBalancerTests
                 {
                 // expected
                 }
+            catch (CompletionException e)
+                {
+                // expected
+                }
             finally
                 {
                 service1.shutdown();
@@ -272,16 +277,65 @@ public abstract class AbstractLoadBalancerTests
         }
 
     /**
-    * Test case for COH-9100 using a custom load balancer.
-    */
+     * Test that the default identity chain rejects raw Subject tokens.
+     */
     @Test
-    public void testSubject()
+    public void testSubjectRejectedByDefaultIdentityChain()
         {
-        String sServer1 = getClass().getSimpleName() + "Subject-1";
+        String sServer1 = getClass().getSimpleName() + "SubjectDefault-1";
 
         try
             {
             Properties props = new Properties();
+
+            // start just one proxy server for this test - no redirects needed
+            setPortBefore1(props);
+            CoherenceClusterMember clusterMember = startCacheServer(sServer1, "extend", m_configCustom, props);
+
+            Eventually.assertThat(invoking(clusterMember).isServiceRunning(EXTEND_INVOCATION_SERVICE), is(true));
+
+            setPortAfter(sServer1);
+
+            ensureServiceMembers("ExtendTcpProxyService", 1);
+
+            final Subject subject = new Subject();
+            subject.getPrincipals().add(new PofPrincipal("CN=Manager, OU=MyUnit"));
+
+            InvocationService service = (InvocationService)
+                    getFactory().ensureService("ExtendTcpCustomInvocationService");
+            service.shutdown();
+
+            assertThrows(RuntimeException.class, () -> Subject.doAs(subject,
+                    (PrivilegedAction<Object>) () ->
+                        {
+                        getFactory().ensureService("ExtendTcpCustomInvocationService");
+                        return null;
+                        }));
+            }
+        finally
+            {
+            stopCacheServer(sServer1);
+            }
+        }
+
+    /**
+    * Test case for COH-9100 using a custom load balancer and an explicit
+    * subject-passthrough trust path.
+    */
+    @Test
+    public void testSubjectWithConfiguredTrustPath()
+        {
+        withOperationalOverride(SUBJECT_PASSTHROUGH_OVERRIDE, this::verifySubjectWithConfiguredTrustPath);
+        }
+
+    protected void verifySubjectWithConfiguredTrustPath()
+        {
+        String sServer1 = getClass().getSimpleName() + "SubjectCustom-1";
+
+        try
+            {
+            Properties props = new Properties();
+            props.setProperty("coherence.override", SUBJECT_PASSTHROUGH_OVERRIDE);
 
             // start just one proxy server for this test - no redirects needed
             setPortBefore1(props);
@@ -338,6 +392,37 @@ public abstract class AbstractLoadBalancerTests
         finally
             {
             stopCacheServer(sServer1);
+            }
+        }
+
+    protected void withOperationalOverride(String sOverride, Runnable action)
+        {
+        String sPrevious = System.getProperty("coherence.override");
+
+        stopAllApplications();
+        CacheFactory.shutdown();
+        setFactory(null);
+        System.setProperty("coherence.override", sOverride);
+        startCluster();
+
+        try
+            {
+            action.run();
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+            setFactory(null);
+            if (sPrevious == null)
+                {
+                System.clearProperty("coherence.override");
+                }
+            else
+                {
+                System.setProperty("coherence.override", sPrevious);
+                }
+            startCluster();
             }
         }
 
@@ -657,6 +742,8 @@ public abstract class AbstractLoadBalancerTests
     // ----- data members -------------------------------------------------
 
     public static final String EXTEND_INVOCATION_SERVICE = "ExtendTcpInvocationProxyService";
+
+    public static final String SUBJECT_PASSTHROUGH_OVERRIDE = "tangosol-coherence-override-subject-passthrough.xml";
 
     /**
     * Server configuration files.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.security;
@@ -11,6 +11,7 @@ package com.tangosol.net.security;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.internal.SerializationBridgeFilters;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -19,6 +20,7 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.ClusterPermission;
 
+import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.NullImplementation;
 
@@ -133,11 +135,14 @@ public class PermissionInfo
         Serializer serializer = new DefaultSerializer(loader);
 
         m_sServiceName     = in.readString(0);
-        m_signedPermission = (SignedObject) fromBinary(in.readBinary(1), serializer);
+        m_signedPermission = readBinary(in.readBinary(1), serializer, SignedObject.class,
+                SerializationBridgeFilters.signedObject(), "signed permission");
         if (in.readBoolean(2))
             {
-            Set setPrincipals  = (Set) fromBinary(in.readBinary(3), serializer);
-            Set setCredentials = (Set) fromBinary(in.readBinary(4), serializer);
+            Set setPrincipals  = readBinary(in.readBinary(3), serializer, Set.class,
+                    SerializationBridgeFilters.subjectSet(), "subject principals");
+            Set setCredentials = readBinary(in.readBinary(4), serializer, Set.class,
+                    SerializationBridgeFilters.subjectSet(), "subject credentials");
 
             m_subject = new Subject(true, setPrincipals, setCredentials,
                     NullImplementation.getSet());
@@ -186,15 +191,18 @@ public class PermissionInfo
             throws IOException, ClassNotFoundException
         {
         m_sServiceName     = in.readUTF();
-        m_signedPermission = (SignedObject) in.readObject();
+        m_signedPermission = requireType(SerializationBridgeFilters.readObject(in,
+                SerializationBridgeFilters.signedObject()), SignedObject.class, "signed permission");
 
         if (in.readBoolean())
             {
             Set setPrincipals  = new HashSet();
             Set setCredentials = new HashSet();
 
-            readCollection(in, setPrincipals, null);
-            readCollection(in, setCredentials, null);
+            SerializationBridgeFilters.readCollection(in, setPrincipals, null,
+                    SerializationBridgeFilters.subjectSet());
+            SerializationBridgeFilters.readCollection(in, setCredentials, null,
+                    SerializationBridgeFilters.subjectSet());
 
             m_subject = new Subject(true, setPrincipals, setCredentials,
                     NullImplementation.getSet());
@@ -224,6 +232,53 @@ public class PermissionInfo
             writeCollection(out, subject.getPrincipals());
             writeCollection(out, subject.getPublicCredentials());
             }
+        }
+
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+    * Deserialize a nested Java-serialized binary through a bridge filter.
+    *
+    * @param bin           the nested binary
+    * @param serializer    the serializer to use
+    * @param clz           the expected result type
+    * @param filterBridge  the bridge-local filter
+    * @param sField        the field description
+    *
+    * @return the deserialized value
+    *
+    * @throws IOException if deserialization fails or the value has the wrong
+    *         type
+    */
+    private static <T> T readBinary(Binary bin, Serializer serializer, Class<T> clz,
+                                    java.io.ObjectInputFilter filterBridge, String sField)
+            throws IOException
+        {
+        return bin == null ? null : requireType(
+                SerializationBridgeFilters.deserialize(bin, serializer, filterBridge), clz, sField);
+        }
+
+    /**
+    * Require the specified value to be of the specified type.
+    *
+    * @param o       the value
+    * @param clz     the expected type
+    * @param sField  the field description
+    *
+    * @return the typed value
+    *
+    * @throws IOException if the value has the wrong type
+    */
+    private static <T> T requireType(Object o, Class<T> clz, String sField)
+            throws IOException
+        {
+        if (o == null || clz.isInstance(o))
+            {
+            return clz.cast(o);
+            }
+
+        throw new IOException("invalid PermissionInfo " + sField + " type: " + o.getClass().getName());
         }
 
 

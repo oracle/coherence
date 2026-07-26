@@ -73,6 +73,31 @@ public final class SerializationAllowlist
         }
 
     /**
+     * Return {@code true} if the specified class is explicitly allowlisted by
+     * security configuration or the manual serialization allowlist property.
+     *
+     * @param clz  the class to check
+     *
+     * @return {@code true} if the class is explicitly allowlisted
+     */
+    public static boolean isExplicitlyAllowlisted(Class<?> clz)
+        {
+        if (clz == null)
+            {
+            return true;
+            }
+
+        if (clz.isArray())
+            {
+            Class<?> clzComponent = clz.getComponentType();
+            return clzComponent.isPrimitive() || isExplicitlyAllowlisted(clzComponent);
+            }
+
+        String sName = explicitAllowlistName(clz.getName(), clz.isSynthetic());
+        return sName != null && isDirectlyExplicitlyAllowlisted(sName);
+        }
+
+    /**
      * Return {@code true} if the specified class is denied.
      *
      * @param clz  the class to check
@@ -217,8 +242,39 @@ public final class SerializationAllowlist
         {
         return BASELINE_EXACT.contains(sName)
                || matchesPrefix(sName, BASELINE_PREFIX)
-               || SecurityConfig.current().contains(sName)
+               || isDirectlyExplicitlyAllowlisted(sName);
+        }
+
+    /**
+     * Return {@code true} if the specified class name is directly explicitly
+     * allowlisted.
+     *
+     * @param sName  the class name
+     *
+     * @return {@code true} if the class name is explicitly allowlisted
+     */
+    private static boolean isDirectlyExplicitlyAllowlisted(String sName)
+        {
+        return SecurityConfig.current().contains(sName)
                || configuredAllowlist().matches(sName);
+        }
+
+    /**
+     * Return the class name to use for explicit allowlist checks.
+     *
+     * @param sName       the class name
+     * @param fSynthetic  {@code true} if the class is synthetic
+     *
+     * @return the class name, or {@code null} if it cannot be allowlisted
+     */
+    private static String explicitAllowlistName(String sName, boolean fSynthetic)
+        {
+        if (isDirectlyExplicitlyAllowlisted(sName))
+            {
+            return sName;
+            }
+
+        return fSynthetic ? generatedCapturingClassName(sName) : null;
         }
 
     /**
