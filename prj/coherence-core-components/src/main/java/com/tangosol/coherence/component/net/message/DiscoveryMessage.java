@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -52,6 +52,14 @@ public class DiscoveryMessage
      * The source address for incomming packets.
      */
     private java.net.SocketAddress __m_SourceAddress;
+
+    /**
+     * Property SourceAddressObserved
+     *
+     * True iff the source address was observed from the received packet or an
+     * equivalent envelope, rather than copied from the message payload.
+     */
+    private transient boolean __m_SourceAddressObserved;
     
     /**
      * Property ToMember
@@ -221,6 +229,17 @@ public class DiscoveryMessage
         {
         return __m_ReadError;
         }
+
+    // Accessor for the property "SourceAddressObserved"
+    /**
+     * Getter for property SourceAddressObserved.<p>
+     * True iff the source address was observed from the received packet or an
+     * equivalent envelope, rather than copied from the message payload.
+     */
+    public boolean isSourceAddressObserved()
+        {
+        return __m_SourceAddressObserved;
+        }
     
     // Declared at the super level
     /**
@@ -353,6 +372,7 @@ public class DiscoveryMessage
         if (packet instanceof Broadcast)
             {
             setSourceAddress(((Broadcast) packet).getFromAddress());
+            setSourceAddressObserved(true);
             }
         }
     
@@ -375,6 +395,17 @@ public class DiscoveryMessage
     public void setSourceAddress(java.net.SocketAddress pSourceAddress)
         {
         __m_SourceAddress = pSourceAddress;
+        }
+
+    // Accessor for the property "SourceAddressObserved"
+    /**
+     * Setter for property SourceAddressObserved.<p>
+     * True iff the source address was observed from the received packet or an
+     * equivalent envelope, rather than copied from the message payload.
+     */
+    public void setSourceAddressObserved(boolean fObserved)
+        {
+        __m_SourceAddressObserved = fObserved;
         }
     
     // Accessor for the property "ToMember"

@@ -65,6 +65,7 @@ import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -5878,9 +5879,27 @@ public class ClusterService
      */
     public boolean validateNewMember(com.tangosol.coherence.component.net.Member memberNew)
         {
+        return validateNewMember(memberNew, null);
+        }
+
+    /**
+     * Validates the sender (new member) when broadcasting to announce presence
+     * and request an ID.
+     *
+     * @param memberNew  the new Member
+     * @param message    the discovery message carrying the new Member, or null
+     *
+     * @return true if the Member uid is fine (no conflict); false if the Member
+     * uid was in use and that old Member has been "killed" or the collision is
+     * not trusted
+     */
+    public boolean validateNewMember(com.tangosol.coherence.component.net.Member memberNew, com.tangosol.coherence.component.net.message.DiscoveryMessage message)
+        {
         // import Component.Net.Member;
         // import Component.Net.MemberSet;
         // import java.net.InetAddress;
+        // import java.net.InetSocketAddress;
+        // import java.net.SocketAddress;
         // import java.util.Iterator;
         
         InetAddress addrNew  = memberNew.getAddress();
@@ -5897,6 +5916,30 @@ public class ClusterService
                     && member.getAddress().equals(addrNew)
                     && !member.getUid32().equals(memberNew.getUid32()))
                 {
+                if (message == null || !message.isSourceAddressObserved())
+                    {
+                    _trace("New member uses existing address/port but the packet source was not observed; "
+                         + "rejecting replacement of old member: " + member, 2);
+                    return false;
+                    }
+
+                SocketAddress addrSource = message.getSourceAddress();
+                if (!(addrSource instanceof InetSocketAddress))
+                    {
+                    _trace("New member uses existing address/port but the packet source is unavailable; "
+                         + "rejecting replacement of old member: " + member, 2);
+                    return false;
+                    }
+
+                InetSocketAddress addrSockSource = (InetSocketAddress) addrSource;
+                if (addrSockSource.getPort() != nPortNew || !addrSockSource.getAddress().equals(addrNew))
+                    {
+                    _trace("New member uses existing address/port but the packet source "
+                         + addrSockSource + " does not match the claimed member endpoint; "
+                         + "rejecting replacement of old member: " + member, 2);
+                    return false;
+                    }
+
                 _trace("New member uses existing address/port; " +
                        "killing the old member: " + member, 3);
                 doMemberLeft(member);
@@ -10462,7 +10505,7 @@ public class ClusterService
             
                     // the order of checks is important; validateNewMember() should take the precedence 
                     if (memberThis == memberSenior &&
-                        service.validateNewMember(memberFrom) &&
+                        service.validateNewMember(memberFrom, this) &&
                         !service.isMembershipSuspended() &&
                         (memberNew != null || service.getPendingServiceJoining().isEmpty()))
                         {

@@ -7286,6 +7286,7 @@ public abstract class PartitionedService
         PartitionedService.PartitionControl ctrlPart         = getPartitionControl(iPartition);
         
         if (isAcceptingClients() && isOwnershipEnabled() &&
+            isTransferRequestTopologyValid(msgRequest) &&
             (ctrlPart == null || !ctrlPart.isLocked()))
             {
             int iStore = msgRequest.getStore();
@@ -7389,11 +7390,88 @@ public abstract class PartitionedService
             }
         else
             {
-            PartitionedService.TransferResponse msgResponse = (PartitionedService.TransferResponse) instantiateMessage("TransferResponse");
-            msgResponse.respondTo(msgRequest);
-            msgResponse.setValue(Integer.valueOf(PartitionedService.TransferRequest.RESPONSE_REJECT));
-            post(msgResponse);
+            rejectTransferRequest(msgRequest);
             }
+        }
+
+    /**
+     * Reject a transfer request without mutating transfer state.
+     *
+     * @param msgRequest  the transfer request
+     */
+    protected void rejectTransferRequest(PartitionedService.TransferRequest msgRequest)
+        {
+        PartitionedService.TransferResponse msgResponse = (PartitionedService.TransferResponse) instantiateMessage("TransferResponse");
+        msgResponse.respondTo(msgRequest);
+        msgResponse.setValue(Integer.valueOf(PartitionedService.TransferRequest.RESPONSE_REJECT));
+        post(msgResponse);
+        }
+
+    /**
+     * Validate transfer sender and topology metadata before applying transfer
+     * side effects.
+     *
+     * @param msgRequest  the transfer request
+     *
+     * @return true iff the request is consistent with local topology
+     */
+    protected boolean isTransferRequestTopologyValid(PartitionedService.TransferRequest msgRequest)
+        {
+        // import Component.Net.Member;
+        // import com.tangosol.net.partition.VersionedOwnership;
+
+        int iPartition = msgRequest.getPartition();
+        int iStore     = msgRequest.getStore();
+        if (iPartition < 0 || iPartition >= getPartitionCount())
+            {
+            _trace("Rejecting transfer for invalid partition " + iPartition + ": " + msgRequest, 2);
+            return false;
+            }
+
+        if (iStore < 0 || iStore > getBackupCount())
+            {
+            _trace("Rejecting transfer for invalid store " + iStore + ": " + msgRequest, 2);
+            return false;
+            }
+
+        Member memberFrom = msgRequest.getFromMember();
+        if (memberFrom == null || getServiceMemberSet().getMember(memberFrom.getId()) == null)
+            {
+            _trace("Rejecting transfer from non-service member " + memberFrom + ": " + msgRequest, 2);
+            return false;
+            }
+
+        VersionedOwnership owners = msgRequest.getOwners();
+        if (owners == null || owners.getOwners().length != getBackupCount() + 1)
+            {
+            _trace("Rejecting transfer with incompatible ownership metadata: " + msgRequest, 2);
+            return false;
+            }
+
+        int     nMemberFrom = memberFrom.getId();
+        int[][] aaiOwner    = getPartitionAssignments();
+        int     nPrimary    = aaiOwner[iPartition][0];
+        int     nPrimaryMsg = owners.getPrimaryOwner();
+
+        if (iStore == 0)
+            {
+            if (!isDistributionInProgress() || (nMemberFrom != nPrimary && nMemberFrom != nPrimaryMsg))
+                {
+                _trace("Rejecting primary transfer from member " + nMemberFrom
+                     + " for partition " + iPartition + "; local primary=" + nPrimary
+                     + ", message owners=" + owners, 2);
+                return false;
+                }
+            }
+        else if (nMemberFrom != nPrimary && nMemberFrom != nPrimaryMsg)
+            {
+            _trace("Rejecting backup transfer from member " + nMemberFrom
+                 + " for partition " + iPartition + "; local primary=" + nPrimary
+                 + ", message owners=" + owners, 2);
+            return false;
+            }
+
+        return true;
         }
     
     /**
@@ -11115,6 +11193,8 @@ public abstract class PartitionedService
         public void read(com.tangosol.io.ReadBuffer.BufferInput input)
                 throws java.io.IOException
             {
+            // import com.tangosol.io.internal.BridgeObjectInputFilter;
+            // import com.tangosol.io.internal.DefaultObjectInputFilter;
             // import com.tangosol.util.ExternalizableHelper as com.tangosol.util.ExternalizableHelper;
             
             setRelease(input.readBoolean());
@@ -18683,6 +18763,12 @@ public abstract class PartitionedService
                     {
                     return;
                     }
+
+                if (!getRemainingMemberSet().contains(msg.getFromMember()))
+                    {
+                    _trace("Ignoring ownership response from unexpected member " + msg.getFromMember(), 2);
+                    return;
+                    }
                 
                 PartitionedService.OwnershipResponse msgResponse = (PartitionedService.OwnershipResponse) msg;
                 if (msgResponse.isSuccess())
@@ -18965,7 +19051,7 @@ public abstract class PartitionedService
                         {
                         asGUID[i] = input.readUTF();
                         }
-            
+
                     setPersistentIds(asGUID);
                     }
             
@@ -19639,7 +19725,7 @@ public abstract class PartitionedService
                     return new Binary(in);
             
                 case TYPE_ANY:
-                    return super.readObject(in);
+                    throw new IOException("unsupported partition config object type: " + nType);
             
                 default:
                     throw new IOException("invalid type: " + nType);
@@ -19677,8 +19763,8 @@ public abstract class PartitionedService
                 }
             else
                 {
-                out.write(TYPE_ANY);
-                super.writeObject(out, o);
+                throw new java.io.IOException("unsupported partition config value type: "
+                        + (o == null ? "null" : o.getClass().getName()));
                 }
             }
 

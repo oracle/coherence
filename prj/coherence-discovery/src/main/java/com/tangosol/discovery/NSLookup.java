@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,10 +22,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,7 +97,7 @@ public class NSLookup
             throws IOException
         {
         String sURL = lookup(sCluster, JMX_CONNECTOR_URL, socketAddr, DEFAULT_TIMEOUT);
-        return sURL == null ? null : new JMXServiceURL(sURL);
+        return sURL == null ? null : validateJMXServiceURL(new JMXServiceURL(sURL));
         }
 
     /**
@@ -220,6 +224,56 @@ public class NSLookup
         if (asResult != null)
             {
             // skip element 0 which will be an empty string
+            for (int i = 1; i < asResult.length; i += 2)
+                {
+                list.add(new InetSocketAddress(asResult[i], Integer.parseInt(asResult[i+1])));
+                }
+            }
+        return list;
+        }
+
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for current cluster.
+     *
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket address(es) which can be used to access extend client proxy's endpoint(s)
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 24.09
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        return lookupExtendProxy(null, socketAddr, sName);
+        }
+
+    /**
+     * Lookup the extend proxy service {@link SocketAddress SocketAddress(es)} for specified cluster.
+     *
+     * @param sCluster    the target cluster name
+     * @param socketAddr  unicast socket address of a coherence cluster node and cluster port
+     * @param sName       proxy service name, must be fully scoped service name when application scoping is enabled
+     *
+     * @return a collection of socket addresses which can be used to access extend proxy endpoints in the target cluster
+     *
+     * @throws IOException  if an I/O error occurs while doing the extend client proxy service lookup
+     *
+     * @since 24.09
+     */
+    public static Collection<SocketAddress> lookupExtendProxy(String sCluster, SocketAddress socketAddr, String sName)
+            throws IOException
+        {
+        List<SocketAddress> list    = new ArrayList<>();
+        String              sResult = lookup(sCluster, NS_STRING_PREFIX + sName, socketAddr, DEFAULT_TIMEOUT);
+
+        // do not use streams as this class needs to be buildable on Java 7
+        // format is "[URL1, URL2, URL3, ...]"
+        String [] asResult  = sResult == null ? null : sResult.split("[\\[,\\] ]+");
+        if (asResult != null)
+            {
             for (int i = 1; i < asResult.length; i += 2)
                 {
                 list.add(new InetSocketAddress(asResult[i], Integer.parseInt(asResult[i+1])));
@@ -464,6 +518,10 @@ public class NSLookup
             {
             throw new IOException("Received a message with a length of zero");
             }
+        else if (cb > MAX_MESSAGE_BYTES)
+            {
+            throw new IOException("Received a message with a length greater than " + MAX_MESSAGE_BYTES + ": " + cb);
+            }
         else
             {
             byte[] ab = new byte[cb];
@@ -480,7 +538,7 @@ public class NSLookup
      *
      * @throws IOException if an I/O error occurs while writing to the socket stream
      */
-    private static void writePackedInt(DataOutputStream outStream, int n)
+    protected static void writePackedInt(DataOutputStream outStream, int n)
             throws IOException
         {
         // first byte contains sign bit (bit 7 set if neg)
@@ -902,25 +960,88 @@ public class NSLookup
         {
         try
             {
-            int cbResult = in.readInt();
-            if (cbResult == 0)
+            int nHeader = in.readInt();
+            if (nHeader == 0)
                 {
                 return null;
                 }
+            else if (nHeader < 0)
+                {
+                throw new IOException("Received a NameService result with an invalid header: " + nHeader);
+                }
             else
                 {
-                in.readShort(); // pof header we know it can only be a string;
+                int nStringHeader = in.readUnsignedShort();
+                if ((nStringHeader & 0xFF) != POF_TYPE_STRING)
+                    {
+                    throw new IOException("Received a NameService result with an invalid string header: " + nStringHeader);
+                    }
 
-                byte[] abResult = new byte[readPackedInt(in)];
+                int cbString = readPackedInt(in);
+                if (cbString < 0)
+                    {
+                    throw new IOException("Received a NameService string with a negative length");
+                    }
+                else if (cbString > MAX_STRING_BYTES)
+                    {
+                    throw new IOException("Received a NameService string greater than " + MAX_STRING_BYTES + ": " + cbString);
+                    }
+
+                byte[] abResult = new byte[cbString];
 
                 in.readFully(abResult);
-                return new String(abResult);
+                return new String(abResult, StandardCharsets.UTF_8);
                 }
             }
         catch (IOException e)
             {
             throw new RuntimeException(e);
             }
+        }
+
+    /**
+     * Validate a JMX service URL returned by NameService.
+     *
+     * @param url  the URL
+     *
+     * @return the validated URL
+     *
+     * @throws IOException if the URL is not supported
+     */
+    protected static JMXServiceURL validateJMXServiceURL(JMXServiceURL url)
+            throws IOException
+        {
+        String sProtocol = url.getProtocol();
+        if (!"rmi".equalsIgnoreCase(sProtocol))
+            {
+            throw new IOException("Unsupported JMX service URL protocol: " + sProtocol);
+            }
+
+        String sPath = url.getURLPath();
+        if (sPath == null || sPath.isEmpty())
+            {
+            return url;
+            }
+        if (!sPath.startsWith("/jndi/"))
+            {
+            throw new IOException("Unsupported JMX service URL path: " + sPath);
+            }
+
+        String sUri = sPath.substring("/jndi/".length());
+        try
+            {
+            URI uri = new URI(sUri);
+            if (!"rmi".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null)
+                {
+                throw new IOException("Unsupported JMX service URL provider protocol: " + uri.getScheme());
+                }
+            }
+        catch (URISyntaxException e)
+            {
+            throw new IOException("Invalid JMX service URL provider path: " + sPath, e);
+            }
+
+        return url;
         }
 
     /**
@@ -1262,6 +1383,21 @@ public class NSLookup
      * Default name.
      */
     public static final String DEFAULT_NAME = "Cluster/info";
+
+    /**
+     * Maximum TCP NameService frame length.
+     */
+    protected static final int MAX_MESSAGE_BYTES = 16 * 1024 * 1024;
+
+    /**
+     * Maximum NameService string result length.
+     */
+    protected static final int MAX_STRING_BYTES = 64 * 1024;
+
+    /**
+     * POF type identifier for a NameService string result.
+     */
+    protected static final int POF_TYPE_STRING = 0x4E;
 
     /**
      * Multiplexed Socket ID. See com.oracle.coherence.common.internal.net.ProtocolIdentifiers.

@@ -2505,6 +2505,11 @@ public abstract class Peer
         
         if (oToken != null)
             {
+            if (getParentService() instanceof com.tangosol.net.NameService)
+                {
+                return null;
+                }
+
             try
                 {
                 ByteArrayWriteBuffer buf = new ByteArrayWriteBuffer(1024);

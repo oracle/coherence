@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -57,6 +57,21 @@ public class InvocationService
      */
     private transient java.util.Map __m_PendingProcess;
     private static com.tangosol.util.ListMap __mapChildren;
+
+    // ---- inner interface: SenderAwareInvocable --------------------------
+
+    /**
+     * Internal marker for invocables that validate their sending member.
+     */
+    public interface SenderAwareInvocable
+        {
+        /**
+         * Set the member that sent this invocable.
+         *
+         * @param member  the sender member
+         */
+        void setInvocationSender(com.tangosol.net.Member member);
+        }
     
     // Static initializer
     static
@@ -368,6 +383,7 @@ public class InvocationService
         Invocable task = msg.getTask();
         try
             {
+            configureInvocationSender(task, msg.getFromMember());
             task.run();
             }
         catch (Throwable e)
@@ -391,6 +407,7 @@ public class InvocationService
         // initialiazation issues have been take care of at onReceived()
         try
             {
+            configureInvocationSender(task, msgRequest.getFromMember());
             if (task instanceof NonBlockingInvocable)
                 {
                 ((NonBlockingInvocable) task).run(msgRequest);
@@ -404,6 +421,21 @@ public class InvocationService
         catch (Throwable e)
             {
             msgRequest.proceed(e);
+            }
+        }
+
+    /**
+     * Pass invocation sender metadata to trusted internal invocables that need
+     * to validate their sender before applying side effects.
+     *
+     * @param task    the invocable task
+     * @param member  the sending member
+     */
+    protected void configureInvocationSender(com.tangosol.net.Invocable task, com.tangosol.net.Member member)
+        {
+        if (task instanceof SenderAwareInvocable)
+            {
+            ((SenderAwareInvocable) task).setInvocationSender(member);
             }
         }
     

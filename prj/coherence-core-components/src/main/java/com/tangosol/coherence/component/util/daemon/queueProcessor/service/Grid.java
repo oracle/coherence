@@ -24,7 +24,9 @@ import com.tangosol.coherence.component.net.memberSet.actualMemberSet.ServiceMem
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.net.message.DiscoveryMessage;
 import com.tangosol.coherence.component.net.message.RequestMessage;
+import com.tangosol.coherence.component.net.message.requestMessage.DistributedCacheRequest;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.io.SerializationRole;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
@@ -45,6 +47,10 @@ import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.internal.net.service.grid.DefaultGridDependencies;
 import com.tangosol.internal.net.service.grid.GridDependencies;
+import com.tangosol.internal.net.security.SubjectProofPayload;
+import com.tangosol.internal.net.security.SubjectProofProvider;
+import com.tangosol.internal.net.security.SubjectProofProviders;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.tracing.Scope;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
@@ -106,6 +112,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.IntPredicate;
 import javax.management.Notification;
+import javax.security.auth.Subject;
 
 /**
  * Base definition of a clustered Service component.
@@ -161,6 +168,31 @@ public abstract class Grid
         implements com.tangosol.internal.util.GridComponent,
                    com.tangosol.net.Service
     {
+    /**
+     * Magic for the request-message extension record layer.
+     */
+    protected static final int REQUEST_EXTENSION_MAGIC = 0x524D5831; // RMX1
+
+    /**
+     * Subject-proof request-extension type.
+     */
+    protected static final int REQUEST_EXTENSION_TYPE_SUBJECT_PROOF = 1;
+
+    /**
+     * Subject-proof request-extension version.
+     */
+    protected static final int REQUEST_EXTENSION_VERSION_SUBJECT_PROOF = 1;
+
+    /**
+     * Minimum request-extension record header length.
+     */
+    protected static final int REQUEST_EXTENSION_HEADER_LENGTH = 10;
+
+    /**
+     * Maximum payload length for one request-extension record.
+     */
+    protected static final int REQUEST_EXTENSION_MAX_PAYLOAD_LENGTH = 64 * 1024;
+
     // ---- Fields declarations ----
     
     /**
@@ -1011,6 +1043,7 @@ public abstract class Grid
                 {
                 msg.readInternal(input);
                 msg.read(input);
+                readRequestExtensions(msg, input);
                 }
         
             if (fWrapped)
@@ -1043,6 +1076,118 @@ public abstract class Grid
             }
         }
     
+    /**
+     * Read optional request-extension records after the ordinary message body.
+     */
+    protected void readRequestExtensions(Message msg, com.tangosol.io.ReadBuffer.BufferInput input)
+            throws IOException
+        {
+        if (!(msg instanceof RequestMessage) || input.available() == 0)
+            {
+            return;
+            }
+
+        Member memberFrom = msg.getFromMember();
+        if (memberFrom == null || !isVersionCompatible(memberFrom, RequestMessage::isRequestExtensionCompatible))
+            {
+            return;
+            }
+
+        input.mark(REQUEST_EXTENSION_HEADER_LENGTH);
+        if (input.available() < Integer.BYTES)
+            {
+            return;
+            }
+
+        int nMagic = input.readInt();
+        if (nMagic != REQUEST_EXTENSION_MAGIC)
+            {
+            input.reset();
+            return;
+            }
+
+        while (true)
+            {
+            if (input.available() < REQUEST_EXTENSION_HEADER_LENGTH - Integer.BYTES)
+                {
+                throw new IOException("malformed request extension");
+                }
+
+            int nType     = input.readUnsignedByte();
+            int nVersion  = input.readUnsignedByte();
+            int cbPayload = input.readInt();
+            if (cbPayload < 0 || cbPayload > REQUEST_EXTENSION_MAX_PAYLOAD_LENGTH || cbPayload > input.available())
+                {
+                throw new IOException("malformed request extension");
+                }
+
+            boolean fSubjectProof = nType == REQUEST_EXTENSION_TYPE_SUBJECT_PROOF;
+            if (!fSubjectProof)
+                {
+                skipRequestExtensionPayload(input, cbPayload);
+                }
+            else
+                {
+                if (nVersion != REQUEST_EXTENSION_VERSION_SUBJECT_PROOF)
+                    {
+                    throw new IOException("unsupported subject-proof request extension");
+                    }
+
+                byte[] abPayload = new byte[cbPayload];
+                input.readFully(abPayload);
+                handleSubjectProofRequestExtension((RequestMessage) msg, abPayload);
+                }
+
+            if (input.available() == 0)
+                {
+                return;
+                }
+            if (input.available() < Integer.BYTES)
+                {
+                throw new IOException("stray request-extension bytes");
+                }
+            nMagic = input.readInt();
+            if (nMagic != REQUEST_EXTENSION_MAGIC)
+                {
+                throw new IOException("stray request-extension bytes");
+                }
+            }
+        }
+
+    /**
+     * Skip a bounded request-extension payload without copying it to a heap
+     * array.
+     */
+    protected void skipRequestExtensionPayload(com.tangosol.io.ReadBuffer.BufferInput input, int cbPayload)
+            throws IOException
+        {
+        int cbRemaining = cbPayload;
+        while (cbRemaining > 0)
+            {
+            int cbSkipped = input.skipBytes(cbRemaining);
+            if (cbSkipped <= 0)
+                {
+                throw new IOException("malformed request extension");
+                }
+            cbRemaining -= cbSkipped;
+            }
+        }
+
+    /**
+     * Handle a supported subject-proof request-extension record.
+     */
+    protected void handleSubjectProofRequestExtension(RequestMessage msg, byte[] abPayload)
+            throws IOException
+        {
+        RequestContext ctx = msg.getRequestContext();
+        if (ctx == null)
+            {
+            throw new IOException("subject-proof request extension without request context");
+            }
+        ctx.setSubjectProof(abPayload);
+        ctx.setSubjectProofSenderId(getSubjectProofSenderId(msg.getFromMember()));
+        }
+
     // From interface: com.tangosol.internal.util.GridComponent
     /**
      * Dispatch a JMX notification.
@@ -4427,6 +4572,7 @@ public abstract class Grid
         
         msg.writeInternal(output);
         msg.write(output);
+        writeRequestExtensions(msg, output);
         
         if (fFiltered) // non-filtered streams don't require closing
             {
@@ -4436,6 +4582,277 @@ public abstract class Grid
         return output.getOffset();
         }
     
+    /**
+     * Write optional request-extension records after the ordinary message body.
+     */
+    protected void writeRequestExtensions(Message msg, com.tangosol.io.WriteBuffer.BufferOutput output)
+            throws IOException
+        {
+        if (!(msg instanceof RequestMessage))
+            {
+            return;
+            }
+
+        RequestContext ctx = ((RequestMessage) msg).getRequestContext();
+        if (ctx == null)
+            {
+            return;
+            }
+
+        RequestMessage msgRequest = (RequestMessage) msg;
+        boolean        fRequired  = isSubjectProofEnforced()
+                && ctx.getSubject() != null
+                && isSubjectProofRequired(msgRequest);
+        MemberSet      setMembers = msg.getToMemberSet();
+        if (setMembers == null
+                || !isVersionCompatible(setMembers, RequestMessage::isRequestExtensionCompatible)
+                || !isVersionCompatible(setMembers, RequestMessage::isSubjectProofV1Compatible))
+            {
+            if (fRequired)
+                {
+                throw new IOException("subject proof required for incompatible recipient set");
+                }
+            return;
+            }
+
+        byte[] ab = ensureSubjectProof(msgRequest, ctx);
+        if (ab == null || ab.length == 0)
+            {
+            if (fRequired)
+                {
+                throw new IOException("subject proof required but not produced");
+                }
+            return;
+            }
+
+        writeRequestExtension(output, REQUEST_EXTENSION_TYPE_SUBJECT_PROOF, REQUEST_EXTENSION_VERSION_SUBJECT_PROOF,
+                ab);
+        }
+
+    /**
+     * Ensure subject-proof bytes are present for the request context when an
+     * explicit provider is enabled.
+     */
+    protected byte[] ensureSubjectProof(RequestMessage msg, RequestContext ctx)
+        {
+        byte[] ab = ctx.getSubjectProof();
+        if (ab != null && ab.length > 0)
+            {
+            return ab;
+            }
+
+        Subject subject = ctx.getSubject();
+        if (subject == null)
+            {
+            return null;
+            }
+
+        SubjectProofProvider provider = getSubjectProofProvider();
+        if (provider == null || !provider.isEnabled())
+            {
+            return null;
+            }
+
+        ab = provider.createProof(createSubjectProofPayload(msg, ctx));
+        if (ab != null && ab.length > 0)
+            {
+            ctx.setSubjectProof(ab);
+            ctx.setSubjectProofSenderId(getSubjectProofIssuerId());
+            }
+        return ab;
+        }
+
+    /**
+     * Return the subject-proof provider. The default provider is disabled and
+     * behavior-neutral.
+     */
+    protected SubjectProofProvider getSubjectProofProvider()
+        {
+        return SubjectProofProviders.disabled();
+        }
+
+    /**
+     * Create the passive subject-proof payload for the specified request.
+     */
+    protected SubjectProofPayload createSubjectProofPayload(RequestMessage msg, RequestContext ctx)
+        {
+        return createSubjectProofPayload(ctx, getSubjectProofCacheName(msg), msg);
+        }
+
+    /**
+     * Create the passive subject-proof payload for received proof validation.
+     */
+    protected SubjectProofPayload createSubjectProofPayload(RequestContext ctx, String sCacheName)
+        {
+        return createSubjectProofPayload(ctx, sCacheName, null);
+        }
+
+    /**
+     * Create the passive subject-proof payload.
+     */
+    protected SubjectProofPayload createSubjectProofPayload(RequestContext ctx, String sCacheName, RequestMessage msg)
+        {
+        long lIssuedAtMillis = getSubjectProofIssuedAtMillis(msg, ctx);
+        return new SubjectProofPayload(SubjectProofPayload.PROOF_VERSION, getSubjectProofAlgorithmId(),
+                getSubjectProofKeyId(), getSubjectProofIssuerId(), getSubjectProofSubjectSource(),
+                getSubjectProofClusterName(), getSubjectProofServiceType(), getServiceName(),
+                sCacheName == null ? "" : sCacheName, ctx.getRequestSUID(),
+                getSubjectProofReplayEpoch(msg, ctx), getSubjectProofNonce(msg, ctx), lIssuedAtMillis,
+                getSubjectProofExpiresAtMillis(msg, ctx, lIssuedAtMillis),
+                SubjectProofPayload.canonicalPrincipalNames(ctx.getSubject()));
+        }
+
+    /**
+     * Return true iff subject-proof policy is enforced in the current mode.
+     */
+    protected boolean isSubjectProofEnforced()
+        {
+        return !CoherenceMode.isLegacy();
+        }
+
+    /**
+     * Return true iff the specified request targets a proof-required route.
+     */
+    protected boolean isSubjectProofRequired(RequestMessage msg)
+        {
+        return false;
+        }
+
+    /**
+     * Return the subject-proof algorithm id.
+     */
+    protected String getSubjectProofAlgorithmId()
+        {
+        return "";
+        }
+
+    /**
+     * Return the subject-proof key id.
+     */
+    protected String getSubjectProofKeyId()
+        {
+        return "";
+        }
+
+    /**
+     * Return the subject-proof issuer id.
+     */
+    protected String getSubjectProofIssuerId()
+        {
+        return getSubjectProofMemberId(getThisMember());
+        }
+
+    /**
+     * Return the subject source kind.
+     */
+    protected String getSubjectProofSubjectSource()
+        {
+        return "member";
+        }
+
+    /**
+     * Return the subject-proof cluster identity.
+     */
+    protected String getSubjectProofClusterName()
+        {
+        com.tangosol.net.Cluster cluster = getCluster();
+        return cluster == null ? "" : cluster.getClusterName();
+        }
+
+    /**
+     * Return the subject-proof service type.
+     */
+    protected String getSubjectProofServiceType()
+        {
+        String sType = getServiceType();
+        return sType == null ? "" : sType;
+        }
+
+    /**
+     * Return the cache name when it is cheaply available from the local
+     * service/request pair.
+     */
+    protected String getSubjectProofCacheName(RequestMessage msg)
+        {
+        if (msg instanceof DistributedCacheRequest && this instanceof PartitionedCache)
+            {
+            String sCacheName = ((PartitionedCache) this).getCacheName(((DistributedCacheRequest) msg).getCacheId());
+            return sCacheName == null ? "" : sCacheName;
+            }
+        return "";
+        }
+
+    /**
+     * Return the subject-proof nonce.
+     */
+    protected long getSubjectProofNonce(RequestMessage msg, RequestContext ctx)
+        {
+        return ctx.getRequestSUID();
+        }
+
+    /**
+     * Return the subject-proof request replay epoch.
+     */
+    protected long getSubjectProofReplayEpoch(RequestMessage msg, RequestContext ctx)
+        {
+        return ctx.getOldestPendingSUID();
+        }
+
+    /**
+     * Return the passive subject-proof sender id for a received member.
+     */
+    protected String getSubjectProofSenderId(Member member)
+        {
+        return getSubjectProofMemberId(member);
+        }
+
+    /**
+     * Return the stable subject-proof identity for a member.
+     */
+    protected String getSubjectProofMemberId(Member member)
+        {
+        return member == null || member.getUuid() == null ? "" : "member-uuid:" + member.getUuid();
+        }
+
+    /**
+     * Return the subject-proof issue time.
+     */
+    protected long getSubjectProofIssuedAtMillis(RequestMessage msg, RequestContext ctx)
+        {
+        return Base.getSafeTimeMillis();
+        }
+
+    /**
+     * Return the subject-proof expiration time.
+     */
+    protected long getSubjectProofExpiresAtMillis(RequestMessage msg, RequestContext ctx, long lIssuedAtMillis)
+        {
+        return lIssuedAtMillis;
+        }
+
+    /**
+     * Write one request-extension record.
+     */
+    protected void writeRequestExtension(com.tangosol.io.WriteBuffer.BufferOutput output, int nType, int nVersion,
+            byte[] abPayload)
+            throws IOException
+        {
+        int cbPayload = abPayload == null ? 0 : abPayload.length;
+        if (cbPayload > REQUEST_EXTENSION_MAX_PAYLOAD_LENGTH)
+            {
+            throw new IOException("oversized request extension");
+            }
+
+        output.writeInt(REQUEST_EXTENSION_MAGIC);
+        output.writeByte(nType);
+        output.writeByte(nVersion);
+        output.writeInt(cbPayload);
+        if (abPayload != null)
+            {
+            output.write(abPayload);
+            }
+        }
+
     // Declared at the super level
     /**
      * Setter for property AcceptingClients.<p>

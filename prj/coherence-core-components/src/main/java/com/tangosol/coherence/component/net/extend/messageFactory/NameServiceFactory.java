@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ package com.tangosol.coherence.component.net.extend.messageFactory;
 import com.tangosol.coherence.component.net.extend.connection.TcpConnection;
 import com.tangosol.coherence.component.util.NameService;
 import com.tangosol.net.InetAddressHelper;
+import com.tangosol.net.internal.NameServiceValuePolicy;
 
 /**
  * MessageFactory for version 1 of the NameService Protocol.
@@ -317,6 +318,7 @@ public class NameServiceFactory
         protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
             {
             // import Component.Util.NameService;
+            // import com.tangosol.net.internal.NameServiceValuePolicy;
             
             try
                 {
@@ -325,7 +327,7 @@ public class NameServiceFactory
             catch (Exception e)
                 {
                 response.setFailure(true);
-                response.setResult(e);
+                response.setResult(NameServiceValuePolicy.failureResult(e));
                 }
             }
         
@@ -622,6 +624,7 @@ public class NameServiceFactory
             // import Component.Util.NameService;
             // import Component.Util.NameService$RequestContext as com.tangosol.coherence.component.util.NameService.RequestContext;
             // import com.tangosol.net.InetAddressHelper;
+            // import com.tangosol.net.internal.NameServiceValuePolicy;
             
             try
                 {
@@ -638,7 +641,7 @@ public class NameServiceFactory
             catch (Exception e)
                 {
                 response.setFailure(true);
-                response.setResult(e);
+                response.setResult(NameServiceValuePolicy.failureResult(e));
                 }
             }
         

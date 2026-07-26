@@ -26,6 +26,7 @@ import com.tangosol.internal.util.LockContentionException;
 import com.tangosol.internal.util.PartitionedIndexMap;
 import com.tangosol.internal.util.QueryResult;
 import com.tangosol.internal.util.SimpleBinaryEntry;
+import com.tangosol.internal.net.security.StorageAccessAuthorizerPolicyResolver;
 import com.tangosol.internal.util.UnsafeSubSet;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
@@ -142,6 +143,14 @@ public class Storage
      *
      */
     private com.tangosol.net.security.StorageAccessAuthorizer __m_AccessAuthorizer;
+
+    /**
+     * Property SubjectProofRequired
+     *
+     * True iff the configured storage authorizer requires subject proof before
+     * a non-null RequestContext subject reaches the authorizer.
+     */
+    private boolean __m_SubjectProofRequired;
 
     /**
      * Property AdjustPartitionSize
@@ -1561,7 +1570,7 @@ public class Storage
         com.tangosol.net.security.StorageAccessAuthorizer authorizer = getAccessAuthorizer();
         if (authorizer != null)
             {
-            Subject subject = context == null ? null : context.getSubject();
+            Subject subject = getService().getStorageAccessSubject(context, this);
 
             switch (nAccessRequired)
                 {
@@ -3233,6 +3242,15 @@ public class Storage
     public com.tangosol.net.security.StorageAccessAuthorizer getAccessAuthorizer()
         {
         return __m_AccessAuthorizer;
+        }
+
+    // Accessor for the property "SubjectProofRequired"
+    /**
+     * Getter for property SubjectProofRequired.<p>
+     */
+    public boolean isSubjectProofRequired()
+        {
+        return __m_SubjectProofRequired;
         }
 
     /**
@@ -5199,6 +5217,8 @@ public class Storage
             try
                 {
                 setAccessAuthorizer(manager.getStorageAccessAuthorizer(sCacheName));
+                setSubjectProofRequired(manager instanceof StorageAccessAuthorizerPolicyResolver
+                        && ((StorageAccessAuthorizerPolicyResolver) manager).isSubjectProofRequired(sCacheName));
                 mapNew = manager.instantiateBackingMap(sCacheName);
                 if (mapNew == null)
                     {
@@ -9147,6 +9167,15 @@ public class Storage
             }
 
         __m_AccessAuthorizer = (authorizer);
+        }
+
+    // Accessor for the property "SubjectProofRequired"
+    /**
+     * Setter for property SubjectProofRequired.<p>
+     */
+    protected void setSubjectProofRequired(boolean fRequired)
+        {
+        __m_SubjectProofRequired = fRequired;
         }
 
     // Accessor for the property "AdjustPartitionSize"
