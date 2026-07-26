@@ -6,14 +6,6 @@
  */
 package com.tangosol.io.internal;
 
-import com.tangosol.coherence.transaction.exception.ConnectionClosedException;
-import com.tangosol.coherence.transaction.exception.PredicateFailedException;
-import com.tangosol.coherence.transaction.exception.ReadTimedOutException;
-import com.tangosol.coherence.transaction.exception.RollbackException;
-import com.tangosol.coherence.transaction.exception.UnableToAcquireLockException;
-import com.tangosol.coherence.transaction.exception.VersionNotAvailableException;
-import com.tangosol.coherence.transaction.internal.xa.ExternalizableXid;
-
 import java.io.InvalidClassException;
 import java.io.IOException;
 import java.io.ObjectInputFilter;
@@ -34,16 +26,6 @@ public final class BridgeObjectInputFilter
     // ----- factory methods -----------------------------------------------
 
     /**
-     * Return a filter for transaction result exception bridges.
-     *
-     * @return a runtime exception bridge filter
-     */
-    public static ObjectInputFilter runtimeException()
-        {
-        return RUNTIME_EXCEPTION_FILTER;
-        }
-
-    /**
      * Return a filter for JCache exception bridges.
      *
      * @return an exception bridge filter
@@ -51,16 +33,6 @@ public final class BridgeObjectInputFilter
     public static ObjectInputFilter exception()
         {
         return EXCEPTION_FILTER;
-        }
-
-    /**
-     * Return a filter for transaction XID bridges.
-     *
-     * @return an XID bridge filter
-     */
-    public static ObjectInputFilter xid()
-        {
-        return XID_FILTER;
         }
 
     // ----- constructors ---------------------------------------------------
@@ -142,33 +114,6 @@ public final class BridgeObjectInputFilter
             "java.util.Collections$EmptyList");
 
     /**
-     * Narrow JDK runtime exception classes accepted by transaction result
-     * exception bridges.
-     */
-    private static final Set<String> RUNTIME_EXCEPTION_TYPES = Set.of(
-            Throwable.class.getName(),
-            Exception.class.getName(),
-            RuntimeException.class.getName(),
-            ArithmeticException.class.getName(),
-            ArrayStoreException.class.getName(),
-            ClassCastException.class.getName(),
-            IllegalArgumentException.class.getName(),
-            IllegalMonitorStateException.class.getName(),
-            IllegalStateException.class.getName(),
-            IndexOutOfBoundsException.class.getName(),
-            NegativeArraySizeException.class.getName(),
-            NullPointerException.class.getName(),
-            NumberFormatException.class.getName(),
-            SecurityException.class.getName(),
-            UnsupportedOperationException.class.getName(),
-            ConnectionClosedException.class.getName(),
-            PredicateFailedException.class.getName(),
-            ReadTimedOutException.class.getName(),
-            RollbackException.class.getName(),
-            UnableToAcquireLockException.class.getName(),
-            VersionNotAvailableException.class.getName());
-
-    /**
      * Narrow JDK checked/runtime exception classes accepted by JCache exception
      * bridges.
      */
@@ -193,30 +138,11 @@ public final class BridgeObjectInputFilter
             InvalidClassException.class.getName());
 
     /**
-     * Exact class names accepted by transaction XID bridges.
-     */
-    private static final Set<String> XID_TYPES = Set.of(
-            ExternalizableXid.class.getName());
-
-    /**
-     * Runtime exception bridge filter singleton.
-     */
-    private static final BridgeObjectInputFilter RUNTIME_EXCEPTION_FILTER =
-            new BridgeObjectInputFilter("bridge-runtime-exception-type-rejected",
-                    allowed(RUNTIME_EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
-
-    /**
      * Exception bridge filter singleton.
      */
     private static final BridgeObjectInputFilter EXCEPTION_FILTER =
             new BridgeObjectInputFilter("bridge-exception-type-rejected",
                     allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
-
-    /**
-     * XID bridge filter singleton.
-     */
-    private static final BridgeObjectInputFilter XID_FILTER =
-            new BridgeObjectInputFilter("bridge-xid-type-rejected", XID_TYPES);
 
     // ----- data members ---------------------------------------------------
 
