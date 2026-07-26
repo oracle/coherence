@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2021, 2025, Oracle and/or its affiliates.
+  ~ Copyright (c) 2021, 2026, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -26,12 +26,16 @@
       <scheme-name>concurrent-remote</scheme-name>
       <service-name>RemoteConcurrentProxy</service-name>
       <proxy-service-name>ConcurrentProxy</proxy-service-name>
-    <initiator-config>
-<tcp-initiator>
-<socket-provider system-property="coherence.concurrent.extend.socketprovider"/>
-</tcp-initiator>
-</initiator-config>
-</remote-cache-scheme>
+      <initiator-config>
+        <tcp-initiator>
+          <socket-provider system-property="coherence.concurrent.extend.socketprovider"/>
+        </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval system-property="coherence.concurrent.extend.heartbeat.interval">5s</heartbeat-interval>
+          <heartbeat-timeout system-property="coherence.concurrent.extend.heartbeat.timeout">5s</heartbeat-timeout>
+        </outgoing-message-handler>
+      </initiator-config>
+    </remote-cache-scheme>
 
     <remote-cache-scheme>
       <scheme-name>concurrent-remote-fixed</scheme-name>
@@ -47,6 +51,10 @@
             </socket-address>
           </remote-addresses>
         </tcp-initiator>
+        <outgoing-message-handler>
+          <heartbeat-interval system-property="coherence.concurrent.extend.heartbeat.interval">5s</heartbeat-interval>
+          <heartbeat-timeout system-property="coherence.concurrent.extend.heartbeat.timeout">5s</heartbeat-timeout>
+        </outgoing-message-handler>
       </initiator-config>
     </remote-cache-scheme>
   </caching-schemes>
