@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.metrics.MetricsHttpHandler;
+
+import com.tangosol.internal.net.management.HttpAuthDefaults;
 
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.LegacyXmlProxyServiceHelper;
@@ -93,6 +95,7 @@ public abstract class MetricsHttpHelper
             throw new IllegalStateException("Unable to locate " + METRICS_CONFIG);
             }
         XmlElement  xml       = XmlHelper.loadXml(urlConfig);
+        HttpAuthDefaults.resolveMetrics(xml);
         XmlHelper.replaceSystemProperties(xml, "system-property");
         return LegacyXmlProxyServiceHelper.fromXml(xml, new DefaultProxyServiceDependencies(), ctx, loader);
         }

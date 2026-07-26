@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.providers;
 
 import org.glassfish.jersey.server.ContainerRequest;
 
-import com.tangosol.coherence.http.AbstractHttpServer;
+import com.tangosol.coherence.http.BasicAuthentication;
 
 import java.io.IOException;
 
@@ -86,28 +86,24 @@ public class SecurityFilter implements ContainerRequestFilter
                 }
             }
 
-        if (!authentication.startsWith("Basic "))
+        BasicAuthentication.Credentials credentials;
+        try
+            {
+            credentials = BasicAuthentication.parse(authentication);
+            }
+        catch (IllegalArgumentException e)
+            {
+            throw new WebApplicationException(400);
+            }
+
+        if (credentials == null)
             {
             // "Only HTTP Basic authentication is supported"
             return null;
             }
-        authentication = authentication.substring("Basic ".length());
-        String[] values = AbstractHttpServer.fromBase64(authentication).split(":");
-        if (values.length < 2)
-            {
-            // "Invalid syntax for username and password"
-            throw new WebApplicationException(400);
-            }
-        String sUsername = values[0];
-        String sPassword = values[1];
-        if ((sUsername == null) || (sPassword == null))
-            {
-            // "Missing username or password"
-            throw new WebApplicationException(400);
-            }
 
         // Nothing to do; our HTTP server already authenticated user
-        return new Authorizer(sUsername);
+        return new Authorizer(credentials.getUsername());
         }
 
     public class Authorizer implements SecurityContext

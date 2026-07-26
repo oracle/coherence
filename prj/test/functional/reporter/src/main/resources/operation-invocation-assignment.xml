@@ -1,0 +1,29 @@
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<report-config>
+  <report>
+    <file-name>{date}-federation-stats.txt</file-name>
+    <delim>{tab}</delim>
+    <filters/>
+    <query>
+      <pattern>Coherence:type=PartitionAssignment,*</pattern>
+    </query>
+    <row>
+      <column id="ScheduledDistributions">
+        <type>method</type>
+        <name>reportScheduledDistributions</name>
+        <init-params>
+          <init-param>
+            <param-type>boolean</param-type>
+            <param-value>true</param-value>
+          </init-param>
+        </init-params>
+        <delim>,</delim>
+      </column>
+    </row>
+  </report>
+</report-config>

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@
 package com.tangosol.coherence.component.net.management.model.localModel.wrapperModel;
 
 import com.tangosol.coherence.component.net.management.model.RemoteModel;
+import com.tangosol.net.management.ManagementInvocationPolicy;
 import com.tangosol.net.management.MBeanReference;
 import com.tangosol.util.Base;
 import javax.management.Attribute;
@@ -299,18 +300,30 @@ public class WrapperJmxModel
             switch (nOp)
                 {
                 case RemoteModel.OP_GET:
+                    ManagementInvocationPolicy.validateGetAttribute(mbs, oname, sName, "wrapper-jmx");
                     return mbs.getAttribute(oname, sName);
          
                 case RemoteModel.OP_SET:
-                    mbs.setAttribute(oname, new Attribute(sName, aoParam[0]));
+                    Attribute attr = new Attribute(sName, aoParam[0]);
+                    ManagementInvocationPolicy.validateSetAttribute(mbs, oname, attr, "wrapper-jmx");
+                    mbs.setAttribute(oname, attr);
                     return null;
         
                 case RemoteModel.OP_INVOKE:
+                    if (asSignature == null && aoParam != null && aoParam.length == 0)
+                        {
+                        asSignature = new String[0];
+                        }
+                    ManagementInvocationPolicy.validateWrapperInvoke(mbs, oname, sName, aoParam, asSignature);
                     return mbs.invoke(oname, sName, aoParam, asSignature);
         
                 default:
                     throw new IllegalStateException();
                 }
+            }
+        catch (SecurityException | IllegalArgumentException e)
+            {
+            throw e;
             }
         catch (Exception e)
             {
@@ -334,7 +347,14 @@ public class WrapperJmxModel
         
         try
             {
-            return getMBeanServer().invoke(getObjectName(), sMethod, aoParam, null);
+            String[] asSignature = aoParam == null || aoParam.length == 0 ? new String[0] : null;
+            ManagementInvocationPolicy.validateWrapperInvoke((MBeanServer) getMBeanServer(), (ObjectName) getObjectName(),
+                    sMethod, aoParam, asSignature);
+            return getMBeanServer().invoke(getObjectName(), sMethod, aoParam, asSignature);
+            }
+        catch (SecurityException | IllegalArgumentException e)
+            {
+            throw e;
             }
         catch (Exception e)
             {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -149,6 +149,7 @@ public abstract class AbstractMetricsTests
         Properties props = new Properties();
 
         props.put(PROP_METRICS_ENABLED, "true");
+        props.put("coherence.metrics.http.auth", "none");
         props.put(Logging.PROPERTY_LEVEL, "9");
         props.put(LocalStorage.PROPERTY, "true");
         props.put("coherence.metrics.http.port", Integer.toString(s_nMetricsHttpPort));

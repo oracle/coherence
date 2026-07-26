@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -52,6 +52,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Base class for all test classes that test {@link AbstractHttpServer}
@@ -153,6 +154,43 @@ public abstract class AbstractHttpServerTest
                          .get();
         assertEquals(200, response.getStatus());
         assertEquals("BASIC:test", response.readEntity(String.class));
+
+        // good credentials with colons in the password
+        response = target.request(MediaType.TEXT_PLAIN_TYPE)
+                         .header("Authorization", "Basic " + AbstractHttpServer.toBase64("test:pass:word"))
+                         .get();
+        assertEquals(200, response.getStatus());
+        assertEquals("BASIC:test", response.readEntity(String.class));
+        }
+
+    @Test
+    public void testHttpBasicAuthenticationRejectsMalformedCredentials()
+            throws Exception
+        {
+        startHttpServer(null, "basic");
+
+        Client    client = createHttpsClient(s_sslProviderGuest);
+        WebTarget target = getWebTarget("http://" +
+                m_server.getLocalAddress() + ":" + m_server.getLocalPort() + "/test/principal", client);
+
+        assertBasicRejected(target, "Basic ###");
+        assertBasicRejected(target, "Basic " + AbstractHttpServer.toBase64("test"));
+        assertBasicRejected(target, "Basic " + AbstractHttpServer.toBase64(":password"));
+        assertBasicRejected(target, "Bearer abc");
+        }
+
+    @Test
+    public void testCertAuthRequiresSsl()
+            throws IOException
+        {
+        assertCertAuthRequiresSsl("cert");
+        }
+
+    @Test
+    public void testCertBasicAuthRequiresSsl()
+            throws IOException
+        {
+        assertCertAuthRequiresSsl("cert+basic");
         }
 
     @Test(expected = ProcessingException.class)
@@ -365,7 +403,8 @@ public abstract class AbstractHttpServerTest
                     {
                     UsernameAndPassword token = (UsernameAndPassword) oToken;
                     if ("test".equals(token.getUsername())
-                         && "password".equals(new String(token.getPassword())))
+                         && ("password".equals(new String(token.getPassword()))
+                             || "pass:word".equals(new String(token.getPassword()))))
                         {
                         Subject subject = new Subject();
                         subject.getPrincipals().add(new Principal()
@@ -384,6 +423,29 @@ public abstract class AbstractHttpServerTest
             }
         server.start();
         server.setLocalPort(server.getListenPort());
+        }
+
+    private void assertBasicRejected(WebTarget target, String sAuthorization)
+        {
+        Response response = target.request(MediaType.TEXT_PLAIN_TYPE)
+                .header("Authorization", sAuthorization)
+                .get();
+        assertEquals(401, response.getStatus());
+        assertTrue(response.getStringHeaders().getFirst("WWW-Authenticate").startsWith("Basic"));
+        }
+
+    private void assertCertAuthRequiresSsl(String sAuth)
+            throws IOException
+        {
+        try
+            {
+            startHttpServer(null, sAuth);
+            fail("Expected certificate authentication without SSL to fail");
+            }
+        catch (IllegalStateException expected)
+            {
+            // expected
+            }
         }
 
     // ---- data members ----------------------------------------------------

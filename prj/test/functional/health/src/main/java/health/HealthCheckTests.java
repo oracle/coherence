@@ -47,6 +47,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import java.io.File;
+import java.io.FileWriter;
 
 import java.io.IOException;
 import java.net.ConnectException;
@@ -56,6 +57,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Optional;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -102,6 +105,7 @@ public class HealthCheckTests
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_LIVE), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_HEALTHZ), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_READY), is(200));
+            Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_SAFE), is(200));
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, PATH_HA), is(200));
             }
         }
@@ -324,6 +328,9 @@ public class HealthCheckTests
                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                   SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                    SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
             {
             Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
@@ -334,12 +341,12 @@ public class HealthCheckTests
             Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
 
             // suspend services
-            Eventually.assertDeferred(() -> httpRequest(httpPort, PATH_SUSPEND), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, PATH_SUSPEND, VALID_AUTH), is(200));
 
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(true));
             Eventually.assertDeferred(() -> isServiceTwoSuspended(app), is(true));
 
-            Eventually.assertDeferred(() -> httpRequest(httpPort, PATH_RESUME), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, PATH_RESUME, VALID_AUTH), is(200));
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(false));
             Eventually.assertDeferred(() -> isServiceTwoSuspended(app), is(false));
             }
@@ -363,6 +370,9 @@ public class HealthCheckTests
                                                     SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                     SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                     SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                    SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                    SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                    SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                     SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
             {
             try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
@@ -376,6 +386,9 @@ public class HealthCheckTests
                                                         SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                         SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                         SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                        SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                        SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                        SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                         SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
                 {
                 Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
@@ -386,14 +399,14 @@ public class HealthCheckTests
                 // wait for ready
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
                 // suspend services
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_SUSPEND), is(200));
+                Eventually.assertDeferred(() -> httpPut(nHealthPort1, PATH_SUSPEND, VALID_AUTH), is(200));
 
                 Eventually.assertDeferred(() -> isServiceOneSuspended(app1), is(true));
                 Eventually.assertDeferred(() -> isServiceTwoSuspended(app1), is(true));
                 Eventually.assertDeferred(() -> isServiceOneSuspended(app2), is(true));
                 Eventually.assertDeferred(() -> isServiceTwoSuspended(app2), is(true));
 
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort2, PATH_RESUME), is(200));
+                Eventually.assertDeferred(() -> httpPut(nHealthPort2, PATH_RESUME, VALID_AUTH), is(200));
                 Eventually.assertDeferred(() -> isServiceOneSuspended(app1), is(false));
                 Eventually.assertDeferred(() -> isServiceTwoSuspended(app1), is(false));
                 Eventually.assertDeferred(() -> isServiceOneSuspended(app2), is(false));
@@ -419,6 +432,9 @@ public class HealthCheckTests
                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                   SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                    SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
             {
             Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
@@ -428,12 +444,12 @@ public class HealthCheckTests
             Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
             // suspend services
             String path = PATH_SUSPEND + "/PartitionedCacheOne";
-            Eventually.assertDeferred(() -> httpRequest(httpPort, path), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, path, VALID_AUTH), is(200));
 
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(true));
             assertThat(isServiceTwoSuspended(app), is(false));
 
-            Eventually.assertDeferred(() -> httpRequest(httpPort, PATH_RESUME), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, PATH_RESUME, VALID_AUTH), is(200));
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(false));
             Eventually.assertDeferred(() -> isServiceTwoSuspended(app), is(false));
             }
@@ -456,6 +472,9 @@ public class HealthCheckTests
                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                   SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                    SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
             {
 
@@ -465,15 +484,148 @@ public class HealthCheckTests
             // wait for ready
             Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
             // suspend services
-            Eventually.assertDeferred(() -> httpRequest(httpPort, PATH_SUSPEND), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, PATH_SUSPEND, VALID_AUTH), is(200));
 
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(true));
             Eventually.assertDeferred(() -> isServiceTwoSuspended(app), is(true));
 
             String path = PATH_RESUME + "/PartitionedCacheOne";
-            Eventually.assertDeferred(() -> httpRequest(httpPort, path), is(200));
+            Eventually.assertDeferred(() -> httpPut(httpPort, path, VALID_AUTH), is(200));
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(false));
             assertThat(isServiceTwoSuspended(app), is(true));
+            }
+        }
+
+    @Test
+    public void shouldNotMutateWithGetRequests()
+        {
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
+
+        try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
+                                                   ClassName.of(Coherence.class),
+                                                   CacheConfig.of("test-cache-config-two.xml"),
+                                                   IPv4Preferred.yes(),
+                                                   LocalHost.only(),
+                                                   Logging.atMax(),
+                                                   m_testLogs.builder(),
+                                                   DisplayName.of("storage"),
+                                                   SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                   SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                   SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
+            {
+            Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceTwoRunning(app), is(true));
+            Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
+
+            assertThat(isNotFoundOrMethodNotAllowed(httpRequest(httpPort, PATH_SUSPEND)), is(true));
+            assertThat(isNotFoundOrMethodNotAllowed(httpRequest(httpPort, PATH_SUSPEND + "/PartitionedCacheOne")), is(true));
+            assertThat(isNotFoundOrMethodNotAllowed(httpRequest(httpPort, PATH_RESUME)), is(true));
+            assertThat(isNotFoundOrMethodNotAllowed(httpRequest(httpPort, PATH_RESUME + "/PartitionedCacheOne")), is(true));
+
+            assertThat(isServiceOneSuspended(app), is(false));
+            assertThat(isServiceTwoSuspended(app), is(false));
+            }
+        }
+
+    @Test
+    public void shouldRejectDisabledMutators()
+        {
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
+
+        try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
+                                                   ClassName.of(Coherence.class),
+                                                   CacheConfig.of("test-cache-config-two.xml"),
+                                                   IPv4Preferred.yes(),
+                                                   LocalHost.only(),
+                                                   Logging.atMax(),
+                                                   m_testLogs.builder(),
+                                                   DisplayName.of("storage"),
+                                                   SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                   SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                   SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
+            {
+            Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceTwoRunning(app), is(true));
+            Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
+
+            assertThat(httpPut(httpPort, PATH_SUSPEND, VALID_AUTH), is(403));
+            assertThat(httpPut(httpPort, PATH_RESUME, VALID_AUTH), is(403));
+
+            assertThat(isServiceOneSuspended(app), is(false));
+            assertThat(isServiceTwoSuspended(app), is(false));
+            }
+        }
+
+    @Test
+    public void shouldRejectEnabledMutatorsWithInvalidAuth()
+        {
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
+
+        try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
+                                                   ClassName.of(Coherence.class),
+                                                   CacheConfig.of("test-cache-config-two.xml"),
+                                                   IPv4Preferred.yes(),
+                                                   LocalHost.only(),
+                                                   Logging.atMax(),
+                                                   m_testLogs.builder(),
+                                                   DisplayName.of("storage"),
+                                                   SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                   SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                   SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                   SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
+                                                   SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
+            {
+            Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceTwoRunning(app), is(true));
+            Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
+
+            assertThat(isUnauthorizedOrForbidden(httpPut(httpPort, PATH_SUSPEND, null)), is(true));
+            assertThat(isUnauthorizedOrForbidden(httpPut(httpPort, PATH_SUSPEND, "Bearer abc")), is(true));
+            assertThat(isUnauthorizedOrForbidden(httpPut(httpPort, PATH_SUSPEND, "Basic !!!")), is(true));
+            assertThat(isUnauthorizedOrForbidden(httpPut(httpPort, PATH_SUSPEND, basic(":pass:word"))), is(true));
+            assertThat(isUnauthorizedOrForbidden(httpPut(httpPort, PATH_SUSPEND, basic("client:wrong"))), is(true));
+
+            assertThat(isServiceOneSuspended(app), is(false));
+            assertThat(isServiceTwoSuspended(app), is(false));
+            }
+        }
+
+    @Test
+    public void shouldRejectCertAuthWithoutPeerSubject()
+        {
+        LocalPlatform platform = LocalPlatform.get();
+        Integer       httpPort = platform.getAvailablePorts().next();
+
+        try (CoherenceClusterMember app = platform.launch(CoherenceClusterMember.class,
+                                                   ClassName.of(Coherence.class),
+                                                   CacheConfig.of("test-cache-config-two.xml"),
+                                                   IPv4Preferred.yes(),
+                                                   LocalHost.only(),
+                                                   Logging.atMax(),
+                                                   m_testLogs.builder(),
+                                                   DisplayName.of("storage"),
+                                                   SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                   SystemProperty.of("coherence.distributed.persistence-mode", "active"),
+                                                   SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "cert"),
+                                                   SystemProperty.of(PROP_HEALTH_PORT, httpPort)))
+            {
+            Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
+            Eventually.assertDeferred(() -> isServiceTwoRunning(app), is(true));
+            Eventually.assertDeferred(() -> httpRequest(httpPort, HealthCheck.PATH_READY), is(200));
+
+            assertThat(httpPut(httpPort, PATH_SUSPEND, null), is(403));
+
+            assertThat(isServiceOneSuspended(app), is(false));
+            assertThat(isServiceTwoSuspended(app), is(false));
             }
         }
 
@@ -496,6 +648,9 @@ public class HealthCheckTests
                                                     SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                     SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
                                                     RoleName.of("foo"),
+                                                    SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                    SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                    SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                     SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
             {
             try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
@@ -510,6 +665,9 @@ public class HealthCheckTests
                                                         SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                         SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
                                                         RoleName.of("bar"),
+                                                        SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                        SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                        SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                         SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
                 {
                 Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
@@ -520,7 +678,7 @@ public class HealthCheckTests
                 // wait for ready
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
                 // suspend services
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_SUSPEND), is(200));
+                Eventually.assertDeferred(() -> httpPut(nHealthPort1, PATH_SUSPEND, VALID_AUTH), is(200));
 
                 assertThat(isServiceOneSuspended(app1), is(false));
                 assertThat(isServiceTwoSuspended(app1), is(false));
@@ -549,6 +707,9 @@ public class HealthCheckTests
                                                     SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                     SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                     SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                    SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                    SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                    SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                     SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
             {
             try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
@@ -563,6 +724,9 @@ public class HealthCheckTests
                                                         SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                         SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                         SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                        SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                        SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                        SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                         SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
                 {
                 Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
@@ -573,7 +737,7 @@ public class HealthCheckTests
                 // wait for ready
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
                 // suspend services
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_SUSPEND), is(200));
+                Eventually.assertDeferred(() -> httpPut(nHealthPort1, PATH_SUSPEND, VALID_AUTH), is(200));
 
                 assertThat(isServiceOneSuspended(app1), is(false));
                 assertThat(isServiceTwoSuspended(app1), is(false));
@@ -627,6 +791,9 @@ public class HealthCheckTests
                                                     m_testLogs.builder(),
                                                     DisplayName.of("server-0"),
                                                     SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                    SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                    SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                    SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                     SystemProperty.of(PROP_HEALTH_PORT, nHealthPort1)))
             {
             try (CoherenceClusterMember app2 = platform.launch(CoherenceClusterMember.class,
@@ -639,6 +806,9 @@ public class HealthCheckTests
                                                         m_testLogs.builder(),
                                                         DisplayName.of("server-1"),
                                                         SystemProperty.of("coherence.distributed.partitioncount", "13"),
+                                                        SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                        SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                        SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                         SystemProperty.of(PROP_HEALTH_PORT, nHealthPort2)))
                 {
                 Eventually.assertDeferred(() -> isServiceOneRunning(app1), is(true));
@@ -649,7 +819,7 @@ public class HealthCheckTests
                 // wait for ready
                 Eventually.assertDeferred(() -> httpRequest(nHealthPort1, HealthCheck.PATH_READY), is(200));
                 // suspend services
-                Eventually.assertDeferred(() -> httpRequest(nHealthPort1, PATH_SUSPEND), is(200));
+                Eventually.assertDeferred(() -> httpPut(nHealthPort1, PATH_SUSPEND, VALID_AUTH), is(200));
 
                 assertThat(isServiceOneSuspended(app1), is(false));
                 assertThat(isServiceTwoSuspended(app1), is(false));
@@ -676,6 +846,9 @@ public class HealthCheckTests
                                                    SystemProperty.of("coherence.distributed.partitioncount", "13"),
                                                    SystemProperty.of("coherence.distributed.persistence-mode", "active"),
                                                    SystemProperty.of("coherence.distributed.persistence.base.dir", m_filePersistence),
+                                                   SystemProperty.of(PROP_HEALTH_MUTATORS_ENABLED, true),
+                                                   SystemProperty.of(PROP_HEALTH_AUTH, "basic"),
+                                                   SystemProperty.of(PROP_JAAS_CONFIG, loginConfigPath()),
                                                    SystemProperty.of(PROP_HEALTH_PORT, nHealthPort)))
             {
             Eventually.assertDeferred(() -> isServiceOneRunning(app), is(true));
@@ -685,18 +858,18 @@ public class HealthCheckTests
             Eventually.assertDeferred(() -> httpRequest(nHealthPort, HealthCheck.PATH_READY), is(200));
 
             // suspend services
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort, PATH_SUSPEND), is(200));
+            Eventually.assertDeferred(() -> httpPut(nHealthPort, PATH_SUSPEND, VALID_AUTH), is(200));
 
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(true));
             Eventually.assertDeferred(() -> isServiceTwoSuspended(app), is(true));
 
             String sRequestOne = PATH_RESUME + "?exclude=PartitionedCacheOne,PartitionedCacheTwo";
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort, sRequestOne), is(200));
+            Eventually.assertDeferred(() -> httpPut(nHealthPort, sRequestOne, VALID_AUTH), is(200));
             assertThat(isServiceOneSuspended(app), is(true));
             assertThat(isServiceTwoSuspended(app), is(true));
 
             String sRequestTwo = PATH_RESUME + "?exclude=%20PartitionedCacheTwo%20";
-            Eventually.assertDeferred(() -> httpRequest(nHealthPort, sRequestTwo), is(200));
+            Eventually.assertDeferred(() -> httpPut(nHealthPort, sRequestTwo, VALID_AUTH), is(200));
             Eventually.assertDeferred(() -> isServiceOneSuspended(app), is(false));
             assertThat(isServiceTwoSuspended(app), is(true));
             }
@@ -706,9 +879,19 @@ public class HealthCheckTests
 
     public int httpRequest(Integer nPort, String sRequest)
         {
+        return httpRequest("GET", nPort, sRequest, null);
+        }
+
+    public int httpPut(Integer nPort, String sRequest, String sAuthorization)
+        {
+        return httpRequest("PUT", nPort, sRequest, sAuthorization);
+        }
+
+    public int httpRequest(String sMethod, Integer nPort, String sRequest, String sAuthorization)
+        {
         try
             {
-            return doHttpRequest(nPort, sRequest).statusCode();
+            return doHttpRequest(sMethod, nPort, sRequest, sAuthorization).statusCode();
             }
         catch (ConnectException e)
             {
@@ -722,19 +905,71 @@ public class HealthCheckTests
 
     public HttpResponse doHttpRequest(Integer nPort, String sRequest) throws Exception
         {
+        return doHttpRequest("GET", nPort, sRequest, null);
+        }
+
+    public HttpResponse doHttpRequest(String sMethod, Integer nPort, String sRequest, String sAuthorization) throws Exception
+        {
         if (!sRequest.startsWith("/"))
             {
             sRequest = "/" + sRequest;
             }
 
-        HttpRequest request = HttpRequest.newBuilder()
-              .GET()
-              .uri(URI.create("http://127.0.0.1:" + nPort + sRequest))
-              .build();
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+              .uri(URI.create("http://127.0.0.1:" + nPort + sRequest));
+
+        if (sAuthorization != null)
+            {
+            builder.header("Authorization", sAuthorization);
+            }
+
+        if ("PUT".equalsIgnoreCase(sMethod))
+            {
+            builder.PUT(HttpRequest.BodyPublishers.noBody());
+            }
+        else
+            {
+            builder.GET();
+            }
+
+        HttpRequest request = builder.build();
 
         HttpResponse<byte[]> response = m_client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
         return response;
+        }
+
+    private String loginConfigPath()
+        {
+        try
+            {
+            File file = File.createTempFile("health-http-auth", ".login");
+            file.deleteOnExit();
+            try (FileWriter writer = new FileWriter(file))
+                {
+                writer.write("CoherenceREST { health.HealthMutatorLoginModule required; };");
+                }
+            return file.getAbsolutePath();
+            }
+        catch (IOException e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
+    private static String basic(String sCredentials)
+        {
+        return "Basic " + Base64.getEncoder().encodeToString(sCredentials.getBytes(StandardCharsets.US_ASCII));
+        }
+
+    private boolean isNotFoundOrMethodNotAllowed(int nStatus)
+        {
+        return nStatus == 404 || nStatus == 405;
+        }
+
+    private boolean isUnauthorizedOrForbidden(int nStatus)
+        {
+        return nStatus == 401 || nStatus == 403;
         }
 
     private boolean isServiceOneSuspended(CoherenceClusterMember app)
@@ -787,10 +1022,15 @@ public class HealthCheckTests
 
     private static final String PROP_HEALTH_PORT = "coherence.health.http.port";
     private static final String PROP_HTTP_HEALTH_ENABLED = "coherence.health.http.enabled";
+    private static final String PROP_HEALTH_MUTATORS_ENABLED = "coherence.health.http.mutators.enabled";
+    private static final String PROP_HEALTH_AUTH = "coherence.health.http.auth";
+    private static final String PROP_JAAS_CONFIG = "java.security.auth.login.config";
 
     private static final String PATH_HA = "/ha";
     private static final String PATH_SUSPEND = "/suspend";
     private static final String PATH_RESUME = "/resume";
+
+    private static final String VALID_AUTH = basic("client:pass:word");
 
     // ----- data members ---------------------------------------------------
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -580,6 +580,62 @@ public class MBeanAccessor
             protected String m_sQuery;
             }
 
+        // ----- inner class: NullValueFilter -------------------------------
+
+        /**
+         * Product filter that accepts only {@code null} values.
+         */
+        public static class NullValueFilter
+                implements Filter<String>, Serializable
+            {
+            @Override
+            public boolean evaluate(String sValue)
+                {
+                return sValue == null;
+                }
+
+            static final private long serialVersionUID = -1;
+            }
+
+        // ----- inner class: EqualsValueFilter -----------------------------
+
+        /**
+         * Product filter that accepts values equal to the configured value.
+         */
+        public static class EqualsValueFilter
+                implements Filter<String>, Serializable
+            {
+            /**
+             * Default constructor.
+             */
+            public EqualsValueFilter()
+                {
+                }
+
+            /**
+             * Construct a filter that accepts values equal to {@code sValue}.
+             *
+             * @param sValue  the expected value
+             */
+            public EqualsValueFilter(String sValue)
+                {
+                m_sValue = sValue;
+                }
+
+            @Override
+            public boolean evaluate(String sValue)
+                {
+                return Objects.equals(m_sValue, sValue);
+                }
+
+            static final private long serialVersionUID = -1;
+
+            /**
+             * The expected value.
+             */
+            protected String m_sValue;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -667,14 +723,27 @@ public class MBeanAccessor
 
                 if (!attrList.isEmpty())
                     {
+                    ManagementInvocationPolicy.validateParsedQuery(query, "mbean-accessor");
+                    for (Attribute attr : attrList.asList())
+                        {
+                        ManagementInvocationPolicy.validateSafeManagementValue(attr.getValue(), "mbean-accessor",
+                                "attribute-value");
+                        }
+
                     Set<ObjectName> setObjectNames = mBeanServer.queryNames(new ObjectName(query.getQuery()),
                             new MBeanHelper.QueryExpFilter(query.getObjectNameFilter()));
 
+                    ManagementInvocationPolicy.validateQueryResult(setObjectNames, "mbean-accessor");
 
                     for (ObjectName oObjectName : setObjectNames)
                         {
                         try
                             {
+                            for (Attribute attr : attrList.asList())
+                                {
+                                ManagementInvocationPolicy.validateSetAttribute(mBeanServer, oObjectName, attr,
+                                        "mbean-accessor");
+                                }
                             AttributeList       attrResponseList     = mBeanServer.setAttributes(oObjectName, attrList);
                             Map<String, Object> mapUpdatedAttributes = new HashMap<>();
 
@@ -703,6 +772,10 @@ public class MBeanAccessor
                     {
                     throw e.getTargetException();
                     }
+                throw e;
+                }
+            catch (SecurityException e)
+                {
                 throw e;
                 }
             catch (Exception e)
@@ -788,8 +861,10 @@ public class MBeanAccessor
                 ParsedQuery         query     = m_query;
                 Map<String, Object> mapMBeans = new HashMap<>();
 
+                ManagementInvocationPolicy.validateParsedQuery(query, "mbean-accessor");
                 Set<ObjectName> setObjectNames = mBeanServer.queryNames(new ObjectName(query.getQuery()),
                         new MBeanHelper.QueryExpFilter(query.getObjectNameFilter()));
+                ManagementInvocationPolicy.validateReadQueryResult(setObjectNames, "mbean-accessor");
 
                 for (ObjectName oObjectName : setObjectNames)
                     {
@@ -851,7 +926,14 @@ public class MBeanAccessor
             {
             try
                 {
-                return mBeanServer.invoke(new ObjectName(sObjectName), m_sOperationName, m_arguments, m_signature);
+                ObjectName objectName = new ObjectName(sObjectName);
+                ManagementInvocationPolicy.validateInvoke(mBeanServer, objectName, m_sOperationName, m_arguments,
+                        m_signature, "mbean-accessor");
+                return mBeanServer.invoke(objectName, m_sOperationName, m_arguments, m_signature);
+                }
+            catch (SecurityException e)
+                {
+                throw e;
                 }
             catch (Exception e)
                 {
@@ -939,8 +1021,10 @@ public class MBeanAccessor
                 ParsedQuery                      query     = m_query;
                 Map<String, Map<String, Object>> mapMBeans = new HashMap<>();
 
+                ManagementInvocationPolicy.validateParsedQuery(query, "mbean-accessor");
                 Set<ObjectName> setObjectNames = mBeanServer.queryNames(new ObjectName(query.getQuery()),
                         new MBeanHelper.QueryExpFilter(query.getObjectNameFilter()));
+                ManagementInvocationPolicy.validateQueryResult(setObjectNames, "mbean-accessor");
 
                 for (ObjectName oObjectName : setObjectNames)
                     {
@@ -982,8 +1066,10 @@ public class MBeanAccessor
 
                         ParsedQuery queryStorage = bldrStorageQuery.build();
 
+                        ManagementInvocationPolicy.validateParsedQuery(queryStorage, "mbean-accessor");
                         setObjectNames = mBeanServer.queryNames(new ObjectName(queryStorage.getQuery()),
                                 new MBeanHelper.QueryExpFilter(queryStorage.getObjectNameFilter()));
+                        ManagementInvocationPolicy.validateReadQueryResult(setObjectNames, "mbean-accessor");
 
                         if (setObjectNames.size() == 1)
                             {
@@ -994,6 +1080,10 @@ public class MBeanAccessor
                     mapMBeans.put(sObjectName, mapAttributes);
                     }
                 return mapMBeans;
+                }
+            catch (SecurityException e)
+                {
+                throw e;
                 }
             catch (Exception e)
                 {
@@ -1018,6 +1108,8 @@ public class MBeanAccessor
                                           MBeanServer         mBeanServer,
                                           Filter<MBeanAttributeInfo> filter) throws Exception
             {
+            ManagementInvocationPolicy.validateObjectName(oObjName, "mbean-accessor");
+            ManagementInvocationPolicy.validateAttributeFilter(filter, "mbean-accessor");
             MBeanInfo info = mBeanServer.getMBeanInfo(oObjName);
             String[] arrAttributes = Arrays.stream(info.getAttributes())
                     .filter(attrInfo -> filter == null ? true : filter.evaluate(attrInfo))
