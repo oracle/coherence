@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.dev.tools.CommandLineTool;
+
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.net.ClusterPermission;
 import com.tangosol.net.PasswordProvider;
@@ -28,7 +30,6 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.LiteSet;
 import com.tangosol.util.Resources;
-import com.tangosol.util.SafeHashMap;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,7 +43,9 @@ import java.security.KeyStore;
 import java.security.Permissions;
 import java.security.Principal;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.SignedObject;
@@ -51,8 +54,11 @@ import java.security.cert.Certificate;
 import java.security.cert.CertPath;
 import java.security.cert.X509Certificate;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -233,34 +239,45 @@ public final class DefaultController
         {
         azzert(subject != null, "Null subject");
 
-        Set setPrincipals = subject.getPrincipals();
-        if (setPrincipals != null)
+        boolean fClearVerified = isVerifiedSignerSubject(subject);
+        try
             {
-            for (Iterator iter = setPrincipals.iterator(); iter.hasNext();)
+            Set setPrincipals = getAuthorizingPrincipals(subject);
+            if (setPrincipals != null)
                 {
-                Principal principal = (Principal) iter.next();
-
-                // get the existing permissions and check against them
-                Permissions permits = getClusterPermissions(principal);
-                if (permits != null && permits.implies(permission))
+                for (Iterator iter = setPrincipals.iterator(); iter.hasNext();)
                     {
-                    // permission granted
-                    if (f_fAudit)
+                    Principal principal = (Principal) iter.next();
+
+                    // get the existing permissions and check against them
+                    Permissions permits = getClusterPermissions(principal);
+                    if (permits != null && permits.implies(permission))
                         {
-                        logPermissionRequest(permission, subject, true);
+                        // permission granted
+                        if (f_fAudit)
+                            {
+                            logPermissionRequest(permission, subject, true);
+                            }
+                        return;
                         }
-                    return;
                     }
                 }
-            }
 
-        if (f_fAudit)
+            if (f_fAudit)
+                {
+                logPermissionRequest(permission, subject, false);
+                }
+
+            throw new PermissionException(
+                "Insufficient rights to perform the operation", permission);
+            }
+        finally
             {
-            logPermissionRequest(permission, subject, false);
+            if (fClearVerified)
+                {
+                f_tloVerifiedSigner.remove();
+                }
             }
-
-        throw new PermissionException(
-            "Insufficient rights to perform the operation", permission);
         }
 
     /**
@@ -334,40 +351,15 @@ public final class DefaultController
         {
         azzert(subjEncryptor != null, "Null subject");
 
-        // check the local cache
-        PublicKey keyPublic = (PublicKey) f_mapPublicKey.get(subjEncryptor);
-        if (keyPublic != null)
-            {
-            return decrypt(so, keyPublic);
-            }
+        Set setSigners = findTrustedSigners(subjEncryptor);
 
-        Set setKeys = null;
-        if (subjDecryptor != null)
+        for (Iterator iter = setSigners.iterator(); iter.hasNext();)
             {
-            // optimize for the common situation when the requestor
-            // and responder are represented by the same Subject
-            Set setDecryptorCreds = subjDecryptor.getPublicCredentials();
-            if (setDecryptorCreds != null &&
-                    equalsMostly(subjDecryptor, subjEncryptor))
-                {
-                setKeys = extractPublicKeys(setDecryptorCreds);
-                }
-            }
-
-        if (setKeys == null)
-            {
-            setKeys = findPublicKeys(subjEncryptor);
-            }
-
-        for (Iterator iter = setKeys.iterator(); iter.hasNext();)
-            {
-            keyPublic = (PublicKey) iter.next();
+            VerifiedSigner signer = (VerifiedSigner) iter.next();
             try
                 {
-                Object o = decrypt(so, keyPublic);
-
-                // it worked; cache the key
-                f_mapPublicKey.put(subjEncryptor, keyPublic);
+                Object o = decrypt(so, signer.getPublicKey());
+                f_tloVerifiedSigner.set(new VerifiedSignerSubject(subjEncryptor, signer.getPrincipal()));
                 return o;
                 }
             catch (GeneralSecurityException e)
@@ -465,11 +457,11 @@ public final class DefaultController
     * @throws IOException               if an I/O error occurs
     * @throws GeneralSecurityException  if a security error occurs
     */
-    protected synchronized SignedObject encrypt(Serializable o, PrivateKey keyPrivate)
+    protected SignedObject encrypt(Serializable o, PrivateKey keyPrivate)
             throws IOException,
                    GeneralSecurityException
         {
-        return new SignedObject(o, keyPrivate, SIGNATURE_ENGINE);
+        return new SignedObject(o, keyPrivate, createSignature());
         }
 
     /**
@@ -484,14 +476,28 @@ public final class DefaultController
     * @throws IOException               if an I/O error occurs
     * @throws GeneralSecurityException  if a security error occurs
     */
-    protected synchronized Object decrypt(SignedObject so, PublicKey keyPublic)
+    protected Object decrypt(SignedObject so, PublicKey keyPublic)
             throws ClassNotFoundException, IOException, GeneralSecurityException
         {
-        if (so.verify(keyPublic, SIGNATURE_ENGINE))
+        if (so.verify(keyPublic, createSignature()))
             {
             return so.getObject();
             }
         throw new SignatureException("Invalid signature");
+        }
+
+    /**
+    * Create a new {@link Signature} instance for one signing or verification
+    * operation.
+    *
+    * @return a new Signature instance
+    *
+    * @throws GeneralSecurityException if the configured algorithm is invalid
+    */
+    protected Signature createSignature()
+            throws GeneralSecurityException
+        {
+        return Signature.getInstance(SIGNATURE_ALGORITHM);
         }
 
     /**
@@ -597,9 +603,33 @@ public final class DefaultController
     protected Set findPublicKeys(Subject subject)
             throws GeneralSecurityException
         {
+        Set setSigners = findTrustedSigners(subject);
+        Set setKeys     = new LiteSet();
+
+        for (Iterator iter = setSigners.iterator(); iter.hasNext();)
+            {
+            VerifiedSigner signer = (VerifiedSigner) iter.next();
+            setKeys.add(signer.getPublicKey());
+            }
+        return setKeys;
+        }
+
+    /**
+    * Find trusted signer certificate principals and public keys for the
+    * specified Subject.
+    *
+    * @param subject  the Subject object
+    *
+    * @return a set of trusted signer descriptors
+    *
+    * @throws GeneralSecurityException if a keystore exception occurs
+    */
+    protected Set findTrustedSigners(Subject subject)
+            throws GeneralSecurityException
+        {
         KeyStore store    = f_store;
         Set      setCerts = extractCertificates(subject.getPublicCredentials());
-        Set      setPpals = new LiteSet();
+        Set      setPpals = subject.getPrincipals(X500Principal.class);
         Set      setKeys  = new LiteSet();
 
         for (Iterator iter = setCerts.iterator(); iter.hasNext();)
@@ -611,10 +641,13 @@ public final class DefaultController
                 // the certificate match is found; validate the Principal
                 if (cert instanceof X509Certificate)
                     {
-                    X509Certificate certX509  = (X509Certificate) cert;
+                    X509Certificate certX509 = (X509Certificate) cert;
 
-                    setPpals.add(new X500Principal(certX509.getIssuerDN().getName()));
-                    setKeys.add(cert.getPublicKey());
+                    if (setPpals.contains(certX509.getSubjectX500Principal()))
+                        {
+                        setKeys.add(new VerifiedSigner(cert.getPublicKey(),
+                                certX509.getSubjectX500Principal()));
+                        }
                     }
                 }
             }
@@ -622,8 +655,75 @@ public final class DefaultController
         }
 
     /**
-     * Log the authorization request.
-     *
+    * Return the principals that are authorized for the specified Subject.
+    *
+    * @param subject  the Subject object
+    *
+    * @return the principals allowed to authorize
+    */
+    private Set getAuthorizingPrincipals(Subject subject)
+        {
+        VerifiedSignerSubject verified = (VerifiedSignerSubject) f_tloVerifiedSigner.get();
+        if (verified != null && verified.getSubject() == subject)
+            {
+            Principal principal = verified.getPrincipal();
+            if (!subject.getPrincipals().contains(principal))
+                {
+                throw new PermissionException("Verified signing principal is not present in the subject");
+                }
+            if (CoherenceMode.isLegacy())
+                {
+                return subject.getPrincipals();
+                }
+            return Collections.singleton(principal);
+            }
+
+        Set setCerts = extractCertificates(subject.getPublicCredentials());
+        if (!setCerts.isEmpty())
+            {
+            try
+                {
+                Set setSigners = findTrustedSigners(subject);
+                if (setSigners.size() == 1
+                        && (CoherenceMode.isLegacy() || subject.getPrincipals().size() == 1))
+                    {
+                    VerifiedSigner signer = (VerifiedSigner) setSigners.iterator().next();
+                    if (subject.getPrincipals().contains(signer.getPrincipal()))
+                        {
+                        return CoherenceMode.isLegacy()
+                                ? subject.getPrincipals()
+                                : Collections.singleton(signer.getPrincipal());
+                        }
+                    }
+                }
+            catch (GeneralSecurityException e)
+                {
+                throw ensureRuntimeException(e);
+                }
+
+            throw new PermissionException("Subject contains principals not bound to a verified certificate");
+            }
+
+        return subject.getPrincipals();
+        }
+
+    /**
+    * Return {@code true} if the specified Subject has a verified signer in the
+    * current thread.
+    *
+    * @param subject  the Subject object
+    *
+    * @return true if a verified signer exists for this Subject
+    */
+    private boolean isVerifiedSignerSubject(Subject subject)
+        {
+        VerifiedSignerSubject verified = (VerifiedSignerSubject) f_tloVerifiedSigner.get();
+        return verified != null && verified.getSubject() == subject;
+        }
+
+    /**
+    * Log the authorization request.
+    *
      * @param permission  the permission checked
      * @param subject     the Subject
      * @param fAllowed    the boolean indicated whether it is allowed
@@ -883,18 +983,33 @@ public final class DefaultController
     public static final String SIGNATURE_ALGORITHM;
 
     /**
-    * The Signature object used by this implementation.
+    * The Signature object retained for source and binary compatibility.
+    * Product code creates a new Signature per operation.
     *
     * @see <a href="http://download.oracle.com/javase/6/docs/api/java/security/Signature.html#getInstance(java.lang.String)">Signature.getInstance()</a>
     */
+    @Deprecated(forRemoval = true, since = "26.04")
     public static final Signature SIGNATURE_ENGINE;
+
+    /**
+    * Legacy signature algorithm retained only for LEGACY compatibility.
+    */
+    private static final String LEGACY_SIGNATURE_ALGORITHM = "SHA1withDSA";
+
+    /**
+    * Modern signature algorithm used by hardened modes.
+    */
+    private static final String MODERN_SIGNATURE_ALGORITHM = "SHA256withRSA";
 
     static
         {
         String      sConfig       = Config.getProperty(PROPERTY_CONFIG);
         XmlDocument xml           = null;
         String      sKeystoreType = "JKS";
-        String      sAlgorithm    = "SHA1withDSA";
+        String      sAlgorithm    = CoherenceMode.isLegacy()
+                ? LEGACY_SIGNATURE_ALGORITHM
+                : MODERN_SIGNATURE_ALGORITHM;
+        boolean     fExternal     = false;
         Signature engine;
 
         if (sConfig != null && sConfig.length() > 0)
@@ -907,6 +1022,7 @@ public final class DefaultController
                 try
                     {
                     xml = XmlHelper.loadXml(url.openStream());
+                    fExternal = true;
                     }
                 catch (Throwable t) {e = t;}
                 }
@@ -931,12 +1047,29 @@ public final class DefaultController
                 }
 
             sKeystoreType = xml.getSafeElement("keystore-type").getString(sKeystoreType);
-            sAlgorithm    = xml.getSafeElement("signature-algorithm").getString(sAlgorithm);
+            if (fExternal)
+                {
+                sAlgorithm = xml.getSafeElement("signature-algorithm").getString(sAlgorithm);
+                }
             }
         catch (Throwable e) {}
 
         try
             {
+            if (isWeakSignatureAlgorithm(sAlgorithm))
+                {
+                if (CoherenceMode.isLegacy())
+                    {
+                    Logger.warn("DefaultController signature algorithm would_reject; mode=legacy; algorithm="
+                            + sAlgorithm);
+                    }
+                else
+                    {
+                    throw new GeneralSecurityException("Weak DefaultController signature algorithm is not allowed "
+                            + "in " + CoherenceMode.current().name().toLowerCase(Locale.ROOT) + " mode: "
+                            + sAlgorithm);
+                    }
+                }
             engine = Signature.getInstance(sAlgorithm);
             }
         catch (Exception e)
@@ -950,6 +1083,243 @@ public final class DefaultController
         }
 
     /**
+    * Return true if the specified signature algorithm uses SHA-1.
+    *
+    * @param sAlgorithm  the signature algorithm name
+    *
+    * @return true if the algorithm uses SHA-1
+    */
+    private static boolean isWeakSignatureAlgorithm(String sAlgorithm)
+        {
+        if (sAlgorithm == null)
+            {
+            return false;
+            }
+
+        String sNormalized = normalizeSignatureAlgorithm(sAlgorithm);
+        if (isWeakSignatureAlgorithmName(sNormalized))
+            {
+            return true;
+            }
+
+        String sResolved = resolveSignatureAlgorithmAlias(sAlgorithm);
+        return sResolved != null
+                && isWeakSignatureAlgorithmName(normalizeSignatureAlgorithm(sResolved));
+        }
+
+    /**
+    * Normalize a signature algorithm name for weak-algorithm matching.
+    *
+    * @param sAlgorithm  the algorithm name
+    *
+    * @return the normalized algorithm name
+    */
+    private static String normalizeSignatureAlgorithm(String sAlgorithm)
+        {
+        StringBuilder builder = new StringBuilder(sAlgorithm.length());
+        for (int i = 0, c = sAlgorithm.length(); i < c; i++)
+            {
+            char ch = sAlgorithm.charAt(i);
+            if (ch != '-' && ch != '/' && ch != '.' && !Character.isWhitespace(ch))
+                {
+                builder.append(Character.toUpperCase(ch));
+                }
+            }
+        return builder.toString();
+        }
+
+    /**
+    * Return true if the normalized algorithm name is a weak DSA/SHA-1 name.
+    *
+    * @param sNormalized  the normalized algorithm name
+    *
+    * @return true if the algorithm name is weak
+    */
+    private static boolean isWeakSignatureAlgorithmName(String sNormalized)
+        {
+        if (sNormalized == null)
+            {
+            return false;
+            }
+
+        return sNormalized.contains("SHA1WITH")
+                || sNormalized.contains("WITHSHA1")
+                || sNormalized.equals("SHA1DSA")
+                || sNormalized.equals("DSA")
+                || sNormalized.equals("DSS")
+                || sNormalized.equals("SHADSA")
+                || sNormalized.equals("SHAWITHDSA")
+                || sNormalized.equals("128401004043")
+                || sNormalized.equals("OID128401004043")
+                || sNormalized.equals("13143213")
+                || sNormalized.equals("OID13143213")
+                || sNormalized.equals("13143227")
+                || sNormalized.equals("OID13143227");
+        }
+
+    /**
+    * Resolve a Signature algorithm alias using installed provider metadata.
+    *
+    * @param sAlgorithm  the configured algorithm name
+    *
+    * @return the resolved algorithm name
+    */
+    private static String resolveSignatureAlgorithmAlias(String sAlgorithm)
+        {
+        String      sCurrent = sAlgorithm;
+        Set<String> setSeen  = new HashSet<>();
+
+        for (int i = 0; i < 8 && sCurrent != null; i++)
+            {
+            String sNormalized = normalizeSignatureAlgorithm(sCurrent);
+            if (!setSeen.add(sNormalized))
+                {
+                return sCurrent;
+                }
+
+            String sAlias = findSignatureAlgorithmAlias(sNormalized);
+            if (sAlias == null)
+                {
+                return sCurrent;
+                }
+            sCurrent = sAlias;
+            }
+
+        return sCurrent;
+        }
+
+    /**
+    * Find a Signature provider alias by normalized alias name.
+    *
+    * @param sNormalized  the normalized alias name
+    *
+    * @return the alias target, or null
+    */
+    private static String findSignatureAlgorithmAlias(String sNormalized)
+        {
+        final String sPrefix = "Alg.Alias.Signature.";
+
+        for (Provider provider : Security.getProviders())
+            {
+            for (Map.Entry<Object, Object> entry : provider.entrySet())
+                {
+                Object oKey = entry.getKey();
+                if (oKey instanceof String)
+                    {
+                    String sKey = (String) oKey;
+                    if (sKey.regionMatches(true, 0, sPrefix, 0, sPrefix.length()))
+                        {
+                        String sAlias = sKey.substring(sPrefix.length());
+                        if (normalizeSignatureAlgorithm(sAlias).equals(sNormalized))
+                            {
+                            Object oValue = entry.getValue();
+                            return oValue == null ? null : oValue.toString();
+                            }
+                        }
+                    }
+                }
+            }
+
+        return null;
+        }
+
+    /**
+    * The verified signer certificate principal and public key.
+    */
+    private static final class VerifiedSigner
+        {
+        /**
+        * Create a verified signer.
+        *
+        * @param keyPublic  the public key
+        * @param principal  the certificate subject principal
+        */
+        private VerifiedSigner(PublicKey keyPublic, X500Principal principal)
+            {
+            f_keyPublic = keyPublic;
+            f_principal = principal;
+            }
+
+        /**
+        * Return the public key.
+        *
+        * @return the public key
+        */
+        private PublicKey getPublicKey()
+            {
+            return f_keyPublic;
+            }
+
+        /**
+        * Return the certificate subject principal.
+        *
+        * @return the certificate subject principal
+        */
+        private X500Principal getPrincipal()
+            {
+            return f_principal;
+            }
+
+        /**
+        * The public key.
+        */
+        private final PublicKey f_keyPublic;
+
+        /**
+        * The certificate subject principal.
+        */
+        private final X500Principal f_principal;
+        }
+
+    /**
+    * Current-thread verified signer state.
+    */
+    private static final class VerifiedSignerSubject
+        {
+        /**
+        * Create a verified signer subject.
+        *
+        * @param subject    the verified Subject
+        * @param principal  the certificate subject principal
+        */
+        private VerifiedSignerSubject(Subject subject, X500Principal principal)
+            {
+            f_subject   = subject;
+            f_principal = principal;
+            }
+
+        /**
+        * Return the verified Subject.
+        *
+        * @return the verified Subject
+        */
+        private Subject getSubject()
+            {
+            return f_subject;
+            }
+
+        /**
+        * Return the certificate subject principal.
+        *
+        * @return the certificate subject principal
+        */
+        private X500Principal getPrincipal()
+            {
+            return f_principal;
+            }
+
+        /**
+        * The verified Subject.
+        */
+        private final Subject f_subject;
+
+        /**
+        * The certificate subject principal.
+        */
+        private final X500Principal f_principal;
+        }
+
+    /**
     * The KeyStore.
     */
     private final KeyStore f_store;
@@ -960,9 +1330,9 @@ public final class DefaultController
     private final XmlElement f_xmlPermits;
 
     /**
-    * A cache of PublicKey objects keyed by the Subject objects.
+    * Current-thread signer verified by {@link #decrypt(SignedObject, Subject, Subject)}.
     */
-    private final Map f_mapPublicKey = new SafeHashMap();
+    private final ThreadLocal f_tloVerifiedSigner = new ThreadLocal();
 
     /**
     * The audit flag. If true, log all the access requests.
