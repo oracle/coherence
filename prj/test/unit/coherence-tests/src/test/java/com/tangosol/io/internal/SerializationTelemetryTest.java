@@ -15,6 +15,7 @@ import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.NotificationManager;
 import com.tangosol.net.management.Registry;
 import com.tangosol.util.HealthCheck;
+import com.tangosol.util.OperationReason;
 
 import java.security.Principal;
 
@@ -67,6 +68,8 @@ public class SerializationTelemetryTest
             SerializationTelemetry.recordFmtCheck("rejected", "test-fmt", 255);
             SerializationTelemetry.recordPofCheck("rejected", "test-pof", 123);
             SerializationTelemetry.recordLambdaBytecodeCheck("rejected", "test-lambda");
+            SerializationTelemetry.recordExecutablePolicyCheck("allowed", getClass(), OperationReason.PROCESS_ENTRY,
+                    SerializationRole.GRPC, null);
             }
 
         Map<String, Long> map = SerializationTelemetry.snapshot();
@@ -78,6 +81,8 @@ public class SerializationTelemetryTest
                 + mode() + ",type_id=123,route=GRPC}");
         assertCounter(map, "coh.serialization.lambda_bytecode_check{result=rejected,reason=test-lambda,mode="
                 + mode() + ",route=GRPC}");
+        assertCounter(map, "coh.executable.policy_check{reason=PROCESS_ENTRY,role=GRPC,result=allowed,mode="
+                + mode() + "}");
         assertEquals(SerializationRole.UNCLASSIFIED, SerializationRole.current());
         }
 
@@ -92,16 +97,20 @@ public class SerializationTelemetryTest
             SerializationTelemetry.recordFilterCheck("rejected", "test-filter", Runtime.class, null);
             SerializationTelemetry.recordFmtCheck("rejected", "test-fmt", 255);
             SerializationTelemetry.recordPofCheck("allowed", "registered-type", 123);
+            SerializationTelemetry.recordExecutablePolicyCheck("allowed", getClass(), OperationReason.PROCESS_ENTRY,
+                    SerializationRole.GRPC, null);
             }
 
         Map<String, Object> mapBeans = registry.serializationGateBeans();
-        assertEquals(3, mapBeans.size());
+        assertEquals(4, mapBeans.size());
         assertMBean(mapBeans, "metric=filter_check", "route=GRPC", "mode=" + mode(),
                 "result=rejected", "reason=test-filter");
         assertMBean(mapBeans, "metric=fmt_check", "route=GRPC", "mode=" + mode(),
                 "result=rejected", "reason=test-fmt", "fmt=255");
         assertMBean(mapBeans, "metric=pof_check", "route=GRPC", "mode=" + mode(),
                 "result=allowed", "reason=registered-type", "type_id=123");
+        assertMBean(mapBeans, "metric=executable_policy_check", "route=GRPC", "mode=" + mode(),
+                "result=allowed", "reason=PROCESS_ENTRY");
 
         for (Object oBean : mapBeans.values())
             {
