@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,7 +23,7 @@ import javax.inject.Named;
  */
 @Named(DefaultSerializer.NAME)
 public final class DefaultSerializer
-        implements Serializer, ClassLoaderAware
+        implements Serializer, ClassLoaderAware, SerializationLimitAware
     {
     // ----- constructors ----------------------------------------------------
 
@@ -91,6 +91,19 @@ public final class DefaultSerializer
         return NAME;
         }
 
+    @Override
+    public SerializationLimitPolicy getLimitPolicy()
+        {
+        SerializationLimitPolicy policy = m_policyLimits;
+        return policy == null ? Serializer.super.getLimitPolicy() : policy;
+        }
+
+    @Override
+    public void setLimitPolicy(SerializationLimitPolicy policy)
+        {
+        m_policyLimits = policy;
+        }
+
     // ----- ClassLoaderAware interface --------------------------------------
 
     @Override
@@ -132,4 +145,9 @@ public final class DefaultSerializer
      * The optional ClassLoader.
      */
     private WeakReference<ClassLoader> m_refLoader;
+
+    /**
+     * The optional serializer container limit policy.
+     */
+    private SerializationLimitPolicy m_policyLimits;
     }

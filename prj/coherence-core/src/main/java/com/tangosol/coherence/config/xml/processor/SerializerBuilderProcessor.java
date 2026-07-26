@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -11,6 +11,7 @@ import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.run.xml.XmlElement;
 
 /**
@@ -40,6 +41,9 @@ public class SerializerBuilderProcessor
     public ParameterizedBuilder<Serializer> onProcess(ProcessingContext context, XmlElement xmlElement)
             throws ConfigurationException
         {
+        SerializationLimitPolicy policy = SerializationLimitPolicy.fromXml(
+                xmlElement.getElement(SerializationLimitPolicy.XML_LIMITS));
+
         // assume the <serializer> contains a builder definition
         ParameterizedBuilder bldr = ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
 
@@ -49,6 +53,36 @@ public class SerializerBuilderProcessor
                                              + xmlElement, "Please define a <serializer>");
             }
 
-        return (ParameterizedBuilder<Serializer>) bldr;
+        return policy == null
+               ? (ParameterizedBuilder<Serializer>) bldr
+               : new LimitAwareSerializerBuilder((ParameterizedBuilder<Serializer>) bldr, policy);
+        }
+
+    // ----- inner class: LimitAwareSerializerBuilder -----------------------
+
+    /**
+     * Builder wrapper that applies serializer limits to realized serializers.
+     */
+    protected static class LimitAwareSerializerBuilder
+            implements ParameterizedBuilder<Serializer>
+        {
+        protected LimitAwareSerializerBuilder(ParameterizedBuilder<Serializer> builder,
+                                             SerializationLimitPolicy policy)
+            {
+            f_builder = builder;
+            f_policy  = policy;
+            }
+
+        @Override
+        public Serializer realize(com.tangosol.config.expression.ParameterResolver resolver,
+                                  ClassLoader loader,
+                                  com.tangosol.coherence.config.ParameterList listParameters)
+            {
+            return SerializationLimitPolicy.apply(f_builder.realize(resolver, loader, listParameters), f_policy);
+            }
+
+        private final ParameterizedBuilder<Serializer> f_builder;
+
+        private final SerializationLimitPolicy f_policy;
         }
     }

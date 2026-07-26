@@ -17,6 +17,8 @@ import com.tangosol.coherence.config.Config;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationLimitAware;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.annotation.Portable;
@@ -229,7 +231,7 @@ import java.util.stream.Collectors;
 */
 @Named("pof")
 public class ConfigurablePofContext
-        implements PofContext, ClassLoaderAware, XmlConfigurable
+        implements PofContext, ClassLoaderAware, XmlConfigurable, SerializationLimitAware
     {
     // ----- constructors ---------------------------------------------------
 
@@ -425,6 +427,19 @@ public class ConfigurablePofContext
     public String getName()
         {
         return "pof";
+        }
+
+    @Override
+    public SerializationLimitPolicy getLimitPolicy()
+        {
+        SerializationLimitPolicy policy = m_policyLimits;
+        return policy == null ? PofContext.super.getLimitPolicy() : policy;
+        }
+
+    @Override
+    public void setLimitPolicy(SerializationLimitPolicy policy)
+        {
+        m_policyLimits = policy;
         }
 
 
@@ -1886,4 +1901,9 @@ public class ConfigurablePofContext
      * The Jandex index file name to use.
      */
     private String m_sIndexFileName = DEFAULT_INDEX_FILE_NAME;
+    /**
+     * The optional serializer container limit policy.
+     */
+    private SerializationLimitPolicy m_policyLimits;
+
     }

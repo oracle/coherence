@@ -158,6 +158,42 @@ class GrpcAuthenticationTest
         assertSame(subject, refSec.get());
         }
 
+    @Test
+    void shouldExposeRunAsSubjectInGrpcContext()
+        {
+        Subject                  subject = new Subject();
+        AtomicReference<Subject> refCtx  = new AtomicReference<>();
+        AtomicReference<Subject> refSec  = new AtomicReference<>();
+
+        GrpcSecurityContext.runAs(subject, () ->
+            {
+            refCtx.set(GrpcSecurityContext.getCurrentSubject());
+            refSec.set(SecurityHelper.getCurrentSubject());
+            });
+
+        assertSame(subject, refCtx.get());
+        assertSame(subject, refSec.get());
+        }
+
+    @Test
+    void shouldExposeSupplyAsSubjectInGrpcContext()
+        {
+        Subject                  subject = new Subject();
+        AtomicReference<Subject> refCtx  = new AtomicReference<>();
+        AtomicReference<Subject> refSec  = new AtomicReference<>();
+        Object                   result  = new Object();
+
+        assertSame(result, GrpcSecurityContext.supplyAs(subject, () ->
+            {
+            refCtx.set(GrpcSecurityContext.getCurrentSubject());
+            refSec.set(SecurityHelper.getCurrentSubject());
+            return result;
+            }));
+
+        assertSame(subject, refCtx.get());
+        assertSame(subject, refSec.get());
+        }
+
     private static Metadata headers(String sUser, String sPassword)
         {
         Metadata headers = new Metadata();

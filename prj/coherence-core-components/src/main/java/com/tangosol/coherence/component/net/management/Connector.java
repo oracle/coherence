@@ -3308,6 +3308,11 @@ public class Connector
          * The "invoke" action.
          */
         public static final int ACTION_INVOKE = 1;
+
+        /**
+         * Exclusive upper bound for invocation parameter count.
+         */
+        private static final int MAX_INVOCATION_PARAMETER_COUNT = 256;
         
         /**
          * Property ACTION_MBEAN_INFO
@@ -3696,8 +3701,19 @@ public class Connector
                     setMethodName(com.tangosol.util.ExternalizableHelper.readSafeUTF(in));
             
                     int c = com.tangosol.util.ExternalizableHelper.readInt(in);
+                    if (c < 0)
+                        {
+                        throw new java.io.IOException("MBean invocation parameter count is negative: " + c);
+                        }
+                    if (c >= MAX_INVOCATION_PARAMETER_COUNT)
+                        {
+                        throw new java.io.IOException("MBean invocation parameter count exceeds maximum: " + c);
+                        }
                     if (c > 0)
                         {
+                        // JEP-290 - ensure we can allocate this array
+                        com.tangosol.util.ExternalizableHelper.validateLoadArray(Object[].class, c, in);
+
                         Object[] aoParam = new Object[c];
                         try
                             {
@@ -3716,7 +3732,25 @@ public class Connector
             
                     if (in.readBoolean())
                         {
-                        setSignatures(com.tangosol.util.ExternalizableHelper.readStringArray(in));
+                        int cSig = com.tangosol.util.ExternalizableHelper.readInt(in);
+                        if (cSig < 0)
+                            {
+                            throw new java.io.IOException("MBean invocation signature count is negative: " + cSig);
+                            }
+                        if (cSig >= MAX_INVOCATION_PARAMETER_COUNT)
+                            {
+                            throw new java.io.IOException("MBean invocation signature count exceeds maximum: " + cSig);
+                            }
+
+                        // JEP-290 - ensure we can allocate this array
+                        com.tangosol.util.ExternalizableHelper.validateLoadArray(String[].class, cSig, in);
+
+                        String[] asSig = new String[cSig];
+                        for (int i = 0; i < cSig; i++)
+                            {
+                            asSig[i] = com.tangosol.util.ExternalizableHelper.readSafeUTF(in);
+                            }
+                        setSignatures(asSig);
                         }
                     break;
                     }
