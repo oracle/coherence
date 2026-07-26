@@ -1383,8 +1383,11 @@ public class CachePersistenceHelper
                 {
                 if (lExtentId > 0L)
                     {
-                    return visitorCache.visitCacheEntry(lExtentId,
-                            bufKey.toBinary(), bufValue.toBinary());
+                    try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
+                        {
+                        return visitorCache.visitCacheEntry(lExtentId,
+                                bufKey.toBinary(), bufValue.toBinary());
+                        }
                     }
 
                 if (META_EXTENT == lExtentId)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,17 +10,22 @@ package com.tangosol.internal.net.topic.impl.paged;
 import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.Subscription;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
+import com.tangosol.io.SerializationRole;
 import com.tangosol.net.BackingMapManagerContext;
 
 import com.tangosol.util.Converter;
+import com.tangosol.util.Filter;
 import com.tangosol.util.ObservableMap;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * A backing map for a paged topic subscriptions cache.
@@ -48,6 +53,7 @@ public class PagedTopicSubscriptionsBackingMap
     public void clear()
         {
         f_mapRollback.clear();
+        f_setReplayDedup.clear();
         super.clear();
         }
 
@@ -55,9 +61,10 @@ public class PagedTopicSubscriptionsBackingMap
     @SuppressWarnings("unchecked")
     public Object put(Object key, Object value, long cMillis)
         {
+        Subscription subscription = (Subscription) f_convValue.convert(value);
+        enforceReplay(subscription, f_setReplayDedup);
         Object oResult = super.put(key, value, cMillis);
-        updateSubscription((Subscription.Key) f_convKey.convert(key),
-                (Subscription) f_convValue.convert(value));
+        updateSubscription((Subscription.Key) f_convKey.convert(key), subscription);
         return oResult;
         }
 
@@ -65,12 +72,21 @@ public class PagedTopicSubscriptionsBackingMap
     @SuppressWarnings("unchecked")
     public void putAll(Map map)
         {
-        super.putAll(map);
-        Set<Map.Entry> set = map.entrySet();
+        Set<Map.Entry>             set         = map.entrySet();
+        Map<Object, Subscription>  mapResolved = new LinkedHashMap<>();
+
         for (Map.Entry<?, ?> entry : set)
             {
+            Subscription subscription = (Subscription) f_convValue.convert(entry.getValue());
+            enforceReplay(subscription, f_setReplayDedup);
+            mapResolved.put(entry.getKey(), subscription);
+            }
+
+        super.putAll(map);
+        for (Map.Entry<Object, Subscription> entry : mapResolved.entrySet())
+            {
             updateSubscription((Subscription.Key) f_convKey.convert(entry.getKey()),
-                    (Subscription) f_convValue.convert(entry.getValue()));
+                    entry.getValue());
             }
         }
 
@@ -144,6 +160,19 @@ public class PagedTopicSubscriptionsBackingMap
             }
         }
 
+    private void enforceReplay(Subscription subscription, Set<String> setDedup)
+        {
+        if (subscription == null || SerializationRole.current() != SerializationRole.PERSISTENCE)
+            {
+            return;
+            }
+
+        Filter<?>       filter    = subscription.getFilter();
+        Function<?, ?>  converter = subscription.getConverter();
+        RemoteInstallGate.enforceTopicSubscriberReplay(filter, converter, SerializationRole.PERSISTENCE, null,
+                setDedup);
+        }
+
     /**
      * Remove a committed position from the index.
      *
@@ -212,6 +241,11 @@ public class PagedTopicSubscriptionsBackingMap
      * The {@link Converter} to use to convert {@link com.tangosol.util.Binary} values to their object form
      */
     private final Converter f_convValue;
+
+    /**
+     * The per-backing-map replay warning and shadow-telemetry deduplication set.
+     */
+    private final Set<String> f_setReplayDedup = ConcurrentHashMap.newKeySet();
 
     /**
      * Am index of {@link SubscriberGroupId} to a map of channel to rollback position.

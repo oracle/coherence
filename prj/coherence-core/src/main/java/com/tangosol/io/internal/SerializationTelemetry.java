@@ -319,6 +319,11 @@ public final class SerializationTelemetry
      */
     public static final String SUB_REASON_DENYLIST = "denylist";
 
+    /**
+     * Persisted topic subscriber replay drift sub-reason.
+     */
+    public static final String SUB_REASON_REPLAY_DRIFT = "replay_drift";
+
     // ----- helper methods ---------------------------------------------------
 
     private static void record(String sMetric, String sResult, String sReason, SerializationRole role,
