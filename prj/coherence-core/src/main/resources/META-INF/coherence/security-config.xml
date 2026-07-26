@@ -70,6 +70,8 @@
     <class name="com.oracle.coherence.persistence.FatalAccessException" source="manual"/>
     <class name="com.oracle.coherence.persistence.PersistenceException" source="manual"/>
     <class name="com.oracle.coherence.persistence.PersistentStoreInfo" source="manual"/>
+    <class name="com.oracle.coherence.repository.AbstractAsyncRepository" source="manual" lambda-target="true"/>
+    <class name="com.oracle.coherence.repository.AbstractRepository" source="manual" lambda-target="true"/>
     <class name="com.oracle.coherence.repository.AbstractRepositoryBase" source="manual"/>
     <class name="com.tangosol.coherence.config.ParameterMacroExpression" source="manual"/>
     <class name="com.tangosol.coherence.config.ResolvableParameterList" source="manual"/>
@@ -204,6 +206,7 @@
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicChannelPublisherConnector$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor" source="manual" executable="true"/>

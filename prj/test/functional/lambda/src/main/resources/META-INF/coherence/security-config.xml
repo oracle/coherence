@@ -10,6 +10,7 @@
   <allowed-classes>
     <class name="com.oracle.coherence.testing.tests.filter.AbstractFilterDslTest" source="manual" lambda-target="true"/>
     <class name="com.oracle.coherence.testing.tests.invoke.AbstractRemotableTest" source="manual" lambda-target="true"/>
+    <class name="com.oracle.coherence.testing.tests.invoke.AbstractRemotableTest$SplitProcessor$9A03A20845DD770F4EA14094B8A7E8F3" source="manual" executable="true"/>
     <class name="com.oracle.coherence.testing.tests.invoke.AbstractRemotableTest$SplitProcessor$BC4FAED46607BFCAC17B0F38C8F66804" source="manual" executable="true"/>
     <class name="com.oracle.coherence.testing.tests.map.AbstractInvocableMapTest" source="manual" lambda-target="true"/>
     <class name="com.oracle.coherence.testing.tests.map.AbstractQueryMapTest" source="manual" lambda-target="true"/>

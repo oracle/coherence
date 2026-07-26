@@ -22,6 +22,7 @@
     <class name="processor.Coh10098Tests$IncrementProcessor" source="manual" executable="true"/>
     <class name="processor.Coh10098Tests$ServiceStartInvocable" source="manual" executable="true"/>
     <class name="processor.Coh12875Tests$VolatileProcessor" source="manual" executable="true"/>
+    <class name="processor.Coh22443Tests" source="manual" lambda-target="true"/>
     <class name="processor.Coh7207RegressionTests$MyProcessor" source="manual" executable="true"/>
     <class name="processor.ContentionTests$CheckProcessor" source="manual" executable="true"/>
     <class name="processor.IndexIntegrityTests$BackdoorMutatingProcessor" source="manual" executable="true"/>
