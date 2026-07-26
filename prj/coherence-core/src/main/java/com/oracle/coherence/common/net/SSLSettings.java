@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -108,7 +108,7 @@ public class SSLSettings
      * Return the SSL HostnameVerifier to be used to verify hostnames
      * once an SSL session has been established.
      *
-     * @return  the verifier, or null to disable
+     * @return  the verifier, or null for mode-aware defaults
      */
     public HostnameVerifier getHostnameVerifier()
         {
@@ -186,7 +186,7 @@ public class SSLSettings
     protected SSLSocketProvider.ClientAuthMode m_clientAuthMode;
 
     /**
-     * The HostnameVerifier, null for default.
+     * The HostnameVerifier, null for mode-aware defaults.
      */
     protected HostnameVerifier m_hostnameVerifier;
 

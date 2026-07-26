@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml;
 
+import com.tangosol.coherence.config.xml.preprocessor.SSLHostnameVerifierPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 import com.tangosol.coherence.config.xml.processor.AddressProviderBuilderProcessor;
 import com.tangosol.coherence.config.xml.processor.DaemonPoolProcessor;
@@ -71,6 +72,9 @@ public class OperationalConfigNamespaceHandler
         {
         // define the DocumentPreprocessor for the OperationalConfig namespace
         DocumentElementPreprocessor dep = new DocumentElementPreprocessor();
+
+        // resolve hostname-verifier system-property fallback before generic system-property preprocessing
+        dep.addElementPreprocessor(SSLHostnameVerifierPreprocessor.INSTANCE);
 
         // add the system property pre-processor
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);
