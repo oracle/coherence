@@ -17,5 +17,15 @@
     <class name="grpc.client.TestPartitionKey" source="manual"/>
     <class name="grpc.client.UnusableAggregator" source="manual" executable="true"/>
     <class name="grpc.client.Uppercase" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$AnnotatedAggregator" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$AnnotatedComparator" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$AnnotatedExtractor" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$AnnotatedProcessor" source="manual" executable="true"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$PlainAggregator" source="manual"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$PlainComparator" source="manual"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$PlainExtractor" source="manual"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$PlainFilter" source="manual"/>
+    <class name="grpc.client.GrpcNamedCacheInstallGateIntegrationTest$PlainProcessor" source="manual"/>
   </allowed-classes>
 </security-config>
