@@ -78,6 +78,7 @@ import com.tangosol.util.function.Remote;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 import com.oracle.coherence.testing.BedrockInvocationProperties;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.sun.net.httpserver.HttpServer;
 
@@ -1355,9 +1356,11 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testManagementTcmpRejectsPlainExecuteFunction()
+            throws Exception
         {
         String sProperty = "coherence.management.slice.c.function." + System.nanoTime();
-        String sResult   = s_cluster.iterator().next().submit(new InvokePlainManagementFunction(sProperty)).join();
+        String sResult   = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokePlainManagementFunction(sProperty)).join());
 
         assertThat(sResult, not("invoked"));
         for (CoherenceClusterMember member : s_cluster)
@@ -1368,9 +1371,11 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testManagementTcmpRejectsNestedExecuteFilter()
+            throws Exception
         {
         String sProperty = "coherence.management.slice.c.filter." + System.nanoTime();
-        String sResult   = s_cluster.iterator().next().submit(new InvokeNestedManagementFilter(sProperty)).join();
+        String sResult   = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokeNestedManagementFilter(sProperty)).join());
 
         assertThat(sResult, not("queried"));
         for (CoherenceClusterMember member : s_cluster)
@@ -1381,8 +1386,10 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testManagementTcmpRejectsPlatformMBeanInvoke()
+            throws Exception
         {
-        String sResult = s_cluster.iterator().next().submit(new InvokePlatformDiagnosticCommand()).join();
+        String sResult = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokePlatformDiagnosticCommand()).join());
 
         assertThat(sResult, not(containsString("java.class.path")));
         assertThat(sResult, startsWith("rejected:"));
@@ -1390,8 +1397,10 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testManagementTcmpRejectsWrappedDiagnosticCommandSystemProperties()
+            throws Exception
         {
-        String sResult = s_cluster.iterator().next().submit(new InvokeWrappedDiagnosticCommand()).join();
+        String sResult = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokeWrappedDiagnosticCommand()).join());
 
         assertThat(sResult, not(containsString("java.class.path")));
         assertThat(sResult, startsWith("rejected:"));
@@ -1862,7 +1871,7 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testReporterConfigFileRejectsRemoteUrl()
-            throws IOException
+            throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
@@ -1882,10 +1891,13 @@ public abstract class BaseManagementInfoResourceTests
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report-group.xml";
 
-            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
-                    "configFile", sUrl, "reporter-remote-sentinel");
-            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
-                    "configFile", sUrl, "reporter-remote-sentinel");
+            withClusterMode(MODE_PROD, () ->
+                {
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                        "configFile", sUrl, "reporter-remote-sentinel");
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                        "configFile", sUrl, "reporter-remote-sentinel");
+                });
             assertThat(cRequests.get(), is(0));
             }
         finally
@@ -1896,26 +1908,31 @@ public abstract class BaseManagementInfoResourceTests
 
     @Test
     public void testReporterConfigFileRejectsFileUrlOutsideAllowedRoot()
+            throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
-        assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
-                "configFile", new File("/etc/passwd").toURI().toString(), "root:");
+        withClusterMode(MODE_PROD, () ->
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                    "configFile", new File("/etc/passwd").toURI().toString(), "root:"));
         }
 
     @Test
     public void testReporterOutputPathRejectsOutsideApprovedRoot()
-            throws IOException
+            throws Exception
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
         File tempDirectory = FileHelper.createTempDir();
         try
             {
-            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
-                    "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
-            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
-                    "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+            withClusterMode(MODE_PROD, () ->
+                {
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                        "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                        "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+                });
             }
         finally
             {
@@ -4380,6 +4397,37 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(sBody, not(containsString(sForbidden)));
         }
 
+    private void withClusterMode(String sMode, ThrowingRunnable runnable)
+            throws Exception
+        {
+        withClusterMode(sMode, () ->
+            {
+            runnable.run();
+            return null;
+            });
+        }
+
+    private <T> T withClusterMode(String sMode, ThrowingCallable<T> callable)
+            throws Exception
+        {
+        Map<CoherenceClusterMember, String> mapPrevious = new LinkedHashMap<>();
+        try
+            {
+            for (CoherenceClusterMember member : s_cluster)
+                {
+                mapPrevious.put(member, member.submit(new SetCoherenceMode(sMode)).join());
+                }
+            return callable.call();
+            }
+        finally
+            {
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
+                {
+                entry.getKey().submit(new SetCoherenceMode(entry.getValue())).join();
+                }
+            }
+        }
+
     public boolean assertAttribute(String sMember, String sPath, String sAttribute, Object value)
         {
         Map    mapResults = getMBeanInfoResponse(sMember, sPath);
@@ -5341,6 +5389,25 @@ public abstract class BaseManagementInfoResourceTests
         private final String m_sProperty;
         }
 
+    public static class SetCoherenceMode
+            implements RemoteCallable<String>
+        {
+        public SetCoherenceMode(String sMode)
+            {
+            m_sMode = sMode;
+            }
+
+        @Override
+        public String call()
+            {
+            String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
+            CoherenceModeHelper.restore(m_sMode);
+            return sPrevious;
+            }
+
+        private final String m_sMode;
+        }
+
     public static class NestedManagementFilter
             implements Filter<String>, Serializable
         {
@@ -5392,6 +5459,20 @@ public abstract class BaseManagementInfoResourceTests
 
         String m_sName;
         String m_sType;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable
+        {
+        void run()
+                throws Exception;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingCallable<T>
+        {
+        T call()
+                throws Exception;
         }
 
     // ----- static helpers -------------------------------------------------
@@ -5607,6 +5688,16 @@ public abstract class BaseManagementInfoResourceTests
      * Cache config used by the test and spawned processes.
      */
     protected static final String CACHE_CONFIG = "server-cache-config-mgmt.xml";
+
+    /**
+     * The hardened management mode.
+     */
+    protected static final String MODE_PROD = "prod";
+
+    /**
+     * The Coherence mode system property.
+     */
+    protected static final String PROP_COHERENCE_MODE = "coherence.mode";
 
     /**
      * The window of time the management server tries to give a consistent response.
