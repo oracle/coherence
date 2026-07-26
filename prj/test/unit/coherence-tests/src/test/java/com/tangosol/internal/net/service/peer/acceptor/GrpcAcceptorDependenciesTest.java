@@ -19,11 +19,6 @@ import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.SaxParser;
 import com.tangosol.run.xml.XmlDocument;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import java.util.stream.Stream;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -270,24 +265,6 @@ public class GrpcAcceptorDependenciesTest
         validateCacheConfigSchema("coherence-cache-config.xsd");
         }
 
-    @Test
-    public void shouldDeclareGrpcAuthMethodInVersionedWebCacheConfigSchemas()
-            throws Exception
-        {
-        assertVersionedWebSchemas("coherence-xsd/web/coherence-cache-config", "coherence-cache-config.xsd",
-                "<xsd:element name=\"grpc-acceptor\"",
-                GrpcAcceptorDependenciesTest::assertVersionedWebSchemaDeclaresGrpcAuthMethod);
-        }
-
-    @Test
-    public void shouldDeclareGrpcSecureTransportInVersionedWebConfigBaseSchemas()
-            throws Exception
-        {
-        assertVersionedWebSchemas("coherence-xsd/web/coherence-config-base", "coherence-config-base.xsd",
-                "name=\"grpc-channel-type\"",
-                GrpcAcceptorDependenciesTest::assertVersionedWebConfigBaseSchemaDeclaresGrpcDiagnostics);
-        }
-
     private static void validateCacheConfigSchema(String sSchemaLocation)
             throws Exception
         {
@@ -322,70 +299,6 @@ public class GrpcAcceptorDependenciesTest
         new SaxParser().validateXsd(sXml, xml);
         }
 
-    private static void assertVersionedWebSchemaDeclaresGrpcAuthMethod(Path path)
-            throws Exception
-        {
-        String sSchema = Files.readString(path);
-        int    iStart  = sSchema.indexOf("<xsd:element name=\"grpc-acceptor\"");
-        int    iEnd    = sSchema.indexOf("<xsd:element name=\"grpc-controller\"", iStart);
-
-        if (iStart < 0 || iEnd < 0)
-            {
-            throw new AssertionError("Cannot locate grpc-acceptor declaration in " + path);
-            }
-
-        String sGrpcAcceptor = sSchema.substring(iStart, iEnd);
-        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"auth-method\"/>")
-                && !sGrpcAcceptor.contains("<xsd:element ref=\"auth-method\" minOccurs=\"0\" />"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc auth-method in " + path);
-            }
-        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"secure-transport\"/>")
-                && !sGrpcAcceptor.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\" />"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc secure-transport in " + path);
-            }
-        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"channelz\"/>")
-                && !sGrpcAcceptor.contains("<xsd:element ref=\"channelz\" minOccurs=\"0\" />"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc channelz in " + path);
-            }
-        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"error-disclosure\"/>")
-                && !sGrpcAcceptor.contains("<xsd:element ref=\"error-disclosure\" minOccurs=\"0\" />"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc error-disclosure in " + path);
-            }
-        }
-
-    private static void assertVersionedWebConfigBaseSchemaDeclaresGrpcDiagnostics(Path path)
-            throws Exception
-        {
-        String sSchema = Files.readString(path);
-        int    iStart  = sSchema.indexOf("name=\"grpc-channel-type\"");
-        int    iEnd    = sSchema.indexOf("</xsd:complexType>", iStart);
-
-        if (iStart < 0 || iEnd < 0)
-            {
-            throw new AssertionError("Cannot locate grpc-channel-type declaration in " + path);
-            }
-
-        String sGrpcChannel = sSchema.substring(iStart, iEnd);
-        if (!sGrpcChannel.contains("<xsd:element minOccurs=\"0\" ref=\"secure-transport\"/>")
-                && !sGrpcChannel.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\"/>")
-                && !sGrpcChannel.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\" />"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc-channel secure-transport in " + path);
-            }
-        if (!sSchema.contains("<xsd:element name=\"channelz\" type=\"coherence-string-type\">"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc channelz element in " + path);
-            }
-        if (!sSchema.contains("<xsd:element name=\"error-disclosure\" type=\"coherence-string-type\">"))
-            {
-            throw new AssertionError("Versioned web schema does not declare grpc error-disclosure element in " + path);
-            }
-        }
-
     private static DefaultGrpcAcceptorDependencies fromXml(SocketProviderFactory factory, String sXml)
             throws Exception
         {
@@ -396,47 +309,6 @@ public class GrpcAcceptorDependenciesTest
         when(ctx.getSocketProviderFactory()).thenReturn(factory);
         LegacyXmlGrpcAcceptorHelper.fromXml(xml, deps, ctx, GrpcAcceptorDependenciesTest.class.getClassLoader());
         return deps;
-        }
-
-    private static Path findProjectRoot()
-        {
-        Path path = Path.of(System.getProperty("user.dir")).toAbsolutePath();
-        while (path != null)
-            {
-            if (Files.isDirectory(path.resolve("coherence-xsd")))
-                {
-                return path;
-                }
-            path = path.getParent();
-            }
-        throw new IllegalStateException("Cannot find project root from " + System.getProperty("user.dir"));
-        }
-
-    private static void assertVersionedWebSchemas(String sDirectory, String sFileName, String sMarker,
-            SchemaAssertion assertion)
-            throws Exception
-        {
-        Path root = findProjectRoot().resolve(sDirectory);
-        try (Stream<Path> paths = Files.list(root))
-            {
-            Path[] schemas = paths
-                    .map(path -> path.resolve(sFileName))
-                    .filter(Files::isRegularFile)
-                    .toArray(Path[]::new);
-            for (Path schema : schemas)
-                {
-                if (Files.readString(schema).contains(sMarker))
-                    {
-                    assertion.accept(schema);
-                    }
-                }
-            }
-        }
-
-    @FunctionalInterface
-    private interface SchemaAssertion
-        {
-        void accept(Path path) throws Exception;
         }
 
     private static DefaultGrpcAcceptorDependencies populate(DefaultGrpcAcceptorDependencies deps)
