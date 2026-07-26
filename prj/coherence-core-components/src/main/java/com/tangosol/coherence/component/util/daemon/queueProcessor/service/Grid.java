@@ -47,6 +47,11 @@ import com.tangosol.coherence.config.builder.ServiceFailurePolicyBuilder;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.internal.net.service.grid.DefaultGridDependencies;
 import com.tangosol.internal.net.service.grid.GridDependencies;
+import com.tangosol.internal.net.security.SeniorMetadataProof;
+import com.tangosol.internal.net.security.SeniorMetadataProofPayload;
+import com.tangosol.internal.net.security.SeniorMetadataProofProvider;
+import com.tangosol.internal.net.security.SeniorMetadataProofProviders;
+import com.tangosol.internal.net.security.SeniorMetadataProofVerification;
 import com.tangosol.internal.net.security.SubjectProofPayload;
 import com.tangosol.internal.net.security.SubjectProofProvider;
 import com.tangosol.internal.net.security.SubjectProofProviders;
@@ -93,6 +98,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -192,6 +198,42 @@ public abstract class Grid
      * Maximum payload length for one request-extension record.
      */
     protected static final int REQUEST_EXTENSION_MAX_PAYLOAD_LENGTH = 64 * 1024;
+
+    /**
+     * Magic for the PEER-01 D2 senior-metadata extension record layer.
+     */
+    protected static final int SENIOR_METADATA_EXTENSION_MAGIC = 0x534D5831; // SMX1
+
+    /**
+     * Senior-metadata proof extension type.
+     */
+    protected static final int SENIOR_METADATA_EXTENSION_TYPE_PROOF = 1;
+
+    /**
+     * Senior-metadata proof extension version.
+     */
+    protected static final int SENIOR_METADATA_EXTENSION_VERSION_PROOF = 1;
+
+    /**
+     * Minimum senior-metadata extension record header length.
+     */
+    protected static final int SENIOR_METADATA_EXTENSION_HEADER_LENGTH = 10;
+
+    /**
+     * Maximum payload length for one senior-metadata extension record.
+     */
+    protected static final int SENIOR_METADATA_EXTENSION_MAX_PAYLOAD_LENGTH = 64 * 1024;
+
+    /**
+     * Default sender-side senior-metadata proof validity window.
+     */
+    protected static final long SENIOR_METADATA_PROOF_DEFAULT_VALIDITY_MILLIS = 5 * 60 * 1000L;
+
+    /**
+     * System property that enables proof-required senior-metadata policy.
+     */
+    protected static final String PROP_SENIOR_METADATA_PROOF_REQUIRED =
+            "coherence.security.peer.senior-metadata-proof.required";
 
     // ---- Fields declarations ----
     
@@ -1044,6 +1086,7 @@ public abstract class Grid
                 msg.readInternal(input);
                 msg.read(input);
                 readRequestExtensions(msg, input);
+                readSeniorMetadataExtensions(msg, input);
                 }
         
             if (fWrapped)
@@ -4573,6 +4616,7 @@ public abstract class Grid
         msg.writeInternal(output);
         msg.write(output);
         writeRequestExtensions(msg, output);
+        writeSeniorMetadataExtensions(msg, output);
         
         if (fFiltered) // non-filtered streams don't require closing
             {
@@ -4581,7 +4625,445 @@ public abstract class Grid
         
         return output.getOffset();
         }
-    
+
+    /**
+     * Return true iff the specified message can carry PEER-01 D2
+     * senior-metadata proof extension records.
+     */
+    protected boolean isSeniorMetadataExtensionMessage(Message msg)
+        {
+        return msg instanceof ClusterService.SeniorMemberHeartbeat
+                || msg instanceof ClusterService.SeniorMemberKill
+                || msg instanceof ClusterService.SeniorMemberPanic;
+        }
+
+    /**
+     * Return true iff the specified message writes discovery-local D2 extension
+     * records from its message body.
+     */
+    protected boolean isSeniorMetadataDiscoveryExtensionMessage(Message msg)
+        {
+        return msg instanceof DiscoveryMessage
+                && isSeniorMetadataExtensionMessage(msg);
+        }
+
+    /**
+     * Read optional PEER-01 D2 senior-metadata extension records after the
+     * ordinary senior metadata message body.
+     */
+    public void readSeniorMetadataExtensions(Message msg, com.tangosol.io.ReadBuffer.BufferInput input)
+            throws IOException
+        {
+        if (!isSeniorMetadataExtensionMessage(msg) || input.available() == 0)
+            {
+            return;
+            }
+
+        if (!isSeniorMetadataDiscoveryExtensionMessage(msg))
+            {
+            Member memberFrom = msg.getFromMember();
+            if (memberFrom == null || !isVersionCompatible(memberFrom, Message::isSeniorMetadataProofV1Compatible))
+                {
+                return;
+                }
+            }
+
+        input.mark(SENIOR_METADATA_EXTENSION_HEADER_LENGTH);
+        if (input.available() < Integer.BYTES)
+            {
+            return;
+            }
+
+        int nMagic = input.readInt();
+        if (nMagic != SENIOR_METADATA_EXTENSION_MAGIC)
+            {
+            input.reset();
+            return;
+            }
+
+        while (true)
+            {
+            if (input.available() < SENIOR_METADATA_EXTENSION_HEADER_LENGTH - Integer.BYTES)
+                {
+                throw new IOException("malformed senior-metadata extension");
+                }
+
+            int nType     = input.readUnsignedByte();
+            int nVersion  = input.readUnsignedByte();
+            int cbPayload = input.readInt();
+            if (cbPayload < 0 || cbPayload > SENIOR_METADATA_EXTENSION_MAX_PAYLOAD_LENGTH
+                    || cbPayload > input.available())
+                {
+                throw new IOException("malformed senior-metadata extension");
+                }
+
+            boolean fProof = nType == SENIOR_METADATA_EXTENSION_TYPE_PROOF;
+            if (!fProof)
+                {
+                skipSeniorMetadataExtensionPayload(input, cbPayload);
+                }
+            else
+                {
+                if (nVersion != SENIOR_METADATA_EXTENSION_VERSION_PROOF)
+                    {
+                    throw new IOException("unsupported senior-metadata proof extension");
+                    }
+
+                byte[] abPayload = new byte[cbPayload];
+                input.readFully(abPayload);
+                handleSeniorMetadataProofExtension(msg, abPayload);
+                }
+
+            if (input.available() == 0)
+                {
+                return;
+                }
+            if (input.available() < Integer.BYTES)
+                {
+                throw new IOException("stray senior-metadata extension bytes");
+                }
+            nMagic = input.readInt();
+            if (nMagic != SENIOR_METADATA_EXTENSION_MAGIC)
+                {
+                throw new IOException("stray senior-metadata extension bytes");
+                }
+            }
+        }
+
+    /**
+     * Skip a bounded senior-metadata extension payload without copying it to a
+     * heap array.
+     */
+    protected void skipSeniorMetadataExtensionPayload(com.tangosol.io.ReadBuffer.BufferInput input, int cbPayload)
+            throws IOException
+        {
+        int cbRemaining = cbPayload;
+        while (cbRemaining > 0)
+            {
+            int cbSkipped = input.skipBytes(cbRemaining);
+            if (cbSkipped <= 0)
+                {
+                throw new IOException("malformed senior-metadata extension");
+                }
+            cbRemaining -= cbSkipped;
+            }
+        }
+
+    /**
+     * Handle a supported senior-metadata proof extension record.
+     */
+    protected void handleSeniorMetadataProofExtension(Message msg, byte[] abPayload)
+        {
+        msg.setSeniorMetadataProof(abPayload);
+        }
+
+    /**
+     * Verify D2 senior-metadata proof bytes before protected receive-side
+     * senior metadata state can mutate.
+     *
+     * @param msg  the senior metadata message
+     *
+     * @return true if receive processing may continue
+     */
+    public boolean verifySeniorMetadataProofBeforeMutation(Message msg)
+        {
+        if (!isSeniorMetadataExtensionMessage(msg) || !isSeniorMetadataProofRequired(msg))
+            {
+            return true;
+            }
+
+        SeniorMetadataProofVerification result = verifySeniorMetadataProof(msg);
+        if (result.isValid())
+            {
+            return true;
+            }
+
+        String sReason = getSeniorMetadataProofVerificationReason(result);
+        if (isSeniorMetadataProofEnforced(msg))
+            {
+            throw new SecurityException("senior metadata proof rejected: " + sReason);
+            }
+
+        if (CoherenceMode.isLegacy())
+            {
+            onSeniorMetadataProofWouldReject(msg, sReason);
+            }
+        else if (CoherenceMode.isDev())
+            {
+            onSeniorMetadataProofDebugAllow(msg, sReason);
+            }
+        return true;
+        }
+
+    /**
+     * Verify D2 senior-metadata proof bytes for a received message.
+     */
+    protected SeniorMetadataProofVerification verifySeniorMetadataProof(Message msg)
+        {
+        byte[] abProof = msg.getSeniorMetadataProof();
+        if (abProof == null || abProof.length == 0)
+            {
+            return SeniorMetadataProofVerification.failed(SeniorMetadataProofVerification.Status.MISSING, "missing");
+            }
+
+        SeniorMetadataProofProvider provider = getSeniorMetadataProofProvider();
+        if (provider == null || !provider.isEnabled())
+            {
+            return SeniorMetadataProofVerification.disabled();
+            }
+
+        SeniorMetadataProof proof;
+        try
+            {
+            proof = SeniorMetadataProof.fromByteArray(abProof);
+            }
+        catch (Exception e)
+            {
+            return SeniorMetadataProofVerification.failed(SeniorMetadataProofVerification.Status.MALFORMED,
+                    "malformed");
+            }
+
+        SeniorMetadataProofPayload payloadSigned   = proof.getPayload();
+        SeniorMetadataProofPayload payloadExpected =
+                createExpectedSeniorMetadataProofPayload(msg, payloadSigned);
+        long                       ldtNow          = getSeniorMetadataProofVerificationTimeMillis(msg, payloadSigned);
+        SeniorMetadataProofVerification result = provider.verifyProof(abProof, payloadExpected, ldtNow);
+
+        return result.isValid() || !(msg instanceof ClusterService.SeniorMemberKill)
+                ? result
+                : verifyDelegatedSeniorMetadataKillProof((ClusterService.SeniorMemberKill) msg, abProof,
+                        payloadSigned, ldtNow);
+        }
+
+    /**
+     * Return the receiver-side expected payload scope for a received D2
+     * senior-metadata proof.
+     */
+    protected SeniorMetadataProofPayload createExpectedSeniorMetadataProofPayload(Message msg,
+            SeniorMetadataProofPayload payloadSigned)
+        {
+        return new SeniorMetadataProofPayload(SeniorMetadataProofPayload.PAYLOAD_VERSION,
+                getExpectedSeniorMetadataProofMessageKind(msg, payloadSigned),
+                getSeniorMetadataProofAlgorithmId(), getSeniorMetadataProofKeyId(),
+                getSeniorMetadataProofIssuerId(msg), getSeniorMetadataProofClusterName(),
+                getSeniorMetadataProofServiceName(), getServiceId(), msg.getMessageType(),
+                getSeniorMetadataProofSenderId(msg), getSeniorMetadataProofSeniorId(msg),
+                getExpectedSeniorMetadataProofTargetId(msg, payloadSigned),
+                getSeniorMetadataProofCulpritId(msg),
+                getSeniorMetadataProofKillDirection(msg), getSeniorMetadataProofZombie(msg),
+                getSeniorMetadataProofSeniorEpoch(msg), getSeniorMetadataProofLastJoinTime(msg),
+                getSeniorMetadataProofMemberSetDigestVersion(msg), getSeniorMetadataProofMemberSetCount(msg),
+                getSeniorMetadataProofMemberSetDigest(msg), getSeniorMetadataProofReplayEpoch(msg),
+                payloadSigned.getNonce(), payloadSigned.getIssuedAtMillis(), payloadSigned.getExpiresAtMillis());
+        }
+
+    /**
+     * Verify a senior-issued panic token carried by a delegated junior kill or
+     * doomed-senior fan-out kill.
+     */
+    protected SeniorMetadataProofVerification verifyDelegatedSeniorMetadataKillProof(
+            ClusterService.SeniorMemberKill msg, byte[] abProof, SeniorMetadataProofPayload payloadSigned,
+            long ldtNow)
+        {
+        if (!isDelegatedSeniorMetadataKillProof(msg, payloadSigned))
+            {
+            return SeniorMetadataProofVerification.failed(SeniorMetadataProofVerification.Status.PAYLOAD_MISMATCH,
+                    "delegated");
+            }
+
+        SeniorMetadataProofProvider provider = getSeniorMetadataProofProvider();
+        return provider.verifyProof(abProof, createExpectedDelegatedSeniorMetadataKillProofPayload(msg, payloadSigned),
+                ldtNow);
+        }
+
+    /**
+     * Return true iff the signed panic token is scoped to this delegated or
+     * forwarded kill policy.
+     */
+    protected boolean isDelegatedSeniorMetadataKillProof(ClusterService.SeniorMemberKill msg,
+            SeniorMetadataProofPayload payloadSigned)
+        {
+        if (payloadSigned.getMessageKind() != SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN
+                || payloadSigned.getMessageType() != 41
+                || payloadSigned.getPayloadVersion() != SeniorMetadataProofPayload.PAYLOAD_VERSION
+                || payloadSigned.getKillDirection() != SeniorMetadataProofPayload.KILL_DIRECTION_NONE
+                || payloadSigned.isZombie())
+            {
+            return false;
+            }
+
+        String sSenior = payloadSigned.getSeniorId();
+        if (sSenior.isEmpty()
+                || !sSenior.equals(payloadSigned.getIssuerId())
+                || !sSenior.equals(payloadSigned.getSenderId()))
+            {
+            return false;
+            }
+        if (!isSeniorMetadataProofSeniorAuthority(msg, payloadSigned))
+            {
+            return false;
+            }
+
+        return isDelegatedSeniorToDoomedKillProof(msg, payloadSigned)
+                || isDelegatedDoomedSeniorForwardedKillProof(msg, payloadSigned);
+        }
+
+    /**
+     * Return true iff the signed panic-token senior is authorized for
+     * delegated senior metadata decisions.
+     */
+    protected boolean isSeniorMetadataProofSeniorAuthority(Message msg, SeniorMetadataProofPayload payloadSigned)
+        {
+        String sSenior        = payloadSigned.getSeniorId();
+        String sCurrentSenior = getSeniorMetadataProofMemberId(getServiceOldestMember());
+        if (!sSenior.isEmpty() && sSenior.equals(sCurrentSenior))
+            {
+            return true;
+            }
+
+        SeniorMetadataProofProvider provider = getSeniorMetadataProofProvider();
+        return provider != null
+                && provider.isEnabled()
+                && provider.isSeniorMetadataProofAuthority(payloadSigned);
+        }
+
+    /**
+     * Return true iff the signed panic token is scoped to the first delegated
+     * junior-to-doomed-senior kill hop.
+     */
+    protected boolean isDelegatedSeniorToDoomedKillProof(ClusterService.SeniorMemberKill msg,
+            SeniorMetadataProofPayload payloadSigned)
+        {
+        String sSender = getSeniorMetadataProofMemberId(getSeniorMetadataSender(msg));
+        String sTarget = getSeniorMetadataProofMemberId(msg.getToMember());
+        String sThis   = getSeniorMetadataProofMemberId(getThisMember());
+        return !sSender.isEmpty()
+                && !sTarget.isEmpty()
+                && payloadSigned.getTargetId().equals(sSender)
+                && payloadSigned.getCulpritId().equals(sTarget)
+                && (sThis.isEmpty() || sThis.equals(sTarget));
+        }
+
+    /**
+     * Return true iff the signed panic token authorizes doomed-senior fan-out.
+     * The signed target must be a receiver-known delegate, but is not treated
+     * as proof of the actual first-hop junior.
+     */
+    protected boolean isDelegatedDoomedSeniorForwardedKillProof(ClusterService.SeniorMemberKill msg,
+            SeniorMetadataProofPayload payloadSigned)
+        {
+        String sSenior   = payloadSigned.getSeniorId();
+        String sDelegate = payloadSigned.getTargetId();
+        String sSender   = getSeniorMetadataProofMemberId(getSeniorMetadataSender(msg));
+        String sTarget   = getSeniorMetadataProofMemberId(msg.getToMember());
+        String sThis     = getSeniorMetadataProofMemberId(getThisMember());
+        return !sSenior.isEmpty()
+                && !sDelegate.isEmpty()
+                && !sSender.isEmpty()
+                && !sTarget.isEmpty()
+                && !sDelegate.equals(sSenior)
+                && !sDelegate.equals(sSender)
+                && !sDelegate.equals(sTarget)
+                && isKnownSeniorMetadataProofMemberId(sDelegate)
+                && payloadSigned.getCulpritId().equals(sSender)
+                && (sThis.isEmpty() || sThis.equals(sTarget));
+        }
+
+    /**
+     * Return true iff the stable senior-metadata identity resolves to a member
+     * known by this receiver.
+     */
+    protected boolean isKnownSeniorMetadataProofMemberId(String sMemberId)
+        {
+        if (sMemberId == null || sMemberId.isEmpty())
+            {
+            return false;
+            }
+
+        MasterMemberSet setMembers = getClusterMemberSet();
+        if (setMembers == null)
+            {
+            return false;
+            }
+
+        for (Iterator iter = setMembers.iterator(); iter.hasNext(); )
+            {
+            if (sMemberId.equals(getSeniorMetadataProofMemberId((Member) iter.next())))
+                {
+                return true;
+                }
+            }
+
+        return false;
+        }
+
+    /**
+     * Return the expected panic-token payload for a delegated junior kill or
+     * doomed-senior fan-out kill.
+     */
+    protected SeniorMetadataProofPayload createExpectedDelegatedSeniorMetadataKillProofPayload(
+            ClusterService.SeniorMemberKill msg, SeniorMetadataProofPayload payloadSigned)
+        {
+        boolean fForwarded = isDelegatedDoomedSeniorForwardedKillProof(msg, payloadSigned);
+        return new SeniorMetadataProofPayload(SeniorMetadataProofPayload.PAYLOAD_VERSION,
+                SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN,
+                getSeniorMetadataProofAlgorithmId(), getSeniorMetadataProofKeyId(), payloadSigned.getIssuerId(),
+                getSeniorMetadataProofClusterName(), getSeniorMetadataProofServiceName(), getServiceId(), 41,
+                payloadSigned.getSenderId(), payloadSigned.getSeniorId(),
+                fForwarded ? payloadSigned.getTargetId()
+                        : getSeniorMetadataProofMemberId(getSeniorMetadataSender(msg)),
+                fForwarded ? payloadSigned.getCulpritId()
+                        : getSeniorMetadataProofMemberId(msg.getToMember()),
+                SeniorMetadataProofPayload.KILL_DIRECTION_NONE, false, getSeniorMetadataProofSeniorEpoch(msg), 0L, 0,
+                0, null,
+                getSeniorMetadataProofReplayEpoch(msg), payloadSigned.getNonce(), payloadSigned.getIssuedAtMillis(),
+                payloadSigned.getExpiresAtMillis());
+        }
+
+    /**
+     * Return the expected message kind for receive-side proof verification.
+     */
+    protected byte getExpectedSeniorMetadataProofMessageKind(Message msg, SeniorMetadataProofPayload payloadSigned)
+        {
+        if (msg instanceof ClusterService.SeniorMemberPanic)
+            {
+            return isSameSeniorMetadataMember(getSeniorMetadataSender(msg), getServiceOldestMember())
+                    ? SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN
+                    : SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_REPORT;
+            }
+        return getSeniorMetadataProofMessageKind(msg);
+        }
+
+    /**
+     * Return the receive-side expected target identity.
+     */
+    protected String getExpectedSeniorMetadataProofTargetId(Message msg, SeniorMetadataProofPayload payloadSigned)
+        {
+        if (msg instanceof ClusterService.SeniorMemberPanic && !payloadSigned.getTargetId().isEmpty())
+            {
+            return getSeniorMetadataProofMemberId(getThisMember());
+            }
+        return getSeniorMetadataProofTargetId(msg);
+        }
+
+    /**
+     * Return the receive-side proof verification time.
+     */
+    protected long getSeniorMetadataProofVerificationTimeMillis(Message msg, SeniorMetadataProofPayload payloadSigned)
+        {
+        return Base.getSafeTimeMillis();
+        }
+
+    /**
+     * Return a compact senior-metadata proof verification reason.
+     */
+    protected String getSeniorMetadataProofVerificationReason(SeniorMetadataProofVerification result)
+        {
+        String sReason = result.getStatus().name().toLowerCase(java.util.Locale.ROOT);
+        String sDetail = result.getDetail();
+        return sDetail == null || sDetail.isEmpty() ? sReason : sReason + ": " + sDetail;
+        }
+
     /**
      * Write optional request-extension records after the ordinary message body.
      */
@@ -4844,6 +5326,560 @@ public abstract class Grid
             }
 
         output.writeInt(REQUEST_EXTENSION_MAGIC);
+        output.writeByte(nType);
+        output.writeByte(nVersion);
+        output.writeInt(cbPayload);
+        if (abPayload != null)
+            {
+            output.write(abPayload);
+            }
+        }
+
+    /**
+     * Write optional PEER-01 D2 senior-metadata extension records after the
+     * ordinary senior metadata message body.
+     */
+    public void writeSeniorMetadataExtensions(Message msg, com.tangosol.io.WriteBuffer.BufferOutput output)
+            throws IOException
+        {
+        if (!isSeniorMetadataExtensionMessage(msg) || isSeniorMetadataDiscoveryExtensionMessage(msg))
+            {
+            return;
+            }
+
+        writeSeniorMetadataExtensionsInternal(msg, output);
+        }
+
+    /**
+     * Write optional discovery-local PEER-01 D2 senior-metadata extension
+     * records.
+     */
+    public void writeSeniorMetadataDiscoveryExtensions(Message msg, com.tangosol.io.WriteBuffer.BufferOutput output)
+            throws IOException
+        {
+        if (!isSeniorMetadataDiscoveryExtensionMessage(msg))
+            {
+            return;
+            }
+
+        writeSeniorMetadataExtensionsInternal(msg, output);
+        }
+
+    /**
+     * Write optional PEER-01 D2 senior-metadata extension records.
+     */
+    protected void writeSeniorMetadataExtensionsInternal(Message msg, com.tangosol.io.WriteBuffer.BufferOutput output)
+            throws IOException
+        {
+        MemberSet setMembers = getSeniorMetadataProofRecipients(msg);
+        if (setMembers == null)
+            {
+            handleSeniorMetadataProofUnavailable(msg, "unknown recipient set");
+            return;
+            }
+        if (!isVersionCompatible(setMembers, Message::isSeniorMetadataProofV1Compatible))
+            {
+            handleSeniorMetadataProofUnavailable(msg, "incompatible recipient set");
+            return;
+            }
+
+        byte[] ab = ensureSeniorMetadataProof(msg);
+        if (ab == null || ab.length == 0)
+            {
+            handleSeniorMetadataProofUnavailable(msg, "proof not produced");
+            return;
+            }
+
+        writeSeniorMetadataExtension(output, SENIOR_METADATA_EXTENSION_TYPE_PROOF,
+                SENIOR_METADATA_EXTENSION_VERSION_PROOF, ab);
+        }
+
+    /**
+     * Return the known recipients for senior-metadata proof policy.
+     */
+    protected MemberSet getSeniorMetadataProofRecipients(Message msg)
+        {
+        MemberSet setMembers = msg.getToMemberSet();
+        if (setMembers == null && msg instanceof DiscoveryMessage)
+            {
+            Member memberTo = ((DiscoveryMessage) msg).getToMember();
+            return memberTo == null ? null : SingleMemberSet.instantiate(memberTo);
+            }
+        return setMembers;
+        }
+
+    /**
+     * Ensure senior-metadata proof bytes are present when an explicit provider
+     * is enabled.
+     */
+    protected byte[] ensureSeniorMetadataProof(Message msg)
+        {
+        byte[] ab = msg.getSeniorMetadataProof();
+        if (ab != null && ab.length > 0)
+            {
+            return ab;
+            }
+
+        SeniorMetadataProofProvider provider = getSeniorMetadataProofProvider();
+        if (provider == null || !provider.isEnabled() || !isSeniorMetadataProofProductionAllowed(msg))
+            {
+            return null;
+            }
+
+        ab = provider.createProof(createSeniorMetadataProofPayload(msg));
+        if (ab != null && ab.length > 0)
+            {
+            msg.setSeniorMetadataProof(ab);
+            }
+        return ab;
+        }
+
+    /**
+     * Handle a senior-metadata proof-required condition that cannot be
+     * satisfied on the sender side.
+     */
+    protected void handleSeniorMetadataProofUnavailable(Message msg, String sReason)
+            throws IOException
+        {
+        if (!isSeniorMetadataProofRequired(msg))
+            {
+            return;
+            }
+
+        if (isSeniorMetadataProofEnforced(msg))
+            {
+            throw new IOException("senior metadata proof required: " + sReason);
+            }
+
+        if (CoherenceMode.isLegacy())
+            {
+            onSeniorMetadataProofWouldReject(msg, sReason);
+            }
+        else if (CoherenceMode.isDev())
+            {
+            onSeniorMetadataProofDebugAllow(msg, sReason);
+            }
+        }
+
+    /**
+     * Return true iff senior-metadata proof policy is explicitly required.
+     */
+    protected boolean isSeniorMetadataProofRequired(Message msg)
+        {
+        return Config.getBoolean(PROP_SENIOR_METADATA_PROOF_REQUIRED, false);
+        }
+
+    /**
+     * Return true iff senior-metadata proof policy is enforced in this mode.
+     */
+    protected boolean isSeniorMetadataProofEnforced(Message msg)
+        {
+        return isSeniorMetadataProofRequired(msg) && CoherenceMode.isProd();
+        }
+
+    /**
+     * Record a LEGACY would-reject senior-metadata proof policy result.
+     */
+    protected void onSeniorMetadataProofWouldReject(Message msg, String sReason)
+        {
+        _trace("Senior metadata proof would be rejected for " + msg.get_Name() + ": " + sReason, 2);
+        }
+
+    /**
+     * Record a DEV debug-allow senior-metadata proof policy result.
+     */
+    protected void onSeniorMetadataProofDebugAllow(Message msg, String sReason)
+        {
+        _trace("Senior metadata proof debug allow for " + msg.get_Name() + ": " + sReason, 5);
+        }
+
+    /**
+     * Return the senior-metadata proof provider. The default provider is
+     * disabled and behavior-neutral.
+     */
+    protected SeniorMetadataProofProvider getSeniorMetadataProofProvider()
+        {
+        return SeniorMetadataProofProviders.disabled();
+        }
+
+    /**
+     * Return true iff proof production is allowed for the specified senior
+     * metadata message.
+     */
+    protected boolean isSeniorMetadataProofProductionAllowed(Message msg)
+        {
+        if (msg instanceof ClusterService.SeniorMemberHeartbeat)
+            {
+            return isSeniorMetadataHeartbeatProductionAllowed((ClusterService.SeniorMemberHeartbeat) msg);
+            }
+        if (msg instanceof ClusterService.SeniorMemberKill)
+            {
+            return isSeniorMetadataKillProductionAllowed((ClusterService.SeniorMemberKill) msg);
+            }
+        if (msg instanceof ClusterService.SeniorMemberPanic)
+            {
+            return isSeniorMetadataPanicProductionAllowed((ClusterService.SeniorMemberPanic) msg);
+            }
+        return false;
+        }
+
+    /**
+     * Return true iff this member can produce a senior heartbeat proof.
+     */
+    protected boolean isSeniorMetadataHeartbeatProductionAllowed(ClusterService.SeniorMemberHeartbeat msg)
+        {
+        Member memberThis = getThisMember();
+        return memberThis != null && memberThis == getServiceOldestMember();
+        }
+
+    /**
+     * Return true iff this member can produce a senior kill token.
+     */
+    protected boolean isSeniorMetadataKillProductionAllowed(ClusterService.SeniorMemberKill msg)
+        {
+        Member memberThis = getThisMember();
+        return memberThis != null && memberThis == getServiceOldestMember();
+        }
+
+    /**
+     * Return true iff this member can produce a senior panic proof.
+     */
+    protected boolean isSeniorMetadataPanicProductionAllowed(ClusterService.SeniorMemberPanic msg)
+        {
+        return getSeniorMetadataPanicMessageKind(msg) == SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_REPORT
+                || !getSeniorMetadataProofTargetId(msg).isEmpty();
+        }
+
+    /**
+     * Create the passive senior-metadata proof payload for the specified
+     * message.
+     */
+    protected SeniorMetadataProofPayload createSeniorMetadataProofPayload(Message msg)
+        {
+        long lIssuedAtMillis = getSeniorMetadataProofIssuedAtMillis(msg);
+        return new SeniorMetadataProofPayload(SeniorMetadataProofPayload.PAYLOAD_VERSION,
+                getSeniorMetadataProofMessageKind(msg), getSeniorMetadataProofAlgorithmId(),
+                getSeniorMetadataProofKeyId(), getSeniorMetadataProofIssuerId(msg),
+                getSeniorMetadataProofClusterName(), getSeniorMetadataProofServiceName(), getServiceId(),
+                msg.getMessageType(), getSeniorMetadataProofSenderId(msg), getSeniorMetadataProofSeniorId(msg),
+                getSeniorMetadataProofTargetId(msg), getSeniorMetadataProofCulpritId(msg),
+                getSeniorMetadataProofKillDirection(msg), getSeniorMetadataProofZombie(msg),
+                getSeniorMetadataProofSeniorEpoch(msg), getSeniorMetadataProofLastJoinTime(msg),
+                getSeniorMetadataProofMemberSetDigestVersion(msg), getSeniorMetadataProofMemberSetCount(msg),
+                getSeniorMetadataProofMemberSetDigest(msg), getSeniorMetadataProofReplayEpoch(msg),
+                getSeniorMetadataProofNonce(msg), lIssuedAtMillis,
+                getSeniorMetadataProofExpiresAtMillis(msg, lIssuedAtMillis));
+        }
+
+    /**
+     * Return the senior-metadata proof message kind.
+     */
+    protected byte getSeniorMetadataProofMessageKind(Message msg)
+        {
+        if (msg instanceof ClusterService.SeniorMemberHeartbeat)
+            {
+            return SeniorMetadataProofPayload.MESSAGE_KIND_HEARTBEAT;
+            }
+        if (msg instanceof ClusterService.SeniorMemberKill)
+            {
+            return SeniorMetadataProofPayload.MESSAGE_KIND_KILL_TOKEN;
+            }
+        if (msg instanceof ClusterService.SeniorMemberPanic)
+            {
+            return getSeniorMetadataPanicMessageKind((ClusterService.SeniorMemberPanic) msg);
+            }
+        throw new IllegalArgumentException("unsupported senior metadata message");
+        }
+
+    /**
+     * Return the senior-metadata panic proof kind.
+     */
+    protected byte getSeniorMetadataPanicMessageKind(ClusterService.SeniorMemberPanic msg)
+        {
+        Member memberThis = getThisMember();
+        return memberThis != null && memberThis == getServiceOldestMember()
+                ? SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN
+                : SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_REPORT;
+        }
+
+    /**
+     * Return the senior-metadata proof algorithm id.
+     */
+    protected String getSeniorMetadataProofAlgorithmId()
+        {
+        return "";
+        }
+
+    /**
+     * Return the senior-metadata proof key id.
+     */
+    protected String getSeniorMetadataProofKeyId()
+        {
+        return "";
+        }
+
+    /**
+     * Return the senior-metadata proof issuer id.
+     */
+    protected String getSeniorMetadataProofIssuerId(Message msg)
+        {
+        return getSeniorMetadataProofMemberId(getSeniorMetadataSender(msg));
+        }
+
+    /**
+     * Return the senior-metadata proof cluster identity.
+     */
+    protected String getSeniorMetadataProofClusterName()
+        {
+        com.tangosol.net.Cluster cluster = getCluster();
+        return cluster == null ? "" : cluster.getClusterName();
+        }
+
+    /**
+     * Return the senior-metadata proof service name.
+     */
+    protected String getSeniorMetadataProofServiceName()
+        {
+        String sService = getServiceName();
+        return sService == null ? "" : sService;
+        }
+
+    /**
+     * Return the stable sender identity.
+     */
+    protected String getSeniorMetadataProofSenderId(Message msg)
+        {
+        return getSeniorMetadataProofMemberId(getSeniorMetadataSender(msg));
+        }
+
+    /**
+     * Return the stable senior identity.
+     */
+    protected String getSeniorMetadataProofSeniorId(Message msg)
+        {
+        Member memberSenior = getServiceOldestMember();
+        if (memberSenior == null && msg instanceof ClusterService.SeniorMemberHeartbeat)
+            {
+            memberSenior = getSeniorMetadataSender(msg);
+            }
+        return getSeniorMetadataProofMemberId(memberSenior);
+        }
+
+    /**
+     * Return the stable target identity.
+     */
+    protected String getSeniorMetadataProofTargetId(Message msg)
+        {
+        if (msg instanceof DiscoveryMessage)
+            {
+            return getSeniorMetadataProofMemberId(((DiscoveryMessage) msg).getToMember());
+            }
+
+        MemberSet setMembers = msg.getToMemberSet();
+        if (setMembers != null && setMembers.size() == 1)
+            {
+            Iterator iter = setMembers.iterator();
+            return iter.hasNext() ? getSeniorMetadataProofMemberId((Member) iter.next()) : "";
+            }
+        return "";
+        }
+
+    /**
+     * Return the stable culprit identity.
+     */
+    protected String getSeniorMetadataProofCulpritId(Message msg)
+        {
+        if (msg instanceof ClusterService.SeniorMemberPanic)
+            {
+            return getSeniorMetadataProofMemberId(((ClusterService.SeniorMemberPanic) msg).getCulpritMember());
+            }
+        if (msg instanceof ClusterService.SeniorMemberKill)
+            {
+            return getSeniorMetadataProofTargetId(msg);
+            }
+        return "";
+        }
+
+    /**
+     * Return the kill direction.
+     */
+    protected byte getSeniorMetadataProofKillDirection(Message msg)
+        {
+        if (!(msg instanceof ClusterService.SeniorMemberKill))
+            {
+            return SeniorMetadataProofPayload.KILL_DIRECTION_NONE;
+            }
+
+        Member memberSender = getSeniorMetadataSender(msg);
+        Member memberSenior = getServiceOldestMember();
+        Member memberTarget = ((ClusterService.SeniorMemberKill) msg).getToMember();
+        if (isSameSeniorMetadataMember(memberSender, memberSenior))
+            {
+            return SeniorMetadataProofPayload.KILL_DIRECTION_SENIOR_TO_JUNIOR;
+            }
+        if (isSameSeniorMetadataMember(memberTarget, memberSenior))
+            {
+            return SeniorMetadataProofPayload.KILL_DIRECTION_JUNIOR_TO_DOOMED_SENIOR;
+            }
+        return SeniorMetadataProofPayload.KILL_DIRECTION_DOOMED_SENIOR_TO_JUNIOR;
+        }
+
+    /**
+     * Return true iff two members have the same stable senior-metadata
+     * identity.
+     */
+    protected boolean isSameSeniorMetadataMember(Member memberOne, Member memberTwo)
+        {
+        if (memberOne == null || memberTwo == null)
+            {
+            return false;
+            }
+        if (memberOne == memberTwo)
+            {
+            return true;
+            }
+        return getSeniorMetadataProofMemberId(memberOne).equals(getSeniorMetadataProofMemberId(memberTwo));
+        }
+
+    /**
+     * Return true iff the senior-metadata payload should carry the zombie bit.
+     */
+    protected boolean getSeniorMetadataProofZombie(Message msg)
+        {
+        return msg instanceof ClusterService.SeniorMemberPanic
+                && ((ClusterService.SeniorMemberPanic) msg).isZombie();
+        }
+
+    /**
+     * Return the senior epoch. This prompt has no committed senior-epoch source
+     * yet, so the default payload uses a documented placeholder.
+     */
+    protected long getSeniorMetadataProofSeniorEpoch(Message msg)
+        {
+        return 0L;
+        }
+
+    /**
+     * Return the senior-metadata last join time.
+     */
+    protected long getSeniorMetadataProofLastJoinTime(Message msg)
+        {
+        return msg instanceof ClusterService.SeniorMemberHeartbeat
+                ? ((ClusterService.SeniorMemberHeartbeat) msg).getLastJoinTime()
+                : 0L;
+        }
+
+    /**
+     * Return the member-set digest version.
+     */
+    protected int getSeniorMetadataProofMemberSetDigestVersion(Message msg)
+        {
+        return msg instanceof ClusterService.SeniorMemberHeartbeat ? 1 : 0;
+        }
+
+    /**
+     * Return the member-set count.
+     */
+    protected int getSeniorMetadataProofMemberSetCount(Message msg)
+        {
+        return msg instanceof ClusterService.SeniorMemberHeartbeat
+                ? ((ClusterService.SeniorMemberHeartbeat) msg).getMemberSet().size()
+                : 0;
+        }
+
+    /**
+     * Return a bounded digest of the sender-side member set.
+     */
+    protected byte[] getSeniorMetadataProofMemberSetDigest(Message msg)
+        {
+        if (!(msg instanceof ClusterService.SeniorMemberHeartbeat))
+            {
+            return null;
+            }
+
+        try
+            {
+            com.tangosol.io.ByteArrayWriteBuffer buffer = new com.tangosol.io.ByteArrayWriteBuffer(256);
+            ((ClusterService.SeniorMemberHeartbeat) msg).getMemberSet().writeExternal(buffer.getBufferOutput());
+            return MessageDigest.getInstance("SHA-256").digest(buffer.toByteArray());
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Return the replay epoch.
+     */
+    protected long getSeniorMetadataProofReplayEpoch(Message msg)
+        {
+        return 0L;
+        }
+
+    /**
+     * Return the nonce.
+     */
+    protected long getSeniorMetadataProofNonce(Message msg)
+        {
+        return Base.getSafeTimeMillis();
+        }
+
+    /**
+     * Return the issue time.
+     */
+    protected long getSeniorMetadataProofIssuedAtMillis(Message msg)
+        {
+        return Base.getSafeTimeMillis();
+        }
+
+    /**
+     * Return the expiration time.
+     */
+    protected long getSeniorMetadataProofExpiresAtMillis(Message msg, long lIssuedAtMillis)
+        {
+        return lIssuedAtMillis + SENIOR_METADATA_PROOF_DEFAULT_VALIDITY_MILLIS;
+        }
+
+    /**
+     * Return the sender member for a senior-metadata proof.
+     */
+    protected Member getSeniorMetadataSender(Message msg)
+        {
+        Member member = msg.getFromMember();
+        return member == null ? getThisMember() : member;
+        }
+
+    /**
+     * Return the stable senior-metadata identity for a member.
+     */
+    protected String getSeniorMetadataProofMemberId(Member member)
+        {
+        if (member == null)
+            {
+            return "";
+            }
+        if (member.getUuid() != null)
+            {
+            return "member-uuid:" + member.getUuid();
+            }
+        return member.getUid32() == null ? "" : "member-uid32:" + member.getUid32();
+        }
+
+    /**
+     * Write one senior-metadata extension record.
+     */
+    protected void writeSeniorMetadataExtension(com.tangosol.io.WriteBuffer.BufferOutput output, int nType,
+            int nVersion, byte[] abPayload)
+            throws IOException
+        {
+        int cbPayload = abPayload == null ? 0 : abPayload.length;
+        if (cbPayload > SENIOR_METADATA_EXTENSION_MAX_PAYLOAD_LENGTH)
+            {
+            throw new IOException("oversized senior-metadata extension");
+            }
+
+        output.writeInt(SENIOR_METADATA_EXTENSION_MAGIC);
         output.writeByte(nType);
         output.writeByte(nVersion);
         output.writeInt(cbPayload);
