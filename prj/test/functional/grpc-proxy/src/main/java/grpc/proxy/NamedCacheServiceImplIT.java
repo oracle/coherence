@@ -136,7 +136,8 @@ public class NamedCacheServiceImplIT
         NamedCacheService service    = createService();
         DefaultSerializer serializer = new DefaultSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod();
+             CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
             {
             CompletionStage<BoolValue> response = service.containsKey(
                     Requests.containsKey(sScope, sCacheName, "java", toByteString("key", serializer)));
@@ -160,7 +161,8 @@ public class NamedCacheServiceImplIT
         NamedCacheService service    = createService();
         JsonSerializer    serializer = new JsonSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod();
+             CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
             {
             ByteString                  key      = toByteString("key-1", serializer);
             ByteString                  value    = toByteString("value-1", serializer);
@@ -183,7 +185,8 @@ public class NamedCacheServiceImplIT
         ByteString        key     = jsonPayload(
                 "{\"@class\":\"internal.util.invoke.RemoteConstructor\"}");
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod();
+             CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
             {
             CompletionStage<BoolValue> response = service.containsKey(
                     Requests.containsKey(sScope, sCacheName, "json", key));
