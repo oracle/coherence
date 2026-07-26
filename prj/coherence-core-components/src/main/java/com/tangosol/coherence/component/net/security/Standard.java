@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
+import java.security.SecureRandom;
 import java.util.Iterator;
 import java.util.Map;
 import javax.security.auth.Subject;
@@ -87,6 +88,15 @@ public class Standard
      * name. Used by the client threads.
      */
     private transient java.util.Map __m_ServiceContext;
+
+    /**
+     * Property PendingSecureResponses
+     *
+     * (Private) Permission objects keyed by the service name they were sent
+     * for. Used by the client threads to verify the senior member signed the
+     * permission originally requested.
+     */
+    private transient java.util.Map __m_PendingSecureResponses;
     
     /**
      * Property ThreadContext
@@ -104,6 +114,14 @@ public class Standard
      * forever to allow policy changes take effect relatively quickly.
      */
     private java.util.Map __m_ValidSubjects;
+
+    /**
+     * Property SecureRandom
+     *
+     * Secure random source used to generate subject validation challenges.
+     */
+    private static final SecureRandom __s_SecureRandom = new SecureRandom();
+
     private static com.tangosol.util.ListMap __mapChildren;
     
     // Static initializer
@@ -163,6 +181,7 @@ public class Standard
         try
             {
             __m_ServiceContext = new com.tangosol.util.SafeHashMap();
+            __m_PendingSecureResponses = new com.tangosol.util.SafeHashMap();
             __m_ThreadContext = new java.lang.ThreadLocal();
             }
         catch (java.lang.Exception e)
@@ -322,7 +341,9 @@ public class Standard
             return;
             }
         
-        clusterservice.getServiceContext().put(sService, encryptPermissionInfo(permission, subject));
+        PermissionInfo info = encryptPermissionInfo(permission, subject);
+        getPendingSecureResponses().put(sService, permission);
+        clusterservice.getServiceContext().put(sService, info);
         
         // the validation will be done by ClusterService.doServiceJoining()
         }
@@ -368,6 +389,17 @@ public class Standard
     private java.util.Map getServiceContext()
         {
         return __m_ServiceContext;
+        }
+
+    // Accessor for the property "PendingSecureResponses"
+    /**
+     * Getter for property PendingSecureResponses.<p>
+    * (Private) Permission objects keyed by the service name they were sent
+    * for. Used by the client threads.
+     */
+    private java.util.Map getPendingSecureResponses()
+        {
+        return __m_PendingSecureResponses;
         }
     
     // Accessor for the property "ThreadContext"
@@ -501,7 +533,7 @@ public class Standard
         {
         // import com.tangosol.net.cache.LocalCache;
         
-        setValidSubjects(new LocalCache(Integer.MAX_VALUE, 300000));
+        setValidSubjects(new LocalCache(Integer.MAX_VALUE, VALID_SUBJECT_EXPIRY_MILLIS));
         
         super.onInit();
         }
@@ -702,7 +734,7 @@ public class Standard
         if (!mapValid.containsKey(subject))
             {
             com.tangosol.net.security.AccessController controller = getDependencies().getAccessController();
-            Object     oTest      = Double.valueOf(Math.random());
+            Object     oTest      = Long.valueOf(__s_SecureRandom.nextLong());
             try
                 {
                 Object o = controller.decrypt(
@@ -746,12 +778,24 @@ public class Standard
         // import java.security.GeneralSecurityException;
         // import javax.security.auth.Subject;
         
-        Subject           subject    = (Subject) getServiceContext().get(service.getInfo().getServiceName());
-        ClusterPermission permission = null;
+        String            sService           = service.getInfo().getServiceName();
+        Subject           subject            = (Subject) getServiceContext().get(sService);
+        ClusterPermission permissionExpected = (ClusterPermission) getPendingSecureResponses().remove(sService);
+        ClusterPermission permission         = null;
+
+        if (permissionExpected == null)
+            {
+            throw new SecurityException("No pending secure response request");
+            }
         try
             {
-            permission = (ClusterPermission) getDependencies().getAccessController().decrypt(
+            Object oPermission = getDependencies().getAccessController().decrypt(
                 info.getSignedPermission(), info.getSubject(), subject);
+            if (!(oPermission instanceof ClusterPermission))
+                {
+                throw new ClassCastException("Invalid secure response permission type");
+                }
+            permission = (ClusterPermission) oPermission;
             }
         catch (GeneralSecurityException e)
             {
@@ -762,7 +806,17 @@ public class Standard
             {
             throw Base.ensureRuntimeException(e, "Security configuration mismatch");
             }
+
+        if (!permissionExpected.equals(permission))
+            {
+            throw new SecurityException("Secure response permission mismatch");
+            }
         }
+
+    /**
+     * Subject validation cache entry expiry in milliseconds.
+     */
+    private static final int VALID_SUBJECT_EXPIRY_MILLIS = 10000;
 
     // ---- class: com.tangosol.coherence.component.net.security.Standard$CreateLoginCtxAction
     
