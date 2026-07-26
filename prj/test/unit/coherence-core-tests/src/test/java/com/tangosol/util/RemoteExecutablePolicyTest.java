@@ -134,7 +134,7 @@ public class RemoteExecutablePolicyTest
         Map<String, Long> map = SerializationTelemetry.snapshot();
         assertEquals(Long.valueOf(1L), map.get("coh.executable.policy_check{reason="
                 + OperationReason.PROCESS_ENTRY.name() + ",role=" + SerializationRole.UNCLASSIFIED.name()
-                + ",result=allowed,mode=prod}"));
+                + ",result=allowed,mode=prod,sub_reason=policy}"));
         }
 
     @Test

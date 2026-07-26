@@ -422,6 +422,37 @@ serializable functional interfaces should rebuild those artifacts with
 `@Remote.Executable`, verify the generated `security-config.xml`, and redeploy
 receivers before sending lambdas that target the new interface.
 
+=== MethodInvocationProcessor / ScriptProcessor
+
+`MethodInvocationProcessor` and `ScriptProcessor` are built-in
+`EntryProcessor` implementations that execute behavior described by their
+serialized state. Both classes are `final`, annotated with
+`@Remote.Executable`, and checked by `RemoteExecutablePolicy` before their
+mode-specific gates run.
+
+In `PROD` mode, both processors are denied by default unless
+`coherence.remote.dynamic.unauthenticated=allow` is set. In `DEV` and
+`LEGACY`, the mode gate allows them by default. The same property therefore
+controls unauthenticated DYNAMIC lambda bytecode, reflective method invocation
+through `MethodInvocationProcessor`, and script evaluation through
+`ScriptProcessor`.
+
+`MethodInvocationProcessor` also applies the lambda bytecode deny-list before
+reflection. The supplier class, the runtime target class, and the
+`targetClass#methodName` pair are each checked against
+`META-INF/coherence/lambda-bytecode-denylist.txt` and extension resources such
+as `META-INF/coherence/lambda-bytecode-denylist.d/*.txt`. Entries such as
+`java.lang.Runtime` and `java.lang.ProcessBuilder` are hard floors in every
+mode, including `LEGACY`. When a processor targets an absent cache entry, the
+supplier class is checked first, but the supplier is not executed and the entry
+is not populated until the dynamic-remote mode gate allows MIP.
+
+`ScriptProcessor` runs scripts in the singleton Graal `Context` with explicit
+host access. `allowAllAccess(true)` is not enabled. Host class lookup rejects
+deny-listed classes, and loadable deny-listed classes are also blocked through
+Graal `HostAccess.denyAccess(...)`. These HostAccess checks are hard floors in
+every mode.
+
 === Migration
 
 `@Remote.Executable` covers two distinct cases that have different
@@ -436,12 +467,11 @@ runtime-enforcement timelines in 26.04:
 * *Concrete executable classes* (entry processors, aggregators, invocables,
   filters, value extractors, comparators, triggers, server-side event
   interceptors, `coherence-concurrent` tasks) are classified by the build
-  in 26.04 but no runtime gate refuses execution of an unannotated class
-  yet. The classification surface exists so applications can complete the
-  annotation and regeneration work ahead of a future Coherence release
-  that wires execution enforcement at every construction site. Until then,
-  treat `@Remote.Executable` on concrete classes as advisory: classify
-  now, regenerate `security-config.xml`, and use the
+  in 26.04. Runtime enforcement is rolling out by sink. Extend
+  `InvocationService`, `MethodInvocationProcessor`, and `ScriptProcessor`
+  enforce the classification today; other execution sinks will be wired in
+  follow-on CACHE-01 slices. Classify executable classes now, regenerate
+  `security-config.xml`, and use
   `coh.executable.policy_check{result=would_reject}` shadow telemetry to
   drive the migration; see <<Telemetry>>.
 
@@ -477,14 +507,12 @@ production target. `DEV` and `LEGACY` log prominent warnings.
 |enum: `allow`, `deny`
 |`LEGACY`: `allow`; `DEV`: `allow`; `PROD`: `deny`
 |26.04
-|Controls whether unauthenticated wire-arriving DYNAMIC lambda bytecode is
-accepted before subject-aware authorization is available. Scope in 26.04 is
-dynamic lambda bytecode; the same property will govern
-`MethodInvocationProcessor` and `ScriptProcessor` once their
-remote-execution gate is wired in a future Coherence release. Does not
-bypass functional-interface target allowlisting; unlisted targets reject
-with `lambda-target-not-allowed`.
-|<<Lambda Serialization>>
+|Controls whether unauthenticated wire-arriving DYNAMIC lambda bytecode,
+reflective `MethodInvocationProcessor` execution, and `ScriptProcessor`
+evaluation are accepted before subject-aware authorization is available. Does
+not bypass functional-interface target allowlisting, the MIP deny-list, or
+Graal HostAccess hardening.
+|<<Lambda Serialization>>, <<MethodInvocationProcessor / ScriptProcessor>>
 
 |`coherence.serialization.allowed`
 |class-fqn-list
@@ -620,6 +648,35 @@ shape.
 |Class definition
 |A class-definition payload contains bytes after the parsed class file.
 |Reject the payload source; resend a clean class definition.
+
+|`method-invocation-denied-by-mode`
+|MIP mode gate
+|A `MethodInvocationProcessor` arrived while `coherence.mode=prod` and
+`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
+|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where reflective
+method invocation is intentionally exposed, or replace the call with a
+purpose-built `@Remote.Executable` processor.
+
+|`script-eval-denied-by-mode`
+|Script mode gate
+|A `ScriptProcessor` arrived while `coherence.mode=prod` and
+`coherence.remote.dynamic.unauthenticated` resolved to `deny`.
+|Set `-Dcoherence.remote.dynamic.unauthenticated=allow` only where remote
+script evaluation is intentionally exposed, or replace the script with a
+purpose-built `@Remote.Executable` processor.
+
+|`reason=method-on-denylist`
+|MIP reflection
+|A `MethodInvocationProcessor` targets a deny-listed `class#method` pair.
+|Remove the reflective method call and use a purpose-built safe server-side
+processor.
+
+|Graal `PolyglotException` or script error naming a denied Java type
+|Script HostAccess
+|A script attempted `Java.type(...)` or guest-side host access for a
+deny-listed class such as `java.lang.Runtime` or `java.lang.ProcessBuilder`.
+|Remove the host access from the script. `coherence.remote.dynamic.unauthenticated`
+does not bypass the HostAccess hard floor.
 
 |`ClassIdentity package is not allowed: %s`
 |Class identity / Allowlist
