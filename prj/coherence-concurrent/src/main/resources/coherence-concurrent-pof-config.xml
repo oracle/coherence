@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -187,6 +187,10 @@
       <type-id>290</type-id>
       <class-name>com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo$TouchProcessor
       </class-name>
+    </user-type>
+    <user-type>
+      <type-id>291</type-id>
+      <class-name>com.oracle.coherence.concurrent.executor.ClusteredTaskManager$ExecutorInfoProcessor</class-name>
     </user-type>
     <user-type>
       <type-id>292</type-id>

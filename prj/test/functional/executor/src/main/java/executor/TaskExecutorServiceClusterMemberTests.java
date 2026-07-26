@@ -1,21 +1,23 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package executor;
 
+import com.oracle.bedrock.OptionsByType;
+
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
-import com.oracle.bedrock.runtime.coherence.options.ClusterPort;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
 import com.oracle.bedrock.runtime.coherence.options.Logging;
 import com.oracle.bedrock.runtime.coherence.options.Multicast;
 import com.oracle.bedrock.runtime.coherence.options.RoleName;
+import com.oracle.bedrock.runtime.coherence.options.WellKnownAddress;
 
 import com.oracle.bedrock.runtime.java.features.JmxFeature;
 
@@ -28,6 +30,8 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.concurrent.config.ConcurrentServicesSessionConfiguration;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.oracle.coherence.concurrent.executor.AbstractTaskCoordinator;
 import com.oracle.coherence.concurrent.executor.ClusteredExecutorInfo;
@@ -141,7 +145,9 @@ public class TaskExecutorServiceClusterMemberTests
     @Before
     public void setup() throws Exception
         {
-        System.setProperty("coherence.cluster", "TaskExecutorServiceClusterMemberTests");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
+        System.setProperty("coherence.wka", LOOPBACK_ADDRESS);
+        System.setProperty("coherence.localhost", LOOPBACK_ADDRESS);
         System.setProperty("tangosol.coherence.distributed.localstorage", "false");
         Coherence coherence = Coherence.clusterMember(CoherenceConfiguration.builder().discoverSessions().build());
         coherence.start().get(5, TimeUnit.MINUTES);
@@ -303,6 +309,23 @@ public class TaskExecutorServiceClusterMemberTests
      */
     protected final static int STORAGE_DISABLED_MEMBER_COUNT = 1;
 
+    /**
+     * The cluster name.
+     */
+    protected static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
+            TaskExecutorServiceClusterMemberTests.class.getSimpleName());
+
+    /**
+     * The loopback address used by the local WKA cluster.
+     */
+    protected static final String LOOPBACK_ADDRESS = "127.0.0.1";
+
+    static
+        {
+        System.setProperty("coherence.wka", LOOPBACK_ADDRESS);
+        System.setProperty("coherence.localhost", LOOPBACK_ADDRESS);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -311,14 +334,15 @@ public class TaskExecutorServiceClusterMemberTests
     @ClassRule
     public static CoherenceClusterResource s_coherence =
             (CoherenceClusterResource) new CoherenceClusterResource()
-                    .with(ClassName.of(Coherence.class),
-                          Multicast.ttl(0),
-                          LocalHost.only(),
-                          Logging.at(9),
-                          ClusterPort.of(7574),
-                          ClusterName.of(TaskExecutorServiceClusterMemberTests.class.getSimpleName()),
-                          JmxFeature.enabled(),
-                          StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))
+                    .with(BedrockInvocationProperties.inherit(OptionsByType.of(
+                              ClassName.of(Coherence.class),
+                              Multicast.ttl(0),
+                              LocalHost.only(),
+                              WellKnownAddress.of(LOOPBACK_ADDRESS),
+                              Logging.at(9),
+                              ClusterName.of(CLUSTER_NAME),
+                              JmxFeature.enabled(),
+                              StabilityPredicate.of(CoherenceCluster.Predicates.isCoherenceRunning()))).asArray())
                     .include(STORAGE_ENABLED_MEMBER_COUNT,
                              DisplayName.of("CacheServer"),
                              LogOutput.to(TaskExecutorServiceClusterMemberTests.class.getSimpleName(), "CacheServer"),

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package concurrent.locks;
+
+import concurrent.ConcurrentHelper;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -52,19 +54,29 @@ public class RemoteReadWriteLockTest
     @BeforeEach
     void beforeEach(TestInfo info)
         {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+
         System.out.println(">>>>> Starting test method " + info.getDisplayName());
         }
 
     @AfterEach
     void afterEach(TestInfo info)
         {
-        // sanity check: let's make sure the lock is not locked, and there are
-        // no pending locks on it
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
-        assertThat(lock.isReadLocked(), is(false));
-        assertThat(lock.isWriteLocked(), is(false));
-        assertThat(lock.getReadHoldCount(), is(0));
-        assertThat(lock.getWriteHoldCount(), is(0));
+        try
+            {
+            // sanity check: let's make sure the lock is not locked, and there are
+            // no pending locks on it
+            RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
+            assertThat(lock.isReadLocked(), is(false));
+            assertThat(lock.isWriteLocked(), is(false));
+            assertThat(lock.getReadHoldCount(), is(0));
+            assertThat(lock.getWriteHoldCount(), is(0));
+            }
+        finally
+            {
+            ConcurrentHelper.clearLocks();
+            }
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }
@@ -74,7 +86,7 @@ public class RemoteReadWriteLockTest
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void stressLocks() throws InterruptedException
         {
-        ReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        ReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         ExecutorService e = Executors.newFixedThreadPool(8);
         Runnable write = () ->
                 {
@@ -131,7 +143,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLock()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.writeLock().lock();
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -145,7 +157,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLock()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.readLock().lock();
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -159,7 +171,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockInterruptibly() throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.writeLock().lockInterruptibly();
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -173,7 +185,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockInterruptibly() throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.readLock().lockInterruptibly();
 
         System.out.println("Read lock acquired by " + Thread.currentThread());
@@ -188,7 +200,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockWithoutBlocking()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         assertThat(lock.writeLock().tryLock(), is(true));
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -202,7 +214,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockWithoutBlocking()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         assertThat(lock.readLock().tryLock(), is(true));
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -216,7 +228,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseWriteLockWithTimeout() throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         assertThat(lock.writeLock().tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Write lock acquired by " + Thread.currentThread());
         assertThat(lock.isWriteLocked(), is(true));
@@ -230,7 +242,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReadLockWithTimeout() throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         assertThat(lock.readLock().tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Read lock acquired by " + Thread.currentThread());
         assertThat(lock.isReadLocked(), is(true));
@@ -244,7 +256,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReentrantWriteLock()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.writeLock().lock();
         lock.writeLock().lock();
         lock.writeLock().lock();
@@ -265,7 +277,7 @@ public class RemoteReadWriteLockTest
     @Test
     void shouldAcquireAndReleaseReentrantReadLock()
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         lock.readLock().lock();
         lock.readLock().lock();
         lock.readLock().lock();
@@ -288,7 +300,7 @@ public class RemoteReadWriteLockTest
     void shouldAcquireAndReleaseWriteLockInOrderFromMultipleThreads()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -341,7 +353,7 @@ public class RemoteReadWriteLockTest
     void shouldAcquireAndReleaseReadLockFromMultipleThreads()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -384,7 +396,7 @@ public class RemoteReadWriteLockTest
     void shouldTimeOutWriteLockIfWriteLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -412,7 +424,7 @@ public class RemoteReadWriteLockTest
     void shouldTimeOutReadLockIfWriteLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -440,7 +452,7 @@ public class RemoteReadWriteLockTest
     void shouldBeAbleToInterruptWriteLockRequest()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
 
         Thread thread = new Thread(() ->
                {
@@ -477,7 +489,7 @@ public class RemoteReadWriteLockTest
     void shouldBeAbleToInterruptReadLockRequest()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Thread thread = new Thread(() ->
                {
                try
@@ -514,7 +526,7 @@ public class RemoteReadWriteLockTest
     void shouldBeAbleToDowngradeWriteLockToReadLock()
             throws InterruptedException
         {
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -557,4 +569,23 @@ public class RemoteReadWriteLockTest
         System.out.println("Read lock released by " + Thread.currentThread());
         thread.join();
         }
+
+    /**
+     * Return a test-scoped lock name.
+     *
+     * @param sSuffix  the lock name suffix
+     *
+     * @return a test-scoped lock name
+     */
+    private String lockName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The current test name, used to scope lock names.
+     */
+    private String m_sTestName;
     }

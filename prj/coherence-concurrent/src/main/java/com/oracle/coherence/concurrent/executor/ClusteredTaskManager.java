@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -990,7 +990,7 @@ public class ClusteredTaskManager<T, A, R>
 
             // filter-in only running executors
             Map<String, ExecutorInfo> executors =
-                    executorInfoCache.invokeAll(RUNNING_EXECUTOR_FILTER, Entry::getValue);
+                    executorInfoCache.invokeAll(RUNNING_EXECUTOR_FILTER, ExecutorInfoProcessor.INSTANCE);
 
             // determine the new assignments based on the current assignments and execution service information
             ExecutionPlan executionPlan =
@@ -1307,6 +1307,43 @@ public class ClusteredTaskManager<T, A, R>
          * {@link InvocableMap.EntryProcessor}s to be invoked in list-order.
          */
         protected ArrayList<InvocableMap.EntryProcessor> m_listProcessors;
+        }
+
+    // ----- inner class: ExecutorInfoProcessor -----------------------------
+
+    /**
+     * An {@link InvocableMap.EntryProcessor} that returns an executor info
+     * entry value.
+     *
+     * @since 26.04
+     */
+    public static class ExecutorInfoProcessor
+            extends PortableAbstractProcessor<String, ExecutorInfo, ExecutorInfo>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * For serialization.
+         */
+        @SuppressWarnings("unused")
+        public ExecutorInfoProcessor()
+            {
+            }
+
+        // ----- PortableAbstractProcessor methods --------------------------
+
+        @Override
+        public ExecutorInfo process(Entry<String, ExecutorInfo> entry)
+            {
+            return entry.getValue();
+            }
+
+        // ----- constants --------------------------------------------------
+
+        /**
+         * Singleton instance.
+         */
+        protected static final ExecutorInfoProcessor INSTANCE = new ExecutorInfoProcessor();
         }
 
     // ----- inner class: RetainProcessor -----------------------------------
