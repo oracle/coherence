@@ -271,5 +271,10 @@
       <class-name>extend.DynamicRemoteModeIntegrationTest$ObservableSupplier</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>3034</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$ObservableRemovalTrigger</class-name>
+    </user-type>
+
   </user-type-list>
 </pof-config>
