@@ -2154,7 +2154,7 @@ public class NamedTopicSubscriber<V>
 
                 if (!f_fAnonymous)
                     {
-                    // reset channel heads - we'll re-sync added channels from the group head
+                    // reset revoked channel heads - we'll re-sync if they are reallocated
                     TopicChannel[] aChannel = m_aChannel;
 
                     // if we're initializing and not anonymous, we do not own any channels,
@@ -2186,14 +2186,12 @@ public class NamedTopicSubscriber<V>
                     for (int c : setAdded)
                         {
                         TopicChannel channel = aChannel[c];
-                        channel.resetHead();
                         channel.clearPolled();
                         channel.clearHit();
                         }
                     for (int c : setRevoked)
                         {
                         TopicChannel channel = aChannel[c];
-                        channel.resetHead();
                         channel.clearPolled();
                         channel.clearHit();
                         }
@@ -3284,11 +3282,6 @@ public class NamedTopicSubscriber<V>
             }
 
         /**
-         * Reset the channel head so the next poll re-syncs from the subscriber group.
-         */
-        protected abstract void resetHead();
-
-        /**
          * Update the head position if the specified head is
          * higher than the current head.
          *
@@ -3885,7 +3878,7 @@ public class NamedTopicSubscriber<V>
                         break;
                     case Unsubscribed:
                         onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
-                        CompletableFuture.runAsync(() -> disconnectInternal(false), f_executor);
+                        disconnectInternal(false);
                         break;
                     case ChannelPopulated:
                         // must use the channel executor
@@ -3904,7 +3897,7 @@ public class NamedTopicSubscriber<V>
                         CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
                         break;
                     case Disconnected:
-                        CompletableFuture.runAsync(() -> disconnectInternal(false), f_executor);
+                        disconnectInternal(false);
                         break;
                     default:
                         throw new IllegalStateException("Unexpected event type: " + evt.getType());

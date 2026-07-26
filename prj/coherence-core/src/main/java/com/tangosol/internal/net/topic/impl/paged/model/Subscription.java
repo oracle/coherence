@@ -976,8 +976,7 @@ public class Subscription
         public PagedPosition extract(Subscription subscription)
             {
             PagedPosition position;
-            SubscriberId owner = subscription.getOwningSubscriber();
-            if (owner != null && owner.getId() == m_nSubscriberId)
+            if (subscription.getOwningSubscriber().getId() == m_nSubscriberId)
                 {
                 position = subscription.getHeadPosition();
                 }

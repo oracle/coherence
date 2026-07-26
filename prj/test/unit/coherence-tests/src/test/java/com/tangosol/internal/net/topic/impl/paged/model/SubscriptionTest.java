@@ -16,7 +16,6 @@ import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.UUID;
-import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.Test;
@@ -48,7 +47,7 @@ public class SubscriptionTest
         {
         ConfigurablePofContext   serializer   = new ConfigurablePofContext("coherence-pof-config.xml");
         Subscription             subscription = new Subscription();
-        Convert<String, Integer> convert      = Subscriber.Convert.using(new ReflectionExtractor<>("length"));
+        Convert<String, Integer> convert      = Subscriber.Convert.using(Integer::parseInt);
 
         subscription.setSubscriptionHead(20);
         subscription.setPage(10);
@@ -65,34 +64,6 @@ public class SubscriptionTest
         assertThat(result.getConverter(), is(notNullValue()));
         assertThat(result.getDataVersion(), is(subscription.getImplVersion()));
         assertThat(result.toString(), is(notNullValue()));
-        }
-
-    @Test
-    public void shouldExtractHeadForOwner()
-        {
-        SubscriberId                  owner        = new SubscriberId(1000L, null);
-        Subscription                  subscription = new Subscription();
-        Subscription.HeadExtractor    extractor    = new Subscription.HeadExtractor(owner.getId());
-
-        subscription.setCommittedPosition(new PagedPosition(3, 4), new PagedPosition(5, 6));
-        subscription.setOwningSubscriber(owner);
-        subscription.setPage(10);
-        subscription.setPosition(11);
-
-        assertThat(extractor.extract(subscription), is(new PagedPosition(10, 11)));
-        }
-
-    @Test
-    public void shouldExtractRollbackPositionWhenOwnerIsNull()
-        {
-        Subscription               subscription = new Subscription();
-        Subscription.HeadExtractor extractor    = new Subscription.HeadExtractor(1000L);
-
-        subscription.setCommittedPosition(new PagedPosition(3, 4), new PagedPosition(5, 6));
-        subscription.setPage(10);
-        subscription.setPosition(11);
-
-        assertThat(extractor.extract(subscription), is(new PagedPosition(5, 6)));
         }
 
     @Test

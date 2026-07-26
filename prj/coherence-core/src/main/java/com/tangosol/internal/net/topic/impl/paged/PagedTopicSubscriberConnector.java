@@ -605,9 +605,8 @@ public class PagedTopicSubscriberConnector<V>
                 PagedTopicChannel pagedChannel = (PagedTopicChannel) channel;
                 PagedPosition     position     = pagedChannel.getHead();
                 long              lHead        = position.getPage();
-                long              lPage        = lHead == TopicChannel.HEAD_UNKNOWN ? lPageId : lHead;
 
-                channel.setHead(new PagedPosition(lPage, nNext));
+                channel.setHead(new PagedPosition(position.getPage(), nNext));
 
                 if (cRemaining == PollProcessor.Result.EXHAUSTED)
                     {
@@ -839,12 +838,6 @@ public class PagedTopicSubscriberConnector<V>
      */
     private long getSubscriptionHead(ConnectedSubscriber<?> subscriber, int nChannel)
         {
-        Position position = f_caches.getHeads(f_subscriberGroupId, f_subscriberId.getId()).get(nChannel);
-        if (position instanceof PagedPosition)
-            {
-            return ((PagedPosition) position).getPage();
-            }
-
         Subscription.Key  syncKey      = f_aSubscriberPartitionSync.get(nChannel);
         Subscription      subscription = f_caches.Subscriptions.get(syncKey);
         return subscription.getSubscriptionHead();
@@ -1217,12 +1210,6 @@ public class PagedTopicSubscriberConnector<V>
                 return PagedPosition.NULL_POSITION;
                 }
             return (PagedPosition) m_head;
-            }
-
-        @Override
-        protected void resetHead()
-            {
-            m_head = new PagedPosition(HEAD_UNKNOWN, -1);
             }
     
         // ----- Object methods ---------------------------------------------

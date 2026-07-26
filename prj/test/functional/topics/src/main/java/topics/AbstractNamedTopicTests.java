@@ -2261,7 +2261,7 @@ public abstract class AbstractNamedTopicTests
             subscriber1.commitAsync(commits1).get(1, TimeUnit.MINUTES);
             commits1.clear();
             subscriber2.commitAsync(commits2).get(1, TimeUnit.MINUTES);
-            commits2.clear();
+            commits1.clear();
             subscriber3.commitAsync(commits3).get(1, TimeUnit.MINUTES);
             commits3.clear();
 
