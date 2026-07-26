@@ -33,7 +33,7 @@ import static org.junit.Assert.assertTrue;
  * @author OpenAI  2026.05.21
  * @since 26.04
  */
-public class AbstractScriptAllocationLimitTest
+public class ScriptAllocationLimitTest
     {
     @Test
     public void shouldDeserializeZeroDataInputArguments()
@@ -43,7 +43,7 @@ public class AbstractScriptAllocationLimitTest
 
         assertEquals("js", script.getLanguage());
         assertEquals("noArgs", script.getName());
-        assertEquals(0, script.getArgs().length);
+        assertEquals(0, script.m_aoArgs.length);
         }
 
     @Test
@@ -54,7 +54,7 @@ public class AbstractScriptAllocationLimitTest
 
         assertEquals("js", script.getLanguage());
         assertEquals("small", script.getName());
-        assertArrayEquals(new Object[] {"one", Integer.valueOf(2)}, script.getArgs());
+        assertArrayEquals(new Object[] {"one", Integer.valueOf(2)}, script.m_aoArgs);
         }
 
     @Test
