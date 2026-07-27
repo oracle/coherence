@@ -24,6 +24,7 @@ import com.oracle.coherence.concurrent.executor.util.Caches;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.RemoteExecutionMode;
 
 import com.tangosol.net.CacheFactory;
@@ -66,11 +67,13 @@ public class ClusteredExecutorInstallModeMatrixIT
     public void setUp() throws Exception
         {
         m_sModeOld          = System.getProperty("coherence.mode");
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sExtendAddressOld = System.getProperty("coherence.concurrent.extend.address");
         m_sExtendPortOld    = System.getProperty("coherence.concurrent.extend.port");
         m_sExtendEnabledOld = System.getProperty("coherence.concurrent.extend.enabled");
 
         CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
         RemoteExecutionMode.resetForTesting();
 
         System.setProperty("coherence.cluster", CLUSTER_NAME);
@@ -130,6 +133,7 @@ public class ClusteredExecutorInstallModeMatrixIT
             {
             System.setProperty("coherence.mode", m_sModeOld);
             }
+        CoherenceModeHelper.restoreSecurityMode(m_sSecurityModeOld);
         restore("coherence.concurrent.extend.address", m_sExtendAddressOld);
         restore("coherence.concurrent.extend.port", m_sExtendPortOld);
         restore("coherence.concurrent.extend.enabled", m_sExtendEnabledOld);
@@ -345,6 +349,7 @@ public class ClusteredExecutorInstallModeMatrixIT
     private static final String REMOTE_SESSION_NAME = "remote-concurrent";
 
     private String                   m_sModeOld;
+    private String                   m_sSecurityModeOld;
     private String                   m_sExtendAddressOld;
     private String                   m_sExtendPortOld;
     private String                   m_sExtendEnabledOld;
