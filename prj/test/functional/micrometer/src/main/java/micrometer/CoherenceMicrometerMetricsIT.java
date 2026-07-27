@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,8 +12,6 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.micrometer.CoherenceMicrometerMetrics;
 import com.tangosol.net.DefaultCacheServer;
 
-import com.tangosol.net.metrics.MBeanMetric;
-
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
 
@@ -23,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Enumeration;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -60,9 +57,6 @@ public class CoherenceMicrometerMetricsIT
         SortedSet<String> setExpected = new TreeSet<>();
         SortedSet<String> setActual   = new TreeSet<>();
 
-        Map<MBeanMetric.Identifier, CoherenceMicrometerMetrics.Holder> metrics
-                = CoherenceMicrometerMetrics.INSTANCE.getMetrics();
-
         for (CoherenceMicrometerMetrics.Holder holder : CoherenceMicrometerMetrics.INSTANCE.getMetrics().values())
             {
             // name without scope
@@ -83,13 +77,10 @@ public class CoherenceMicrometerMetricsIT
             sample.samples.forEach(s -> setActual.add(sampleToString(s)));
             }
 
-        Iterator<String> itExpected = setExpected.iterator();
-        Iterator<String> itActual   = setActual.iterator();
-        while (itExpected.hasNext())
-            {
-            assertThat(itActual.hasNext(), is(true));
-            assertThat(itActual.next(), is(itExpected.next()));
-            }
+        SortedSet<String> setMissing = new TreeSet<>(setExpected);
+        setMissing.removeAll(setActual);
+
+        assertThat("Missing Prometheus samples for Coherence metrics: " + setMissing, setMissing.isEmpty(), is(true));
         }
 
     private String sampleToString(Collector.MetricFamilySamples.Sample sample)
