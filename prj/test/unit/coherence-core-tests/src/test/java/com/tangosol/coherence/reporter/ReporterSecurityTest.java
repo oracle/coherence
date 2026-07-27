@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 
 import java.net.URL;
+import java.net.URLConnection;
+import java.net.URLStreamHandler;
 
 import java.nio.file.Files;
 
@@ -89,6 +91,32 @@ public class ReporterSecurityTest
                     ReporterSecurityTest.class.getClassLoader(), "runTabularReport", "test");
 
             assertThat(url.toExternalForm(), is(sBase + "/report.xml"));
+            }
+        }
+
+    @Test
+    public void shouldAcceptWildFlyVfsReportResource()
+            throws Exception
+        {
+        String      sReport = "reports/report-group.xml";
+        ClassLoader loader  = new ReportResourceClassLoader(sReport, "vfs");
+
+        URL url = ReporterSecurity.resolveTrustedReportUrl(sReport, loader, "setConfigFile", "jmx-direct");
+
+        assertThat(url.getProtocol(), is("vfs"));
+        }
+
+    @Test
+    public void shouldRejectUnknownReportResourceProtocolInCompatibilityMode()
+            throws Exception
+        {
+        String      sReport = "reports/report-group.xml";
+        ClassLoader loader  = new ReportResourceClassLoader(sReport, "unknown");
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            assertThrows(ReporterSecurity.ReporterSecurityException.class,
+                    () -> ReporterSecurity.resolveTrustedReportUrl(sReport, loader, "setConfigFile", "jmx-direct"));
             }
         }
 
@@ -213,6 +241,44 @@ public class ReporterSecurityTest
             }
 
         Files.deleteIfExists(file.toPath());
+        }
+
+    // ----- helper classes ------------------------------------------------
+
+    /**
+     * ClassLoader that exposes a report resource using the specified protocol.
+     */
+    private static class ReportResourceClassLoader
+            extends ClassLoader
+        {
+        ReportResourceClassLoader(String sReport, String sProtocol)
+                throws IOException
+            {
+            super(null);
+            m_sReport = sReport;
+            m_url     = new URL(null,
+                    sProtocol + ":/content/web.war/WEB-INF/lib/coherence.jar/" + sReport,
+                    new URLStreamHandler()
+                        {
+                        @Override
+                        protected URLConnection openConnection(URL url)
+                            {
+                            throw new UnsupportedOperationException();
+                            }
+                        });
+            }
+
+        @Override
+        public URL getResource(String sName)
+            {
+            return m_sReport.equals(sName) ? m_url : null;
+            }
+
+        // ----- data members ---------------------------------------------
+
+        private final String m_sReport;
+
+        private final URL m_url;
         }
 
     private String m_sOutputRoot;
