@@ -9,9 +9,10 @@ import groovy.xml.XmlSlurper
 
 plugins {
     id "application"
-    id "org.kordamp.gradle.jandex" version "0.9.0"
+    id "java"
+    id "org.kordamp.gradle.jandex" version "1.1.0"
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
-apply plugin : "java"
 
 group = 'com.oracle.coherence.tutorials'
 version = '1.0.0-SNAPSHOT'
@@ -34,7 +35,7 @@ def pomProperty = { String name ->
 def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
-sourceCompatibility = '17'
+sourceCompatibility = '21'
 
 repositories {
 	mavenCentral()
@@ -100,10 +101,22 @@ test {
 // beans.xml to get picked up by CDI it must be co-located with the classes.
 // So we move it before running tests.
 // In either case it ends up AOK in the final jar artifact
-task moveBeansXML {
-    doLast {
-        ant.move file: "${buildDir}/resources/main/META-INF/beans.xml",
-                 todir: "${buildDir}/classes/java/main/META-INF"
-    }
+
+tasks.register('moveBeansXML', Copy) {
+    from 'src/main/resources/META-INF/beans.xml'
+    into "${buildDir}/classes/java/main/META-INF"
 }
-test.dependsOn moveBeansXML
+
+tasks.named('compileTestJava') {
+    dependsOn(jandex)
+    dependsOn('moveBeansXML')
+}
+
+tasks.withType(Jar) {
+    duplicatesStrategy = 'exclude'
+    dependsOn('moveBeansXML')
+}
+
+securityConfig {
+    processTestClasses = true
+}

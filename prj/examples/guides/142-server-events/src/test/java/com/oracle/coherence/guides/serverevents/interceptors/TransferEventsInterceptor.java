@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@ package com.oracle.coherence.guides.serverevents.interceptors;
 import java.io.Serializable;
 
 import com.oracle.coherence.guides.serverevents.model.AuditEvent;
-
+import com.tangosol.util.function.Remote;
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.TransferEvents;
@@ -25,6 +25,7 @@ import com.tangosol.net.events.partition.TransferEvent;
 // #tag::class[]
 @Interceptor(identifier = "TransferEventsInterceptor")  // <1>
 @TransferEvents({TransferEvent.Type.ARRIVED, TransferEvent.Type.DEPARTING, TransferEvent.Type.LOST}) // <2>
+@Remote.Executable
 public class TransferEventsInterceptor
         extends AbstractAuditingInterceptor
         implements EventInterceptor<TransferEvent>, Serializable {  // <3>

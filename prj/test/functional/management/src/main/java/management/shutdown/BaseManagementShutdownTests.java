@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -56,6 +56,7 @@ import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.util.Base;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import management.MultiCluster;
 
@@ -456,7 +457,8 @@ public abstract class BaseManagementShutdownTests {
             propsServer1.add(SystemProperty.of("java.security.debug", sDebug));
         }
 
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer1).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer1)).asArray());
 
         OptionsByType propsServer2 = OptionsByType.of(propsServer1);
         propsServer2.add(SystemProperty.of("coherence.member", SERVER_PREFIX + "-2"));
@@ -464,7 +466,8 @@ public abstract class BaseManagementShutdownTests {
         propsServer2.add(SystemProperty.of("test.server.name", SERVER_PREFIX + "-2"));
         propsServer2.add(SystemProperty.of("coherence.metrics.http.enabled", "true"));
         propsServer2.add(SystemProperty.of("coherence.metrics.http.port", "0"));
-        builder.include(1, CoherenceClusterMember.class, beforeLaunch.apply(propsServer2).asArray());
+        builder.include(1, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(beforeLaunch.apply(propsServer2)).asArray());
 
         s_cluster = builder.build(LocalPlatform.get());
 

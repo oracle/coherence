@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="domain.Beagle" source="manual"/>
+    <class name="domain.Blog" source="manual"/>
+    <class name="domain.BorderCollie" source="manual"/>
+    <class name="domain.Chihuahua" source="manual"/>
+    <class name="domain.Identifier" source="manual"/>
+    <class name="domain.Papillon" source="manual"/>
+    <class name="domain.RoughCoatedCollie" source="manual"/>
+    <class name="org.jsr107.tck.event.CacheEntryListenerClient" source="manual"/>
+    <class name="org.jsr107.tck.event.CacheListenerTest$MyBrokenCacheEntryListener" source="manual"/>
+    <class name="org.jsr107.tck.event.CacheListenerTest$MyCacheEntryEventFilter" source="manual"/>
+    <class name="org.jsr107.tck.expiry.CacheExpiryTest$CountingExpiryPolicy" source="manual"/>
+    <class name="org.jsr107.tck.expiry.CacheExpiryTest$ParameterizedExpiryPolicy" source="manual"/>
+    <class name="org.jsr107.tck.expiry.ExpiryPolicyClient" source="manual"/>
+    <class name="org.jsr107.tck.integration.CacheLoaderClient" source="manual"/>
+    <class name="org.jsr107.tck.integration.CacheWriterClient" source="manual"/>
+    <class name="org.jsr107.tck.processor.AssertNotPresentEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.CombineEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.GetEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.MultiArgumentHandlingEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.NoOpEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.RemoveEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.ReplaceEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.SetEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.SetEntryWithComputedValueProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.SetValueCreateEntryReturnDifferentTypeEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.processor.ThrowExceptionEntryProcessor" source="manual"/>
+    <class name="org.jsr107.tck.support.CacheClient" source="manual"/>
+    <class name="org.jsr107.tck.testutil.CacheTestSupport$MyCacheEntryListener" source="manual"/>
+  </allowed-classes>
+</security-config>

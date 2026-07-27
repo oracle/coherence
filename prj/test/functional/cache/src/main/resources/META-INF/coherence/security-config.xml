@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="cache.BaseAsyncNamedCacheTests" source="manual"/>
+    <class name="cache.BackingMapTests$CustomMap" source="manual"/>
+    <class name="cache.BinaryEntryExpiryTest$TestProcessor" source="manual" executable="true"/>
+    <class name="cache.Bug38748319RegressionTests$ClearCache" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$EnsureListener" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$GetCacheSize" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$GetClusterSize" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$GetInsertCount" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$GetLocalMemberId" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$PutSequence" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$ResetListener" source="manual"/>
+    <class name="cache.Bug38748319RegressionTests$TriggerOnIntervalResend" source="manual"/>
+    <class name="cache.CQCTests$InsertProcessor" source="manual" executable="true"/>
+    <class name="cache.ContinuousQueryCacheTests$TestValueUpdater" source="manual"/>
+    <class name="cache.EvictionTests$TestProcessor" source="manual" executable="true"/>
+    <class name="cache.MapListenerTests$COH9787Processor" source="manual" executable="true"/>
+    <class name="cache.MapListenerTests$UnforgivingCSC$UnforgivingDeferredCacheEvent" source="manual"/>
+    <class name="cache.PofEnabledTests$MyObject" source="manual"/>
+    <class name="cache.QueryMapTests$IntegerComparator" source="manual" executable="true"/>
+    <class name="cache.QueryMapTests$MyObject" source="manual"/>
+    <class name="cache.SessionBackingMapTests$Session" source="manual"/>
+    <class name="cache.VirtualDaemonPoolCacheTests$InterruptibleSleepProcessor" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

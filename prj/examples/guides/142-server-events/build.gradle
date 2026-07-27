@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
@@ -63,4 +64,8 @@ task runServer(type: Exec) {
     group = "Execution"
     description = "Run a Coherence Cache Server"
     commandLine "java", "-classpath", sourceSets.test.runtimeClasspath.getAsPath(), "com.tangosol.net.Coherence"
+}
+
+securityConfig {
+    processTestClasses = true
 }

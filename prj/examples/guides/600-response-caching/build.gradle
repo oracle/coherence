@@ -9,16 +9,21 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
-	id "org.kordamp.gradle.jandex" version "0.13.2"
+    id 'com.oracle.coherence' version "${coherenceVersion}"
+	id "org.kordamp.gradle.jandex" version "1.1.0"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
 }
 
 ext {
-	helidonversion = '3.1.2'
+	helidonversion = '4.0.5'
 	mainClass='io.helidon.microprofile.cdi.Main'
 }
+
 group = 'com.oracle.coherence.guides'
 version = '${coherenceVersion}'
-sourceCompatibility = '17'
 
 // read shared dependency versions from pom.xml so the Maven and Gradle example builds stay aligned
 def pomProperty = { String name ->
@@ -59,7 +64,7 @@ dependencies {
 	implementation "io.helidon.microprofile.config:helidon-microprofile-config:${helidonVersion}"
 	implementation "io.helidon.config:helidon-config-yaml:${helidonVersion}"
 
-	testImplementation "io.helidon.microprofile.tests:helidon-microprofile-tests-junit5:${helidonVersion}"
+	testImplementation "io.helidon.microprofile.testing:helidon-microprofile-testing-junit5:${helidonVersion}"
 	testImplementation "org.hamcrest:hamcrest:${hamcrestVersion}"
 }
 
@@ -116,3 +121,7 @@ task moveBeansXML {
 }
 compileTestJava.dependsOn("jandex")
 test.dependsOn moveBeansXML
+
+securityConfig {
+    processTestClasses = true
+}

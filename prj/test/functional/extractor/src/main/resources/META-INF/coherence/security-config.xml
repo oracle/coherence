@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="extractor.ConditionalExtractorTests$APerson" source="manual"/>
+    <class name="extractor.ConditionalExtractorTests$Bird" source="manual"/>
+    <class name="extractor.ConditionalExtractorTests$Coh3966Extractor" source="manual" executable="true"/>
+    <class name="extractor.ConditionalExtractorTests$Coh3966VerifierProcessor" source="manual" executable="true"/>
+    <class name="extractor.ConditionalExtractorTests$Employee" source="manual"/>
+    <class name="extractor.ConditionalExtractorTests$Fish" source="manual"/>
+    <class name="extractor.ConditionalExtractorTests$MyAddress" source="manual"/>
+    <class name="extractor.ConditionalExtractorTests$ReporterIsNotNullFilter" source="manual" executable="true"/>
+    <class name="extractor.ExtractorTests" source="manual"/>
+    <class name="extractor.ExtractorTests$CountingExtractor" source="manual" executable="true"/>
+    <class name="extractor.ExtractorTests$Value" source="manual"/>
+    <class name="extractor.PofExtractorTests$BigDecimalObject" source="manual"/>
+  </allowed-classes>
+</security-config>

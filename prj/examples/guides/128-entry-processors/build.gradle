@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
     id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
@@ -52,4 +53,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+securityConfig {
+    processTestClasses = true
 }

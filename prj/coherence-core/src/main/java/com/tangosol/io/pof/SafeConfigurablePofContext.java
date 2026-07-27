@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io.pof;
@@ -13,6 +13,7 @@ import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Evolvable;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.BinaryWriteBuffer;
@@ -319,6 +320,7 @@ public class SafeConfigurablePofContext
         public Object deserialize(PofReader in)
                 throws IOException
             {
+            SerializationTelemetry.recordPofCheck("allowed", "safe-serializable", TYPE_SERIALIZABLE);
             Object o = fromBinary(in.readBinary(0), f_serializer);
             in.registerIdentity(o);
             in.readRemainder();
@@ -444,9 +446,11 @@ public class SafeConfigurablePofContext
             int nType = inInternal.readPackedInt();
             if (nType != TYPE_PORTABLE)
                 {
+                SerializationTelemetry.recordPofCheck("rejected", "invalid-safe-portable-type", nType);
                 throw new IOException("Invalid POF type: " + nType
                                       + " (" + TYPE_PORTABLE + " expected)");
                 }
+            SerializationTelemetry.recordPofCheck("allowed", "safe-portable", TYPE_PORTABLE);
 
             int iVersion = inInternal.readPackedInt();
 

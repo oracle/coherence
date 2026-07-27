@@ -1,0 +1,29 @@
+#
+# Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+#
+# Licensed under the Universal Permissive License v 1.0 as shown at
+# https://oss.oracle.com/licenses/upl.
+#
+
+# Lambda bytecode sandbox-escape deny-list. This list is separate from
+# SerializationAllowlist's JEP-290 deserialization gadget deny-list: the two
+# gates protect different sinks and only overlap where a class is dangerous
+# both to deserialize and to reference from wire-supplied bytecode.
+java.lang.Runtime
+java.lang.ProcessBuilder
+java.lang.System#exit
+java.lang.System#load
+java.lang.System#loadLibrary
+java.lang.System#mapLibraryName
+sun.misc.Unsafe
+jdk.internal.misc.Unsafe
+java.lang.invoke.MethodHandles$Lookup#privateLookupIn
+java.lang.invoke.MethodHandles$Lookup#defineClass
+java.lang.invoke.MethodHandles$Lookup#defineHiddenClass
+java.lang.reflect.AccessibleObject#setAccessible
+java.lang.reflect.Field#setAccessible
+java.lang.reflect.Method#setAccessible
+java.lang.reflect.Constructor#setAccessible
+java.lang.ClassLoader#defineClass
+java.lang.ClassLoader#defineClass1
+java.lang.invoke.MethodHandle#invokeWithArguments

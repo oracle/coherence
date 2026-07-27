@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -30,6 +30,8 @@ class ConfigPropertyResolverIT
         System.setProperty("coherence.member", "sysprop01");
         System.setProperty("coherence.distributed.localstorage", "false");
         System.setProperty("coherence.cluster", "test");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         }
 
     @Test

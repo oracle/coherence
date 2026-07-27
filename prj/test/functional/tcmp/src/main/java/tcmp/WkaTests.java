@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import java.util.stream.Collectors;
 
@@ -65,7 +66,8 @@ public class WkaTests
                 optionsByType.add(JavaHome.at(sJavaHome));
                 }
 
-            member = LocalPlatform.get().launch(CoherenceClusterMember.class, optionsByType.asArray());
+            member = LocalPlatform.get().launch(CoherenceClusterMember.class,
+                                                BedrockInvocationProperties.inherit(optionsByType).asArray());
 
             out(createMessageHeader() + " >>>>>>> Started cache server: " + sServer);
 
@@ -108,7 +110,8 @@ public class WkaTests
                 optionsByType.add(JavaHome.at(sJavaHome));
                 }
 
-            member = LocalPlatform.get().launch(CoherenceClusterMember.class, optionsByType.asArray());
+            member = LocalPlatform.get().launch(CoherenceClusterMember.class,
+                                                BedrockInvocationProperties.inherit(optionsByType).asArray());
 
             out(createMessageHeader() + " >>>>>>> Started cache server: " + sServer);
 

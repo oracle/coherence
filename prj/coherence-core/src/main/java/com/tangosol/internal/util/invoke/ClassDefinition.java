@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util.invoke;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -303,6 +305,7 @@ public class ClassDefinition
         {
         m_id      = ExternalizableHelper.readObject(in);
         m_abClass = ExternalizableHelper.readByteArray(in);
+        validateClassFile(m_abClass);
         }
 
     @Override
@@ -321,6 +324,7 @@ public class ClassDefinition
         {
         m_id      = in.readObject(0);
         m_abClass = in.readByteArray(1);
+        validateClassFile(m_abClass);
         }
 
     @Override
@@ -331,7 +335,274 @@ public class ClassDefinition
         out.writeByteArray(1, m_abClass);
         }
 
+    // ----- class-file validation --------------------------------------------
+
+    /**
+     * Validate the class-file header and structural byte counts.
+     *
+     * @param abClass  the class-file bytes
+     *
+     * @throws IOException if the bytes are not a well-formed class-file shell
+     */
+    private static void validateClassFile(byte[] abClass)
+            throws IOException
+        {
+        if (abClass == null || abClass.length < CLASS_FILE_MIN_LENGTH)
+            {
+            rejectClassFile(REASON_INVALID_SHAPE);
+            }
+
+        if ((abClass[0] & 0xFF) != 0xCA || (abClass[1] & 0xFF) != 0xFE
+                || (abClass[2] & 0xFF) != 0xBA || (abClass[3] & 0xFF) != 0xBE)
+            {
+            rejectClassFile(REASON_MISSING_MAGIC);
+            }
+
+        int nMajor = readU2(abClass, 6);
+        // widen this upper bound as new JVM class-file versions ship
+        if (nMajor < CLASS_FILE_MAJOR_MIN || nMajor > CLASS_FILE_MAJOR_MAX)
+            {
+            rejectClassFile(REASON_INVALID_VERSION);
+            }
+
+        int of = walkConstantPool(abClass, 10, readU2(abClass, 8));
+        of = require(of, 6, abClass.length);
+        of = require(of, 2, abClass.length);
+        int cInterfaces = readU2(abClass, of - 2);
+        of = require(of, cInterfaces * 2, abClass.length);
+        of = walkMembers(abClass, of);
+        of = walkMembers(abClass, of);
+        of = walkAttributes(abClass, of);
+
+        if (of != abClass.length)
+            {
+            rejectClassFile(REASON_TRAILING_BYTES);
+            }
+        }
+
+    /**
+     * Walk class-file constant-pool entries.
+     *
+     * @param abClass  the class-file bytes
+     * @param of       the first entry offset
+     * @param cEntries the constant-pool entry count
+     *
+     * @return the offset immediately after the constant pool
+     *
+     * @throws IOException if the pool overruns the byte array
+     */
+    private static int walkConstantPool(byte[] abClass, int of, int cEntries)
+            throws IOException
+        {
+        for (int i = 1; i < cEntries; i++)
+            {
+            of = require(of, 1, abClass.length);
+            int nTag = abClass[of - 1] & 0xFF;
+            switch (nTag)
+                {
+                case 1: // CONSTANT_Utf8
+                    of = require(of, 2, abClass.length);
+                    of = require(of, readU2(abClass, of - 2), abClass.length);
+                    break;
+
+                case 3:  // CONSTANT_Integer
+                case 4:  // CONSTANT_Float
+                case 9:  // CONSTANT_Fieldref
+                case 10: // CONSTANT_Methodref
+                case 11: // CONSTANT_InterfaceMethodref
+                case 12: // CONSTANT_NameAndType
+                case 17: // CONSTANT_Dynamic
+                case 18: // CONSTANT_InvokeDynamic
+                    of = require(of, 4, abClass.length);
+                    break;
+
+                case 5: // CONSTANT_Long
+                case 6: // CONSTANT_Double
+                    of = require(of, 8, abClass.length);
+                    i++;
+                    break;
+
+                case 7:  // CONSTANT_Class
+                case 8:  // CONSTANT_String
+                case 16: // CONSTANT_MethodType
+                case 19: // CONSTANT_Module
+                case 20: // CONSTANT_Package
+                    of = require(of, 2, abClass.length);
+                    break;
+
+                case 15: // CONSTANT_MethodHandle
+                    of = require(of, 3, abClass.length);
+                    break;
+
+                default:
+                    rejectClassFile(REASON_INVALID_SHAPE);
+                }
+            }
+        return of;
+        }
+
+    /**
+     * Walk field_info or method_info entries.
+     *
+     * @param abClass  the class-file bytes
+     * @param of       the offset of the count field
+     * @return the offset immediately after the entries
+     *
+     * @throws IOException if any entry overruns the byte array
+     */
+    private static int walkMembers(byte[] abClass, int of)
+            throws IOException
+        {
+        of = require(of, 2, abClass.length);
+        int cEntries = readU2(abClass, of - 2);
+        for (int i = 0; i < cEntries; i++)
+            {
+            of = require(of, 8, abClass.length);
+            of = walkAttributes(abClass, of, readU2(abClass, of - 2));
+            }
+        return of;
+        }
+
+    /**
+     * Walk attribute_info entries.
+     *
+     * @param abClass  the class-file bytes
+     * @param of       the attribute-count offset
+     *
+     * @return the offset immediately after the attributes
+     *
+     * @throws IOException if any attribute overruns the byte array
+     */
+    private static int walkAttributes(byte[] abClass, int of)
+            throws IOException
+        {
+        of = require(of, 2, abClass.length);
+        return walkAttributes(abClass, of, readU2(abClass, of - 2));
+        }
+
+    /**
+     * Walk attribute_info entries.
+     *
+     * @param abClass     the class-file bytes
+     * @param of          the first attribute offset
+     * @param cAttributes the attribute count
+     *
+     * @return the offset immediately after the attributes
+     *
+     * @throws IOException if any attribute overruns the byte array
+     */
+    private static int walkAttributes(byte[] abClass, int of, int cAttributes)
+            throws IOException
+        {
+        for (int i = 0; i < cAttributes; i++)
+            {
+            of = require(of, 6, abClass.length);
+            long cb = readU4(abClass, of - 4);
+            of = require(of, cb, abClass.length);
+            }
+        return of;
+        }
+
+    /**
+     * Require a byte span to fit in the class-file buffer.
+     *
+     * @param of       the current offset
+     * @param cb       the byte count
+     * @param cbClass  the buffer length
+     *
+     * @return the advanced offset
+     *
+     * @throws IOException if the span overruns the buffer
+     */
+    private static int require(int of, long cb, int cbClass)
+            throws IOException
+        {
+        if (of < 0 || cb < 0 || of + cb > cbClass)
+            {
+            rejectClassFile(REASON_INVALID_SHAPE);
+            }
+        return (int) (of + cb);
+        }
+
+    /**
+     * Read an unsigned two-byte big-endian value.
+     *
+     * @param abClass  the class-file bytes
+     * @param of       the offset
+     *
+     * @return the unsigned value
+     */
+    private static int readU2(byte[] abClass, int of)
+        {
+        return ((abClass[of] & 0xFF) << 8) | (abClass[of + 1] & 0xFF);
+        }
+
+    /**
+     * Read an unsigned four-byte big-endian value.
+     *
+     * @param abClass  the class-file bytes
+     * @param of       the offset
+     *
+     * @return the unsigned value
+     */
+    private static long readU4(byte[] abClass, int of)
+        {
+        return ((long) (abClass[of] & 0xFF) << 24)
+               | ((long) (abClass[of + 1] & 0xFF) << 16)
+               | ((long) (abClass[of + 2] & 0xFF) << 8)
+               | (abClass[of + 3] & 0xFF);
+        }
+
+    /**
+     * Reject invalid class-file bytes.
+     *
+     * @param sReason  the rejection reason
+     *
+     * @throws IOException always
+     */
+    private static void rejectClassFile(String sReason)
+            throws IOException
+        {
+        Logger.warn("route=class-definition, gate=class-validation, reason=%s".formatted(sReason));
+        throw new IOException("Invalid class definition: " + sReason);
+        }
+
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Minimum class-file length: magic, minor, major, and constant-pool count.
+     */
+    private static final int CLASS_FILE_MIN_LENGTH = 10;
+
+    /**
+     * First supported JVM class-file major version.
+     */
+    private static final int CLASS_FILE_MAJOR_MIN = 45;
+
+    /**
+     * Last supported JVM class-file major version for Java 26.
+     */
+    private static final int CLASS_FILE_MAJOR_MAX = 70;
+
+    /**
+     * Rejection reason for a missing class-file magic header.
+     */
+    private static final String REASON_MISSING_MAGIC = "missing-magic";
+
+    /**
+     * Rejection reason for an unsupported class-file version.
+     */
+    private static final String REASON_INVALID_VERSION = "invalid-version";
+
+    /**
+     * Rejection reason for malformed structural counts.
+     */
+    private static final String REASON_INVALID_SHAPE = "invalid-shape";
+
+    /**
+     * Rejection reason for trailing bytes after the class-file structure.
+     */
+    private static final String REASON_TRAILING_BYTES = "trailing-bytes";
 
     /**
      * The {@link Remotable} Class represented by this definition.

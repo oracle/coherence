@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.oracle.coherence.cdi.AlwaysFilter$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.CacheAdd$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.CacheGet$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.CachePut$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.CacheRemove$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.ChainedExtractor$Extractors$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.ChainedExtractor$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.ConfigUri$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.Name$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.PofExtractor$Extractors$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.PofExtractor$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.PropertyExtractor$Extractors$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.PropertyExtractor$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.Remote$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.Scope$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.SerializerFormat$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.SessionName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.SubscriberGroup$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.View$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.WhereFilter$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Activated$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Activating$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.AnnotatedMapListener$Type" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Arrived$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Assigned$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Backlog$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Backlog$Type" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.CacheName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Committed$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Committing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.CommittingLocal$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.CommittingRemote$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Connecting$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Created$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Deleted$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Departed$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Departing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Destroyed$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Disconnected$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Disposing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Error$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Executed$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Executing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Inserted$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Inserting$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Lite$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Lost$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.MapName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.ParticipantName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Processor$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Recovered$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Removed$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Removing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Replicating$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Rollback$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.ScopeName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.ServiceName$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Started$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Starting$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Stopped$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Stopping$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Synced$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Synchronous$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Syncing$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Truncated$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Updated$Literal" source="manual"/>
+    <class name="com.oracle.coherence.cdi.events.Updating$Literal" source="manual"/>
+  </allowed-classes>
+</security-config>

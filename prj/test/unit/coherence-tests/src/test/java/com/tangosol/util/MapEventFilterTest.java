@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util;
 
+
+import com.tangosol.io.ByteArrayReadBuffer;
 
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
@@ -29,8 +31,6 @@ import java.util.LinkedList;
 import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 
 import static org.junit.Assert.*;
 
@@ -738,9 +738,8 @@ public class MapEventFilterTest
            DataOutputStream out = new DataOutputStream(baos);
            ExternalizableHelper.writeObject(out, mef);
 
-           ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-           DataInputStream in = new DataInputStream(bais);
-           MapEventFilter mef2 = (MapEventFilter) ExternalizableHelper.readObject(in);
+           MapEventFilter mef2 = (MapEventFilter) ExternalizableHelper.readObject(
+                   new ByteArrayReadBuffer(baos.toByteArray()).getBufferInput());
 
            assertTrue(mef.equals(mef2));
            }

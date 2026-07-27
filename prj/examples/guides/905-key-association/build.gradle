@@ -57,3 +57,7 @@ dependencies {
 test {
 	useJUnitPlatform()
 }
+
+securityConfig {
+    processTestClasses = true
+}

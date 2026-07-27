@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.oracle.coherence.ai.hnsw.HnswIndex" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.hnswlib.SpaceName" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.IndexAlreadyInitializedException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.IndexNotInitializedException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.ItemCannotBeInsertedIntoTheVectorSpaceException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.OnceIndexIsClearedItCannotBeReusedException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.QueryCannotReturnResultsException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.UnableToCreateNewIndexInstanceException" source="manual"/>
+    <class name="com.oracle.coherence.hnswlib.exception.UnexpectedNativeException" source="manual"/>
+  </allowed-classes>
+</security-config>

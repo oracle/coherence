@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
 
+import com.oracle.bedrock.OptionsByType;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -22,6 +23,8 @@ import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches;
@@ -107,15 +110,18 @@ public class TopicSubscribeCleanupTests
     public void shouldCloseSubscribersOnMemberDeparture() throws Exception
         {
         LocalPlatform platform = LocalPlatform.get();
+        OptionsByType options  = OptionsByType.of(
+                LocalStorage.enabled(),
+                WellKnownAddress.loopback(),
+                LocalHost.only(),
+                ClassName.of(Coherence.class),
+                ClusterName.of("TopicSubscribeCleanupTests"),
+                IPv4Preferred.no(),
+                Logging.atMax(),
+                s_testLogs.builder());
+
         try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                                                        LocalStorage.enabled(),
-                                                        WellKnownAddress.loopback(),
-                                                        LocalHost.only(),
-                                                        ClassName.of(Coherence.class),
-                                                        ClusterName.of("TopicSubscribeCleanupTests"),
-                                                        IPv4Preferred.no(),
-                                                        Logging.atMax(),
-                                                        s_testLogs.builder()))
+                BedrockInvocationProperties.inherit(options).asArray()))
             {
             NamedTopic<String> topic   = s_session.getTopic(f_testName.getMethodName());
             PagedTopicService  service = (PagedTopicService) topic.getService();

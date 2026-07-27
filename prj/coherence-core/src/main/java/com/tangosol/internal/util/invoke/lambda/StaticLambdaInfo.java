@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.internal.util.invoke.lambda;
 
 import com.tangosol.internal.util.ExceptionHelper;
 import com.tangosol.internal.util.invoke.Lambdas;
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.SerializationSupport;
@@ -227,6 +228,13 @@ public class StaticLambdaInfo<T>
         SerializedLambda serializedLambda = null;
         try
             {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+
             // optimization: inline call to createLambda(toSerializedLambda(Base.getContextClassLoader(this))) to avoid calling loadClass twice.
             final Class clzCapturing = Base.getContextClassLoader(this).loadClass(sName);
 
@@ -442,6 +450,12 @@ public class StaticLambdaInfo<T>
                 public Method run() throws Exception
                     {
                     String sName = serializedLambda.getCapturingClass().replace('/', '.');
+                    LambdaBytecodeGate.ensureAllowed(
+                            LambdaBytecodeGate.checkLambdaTarget(serializedLambda, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                            LambdaBytecodeGate.Site.STATIC_LAMBDA);
+                    LambdaBytecodeGate.ensureAllowed(
+                            LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                            LambdaBytecodeGate.Site.STATIC_LAMBDA);
                     Method m     = Base.getContextClassLoader(serializedLambda).loadClass(sName)
                                         .getDeclaredMethod("$deserializeLambda$", SerializedLambda.class);
                     m.setAccessible(true);
@@ -494,6 +508,12 @@ public class StaticLambdaInfo<T>
 
         try
             {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
             return new SerializedLambda(
                 loader.loadClass(sName),
                 m_sFunctionalInterfaceClass,

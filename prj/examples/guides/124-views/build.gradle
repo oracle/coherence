@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,11 +9,15 @@ import groovy.xml.XmlSlurper
 
 plugins {
     id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
 }
 
 group = 'com.oracle.coherence.guides'
 version = '${coherenceVersion}'
-sourceCompatibility = '17'
 
 // read shared dependency versions from pom.xml so the Maven and Gradle example builds stay aligned
 def pomProperty = { String name ->
@@ -35,8 +39,8 @@ def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
 repositories {
-    mavenCentral()
     mavenLocal()
+    mavenCentral()
 }
 
 dependencies {
@@ -54,4 +58,8 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+securityConfig {
+    processTestClasses = true
 }

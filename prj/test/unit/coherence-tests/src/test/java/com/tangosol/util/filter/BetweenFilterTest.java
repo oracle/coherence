@@ -6,6 +6,7 @@
  */
 package com.tangosol.util.filter;
 
+import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.pof.ConfigurablePofContext;
 
 import com.tangosol.util.Binary;
@@ -22,10 +23,7 @@ import com.tangosol.util.extractor.IdentityExtractor;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.DataOutputStream;
 
@@ -84,9 +82,8 @@ public class BetweenFilterTest
 
         ExternalizableHelper.writeObject(dataOutputStream, filter);
 
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
-        DataInput            dataInputStream      = new DataInputStream(byteArrayInputStream);
-        BetweenFilter        result               = (BetweenFilter) ExternalizableHelper.readObject(dataInputStream);
+        BetweenFilter        result               = (BetweenFilter) ExternalizableHelper.readObject(
+                new ByteArrayReadBuffer(byteArrayOutputStream.toByteArray()).getBufferInput());
 
         assertThat(result.getFilters(), is(filter.getFilters()));
         }

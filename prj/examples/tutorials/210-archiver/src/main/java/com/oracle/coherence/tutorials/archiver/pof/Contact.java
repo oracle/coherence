@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.tutorials.archiver.pof;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -14,8 +15,8 @@ import com.tangosol.io.pof.PortableObject;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.IOException;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.HashMap;
@@ -33,6 +34,7 @@ import java.util.Map;
  */
 @XmlRootElement(name="contact")
 @XmlAccessorType(XmlAccessType.PROPERTY)
+@Remote.Allowed
 public class Contact
         implements PortableObject
     {

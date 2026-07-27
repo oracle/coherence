@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.Headless;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.HotSpot;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.PlatformPredicate;
 import com.oracle.bedrock.testsupport.junit.AbstractAssemblyResource;
@@ -85,6 +86,8 @@ public class CoherenceClusterResource
             throw new IllegalStateException("CoherenceClusterResource fails to define members to include when launching");
             }
 
+        inheritInvocationProperties(null);
+
         // take a snapshot of the current system properties, so we can restore them when cleaning up the resource
         this.m_systemProperties = com.oracle.bedrock.util.SystemProperties.createSnapshot();
 
@@ -128,11 +131,53 @@ public class CoherenceClusterResource
             Statement base,
             Description description)
         {
-        // automatically set the cluster name to the test class name
-        // if the cluster name isn't configured
-        commonOptionsByType.addIfAbsent(ClusterName.of(description.getClassName()));
+        inheritInvocationProperties(description.getClassName());
 
         return super.apply(base, description);
+        }
+
+
+    /**
+     * Inherit invocation-level Coherence options unless the resource already defines them.
+     *
+     * @param sDefaultClusterName  the default cluster name to use when no invocation-level cluster is set
+     */
+    void inheritInvocationProperties(String sDefaultClusterName)
+        {
+        inheritSystemProperty(COHERENCE_MODE_PROPERTY);
+        inheritSystemProperty(COHERENCE_WKA_PROPERTY);
+        inheritSystemProperty(COHERENCE_LOCALHOST_PROPERTY);
+        inheritSystemProperty(COHERENCE_TRACE_SHIM_PROPERTY);
+
+        // automatically set the cluster name if it isn't configured
+        String sClusterName = System.getProperty(ClusterName.PROPERTY);
+        if (sClusterName != null || sDefaultClusterName != null)
+            {
+            commonOptionsByType.addIfAbsent(ClusterName.of(sClusterName == null ? sDefaultClusterName : sClusterName));
+            }
+        }
+
+
+    /**
+     * Inherit an invocation-level system property unless the resource already defines it.
+     *
+     * @param sName  the property name
+     */
+    private void inheritSystemProperty(String sName)
+        {
+        String sValue = System.getProperty(sName);
+        if (sValue == null)
+            {
+            return;
+            }
+
+        com.oracle.bedrock.runtime.java.options.SystemProperties properties =
+                commonOptionsByType.get(com.oracle.bedrock.runtime.java.options.SystemProperties.class);
+
+        if (properties == null || properties.get(sName) == null)
+            {
+            commonOptionsByType.add(SystemProperty.of(sName, sValue));
+            }
         }
 
 
@@ -257,6 +302,26 @@ public class CoherenceClusterResource
      * The system properties prior to the creation of the {@link CoherenceClusterResource <R>}.
      */
     private Properties m_systemProperties;
+
+    /**
+     * The Coherence runtime mode property.
+     */
+    private static final String COHERENCE_MODE_PROPERTY = "coherence.mode";
+
+    /**
+     * The Coherence WKA property.
+     */
+    private static final String COHERENCE_WKA_PROPERTY = "coherence.wka";
+
+    /**
+     * The Coherence localhost property.
+     */
+    private static final String COHERENCE_LOCALHOST_PROPERTY = "coherence.localhost";
+
+    /**
+     * The dynamic shim trace property.
+     */
+    private static final String COHERENCE_TRACE_SHIM_PROPERTY = "coherence.internal.invoke.trace.shim";
 
     /**
      * The {@link ConfigurableCacheFactory} sessions that have been locally created against the

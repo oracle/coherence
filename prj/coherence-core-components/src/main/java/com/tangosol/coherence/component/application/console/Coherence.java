@@ -6432,6 +6432,11 @@ public class Coherence
                 sDescription = "Production";
                 break;
 
+            case 'l': case 'L':
+                nMode = 2;
+                sDescription = "Production";
+                break;
+
             default:
                 {
                 String sErrorMsg = "Invalid \"mode\" specified: \"" + sMode

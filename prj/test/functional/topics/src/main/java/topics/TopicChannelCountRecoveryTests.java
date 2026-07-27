@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.oracle.bedrock.runtime.options.StabilityPredicate;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 import com.oracle.coherence.common.base.Logger;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 import com.tangosol.net.topic.Subscriber;
@@ -146,7 +147,8 @@ public class TopicChannelCountRecoveryTests
                                                         s_testLogs.builder());
 
         builder.with(ClusterName.of(sMethodName))
-               .include(cMember, CoherenceClusterMember.class, options.asArray());
+               .include(cMember, CoherenceClusterMember.class,
+                        BedrockInvocationProperties.inherit(options).asArray());
 
         return builder.build(LocalPlatform.get());
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,6 +28,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 import com.oracle.coherence.testing.util.KeyTool;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.util.Resources;
@@ -85,6 +86,8 @@ public class CertSecuritySingleStoreTests
                                 Logging.atMax(),
                                 IPv4Preferred.autoDetect(),
                                 s_testLogs);
+
+        BedrockInvocationProperties.inherit(s_commonOptions);
 
         if (Config.getBoolean("coherence.security.test.local", false))
             {

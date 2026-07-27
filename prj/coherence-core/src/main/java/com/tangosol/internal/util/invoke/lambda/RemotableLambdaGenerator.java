@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -107,6 +107,13 @@ public final class RemotableLambdaGenerator
      */
     public static byte[] createRemoteLambdaClass(String sClassName, SerializedLambda lambdaMetadata, ClassLoader loader)
         {
+        if (Boolean.getBoolean("coherence.internal.invoke.trace.shim"))
+            {
+            String sKind = com.tangosol.internal.util.invoke.Lambdas.isMethodReference(lambdaMetadata)
+                    ? "method-ref" : "lambda";
+            System.err.println("COH-SHIM-TRACE name=" + sClassName.replace('/', '.') + "|kind=" + sKind);
+            }
+
         String[] asIfaces = {lambdaMetadata.getFunctionalInterfaceClass()};
 
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);

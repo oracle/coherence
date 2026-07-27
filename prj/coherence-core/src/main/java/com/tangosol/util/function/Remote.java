@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,12 @@ import com.tangosol.util.comparator.InverseComparator;
 import com.tangosol.util.comparator.SafeComparator;
 
 import java.io.Serializable;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -31,6 +37,69 @@ import java.util.TreeSet;
  */
 public class Remote
     {
+    // ---- annotations ----------------------------------------------------
+
+    /**
+     * Mark application classes permitted to cross a wire-deserialization
+     * boundary as a polymorphic payload.
+     * <p>
+     * At type level, {@code @Remote.Allowed} includes the annotated class and,
+     * by default, its declared nested types. Set {@link #recursive()} to
+     * {@code false} to include only the annotated class.
+     * <p>
+     * At package level, declare {@code @Remote.Allowed} in
+     * {@code package-info.java}. The default {@link #recursive()} value includes
+     * every class in the annotated package and all sub-packages; setting it to
+     * {@code false} limits inclusion to classes directly in the annotated
+     * package.
+     * <p>
+     * {@link com.tangosol.io.pof.schema.annotation.PortableType} independently
+     * permits inclusion in generated {@code security-config.xml}; either
+     * annotation is sufficient for the build-time generator to add the class.
+     * <p>
+     * CLASS retention - scanned at build time by the
+     * security-config-maven-plugin and consumed by the runtime reader from
+     * generated {@code META-INF/coherence/security-config.xml}.
+     *
+     * @since 26.04
+     */
+    @Target({ElementType.TYPE, ElementType.PACKAGE})
+    @Retention(RetentionPolicy.CLASS)
+    @Documented
+    public @interface Allowed
+        {
+        /**
+         * Return whether nested types or sub-packages are included.
+         *
+         * @return {@code true} if nested types or sub-packages are included
+         */
+        boolean recursive() default true;
+        }
+
+    /**
+     * Marks a type whose methods the server may invoke on behalf of a remote
+     * request (processors, aggregators, invocables, filters, extractors,
+     * comparators, triggers, server-side event interceptors,
+     * coherence-concurrent tasks/callables/runnables).
+     * <p>
+     * Class level only. Implies {@link Allowed}: a class tagged
+     * {@code @Remote.Executable} is both permitted as a deserialisation payload
+     * AND permitted as an execution target. The build-time security-config
+     * generator emits a single entry per class with {@code executable="true"}.
+     * <p>
+     * CLASS retention - scanned at build time by the
+     * security-config-maven-plugin / Gradle task and consumed at runtime by
+     * {@link com.tangosol.util.RemoteExecutablePolicy}.
+     *
+     * @since 26.04
+     */
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.CLASS)
+    @Documented
+    public @interface Executable
+        {
+        }
+
     // ---- Consumers -------------------------------------------------------
 
     /**
@@ -43,6 +112,7 @@ public class Remote
      *
      * @param <T> the type of the input to the operation
      */
+    @Executable
     @FunctionalInterface
     public static interface Consumer<T>
             extends java.util.function.Consumer<T>, Serializable
@@ -100,6 +170,7 @@ public class Remote
      *
      * @see Consumer
      */
+    @Executable
     @FunctionalInterface
     public static interface BiConsumer<T, U>
             extends java.util.function.BiConsumer<T, U>, Serializable
@@ -156,6 +227,7 @@ public class Remote
      *
      * @see Consumer
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleConsumer
             extends java.util.function.DoubleConsumer, Serializable
@@ -209,6 +281,7 @@ public class Remote
      *
      * @see Consumer
      */
+    @Executable
     @FunctionalInterface
     public static interface IntConsumer
             extends java.util.function.IntConsumer, Serializable
@@ -263,6 +336,7 @@ public class Remote
      *
      * @see Consumer
      */
+    @Executable
     @FunctionalInterface
     public static interface LongConsumer
             extends java.util.function.LongConsumer, Serializable
@@ -319,6 +393,7 @@ public class Remote
      *
      * @see BiConsumer
      */
+    @Executable
     @FunctionalInterface
     public static interface ObjDoubleConsumer<T>
             extends java.util.function.ObjDoubleConsumer<T>, Serializable
@@ -352,6 +427,7 @@ public class Remote
      *
      * @see BiConsumer
      */
+    @Executable
     @FunctionalInterface
     public static interface ObjIntConsumer<T>
             extends java.util.function.ObjIntConsumer<T>, Serializable
@@ -385,6 +461,7 @@ public class Remote
      *
      * @see BiConsumer
      */
+    @Executable
     @FunctionalInterface
     public static interface ObjLongConsumer<T>
             extends java.util.function.ObjLongConsumer<T>, Serializable
@@ -415,6 +492,7 @@ public class Remote
      * @param <T> the type of the input to the function
      * @param <R> the type of the result of the function
      */
+    @Executable
     @FunctionalInterface
     public static interface Function<T, R>
             extends java.util.function.Function<T, R>, Serializable
@@ -505,6 +583,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface BiFunction<T, U, R>
             extends java.util.function.BiFunction<T, U, R>, Serializable
@@ -559,6 +638,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleFunction<R>
             extends java.util.function.DoubleFunction<R>, Serializable
@@ -588,6 +668,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleToIntFunction
             extends java.util.function.DoubleToIntFunction, Serializable
@@ -616,6 +697,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleToLongFunction
             extends java.util.function.DoubleToLongFunction, Serializable
@@ -646,6 +728,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface IntFunction<R>
             extends java.util.function.IntFunction<R>, Serializable
@@ -675,6 +758,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface IntToDoubleFunction
             extends java.util.function.IntToDoubleFunction, Serializable
@@ -703,6 +787,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface IntToLongFunction
             extends java.util.function.IntToLongFunction, Serializable
@@ -733,6 +818,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface LongFunction<R>
             extends java.util.function.LongFunction<R>, Serializable
@@ -762,6 +848,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface LongToDoubleFunction
             extends java.util.function.LongToDoubleFunction, Serializable
@@ -790,6 +877,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface LongToIntFunction
             extends java.util.function.LongToIntFunction, Serializable
@@ -818,6 +906,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface ToComparableFunction<T, R extends Comparable<? super R>>
             extends java.util.function.Function<T, R>, Serializable
@@ -834,6 +923,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface ToBigDecimalFunction<T>
             extends java.util.function.Function<T, BigDecimal>, Serializable
@@ -851,6 +941,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface ToDoubleFunction<T>
             extends java.util.function.ToDoubleFunction<T>, Serializable
@@ -881,6 +972,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface ToIntFunction<T>
             extends java.util.function.ToIntFunction<T>, Serializable
@@ -911,6 +1003,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface ToLongFunction<T>
             extends java.util.function.ToLongFunction<T>, Serializable
@@ -943,6 +1036,7 @@ public class Remote
      *
      * @see BiFunction
      */
+    @Executable
     @FunctionalInterface
     public static interface ToDoubleBiFunction<T, U>
             extends java.util.function.ToDoubleBiFunction<T, U>, Serializable
@@ -976,6 +1070,7 @@ public class Remote
      *
      * @see BiFunction
      */
+    @Executable
     @FunctionalInterface
     public static interface ToIntBiFunction<T, U>
             extends java.util.function.ToIntBiFunction<T, U>, Serializable
@@ -1009,6 +1104,7 @@ public class Remote
      *
      * @see BiFunction
      */
+    @Executable
     @FunctionalInterface
     public static interface ToLongBiFunction<T, U>
             extends java.util.function.ToLongBiFunction<T, U>, Serializable
@@ -1039,6 +1135,7 @@ public class Remote
      *
      * @param <T> the type of the input to the predicate
      */
+    @Executable
     @FunctionalInterface
     public static interface Predicate<T>
             extends java.util.function.Predicate<T>, Serializable
@@ -1150,6 +1247,7 @@ public class Remote
      *
      * @see Predicate
      */
+    @Executable
     @FunctionalInterface
     public static interface BiPredicate<T, U>
             extends java.util.function.BiPredicate<T, U>, Serializable
@@ -1242,6 +1340,7 @@ public class Remote
      *
      * @see Predicate
      */
+    @Executable
     @FunctionalInterface
     public static interface DoublePredicate
             extends java.util.function.DoublePredicate, Serializable
@@ -1332,6 +1431,7 @@ public class Remote
      *
      * @see Predicate
      */
+    @Executable
     @FunctionalInterface
     public static interface IntPredicate
             extends java.util.function.IntPredicate, Serializable
@@ -1422,6 +1522,7 @@ public class Remote
      *
      * @see Predicate
      */
+    @Executable
     @FunctionalInterface
     public static interface LongPredicate
             extends java.util.function.LongPredicate, Serializable
@@ -1515,6 +1616,7 @@ public class Remote
      *
      * @param <T> the type of results supplied by this supplier
      */
+    @Executable
     @FunctionalInterface
     public static interface Supplier<T>
             extends java.util.function.Supplier<T>, Serializable
@@ -1546,6 +1648,7 @@ public class Remote
      *
      * @see Supplier
      */
+    @Executable
     @FunctionalInterface
     public static interface BooleanSupplier
             extends java.util.function.BooleanSupplier, Serializable
@@ -1576,6 +1679,7 @@ public class Remote
      *
      * @see Supplier
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleSupplier
             extends java.util.function.DoubleSupplier, Serializable
@@ -1606,6 +1710,7 @@ public class Remote
      *
      * @see Supplier
      */
+    @Executable
     @FunctionalInterface
     public static interface IntSupplier
             extends java.util.function.IntSupplier, Serializable
@@ -1636,6 +1741,7 @@ public class Remote
      *
      * @see Supplier
      */
+    @Executable
     @FunctionalInterface
     public static interface LongSupplier
             extends java.util.function.LongSupplier, Serializable
@@ -1670,6 +1776,7 @@ public class Remote
      * @see BiFunction
      * @see UnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface BinaryOperator<T>
             extends BiFunction<T, T, T>,
@@ -1850,6 +1957,7 @@ public class Remote
      * @see BinaryOperator
      * @see DoubleUnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleBinaryOperator
             extends java.util.function.DoubleBinaryOperator, Serializable
@@ -1879,6 +1987,7 @@ public class Remote
      * @see BinaryOperator
      * @see IntUnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface IntBinaryOperator
             extends java.util.function.IntBinaryOperator, Serializable
@@ -1908,6 +2017,7 @@ public class Remote
      * @see BinaryOperator
      * @see LongUnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface LongBinaryOperator
             extends java.util.function.LongBinaryOperator, Serializable
@@ -1940,6 +2050,7 @@ public class Remote
      *
      * @see Function
      */
+    @Executable
     @FunctionalInterface
     public static interface UnaryOperator<T>
             extends Function<T, T>, java.util.function.UnaryOperator<T>,
@@ -1981,6 +2092,7 @@ public class Remote
      *
      * @see UnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface DoubleUnaryOperator
             extends java.util.function.DoubleUnaryOperator, Serializable
@@ -2060,6 +2172,7 @@ public class Remote
      *
      * @see UnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface IntUnaryOperator
             extends java.util.function.IntUnaryOperator, Serializable
@@ -2139,6 +2252,7 @@ public class Remote
      *
      * @see UnaryOperator
      */
+    @Executable
     @FunctionalInterface
     public static interface LongUnaryOperator
             extends java.util.function.LongUnaryOperator, Serializable
@@ -2274,6 +2388,7 @@ public class Remote
      *
      * @param <T> the type of objects that may be compared by this comparator
      */
+    @Executable
     @FunctionalInterface
     @SuppressWarnings("JavaDoc")
     public static interface Comparator<T>
@@ -2693,6 +2808,7 @@ public class Remote
      * unless the programmer intends on modifying or enhancing the fundamental
      * behavior of the class.
      */
+    @Executable
     @FunctionalInterface
     public static interface Runnable
             extends java.lang.Runnable, Serializable
@@ -2727,6 +2843,7 @@ public class Remote
      *
      * @param <V> the result type of method {@code call}
      */
+    @Executable
     @FunctionalInterface
     public static interface Callable<V>
             extends java.util.concurrent.Callable<V>, Serializable

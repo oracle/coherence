@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.common;
 
@@ -17,8 +17,13 @@ import com.tangosol.util.ExternalizableHelper;
 import java.util.Arrays;
 import java.util.Collection;
 
+import java.io.InvalidClassException;
+
+import javax.management.BadAttributeValueExpException;
+
 import javax.cache.processor.EntryProcessorException;
 
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -80,6 +85,39 @@ public class CoherenceEntryProcessorResultTest
             assertThat(e.getCause().getMessage(), is(ex.getMessage()));
             assertThat(e.getCause().getClass().getName(), is(ex.getClass().getName()));
             }
+        }
+
+    @Test
+    public void testPofSerializationRejectsDeniedJavaSerializedException()
+        {
+        Assume.assumeTrue(f_serializer instanceof ConfigurablePofContext);
+
+        Exception                     ex    = new BadAttributeValueExpException("denied");
+        CoherenceEntryProcessorResult value = new CoherenceEntryProcessorResult(ex);
+        Binary                        bin   = ExternalizableHelper.toBinary(value, f_serializer);
+
+        try
+            {
+            ExternalizableHelper.fromBinary(bin, f_serializer);
+            fail("expected denied exception payload to be rejected");
+            }
+        catch (RuntimeException e)
+            {
+            assertThat(hasCause(e, InvalidClassException.class), is(true));
+            }
+        }
+
+    private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)
+        {
+        while (t != null)
+            {
+            if (clz.isInstance(t))
+                {
+                return true;
+                }
+            t = t.getCause();
+            }
+        return false;
         }
 
     // ----- constants ------------------------------------------------------

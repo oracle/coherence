@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,7 @@ import com.oracle.coherence.guides.notifications.CustomerRepository;
 import com.oracle.coherence.guides.notifications.model.Customer;
 import com.oracle.coherence.guides.notifications.model.Notification;
 import com.oracle.coherence.guides.notifications.model.NotificationId;
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.pof.schema.annotation.PortableType;
 import com.tangosol.net.BackingMapContext;
 import com.tangosol.net.BackingMapManagerContext;
@@ -33,6 +34,7 @@ import java.util.Map;
  */
 // # tag::src-one[]
 @PortableType(id = 1100, version = 1)
+@Remote.Executable
 public class AddNotifications
         implements InvocableMap.EntryProcessor<String, Customer, Void> {
 

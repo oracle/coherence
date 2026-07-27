@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,11 +11,12 @@ import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.LocalHost;
 import com.oracle.bedrock.runtime.coherence.options.LocalStorage;
+import com.oracle.bedrock.runtime.coherence.options.Logging;
+import com.oracle.bedrock.runtime.java.ClassPath;
+import com.oracle.bedrock.runtime.java.options.JavaModules;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.tangosol.coherence.config.Config;
-
-import com.tangosol.internal.util.invoke.Lambdas;
 
 /**
  * Common cluster ExternalResource used by all Lambda tests
@@ -27,13 +28,15 @@ public class LambdaTestCluster extends CoherenceClusterResource
     public LambdaTestCluster()
         {
         super();
-        this.with(ClusterName.of(this.getClass().getSimpleName()),
+        this.with(ClusterName.of(Config.getProperty("coherence.cluster", this.getClass().getSimpleName())),
+                  ClassPath.automatic(),
                   SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                   LocalHost.only(),
                   SystemProperty.of("coherence.lambdas", Config.getProperty("coherence.lambdas")),
                   SystemProperty.of("coherence.mode", Config.getProperty("coherence.mode", "dev")),
                   SystemProperty.of("coherence.extend.enabled", "true"),
-                  SystemProperty.of("coherence.clusterport", "7574"));
+                  SystemProperty.of("coherence.clusterport", "7574"),
+                  JavaModules.automatic());
         this.include(2, LocalStorage.enabled());
         }
     }

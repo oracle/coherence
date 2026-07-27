@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,6 +40,7 @@ import org.junit.experimental.theories.DataPoints;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import java.io.File;
 import java.io.InputStream;
 
 import java.util.ArrayList;
@@ -319,12 +320,25 @@ public class QueryPlusQueryTests
                 String result = queryProperties.getProperty("result." + suffix);
                 if (query != null)
                     {
-                    queries.add(new Query(key, query, result));
+                    queries.add(new Query(key, replaceQueryParameters(query), result));
                     }
                 }
             }
 
         return queries.toArray(new Query[queries.size()]);
+        }
+
+    /**
+     * Replace parameters in queries loaded from the test properties.
+     *
+     * @param query  the query to update
+     *
+     * @return the updated query
+     */
+    private static String replaceQueryParameters(String query)
+        {
+        File fileBackup = new File(System.getProperty("project.build.directory", "target"), "dist-people.ser");
+        return query.replace("${cohql.dist.people.file}", fileBackup.getAbsolutePath());
         }
 
     // ----- inner classes --------------------------------------------------
