@@ -474,7 +474,7 @@ public final class ManagementInvocationPolicy
      */
     public static void reject(String sScope, String sGate, String sReason, String sValue, Subject subject)
         {
-        if (CoherenceMode.isLegacy() && isLegacyShadowReason(sReason))
+        if (!CoherenceMode.isSecurityHardeningEnabled() && isCompatibilityShadowReason(sReason))
             {
             shadow(sScope, sGate, sReason, sValue, subject);
             return;
@@ -495,19 +495,19 @@ public final class ManagementInvocationPolicy
 
     private static void shadow(String sScope, String sGate, String sReason, String sValue, Subject subject)
         {
-        Logger.warn("Allowed LEGACY management TCMP request that hardening mode would reject:"
+        Logger.warn("Allowed compatibility management TCMP request that security hardening would reject:"
                 + " route=management-tcmp"
                 + ", scope=" + sanitize(sScope)
                 + ", gate=" + sanitize(sGate)
                 + ", reason=" + sanitize(sReason)
-                + ", mode=legacy"
+                + ", security-mode=compatibility"
                 + ", result=would_reject"
                 + ", value=" + sanitize(sValue)
                 + ", principal=" + sanitize(subject == null || subject.getPrincipals().isEmpty()
                     ? null : subject.getPrincipals().iterator().next().getName()));
         }
 
-    private static boolean isLegacyShadowReason(String sReason)
+    private static boolean isCompatibilityShadowReason(String sReason)
         {
         return "executable-value".equals(sReason)
                 || "filter-not-allowed".equals(sReason)

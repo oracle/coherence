@@ -44,6 +44,7 @@ public class TopicsSubscriberInstallGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         SerializationTelemetry.resetForTesting();
         resetSecurityConfig();
@@ -54,6 +55,7 @@ public class TopicsSubscriberInstallGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         resetSecurityConfig();
@@ -98,9 +100,9 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void legacyShadowsUnannotatedFilterInstall()
+    public void compatibilityShadowsUnannotatedFilterInstall()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(new PlainFilter(), null,
                 SerializationRole.TOPICS, null);
@@ -126,30 +128,45 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void allowsDynamicFilterInstall_dev()
+    public void allowsDynamicFilterInstall_devCompatibility()
         {
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(filter, null, SerializationRole.TOPICS, null);
 
-        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertWouldRejectCounter(filter.getClass(), OperationReason.EVALUATE_FILTER, 2L);
         assertCounterAbsent(OperationReason.EVALUATE_FILTER, "dev", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void legacyShadowsDynamicFilterInstall()
+    public void compatibilityShadowsDynamicFilterInstall()
         {
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(filter, null, SerializationRole.TOPICS, null);
 
         assertWouldRejectCounter(filter.getClass(), OperationReason.EVALUATE_FILTER, 2L);
+        }
+
+    @Test
+    public void compatibilityWithExplicitDenyRejectsDynamicFilterInstall()
+        {
+        Filter<String> filter = dynamicFilter();
+        assertTrue(filter.getClass().isSynthetic());
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> RemoteInstallGate.enforceTopicSubscriberInstall(filter, null, SerializationRole.TOPICS, null));
+
+        assertEquals("topic-subscriber-install-denied-by-mode", e.getMessage());
+        assertWouldRejectCounter(filter.getClass(), OperationReason.EVALUATE_FILTER, 1L);
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
     @Test
@@ -189,9 +206,9 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void legacyShadowsUnannotatedExtractorInstall()
+    public void compatibilityShadowsUnannotatedExtractorInstall()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(null, new PlainExtractor(),
                 SerializationRole.TOPICS, null);
@@ -217,26 +234,25 @@ public class TopicsSubscriberInstallGateTest
         }
 
     @Test
-    public void allowsDynamicExtractorInstall_dev()
+    public void allowsDynamicExtractorInstall_devCompatibility()
         {
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(null, extractor, SerializationRole.TOPICS, null);
 
-        assertPolicyCounter(OperationReason.EXTRACT, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertWouldRejectCounter(extractor.getClass(), OperationReason.EXTRACT, 2L);
         assertCounterAbsent(OperationReason.EXTRACT, "dev", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void legacyShadowsDynamicExtractorInstall()
+    public void compatibilityShadowsDynamicExtractorInstall()
         {
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceTopicSubscriberInstall(null, extractor, SerializationRole.TOPICS, null);
 
@@ -321,14 +337,14 @@ public class TopicsSubscriberInstallGateTest
     private static void assertPolicyCounter(OperationReason reason, String sMode, String sResult,
                                             String sSubReason, long cExpected)
         {
-        String sKey = key(reason, SerializationRole.TOPICS, sMode, sResult, sSubReason);
+        String sKey = key(reason, sMode, sResult, sSubReason);
         assertEquals("counter " + sKey + " in " + SerializationTelemetry.snapshot(),
                 Long.valueOf(cExpected), SerializationTelemetry.snapshot().get(sKey));
         }
 
     private static void assertCounterAbsent(OperationReason reason, String sMode, String sResult, String sSubReason)
         {
-        String sKey = key(reason, SerializationRole.TOPICS, sMode, sResult, sSubReason);
+        String sKey = key(reason, sMode, sResult, sSubReason);
         assertFalse("counter " + sKey + " in " + SerializationTelemetry.snapshot(),
                 SerializationTelemetry.snapshot().containsKey(sKey));
         }
@@ -342,11 +358,10 @@ public class TopicsSubscriberInstallGateTest
                 Long.valueOf(cExpected), SerializationTelemetry.snapshot().get(sKey));
         }
 
-    private static String key(OperationReason reason, SerializationRole role, String sMode, String sResult,
-                              String sSubReason)
+    private static String key(OperationReason reason, String sMode, String sResult, String sSubReason)
         {
         return "coh.executable.policy_check{reason=" + reason.name()
-                + ",role=" + role.name()
+                + ",role=" + SerializationRole.TOPICS.name()
                 + ",result=" + sResult
                 + ",mode=" + sMode
                 + ",sub_reason=" + sSubReason + "}";
@@ -354,7 +369,13 @@ public class TopicsSubscriberInstallGateTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -390,6 +411,16 @@ public class TopicsSubscriberInstallGateTest
             {
             throw new AssertionError(e);
             }
+        }
+
+    private static Filter<String> dynamicFilter()
+        {
+        return value -> value != null;
+        }
+
+    private static ValueExtractor<String, String> dynamicExtractor()
+        {
+        return value -> value;
         }
 
     @Remote.Executable
@@ -434,16 +465,7 @@ public class TopicsSubscriberInstallGateTest
             }
         }
 
-    private static Filter<String> dynamicFilter()
-        {
-        return value -> true;
-        }
-
-    private static ValueExtractor<String, String> dynamicExtractor()
-        {
-        return value -> value;
-        }
-
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

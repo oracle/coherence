@@ -102,7 +102,7 @@ public abstract class AbstractQueryEngine
         Class clz = s_mapTypeNames.get(sType);
         if (clz == null)
             {
-            if (!CoherenceMode.isLegacy() && RestQueryPolicy.isDirectQueryTypePolicyActive())
+            if (CoherenceMode.isSecurityHardeningEnabled() && RestQueryPolicy.isDirectQueryTypePolicyActive())
                 {
                 throw new IllegalArgumentException("unsupported REST query parameter type hint: " + sType);
                 }
@@ -121,9 +121,9 @@ public abstract class AbstractQueryEngine
 
     protected ParsedQueryCacheKey getParsedQueryCacheKey(String sQuery, String sFinal)
         {
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
-            return new ParsedQueryCacheKey(sFinal, TypePolicyCacheScope.LEGACY_COMPATIBLE);
+            return new ParsedQueryCacheKey(sFinal, TypePolicyCacheScope.COMPATIBLE);
             }
         return new ParsedQueryCacheKey(sQuery, getTypePolicyCacheScope());
         }
@@ -294,12 +294,12 @@ public abstract class AbstractQueryEngine
         OPERATOR_OR_NON_DIRECT,
 
         /**
-         * LEGACY stripped-query compatibility parsing.
+         * Stripped-query compatibility parsing.
          */
-        LEGACY_COMPATIBLE,
+        COMPATIBLE,
 
         /**
-         * DEV/PROD direct-query parsing.
+         * Hardened direct-query parsing.
          */
         DIRECT_STRICT
         }

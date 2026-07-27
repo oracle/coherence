@@ -111,10 +111,10 @@ public class ConnectorPublishTrustTest
         }
 
     @Test
-    public void shouldReadLegacyDynamicJmxStubPublish()
+    public void shouldReadCompatibilityDynamicJmxStubPublish()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             assertReadsDynamicJmxStubPublish();
             }
@@ -124,23 +124,25 @@ public class ConnectorPublishTrustTest
     public void shouldReadDevDynamicJmxStubPublish()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.dev();
+             CoherenceModeHelper.ModeScope ignoredHardening = CoherenceModeHelper.securityCompatibility())
             {
             assertReadsDynamicJmxStubPublish();
             }
         }
 
     @Test
-    public void shouldRejectUnsafeJmxStubPublishInProd()
+    public void shouldRejectUnsafeJmxStubPublishWhenHardened()
             throws Exception
         {
         JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://127.0.0.1:9000/stub/abcd");
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Exception e = assertRejected(() -> readPublish(writePublish(url, Collections.emptySet())));
 
-            assertTrue(e.getMessage(), e.getMessage().contains("PROD"));
+            assertTrue(e.getMessage(), e.getMessage().contains("security-mode=hardened"));
+            assertTrue(e.getMessage(), e.getMessage().contains("result=reject"));
             assertTrue(e.getMessage(), e.getMessage().contains("coherence.management.remote.registryport"));
             }
         }

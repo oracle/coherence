@@ -2382,7 +2382,7 @@ public class NamedCacheProxyProtocolIT
         StreamObserver<ProxyRequest>    channel  = openChannel(observer);
         JsonSerializer                  serializer = new JsonSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             init(channel, observer, serializer, "");
             int cacheId = ensureCache(channel, observer, sCacheName);
@@ -2410,7 +2410,7 @@ public class NamedCacheProxyProtocolIT
         StreamObserver<ProxyRequest>    channel  = openChannel(observer);
         JsonSerializer                  serializer = new JsonSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             init(channel, observer, serializer, "");
             int cacheId = ensureCache(channel, observer, sCacheName);

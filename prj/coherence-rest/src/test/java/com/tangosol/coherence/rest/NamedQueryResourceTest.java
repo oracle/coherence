@@ -392,7 +392,7 @@ public class NamedQueryResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasesInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NamedQuery         query    = new NamedQuery("named-query", null, "DEFAULT", 10);
             NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
@@ -419,7 +419,7 @@ public class NamedQueryResourceTest
     @Test
     public void shouldAllowOperatorConfiguredFqnNamedQueryTypeHintInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NamedQuery         query    = new NamedQuery("age-query", "age is :age;java.lang.Integer", "DEFAULT", 10);
             NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
@@ -437,7 +437,7 @@ public class NamedQueryResourceTest
     @Test
     public void shouldAllowDefaultNamedQuerySseInDev() throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NamedQuery         query    = new NamedQuery("name-query", "name is :name", "DEFAULT", 10);
             NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);
@@ -459,7 +459,7 @@ public class NamedQueryResourceTest
     @Test
     public void shouldAllowOperatorConfiguredNamedQuerySseExpressionInDev() throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NamedQuery         query    = new NamedQuery("city-query", "address.city is :city", "DEFAULT", 10);
             NamedQueryResource resource = createNamedQueryResource(m_cache, query, -1);

@@ -105,7 +105,7 @@ public final class TopicsPersistedPolicyDrift
 
     private static String defaultValue()
         {
-        return CoherenceMode.isProd() ? VALUE_REJECT : VALUE_WARN_ALLOW;
+        return CoherenceMode.isSecurityHardeningEnabled() ? VALUE_REJECT : VALUE_WARN_ALLOW;
         }
 
     private TopicsPersistedPolicyDrift()

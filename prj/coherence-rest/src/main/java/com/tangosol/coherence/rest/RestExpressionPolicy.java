@@ -22,10 +22,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Central mode-aware policy for REST URL expression aliases.
+ * Central hardening-aware policy for REST URL expression aliases.
  * <p>
- * Moves caller-supplied expressions to operator-configured aliases in DEV/PROD
- * while keeping raw URL expression compatibility only in LEGACY.
+ * Moves caller-supplied expressions to operator-configured aliases when
+ * security hardening is enabled while keeping raw URL expression compatibility
+ * by default.
  *
  * @author Vaso Putica  2026.05.08
  * @since 26.04
@@ -52,15 +53,15 @@ public final class RestExpressionPolicy
             }
         if (sSort.isBlank())
             {
-            if (isLegacyExpressionAllowed())
+            if (isCompatibilityExpressionAllowed())
                 {
                 return sSort;
                 }
             throw new IllegalArgumentException("bad sort alias syntax");
             }
-        if (isLegacyExpressionAllowed())
+        if (isCompatibilityExpressionAllowed())
             {
-            logLegacy("sort");
+            logCompatibility("sort");
             return sSort;
             }
 
@@ -101,9 +102,9 @@ public final class RestExpressionPolicy
             {
             return null;
             }
-        if (isLegacyExpressionAllowed())
+        if (isCompatibilityExpressionAllowed())
             {
-            logLegacy("projection");
+            logCompatibility("projection");
             return PropertySet.fromString(sProjection);
             }
 
@@ -125,9 +126,9 @@ public final class RestExpressionPolicy
      */
     public static String resolveAggregator(ExpressionAliasConfig aliases, String sRequest)
         {
-        if (isLegacyExpressionAllowed())
+        if (isCompatibilityExpressionAllowed())
             {
-            logLegacy("aggregator");
+            logCompatibility("aggregator");
             return sRequest;
             }
 
@@ -145,9 +146,9 @@ public final class RestExpressionPolicy
      */
     public static String resolveProcessor(ExpressionAliasConfig aliases, String sRequest)
         {
-        if (isLegacyExpressionAllowed())
+        if (isCompatibilityExpressionAllowed())
             {
-            logLegacy("processor");
+            logCompatibility("processor");
             return sRequest;
             }
 
@@ -173,13 +174,13 @@ public final class RestExpressionPolicy
         }
 
     /**
-     * Return {@code true} if legacy URL expressions are allowed.
+     * Return {@code true} if compatibility URL expressions are allowed.
      *
-     * @return {@code true} if legacy behavior is active
+     * @return {@code true} if compatibility behavior is active
      */
-    public static boolean isLegacyExpressionAllowed()
+    public static boolean isCompatibilityExpressionAllowed()
         {
-        return CoherenceMode.isLegacy();
+        return !CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**
@@ -224,7 +225,7 @@ public final class RestExpressionPolicy
         }
 
     /**
-     * Parse a DEV/PROD sort alias segment.
+     * Parse a hardened sort alias segment.
      *
      * @param sPart  the comma-delimited sort segment
      *
@@ -309,16 +310,17 @@ public final class RestExpressionPolicy
         }
 
     /**
-     * Log legacy URL expression usage.
+     * Log compatibility URL expression usage.
      *
      * @param sFamily  the expression family
      */
-    private static void logLegacy(String sFamily)
+    private static void logCompatibility(String sFamily)
         {
-        if (LEGACY_WARNINGS.add(sFamily))
+        if (COMPATIBILITY_WARNINGS.add(sFamily))
             {
-            Logger.warn("Using legacy Coherence REST " + sFamily
-                    + " URL expression behavior. Configure REST expression aliases before enabling DEV or PROD mode.");
+            Logger.warn("Using compatibility Coherence REST " + sFamily
+                    + " URL expression behavior. Configure REST expression aliases before enabling "
+                    + "coherence.security.mode=hardened.");
             }
         }
 
@@ -427,7 +429,7 @@ public final class RestExpressionPolicy
     private static final Pattern REQUEST_PATTERN = Pattern.compile("^\\s*(\\w(?:\\w|-)*)\\((.*)\\)");
 
     /**
-     * LEGACY warnings already logged by family.
+     * Compatibility warnings already logged by family.
      */
-    private static final Set<String> LEGACY_WARNINGS = ConcurrentHashMap.newKeySet();
+    private static final Set<String> COMPATIBILITY_WARNINGS = ConcurrentHashMap.newKeySet();
     }

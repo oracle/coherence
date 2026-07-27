@@ -113,10 +113,10 @@ public class CacheResource
      * @param cResults     size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
      * @param sProjection  URL projection request from the {@code p} matrix
-     *                     parameter. DEV/PROD resolve this value as a
-     *                     configured projection alias, while LEGACY preserves
-     *                     raw property expression syntax; if null or blank,
-     *                     complete values will be returned
+     *                     parameter. Hardened mode resolves this value as a
+     *                     configured projection alias, while compatibility mode
+     *                     preserves raw property expression syntax; if null or
+     *                     blank, complete values will be returned
      * @param sQuery       where predicate of Coherence Query Language to
      *                     filter cache entries. If null, all cache values
      *                     will be returned
@@ -159,10 +159,10 @@ public class CacheResource
      * @param cResults     size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
      * @param sProjection  URL projection request from the {@code p} matrix
-     *                     parameter. DEV/PROD resolve this value as a
-     *                     configured projection alias, while LEGACY preserves
-     *                     raw property expression syntax; if null or blank,
-     *                     complete values will be returned
+     *                     parameter. Hardened mode resolves this value as a
+     *                     configured projection alias, while compatibility mode
+     *                     preserves raw property expression syntax; if null or
+     *                     blank, complete values will be returned
      * @param sQuery       where predicate of Coherence Query Language to
      *                     filter cache entries. If null, all cache entries
      *                     will be returned
@@ -503,8 +503,8 @@ public class CacheResource
     /**
      * Set expression aliases for this resource.
      * <p>
-     * Uses these aliases as the resource-local URL expression allowlist in
-     * DEV/PROD mode.
+     * Uses these aliases as the resource-local URL expression allowlist when
+     * security hardening is enabled.
      *
      * @param aliases  expression aliases
      */

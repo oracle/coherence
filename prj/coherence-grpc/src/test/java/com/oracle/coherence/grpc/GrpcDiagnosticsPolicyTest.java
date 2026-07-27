@@ -37,17 +37,13 @@ class GrpcDiagnosticsPolicyTest
         }
 
     @Test
-    void shouldResolveChannelzAutoByMode()
+    void shouldResolveChannelzAutoByHardening()
         {
-        try (ModeScope ignored = mode("legacy"))
+        try (ModeScope ignored = scope("prod", null))
             {
             assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
             }
-        try (ModeScope ignored = mode("dev"))
-            {
-            assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
-            }
-        try (ModeScope ignored = mode("prod"))
+        try (ModeScope ignored = scope("dev", SECURITY_MODE_HARDENED))
             {
             assertFalse(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_AUTO));
             assertTrue(GrpcDiagnosticsPolicy.isChannelzEnabled(GrpcDiagnosticsPolicy.CHANNELZ_ENABLED));
@@ -66,17 +62,13 @@ class GrpcDiagnosticsPolicyTest
         }
 
     @Test
-    void shouldResolveErrorDisclosureAutoByMode()
+    void shouldResolveErrorDisclosureAutoByHardening()
         {
-        try (ModeScope ignored = mode("legacy"))
+        try (ModeScope ignored = scope("prod", null))
             {
             assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
             }
-        try (ModeScope ignored = mode("dev"))
-            {
-            assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
-            }
-        try (ModeScope ignored = mode("prod"))
+        try (ModeScope ignored = scope("dev", SECURITY_MODE_HARDENED))
             {
             assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
             assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE));
@@ -84,13 +76,17 @@ class GrpcDiagnosticsPolicyTest
             }
         }
 
-    private static ModeScope mode(String sMode)
+    private static ModeScope scope(String sMode, String sSecurityMode)
         {
-        String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
+        String sPreviousMode         = System.getProperty(PROP_COHERENCE_MODE);
+        String sPreviousSecurityMode = System.getProperty(PROP_SECURITY_MODE);
         restoreProperty(PROP_COHERENCE_MODE, sMode);
+        restoreProperty(PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
-        return new ModeScope(sPrevious);
+        return new ModeScope(sPreviousMode, sPreviousSecurityMode);
         }
+
+    private static final String SECURITY_MODE_HARDENED = "hardened";
 
     private static void resetMode()
         {
@@ -120,15 +116,18 @@ class GrpcDiagnosticsPolicyTest
 
     private static final String PROP_COHERENCE_MODE = "coherence.mode";
 
+    private static final String PROP_SECURITY_MODE = "coherence.security.mode";
+
     private static final String COHERENCE_MODE_CLASS = "com.tangosol.internal.util.CoherenceMode";
 
-    private record ModeScope(String previous)
+    private record ModeScope(String previousMode, String previousSecurityMode)
             implements AutoCloseable
         {
         @Override
         public void close()
             {
-            restoreProperty(PROP_COHERENCE_MODE, previous);
+            restoreProperty(PROP_COHERENCE_MODE, previousMode);
+            restoreProperty(PROP_SECURITY_MODE, previousSecurityMode);
             resetMode();
             }
         }

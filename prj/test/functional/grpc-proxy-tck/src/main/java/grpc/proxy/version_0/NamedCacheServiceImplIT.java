@@ -117,7 +117,7 @@ public class NamedCacheServiceImplIT
         TestStreamObserver<BoolValue> observer = new TestStreamObserver<>();
         DefaultSerializer        serializer = new DefaultSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             service.containsKey(Requests.containsKey(null, sCacheName, "java", toByteString("key", serializer)),
                     observer);
@@ -140,7 +140,7 @@ public class NamedCacheServiceImplIT
         TestStreamObserver<BytesValue> observer   = new TestStreamObserver<>();
         JsonSerializer                 serializer = new JsonSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ByteString key   = toByteString("key-1", serializer);
             ByteString value = toByteString("value-1", serializer);
@@ -168,7 +168,7 @@ public class NamedCacheServiceImplIT
         ByteString                 key      = jsonPayload(
                 "{\"@class\":\"internal.util.invoke.RemoteConstructor\"}");
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             service.containsKey(Requests.containsKey(null, sCacheName, "json", key), observer);
 

@@ -46,6 +46,7 @@ public class TopicSubscriberInstallGateClusterTests
         m_sCacheConfigOld  = System.getProperty(PROP_CACHE_CONFIG);
         m_sLocalStorageOld = System.getProperty(PROP_LOCAL_STORAGE);
         m_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sWkaOld          = System.getProperty(PROP_WKA);
         m_sLocalhostOld    = System.getProperty(PROP_LOCALHOST);
 
@@ -56,7 +57,9 @@ public class TopicSubscriberInstallGateClusterTests
         setProperty(PROP_CACHE_CONFIG, "topic-cache-config.xml");
         setProperty(PROP_LOCAL_STORAGE, "true");
         setProperty(CoherenceMode.PROP_COHERENCE_MODE, "prod");
+        setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
         CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
 
         m_coherence = Coherence.clusterMember().startAndWait();
         m_session   = m_coherence.getSession();
@@ -71,6 +74,7 @@ public class TopicSubscriberInstallGateClusterTests
         restoreProperty(PROP_CACHE_CONFIG, m_sCacheConfigOld);
         restoreProperty(PROP_LOCAL_STORAGE, m_sLocalStorageOld);
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(PROP_WKA, m_sWkaOld);
         restoreProperty(PROP_LOCALHOST, m_sLocalhostOld);
         CoherenceModeHelper.reset();
@@ -222,6 +226,7 @@ public class TopicSubscriberInstallGateClusterTests
     private String    m_sCacheConfigOld;
     private String    m_sLocalStorageOld;
     private String    m_sModeOld;
+    private String    m_sSecurityModeOld;
     private String    m_sWkaOld;
     private String    m_sLocalhostOld;
     }

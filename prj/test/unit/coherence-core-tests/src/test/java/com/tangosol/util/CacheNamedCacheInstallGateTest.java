@@ -41,6 +41,7 @@ public class CacheNamedCacheInstallGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         SerializationTelemetry.resetForTesting();
         resetSecurityConfig();
@@ -51,6 +52,7 @@ public class CacheNamedCacheInstallGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         resetSecurityConfig();
@@ -63,25 +65,26 @@ public class CacheNamedCacheInstallGateTest
         {
         for (GateCase gate : GATES)
             {
-            for (String sMode : new String[] {"prod", "dev", "legacy"})
+            for (String sMode : new String[] {"prod", "dev"})
                 {
                 setMode(sMode, null);
 
                 gate.enforce(gate.annotated());
 
-                if ("legacy".equals(sMode))
-                    {
-                    assertCounterAbsent(gate.reason(), sMode, "allowed",
-                            SerializationTelemetry.SUB_REASON_POLICY);
-                    }
-                else
-                    {
-                    assertPolicyCounter(gate.reason(), sMode, "allowed",
-                            SerializationTelemetry.SUB_REASON_POLICY, 1L);
-                    }
+                assertPolicyCounter(gate.reason(), sMode, "allowed",
+                        SerializationTelemetry.SUB_REASON_POLICY, 1L);
                 assertCounterAbsent(gate.reason(), sMode, "rejected",
                         SerializationTelemetry.SUB_REASON_MODE_GATE);
                 }
+
+            setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+            gate.enforce(gate.annotated());
+
+            assertCounterAbsent(gate.reason(), "prod", "allowed",
+                    SerializationTelemetry.SUB_REASON_POLICY);
+            assertCounterAbsent(gate.reason(), "prod", "rejected",
+                    SerializationTelemetry.SUB_REASON_MODE_GATE);
             }
         }
 
@@ -105,17 +108,17 @@ public class CacheNamedCacheInstallGateTest
         }
 
     @Test
-    public void legacyShadowsUnannotatedInstall()
+    public void compatibilityShadowsUnannotatedInstall()
         {
         for (GateCase gate : GATES)
             {
             Object oPlain = gate.plain();
-            setMode("legacy", null);
+            setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
             gate.enforce(oPlain);
 
             assertWouldRejectCounter(oPlain.getClass(), gate.reason(), 1L);
-            assertCounterAbsent(gate.reason(), "legacy", "rejected",
+            assertCounterAbsent(gate.reason(), "prod", "rejected",
                     SerializationTelemetry.SUB_REASON_POLICY);
             }
         }
@@ -140,37 +143,54 @@ public class CacheNamedCacheInstallGateTest
         }
 
     @Test
-    public void allowsDynamicInstallInDev()
+    public void allowsDynamicInstallInDevCompatibility()
         {
         for (GateCase gate : GATES)
             {
             Object oDynamic = gate.dynamic();
             assertTrue(oDynamic.getClass().isSynthetic());
-            setMode("dev", null);
+            setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
             gate.enforce(oDynamic);
 
-            assertPolicyCounter(gate.reason(), "dev", "rejected",
-                    SerializationTelemetry.SUB_REASON_POLICY, 1L);
+            assertWouldRejectCounter(oDynamic.getClass(), gate.reason(), 2L);
             assertCounterAbsent(gate.reason(), "dev", "rejected",
                     SerializationTelemetry.SUB_REASON_MODE_GATE);
             }
         }
 
     @Test
-    public void legacyShadowsDynamicInstall()
+    public void compatibilityShadowsDynamicInstall()
         {
         for (GateCase gate : GATES)
             {
             Object oDynamic = gate.dynamic();
             assertTrue(oDynamic.getClass().isSynthetic());
-            setMode("legacy", null);
+            setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
             gate.enforce(oDynamic);
 
             assertWouldRejectCounter(oDynamic.getClass(), gate.reason(), 2L);
-            assertCounterAbsent(gate.reason(), "legacy", "rejected",
+            assertCounterAbsent(gate.reason(), "prod", "rejected",
                     SerializationTelemetry.SUB_REASON_MODE_GATE);
+            }
+        }
+
+    @Test
+    public void compatibilityWithExplicitDenyRejectsDynamicInstall()
+        {
+        for (GateCase gate : GATES)
+            {
+            Object oDynamic = gate.dynamic();
+            assertTrue(oDynamic.getClass().isSynthetic());
+            setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
+
+            SecurityException e = assertThrows(SecurityException.class, () -> gate.enforce(oDynamic));
+
+            assertEquals(gate.modeMessage(), e.getMessage());
+            assertWouldRejectCounter(oDynamic.getClass(), gate.reason(), 1L);
+            assertPolicyCounter(gate.reason(), "prod", "rejected",
+                    SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
             }
         }
 
@@ -209,7 +229,13 @@ public class CacheNamedCacheInstallGateTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -521,5 +547,6 @@ public class CacheNamedCacheInstallGateTest
         };
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

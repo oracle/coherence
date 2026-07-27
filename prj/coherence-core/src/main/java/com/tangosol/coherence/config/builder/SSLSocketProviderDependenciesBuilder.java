@@ -49,7 +49,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Locale;
 
 import java.util.concurrent.Executor;
 
@@ -585,7 +584,6 @@ public class SSLSocketProviderDependenciesBuilder
             }
 
         @Override
-        @SuppressWarnings("removal")
         public HostnameVerifier realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
             {
             if (m_builder != null)
@@ -595,7 +593,7 @@ public class SSLSocketProviderDependenciesBuilder
                 }
             else if (ACTION_ALLOW.equals(m_sAction))
                 {
-                if (CoherenceMode.isLegacy())
+                if (!CoherenceMode.isSecurityHardeningEnabled())
                     {
                     return new AllowHostnameVerifier();
                     }
@@ -605,9 +603,8 @@ public class SSLSocketProviderDependenciesBuilder
                     }
                 else
                     {
-                    throw new IllegalArgumentException("Hostname verifier action 'allow' is not permitted in "
-                            + CoherenceMode.current().name().toLowerCase(Locale.ROOT)
-                            + " mode; use coherence.mode=legacy only for compatibility.");
+                    throw new IllegalArgumentException("Hostname verifier action 'allow' is not permitted when "
+                            + "security hardening is enabled.");
                     }
                 }
             // the action is "default" or no builder or action was specified - so use the default verifier
@@ -626,7 +623,7 @@ public class SSLSocketProviderDependenciesBuilder
     // ----- inner class: AllowHostnameVerifier ----------------------------
 
     /**
-     * Legacy compatibility verifier for {@code action=allow}.
+     * Compatibility verifier for {@code action=allow}.
      */
     static class AllowHostnameVerifier
             implements HostnameVerifier
@@ -636,7 +633,7 @@ public class SSLSocketProviderDependenciesBuilder
             {
             if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession))
                 {
-                Logger.warn("TLS hostname verification would_reject; mode=legacy; source=allow; peer="
+                Logger.warn("TLS hostname verification would_reject; security-mode=compatibility; source=allow; peer="
                         + sUrlHostname);
                 }
             return true;

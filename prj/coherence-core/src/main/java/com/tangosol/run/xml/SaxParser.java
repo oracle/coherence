@@ -629,8 +629,8 @@ public class SaxParser
         {
         synchronized (SaxParser.class)
             {
-            s_parser     = null;
-            s_parserMode = null;
+            s_parser                 = null;
+            s_parserSecurityHardened = null;
             }
         }
 
@@ -644,20 +644,20 @@ public class SaxParser
     protected static Parser getParser()
             throws Exception
         {
-        CoherenceMode mode   = CoherenceMode.current();
-        Parser        parser = s_parser;
+        boolean fSecurityHardened = CoherenceMode.isXmlExternalEntityProtectionRequired();
+        Parser  parser            = s_parser;
 
-        if (parser == null || s_parserMode != mode)
+        if (parser == null || !Boolean.valueOf(fSecurityHardened).equals(s_parserSecurityHardened))
             {
             synchronized (SaxParser.class)
                 {
                 parser = s_parser;
-                if (parser == null || s_parserMode != mode)
+                if (parser == null || !Boolean.valueOf(fSecurityHardened).equals(s_parserSecurityHardened))
                     {
                     parser = createParser();
                     configureRequiredParserProtections(parser);
-                    s_parser     = parser;
-                    s_parserMode = mode;
+                    s_parser                 = parser;
+                    s_parserSecurityHardened = fSecurityHardened;
                     }
                 }
             }
@@ -665,8 +665,8 @@ public class SaxParser
         }
 
     /**
-     * Create a parser instance using the modern factory path, with LEGACY
-     * retaining the old fallback.
+     * Create a parser instance using the modern factory path, with compatibility
+     * mode retaining the old fallback while security hardening is disabled.
      *
      * @return a parser instance
      *
@@ -691,7 +691,7 @@ public class SaxParser
                 throw new SAXException("Unable to create a SAX parser with required XML external-entity protections", e);
                 }
             String sFactoryClass = factory == null ? "unavailable" : factory.getClass().getName();
-            Logger.warn("SaxParser legacy compatibility is using the deprecated parser fallback after protected "
+            Logger.warn("SaxParser compatibility is using the deprecated parser fallback after protected "
                     + "parser factory setup failed. Parser factory: " + sFactoryClass
                     + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
             return ParserFactory.makeParser();
@@ -722,8 +722,7 @@ public class SaxParser
         }
 
     /**
-     * Fail closed in hardened modes or keep LEGACY warn-and-continue
-     * compatibility.
+     * Fail closed when hardening is enabled or keep warn-and-continue compatibility.
      *
      * @param sTarget     the protected target type
      * @param clzTarget   the protected target class
@@ -744,7 +743,7 @@ public class SaxParser
             throw new SAXException(sMessage, e);
             }
 
-        Logger.warn(sMessage + "; continuing in LEGACY compatibility mode"
+        Logger.warn(sMessage + "; continuing because security hardening is disabled"
                 + System.lineSeparator() + "Error: " + e.getLocalizedMessage());
         }
 
@@ -756,7 +755,7 @@ public class SaxParser
     */
     private static Parser s_parser;
 
-    private static CoherenceMode s_parserMode;
+    private static Boolean s_parserSecurityHardened;
 
     /**
      * Required parser and validation protections for XXE hardening.

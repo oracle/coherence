@@ -45,6 +45,7 @@ public class ScriptProcessorGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         SerializationTelemetry.resetForTesting();
         }
@@ -53,6 +54,7 @@ public class ScriptProcessorGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -65,14 +67,13 @@ public class ScriptProcessorGateTest
         }
 
     @Test
-    public void allowsSpInDevByDefault()
+    public void allowsSpInDevCompatibilityByDefault()
         {
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertEquals("value", new ScriptProcessor<String, String, String>("js", "EntryEcho")
                 .process(new SimpleEntry<>("key", "value", true)));
 
-        assertPolicyCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertModeGateAbsent("dev");
         }
 
@@ -129,14 +130,14 @@ public class ScriptProcessorGateTest
         }
 
     @Test
-    public void legacyModeGateBehavesLikeDev()
+    public void compatibilityModeGateAllowsByDefault()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertEquals("value", new ScriptProcessor<String, String, String>("js", "EntryEcho")
                 .process(new SimpleEntry<>("key", "value", true)));
 
-        assertModeGateAbsent("legacy");
+        assertModeGateAbsent("prod");
         }
 
     @Test
@@ -151,9 +152,8 @@ public class ScriptProcessorGateTest
         assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
 
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         assertTrue(new ScriptFilter<String>("js", "ValuePresentFilter").evaluate("value"));
-        assertPolicyCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertModeGateAbsent("dev");
         }
 
@@ -215,7 +215,13 @@ public class ScriptProcessorGateTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -313,5 +319,6 @@ public class ScriptProcessorGateTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

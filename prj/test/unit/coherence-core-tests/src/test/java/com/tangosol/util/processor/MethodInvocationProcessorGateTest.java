@@ -47,6 +47,7 @@ public class MethodInvocationProcessorGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         SerializationTelemetry.resetForTesting();
         }
@@ -55,6 +56,7 @@ public class MethodInvocationProcessorGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -67,19 +69,18 @@ public class MethodInvocationProcessorGateTest
         }
 
     @Test
-    public void allowsMipInDevByDefault()
+    public void allowsMipInDevCompatibilityByDefault()
         {
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertEquals(Integer.valueOf(3), new MethodInvocationProcessor<String, String, Integer>("length", false)
                 .process(new SimpleEntry<>("key", "foo", true)));
 
-        assertPolicyCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertModeGateAbsent("dev");
         }
 
     @Test
-    public void deniesMipInProdByDefault()
+    public void deniesMipInHardenedModeByDefault()
         {
         setMode("prod", null);
 
@@ -306,28 +307,28 @@ public class MethodInvocationProcessorGateTest
         }
 
     @Test
-    public void legacyMipDenyListIsHardFloor()
+    public void compatibilityMipDenyListIsHardFloor()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> new MethodInvocationProcessor<String, Runtime, Integer>("availableProcessors", false)
                         .process(new SimpleEntry<>("key", Runtime.getRuntime(), true)));
 
         assertEquals(LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, e.getMessage());
-        assertPolicyCounter("legacy", "rejected", SerializationTelemetry.SUB_REASON_DENYLIST, 1L);
-        assertBytecodeCounter("legacy", LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, 1L);
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_DENYLIST, 1L);
+        assertBytecodeCounter("prod", LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, 1L);
         }
 
     @Test
-    public void legacyModeGateBehavesLikeDev()
+    public void compatibilityModeGateAllowsByDefault()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertEquals(Integer.valueOf(3), new MethodInvocationProcessor<String, String, Integer>("length", false)
                 .process(new SimpleEntry<>("key", "foo", true)));
 
-        assertModeGateAbsent("legacy");
+        assertModeGateAbsent("prod");
         }
 
     private static void assertPolicyCounter(String sMode, String sResult, String sSubReason, long cExpected)
@@ -372,7 +373,13 @@ public class MethodInvocationProcessorGateTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -545,5 +552,6 @@ public class MethodInvocationProcessorGateTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

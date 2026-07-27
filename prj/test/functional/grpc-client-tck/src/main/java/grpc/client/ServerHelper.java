@@ -12,6 +12,7 @@ import com.oracle.bedrock.runtime.coherence.callables.FindGrpcProxyPort;
 import com.oracle.coherence.common.base.Exceptions;
 
 import com.oracle.coherence.grpc.NamedCacheProtocol;
+import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
 
 import com.oracle.coherence.grpc.client.common.AsyncNamedCacheClient;
 import com.oracle.coherence.grpc.client.common.GrpcConnection;
@@ -20,10 +21,13 @@ import com.oracle.coherence.grpc.client.common.NamedCacheClient;
 import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
 
 import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
-import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.google.protobuf.Message;
+
 import com.tangosol.internal.net.grpc.DefaultRemoteGrpcCacheServiceDependencies;
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.io.Serializer;
 
@@ -215,6 +219,11 @@ public final class ServerHelper
         for (String sName : m_properties.stringPropertyNames())
             {
             System.setProperty(sName, m_properties.getProperty(sName));
+            }
+        if (m_properties.containsKey(CoherenceMode.PROP_COHERENCE_MODE)
+                || m_properties.containsKey(CoherenceMode.PROP_SECURITY_MODE))
+            {
+            CoherenceModeHelper.reset();
             }
 
         try
