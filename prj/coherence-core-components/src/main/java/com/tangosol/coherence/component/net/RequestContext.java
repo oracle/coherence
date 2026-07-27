@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,22 @@ public class RequestContext
      */
     private long __m_RequestSUID;
     
+    /**
+     * Property SubjectProof
+     *
+     * Passive subject proof bytes carried outside the legacy RequestContext
+     * external form.
+     */
+    private byte[] __m_SubjectProof;
+
+    /**
+     * Property SubjectProofSenderId
+     *
+     * Passive receive-side sender id for subject-proof validation. This value
+     * is not serialized in the legacy RequestContext external form.
+     */
+    private String __m_SubjectProofSenderId;
+
     /**
      * Property Subject
      *
@@ -169,6 +185,28 @@ public class RequestContext
         return __m_Subject;
         }
     
+    // Accessor for the property "SubjectProof"
+    /**
+     * Getter for property SubjectProof.<p>
+    * Passive subject proof bytes carried outside the legacy RequestContext
+    * external form.
+     */
+    public byte[] getSubjectProof()
+        {
+        return __m_SubjectProof;
+        }
+
+    // Accessor for the property "SubjectProofSenderId"
+    /**
+     * Getter for property SubjectProofSenderId.<p>
+    * Passive receive-side sender id for subject-proof validation. This value
+    * is not serialized in the legacy RequestContext external form.
+     */
+    public String getSubjectProofSenderId()
+        {
+        return __m_SubjectProofSenderId;
+        }
+
     // From interface: com.tangosol.io.ExternalizableLite
     public void readExternal(java.io.DataInput in)
             throws java.io.IOException
@@ -231,6 +269,28 @@ public class RequestContext
         __m_Subject = subject;
         }
     
+    // Accessor for the property "SubjectProof"
+    /**
+     * Setter for property SubjectProof.<p>
+    * Passive subject proof bytes carried outside the legacy RequestContext
+    * external form.
+     */
+    public void setSubjectProof(byte[] abProof)
+        {
+        __m_SubjectProof = abProof;
+        }
+
+    // Accessor for the property "SubjectProofSenderId"
+    /**
+     * Setter for property SubjectProofSenderId.<p>
+    * Passive receive-side sender id for subject-proof validation. This value
+    * is not serialized in the legacy RequestContext external form.
+     */
+    public void setSubjectProofSenderId(String sSenderId)
+        {
+        __m_SubjectProofSenderId = sSenderId;
+        }
+
     // From interface: com.tangosol.io.ExternalizableLite
     public void writeExternal(java.io.DataOutput out)
             throws java.io.IOException

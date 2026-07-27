@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -12,6 +12,8 @@ import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.ElementProcessor;
 import com.tangosol.config.xml.ProcessingContext;
 import com.tangosol.config.xml.XmlSimpleName;
+
+import com.tangosol.internal.net.security.StorageAccessAuthorizerBuilder;
 
 import com.tangosol.net.security.StorageAccessAuthorizer;
 
@@ -53,6 +55,7 @@ public class StorageAccessAuthorizerBuilderProcessor
                                              + xmlElement, "Please define a <storage-authorizer>");
             }
 
-        return (ParameterizedBuilder<StorageAccessAuthorizer>) bldr;
+        return new StorageAccessAuthorizerBuilder((ParameterizedBuilder<StorageAccessAuthorizer>) bldr,
+                xmlElement.getSafeAttribute("subject-proof-required").getBoolean(false));
         }
     }
