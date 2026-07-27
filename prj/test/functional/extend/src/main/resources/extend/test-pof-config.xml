@@ -204,6 +204,10 @@
       <type-id>3017</type-id>
       <class-name>extend.TriggerInstallModeMatrixIntegrationTest$Synthetic$$LambdaShapedTrigger</class-name>
     </user-type>
+    <user-type>
+      <type-id>3034</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$ObservableRemovalTrigger</class-name>
+    </user-type>
 
     <user-type>
       <type-id>3018</type-id>
