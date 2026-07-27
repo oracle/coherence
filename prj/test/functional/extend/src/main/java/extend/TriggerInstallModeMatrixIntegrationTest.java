@@ -15,6 +15,7 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.RemoteExecutionMode;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
@@ -36,10 +37,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.io.Serializable;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import java.util.Map;
 import java.util.Properties;
@@ -305,13 +302,13 @@ public class TriggerInstallModeMatrixIntegrationTest
         {
         startProxy("prod", null);
 
+        m_memberProxy.invoke(new ResetDeclaredAdvisoryRecorder());
         NamedCache<String, String> cache = getCache(CACHE_DECLARED_TRIGGER);
         cache.clear();
         cache.put("key", "value");
 
         assertEquals("declared", cache.get("key"));
-        Eventually.assertDeferred(() -> countLogOccurrences(m_sServerName,
-                "Declared MapTrigger class " + CacheConfigDeclaredTrigger.class.getName()), is(1));
+        Eventually.assertDeferred(() -> m_memberProxy.invoke(new GetDeclaredAdvisoryCount()), is(1));
         assertNoRejectedTriggerCounters();
         }
 
@@ -470,32 +467,6 @@ public class TriggerInstallModeMatrixIntegrationTest
     private int removalSideEffects()
         {
         return m_memberProxy.invoke(new GetRemovalSideEffects());
-        }
-
-    private static int countLogOccurrences(String sServerName, String sText)
-        {
-        Path path = Paths.get(System.getProperty("test.project.dir"), "target/test-output/functional",
-                TriggerInstallModeMatrixIntegrationTest.class.getSimpleName(), sServerName + ".out");
-        if (!Files.exists(path))
-            {
-            return 0;
-            }
-        try
-            {
-            String sLog = Files.readString(path);
-            int    c    = 0;
-            int    of   = 0;
-            while ((of = sLog.indexOf(sText, of)) >= 0)
-                {
-                c++;
-                of += sText.length();
-                }
-            return c;
-            }
-        catch (IOException e)
-            {
-            throw new AssertionError(e);
-            }
         }
 
     private static boolean containsMessage(Throwable t, String sMessage)
@@ -723,6 +694,38 @@ public class TriggerInstallModeMatrixIntegrationTest
         return new MapTriggerListener(new CacheConfigDeclaredTrigger());
         }
 
+    // ----- inner class: ResetDeclaredAdvisoryRecorder -----------------------
+
+    public static class ResetDeclaredAdvisoryRecorder
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            DECLARED_ADVISORIES.set(0);
+            RemoteInstallGate.setAdvisoryLoggerForTesting(sMessage ->
+                {
+                if (sMessage.contains("Declared MapTrigger class " + CacheConfigDeclaredTrigger.class.getName()))
+                    {
+                    DECLARED_ADVISORIES.incrementAndGet();
+                    }
+                });
+            return null;
+            }
+        }
+
+    // ----- inner class: GetDeclaredAdvisoryCount ----------------------------
+
+    public static class GetDeclaredAdvisoryCount
+            implements RemoteCallable<Integer>
+        {
+        @Override
+        public Integer call()
+            {
+            return DECLARED_ADVISORIES.get();
+            }
+        }
+
     // ----- inner class: ResetTelemetry -----------------------------------
 
     public static class ResetTelemetry
@@ -778,6 +781,8 @@ public class TriggerInstallModeMatrixIntegrationTest
     private static final String PROP_COHERENCE_CLUSTER = "coherence.cluster";
 
     private static final String CACHE_DECLARED_TRIGGER = "dist-extend-declared-trigger";
+
+    private static final AtomicInteger DECLARED_ADVISORIES = new AtomicInteger();
 
     private CoherenceClusterMember m_memberProxy;
     private NamedCache<String, String> m_cache;
