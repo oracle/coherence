@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,6 +20,8 @@ import com.tangosol.coherence.config.builder.InstanceBuilder;
 
 import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.Parameter;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.AsyncBinaryStore;
 import com.tangosol.io.AsyncBinaryStoreManager;
@@ -101,6 +103,7 @@ import com.tangosol.util.SimpleResourceRegistry;
 import java.io.File;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -3988,6 +3991,7 @@ public class DefaultConfigurableCacheFactory
             }
 
         NamedEventInterceptor interceptor = builder.realize(resolver, getConfigClassLoader(), null);
+        RemoteInstallGate.adviseDeclaredEventInterceptor(interceptor.getInterceptor(), m_setAdvisoryDedup);
 
         getInterceptorRegistry().registerEventInterceptor(interceptor);
         }
@@ -4788,4 +4792,9 @@ public class DefaultConfigurableCacheFactory
     * The {@link ResourceRegistry} for configuration.
     */
     protected ResourceRegistry m_registry;
+
+    /**
+    * Declared executable advisory de-duplication for this configuration.
+    */
+    private final Set<String> m_setAdvisoryDedup = new HashSet<>();
     }

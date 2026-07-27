@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1508,8 +1508,10 @@ public class SafeNamedCache
         // import com.tangosol.util.MapListener;
         // import com.tangosol.util.MapListenerSupport;
         // import com.tangosol.util.MapListenerSupport$SynchronousListener as com.tangosol.util.MapListenerSupport.SynchronousListener;
+        // import com.tangosol.util.MapTriggerListener;
         
-        if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener)
+        if (listener == this || listener instanceof com.tangosol.util.MapListenerSupport.SynchronousListener ||
+                                listener instanceof MapTriggerListener)
             {
             NamedCache cache = getInternalNamedCache();
             try
