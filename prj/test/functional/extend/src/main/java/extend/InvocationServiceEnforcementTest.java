@@ -105,7 +105,7 @@ public class InvocationServiceEnforcementTest
         assertEquals(7, query(newTestInvocable(6)).intValue());
         assertCounterAbsent("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=allowed,mode=legacy}");
+                + ",result=allowed,mode=legacy,sub_reason=policy}");
         }
 
     @Test
@@ -194,7 +194,7 @@ public class InvocationServiceEnforcementTest
         assertEquals(Integer.valueOf(7), m_memberProxy.invoke(new InternalInvocationQuery()));
         assertCounterAbsent("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=rejected,mode=prod}");
+                + ",result=rejected,mode=prod,sub_reason=policy}");
         }
 
     // ----- helpers --------------------------------------------------------
@@ -289,7 +289,7 @@ public class InvocationServiceEnforcementTest
         {
         assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=" + sResult + ",mode=" + sMode + "}", cExpected);
+                + ",result=" + sResult + ",mode=" + sMode + ",sub_reason=policy}", cExpected);
         }
 
     private void assertCounter(String sKey, long cExpected)

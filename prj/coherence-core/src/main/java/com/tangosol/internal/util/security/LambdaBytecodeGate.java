@@ -12,6 +12,7 @@ import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.asm.ClassReaderInternal;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
@@ -49,6 +50,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,6 +68,7 @@ import java.util.stream.Stream;
  * {@link Site#STATIC_LAMBDA}: capturing class names from {@code StaticLambdaInfo}.
  * {@link Site#CLASS_DEFINITION}: bytecode defined by {@code RemotableSupport.defineClass(...)}.
  * {@link Site#CLASS_IDENTITY}: reserved for a future direct {@code ClassIdentity.loadClass(...)} site.
+ * {@link Site#MIP_REFLECTION}: reflective targets from {@code MethodInvocationProcessor}.
  *
  * @author Aleks Seovic  2026.04.30
  * @since 26.04
@@ -83,7 +86,8 @@ public final class LambdaBytecodeGate
         REMOTE_CONSTRUCTOR,
         STATIC_LAMBDA,
         CLASS_IDENTITY,
-        CLASS_DEFINITION
+        CLASS_DEFINITION,
+        MIP_REFLECTION
         }
 
     /**
@@ -140,12 +144,50 @@ public final class LambdaBytecodeGate
      */
     public static Result checkClassName(String sClassName, Site site)
         {
-        String sName  = normalizeClassName(sClassName);
-        Result result = POLICY.isDeniedClass(sName)
-                ? new Result.Rejected(REASON_CLASS_NAME_ON_DENYLIST, sName)
-                : isJdkClass(sName) || SecurityConfig.current().contains(sName)
+        String  sName   = normalizeClassName(sClassName);
+        int     ofHash  = sName == null ? -1 : sName.indexOf('#');
+        boolean fMethod = ofHash >= 0;
+        String  sClass  = fMethod ? sName.substring(0, ofHash) : sName;
+        String  sMethod = fMethod ? sName.substring(ofHash + 1) : null;
+
+        Result result = fMethod && POLICY.isDeniedMethod(sClass, sMethod)
+                ? new Result.Rejected(REASON_METHOD_ON_DENYLIST, sName)
+                : POLICY.isDeniedClass(sClass)
+                    ? new Result.Rejected(REASON_CLASS_NAME_ON_DENYLIST, sClass)
+                    : isJdkClass(sClass) || SecurityConfig.current().contains(sClass)
                     ? ALLOWED
-                    : new Result.Rejected(REASON_SECURITY_CONFIG_MISSING, sName);
+                    : new Result.Rejected(REASON_SECURITY_CONFIG_MISSING, sClass);
+
+        record(site, result);
+        return result;
+        }
+
+    /**
+     * Check a class or {@code class#method} name against only the deny-list.
+     * <p>
+     * This API intentionally omits the allowlist branch used by
+     * {@link #checkClassName(String, Site)}. Use it from sites where
+     * deserialization already owns allowlist enforcement and the remaining
+     * concern is gadget-class hardening.
+     *
+     * @param sClassName  the class or {@code class#method} name
+     * @param site        the materialization site
+     *
+     * @return the gate result
+     */
+    public static Result checkDenyListOnly(String sClassName, Site site)
+        {
+        String  sName   = normalizeClassName(sClassName);
+        int     ofHash  = sName == null ? -1 : sName.indexOf('#');
+        boolean fMethod = ofHash >= 0;
+        String  sClass  = fMethod ? sName.substring(0, ofHash) : sName;
+        String  sMethod = fMethod ? sName.substring(ofHash + 1) : null;
+
+        Result result = fMethod && POLICY.isDeniedMethod(sClass, sMethod)
+                ? new Result.Rejected(REASON_METHOD_ON_DENYLIST, sName)
+                : POLICY.isDeniedClass(sClass)
+                    ? new Result.Rejected(REASON_CLASS_NAME_ON_DENYLIST, sClass)
+                    : ALLOWED;
 
         record(site, result);
         return result;
@@ -246,6 +288,11 @@ public final class LambdaBytecodeGate
         {
         if (result instanceof Result.Rejected rejected)
             {
+            if (isCompatibilityShadow(rejected))
+                {
+                return;
+                }
+
             String sRemediation;
             if (REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()))
                 {
@@ -278,9 +325,11 @@ public final class LambdaBytecodeGate
         return checkBytecode(abClass, site, loadPolicy(sAllow));
         }
 
-    static Set<String> denylistedClasses()
+    public static Set<String> denylistedClasses()
         {
-        return POLICY.classNames();
+        Set<String> set = new LinkedHashSet<>(POLICY.classNames());
+        set.addAll(POLICY.methods());
+        return Collections.unmodifiableSet(set);
         }
 
     static long counter(String sResult, String sReason, Site site)
@@ -305,16 +354,23 @@ public final class LambdaBytecodeGate
 
     private static void record(Site site, Result result)
         {
-        String sResult = result instanceof Result.Rejected ? "rejected" : "allowed";
+        String sResult = result instanceof Result.Rejected rejected && isCompatibilityShadow(rejected)
+                ? "would_reject"
+                : result instanceof Result.Rejected ? "rejected" : "allowed";
         String sReason = result instanceof Result.Rejected rejected ? rejected.reason() : "none";
         METRICS.computeIfAbsent(metricKey(sResult, sReason, site), key -> new LongAdder()).increment();
-        SerializationTelemetry.recordLambdaBytecodeCheck(sResult, sReason);
+        SerializationTelemetry.recordLambdaBytecodeCheck(sResult, sReason, site.name().toLowerCase(Locale.ROOT));
 
         if (result instanceof Result.Rejected rejected)
             {
             SerializationTelemetry.logRejection("lambda-bytecode-deny", SerializationRole.current().name(),
                     null, rejected.deniedRef(), rejected.reason());
             }
+        }
+
+    private static boolean isCompatibilityShadow(Result.Rejected rejected)
+        {
+        return REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()) && CoherenceMode.isLegacy();
         }
 
     private static String metricKey(String sResult, String sReason, Site site)
@@ -946,6 +1002,7 @@ public final class LambdaBytecodeGate
 
     public static final String REASON_BYTECODE_REFERENCES_GADGET = "bytecode-references-gadget";
     public static final String REASON_CLASS_NAME_ON_DENYLIST     = "class-name-on-denylist";
+    public static final String REASON_METHOD_ON_DENYLIST         = "method-on-denylist";
     public static final String REASON_NATIVE_METHOD_DECLARED     = "native-method-declared";
     public static final String REASON_DYNAMIC_CLASS_FORNAME      = "dynamic-class-forname";
     public static final String REASON_INVALID_BYTECODE           = "invalid-bytecode";
