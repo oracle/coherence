@@ -19,6 +19,8 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Filter;
+import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.function.Remote;
 
 import org.junit.After;
@@ -93,11 +95,46 @@ public class TopicSubscriberInstallGateClusterTests
         }
 
     @Test
+    public void rejectsUnannotatedExtractorWhenEnsuringSubscriberGroup()
+        {
+        NamedTopic<String> topic = topic();
+
+        assertThrows(SecurityException.class, () ->
+                topic.ensureSubscriberGroup("gate-extractor", null, new PlainExtractor()));
+        }
+
+    @Test
+    public void rejectsUnannotatedExtractorWhenCreatingSubscriber()
+        {
+        NamedTopic<String> topic = topic();
+
+        assertThrows(SecurityException.class, () ->
+                topic.createSubscriber(Subscriber.withConverter(new PlainExtractor())));
+        }
+
+    @Test
+    public void rejectsNestedExtractorWhenCreatingFilteredSubscriber()
+        {
+        NamedTopic<String> topic = topic();
+
+        assertThrows(SecurityException.class, () ->
+                topic.createSubscriber(Subscriber.withFilter(new EqualsFilter<>(new PlainExtractor(), "value"))));
+        }
+
+    @Test
     public void allowsAnnotatedFilterWhenEnsuringSubscriberGroup()
         {
         NamedTopic<String> topic = topic();
 
         topic.ensureSubscriberGroup("gate-annotated", new AnnotatedFilter(), null);
+        }
+
+    @Test
+    public void allowsAnnotatedExtractorWhenEnsuringSubscriberGroup()
+        {
+        NamedTopic<String> topic = topic();
+
+        topic.ensureSubscriberGroup("gate-annotated-extractor", null, new AnnotatedExtractor());
         }
 
     private NamedTopic<String> topic()
@@ -146,6 +183,27 @@ public class TopicSubscriberInstallGateClusterTests
         public boolean evaluate(String value)
             {
             return true;
+            }
+        }
+
+    public static class PlainExtractor
+            implements ValueExtractor<String, String>
+        {
+        @Override
+        public String extract(String target)
+            {
+            return target;
+            }
+        }
+
+    @Remote.Executable
+    public static class AnnotatedExtractor
+            implements ValueExtractor<String, String>
+        {
+        @Override
+        public String extract(String target)
+            {
+            return target;
             }
         }
 

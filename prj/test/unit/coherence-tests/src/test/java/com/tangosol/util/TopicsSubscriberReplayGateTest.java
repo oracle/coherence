@@ -16,6 +16,8 @@ import com.tangosol.internal.util.security.TopicsPersistedPolicyDrift;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
+import com.tangosol.util.extractor.KeyExtractor;
+import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.function.Remote;
 
 import org.junit.After;
@@ -133,6 +135,61 @@ public class TopicsSubscriberReplayGateTest
                 SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
         }
 
+    @Test
+    public void rejectPolicyDriftRefusesNestedExtractorReplay()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_REJECT);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> RemoteInstallGate.enforceTopicSubscriberReplay(
+                        new EqualsFilter<>(new PlainExtractor(), "value"), null,
+                        SerializationRole.PERSISTENCE, null));
+
+        assertEquals("topic-subscriber-replay-drift-rejected", e.getMessage());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
+        }
+
+    @Test
+    public void warnAllowPolicyDriftWarnsOnceForNestedExtractorReplay()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        HashSet<String> setDedup = new HashSet<>();
+        RemoteInstallGate.enforceTopicSubscriberReplay(new EqualsFilter<>(new PlainExtractor(), "value"),
+                null, SerializationRole.PERSISTENCE, null, setDedup);
+        RemoteInstallGate.enforceTopicSubscriberReplay(new EqualsFilter<>(new PlainExtractor(), "value"),
+                null, SerializationRole.PERSISTENCE, null, setDedup);
+
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
+        assertEquals(m_listMessages.toString(), 1, m_listMessages.size());
+        assertTrue(m_listMessages.get(0).contains(PlainExtractor.class.getName()));
+        assertTrue(m_listMessages.get(0).contains(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW));
+        }
+
+    @Test
+    public void allowsNestedExecutableReplay()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_REJECT);
+
+        RemoteInstallGate.enforceTopicSubscriberReplay(
+                new EqualsFilter<>(new AnnotatedExtractor(), "value"),
+                new KeyExtractor<>(new AnnotatedExtractor()), SerializationRole.PERSISTENCE, null);
+
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 3L);
+        assertTrue(m_listMessages.toString(), m_listMessages.isEmpty());
+        }
+
     private static void assertPolicyCounter(OperationReason reason, String sMode, String sResult,
                                             String sSubReason, long cExpected)
         {
@@ -229,6 +286,16 @@ public class TopicsSubscriberReplayGateTest
 
     @Remote.Executable
     public static class AnnotatedExtractor
+            implements ValueExtractor<String, String>
+        {
+        @Override
+        public String extract(String target)
+            {
+            return target;
+            }
+        }
+
+    public static class PlainExtractor
             implements ValueExtractor<String, String>
         {
         @Override

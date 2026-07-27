@@ -111,16 +111,10 @@ public final class RemoteInstallGate
     public static final void enforceTopicSubscriberInstall(Filter<?> filter, ValueExtractor<?, ?> extractor,
                                                            SerializationRole role, Subject subject)
         {
-        if (filter != null)
-            {
-            enforceInstall(filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject,
-                    TOPIC_SUBSCRIBER_INSTALL, REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
-            }
-        if (extractor != null)
-            {
-            enforceInstall(extractor.getClass(), OperationReason.EXTRACT, role, subject,
-                    TOPIC_SUBSCRIBER_INSTALL, REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
-            }
+        enforceFilterInstall(filter, role, subject, 0, TOPIC_SUBSCRIBER_INSTALL,
+                REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
+        enforceExtractorInstall(extractor, role, subject, 0, TOPIC_SUBSCRIBER_INSTALL,
+                REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE);
         }
 
     /**
@@ -246,10 +240,16 @@ public final class RemoteInstallGate
                                                           SerializationRole role, Subject subject,
                                                           Set<String> setDedup)
         {
-        enforceReplay(filter == null ? null : filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject,
-                setDedup);
-        enforceReplay(extractor == null ? null : extractor.getClass(), OperationReason.EXTRACT, role, subject,
-                setDedup);
+        enforceFilterReplay(filter, role, subject, setDedup, 0);
+        if (extractor instanceof ValueExtractor)
+            {
+            enforceExtractorReplay((ValueExtractor<?, ?>) extractor, role, subject, setDedup, 0);
+            }
+        else
+            {
+            enforceReplay(extractor == null ? null : extractor.getClass(), OperationReason.EXTRACT, role, subject,
+                    setDedup);
+            }
         }
 
     /**
@@ -364,59 +364,74 @@ public final class RemoteInstallGate
     private static void enforceCacheFilterInstall(Filter<?> filter, SerializationRole role, Subject subject,
                                                   int cDepth)
         {
+        enforceFilterInstall(filter, role, subject, cDepth, CACHE_FILTER_INSTALL,
+                REASON_CACHE_FILTER_DENIED_BY_MODE);
+        }
+
+    private static void enforceCacheExtractorInstall(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                     Subject subject, int cDepth)
+        {
+        enforceExtractorInstall(extractor, role, subject, cDepth, CACHE_EXTRACTOR_INSTALL,
+                REASON_CACHE_EXTRACTOR_DENIED_BY_MODE);
+        }
+
+    private static void enforceCacheComparatorInstall(Comparator<?> comparator, SerializationRole role,
+                                                      Subject subject, int cDepth)
+        {
+        enforceComparatorInstall(comparator, role, subject, cDepth, CACHE_COMPARATOR_INSTALL,
+                REASON_CACHE_COMPARATOR_DENIED_BY_MODE);
+        }
+
+    private static void enforceFilterInstall(Filter<?> filter, SerializationRole role, Subject subject,
+                                             int cDepth, String sTopic, String sModeReason)
+        {
         if (filter == null)
             {
             return;
             }
 
-        enforceDepth(cDepth, filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject,
-                CACHE_FILTER_INSTALL);
-        enforceInstall(filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject,
-                CACHE_FILTER_INSTALL, REASON_CACHE_FILTER_DENIED_BY_MODE);
+        enforceDepth(cDepth, filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject, sTopic);
+        enforceInstall(filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject, sTopic, sModeReason);
         enforceScriptInstall(filter, role, subject);
-        cascadeArrayFilter(filter, role, subject, cDepth + 1);
-        cascadeExtractorFilter(filter, role, subject, cDepth + 1);
-        cascadeLimitFilter(filter, role, subject, cDepth + 1);
-        cascadeFilterWrapper(filter, role, subject, cDepth + 1);
-        cascadeValueChangeEventFilter(filter, role, subject, cDepth + 1);
+        cascadeArrayFilter(filter, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeExtractorFilter(filter, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeLimitFilter(filter, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeFilterWrapper(filter, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeValueChangeEventFilter(filter, role, subject, cDepth + 1, sTopic, sModeReason);
         }
 
-    private static void enforceCacheExtractorInstall(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                     Subject subject, int cDepth)
+    private static void enforceExtractorInstall(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                Subject subject, int cDepth, String sTopic, String sModeReason)
         {
         if (extractor == null)
             {
             return;
             }
 
-        enforceDepth(cDepth, extractor.getClass(), OperationReason.EXTRACT, role, subject,
-                CACHE_EXTRACTOR_INSTALL);
-        enforceInstall(extractor.getClass(), OperationReason.EXTRACT, role, subject,
-                CACHE_EXTRACTOR_INSTALL, REASON_CACHE_EXTRACTOR_DENIED_BY_MODE);
+        enforceDepth(cDepth, extractor.getClass(), OperationReason.EXTRACT, role, subject, sTopic);
+        enforceInstall(extractor.getClass(), OperationReason.EXTRACT, role, subject, sTopic, sModeReason);
         enforceScriptExtractorInstall(extractor, role, subject);
-        cascadeCompositeExtractor(extractor, role, subject, cDepth + 1);
-        cascadeConditionalExtractor(extractor, role, subject, cDepth + 1);
-        cascadeSingleExtractorWrapper(extractor, role, subject, cDepth + 1);
-        cascadeFragmentExtractor(extractor, role, subject, cDepth + 1);
-        cascadeComparisonValueExtractor(extractor, role, subject, cDepth + 1);
+        cascadeCompositeExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeConditionalExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeSingleExtractorWrapper(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeFragmentExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeComparisonValueExtractor(extractor, role, subject, cDepth + 1, sTopic, sModeReason);
         }
 
-    private static void enforceCacheComparatorInstall(Comparator<?> comparator, SerializationRole role,
-                                                      Subject subject, int cDepth)
+    private static void enforceComparatorInstall(Comparator<?> comparator, SerializationRole role, Subject subject,
+                                                 int cDepth, String sTopic, String sModeReason)
         {
         if (comparator == null)
             {
             return;
             }
 
-        enforceDepth(cDepth, comparator.getClass(), OperationReason.COMPARE, role, subject,
-                CACHE_COMPARATOR_INSTALL);
-        enforceInstall(comparator.getClass(), OperationReason.COMPARE, role, subject,
-                CACHE_COMPARATOR_INSTALL, REASON_CACHE_COMPARATOR_DENIED_BY_MODE);
-        cascadeExtractorBackedComparator(comparator, role, subject, cDepth + 1);
-        cascadeExtractorComparator(comparator, role, subject, cDepth + 1);
-        cascadeChainedComparator(comparator, role, subject, cDepth + 1);
-        cascadeSafeComparator(comparator, role, subject, cDepth + 1);
+        enforceDepth(cDepth, comparator.getClass(), OperationReason.COMPARE, role, subject, sTopic);
+        enforceInstall(comparator.getClass(), OperationReason.COMPARE, role, subject, sTopic, sModeReason);
+        cascadeExtractorBackedComparator(comparator, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeExtractorComparator(comparator, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeChainedComparator(comparator, role, subject, cDepth + 1, sTopic, sModeReason);
+        cascadeSafeComparator(comparator, role, subject, cDepth + 1, sTopic, sModeReason);
         }
 
     private static void enforceScriptInstall(Object executable, SerializationRole role, Subject subject)
@@ -649,68 +664,80 @@ public final class RemoteInstallGate
             }
         }
 
-    private static void cascadeArrayFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth)
+    private static void cascadeArrayFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth,
+                                           String sTopic, String sModeReason)
         {
         if (filter instanceof ArrayFilter)
             {
             for (Filter<?> nested : ((ArrayFilter) filter).getFilters())
                 {
-                enforceCacheFilterInstall(nested, role, subject, cDepth);
+                enforceFilterInstall(nested, role, subject, cDepth, sTopic, sModeReason);
                 }
             }
         }
 
-    private static void cascadeExtractorFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth)
+    private static void cascadeExtractorFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth,
+                                               String sTopic, String sModeReason)
         {
         if (filter instanceof ExtractorFilter)
             {
-            enforceCacheExtractorInstall(((ExtractorFilter) filter).getValueExtractor(), role, subject, cDepth);
+            enforceExtractorInstall(((ExtractorFilter) filter).getValueExtractor(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         }
 
-    private static void cascadeLimitFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth)
+    private static void cascadeLimitFilter(Filter<?> filter, SerializationRole role, Subject subject, int cDepth,
+                                           String sTopic, String sModeReason)
         {
         if (filter instanceof LimitFilter)
             {
             LimitFilter<?> limitFilter = (LimitFilter<?>) filter;
-            enforceCacheFilterInstall(limitFilter.getFilter(), role, subject, cDepth);
-            enforceCacheComparatorInstall(limitFilter.getComparator(), role, subject, cDepth);
+            enforceFilterInstall(limitFilter.getFilter(), role, subject, cDepth, sTopic, sModeReason);
+            enforceComparatorInstall(limitFilter.getComparator(), role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
-    private static void cascadeFilterWrapper(Filter<?> filter, SerializationRole role, Subject subject, int cDepth)
+    private static void cascadeFilterWrapper(Filter<?> filter, SerializationRole role, Subject subject, int cDepth,
+                                             String sTopic, String sModeReason)
         {
         if (filter instanceof NotFilter)
             {
-            enforceCacheFilterInstall(((NotFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((NotFilter<?>) filter).getFilter(), role, subject, cDepth, sTopic, sModeReason);
             }
         else if (filter instanceof KeyAssociatedFilter)
             {
-            enforceCacheFilterInstall(((KeyAssociatedFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((KeyAssociatedFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof PartitionedFilter)
             {
-            enforceCacheFilterInstall(((PartitionedFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((PartitionedFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof PriorityFilter)
             {
-            enforceCacheFilterInstall(((PriorityFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((PriorityFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof InKeySetFilter)
             {
-            enforceCacheFilterInstall(((InKeySetFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((InKeySetFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof MapEventFilter)
             {
-            enforceCacheFilterInstall(((MapEventFilter<?, ?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((MapEventFilter<?, ?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof MapEventTransformerFilter)
             {
-            enforceCacheFilterInstall(((MapEventTransformerFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((MapEventTransformerFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         else if (filter instanceof WrapperQueryRecorderFilter)
             {
-            enforceCacheFilterInstall(((WrapperQueryRecorderFilter<?>) filter).getFilter(), role, subject, cDepth);
+            enforceFilterInstall(((WrapperQueryRecorderFilter<?>) filter).getFilter(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         }
 
@@ -723,121 +750,392 @@ public final class RemoteInstallGate
         }
 
     private static void cascadeValueChangeEventFilter(Filter<?> filter, SerializationRole role, Subject subject,
-                                                      int cDepth)
+                                                      int cDepth, String sTopic, String sModeReason)
         {
         if (filter instanceof ValueChangeEventFilter)
             {
-            enforceCacheExtractorInstall(((ValueChangeEventFilter<?, ?>) filter).getValueExtractor(),
-                    role, subject, cDepth);
+            enforceExtractorInstall(((ValueChangeEventFilter<?, ?>) filter).getValueExtractor(),
+                    role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeCompositeExtractor(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                  Subject subject, int cDepth)
+                                                  Subject subject, int cDepth, String sTopic, String sModeReason)
         {
         if (extractor instanceof AbstractCompositeExtractor)
             {
             for (ValueExtractor<?, ?> nested : ((AbstractCompositeExtractor<?, ?>) extractor).getExtractors())
                 {
-                enforceCacheExtractorInstall(nested, role, subject, cDepth);
+                enforceExtractorInstall(nested, role, subject, cDepth, sTopic, sModeReason);
                 }
             }
         }
 
     private static void cascadeConditionalExtractor(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                    Subject subject, int cDepth)
+                                                    Subject subject, int cDepth, String sTopic, String sModeReason)
         {
         if (extractor instanceof ConditionalExtractor)
             {
             ConditionalExtractor<?, ?> conditional = (ConditionalExtractor<?, ?>) extractor;
-            enforceCacheFilterInstall(conditional.getFilter(), role, subject, cDepth);
-            enforceCacheExtractorInstall(conditional.getExtractor(), role, subject, cDepth);
+            enforceFilterInstall(conditional.getFilter(), role, subject, cDepth, sTopic, sModeReason);
+            enforceExtractorInstall(conditional.getExtractor(), role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeSingleExtractorWrapper(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                      Subject subject, int cDepth)
+                                                      Subject subject, int cDepth, String sTopic, String sModeReason)
         {
         if (extractor instanceof CollectionExtractor)
             {
-            enforceCacheExtractorInstall(((CollectionExtractor<?, ?>) extractor).getExtractor(),
-                    role, subject, cDepth);
+            enforceExtractorInstall(((CollectionExtractor<?, ?>) extractor).getExtractor(),
+                    role, subject, cDepth, sTopic, sModeReason);
             }
         else if (extractor instanceof DeserializationAccelerator)
             {
-            enforceCacheExtractorInstall(((DeserializationAccelerator) extractor).getExtractor(),
-                    role, subject, cDepth);
+            enforceExtractorInstall(((DeserializationAccelerator) extractor).getExtractor(),
+                    role, subject, cDepth, sTopic, sModeReason);
             }
         else if (extractor instanceof KeyExtractor)
             {
-            enforceCacheExtractorInstall(((KeyExtractor<?, ?>) extractor).getExtractor(), role, subject, cDepth);
+            enforceExtractorInstall(((KeyExtractor<?, ?>) extractor).getExtractor(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         }
 
     private static void cascadeFragmentExtractor(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                 Subject subject, int cDepth)
+                                                 Subject subject, int cDepth, String sTopic, String sModeReason)
         {
         if (extractor instanceof FragmentExtractor)
             {
             for (ValueExtractor<?, ?> nested : ((FragmentExtractor<?>) extractor).getExtractors())
                 {
-                enforceCacheExtractorInstall(nested, role, subject, cDepth);
+                enforceExtractorInstall(nested, role, subject, cDepth, sTopic, sModeReason);
                 }
             }
         else if (extractor instanceof ChainedFragmentExtractor)
             {
             ChainedFragmentExtractor<?, ?> chained = (ChainedFragmentExtractor<?, ?>) extractor;
-            enforceCacheExtractorInstall(chained.getExtractor(), role, subject, cDepth);
-            enforceCacheExtractorInstall(chained.getFragmentExtractor(), role, subject, cDepth);
+            enforceExtractorInstall(chained.getExtractor(), role, subject, cDepth, sTopic, sModeReason);
+            enforceExtractorInstall(chained.getFragmentExtractor(), role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeComparisonValueExtractor(ValueExtractor<?, ?> extractor, SerializationRole role,
-                                                        Subject subject, int cDepth)
+                                                        Subject subject, int cDepth, String sTopic,
+                                                        String sModeReason)
         {
         if (extractor instanceof ComparisonValueExtractor)
             {
-            enforceCacheComparatorInstall(((ComparisonValueExtractor<?, ?>) extractor).getComparator(),
-                    role, subject, cDepth);
+            enforceComparatorInstall(((ComparisonValueExtractor<?, ?>) extractor).getComparator(),
+                    role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeExtractorBackedComparator(Comparator<?> comparator, SerializationRole role,
-                                                         Subject subject, int cDepth)
+                                                         Subject subject, int cDepth, String sTopic,
+                                                         String sModeReason)
         {
         if (comparator instanceof ValueExtractor)
             {
-            enforceCacheExtractorInstall((ValueExtractor<?, ?>) comparator, role, subject, cDepth);
+            enforceExtractorInstall((ValueExtractor<?, ?>) comparator, role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeExtractorComparator(Comparator<?> comparator, SerializationRole role, Subject subject,
-                                                   int cDepth)
+                                                   int cDepth, String sTopic, String sModeReason)
         {
         if (comparator instanceof ExtractorComparator)
             {
-            enforceCacheExtractorInstall(((ExtractorComparator) comparator).getExtractor(), role, subject, cDepth);
+            enforceExtractorInstall(((ExtractorComparator) comparator).getExtractor(), role, subject, cDepth,
+                    sTopic, sModeReason);
             }
         }
 
     private static void cascadeSafeComparator(Comparator<?> comparator, SerializationRole role, Subject subject,
-                                              int cDepth)
+                                              int cDepth, String sTopic, String sModeReason)
         {
         if (comparator instanceof SafeComparator)
             {
-            enforceCacheComparatorInstall(((SafeComparator<?>) comparator).getComparator(),
-                    role, subject, cDepth);
+            enforceComparatorInstall(((SafeComparator<?>) comparator).getComparator(),
+                    role, subject, cDepth, sTopic, sModeReason);
             }
         }
 
     private static void cascadeChainedComparator(Comparator<?> comparator, SerializationRole role, Subject subject,
-                                                 int cDepth)
+                                                 int cDepth, String sTopic, String sModeReason)
         {
         if (comparator instanceof ChainedComparator)
             {
             for (Comparator<?> nested : ((ChainedComparator<?>) comparator).getComparators())
                 {
-                enforceCacheComparatorInstall(nested, role, subject, cDepth);
+                enforceComparatorInstall(nested, role, subject, cDepth, sTopic, sModeReason);
+                }
+            }
+        }
+
+    private static void enforceFilterReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                            Set<String> setDedup, int cDepth)
+        {
+        if (filter == null)
+            {
+            return;
+            }
+
+        enforceDepth(cDepth, filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject,
+                TOPIC_SUBSCRIBER_REPLAY);
+        enforceReplay(filter.getClass(), OperationReason.EVALUATE_FILTER, role, subject, setDedup);
+        enforceScriptReplay(filter, role, subject, setDedup);
+        cascadeArrayFilterReplay(filter, role, subject, setDedup, cDepth + 1);
+        cascadeExtractorFilterReplay(filter, role, subject, setDedup, cDepth + 1);
+        cascadeLimitFilterReplay(filter, role, subject, setDedup, cDepth + 1);
+        cascadeFilterWrapperReplay(filter, role, subject, setDedup, cDepth + 1);
+        cascadeValueChangeEventFilterReplay(filter, role, subject, setDedup, cDepth + 1);
+        }
+
+    private static void enforceExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role, Subject subject,
+                                               Set<String> setDedup, int cDepth)
+        {
+        if (extractor == null)
+            {
+            return;
+            }
+
+        enforceDepth(cDepth, extractor.getClass(), OperationReason.EXTRACT, role, subject,
+                TOPIC_SUBSCRIBER_REPLAY);
+        enforceReplay(extractor.getClass(), OperationReason.EXTRACT, role, subject, setDedup);
+        enforceScriptExtractorReplay(extractor, role, subject, setDedup);
+        cascadeCompositeExtractorReplay(extractor, role, subject, setDedup, cDepth + 1);
+        cascadeConditionalExtractorReplay(extractor, role, subject, setDedup, cDepth + 1);
+        cascadeSingleExtractorWrapperReplay(extractor, role, subject, setDedup, cDepth + 1);
+        cascadeFragmentExtractorReplay(extractor, role, subject, setDedup, cDepth + 1);
+        cascadeComparisonValueExtractorReplay(extractor, role, subject, setDedup, cDepth + 1);
+        }
+
+    private static void enforceComparatorReplay(Comparator<?> comparator, SerializationRole role, Subject subject,
+                                                Set<String> setDedup, int cDepth)
+        {
+        if (comparator == null)
+            {
+            return;
+            }
+
+        enforceDepth(cDepth, comparator.getClass(), OperationReason.COMPARE, role, subject,
+                TOPIC_SUBSCRIBER_REPLAY);
+        enforceReplay(comparator.getClass(), OperationReason.COMPARE, role, subject, setDedup);
+        cascadeExtractorBackedComparatorReplay(comparator, role, subject, setDedup, cDepth + 1);
+        cascadeExtractorComparatorReplay(comparator, role, subject, setDedup, cDepth + 1);
+        cascadeChainedComparatorReplay(comparator, role, subject, setDedup, cDepth + 1);
+        cascadeSafeComparatorReplay(comparator, role, subject, setDedup, cDepth + 1);
+        }
+
+    private static void enforceScriptReplay(Object executable, SerializationRole role, Subject subject,
+                                            Set<String> setDedup)
+        {
+        if (executable instanceof AbstractScript)
+            {
+            enforceReplay(executable.getClass(), OperationReason.SCRIPT_EVAL, role, subject, setDedup);
+            }
+        }
+
+    private static void enforceScriptExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                     Subject subject, Set<String> setDedup)
+        {
+        if (extractor instanceof ScriptValueExtractor)
+            {
+            enforceReplay(extractor.getClass(), OperationReason.SCRIPT_EVAL, role, subject, setDedup);
+            }
+        }
+
+    private static void cascadeArrayFilterReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                                 Set<String> setDedup, int cDepth)
+        {
+        if (filter instanceof ArrayFilter)
+            {
+            for (Filter<?> nested : ((ArrayFilter) filter).getFilters())
+                {
+                enforceFilterReplay(nested, role, subject, setDedup, cDepth);
+                }
+            }
+        }
+
+    private static void cascadeExtractorFilterReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                                     Set<String> setDedup, int cDepth)
+        {
+        if (filter instanceof ExtractorFilter)
+            {
+            enforceExtractorReplay(((ExtractorFilter) filter).getValueExtractor(), role, subject, setDedup,
+                    cDepth);
+            }
+        }
+
+    private static void cascadeLimitFilterReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                                 Set<String> setDedup, int cDepth)
+        {
+        if (filter instanceof LimitFilter)
+            {
+            LimitFilter<?> limitFilter = (LimitFilter<?>) filter;
+            enforceFilterReplay(limitFilter.getFilter(), role, subject, setDedup, cDepth);
+            enforceComparatorReplay(limitFilter.getComparator(), role, subject, setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeFilterWrapperReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                                   Set<String> setDedup, int cDepth)
+        {
+        if (filter instanceof NotFilter)
+            {
+            enforceFilterReplay(((NotFilter<?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof KeyAssociatedFilter)
+            {
+            enforceFilterReplay(((KeyAssociatedFilter<?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof PartitionedFilter)
+            {
+            enforceFilterReplay(((PartitionedFilter<?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof PriorityFilter)
+            {
+            enforceFilterReplay(((PriorityFilter<?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof InKeySetFilter)
+            {
+            enforceFilterReplay(((InKeySetFilter<?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof MapEventFilter)
+            {
+            enforceFilterReplay(((MapEventFilter<?, ?>) filter).getFilter(), role, subject, setDedup, cDepth);
+            }
+        else if (filter instanceof MapEventTransformerFilter)
+            {
+            enforceFilterReplay(((MapEventTransformerFilter<?>) filter).getFilter(), role, subject, setDedup,
+                    cDepth);
+            }
+        else if (filter instanceof WrapperQueryRecorderFilter)
+            {
+            enforceFilterReplay(((WrapperQueryRecorderFilter<?>) filter).getFilter(), role, subject, setDedup,
+                    cDepth);
+            }
+        }
+
+    private static void cascadeValueChangeEventFilterReplay(Filter<?> filter, SerializationRole role, Subject subject,
+                                                            Set<String> setDedup, int cDepth)
+        {
+        if (filter instanceof ValueChangeEventFilter)
+            {
+            enforceExtractorReplay(((ValueChangeEventFilter<?, ?>) filter).getValueExtractor(),
+                    role, subject, setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeCompositeExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                        Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (extractor instanceof AbstractCompositeExtractor)
+            {
+            for (ValueExtractor<?, ?> nested : ((AbstractCompositeExtractor<?, ?>) extractor).getExtractors())
+                {
+                enforceExtractorReplay(nested, role, subject, setDedup, cDepth);
+                }
+            }
+        }
+
+    private static void cascadeConditionalExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                          Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (extractor instanceof ConditionalExtractor)
+            {
+            ConditionalExtractor<?, ?> conditional = (ConditionalExtractor<?, ?>) extractor;
+            enforceFilterReplay(conditional.getFilter(), role, subject, setDedup, cDepth);
+            enforceExtractorReplay(conditional.getExtractor(), role, subject, setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeSingleExtractorWrapperReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                            Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (extractor instanceof CollectionExtractor)
+            {
+            enforceExtractorReplay(((CollectionExtractor<?, ?>) extractor).getExtractor(), role, subject,
+                    setDedup, cDepth);
+            }
+        else if (extractor instanceof DeserializationAccelerator)
+            {
+            enforceExtractorReplay(((DeserializationAccelerator) extractor).getExtractor(), role, subject,
+                    setDedup, cDepth);
+            }
+        else if (extractor instanceof KeyExtractor)
+            {
+            enforceExtractorReplay(((KeyExtractor<?, ?>) extractor).getExtractor(), role, subject, setDedup,
+                    cDepth);
+            }
+        }
+
+    private static void cascadeFragmentExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                       Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (extractor instanceof FragmentExtractor)
+            {
+            for (ValueExtractor<?, ?> nested : ((FragmentExtractor<?>) extractor).getExtractors())
+                {
+                enforceExtractorReplay(nested, role, subject, setDedup, cDepth);
+                }
+            }
+        else if (extractor instanceof ChainedFragmentExtractor)
+            {
+            ChainedFragmentExtractor<?, ?> chained = (ChainedFragmentExtractor<?, ?>) extractor;
+            enforceExtractorReplay(chained.getExtractor(), role, subject, setDedup, cDepth);
+            enforceExtractorReplay(chained.getFragmentExtractor(), role, subject, setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeComparisonValueExtractorReplay(ValueExtractor<?, ?> extractor, SerializationRole role,
+                                                              Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (extractor instanceof ComparisonValueExtractor)
+            {
+            enforceComparatorReplay(((ComparisonValueExtractor<?, ?>) extractor).getComparator(), role, subject,
+                    setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeExtractorBackedComparatorReplay(Comparator<?> comparator, SerializationRole role,
+                                                               Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (comparator instanceof ValueExtractor)
+            {
+            enforceExtractorReplay((ValueExtractor<?, ?>) comparator, role, subject, setDedup, cDepth);
+            }
+        }
+
+    private static void cascadeExtractorComparatorReplay(Comparator<?> comparator, SerializationRole role,
+                                                         Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (comparator instanceof ExtractorComparator)
+            {
+            enforceExtractorReplay(((ExtractorComparator) comparator).getExtractor(), role, subject, setDedup,
+                    cDepth);
+            }
+        }
+
+    private static void cascadeSafeComparatorReplay(Comparator<?> comparator, SerializationRole role, Subject subject,
+                                                    Set<String> setDedup, int cDepth)
+        {
+        if (comparator instanceof SafeComparator)
+            {
+            enforceComparatorReplay(((SafeComparator<?>) comparator).getComparator(), role, subject, setDedup,
+                    cDepth);
+            }
+        }
+
+    private static void cascadeChainedComparatorReplay(Comparator<?> comparator, SerializationRole role,
+                                                       Subject subject, Set<String> setDedup, int cDepth)
+        {
+        if (comparator instanceof ChainedComparator)
+            {
+            for (Comparator<?> nested : ((ChainedComparator<?>) comparator).getComparators())
+                {
+                enforceComparatorReplay(nested, role, subject, setDedup, cDepth);
                 }
             }
         }
