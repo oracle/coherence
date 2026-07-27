@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import java.nio.channels.SocketChannel;
 
 import java.security.NoSuchAlgorithmException;
 
+import java.util.Locale;
 import java.util.logging.Logger;
 import java.util.logging.Level;
 import java.util.concurrent.Executor;
@@ -37,9 +38,11 @@ import com.oracle.coherence.common.internal.security.SecurityProvider;
 
 import com.oracle.coherence.common.util.DaemonThreadFactory;
 
+import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder;
 import com.tangosol.coherence.config.unit.Seconds;
 
 import com.tangosol.internal.net.ssl.SSLContextDependencies;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.net.ssl.RefreshPolicy;
 
@@ -187,9 +190,26 @@ public class SSLSocketProvider
             throw new IllegalArgumentException();
             }
 
+        String           sPeer    = socket.getInetAddress().getHostName();
         HostnameVerifier verifier = getDependencies().getHostnameVerifier();
-        if (verifier == null ||
-            verifier.verify(socket.getInetAddress().getHostName(), session))
+        boolean          fValid;
+
+        if (verifier == null)
+            {
+            boolean fLegacy = CoherenceMode.isLegacy();
+            fValid = verifyDefaultHostname(sPeer, session, !fLegacy);
+            if (!fValid && fLegacy)
+                {
+                logHostnameVerificationWouldReject("null", sPeer);
+                fValid = true;
+                }
+            }
+        else
+            {
+            fValid = verifier.verify(sPeer, session);
+            }
+
+        if (fValid)
             {
             getDependencies().getLogger().log(Level.FINE, "Established " + session.getCipherSuite() +
                     " connection with " + socket);
@@ -198,6 +218,46 @@ public class SSLSocketProvider
             {
             throw new SSLException("Unacceptable peer: " + socket);
             }
+        }
+
+    /**
+     * Verify the peer hostname using the built-in default verifier.
+     *
+     * @param sPeer    the peer host name
+     * @param session  the SSL session
+     *
+     * @return {@code true} iff the built-in default verifier accepts the peer
+     */
+    protected boolean verifyDefaultHostname(String sPeer, SSLSession session)
+        {
+        return verifyDefaultHostname(sPeer, session, true);
+        }
+
+    /**
+     * Verify the peer hostname using the built-in default verifier.
+     *
+     * @param sPeer       the peer host name
+     * @param session     the SSL session
+     * @param fLogReject  {@code true} to log default-verifier rejections
+     *
+     * @return {@code true} iff the built-in default verifier accepts the peer
+     */
+    protected boolean verifyDefaultHostname(String sPeer, SSLSession session, boolean fLogReject)
+        {
+        return SSLSocketProviderDependenciesBuilder.createDefaultHostnameVerifier(fLogReject).verify(sPeer, session);
+        }
+
+    /**
+     * Log a conservative legacy-mode shadow rejection diagnostic.
+     *
+     * @param sSource  the verifier source
+     * @param sPeer    the peer host name
+     */
+    protected void logHostnameVerificationWouldReject(String sSource, String sPeer)
+        {
+        getDependencies().getLogger().log(Level.WARNING, String.format(Locale.ROOT,
+                "TLS hostname verification would_reject; mode=legacy; source=%s; peer=%s",
+                sSource, sPeer));
         }
 
 
@@ -412,7 +472,7 @@ public class SSLSocketProvider
 
         /**
          * Apply the specified settingsSSL to the dependencies
-         * 
+         *
          * @param settingsSSL  the SSLSettings object to apply
          *
          * @return this dependencies object

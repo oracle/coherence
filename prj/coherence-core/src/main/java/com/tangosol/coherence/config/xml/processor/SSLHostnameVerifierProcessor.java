@@ -1,13 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
 import com.tangosol.coherence.config.builder.ParameterizedBuilder;
 import com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder.HostnameVerifierBuilder;
+import com.tangosol.coherence.config.xml.preprocessor.SSLHostnameVerifierPreprocessor;
 
 import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.ElementProcessor;
@@ -45,6 +46,12 @@ public class SSLHostnameVerifierProcessor
         context.inject(builder, xmlElement);
         builder.setBuilder((ParameterizedBuilder<HostnameVerifier>)
                                    ElementProcessorHelper.processParameterizedBuilder(context, xmlElement));
+        XmlElement xmlAction = xmlElement.getElement("action");
+        if (xmlAction != null && xmlAction.getAttribute(
+                SSLHostnameVerifierPreprocessor.ATTR_SYSTEM_PROPERTY_DEFAULT) != null)
+            {
+            builder.setSystemPropertyDefault(true);
+            }
         return builder;
         }
     }
