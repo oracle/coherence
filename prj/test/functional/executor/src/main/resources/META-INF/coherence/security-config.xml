@@ -23,5 +23,9 @@
     <class name="executor.common.RandomSleepTask" source="manual" executable="true"/>
     <class name="executor.common.RepeatedTask" source="manual" executable="true"/>
     <class name="executor.common.YieldingTask" source="manual" executable="true"/>
+    <class name="executor.ClusteredExecutorInstallModeMatrixIT$AnnotatedTask" source="manual" executable="true"/>
+    <class name="executor.ClusteredExecutorInstallModeMatrixIT$PlainExecutorPredicate" source="manual"/>
+    <class name="executor.ClusteredExecutorInstallModeMatrixIT$PlainTaskProcessor" source="manual"/>
+    <class name="executor.ClusteredExecutorInstallModeMatrixIT$PlainTask" source="manual"/>
   </allowed-classes>
 </security-config>

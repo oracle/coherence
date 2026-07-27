@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,8 @@ import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
 import java.io.IOException;
+
+import java.util.Objects;
 
 /**
  * Helper methods for {@link Predicate}s.
@@ -151,6 +153,20 @@ public final class Predicates
     public static <T> Predicate<T> not(Predicate<T> predicate)
         {
         return new NegatePredicate<>(predicate);
+        }
+
+    /**
+     * Obtains a {@link Predicate} that succeeds when both predicates succeed.
+     *
+     * @param left   the left predicate
+     * @param right  the right predicate
+     * @param <T>    the type of value
+     *
+     * @return a conjunctive {@link Predicate}
+     */
+    public static <T> Predicate<T> and(Predicate<? super T> left, Predicate<? super T> right)
+        {
+        return new AndPredicate<>(left, right);
         }
 
     /**
@@ -316,6 +332,16 @@ public final class Predicates
             m_value = value;
             }
 
+        /**
+         * Return the value to compare.
+         *
+         * @return the value to compare
+         */
+        public T getValue()
+            {
+            return m_value;
+            }
+
         // ----- data members -----------------------------------------------
 
         /**
@@ -412,6 +438,16 @@ public final class Predicates
             return !m_predicate.test(t);
             }
 
+        /**
+         * Return the nested predicate.
+         *
+         * @return the nested predicate
+         */
+        public Predicate<T> getPredicate()
+            {
+            return m_predicate;
+            }
+
         // ----- PortablePredicate methods ----------------------------------
 
         @Override
@@ -432,6 +468,96 @@ public final class Predicates
          * The {@link Predicate} to negate.
          */
         private Predicate<T> m_predicate;
+        }
+
+    // ----- inner class: AndPredicate --------------------------------------
+
+    /**
+     * A {@link Predicate} that succeeds when both nested predicates succeed.
+     *
+     * @param <T>  the type of value
+     */
+    public static class AndPredicate<T>
+            implements PortablePredicate<T>
+        {
+        // ----- constructors -----------------------------------------------
+
+        /**
+         * Constructs an {@link AndPredicate} (required for serialization).
+         */
+        @SuppressWarnings("unused")
+        public AndPredicate()
+            {
+            }
+
+        /**
+         * Constructs an {@link AndPredicate}.
+         *
+         * @param left   the left predicate
+         * @param right  the right predicate
+         */
+        public AndPredicate(Predicate<? super T> left, Predicate<? super T> right)
+            {
+            m_left  = left;
+            m_right = right;
+            }
+
+        // ----- PortablePredicate interface --------------------------------
+
+        @Override
+        public boolean test(T t)
+            {
+            return (m_left == null || m_left.test(t))
+                    && (m_right == null || m_right.test(t));
+            }
+
+        /**
+         * Return the left predicate.
+         *
+         * @return the left predicate
+         */
+        public Predicate<? super T> getLeft()
+            {
+            return m_left;
+            }
+
+        /**
+         * Return the right predicate.
+         *
+         * @return the right predicate
+         */
+        public Predicate<? super T> getRight()
+            {
+            return m_right;
+            }
+
+        // ----- PortablePredicate methods ----------------------------------
+
+        @Override
+        public void readExternal(PofReader in) throws IOException
+            {
+            m_left  = in.readObject(0);
+            m_right = in.readObject(1);
+            }
+
+        @Override
+        public void writeExternal(PofWriter out) throws IOException
+            {
+            out.writeObject(0, m_left);
+            out.writeObject(1, m_right);
+            }
+
+        // ----- data members -----------------------------------------------
+
+        /**
+         * The left predicate.
+         */
+        private Predicate<? super T> m_left;
+
+        /**
+         * The right predicate.
+         */
+        private Predicate<? super T> m_right;
         }
 
     /**
@@ -557,9 +683,18 @@ public final class Predicates
         @Override
         public boolean test(TaskExecutorService.ExecutorInfo executorInfo)
             {
+            if (m_option == null)
+                {
+                return executorInfo == null;
+                }
+            if (executorInfo == null)
+                {
+                return false;
+                }
+
             TaskExecutorService.Registration.Option option = executorInfo.getOption(m_option.getClass(), null);
 
-            return m_option == null && option == null || m_option != null && m_option.equals(option);
+            return m_option.equals(option);
             }
 
         // ----- PortablePredicate methods ----------------------------------
@@ -574,6 +709,18 @@ public final class Predicates
         public void writeExternal(PofWriter out) throws IOException
             {
             out.writeObject(0, m_option);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return the option to compare.
+         *
+         * @return the option to compare
+         */
+        public TaskExecutorService.Registration.Option getOption()
+            {
+            return m_option;
             }
 
         // ----- data members -----------------------------------------------
@@ -694,7 +841,7 @@ public final class Predicates
                 given = throwable;
                 }
 
-            return given != null && given.toString().equals(m_throwable.toString());
+            return given != null && throwableMatches(given, m_throwable);
             }
 
         // ----- PortablePredicate methods-- --------------------------------
@@ -709,6 +856,62 @@ public final class Predicates
         public void writeExternal(PofWriter out) throws IOException
             {
             out.writeObject(0, m_throwable);
+            }
+
+        // ----- helper methods ---------------------------------------------
+
+        /**
+         * Return the throwable to compare.
+         *
+         * @return the throwable to compare
+         */
+        public Throwable getThrowable()
+            {
+            return m_throwable;
+            }
+
+        /**
+         * Return whether two throwables match without dispatching arbitrary
+         * {@link Throwable#toString()} implementations.
+         *
+         * @param given     the throwable produced by the result
+         * @param expected  the throwable held by this predicate
+         *
+         * @return {@code true} if the throwables match
+         */
+        private static boolean throwableMatches(Throwable given, Throwable expected)
+            {
+            if (given == expected)
+                {
+                return true;
+                }
+            if (given == null || expected == null || given.getClass() != expected.getClass())
+                {
+                return false;
+                }
+
+            if (isJdkThrowable(given.getClass()))
+                {
+                return Objects.equals(given.getMessage(), expected.getMessage());
+                }
+
+            return true;
+            }
+
+        /**
+         * Return whether the throwable class is a JDK class whose message lookup
+         * cannot dispatch application code.
+         *
+         * @param clz  the throwable class
+         *
+         * @return {@code true} for bootstrap-loaded {@code java.*} throwables
+         */
+        private static boolean isJdkThrowable(Class<?> clz)
+            {
+            return clz != null
+                    && Throwable.class.isAssignableFrom(clz)
+                    && clz.getClassLoader() == null
+                    && clz.getName().startsWith("java.");
             }
 
         // ----- data members -----------------------------------------------

@@ -45,33 +45,35 @@
     <class name="com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateCollectedResultProcessor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateContributedResultProcessor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.ClusteredTaskManager$UpdateExecutionPlanProcessor" source="manual" executable="true"/>
-    <class name="com.oracle.coherence.concurrent.executor.ConditionalCollector" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.ConditionalCollector" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.ContinuationService$State" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.ExecutionPlan$Action" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.ExecutionStrategy$EvaluationRationale" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.MutableExecutionPlan" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.PortableAbstractProcessor" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.RecoveringTask" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.Result" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.StandardExecutionStrategy" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.StandardExecutionStrategy" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.Task$Yield" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$CountCollector" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$FirstOfCollector" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$LastOfCollector" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$ListOfCollector" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$SetOfCollector" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$CountCollector" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$FirstOfCollector" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$LastOfCollector" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$ListOfCollector" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.TaskCollectors$SetOfCollector" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.TaskExecutorService$ExecutorInfo$State" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$AllResultsBiPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$AnyResultBiPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$NeverBiPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$AlwaysPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$EqualToPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$IsValuePredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NegatePredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NeverPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NullValuePredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$OptionPredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$RolePredicate" source="manual"/>
-    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$ThrowablePredicate" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$AllResultsBiPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$AnyResultBiPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.BiPredicates$NeverBiPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$AlwaysPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$AndPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$EqualToPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$IsValuePredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NegatePredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NeverPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$NullValuePredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$OptionPredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$RolePredicate" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.function.Predicates$ThrowablePredicate" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.Cause" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SequenceComparator" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SetTaskStateProcessor" source="manual" executable="true"/>
@@ -86,6 +88,8 @@
     <class name="com.oracle.coherence.concurrent.executor.options.Role" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.options.Storage" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.subscribers.internal.FutureSubscriber" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.tasks.CronTask" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.tasks.ValueTask" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.tasks.internal.CallableTask" source="manual" executable="true"/>

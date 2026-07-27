@@ -24,6 +24,7 @@ import com.oracle.coherence.concurrent.executor.util.OptionsByType;
 import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -53,6 +54,7 @@ import com.tangosol.util.processor.ConditionalRemove;
 
 import java.io.DataInput;
 import java.io.DataOutput;
+import java.io.EOFException;
 import java.io.IOException;
 
 import java.time.Duration;
@@ -69,6 +71,8 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 
 import java.util.function.BiConsumer;
+
+import javax.security.auth.Subject;
 
 /**
  * Manages the definition and current state of an individual {@link Task} being
@@ -115,6 +119,29 @@ public class ClusteredTaskManager<T, A, R>
                                 Task.CompletionRunnable<? super R> completionRunnable, Duration retainDuration,
                                 OptionsByType<Task.Option> optionsByType)
         {
+        this(sTaskId, task, executionStrategy, collector, completionPredicate, completionRunnable, retainDuration,
+                optionsByType, null);
+        }
+
+    /**
+     * Constructs a {@link ClusteredTaskManager} for the specified {@link Task}.
+     *
+     * @param sTaskId              the unique identity of the {@link Task} being managed
+     * @param task                 the {@link Task} to manage
+     * @param executionStrategy    the {@link ExecutionStrategy}
+     * @param collector            the {@link Task.Collector} for results
+     * @param completionPredicate  the {@link Predicate} to determine if a {@link Task} is complete
+     * @param completionRunnable   the {@link Task.CompletionRunnable} to call when a {@link Task} is complete
+     * @param retainDuration       the {@link Duration} to retain a {@link Task} after it is complete
+     * @param optionsByType        the {@link OptionsByType} to be used
+     * @param subject              the advisory submitter subject for install-gate telemetry
+     */
+    @SuppressWarnings("unchecked")
+    public ClusteredTaskManager(String sTaskId, Task<T> task, ExecutionStrategy executionStrategy,
+                                Task.Collector<? super T, A, R> collector, Predicate<? super R> completionPredicate,
+                                Task.CompletionRunnable<? super R> completionRunnable, Duration retainDuration,
+                                OptionsByType<Task.Option> optionsByType, Subject subject)
+        {
         m_sTaskId                = sTaskId;
         m_task                   = task;
         m_executionStrategy      = executionStrategy;
@@ -123,6 +150,7 @@ public class ClusteredTaskManager<T, A, R>
         m_completionRunnable     = completionRunnable;
         m_fRunCompletionRunnable = completionRunnable != null;
         m_retainDuration         = retainDuration;
+        m_subject                = subject;
 
         // a value less than zero means that debug logging, unless overriden by the user,
         // will only be available if the system property coherence.executor.trace.logging
@@ -528,6 +556,16 @@ public class ClusteredTaskManager<T, A, R>
         }
 
     /**
+     * Return the advisory submitter subject for install-gate telemetry.
+     *
+     * @return the advisory subject, or {@code null}
+     */
+    public Subject getSubject()
+        {
+        return m_subject;
+        }
+
+    /**
      * Determines if the {@link Task} has completed execution and can now be removed.
      *
      * @return <code>true</code> if the {@link Task} has completed execution,
@@ -691,6 +729,17 @@ public class ClusteredTaskManager<T, A, R>
         Map<String, String> wireTracingContext = new LinkedHashMap();
         ExternalizableHelper.readMap(in, wireTracingContext, Base.getContextClassLoader());
         m_parentSpanContext = wireTracingContext.isEmpty() ? SpanContext.Noop.INSTANCE : TracingHelper.getTracer().extract(wireTracingContext);
+
+        try
+            {
+            m_subject = ExternalizableHelper.readObject(in);
+            }
+        catch (EOFException e)
+            {
+            m_subject = null;
+            }
+
+        enforceInstallGate();
         }
 
     @Override
@@ -723,6 +772,7 @@ public class ClusteredTaskManager<T, A, R>
 
         Map<String, String> injectMap = TracingHelper.getTracer().inject(m_parentSpanContext);
         ExternalizableHelper.writeMap(out, injectMap == null ? Collections.emptyMap() : injectMap);
+        ExternalizableHelper.writeObject(out, m_subject);
         }
 
     // ----- PortableObject interface ---------------------------------------
@@ -773,6 +823,9 @@ public class ClusteredTaskManager<T, A, R>
         Map<String, String> wireTracingContext = new LinkedHashMap();
         in.readMap(19, wireTracingContext);
         m_parentSpanContext = TracingHelper.getTracer().extract(wireTracingContext);
+        m_subject = in.readObject(20);
+
+        enforceInstallGate();
         }
 
     @Override
@@ -801,6 +854,7 @@ public class ClusteredTaskManager<T, A, R>
         out.writeBoolean(17, m_fCompleted);
         out.writeObject(18,  m_state);
         out.writeObject(19,  TracingHelper.getTracer().inject(m_parentSpanContext));
+        out.writeObject(20,  m_subject);
         }
 
     // ----- Object methods -------------------------------------------------
@@ -831,6 +885,14 @@ public class ClusteredTaskManager<T, A, R>
     protected SpanContext getParentSpanContext()
         {
         return m_parentSpanContext;
+        }
+
+    /**
+     * Enforce concurrent executable install policy for this manager.
+     */
+    protected void enforceInstallGate()
+        {
+        ConcurrentTaskInstallGate.enforce(this);
         }
 
     /**
@@ -1226,6 +1288,7 @@ public class ClusteredTaskManager<T, A, R>
      */
     public static class ChainedProcessor
             extends PortableAbstractProcessor<String, ClusteredTaskManager, Void>
+            implements RemoteInstallGate.CacheProcessorCarrier
         {
         // ----- constructors -----------------------------------------------
 
@@ -1272,6 +1335,24 @@ public class ClusteredTaskManager<T, A, R>
         public boolean isEmpty()
             {
             return m_listProcessors.isEmpty();
+            }
+
+        /**
+         * Return the nested processors.
+         *
+         * @return the nested processors
+         */
+        public List<InvocableMap.EntryProcessor> getProcessors()
+            {
+            return m_listProcessors;
+            }
+
+        // ----- RemoteInstallGate.CacheProcessorCarrier interface ---------
+
+        @Override
+        public Iterable<? extends InvocableMap.EntryProcessor> getProcessorsForInstallGate()
+            {
+            return m_listProcessors;
             }
 
         // ----- EntryProcessor interface -----------------------------------
@@ -2345,6 +2426,11 @@ public class ClusteredTaskManager<T, A, R>
      * The {@link SpanContext} of the span enqueuing this task.
      */
     private SpanContext m_parentSpanContext = SpanContext.Noop.INSTANCE;
+
+    /**
+     * Advisory submitter subject for install-gate telemetry.
+     */
+    protected Subject m_subject;
 
     private static final String EOL = System.lineSeparator();
     }

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.concurrent.executor;
 
@@ -149,6 +149,28 @@ public class ConditionalCollector<T, A, R>
         out.writeObject(0, m_predicate);
         out.writeObject(1, m_collector);
         out.writeObject(2, m_defaultResult);
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Return the predicate that decides whether nested collection runs.
+     *
+     * @return the predicate
+     */
+    Predicate<? super Iterator<T>> getPredicate()
+        {
+        return m_predicate;
+        }
+
+    /**
+     * Return the nested collector.
+     *
+     * @return the nested collector
+     */
+    Task.Collector<T, A, R> getCollector()
+        {
+        return m_collector;
         }
 
     // ----- data members ---------------------------------------------------
