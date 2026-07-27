@@ -18,9 +18,13 @@ import com.tangosol.net.DefaultCacheServer;
 import java.io.File;
 import java.io.IOException;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -103,7 +107,7 @@ public class DefaultCacheServerTests
         DefaultCacheServer server = new DefaultCacheServer(
                CacheFactory.getConfigurableCacheFactory(getContextClassLoader()));
 
-        server.startDaemon(1000);
+        startDaemon(server);
 
         Eventually.assertDeferred(server::isMonitorStopped, is(false));
 
@@ -178,6 +182,52 @@ public class DefaultCacheServerTests
             }
 
         private final DefaultCacheServer m_server;
+        }
+
+    // ----- helpers -----------------------------------------------------------
+
+    /**
+     * Start a DefaultCacheServer daemon.
+     * <p>
+     * This timeboxes DCS.startDaemon() and throws on timeout so an
+     * indefinitely retrying startup path cannot hang the test fork.
+     *
+     * @param server  the server to start
+     */
+    protected static void startDaemon(DefaultCacheServer server)
+        {
+        ExecutorService executor = Executors.newSingleThreadExecutor(r ->
+            {
+            Thread thread = new Thread(r, "DefaultCacheServerTests.startDaemon");
+            thread.setDaemon(true);
+            return thread;
+            });
+        Future<?>       future   = executor.submit(() -> server.startDaemon(1000));
+
+        try
+            {
+            future.get(5, TimeUnit.MINUTES);
+            }
+        catch (TimeoutException e)
+            {
+            future.cancel(true);
+            server.shutdownServer();
+            throw new AssertionError("DefaultCacheServer.startDaemon did not complete within 5 minutes", e);
+            }
+        catch (InterruptedException e)
+            {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for DefaultCacheServer.startDaemon", e);
+            }
+        catch (ExecutionException e)
+            {
+            throw new AssertionError("DefaultCacheServer.startDaemon failed", e.getCause());
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
         }
 
     /**
