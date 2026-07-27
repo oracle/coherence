@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.config.xml.processor;
 
@@ -17,6 +17,7 @@ import com.tangosol.config.xml.XmlSimpleName;
 import com.tangosol.io.ClassLoaderAware;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerFactory;
+import com.tangosol.io.SerializationLimitPolicy;
 
 import com.tangosol.net.OperationalContext;
 
@@ -55,6 +56,8 @@ public class SerializerFactoryProcessor
             throws ConfigurationException
         {
         SerializerFactory factory;
+        SerializationLimitPolicy policy = SerializationLimitPolicy.fromXml(
+                xmlElement.getElement(SerializationLimitPolicy.XML_LIMITS));
 
         // attempt to locate a ParameterizedBuilder
         ParameterizedBuilder<?> bldr = ElementProcessorHelper.processParameterizedBuilder(context, xmlElement);
@@ -65,6 +68,10 @@ public class SerializerFactoryProcessor
             // a string value (e.g. <serializer>pof</serializer>).
             // it must be a named/registered serializer factory, so let's look it up
             String sName = xmlElement.getString();
+            if ((sName == null || sName.isBlank()) && xmlElement.getAttribute("id") != null)
+                {
+                sName = xmlElement.getAttribute("id").getString();
+                }
 
             // grab the operational context from which we can lookup the serializer
             OperationalContext ctxOperational = context.getCookie(OperationalContext.class);
@@ -120,6 +127,40 @@ public class SerializerFactoryProcessor
                 };
             }
 
-        return factory;
+        return policy == null
+               ? factory
+               : new LimitAwareSerializerFactory(factory, policy);
+        }
+
+    // ----- inner class: LimitAwareSerializerFactory -----------------------
+
+    /**
+     * SerializerFactory wrapper that applies per-reference limits to the
+     * service-local serializer instance.
+     */
+    protected static class LimitAwareSerializerFactory
+            implements SerializerFactory
+        {
+        protected LimitAwareSerializerFactory(SerializerFactory factory, SerializationLimitPolicy policy)
+            {
+            f_factory = factory;
+            f_policy  = policy;
+            }
+
+        @Override
+        public Serializer createSerializer(ClassLoader loader)
+            {
+            return SerializationLimitPolicy.apply(f_factory.createSerializer(loader), f_policy);
+            }
+
+        @Override
+        public String getName()
+            {
+            return f_factory.getName();
+            }
+
+        private final SerializerFactory f_factory;
+
+        private final SerializationLimitPolicy f_policy;
         }
     }
