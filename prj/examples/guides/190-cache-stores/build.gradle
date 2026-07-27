@@ -34,6 +34,7 @@ def pomProperty = { String name ->
 def hamcrestVersion = pomProperty('hamcrest.version')
 def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
+def mockitoVersion = pomProperty('mockito.version')
 
 repositories {
   mavenLocal()
