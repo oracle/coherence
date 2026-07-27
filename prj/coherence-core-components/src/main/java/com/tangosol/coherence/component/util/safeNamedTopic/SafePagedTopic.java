@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.tangosol.coherence.Component;
 
 import com.tangosol.coherence.component.util.SafeNamedTopic;
 
+import com.tangosol.internal.net.topic.NamedTopicSubscriber;
 import com.tangosol.internal.net.topic.PublisherConnector;
 import com.tangosol.internal.net.topic.SubscriberConnector;
 
@@ -20,6 +21,8 @@ import com.tangosol.internal.net.topic.impl.paged.PagedTopicPublisherConnector;
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector;
 
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
+import com.tangosol.internal.util.security.RemoteInstallGate;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
@@ -55,6 +58,9 @@ public class SafePagedTopic<V>
     @Override
     public <U> SubscriberConnector<U> createSubscriberConnector(Subscriber.Option<? super V, U>[] options)
         {
+        NamedTopicSubscriber.OptionSet<V, U> optionSet = NamedTopicSubscriber.optionsFrom(options);
+        RemoteInstallGate.enforceTopicSubscriberInstall(optionSet.getFilter().orElse(null),
+                optionSet.getExtractor().orElse(null), SerializationRole.TOPICS, null);
         return new PagedTopicSubscriberConnector<>(__m_PagedTopicCaches, options);
         }
 
@@ -92,6 +98,7 @@ public class SafePagedTopic<V>
             throw new IllegalArgumentException("invalid group name");
             }
         PagedTopicCaches pagedTopicCaches = getPagedTopicCaches();
+        RemoteInstallGate.enforceTopicSubscriberInstall(filter, extractor, SerializationRole.TOPICS, null);
         pagedTopicCaches.ensureSubscriberGroup(sGroupName, filter, extractor);
         }
 
