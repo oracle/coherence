@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -73,6 +73,8 @@ public class ClusterOneWayServerOnlyCertsTests
                         SystemProperty.of("coherence.security.server.key.password", s_serverKeyAndCert.keyPasswordString()),
                         SystemProperty.of("coherence.security.server.truststore", s_serverCACert.getKeystoreURI()),
                         SystemProperty.of("coherence.security.server.truststore.password", s_serverCACert.storePasswordString()),
+                        SystemProperty.of("coherence.mode", "prod"),
+                        SystemProperty.of("coherence.secured.production", "true"),
                         ClusterName.of("ClusterOneWayServerOnlyCertsTests"),
                         ClusterPort.of(ports.next()),
                         WellKnownAddress.loopback(),

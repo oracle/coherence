@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -28,8 +28,7 @@
             </key-store>
           </trust-manager>
           <hostname-verifier>
-            <!-- test certs do not have a valid hostname, this should not be required with valid certs in production -->
-            <action>allow</action>
+            <class-name>ssl.LoopbackHostnameVerifier</class-name>
           </hostname-verifier>
           <client-auth>none</client-auth>
         </ssl>
