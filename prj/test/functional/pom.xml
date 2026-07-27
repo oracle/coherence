@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -299,24 +299,6 @@
         <module>rest-netty</module>
         <module>rwbm</module>
         <module>security</module>
-      </modules>
-    </profile -->
-
-    <!-- profile>
-      <id>stage10</id>
-      <modules>
-        <module>cdi</module>
-        <module>cdi-server</module>
-        <module>concurrent</module>
-        <module>concurrent-cdi</module>
-        <module>grpc</module>
-        <module>grpc-proxy</module>
-        <module>grpc-proxy-gar</module>
-        <module>grpc-client</module>
-        <module>health</module>
-        <module>session</module>
-        <module>ssl</module>
-        <module>tcmp</module>
       </modules>
     </profile -->
 
