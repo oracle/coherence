@@ -1,0 +1,198 @@
+/*
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+package management;
+
+import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
+import com.oracle.coherence.testing.AbstractFunctionalTest;
+
+import com.tangosol.coherence.http.AbstractHttpServer;
+import com.tangosol.discovery.NSLookup;
+import com.tangosol.internal.net.management.HttpHelper;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+
+import java.net.InetSocketAddress;
+import java.net.URL;
+
+import java.util.Collection;
+import java.util.Properties;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+
+/**
+ * Functional tests for management HTTP authentication defaults.
+ *
+ * @author jk  2026.05.14
+ * @since 26.04
+ */
+public class ManagementHttpAuthIT
+        extends AbstractFunctionalTest
+    {
+    @BeforeClass
+    public static void startup()
+        {
+        setupProps();
+        }
+
+    @Test
+    public void shouldRejectUnauthenticatedGetInProdDefault()
+            throws Exception
+        {
+        try (CoherenceClusterMember member = startServer("ManagementHttpAuthProdDefaultGet", props("prod", null)))
+            {
+            WebTarget target = target(managementUrl(member));
+            try (Response response = target.request().get())
+                {
+                assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+                }
+            }
+        }
+
+    @Test
+    public void shouldRejectUnauthenticatedPostInDevDefault()
+            throws Exception
+        {
+        try (CoherenceClusterMember member = startServer("ManagementHttpAuthDevDefaultPost", props("dev", null)))
+            {
+            WebTarget target = target(managementUrl(member)).path("logClusterState");
+            try (Response response = target.request(MediaType.APPLICATION_JSON_TYPE)
+                    .post(Entity.entity("{}", MediaType.APPLICATION_JSON_TYPE)))
+                {
+                assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
+                }
+            }
+        }
+
+    @Test
+    public void shouldAllowBasicWithColonPassword()
+            throws Exception
+        {
+        try (CoherenceClusterMember member = startServer("ManagementHttpAuthBasicColon", props("prod", null)))
+            {
+            WebTarget target = target(managementUrl(member));
+            try (Response response = target.request()
+                    .header("Authorization", "Basic " + AbstractHttpServer.toBase64("client:pass:word"))
+                    .get())
+                {
+                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                }
+            }
+        }
+
+    @Test
+    public void shouldPreserveExplicitNoneWithWarning()
+            throws Exception
+        {
+        String sName = "ManagementHttpAuthExplicitNone";
+        try (CoherenceClusterMember member = startServer(sName, props("prod", "none")))
+            {
+            WebTarget target = target(managementUrl(member));
+            try (Response response = target.request().get())
+                {
+                assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+                }
+
+            File fileLog = new File(ensureOutputDir(PROJECT_NAME), sName + ".out");
+            Eventually.assertThat(invoking(this).logContainsAuthNoneWarning(fileLog), is(true));
+            }
+        }
+
+    public boolean logContainsAuthNoneWarning(File fileLog)
+            throws IOException
+        {
+        try (BufferedReader reader = new BufferedReader(new FileReader(fileLog)))
+            {
+            String line;
+            while ((line = reader.readLine()) != null)
+                {
+                if (line.contains("HTTP auth is disabled")
+                        && line.contains(HttpAuthProperty.MANAGEMENT))
+                    {
+                    return true;
+                    }
+                }
+            }
+        return false;
+        }
+
+    private CoherenceClusterMember startServer(String sName, Properties props)
+        {
+        CoherenceClusterMember member = startCacheServer(sName, PROJECT_NAME, null, props, true);
+        Eventually.assertThat(invoking(member).isServiceRunning(HttpHelper.getServiceName()), is(true));
+        return member;
+        }
+
+    private Properties props(String sMode, String sAuth)
+            throws IOException
+        {
+        Properties props = new Properties();
+        props.put("coherence.mode", sMode);
+        props.put("coherence.management", "all");
+        props.put("coherence.management.http", "all");
+        props.put("coherence.management.http.override-port", "0");
+        props.put("java.security.auth.login.config", loginConfig().getAbsolutePath());
+        if (sAuth != null)
+            {
+            props.put(HttpAuthProperty.MANAGEMENT, sAuth);
+            }
+        return props;
+        }
+
+    private URL managementUrl(CoherenceClusterMember member)
+            throws Exception
+        {
+        int nPort = Integer.getInteger("test.multicast.port");
+        Collection<URL> urls = NSLookup.lookupHTTPManagementURL(new InetSocketAddress("127.0.0.1", nPort));
+        assertThat(urls.size(), is(1));
+        return urls.iterator().next();
+        }
+
+    private WebTarget target(URL url)
+        {
+        Client client = ClientBuilder.newClient();
+        return client.target(url.toString());
+        }
+
+    private File loginConfig()
+            throws IOException
+        {
+        File file = File.createTempFile("management-http-auth", ".login");
+        file.deleteOnExit();
+        try (FileWriter writer = new FileWriter(file))
+            {
+            writer.write("CoherenceREST { management.ColonPasswordLoginModule required; };");
+            }
+        return file;
+        }
+
+    private interface HttpAuthProperty
+        {
+        String MANAGEMENT = "coherence.management.http.auth";
+        }
+
+    private static final String PROJECT_NAME = "management";
+    }

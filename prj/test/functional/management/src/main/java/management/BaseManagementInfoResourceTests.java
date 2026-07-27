@@ -66,7 +66,9 @@ import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MBeanServerProxy;
 
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.topic.NamedTopic;
@@ -75,10 +77,15 @@ import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.function.Remote;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 import com.oracle.coherence.testing.BedrockInvocationProperties;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.sun.net.httpserver.HttpServer;
 
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -105,6 +112,7 @@ import org.junit.rules.TestName;
 
 import com.oracle.coherence.testing.CheckJDK;
 
+import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
@@ -121,6 +129,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -149,6 +158,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -199,6 +209,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -260,6 +271,7 @@ public abstract class BaseManagementInfoResourceTests
         FileHelper.deleteDirSilent(m_dirArchive);
         FileHelper.deleteDirSilent(m_dirSnapshot);
         FileHelper.deleteDirSilent(m_dirSnapshot2);
+        FileHelper.deleteDirSilent(m_dirReporterOutput);
         }
 
     @Before
@@ -1348,6 +1360,58 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testManagementTcmpRejectsPlainExecuteFunction()
+            throws Exception
+        {
+        String sProperty = "coherence.management.slice.c.function." + System.nanoTime();
+        String sResult   = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokePlainManagementFunction(sProperty)).join());
+
+        assertThat(sResult, not("invoked"));
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            }
+        }
+
+    @Test
+    public void testManagementTcmpRejectsNestedExecuteFilter()
+            throws Exception
+        {
+        String sProperty = "coherence.management.slice.c.filter." + System.nanoTime();
+        String sResult   = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokeNestedManagementFilter(sProperty)).join());
+
+        assertThat(sResult, not("queried"));
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            }
+        }
+
+    @Test
+    public void testManagementTcmpRejectsPlatformMBeanInvoke()
+            throws Exception
+        {
+        String sResult = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokePlatformDiagnosticCommand()).join());
+
+        assertThat(sResult, not(containsString("java.class.path")));
+        assertThat(sResult, startsWith("rejected:"));
+        }
+
+    @Test
+    public void testManagementTcmpRejectsWrappedDiagnosticCommandSystemProperties()
+            throws Exception
+        {
+        String sResult = withClusterMode(MODE_PROD,
+                () -> s_cluster.iterator().next().submit(new InvokeWrappedDiagnosticCommand()).join());
+
+        assertThat(sResult, not(containsString("java.class.path")));
+        assertThat(sResult, startsWith("rejected:"));
+        }
+
+    @Test
     public void testServiceInfo()
         {
         WebTarget target   = getBaseTarget().path(SERVICES);
@@ -1811,6 +1875,89 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testReporterConfigFileRejectsRemoteUrl()
+            throws Exception
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        AtomicInteger cRequests = new AtomicInteger();
+        HttpServer    server    = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange ->
+            {
+            cRequests.incrementAndGet();
+            byte[] abBody = "reporter-remote-sentinel".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, abBody.length);
+            exchange.getResponseBody().write(abBody);
+            exchange.close();
+            });
+        server.start();
+
+        try
+            {
+            String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report-group.xml";
+
+            withClusterMode(MODE_PROD, () ->
+                {
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                        "configFile", sUrl, "reporter-remote-sentinel");
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                        "configFile", sUrl, "reporter-remote-sentinel");
+                });
+            assertThat(cRequests.get(), is(0));
+            }
+        finally
+            {
+            server.stop(0);
+            }
+        }
+
+    @Test
+    public void testReporterConfigFileRejectsFileUrlOutsideAllowedRoot()
+            throws Exception
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        withClusterMode(MODE_PROD, () ->
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                    "configFile", new File("/etc/passwd").toURI().toString(), "root:"));
+        }
+
+    @Test
+    public void testReporterOutputPathRejectsOutsideApprovedRoot()
+            throws Exception
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        File tempDirectory = FileHelper.createTempDir();
+        try
+            {
+            withClusterMode(MODE_PROD, () ->
+                {
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                        "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+                assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                        "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+                });
+            }
+        finally
+            {
+            FileHelper.deleteDirSilent(tempDirectory);
+            }
+        }
+
+    @Test
+    public void testReporterRunReportRejectsUnsafeReportName()
+        {
+        WebTarget target   = getBaseTarget().path(REPORTERS).path("1").path("runReport").path("report.node");
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        String sBody = response.readEntity(String.class);
+        assertThat(sBody, not(containsString("java.version")));
+        assertThat(sBody, not(containsString("coherence.cluster")));
+        }
+
+    @Test
     public void testClusterMemberUpdateFailure()
         {
         Map map = new LinkedHashMap();
@@ -1819,17 +1966,8 @@ public abstract class BaseManagementInfoResourceTests
         Entity    entity   = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
         Response  response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = readEntity(target, response, entity);
-
-        List<Map> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        Map mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cpuCount"));
-        assertThat(mapMessages.get("severity"), is("FAILURE"));
         }
 
     @Test
@@ -1842,16 +1980,8 @@ public abstract class BaseManagementInfoResourceTests
         Entity   entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
         Response response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = readEntity(target, response, entity);
-
-        List<Map> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        Map mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cacheHits"));
         }
 
     @Test
@@ -1905,13 +2035,14 @@ public abstract class BaseManagementInfoResourceTests
 
         String sMember = SERVER_PREFIX + "-1";
 
-        // create a temp directory so we don't pollute any directories
-        File tempDirectory = FileHelper.createTempDir();
+        File tempDirectory = new File(m_dirReporterOutput, "member-report-output");
+        tempDirectory.mkdirs();
+        String sOutputPath = tempDirectory.getCanonicalPath();
 
         try
             {
             setReporterAttribute(sMember, "outputPath", tempDirectory.getAbsolutePath());
-            Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", tempDirectory.getAbsolutePath()), is(true));
+            Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", sOutputPath), is(true));
 
             // set the intervalSeconds shorter so we don't want as long
             setReporterAttribute(sMember, "intervalSeconds", 15);
@@ -1937,14 +2068,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         finally
             {
-            try
-                {
-                FileHelper.deleteDir(tempDirectory);
-                }
-            catch (IOException ioe)
-                {
-                // ignore
-                }
+            FileHelper.deleteDirSilent(tempDirectory);
             }
         }
 
@@ -1954,8 +2078,9 @@ public abstract class BaseManagementInfoResourceTests
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
-        // create a temp directory so we don't pollute any directories
-        File tempDirectory = FileHelper.createTempDir();
+        File tempDirectory = new File(m_dirReporterOutput, "cluster-report-output");
+        tempDirectory.mkdirs();
+        String sOutputPath = tempDirectory.getCanonicalPath();
 
         try
             {
@@ -1967,7 +2092,7 @@ public abstract class BaseManagementInfoResourceTests
             for (Map mapMember : listMembers)
                 {
                 String sMember = (String) mapMember.get("memberName");
-                Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", tempDirectory.getAbsolutePath()), is(true));
+                Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", sOutputPath), is(true));
                 Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "intervalSeconds", 15), is(true));
                 Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "state", "Stopped"), is(true));
                 }
@@ -1997,14 +2122,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         finally
             {
-            try
-                {
-                FileHelper.deleteDir(tempDirectory);
-                }
-            catch (IOException ioe)
-                {
-                // ignore
-                }
+            FileHelper.deleteDirSilent(tempDirectory);
             }
         }
 
@@ -4371,6 +4489,49 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         }
 
+    private void assertReporterUpdateRejected(WebTarget target, String sAttribute, Object value, String sForbidden)
+        {
+        Map mapEntity = new LinkedHashMap();
+        mapEntity.put(sAttribute, value);
+
+        Response response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        String sBody = response.readEntity(String.class);
+        assertThat(sBody, not(containsString(sForbidden)));
+        }
+
+    private void withClusterMode(String sMode, ThrowingRunnable runnable)
+            throws Exception
+        {
+        withClusterMode(sMode, () ->
+            {
+            runnable.run();
+            return null;
+            });
+        }
+
+    private <T> T withClusterMode(String sMode, ThrowingCallable<T> callable)
+            throws Exception
+        {
+        Map<CoherenceClusterMember, String> mapPrevious = new LinkedHashMap<>();
+        try
+            {
+            for (CoherenceClusterMember member : s_cluster)
+                {
+                mapPrevious.put(member, member.submit(new SetCoherenceMode(sMode)).join());
+                }
+            return callable.call();
+            }
+        finally
+            {
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
+                {
+                entry.getKey().submit(new SetCoherenceMode(entry.getValue())).join();
+                }
+            }
+        }
+
     public boolean assertAttribute(String sMember, String sPath, String sAttribute, Object value)
         {
         Map    mapResults = getMBeanInfoResponse(sMember, sPath);
@@ -5033,6 +5194,7 @@ public abstract class BaseManagementInfoResourceTests
             m_dirSnapshot  = FileHelper.createTempDir();
             m_dirSnapshot2 = FileHelper.createTempDir();
             m_dirArchive   = FileHelper.createTempDir();
+            m_dirReporterOutput = FileHelper.createTempDir();
             s_dirJFR       = FileHelper.createTempDir();
             }
         catch (IOException ioe)
@@ -5075,6 +5237,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("coherence.role", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("test.server.name", SERVER_PREFIX + -1));
         propsServer1.add(SystemProperty.of("coherence.management.http", "inherit"));
+        propsServer1.add(SystemProperty.of("coherence.management.http.auth", "none"));
         propsServer1.add(SystemProperty.of("coherence.management.readonly", Boolean.toString(isReadOnly())));
         propsServer1.add(SystemProperty.of("coherence.management.http.override-port", 0));
         propsServer1.add(SystemProperty.of("coherence.management.http.cluster", sClusterName));
@@ -5082,6 +5245,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.snapshot.dir", m_dirSnapshot.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.archive.dir", m_dirArchive.getAbsolutePath()));
+        propsServer1.add(SystemProperty.of("coherence.reporter.output.directory", m_dirReporterOutput.getAbsolutePath()));
         propsServer1.add(LocalStorage.enabled());
         propsServer1.add(CacheConfig.of(CACHE_CONFIG));
         propsServer1.add(LocalHost.only());
@@ -5223,6 +5387,180 @@ public abstract class BaseManagementInfoResourceTests
 
     //--------------------- helper classes ----------------------------
 
+    public static class InvokePlainManagementFunction
+            implements RemoteCallable<String>
+        {
+        public InvokePlainManagementFunction(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            try
+                {
+                CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .execute(new PlainManagementFunction(m_sProperty));
+                return "invoked";
+                }
+            catch (Throwable t)
+                {
+                return t.getClass().getName();
+                }
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class InvokePlatformDiagnosticCommand
+            implements RemoteCallable<String>
+        {
+        @Override
+        public String call()
+            {
+            try
+                {
+                MBeanServerProxy proxy = CacheFactory.getCluster().getManagement().getMBeanServerProxy();
+                Object result = proxy.invoke("com.sun.management:type=DiagnosticCommand", "vmSystemProperties",
+                        null, null);
+                return String.valueOf(result);
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+        }
+
+    public static class InvokeNestedManagementFilter
+            implements RemoteCallable<String>
+        {
+        public InvokeNestedManagementFilter(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            try
+                {
+                MBeanAccessor.QueryBuilder.ParsedQuery query = new MBeanAccessor.QueryBuilder()
+                        .withMBeanDomainName("Coherence:")
+                        .withBaseQuery("type=Cluster")
+                        .withFilter("name", new NestedManagementFilter(m_sProperty))
+                        .build();
+
+                CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .execute(new MBeanAccessor.GetAttributes(query));
+                return "queried";
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class InvokeWrappedDiagnosticCommand
+            implements RemoteCallable<String>
+        {
+        @Override
+        public String call()
+            {
+            try
+                {
+                com.tangosol.net.Member member = CacheFactory.getCluster().getLocalMember();
+                String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand"
+                        + ",cluster=" + member.getClusterName()
+                        + ",member=" + member.getMemberName()
+                        + ",nodeId=" + member.getId();
+                Object result = CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .invoke(sName, "vmSystemProperties", null, null);
+                return String.valueOf(result);
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+        }
+
+    public static class GetSystemProperty
+            implements RemoteCallable<String>
+        {
+        public GetSystemProperty(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            return System.getProperty(m_sProperty);
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class SetCoherenceMode
+            implements RemoteCallable<String>
+        {
+        public SetCoherenceMode(String sMode)
+            {
+            m_sMode = sMode;
+            }
+
+        @Override
+        public String call()
+            {
+            String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
+            CoherenceModeHelper.restore(m_sMode);
+            return sPrevious;
+            }
+
+        private final String m_sMode;
+        }
+
+    public static class NestedManagementFilter
+            implements Filter<String>, Serializable
+        {
+        public NestedManagementFilter(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public boolean evaluate(String sValue)
+            {
+            System.setProperty(m_sProperty, "evaluated");
+            return true;
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class PlainManagementFunction
+            implements Remote.Function<MBeanServer, String>, Serializable
+        {
+        public PlainManagementFunction(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String apply(MBeanServer server)
+            {
+            System.setProperty(m_sProperty, "invoked");
+            return "invoked";
+            }
+
+        private final String m_sProperty;
+        }
+
     public static class RemoteStartService implements RemoteRunnable
         {
         public RemoteStartService(String sName, String sType)
@@ -5238,6 +5576,20 @@ public abstract class BaseManagementInfoResourceTests
 
         String m_sName;
         String m_sType;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingRunnable
+        {
+        void run()
+                throws Exception;
+        }
+
+    @FunctionalInterface
+    private interface ThrowingCallable<T>
+        {
+        T call()
+                throws Exception;
         }
 
     // ----- static helpers -------------------------------------------------
@@ -5310,6 +5662,11 @@ public abstract class BaseManagementInfoResourceTests
      * Archive directory.
      */
     protected static File m_dirArchive;
+
+    /**
+     * Reporter output directory.
+     */
+    protected static File m_dirReporterOutput;
 
     /**
      * Temporary directory to store JFR files.
@@ -5448,6 +5805,16 @@ public abstract class BaseManagementInfoResourceTests
      * Cache config used by the test and spawned processes.
      */
     protected static final String CACHE_CONFIG = "server-cache-config-mgmt.xml";
+
+    /**
+     * The hardened management mode.
+     */
+    protected static final String MODE_PROD = "prod";
+
+    /**
+     * The Coherence mode system property.
+     */
+    protected static final String PROP_COHERENCE_MODE = "coherence.mode";
 
     /**
      * The window of time the management server tries to give a consistent response.

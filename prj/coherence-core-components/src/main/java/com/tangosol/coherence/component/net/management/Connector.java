@@ -38,7 +38,9 @@ import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
 import com.tangosol.net.management.MBeanConnector;
 import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.net.management.ManagementInvocationPolicy;
 import com.tangosol.net.management.Registry;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.Base;
@@ -59,7 +61,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import javax.management.Attribute;
 import javax.management.MBeanInfo;
+import javax.management.MBeanServer;
 import javax.management.Notification;
 import javax.management.ObjectInstance;
 import javax.management.ObjectName;
@@ -1647,6 +1651,53 @@ public class Connector
         Object oResult;
         try
             {
+            com.tangosol.coherence.component.net.management.gateway.Local gatewayLocal = getLocalGateway();
+            MBeanServer server = gatewayLocal.getServer();
+            String      sDomain = gatewayLocal.getDomainName();
+            switch (nAction)
+                {
+                case Connector.InvokeRemote.ACTION_GET:
+                    ObjectName nameGet = ManagementInvocationPolicy.validateObjectName(sName, sDomain, "invoke-remote");
+                    ManagementInvocationPolicy.validateQueryFilter(taskInvoke.getQueryFilter(), "invoke-remote");
+                    if (taskInvoke.getQueryFilter() == null)
+                        {
+                        ManagementInvocationPolicy.validateGetAttribute(server, nameGet, taskInvoke.getAttributeName(),
+                                "invoke-remote");
+                        }
+                    break;
+
+                case Connector.InvokeRemote.ACTION_SET:
+                    ManagementInvocationPolicy.validateSetAttribute(server,
+                            ManagementInvocationPolicy.validateObjectName(sName, sDomain, "invoke-remote"),
+                            new Attribute(taskInvoke.getAttributeName(), taskInvoke.getAttributeValue()),
+                            "invoke-remote");
+                    break;
+
+                case Connector.InvokeRemote.ACTION_INVOKE:
+                    ManagementInvocationPolicy.validateInvoke(server,
+                            ManagementInvocationPolicy.validateObjectName(sName, sDomain, "invoke-remote"),
+                            taskInvoke.getMethodName(), taskInvoke.getParameters(), taskInvoke.getSignatures(),
+                            "invoke-remote");
+                    break;
+
+                case Connector.InvokeRemote.ACTION_EXECUTE:
+                    ManagementInvocationPolicy.validateRemoteFunction(taskInvoke.getFunction(),
+                            SecurityHelper.getCurrentSubject(), "invoke-remote");
+                    break;
+
+                case Connector.InvokeRemote.ACTION_CHECK:
+                case Connector.InvokeRemote.ACTION_FIND_OWNER:
+                case Connector.InvokeRemote.ACTION_MBEAN_INFO:
+                    ManagementInvocationPolicy.validateObjectName(sName, sDomain, "invoke-remote");
+                    break;
+
+                case Connector.InvokeRemote.ACTION_QUERY:
+                    ManagementInvocationPolicy.validateQueryPattern(taskInvoke.getQueryPattern(), sDomain,
+                            "invoke-remote");
+                    ManagementInvocationPolicy.validateQueryFilter(taskInvoke.getQueryFilter(), "invoke-remote");
+                    break;
+                }
+
             switch (nAction)
                 {
                 case Connector.InvokeRemote.ACTION_GET:

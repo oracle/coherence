@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.tangosol.coherence.reporter.extractor;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.reporter.Constants;
+import com.tangosol.coherence.reporter.ReporterSecurity;
 
 import com.tangosol.net.management.MBeanHelper;
 
@@ -57,11 +58,29 @@ public class OperationExtractor
      */
     public OperationExtractor(String sMethodName, char chDelim, Object[] aoMethodParamsParams, String[] asParamTypes, MBeanServer server)
         {
+        this(sMethodName, chDelim, aoMethodParamsParams, asParamTypes, server, ReporterSecurity.currentReportSource());
+        }
+
+    /**
+     * Construct a OperationExtractor based on an Operation name.
+     *
+     * @param sMethodName           the name of the operation to be invoked
+     * @param chDelim               the delimiter to use for merging the individual array elements, if the output is an
+     *                              array
+     * @param aoMethodParamsParams  the input parameters array
+     * @param asParamTypes          an array containing the input parameter types of the operation
+     * @param server                the {@link MBeanServer} to query against
+     * @param source                the report source provenance
+     */
+    public OperationExtractor(String sMethodName, char chDelim, Object[] aoMethodParamsParams, String[] asParamTypes,
+            MBeanServer server, ReporterSecurity.ReportSource source)
+        {
         m_sMethodName          = sMethodName;
         m_chDelim              = chDelim;
         m_aoMethodParamsParams = aoMethodParamsParams;
         m_asParamTypes         = asParamTypes;
         f_mbs                  = server;
+        m_source               = source == null ? ReporterSecurity.ReportSource.UNKNOWN : source;
         }
 
     // ----- ValueExtractor interface ---------------------------------------
@@ -75,8 +94,13 @@ public class OperationExtractor
             Object[]   aoParams     = m_aoMethodParamsParams;
             String[]   asParamTypes = m_asParamTypes;
 
+            ReporterSecurity.validateMBeanOperation(objectName, m_sMethodName, m_source);
             Object oResult = f_mbs.invoke(objectName, m_sMethodName, aoParams, asParamTypes);
             return getValueForReportColumn(oResult);
+            }
+        catch (IllegalArgumentException | SecurityException e)
+            {
+            throw e;
             }
         catch (Exception e)
             {
@@ -153,4 +177,9 @@ public class OperationExtractor
      * The method parameter type array.
      */
     protected String[] m_asParamTypes;
+
+    /**
+     * The report source provenance.
+     */
+    protected ReporterSecurity.ReportSource m_source;
     }

@@ -16,7 +16,9 @@ import com.tangosol.coherence.component.net.management.model.EmptyModel;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
 import com.tangosol.io.internal.SerializationTelemetry;
 import com.tangosol.net.management.MBeanHelper;
+import com.tangosol.net.management.ManagementInvocationPolicy;
 import com.tangosol.net.management.Registry;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ConcurrentMap;
 import com.tangosol.util.LiteMap;
@@ -256,6 +258,7 @@ public class Local
     // Declared at the super level
     public Object executeInternal(com.tangosol.util.function.Remote.Function function, com.oracle.coherence.common.base.Continuation cont)
         {
+        ManagementInvocationPolicy.validateRemoteFunction(function, SecurityHelper.getCurrentSubject(), "invoke-remote");
         if (cont == null)
             {
             return function.apply(getServer());
@@ -288,6 +291,7 @@ public class Local
         try
             {
             ObjectName name = getObjectName(extractTenantName(sName));
+            ManagementInvocationPolicy.validateGetAttribute(getServer(), name, sAttr, "invoke-remote");
             try
                 {
                 return getServer().getAttribute(name, sAttr);
@@ -314,11 +318,13 @@ public class Local
         // import javax.management.ObjectName;
         // import java.util.Map;
         
-        MBeanServer mbs       = getServer();
         Map         mapResult = new LiteMap();
         try
             {
             ObjectName           mbeanName   = new ObjectName(sName);
+            ManagementInvocationPolicy.validateObjectName(mbeanName, "invoke-remote");
+            ManagementInvocationPolicy.validateQueryFilter(filter, "invoke-remote");
+            MBeanServer           mbs         = getServer();
             MBeanInfo            info        = mbs.getMBeanInfo(mbeanName);
             MBeanAttributeInfo[] aAttributes = info.getAttributes();
         
@@ -350,6 +356,7 @@ public class Local
         try
             {
             ObjectName name = getObjectName(sName);
+            ManagementInvocationPolicy.validateObjectName(name, "invoke-remote");
         
             adapter = (ModelAdapter) getModelAdapters().get(name);
             }
@@ -424,8 +431,10 @@ public class Local
         {
         try
             {
-            return getServer().invoke(getObjectName(extractTenantName(sName)),
-                               sMethodName, aoParam, asSignature);
+            ObjectName  name = getObjectName(extractTenantName(sName));
+            MBeanServer mbs  = getServer();
+            ManagementInvocationPolicy.validateInvoke(mbs, name, sMethodName, aoParam, asSignature, "invoke-remote");
+            return mbs.invoke(name, sMethodName, aoParam, asSignature);
             }
         catch (Exception e)
             {
@@ -618,6 +627,8 @@ public class Local
         try
             {
             ObjectName oname = sPattern == null ? null : getObjectName(sPattern);
+            ManagementInvocationPolicy.validateQueryPattern(oname, "invoke-remote");
+            ManagementInvocationPolicy.validateQueryFilter(filter, "invoke-remote");
             return queryNames(oname, filter);
             }
         catch (Exception e)
@@ -633,8 +644,11 @@ public class Local
         // import java.util.Iterator;
         // import java.util.Set;
         // import java.util.HashSet;
-        
+
+        ManagementInvocationPolicy.validateQueryPattern(oname, "invoke-remote");
+        ManagementInvocationPolicy.validateQueryFilter(filter, "invoke-remote");
         Set setONames = getServer().queryNames(oname, new com.tangosol.net.management.MBeanHelper.QueryExpFilter(filter));
+        ManagementInvocationPolicy.validateQueryResult(setONames, "invoke-remote");
         Set setNames  = new HashSet(setONames.size());
         for (Iterator iter = setONames.iterator(); iter.hasNext(); )
             {
@@ -809,8 +823,10 @@ public class Local
         
         try
             {
-            getServer().setAttribute(getObjectName(extractTenantName(sName)),
-                        new Attribute(sAttr, oValue));
+            ObjectName name = getObjectName(extractTenantName(sName));
+            Attribute  attr = new Attribute(sAttr, oValue);
+            ManagementInvocationPolicy.validateSetAttribute(getServer(), name, attr, "invoke-remote");
+            getServer().setAttribute(name, attr);
             }
         catch (Exception e)
             {

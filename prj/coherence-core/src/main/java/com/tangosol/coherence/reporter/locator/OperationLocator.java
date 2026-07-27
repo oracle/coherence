@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.reporter.locator;
 
 import com.tangosol.coherence.reporter.extractor.OperationExtractor;
+import com.tangosol.coherence.reporter.ReporterSecurity;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -44,7 +45,8 @@ public class OperationLocator
         {
         if (m_veExtractor == null)
             {
-            m_veExtractor = new OperationExtractor(m_sName, m_cDelim, m_aoMethodParams, m_asSignatureTypes, m_source.getMBeanServer());
+            m_veExtractor = new OperationExtractor(m_sName, m_cDelim, m_aoMethodParams, m_asSignatureTypes,
+                    m_source.getMBeanServer(), ReporterSecurity.currentReportSource());
             }
         return m_veExtractor;
         }
