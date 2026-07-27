@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18697,12 +18697,10 @@ public abstract class PartitionedService
              */
             private static com.tangosol.net.internal.QuorumInfo deserializeQuorumInfo(com.tangosol.util.Binary binQuorum)
                 {
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.net.internal.QuorumInfo;
-                // import com.tangosol.util.ExternalizableHelper;
-                // import com.tangosol.util.NullImplementation;
                 
-                return (QuorumInfo) ExternalizableHelper.fromBinary(
-                    binQuorum, NullImplementation.getClassLoader());
+                return CachePersistenceHelper.readQuorum(binQuorum);
                 }
             
             // Accessor for the property "ConflictCount"
@@ -28470,12 +28468,14 @@ public abstract class PartitionedService
                 // import java.util.Map;
                 // import com.tangosol.net.Member;
                 // import com.tangosol.net.management.MBeanHelper;
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.GUIDHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import Component.Net.MemberSet;
                 // import Component.Net.MemberSet.ActualMemberSet;
                 
                 MBeanHelper.checkReadOnly("archiveSnapshot");
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
                 
                 ensureArchiveReady();
                 
@@ -28598,10 +28598,12 @@ public abstract class PartitionedService
             public synchronized void createSnapshot(String sSnapshot)
                 {
                 // import Component.Net.MemberSet;
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import com.tangosol.net.management.MBeanHelper;
                 
                 MBeanHelper.checkReadOnly("createSnapshot");
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
                 
                 ensureReady(false);
                 
@@ -29159,8 +29161,11 @@ public abstract class PartitionedService
              */
             public String[] listArchivedSnapshotStores(String sSnapshot)
                 {
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.SnapshotArchiver;
                 
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
                 if (!hasArchivedSnapshot(sSnapshot))
                     {
                     throw new IllegalArgumentException("A snapshot named \"" + sSnapshot + "\" does not exist");
@@ -29423,11 +29428,13 @@ public abstract class PartitionedService
                 {
                 // import Component.Net.MemberSet;
                 // import com.tangosol.net.partition.PartitionSet;
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.GUIDHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import com.tangosol.net.management.MBeanHelper;
                 
                 MBeanHelper.checkReadOnly("recoverSnapshot");
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
                 
                 ensureReady(false);
                 
@@ -29491,9 +29498,12 @@ public abstract class PartitionedService
              */
             public void removeArchivedSnapshot(String sSnapshot)
                 {
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import com.tangosol.persistence.SnapshotArchiver;
                 
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
                 ensureArchiveReady();
                 
                 if (!hasArchivedSnapshot(sSnapshot))
@@ -29536,10 +29546,12 @@ public abstract class PartitionedService
              */
             public void removeSnapshot(String sSnapshot)
                 {
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import com.tangosol.net.management.MBeanHelper;
                 
                 MBeanHelper.checkReadOnly("removeSnapshot");
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
                 
                 ensureReady(false);
                 
@@ -29579,6 +29591,8 @@ public abstract class PartitionedService
              */
             public synchronized String getSnapshotStatus(String sName)
                 {
+                sName = CachePersistenceHelper.validateSnapshotName(sName);
+
                 String currentSnapshotName = getSnapshotName();
                 if (sName.equals(currentSnapshotName))
                     {
@@ -29600,6 +29614,8 @@ public abstract class PartitionedService
              */
             public synchronized String getSnapshotRecoveryStatus(String sName)
                 {
+                sName = CachePersistenceHelper.validateSnapshotName(sName);
+
                 String currentSnapshotName = getSnapshotName();
                 if (sName.equals(currentSnapshotName))
                     {
@@ -29636,6 +29652,7 @@ public abstract class PartitionedService
                 // import Component.Net.MemberSet.ActualMemberSet;
                 // import com.tangosol.net.management.MBeanHelper;
                 // import com.tangosol.net.partition.Ownership;
+                // import com.tangosol.persistence.CachePersistenceHelper;
                 // import com.tangosol.persistence.PersistenceManagerMBean;
                 // import com.tangosol.persistence.Snapshot;
                 // import com.tangosol.persistence.SnapshotArchiver;
@@ -29647,6 +29664,7 @@ public abstract class PartitionedService
                 // import java.util.Set;
                 
                 MBeanHelper.checkReadOnly("retrieveArchivedSnapshot");
+                sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
                 
                 ensureArchiveReady();
                 

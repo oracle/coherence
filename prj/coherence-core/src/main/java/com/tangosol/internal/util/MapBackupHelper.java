@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.util;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.NamedCache;
@@ -100,21 +102,24 @@ public abstract class MapBackupHelper
         int cMaps    = in.readInt();
         int cEntries = 0;
 
-        for (int i = 0; i < cMaps; i++)
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.TOOLING))
             {
-            Map mapTmp = new HashMap();
-
-            if (cBlock > 0)
+            for (int i = 0; i < cMaps; i++)
                 {
-                ExternalizableHelper.readMap(in, mapTmp, cBlock, loader);
-                }
-            else
-                {
-                ExternalizableHelper.readMap(in, mapTmp, loader);
-                }
+                Map mapTmp = new HashMap();
 
-            cEntries += mapTmp.size();
-            map.putAll(mapTmp);
+                if (cBlock > 0)
+                    {
+                    ExternalizableHelper.readMap(in, mapTmp, cBlock, loader);
+                    }
+                else
+                    {
+                    ExternalizableHelper.readMap(in, mapTmp, loader);
+                    }
+
+                cEntries += mapTmp.size();
+                map.putAll(mapTmp);
+                }
             }
 
         return cEntries;
