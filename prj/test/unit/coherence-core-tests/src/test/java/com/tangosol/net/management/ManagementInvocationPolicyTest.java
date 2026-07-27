@@ -224,6 +224,25 @@ public class ManagementInvocationPolicyTest
                 null, null, "test"));
         }
 
+    @Test
+    public void shouldShadowNonWritableAttributeInCompatibilityMode()
+            throws Exception
+        {
+        m_mode.close();
+        m_mode = CoherenceModeHelper.securityCompatibility();
+
+        ManagementInvocationPolicy.validateSetAttribute(m_server, m_name, new Attribute("ReadOnly", "updated"),
+                "test");
+        }
+
+    @Test
+    public void shouldRejectNonWritableAttributeInHardenedMode()
+            throws Exception
+        {
+        expectSecurity(() -> ManagementInvocationPolicy.validateSetAttribute(m_server, m_name,
+                new Attribute("ReadOnly", "updated"), "test"));
+        }
+
     private MBeanAccessor.QueryBuilder.ParsedQuery query()
         {
         return new MBeanAccessor.QueryBuilder()
@@ -275,6 +294,8 @@ public class ManagementInvocationPolicyTest
 
         void setValue(String sValue);
 
+        String getReadOnly();
+
         String echo(String sValue);
 
         String enabled(boolean fValue);
@@ -296,6 +317,12 @@ public class ManagementInvocationPolicyTest
         public void setValue(String sValue)
             {
             m_sValue = sValue;
+            }
+
+        @Override
+        public String getReadOnly()
+            {
+            return "read-only";
             }
 
         @Override

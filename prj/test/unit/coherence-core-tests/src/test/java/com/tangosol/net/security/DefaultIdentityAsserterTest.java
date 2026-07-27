@@ -7,6 +7,8 @@
 
 package com.tangosol.net.security;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import org.junit.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,6 +17,7 @@ import javax.security.auth.Subject;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 
 /**
@@ -31,10 +34,23 @@ public class DefaultIdentityAsserterTest
         }
 
     @Test
-    public void shouldRejectRawSubjectToken()
+    public void shouldAllowRawSubjectTokenInCompatibilityMode()
         {
-        assertThrows(SecurityException.class,
-                () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(new Subject(), null));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            Subject subject = new Subject();
+            assertSame(subject, DefaultIdentityAsserter.INSTANCE.assertIdentity(subject, null));
+            }
+        }
+
+    @Test
+    public void shouldRejectRawSubjectTokenInHardenedMode()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertThrows(SecurityException.class,
+                    () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(new Subject(), null));
+            }
         }
 
     @Test
