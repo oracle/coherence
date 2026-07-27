@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.config.expression.SystemPropertyParameterResolver;
 import com.tangosol.net.AddressProvider;
 import com.tangosol.net.SocketAddressProvider;
 import com.tangosol.net.grpc.GrpcChannelDependencies;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 
 import java.util.Optional;
 
@@ -157,6 +158,23 @@ public class DefaultGrpcChannelDependencies
         return m_builderSocketProvider;
         }
 
+    @Override
+    public String getSecureTransport()
+        {
+        return m_sSecureTransport;
+        }
+
+    /**
+     * Set the gRPC secure transport policy.
+     *
+     * @param sPolicy  the gRPC secure transport policy
+     */
+    @Injectable("secure-transport")
+    public void setSecureTransport(String sPolicy)
+        {
+        m_sSecureTransport = GrpcTransportSecurity.normalize(sPolicy);
+        }
+
     /**
      * Set the value to use in {@link io.grpc.ManagedChannelBuilder#overrideAuthority(String)}.
      *
@@ -255,6 +273,11 @@ public class DefaultGrpcChannelDependencies
      * An optional {@link SocketProviderBuilder} to create an SSL context for the channel.
      */
     private SocketProviderBuilder m_builderSocketProvider;
+
+    /**
+     * The gRPC secure transport policy.
+     */
+    private String m_sSecureTransport = GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL;
 
     /**
      * The remote SocketAddressProvider builder to build the list of server addresses.

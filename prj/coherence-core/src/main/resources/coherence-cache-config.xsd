@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  ~ Copyright (c) 2000, 2026, Oracle and/or its affiliates.
   ~
   ~ Licensed under the Universal Permissive License v 1.0 as shown at
   ~ https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
             https://oss.oracle.com/licenses/upl.
@@ -2805,6 +2805,10 @@
                 <xsd:element ref="socket-provider" minOccurs="0" />
                 <xsd:element name="in-process-name" type="coherence-string-type" minOccurs="0"/>
                 <xsd:element ref="grpc-controller" minOccurs="0" />
+                <xsd:element ref="auth-method" minOccurs="0" />
+                <xsd:element ref="channelz" minOccurs="0" />
+                <xsd:element ref="error-disclosure" minOccurs="0" />
+                <xsd:element ref="secure-transport" minOccurs="0" />
                 <xsd:element ref="channelz-max-page-size" minOccurs="0"/>
                 <xsd:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
             </xsd:sequence>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -60,6 +60,34 @@ public interface GrpcAcceptorDependencies
      * @return the max page size for the Channelz service
      */
     int getChannelzPageSize();
+
+    /**
+     * Return the gRPC Channelz registration policy.
+     *
+     * @return the gRPC Channelz registration policy
+     */
+    String getChannelz();
+
+    /**
+     * Return the gRPC error-disclosure policy.
+     *
+     * @return the gRPC error-disclosure policy
+     */
+    String getErrorDisclosure();
+
+    /**
+     * Return the gRPC authentication method.
+     *
+     * @return the gRPC authentication method
+     */
+    String getAuthMethod();
+
+    /**
+     * Return the gRPC secure transport policy.
+     *
+     * @return the gRPC secure transport policy
+     */
+    String getSecureTransport();
 
     /**
      * Return the optional application {@link Context}.

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2021 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2019, 2026 Oracle and/or its affiliates. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package com.oracle.coherence.io.json.internal;
 import com.oracle.coherence.io.json.genson.Context;
 import com.oracle.coherence.io.json.genson.Converter;
 import com.oracle.coherence.io.json.genson.Genson;
+import com.oracle.coherence.io.json.genson.JsonBindingException;
 
 import com.oracle.coherence.io.json.genson.annotation.HandleClassMetadata;
 
@@ -108,8 +109,19 @@ public class MapConverter<K, V>
                                                                                                     isOrdered));
         try
             {
-            Class<? extends Map<K, V>> mapClass = (Class<? extends Map<K, V>>) ctx.genson.classFor(className);
+            Class<?> mapClassRaw = ctx.genson.classFor(className);
+            if (!Map.class.isAssignableFrom(mapClassRaw)
+                    || !SerializationGate.isValidClassMetadata(className, mapClassRaw))
+                {
+                throw new JsonBindingException("Unable to de-serialize " + mapClassRaw.getName());
+                }
+
+            Class<? extends Map<K, V>> mapClass = (Class<? extends Map<K, V>>) mapClassRaw;
             map = mapClass.getDeclaredConstructor().newInstance();
+            }
+        catch (JsonBindingException e)
+            {
+            throw e;
             }
         catch (Exception e)
             {

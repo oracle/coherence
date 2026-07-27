@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,9 +10,11 @@ import com.oracle.coherence.grpc.client.common.ChannelProvider;
 import com.oracle.coherence.grpc.client.common.config.GrpcChannelProcessor;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.xml.CacheConfigNamespaceHandler;
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.DocumentProcessor;
 import com.tangosol.net.grpc.GrpcChannelDependencies;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 import com.tangosol.run.xml.SimpleElement;
 import com.tangosol.run.xml.SimpleValue;
 import com.tangosol.run.xml.XmlElement;
@@ -49,6 +51,7 @@ public class GrpcChannelProcessorTest
         assertThat(channelDependencies.getRemoteAddressProviderBuilder(), is(nullValue()));
         assertThat(channelDependencies.isNameServiceAddressProvider(), is(true));
         assertThat(channelDependencies.getDefaultLoadBalancingPolicy(), is(GrpcChannelDependencies.DEFAULT_LOAD_BALANCER_POLICY));
+        assertThat(channelDependencies.getSecureTransport(), is(GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL));
         assertThat(channelDependencies.getAuthorityOverride(), is(notNullValue()));
         assertThat(channelDependencies.getAuthorityOverride().isPresent(), is(false));
         assertThat(channelDependencies.getConfigurer(), is(notNullValue()));
@@ -129,6 +132,59 @@ public class GrpcChannelProcessorTest
         assertThat(channelDependencies.getConfigurer().isPresent(), is(false));
         assertThat(channelDependencies.getChannelProvider(), is(notNullValue()));
         assertThat(channelDependencies.getChannelProvider().isPresent(), is(false));
+        }
+
+    @Test
+    public void shouldProcessSecureTransport()
+        {
+        String     sChannelName = "foo";
+        XmlElement xml          = new SimpleElement("grpc-channel");
+
+        xml.setAttribute("id", new SimpleValue(sChannelName));
+        xml.addElement("secure-transport").setString("required");
+
+        GrpcChannelDependencies channelDependencies = processXML(xml);
+        assertThat(channelDependencies.getSecureTransport(), is(GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED));
+        }
+
+    @Test
+    public void shouldRejectInvalidSecureTransport()
+        {
+        XmlElement xml = new SimpleElement("grpc-channel");
+        xml.addElement("secure-transport").setString("mandatory");
+
+        ConfigurationException thrown = org.junit.jupiter.api.Assertions.assertThrows(ConfigurationException.class, () -> processXML(xml));
+        assertThat(thrown.getCause(), is(instanceOf(ReflectiveOperationException.class)));
+        assertThat(thrown.getCause().getCause(), is(instanceOf(IllegalArgumentException.class)));
+        }
+
+    @Test
+    public void shouldOverrideSecureTransportFromNamedChannelSystemProperty()
+        {
+        String     sChannelName = "foo";
+        XmlElement xml          = new SimpleElement("grpc-channel");
+
+        xml.setAttribute("id", new SimpleValue(sChannelName));
+
+        String sProperty = String.format(GrpcChannelDependencies.PROP_SECURE_TRANSPORT, sChannelName);
+        String sOld      = System.getProperty(sProperty);
+        try
+            {
+            System.setProperty(sProperty, GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED);
+            GrpcChannelDependencies channelDependencies = processXML(xml);
+            assertThat(channelDependencies.getSecureTransport(), is(GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED));
+            }
+        finally
+            {
+            if (sOld == null)
+                {
+                System.clearProperty(sProperty);
+                }
+            else
+                {
+                System.setProperty(sProperty, sOld);
+                }
+            }
         }
 
     @Test

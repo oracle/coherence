@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.google.protobuf.Int32Value;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.v0.Requests;
+import com.oracle.coherence.io.json.JsonSerializer;
 
 import com.oracle.coherence.grpc.messages.cache.v0.AggregateRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.Entry;
@@ -27,7 +28,9 @@ import com.oracle.coherence.grpc.messages.cache.v0.MapListenerResponse;
 import com.oracle.coherence.grpc.messages.cache.v0.OptionalValue;
 
 import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.NamedCache;
@@ -79,6 +82,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
 
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -103,6 +107,86 @@ import static org.hamcrest.collection.IsMapContaining.hasKey;
 public class NamedCacheServiceImplIT
         extends BaseNamedCacheServiceImplIT
     {
+    @Test
+    public void shouldRejectUnsafePerRequestSerializerInProd() throws Exception
+        {
+        String sCacheName = "reject-unsafe-serializer-cache";
+        ensureEmptyCache(null, sCacheName);
+
+        NamedCacheService        service    = createService();
+        TestStreamObserver<BoolValue> observer = new TestStreamObserver<>();
+        DefaultSerializer        serializer = new DefaultSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            service.containsKey(Requests.containsKey(null, sCacheName, "java", toByteString("key", serializer)),
+                    observer);
+
+            observer.awaitDone(1, TimeUnit.MINUTES)
+                    .assertError(StatusRuntimeException.class)
+                    .assertError(t -> ((StatusRuntimeException) t).getStatus().getCode()
+                            == Status.INVALID_ARGUMENT.getCode());
+            }
+        }
+
+    @Test
+    public void shouldAllowJsonPerRequestSerializerInProd() throws Exception
+        {
+        String sCacheName = "allow-json-serializer-cache";
+        NamedCache<String, String> cache = ensureEmptyCache(null, sCacheName);
+        cache.clear();
+
+        NamedCacheService              service    = createService();
+        TestStreamObserver<BytesValue> observer   = new TestStreamObserver<>();
+        JsonSerializer                 serializer = new JsonSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            ByteString key   = toByteString("key-1", serializer);
+            ByteString value = toByteString("value-1", serializer);
+            service.put(Requests.put(null, sCacheName, "json", key, value), observer);
+
+            assertThat(observer.await(1, TimeUnit.MINUTES), is(true));
+            observer.assertComplete()
+                    .assertNoErrors()
+                    .assertValueCount(1);
+
+            BytesValue oResult = observer.valueAt(0);
+            assertThat(fromBytesValue(oResult, serializer, String.class), is(nullValue()));
+            assertThat(cache.get("key-1"), is("value-1"));
+            }
+        }
+
+    @Test
+    public void shouldRejectJsonClassMetadataGadgetPerRequestInProd() throws Exception
+        {
+        String sCacheName = "reject-json-gadget-cache";
+        ensureEmptyCache(null, sCacheName);
+
+        NamedCacheService          service  = createService();
+        TestStreamObserver<BoolValue> observer = new TestStreamObserver<>();
+        ByteString                 key      = jsonPayload(
+                "{\"@class\":\"internal.util.invoke.RemoteConstructor\"}");
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            service.containsKey(Requests.containsKey(null, sCacheName, "json", key), observer);
+
+            observer.awaitDone(1, TimeUnit.MINUTES)
+                    .assertError(StatusRuntimeException.class)
+                    .assertError(t -> ((StatusRuntimeException) t).getStatus().getCode()
+                            == Status.UNKNOWN.getCode())
+                    .assertError(t -> String.valueOf(((StatusRuntimeException) t).getStatus().getDescription())
+                            .contains("Could not deserialize to type class java.lang.Object"));
+            }
+        }
+
+    private static ByteString jsonPayload(String sJson)
+        {
+        return ByteString.copyFrom(new byte[] {(byte) ExternalizableHelper.FMT_EXT})
+                .concat(ByteString.copyFromUtf8(sJson));
+        }
+
     // ----- AddIndex -------------------------------------------------------
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")

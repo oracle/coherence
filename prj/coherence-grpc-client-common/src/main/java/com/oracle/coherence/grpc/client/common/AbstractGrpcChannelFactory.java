@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,7 +121,7 @@ public abstract class AbstractGrpcChannelFactory
             }
 
         SocketProviderBuilder    builder        = depsChannel.getSocketProviderBuilder();
-        ChannelCredentials       credentials    = createChannelCredentials(builder);
+        ChannelCredentials       credentials    = createChannelCredentials(builder, depsChannel.getSecureTransport());
         ManagedChannelBuilder<?> channelBuilder = Grpc.newChannelBuilder(sTarget, credentials);
 
         depsChannel.getAuthorityOverride().ifPresent(channelBuilder::overrideAuthority);
@@ -141,7 +141,7 @@ public abstract class AbstractGrpcChannelFactory
         return channelBuilder;
         }
 
-    protected abstract ChannelCredentials createChannelCredentials(SocketProviderBuilder builder);
+    protected abstract ChannelCredentials createChannelCredentials(SocketProviderBuilder builder, String sSecureTransport);
 
     // ----- NameResolverProvider methods -----------------------------------
 

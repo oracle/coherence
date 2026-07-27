@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.internal.util.DaemonPool;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.grpc.GrpcDependencies;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 import com.tangosol.net.management.Registry;
 
 import java.util.Optional;
@@ -86,6 +87,9 @@ public interface GrpcServiceDependencies
      */
     Optional<GrpcAcceptor> getAcceptor();
 
+    @Override
+    String getErrorDisclosure();
+
     // ----- inner class: DefaultDependencies -------------------------------
 
     /**
@@ -130,6 +134,7 @@ public interface GrpcServiceDependencies
                 deps.getContext().ifPresent(this::setContext);
                 deps.getDaemonPool().ifPresent(this::setDaemonPool);
                 deps.getAcceptor().ifPresent(this::setAcceptor);
+                setErrorDisclosure(deps.getErrorDisclosure());
                 }
             }
 
@@ -242,6 +247,22 @@ public interface GrpcServiceDependencies
             return Optional.ofNullable(m_acceptor);
             }
 
+        @Override
+        public String getErrorDisclosure()
+            {
+            return m_sErrorDisclosure;
+            }
+
+        /**
+         * Set the gRPC error-disclosure policy.
+         *
+         * @param sPolicy  the gRPC error-disclosure policy
+         */
+        public void setErrorDisclosure(String sPolicy)
+            {
+            m_sErrorDisclosure = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sPolicy);
+            }
+
         /**
          * Set the parent {@link GrpcAcceptor}.
          *
@@ -293,5 +314,10 @@ public interface GrpcServiceDependencies
          * The parent {@link GrpcAcceptor}.
          */
         private GrpcAcceptor m_acceptor;
+
+        /**
+         * The gRPC error-disclosure policy.
+         */
+        private String m_sErrorDisclosure = GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC;
         }
     }

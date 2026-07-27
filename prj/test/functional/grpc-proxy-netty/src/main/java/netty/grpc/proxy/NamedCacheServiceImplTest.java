@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.GrpcSecurityContext;
 import com.oracle.coherence.grpc.v0.CacheRequestHolder;
 import com.oracle.coherence.grpc.v0.Requests;
 
@@ -60,6 +61,7 @@ import com.tangosol.net.cache.WrapperNamedCache;
 
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.management.Registry;
+import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
@@ -97,9 +99,13 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import javax.security.auth.Subject;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -130,6 +136,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.nullable;
 
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -200,7 +207,7 @@ class NamedCacheServiceImplTest
         {
         BaseNamedCacheServiceImpl service = s_serviceProvider.getBaseService(m_dependencies);;
 
-        CompletionStage<CacheRequestHolder<String, Void>> stage = 
+        CompletionStage<CacheRequestHolder<String, Void>> stage =
                 service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT);
         assertThat(stage, is(notNullValue()));
 
@@ -212,6 +219,68 @@ class NamedCacheServiceImplTest
         assertThat(holder.getSerializer(),      is(sameInstance(POF_SERIALIZER)));
         assertThat(holder.getCacheSerializer(), is(sameInstance(CACHE_SERIALIZER)));
         assertThat(holder.getResult(),          is(nullValue()));
+        }
+
+    @Test
+    public void shouldCreateRequestHolderUnderGrpcSubject() throws Exception
+        {
+        Subject                  subject = new Subject();
+        NamedCache<Binary, Binary> cache = m_testAsyncCache.getNamedCache();
+        doReturn(m_testAsyncCache).when(cache).async();
+        doReturn(m_testAsyncCache).when(cache).async(any(AsyncNamedCache.Option[].class));
+
+        when(m_testCCF.ensureCache(eq(TEST_CACHE_NAME), nullable(ClassLoader.class))).thenAnswer(invocation ->
+            {
+            assertThat(SecurityHelper.getCurrentSubject(), is(sameInstance(subject)));
+            return cache;
+            });
+
+        BaseNamedCacheServiceImpl service = s_serviceProvider.getBaseService(m_dependencies);
+        CompletionStage<CacheRequestHolder<String, Void>> stage =
+                GrpcSecurityContext.withSubject(io.grpc.Context.current(), subject).call(() ->
+                        service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT));
+
+        CacheRequestHolder<String, Void> holder = stage.toCompletableFuture().get(1, TimeUnit.MINUTES);
+        assertThat(holder, is(notNullValue()));
+        }
+
+    @Test
+    public void shouldRunAsyncCompletionUnderCapturedGrpcSubject() throws Exception
+        {
+        Subject                    subject = new Subject();
+        NamedCache<Binary, Binary> cache   = m_testAsyncCache.getNamedCache();
+        doReturn(m_testAsyncCache).when(cache).async();
+        doReturn(m_testAsyncCache).when(cache).async(any(AsyncNamedCache.Option[].class));
+
+        BaseNamedCacheServiceImpl service = s_serviceProvider.getBaseService(m_dependencies);
+        CompletionStage<CacheRequestHolder<String, Void>> holderStage =
+                GrpcSecurityContext.withSubject(io.grpc.Context.current(), subject).call(() ->
+                        service.createHolderAsync("foo", GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, POF_FORMAT));
+
+        CacheRequestHolder<String, Void> holder = holderStage.toCompletableFuture().get(1, TimeUnit.MINUTES);
+
+        CompletableFuture<String>       future  = new CompletableFuture<>();
+        AtomicReference<Subject>        subjectRef = new AtomicReference<>();
+        CompletionStage<CacheRequestHolder<String, String>> resultStage =
+                GrpcSecurityContext.withSubject(io.grpc.Context.current(), subject).call(() ->
+                        holder.runAsync(future)
+                                .thenApply(h ->
+                                    {
+                                    subjectRef.set(SecurityHelper.getCurrentSubject());
+                                    return h;
+                                    }));
+
+        CompletableFuture.runAsync(() ->
+            {
+            assertThat(GrpcSecurityContext.getCurrentSubject(), is(nullValue()));
+            assertThat(SecurityHelper.getCurrentSubject(), is(nullValue()));
+            future.complete("value");
+            }).get(1, TimeUnit.MINUTES);
+
+        CacheRequestHolder<String, String> result = resultStage.toCompletableFuture().get(1, TimeUnit.MINUTES);
+        assertThat(result, is(sameInstance(holder)));
+        assertThat(result.getResult(), is("value"));
+        assertThat(subjectRef.get(), is(sameInstance(subject)));
         }
 
     @Test
@@ -1904,7 +1973,7 @@ class NamedCacheServiceImplTest
     private static NamedSerializerFactory s_serializerProducer;
 
     private Function<String, ConfigurableCacheFactory> m_ccfSupplier;
-    
+
     private NamedCacheService.DefaultDependencies m_dependencies;
 
     private static ByteString s_bytes1;

@@ -803,6 +803,10 @@ to find specific notes on changes suggested for production use.
             <param-name>thread-count-min</param-name>
             <param-value system-property="coherence.grpc.threads.min"/>
           </init-param>
+          <init-param id="6">
+            <param-name>grpc-channel/secure-transport</param-name>
+            <param-value system-property="coherence.grpc.channels.default.secure-transport"/>
+          </init-param>
         </init-params>
       </service>
     </services>

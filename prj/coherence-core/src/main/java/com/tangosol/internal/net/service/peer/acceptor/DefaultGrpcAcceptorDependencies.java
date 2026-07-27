@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,11 +7,16 @@
 package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.oracle.coherence.common.net.TcpSocketProvider;
+
 import com.tangosol.application.Context;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
+
+import java.util.Locale;
 
 /**
  * The default implementation of {@link GrpcAcceptorDependencies}.
@@ -55,6 +60,10 @@ public class DefaultGrpcAcceptorDependencies
             setInProcessName(deps.getInProcessName());
             setLocalAddress(deps.getLocalAddress());
             setLocalPort(deps.getLocalPort());
+            setAuthMethod(deps.getAuthMethod());
+            setChannelz(deps.getChannelz());
+            setErrorDisclosure(deps.getErrorDisclosure());
+            setSecureTransport(deps.getSecureTransport());
             setSocketProviderBuilder(deps.getSocketProviderBuilder());
             }
         }
@@ -162,6 +171,76 @@ public class DefaultGrpcAcceptorDependencies
         m_nChannelzPageSize = nPageSize;
         }
 
+    @Override
+    public String getChannelz()
+        {
+        return m_sChannelz;
+        }
+
+    /**
+     * Set the gRPC Channelz registration policy.
+     *
+     * @param sPolicy  the gRPC Channelz registration policy
+     */
+    @Injectable("channelz")
+    public void setChannelz(String sPolicy)
+        {
+        m_sChannelz = GrpcDiagnosticsPolicy.normalizeChannelz(sPolicy);
+        }
+
+    @Override
+    public String getErrorDisclosure()
+        {
+        return m_sErrorDisclosure;
+        }
+
+    /**
+     * Set the gRPC error-disclosure policy.
+     *
+     * @param sPolicy  the gRPC error-disclosure policy
+     */
+    @Injectable("error-disclosure")
+    public void setErrorDisclosure(String sPolicy)
+        {
+        m_sErrorDisclosure = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sPolicy);
+        }
+
+    @Override
+    public String getAuthMethod()
+        {
+        return m_sAuthMethod;
+        }
+
+    /**
+     * Set the gRPC authentication method.
+     *
+     * @param sMethod  the gRPC authentication method
+     */
+    @Injectable("auth-method")
+    public void setAuthMethod(String sMethod)
+        {
+        m_sAuthMethod = sMethod == null || sMethod.isBlank()
+                ? AUTH_METHOD_NONE
+                : sMethod.trim().toLowerCase(Locale.ROOT);
+        }
+
+    @Override
+    public String getSecureTransport()
+        {
+        return m_sSecureTransport;
+        }
+
+    /**
+     * Set the gRPC secure transport policy.
+     *
+     * @param sPolicy  the gRPC secure transport policy
+     */
+    @Injectable("secure-transport")
+    public void setSecureTransport(String sPolicy)
+        {
+        m_sSecureTransport = GrpcTransportSecurity.normalize(sPolicy);
+        }
+
     /**
      * Set the application Context.
      *
@@ -177,6 +256,21 @@ public class DefaultGrpcAcceptorDependencies
     public Context getContext()
         {
         return m_context;
+        }
+
+    @Override
+    public DefaultGrpcAcceptorDependencies validate()
+        {
+        super.validate();
+        String sMethod = getAuthMethod();
+        if (!AUTH_METHOD_NONE.equals(sMethod) && !AUTH_METHOD_BASIC.equals(sMethod))
+            {
+            throw new IllegalArgumentException("unsupported GrpcAuthMethod: " + sMethod);
+            }
+        GrpcDiagnosticsPolicy.normalizeChannelz(getChannelz());
+        GrpcDiagnosticsPolicy.normalizeErrorDisclosure(getErrorDisclosure());
+        GrpcTransportSecurity.normalize(getSecureTransport());
+        return this;
         }
 
     // ----- data members ---------------------------------------------------
@@ -210,6 +304,30 @@ public class DefaultGrpcAcceptorDependencies
      * The max page size for the Channelz service.
      */
     private int m_nChannelzPageSize;
+
+    /**
+     * The gRPC Channelz registration policy.
+     */
+    private String m_sChannelz = GrpcDiagnosticsPolicy.CHANNELZ_AUTO;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    private String m_sErrorDisclosure = GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO;
+
+    /**
+     * The gRPC authentication method.
+     */
+    private String m_sAuthMethod = AUTH_METHOD_NONE;
+
+    /**
+     * The gRPC secure transport policy.
+     */
+    private String m_sSecureTransport = GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL;
+
+    private static final String AUTH_METHOD_NONE = "none";
+
+    private static final String AUTH_METHOD_BASIC = "basic";
 
     /**
      * An optional application {@link Context}.

@@ -422,6 +422,7 @@ public class NamedCacheProxyProtocol
             boolean    fCompatible    = ExternalizableHelper.isSerializerCompatible(serializerThis, serializerThat);
 
             ChannelStub channelStub = new ChannelStub(cacheId, fCompatible);
+            channelStub.setSubject(getSubject());
             cacheProxy.registerChannel(channelStub);
 
             m_aProxy.set(cacheId, cacheProxy);

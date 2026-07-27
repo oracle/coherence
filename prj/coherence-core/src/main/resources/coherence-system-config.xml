@@ -101,6 +101,7 @@ It will be loaded automatically when CDI integration is used.
           </socket-address>
         </name-service-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
     </remote-grpc-cache-scheme>
 
@@ -122,6 +123,7 @@ It will be loaded automatically when CDI integration is used.
           </socket-address>
         </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
     </remote-grpc-cache-scheme>
 

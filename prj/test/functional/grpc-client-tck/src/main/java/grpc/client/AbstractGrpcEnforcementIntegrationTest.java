@@ -331,7 +331,7 @@ abstract class AbstractGrpcEnforcementIntegrationTest
                         new ScriptAggregator<>("js", "CountAggregator", 0)));
 
         assertContains(eAggregator, "script-eval-denied-by-mode");
-        assertCounter(OperationReason.SCRIPT_EVAL, SerializationRole.UNCLASSIFIED, "rejected",
+        assertCounter(OperationReason.SCRIPT_EVAL, SerializationRole.GRPC, "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
