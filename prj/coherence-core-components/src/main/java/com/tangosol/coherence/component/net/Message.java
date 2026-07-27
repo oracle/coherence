@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,9 +22,17 @@ import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.MultiBufferReadBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.nio.ByteBufferReadBuffer;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.util.Base;
 import com.tangosol.util.ExternalizableHelper;
 import java.util.Map;
+
+import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_31;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_27;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_18;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0_8;
+import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_1_0_4;
+import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_2_0_0;
 
 /**
  * The Message contains all of the information necessary to describe a message
@@ -176,6 +184,15 @@ public class Message
      * sender), the null Packets are the checked-off (acknowledged) ones.
      */
     private int __m_NullPacketCount;
+
+    /**
+     * Property SeniorMetadataProof
+     *
+     * Passive proof bytes carried by selected PEER-01 D2 senior metadata
+     * messages. Production and enforcement are intentionally out of scope for
+     * the carrier layer.
+     */
+    private byte[] __m_SeniorMetadataProof;
     
     /**
      * Property Packet
@@ -895,6 +912,20 @@ public class Message
         }
 
     /**
+     * Return true iff the encoded sender or recipient version understands the
+     * PEER-01 D2 senior-metadata proof carrier.
+     */
+    public static boolean isSeniorMetadataProofV1Compatible(int nVersion)
+        {
+        return VersionHelper.isVersionCompatible(VERSION_15_1_2_0_0, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_15_1_1_0_4, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_2_0_8, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_1_2206_18, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_1_0_27, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_12_2_1_4_31, nVersion);
+        }
+
+    /**
      * Ensure that the delivery notification is posted if necessary.
      */
     protected void notifyDelivery()
@@ -1587,6 +1618,15 @@ public class Message
         {
         __m_Poll = poll;
         }
+
+    /**
+     * Return passive senior-metadata proof bytes read from, or prepared for,
+     * the PEER-01 D2 carrier.
+     */
+    public byte[] getSeniorMetadataProof()
+        {
+        return __m_SeniorMetadataProof;
+        }
     
     // Accessor for the property "ReadBuffer"
     /**
@@ -1619,6 +1659,14 @@ public class Message
     public void setService(com.tangosol.coherence.component.util.daemon.queueProcessor.service.Grid service)
         {
         __m_Service = service;
+        }
+
+    /**
+     * Set passive senior-metadata proof bytes for the PEER-01 D2 carrier.
+     */
+    public void setSeniorMetadataProof(byte[] abProof)
+        {
+        __m_SeniorMetadataProof = abProof;
         }
     
     // Accessor for the property "ToMemberSet"
