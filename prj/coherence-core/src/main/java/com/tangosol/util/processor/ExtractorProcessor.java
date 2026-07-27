@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.processor;
@@ -101,6 +101,18 @@ public class ExtractorProcessor<K, V, T, E>
     public E process(InvocableMap.Entry<K, V> entry)
         {
         return entry.extract(m_extractor);
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+    * Obtain the underlying extractor.
+    *
+    * @return the extractor used by this ExtractorProcessor
+    */
+    public ValueExtractor<? super T, ? extends E> getExtractor()
+        {
+        return m_extractor;
         }
 
 

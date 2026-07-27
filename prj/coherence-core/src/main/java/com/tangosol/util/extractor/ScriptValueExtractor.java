@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.tangosol.util.extractor;
 
 import com.tangosol.internal.util.graal.ScriptManager;
+import com.tangosol.internal.util.security.RemoteScriptGate;
 
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.ResolvingObjectInputStream;
@@ -65,12 +66,33 @@ public class ScriptValueExtractor<T, E>
         m_aoArgs    = aoArgs;
         }
 
+    /**
+     * Return the language the script is written in.
+     *
+     * @return the language the script is written in
+     */
+    public String getLanguage()
+        {
+        return m_sLanguage;
+        }
+
+    /**
+     * Return the name of the {@link ValueExtractor} to execute.
+     *
+     * @return the name of the {@link ValueExtractor} to execute
+     */
+    public String getName()
+        {
+        return m_sName;
+        }
+
     // ----- ValueExtractor interface ----------------------------------------
 
     @Override
     @SuppressWarnings("unchecked")
     public E extract(T target)
         {
+        RemoteScriptGate.enforceScriptEvaluation(this.getClass(), m_sLanguage, m_sName);
         Value value = ScriptManager.getInstance()
                                    .execute(m_sLanguage, m_sName, m_aoArgs);
 

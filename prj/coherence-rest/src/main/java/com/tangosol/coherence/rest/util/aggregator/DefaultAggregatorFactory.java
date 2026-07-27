@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,10 @@
 package com.tangosol.coherence.rest.util.aggregator;
 
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.InvocableMap;
@@ -101,6 +105,7 @@ public class DefaultAggregatorFactory
                 break;
             case 1:
                 extractor = new UniversalExtractorBuilder().realize("", VALUE, asArgs[0]);
+                RemoteInstallGate.enforceCacheExtractorInstall(extractor, SerializationRole.REST, null);
                 break;
             default:
                 throw new IllegalArgumentException("DefaultAggregatorFactory "
@@ -123,6 +128,8 @@ public class DefaultAggregatorFactory
      */
     protected InvocableMap.EntryAggregator createAggregator(ValueExtractor extractor)
         {
+        RemoteInstallGate.enforceCacheAggregatorClassInstall(m_ctorAggr.getDeclaringClass(),
+                SerializationRole.REST, null);
         try
             {
             Object[] ao = extractor == null ? null : new ValueExtractor[] {extractor};
