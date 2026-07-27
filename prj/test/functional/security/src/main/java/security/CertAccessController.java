@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -181,7 +181,7 @@ public class CertAccessController
         f_trustStore = loadKeyStore(fileTrustStore, pwdArray, sStoreType);
         f_xmlPermits = loadPermissionsFile(filePermits);
         f_fAudit     = fAudit;
-        f_signature  = loadSignature(sAlgo);
+        f_sAlgorithm = loadSignatureAlgorithm(sAlgo);
         }
 
     // ----- AccessController implementation --------------------------------
@@ -271,7 +271,7 @@ public class CertAccessController
             throws IOException,
                    GeneralSecurityException
         {
-        return new SignedObject(o, keyPrivate, f_signature);
+        return new SignedObject(o, keyPrivate, createSignature());
         }
 
     @Override
@@ -379,15 +379,16 @@ public class CertAccessController
             }
         }
 
-    private Signature loadSignature(String sAlgorithm)
+    private String loadSignatureAlgorithm(String sAlgorithm)
         {
         try
             {
             if (sAlgorithm == null || sAlgorithm.isEmpty())
                 {
-                return Signature.getInstance(DefaultController.SIGNATURE_ALGORITHM);
+                sAlgorithm = DefaultController.SIGNATURE_ALGORITHM;
                 }
-            return Signature.getInstance(sAlgorithm);
+            Signature.getInstance(sAlgorithm);
+            return sAlgorithm;
             }
         catch (Exception e)
             {
@@ -600,11 +601,16 @@ public class CertAccessController
     private synchronized Object decrypt(SignedObject so, PublicKey keyPublic)
             throws ClassNotFoundException, IOException, GeneralSecurityException
         {
-        if (so.verify(keyPublic, DefaultController.SIGNATURE_ENGINE))
+        if (so.verify(keyPublic, createSignature()))
             {
             return so.getObject();
             }
         throw new SignatureException("Invalid signature");
+        }
+
+    private Signature createSignature() throws GeneralSecurityException
+        {
+        return Signature.getInstance(f_sAlgorithm);
         }
 
     /**
@@ -637,7 +643,7 @@ public class CertAccessController
     /**
      * The signature algorithm to use for encryption.
      */
-    private final Signature f_signature;
+    private final String f_sAlgorithm;
 
     /**
     * The audit flag. If true, log all the access requests.
