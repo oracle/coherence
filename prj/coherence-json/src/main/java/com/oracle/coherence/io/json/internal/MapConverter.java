@@ -27,6 +27,8 @@ import com.oracle.coherence.io.json.genson.reflect.TypeUtil;
 import com.oracle.coherence.io.json.genson.stream.ObjectReader;
 import com.oracle.coherence.io.json.genson.stream.ObjectWriter;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import java.lang.reflect.Type;
 
 import java.util.HashMap;
@@ -105,11 +107,12 @@ public class MapConverter<K, V>
         reader.nextObjectMetadata();
         boolean isSorted  = (Boolean) reader.metadata().getOrDefault("sorted", false);
         boolean isOrdered = (Boolean) reader.metadata().getOrDefault("ordered", false);
-        String  className = (String) reader.metadata().getOrDefault("class", getMapTypeBasedOnFlags(isSorted,
-                                                                                                    isOrdered));
+        boolean fMetadataClass = reader.metadata().containsKey("class");
+        String  className      = (String) reader.metadata().getOrDefault("class", getMapTypeBasedOnFlags(isSorted,
+                                                                                                         isOrdered));
         try
             {
-            Class<?> mapClassRaw = ctx.genson.classFor(className);
+            Class<?> mapClassRaw = ctx.genson.classForJsonClassMetadata(className);
             if (!Map.class.isAssignableFrom(mapClassRaw)
                     || !SerializationGate.isValidClassMetadata(className, mapClassRaw))
                 {
@@ -121,15 +124,15 @@ public class MapConverter<K, V>
             }
         catch (JsonBindingException e)
             {
-            throw e;
+            if (fMetadataClass && !CoherenceMode.isLegacy())
+                {
+                throw e;
+                }
+            map = createFallbackMap(isSorted, isOrdered);
             }
         catch (Exception e)
             {
-            map = isSorted
-                  ? new TreeMap<>()
-                  : isOrdered
-                      ? new LinkedHashMap<>()
-                      : new HashMap<>();
+            map = createFallbackMap(isSorted, isOrdered);
             }
 
         reader.next();
@@ -161,6 +164,15 @@ public class MapConverter<K, V>
             }
         reader.endObject();
         return map;
+        }
+
+    private static <K, V> Map<K, V> createFallbackMap(boolean isSorted, boolean isOrdered)
+        {
+        return isSorted
+               ? new TreeMap<>()
+               : isOrdered
+                   ? new LinkedHashMap<>()
+                   : new HashMap<>();
         }
 
     /**

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.util;
+
+import com.tangosol.io.SerializationGeneratedClasses;
 
 import com.tangosol.util.asm.BaseClassReaderInternal;
 
@@ -16,6 +18,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import java.lang.reflect.Constructor;
+
+import java.lang.invoke.MethodHandles;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -426,8 +430,20 @@ public class PartialObject
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         cn.accept(cw);
 
-        return getPartialClassLoader().defineClass(cn.name.replace('/', '.'),
+        Class clzPartial = getPartialClassLoader().defineClass(cn.name.replace('/', '.'),
                 cw.toByteArray());
+        registerPartialClass(clzPartial);
+        return clzPartial;
+        }
+
+    /**
+     * Register a generated partial class as REST-owned serialization output.
+     *
+     * @param clzPartial  generated partial class
+     */
+    private static void registerPartialClass(Class clzPartial)
+        {
+        SerializationGeneratedClasses.registerRestGeneratedPartialClass(MethodHandles.lookup(), clzPartial);
         }
 
     /**
@@ -536,7 +552,7 @@ public class PartialObject
                 }
             }
         }
-    
+
     /**
      * Return a PartialClassLoader corresponding to the Context ClassLoader.
      *
@@ -548,7 +564,7 @@ public class PartialObject
         PartialClassLoader loader = s_mapPartialClassLoaders.get(contextLoader);
         if (loader == null)
             {
-            synchronized (s_mapPartialClassLoaders) 
+            synchronized (s_mapPartialClassLoaders)
                 {
                 loader = s_mapPartialClassLoaders.get(contextLoader);
                 if (loader == null)
@@ -560,12 +576,12 @@ public class PartialObject
             }
         return loader;
         }
-    
+
     /**
      * Return the partial class map corresponding to the PartialClassLoader.
      *
      * @param loader  the PartialClassLoader corresponding to which the partial class map is required
-     * 
+     *
      * @return the map of Partial classes corresponding to the PartialClassLoader
      */
     protected static ConcurrentHashMap<String, Class> getPartialClassMap(PartialClassLoader loader)
@@ -573,7 +589,7 @@ public class PartialObject
         ConcurrentHashMap<String, Class> mapPartialClasses = s_mapPartialClasses.get(loader);
         if (mapPartialClasses == null)
             {
-            synchronized (loader) 
+            synchronized (loader)
                 {
                 mapPartialClasses = s_mapPartialClasses.get(loader);
                 if (mapPartialClasses == null)
@@ -584,11 +600,11 @@ public class PartialObject
                 }
             }
         return mapPartialClasses;
-        }    
+        }
 
     /**
      * Return the partial constructor map corresponding to the PartialClassLoader.
-     * 
+     *
      * @param loader  the PartialClassLoader corresponding to which the partial constructor map is required
      *
      * @return the map of Partial constructors corresponding to the PartialClassLoader
@@ -598,7 +614,7 @@ public class PartialObject
         ConcurrentHashMap<String, Constructor> mapPartialConstructors = s_mapPartialConstructors.get(loader);
         if (mapPartialConstructors == null)
             {
-            synchronized (loader) 
+            synchronized (loader)
                 {
                 mapPartialConstructors = s_mapPartialConstructors.get(loader);
                 if (mapPartialConstructors == null)

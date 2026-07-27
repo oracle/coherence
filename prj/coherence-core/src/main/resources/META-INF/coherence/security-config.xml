@@ -646,7 +646,7 @@
     <class name="com.tangosol.util.Tree" source="manual"/>
     <class name="com.tangosol.util.UID" source="manual"/>
     <class name="com.tangosol.util.UUID" source="manual"/>
-    <class name="com.tangosol.util.UniversalManipulator" source="manual"/>
+    <class name="com.tangosol.util.UniversalManipulator" source="manual" executable="true"/>
     <class name="com.tangosol.util.ValueExtractor" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperCollection" source="manual"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperList" source="manual"/>

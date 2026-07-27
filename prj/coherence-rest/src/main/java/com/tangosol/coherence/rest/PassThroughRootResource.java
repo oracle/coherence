@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
 
@@ -14,6 +14,7 @@ import com.tangosol.coherence.rest.config.ResourceConfig;
 
 import com.tangosol.coherence.rest.util.StaticContent;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
@@ -42,7 +43,11 @@ public class PassThroughRootResource
         ResourceConfig configResource = m_config.getResources().get(sName);
         if (configResource == null)
             {
-            // register pass-through resource for the specified cache name
+            if (RestSecurityPolicy.isPassThroughAllowlistRequired())
+                {
+                throw new NotFoundException("There is no resource configured by that name.");
+                }
+
             configResource = new ResourceConfig();
             configResource.setCacheName(sName);
             configResource.setKeyClass(String.class);
@@ -51,7 +56,8 @@ public class PassThroughRootResource
             configResource.setMaxResults(Integer.MAX_VALUE);
 
             m_config.getResources().put(sName, configResource);
-            Logger.info("Configured pass-through resource for cache: " + sName);
+            Logger.warn("Configured legacy pass-through resource for cache: " + sName
+                    + ". Coherence REST pass-through auto-publish is deprecated; configure the resource explicitly.");
             }
 
         return instantiateCacheResourceInternal(configResource);

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest.config;
 
@@ -182,6 +182,32 @@ public class ResourceConfig
         m_configQuery = config;
         }
 
+    /**
+     * Return configured expression aliases for this resource.
+     * <p>
+     * Stores operator-owned aliases on the resource so DEV/PROD URL inputs can
+     * select configured expressions without carrying raw extractor text.
+     *
+     * @return configured expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_configExpressionAliases;
+        }
+
+    /**
+     * Set configured expression aliases for this resource.
+     * <p>
+     * Aliases are configured by the operator and then consumed by REST
+     * resources, rather than supplied by HTTP callers as expressions.
+     *
+     * @param config  the expression aliases
+     */
+    public void setExpressionAliases(ExpressionAliasConfig config)
+        {
+        m_configExpressionAliases = config == null ? ExpressionAliasConfig.EMPTY : config;
+        }
+
     // ---- helpers ---------------------------------------------------------
 
     /**
@@ -264,4 +290,9 @@ public class ResourceConfig
      * Queries configured for resource.
      */
     private QueryConfig m_configQuery;
+
+    /**
+     * Expression aliases configured for this resource.
+     */
+    private ExpressionAliasConfig m_configExpressionAliases = ExpressionAliasConfig.EMPTY;
     }

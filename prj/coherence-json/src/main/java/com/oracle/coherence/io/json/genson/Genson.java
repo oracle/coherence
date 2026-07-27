@@ -15,6 +15,8 @@
 package com.oracle.coherence.io.json.genson;
 
 
+import com.oracle.coherence.io.json.internal.JsonClassMetadataPolicy;
+
 import com.oracle.coherence.io.json.genson.reflect.*;
 import com.oracle.coherence.io.json.genson.stream.*;
 
@@ -74,6 +76,7 @@ public final class Genson {
   private final ConcurrentHashMap<Type, Converter<?>> converterCache = new ConcurrentHashMap<Type, Converter<?>>();
   private final Factory<Converter<?>> converterFactory;
   private final BeanDescriptorProvider beanDescriptorFactory;
+  private final Map<String, Class<?>> configuredAliasClassMap;
   private final Map<Class<?>, String> classAliasMap;
   private final Map<String, Class<?>> aliasClassMap;
   private final Map<String, String> aliasPackageMap;
@@ -148,6 +151,7 @@ public final class Genson {
     this.skipNull = skipNull;
     this.htmlSafe = htmlSafe;
     this.enforceTypeAliases = enforceTypeAliases;
+    this.configuredAliasClassMap = new HashMap<>(classAliases);
     this.aliasClassMap = classAliases;
     this.aliasPackageMap = packageAliases;
     this.withClassMetadata = withClassMetadata;
@@ -597,17 +601,17 @@ public final class Genson {
    * @throws ClassNotFoundException thrown if no class has been registered for this alias and the alias it self does
    *                                not correspond to the full name of a class.
    */
-  public Class<?> classFor(String alias) throws ClassNotFoundException {
+  public Class<?> classFor(String alias) throws ClassNotFoundException
+    {
     Class<?> clazz = aliasClassMap.get(alias);
-    if (clazz == null) {
-      // check for a compatibility alias
+    if (clazz == null)
+      {
       String sAliasFor = compatibilityAliasMap.get(alias);
       if (sAliasFor != null)
         {
-        return classFor(sAliasFor); // return the result of the compat alias
+        return classFor(sAliasFor);
         }
 
-      // check to see if this was an aliased package
       int cIdx = alias.lastIndexOf('.');
       if (cIdx != -1)
         {
@@ -618,21 +622,23 @@ public final class Genson {
           String className = alias.substring(cIdx);
           alias = packageToUse + className;
           }
-        else if (enforceTypeAliases)
+        else if (enforceTypeAliases && !alias.startsWith("java.") && !alias.startsWith("javax."))
           {
-          if (!alias.startsWith("java.") && !alias.startsWith("javax."))
-            {
-            throw new JsonBindingException(String.format("Unable to find matching type or package alias for %s", alias));
-            }
+          throw new JsonBindingException(String.format("Unable to find matching type or package alias for %s", alias));
           }
         }
 
       clazz = Class.forName(alias, false, effectiveLoader());
-
       aliasClassMap.put(alias, clazz);
-    }
+      }
     return clazz;
-  }
+    }
+
+  public Class<?> classForJsonClassMetadata(String alias) throws ClassNotFoundException
+    {
+    return JsonClassMetadataPolicy.resolveClassMetadata(alias, configuredAliasClassMap, aliasClassMap, aliasPackageMap,
+        compatibilityAliasMap, enforceTypeAliases, effectiveLoader());
+    }
 
   private ClassLoader effectiveLoader() {
     if (loader != null) {
