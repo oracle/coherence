@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -51,7 +51,11 @@ import com.oracle.coherence.grpc.proxy.common.v0.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.common.v0.PagedQueryHelper;
 
 import com.tangosol.internal.util.processor.BinaryProcessors;
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
+
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.grpc.GrpcDependencies;
@@ -312,6 +316,8 @@ public class NettyNamedCacheService
             Comparator<Map.Entry<Binary, Binary>> comparator =
                     deserializeComparator(request.getComparator(), serializer);
 
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+            RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
             if (comparator == null)
                 {
                 holder.runAsync(holder.getAsyncCache().entrySet(filter, holder.entryConsumer(observer)))
@@ -436,6 +442,7 @@ public class NettyNamedCacheService
         EntryProcessor<Binary, Binary, Binary> processor
                 = BinaryHelper.fromByteString(request.getProcessor(), holder.getSerializer());
 
+        RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
         return holder.runAsync(holder.getAsyncCache().invoke(key, processor));
         }
 
@@ -517,6 +524,8 @@ public class NettyNamedCacheService
 
         Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
 
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
         return holder.runAsync(holder.getAsyncCache().invokeAll(filter, processor, callback))
                 .handleAsync((v, err) -> handleErrorOrComplete(err, observer), f_executor);
         }
@@ -559,6 +568,7 @@ public class NettyNamedCacheService
 
         Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = holder.entryConsumer(observer);
 
+        RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
         return holder.runAsync(holder.getAsyncCache().invokeAll(keys, processor, callback))
                 .handleAsync((v, err) -> handleErrorOrComplete(err, observer), f_executor);
         }
@@ -614,6 +624,7 @@ public class NettyNamedCacheService
 
             Consumer<Binary> callback = holder.binaryConsumer(observer);
 
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
             holder.runAsync(holder.getAsyncCache().keySet(filter, callback))
                     .handleAsync((v, err) -> handleErrorOrComplete(err, observer), f_executor);
             }
@@ -928,6 +939,8 @@ public class NettyNamedCacheService
             Filter<Binary>     filter     = ensureFilter(request.getFilter(), serializer);
             Comparator<Binary> comparator = deserializeComparator(request.getComparator(), serializer);
 
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+            RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
             AsyncNamedCache<Binary, Binary> cache = holder.getAsyncCache();
             if (comparator == null)
                 {

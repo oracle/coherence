@@ -16,5 +16,18 @@
     <class name="grpc.client.TestPartitionKey" source="manual"/>
     <class name="grpc.client.UnusableAggregator" source="manual" executable="true"/>
     <class name="grpc.client.Uppercase" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$AnnotatedAggregator" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$AnnotatedComparator" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$AnnotatedExtractor" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$AnnotatedProcessor" source="manual" executable="true"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$PlainAggregator" source="manual"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$PlainComparator" source="manual"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$PlainExtractor" source="manual"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$PlainFilter" source="manual"/>
+    <class name="grpc.client.AbstractGrpcEnforcementIntegrationTest$PlainProcessor" source="manual"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$PlainExtractor" source="manual"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$PlainFilter" source="manual"/>
   </allowed-classes>
 </security-config>
