@@ -15,6 +15,7 @@ import com.tangosol.coherence.component.net.extend.Connection;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
 import com.oracle.coherence.common.base.Blocking;
 import com.tangosol.coherence.config.Config;
+import com.tangosol.io.internal.SerializationBridgeFilters;
 import com.tangosol.internal.net.security.AccessAdapter;
 import com.tangosol.internal.net.service.peer.DefaultPeerDependencies;
 import com.tangosol.internal.net.service.peer.PeerDependencies;
@@ -700,7 +701,8 @@ public abstract class Peer
             try
                 {
                 ByteArrayReadBuffer buf = new ByteArrayReadBuffer(abToken);
-                return ensureSerializer().deserialize(buf.getBufferInput());
+                return SerializationBridgeFilters.deserialize(buf, ensureSerializer(),
+                        SerializationBridgeFilters.identityToken());
                 }
             catch (Exception e)
                 {
@@ -7375,7 +7377,9 @@ public abstract class Peer
                 Connection connection = (Connection) channel0.getConnection();
                 _assert(connection != null);
                 
-                Peer  module   = (Peer) channel0.getReceiver();
+                Peer module = (Peer) channel0.getReceiver();
+                Subject subject = module.assertIdentityToken(module.deserializeIdentityToken(
+                        getIdentityToken()));
                 com.tangosol.net.messaging.Channel.Receiver receiver = module.getReceiver(getReceiverName());
                 
                 if (receiver == null)
@@ -7393,8 +7397,7 @@ public abstract class Peer
                             getProtocolName(),
                             channel0.getSerializer(),
                             receiver,
-                            module.assertIdentityToken(module.deserializeIdentityToken(
-                                    getIdentityToken())),
+                            subject,
                             module.getAccessAdapter()
                             )
                         )
