@@ -28,5 +28,10 @@
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendIT" source="manual"/>
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockExtendProxyIT" source="manual"/>
     <class name="concurrent.locks.PofClusteredRemoteReadWriteLockIT" source="manual"/>
+    <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedCallable" source="manual" executable="true"/>
+    <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedExecutorPredicate" source="manual" executable="true"/>
+    <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$AnnotatedTask" source="manual" executable="true"/>
+    <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$PlainCallable" source="manual"/>
+    <class name="concurrent.executor.RemoteExecutorInstallModeMatrixIT$PlainExecutorPredicate" source="manual"/>
   </allowed-classes>
 </security-config>

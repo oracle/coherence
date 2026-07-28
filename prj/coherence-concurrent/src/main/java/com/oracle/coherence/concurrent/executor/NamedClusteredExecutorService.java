@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -154,7 +154,8 @@ public class NamedClusteredExecutorService
             Remote.Predicate<?> predExisting = m_strategyBuilder.m_predicate;
             if (predExisting != null)
                 {
-                m_strategyBuilder.m_predicate = predExisting.and((Remote.Predicate) predicate);
+                m_strategyBuilder.m_predicate = Predicates.and((Remote.Predicate) predExisting,
+                        (Remote.Predicate) predicate);
                 }
             return this;
             }
