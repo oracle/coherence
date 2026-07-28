@@ -1034,6 +1034,24 @@ public class DaemonPool
         }
 
     /**
+     * Return {@code true} if any active work slot has available work.
+     */
+    protected boolean hasAvailableWork()
+        {
+        DaemonPool.WorkSlot[] aSlot = getWorkSlot();
+        for (int i = 0, c = aSlot == null ? 0 : aSlot.length; i < c; i++)
+            {
+            DaemonPool.WorkSlot slot = aSlot[i];
+            if (slot != null && slot.isActive() && slot.getQueue().isAvailable())
+                {
+                return true;
+                }
+            }
+
+        return false;
+        }
+
+    /**
      * Pop stale or ineligible idle daemons until one can be nudged or the
      * idle stack is exhausted.
      */
@@ -4143,6 +4161,11 @@ public class DaemonPool
 
                 try
                     {
+                    if (pool.hasAvailableWork())
+                        {
+                        return;
+                        }
+
                     super.onWait();
                     }
                 finally
