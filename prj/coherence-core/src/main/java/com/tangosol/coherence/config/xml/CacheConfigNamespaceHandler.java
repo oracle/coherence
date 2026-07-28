@@ -47,6 +47,7 @@ import com.tangosol.coherence.config.xml.preprocessor.ExtendPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.OperationalDefaultsPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.PofSerializerPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SchemeRefPreprocessor;
+import com.tangosol.coherence.config.xml.preprocessor.SSLHostnameVerifierPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.SystemPropertyPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.TCPAcceptorPreprocessor;
 
@@ -216,6 +217,9 @@ public class CacheConfigNamespaceHandler
 
         // resolve ConcurrentProxy mode-aware default before system-property preprocessing
         dep.addElementPreprocessor(ConcurrentProxyPreprocessor.INSTANCE);
+
+        // resolve hostname-verifier system-property fallback before generic system-property preprocessing
+        dep.addElementPreprocessor(SSLHostnameVerifierPreprocessor.INSTANCE);
 
         // add the system property pre-processor
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);

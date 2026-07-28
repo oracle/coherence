@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import com.tangosol.internal.net.ssl.ManagerDependencies;
 import com.tangosol.internal.net.ssl.SSLContextDependencies;
 import com.tangosol.internal.net.ssl.SSLContextProvider;
 import com.tangosol.internal.net.ssl.SSLSocketProviderDefaultDependencies;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.SocketProviderFactory;
@@ -48,6 +49,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 import java.util.concurrent.Executor;
 
@@ -226,6 +228,28 @@ public class SSLSocketProviderDependenciesBuilder
     public ParameterizedBuilder<HostnameVerifier> getHostnameVerifierBuilder()
         {
         return m_bldrHostnameVerifier;
+        }
+
+    /**
+     * Create the built-in default hostname verifier.
+     *
+     * @return the default hostname verifier
+     */
+    public static HostnameVerifier createDefaultHostnameVerifier()
+        {
+        return createDefaultHostnameVerifier(true);
+        }
+
+    /**
+     * Create the built-in default hostname verifier.
+     *
+     * @param fLogReject  {@code true} to log verifier rejections
+     *
+     * @return the default hostname verifier
+     */
+    public static HostnameVerifier createDefaultHostnameVerifier(boolean fLogReject)
+        {
+        return new DefaultHostnameVerifier(fLogReject);
         }
 
     /**
@@ -532,6 +556,28 @@ public class SSLSocketProviderDependenciesBuilder
             return m_sAction;
             }
 
+        /**
+         * Specify whether the configured action came from an unset system
+         * property fallback in shipped configuration.
+         *
+         * @param fSystemPropertyDefault  {@code true} for a system-property default
+         */
+        public void setSystemPropertyDefault(boolean fSystemPropertyDefault)
+            {
+            m_fSystemPropertyDefault = fSystemPropertyDefault;
+            }
+
+        /**
+         * Return whether the configured action came from an unset system
+         * property fallback in shipped configuration.
+         *
+         * @return {@code true} for a system-property default
+         */
+        public boolean isSystemPropertyDefault()
+            {
+            return m_fSystemPropertyDefault;
+            }
+
         @Injectable("instance")
         public void setBuilder(ParameterizedBuilder<HostnameVerifier> builder)
             {
@@ -539,6 +585,7 @@ public class SSLSocketProviderDependenciesBuilder
             }
 
         @Override
+        @SuppressWarnings("removal")
         public HostnameVerifier realize(ParameterResolver resolver, ClassLoader loader, ParameterList listParameters)
             {
             if (m_builder != null)
@@ -548,11 +595,23 @@ public class SSLSocketProviderDependenciesBuilder
                 }
             else if (ACTION_ALLOW.equals(m_sAction))
                 {
-                // the action was set to allow - so allow all connections
-                return (s, sslSession) -> true;
+                if (CoherenceMode.isLegacy())
+                    {
+                    return new AllowHostnameVerifier();
+                    }
+                else if (m_fSystemPropertyDefault)
+                    {
+                    return createDefaultHostnameVerifier();
+                    }
+                else
+                    {
+                    throw new IllegalArgumentException("Hostname verifier action 'allow' is not permitted in "
+                            + CoherenceMode.current().name().toLowerCase(Locale.ROOT)
+                            + " mode; use coherence.mode=legacy only for compatibility.");
+                    }
                 }
             // the action is "default" or no builder or action was specified - so use the default verifier
-            return new DefaultHostnameVerifier();
+            return createDefaultHostnameVerifier();
             }
 
         // ----- data members ------------------------------------------------
@@ -560,6 +619,28 @@ public class SSLSocketProviderDependenciesBuilder
         private String m_sAction;
 
         private ParameterizedBuilder<HostnameVerifier> m_builder;
+
+        private boolean m_fSystemPropertyDefault;
+        }
+
+    // ----- inner class: AllowHostnameVerifier ----------------------------
+
+    /**
+     * Legacy compatibility verifier for {@code action=allow}.
+     */
+    static class AllowHostnameVerifier
+            implements HostnameVerifier
+        {
+        @Override
+        public boolean verify(String sUrlHostname, SSLSession sslSession)
+            {
+            if (!createDefaultHostnameVerifier(false).verify(sUrlHostname, sslSession))
+                {
+                Logger.warn("TLS hostname verification would_reject; mode=legacy; source=allow; peer="
+                        + sUrlHostname);
+                }
+            return true;
+            }
         }
 
     // ----- inner class: DefaultHostnameVerifier ---------------------------
@@ -635,6 +716,16 @@ public class SSLSocketProviderDependenciesBuilder
     static class DefaultHostnameVerifier
             implements HostnameVerifier
         {
+        DefaultHostnameVerifier()
+            {
+            this(true);
+            }
+
+        DefaultHostnameVerifier(boolean fLogReject)
+            {
+            m_fLogReject = fLogReject;
+            }
+
         @Override
         public boolean verify(String sUrlHostname, SSLSession sslSession)
             {
@@ -677,7 +768,7 @@ public class SSLSocketProviderDependenciesBuilder
                     }
                 }
 
-            if (!fMatched)
+            if (!fMatched && m_fLogReject)
                 {
                 Logger.err("DefaultHostnameVerifier rejecting hostname " + sUrlHostname);
                 }
@@ -892,6 +983,8 @@ public class SSLSocketProviderDependenciesBuilder
                 }
             return fMatched;
             }
+
+        private final boolean m_fLogReject;
         }
 
     // ----- inner class: ProviderBuilder -----------------------------------
