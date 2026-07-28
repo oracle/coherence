@@ -72,7 +72,7 @@ public final class SerializationTelemetry
         {
         SerializationRole role = SerializationRole.current();
         String            sMode = modeTag();
-        record(METRIC_FMT_CHECK, sResult, sReason, role, TAG_FMT, nFmt,
+        record(METRIC_FMT_CHECK, sResult, sReason, role, TAG_FMT, String.valueOf(nFmt),
                 "result", sResult,
                 "reason", sReason,
                 "mode", sMode,
@@ -96,7 +96,7 @@ public final class SerializationTelemetry
         {
         SerializationRole role = SerializationRole.current();
         String            sMode = modeTag();
-        record(METRIC_POF_CHECK, sResult, sReason, role, TAG_TYPE_ID, nTypeId,
+        record(METRIC_POF_CHECK, sResult, sReason, role, TAG_TYPE_ID, String.valueOf(nTypeId),
                 "result", sResult,
                 "reason", sReason,
                 "mode", sMode,
@@ -111,6 +111,9 @@ public final class SerializationTelemetry
 
     /**
      * Record a lambda bytecode check.
+     * <p>
+     * This two-argument form preserves the original Slice F tuple shape:
+     * {@code result}, {@code reason}, {@code mode}, and {@code route}.
      *
      * @param sResult  the check result
      * @param sReason  the check reason
@@ -127,14 +130,38 @@ public final class SerializationTelemetry
         }
 
     /**
+     * Record a lambda bytecode check with an additive materialization site tag.
+     * <p>
+     * Consumers must not assume a closed set of {@code site} values.
+     *
+     * @param sResult  the check result
+     * @param sReason  the check reason
+     * @param sSite    the additive materialization site
+     */
+    public static void recordLambdaBytecodeCheck(String sResult, String sReason, String sSite)
+        {
+        SerializationRole role = SerializationRole.current();
+        String            sMode = modeTag();
+        record(METRIC_LAMBDA_BYTECODE_CHECK, sResult, sReason, role, "site", value(sSite),
+                "result", sResult,
+                "reason", sReason,
+                "mode", sMode,
+                "route", role.name(),
+                "site", value(sSite));
+        }
+
+    /**
      * Record a remote executable policy check.
      * <p>
-     * LEGACY shadow checks ({@code result=would_reject}) are keyed by
-     * {@code result}, {@code class}, {@code reason}, and {@code role}; the mode
-     * is implicit and the class is retained for per-class dry-run diagnostics.
-     * Live DEV and PROD checks ({@code result=allowed|rejected}) are keyed by
-     * {@code reason}, {@code role}, {@code result}, and {@code mode}; the class
-     * is omitted to bound MBean cardinality, and the MBean counter is updated.
+     * LEGACY shadow checks ({@code result=would_reject}) keep the Slice A tuple
+     * shape and are keyed by {@code result}, {@code class}, {@code reason}, and
+     * {@code role}; the mode is implicit and the class is retained for per-class
+     * dry-run diagnostics. Live DEV and PROD checks
+     * ({@code result=allowed|rejected}) are keyed by {@code reason},
+     * {@code role}, {@code result}, {@code mode}, and additive
+     * {@code sub_reason}; the class is omitted to bound MBean cardinality, and
+     * the MBean counter is updated. Consumers must not assume a closed set of
+     * {@code sub_reason} values.
      *
      * @param sResult  the check result
      * @param clz      the denied class
@@ -144,6 +171,22 @@ public final class SerializationTelemetry
      */
     public static void recordExecutablePolicyCheck(String sResult, Class<?> clz, OperationReason reason,
                                                    SerializationRole role, Subject subject)
+        {
+        recordExecutablePolicyCheck(sResult, clz, reason, role, subject, SUB_REASON_POLICY);
+        }
+
+    /**
+     * Record a remote executable policy check with a sub-reason.
+     *
+     * @param sResult     the check result
+     * @param clz         the denied class
+     * @param reason      the operation category
+     * @param role        the serialization role
+     * @param subject     the current subject, if known
+     * @param sSubReason  the additive sub-reason tag for live tuples
+     */
+    public static void recordExecutablePolicyCheck(String sResult, Class<?> clz, OperationReason reason,
+                                                   SerializationRole role, Subject subject, String sSubReason)
         {
         String sClass  = clz == null ? "null" : clz.getName();
         String sReason = reason == null ? "-" : reason.name();
@@ -165,13 +208,15 @@ public final class SerializationTelemetry
                             "reason", sReason,
                             "role", sRole,
                             "result", sResult,
-                            "mode", sMode),
+                            "mode", sMode,
+                            "sub_reason", value(sSubReason)),
                     s -> new LongAdder()).increment();
             incrementMBeanCounter(new CounterKey(METRIC_EXECUTABLE_POLICY_CHECK, sResult, sReason,
                     roleResolved, sMode, null, null));
             }
 
-        if ("rejected".equals(sResult) || "would_reject".equals(sResult))
+        if ("would_reject".equals(sResult)
+                || ("rejected".equals(sResult) && SUB_REASON_POLICY.equals(sSubReason)))
             {
             logRejection("remote-executable-policy", sRole, subject, sClass, sReason);
             }
@@ -258,13 +303,28 @@ public final class SerializationTelemetry
         return formatRejection(sGate, sRoute, subject, sDeniedClass, sReason);
         }
 
+    /**
+     * Class-level executable policy sub-reason.
+     */
+    public static final String SUB_REASON_POLICY = "policy";
+
+    /**
+     * Dynamic remote mode gate sub-reason.
+     */
+    public static final String SUB_REASON_MODE_GATE = "mode_gate";
+
+    /**
+     * Deny-list sub-reason.
+     */
+    public static final String SUB_REASON_DENYLIST = "denylist";
+
     // ----- helper methods ---------------------------------------------------
 
     private static void record(String sMetric, String sResult, String sReason, SerializationRole role,
-                               String sExtraTag, Integer nExtraValue, String... asTags)
+                               String sExtraTag, String sExtraValue, String... asTags)
         {
         COUNTERS.computeIfAbsent(metricKey(METRIC_PREFIX + sMetric, asTags), s -> new LongAdder()).increment();
-        incrementMBeanCounter(new CounterKey(sMetric, sResult, sReason, role, modeTag(), sExtraTag, nExtraValue));
+        incrementMBeanCounter(new CounterKey(sMetric, sResult, sReason, role, modeTag(), sExtraTag, sExtraValue));
         }
 
     private static String metricKey(String sMetric, String... asTags)
@@ -484,7 +544,7 @@ public final class SerializationTelemetry
     // ----- inner class: CounterKey -----------------------------------------
 
     private record CounterKey(String metric, String result, String reason, SerializationRole route, String mode,
-                              String extraTagName, Integer extraTagValue)
+                              String extraTagName, String extraTagValue)
         {
         private String toMBeanName()
             {
@@ -497,7 +557,7 @@ public final class SerializationTelemetry
 
             if (extraTagName() != null)
                 {
-                sb.append(',').append(extraTagName()).append('=').append(extraTagValue());
+                sb.append(',').append(extraTagName()).append('=').append(objectNameValue(extraTagValue()));
                 }
 
             return sb.toString();
