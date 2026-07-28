@@ -230,7 +230,7 @@ class GrpcAuthenticationIT
         put(channel, observer, nCacheId, 3);
 
         assertUsernameAndPasswordToken("grpc-user", "secret");
-        assertSubject(CapturingAuthorizer.s_subject.get(), "grpc-user");
+        assertSubject(awaitCapturedSubject("grpc-user"), "grpc-user");
         }
 
     // ----- helper methods -------------------------------------------------
@@ -366,6 +366,25 @@ class GrpcAuthenticationIT
         {
         assertThat(subject, is(notNullValue()));
         assertTrue(subject.getPrincipals().stream().anyMatch(principal -> sUser.equals(principal.getName())));
+        }
+
+    private static Subject awaitCapturedSubject(String sUser) throws InterruptedException
+        {
+        long ldtStop = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
+        Subject subject;
+        do
+            {
+            subject = CapturingAuthorizer.s_subject.get();
+            if (subject != null
+                    && subject.getPrincipals().stream().anyMatch(principal -> sUser.equals(principal.getName())))
+                {
+                return subject;
+                }
+            Thread.sleep(100L);
+            }
+        while (System.currentTimeMillis() < ldtStop);
+
+        return subject;
         }
 
     // ----- inner class: TestIdentityAsserter -----------------------------
