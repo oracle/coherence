@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,6 +48,7 @@ import org.apache.lucene.util.CharsRef;
  *   <li>Custom analyzers</li>
  *   <li>Stop word removal</li>
  *   <li>Synonym expansion (from map, Solr, or WordNet files)</li>
+ *   <li>Literal user query parsing, with Lucene syntax characters escaped</li>
  *   <li>Custom query preprocessing</li>
  *   <li>Custom parser configuration and custom parser injection</li>
  * </ul>
@@ -98,8 +99,10 @@ public class LuceneQueryParser
         }
 
     /**
-     * Parses the given user query string into a Lucene {@link Query}. This
-     * method is thread-safe.
+     * Parses the given user query string into a Lucene {@link Query}. Lucene
+     * syntax characters are escaped so free-form user text can contain
+     * punctuation such as question marks, plus signs, and colons. This method
+     * is thread-safe.
      *
      * @param userQuery the user query string
      *
@@ -109,7 +112,7 @@ public class LuceneQueryParser
         {
         try
             {
-            return f_parser.parse(f_preprocessor.apply(userQuery));
+            return f_parser.parse(QueryParser.escape(f_preprocessor.apply(userQuery)));
             }
         catch (ParseException e)
             {
@@ -376,7 +379,7 @@ public class LuceneQueryParser
                 }
             return new WrappingAnalyzer(m_analyzer, m_stopWords, mergedSynonymMap);
             }
-        
+
         // ---- data members ------------------------------------------------
 
         /**

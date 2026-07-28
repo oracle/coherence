@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -64,12 +64,11 @@ import org.apache.lucene.util.BytesRef;
 /**
  * A Coherence index implementation that uses Apache Lucene for full-text search capabilities.
  * This implementation maintains separate Lucene indices for each cache partition and
- * supports configurable text analysis, compression, and storage options.
+ * supports configurable text analysis and storage options.
  * <p>
  * The index can be configured using a fluent builder API:
  * <pre>
  * cache.addIndex(new LuceneIndex&lt;&gt;(Document::getText)
- *     .compressionMode(CompressionMode.MAX)
  *     .analyzer(StandardAnalyzer::new)
  *     .directory(partId -> new MMapDirectory(Path.of("index/part-" + partId)))
  *     .enableInverseMap());

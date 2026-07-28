@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -149,6 +149,30 @@ class LuceneQueryParserTest
         LuceneQueryParser parser = LuceneQueryParser.create(TITLE);
         Query query = parser.parse("foo");
         assertThat(query, is(notNullValue()));
+        }
+
+    @Test
+    void testFreeFormQuestionIsParsedAsLiteralText()
+        {
+        LuceneQueryParser parser = LuceneQueryParser.create(TITLE);
+        Query query = parser.parse("How can I implement PortableType in Coherence?");
+
+        assertThat(query, is(notNullValue()));
+        assertThat(query.toString(), containsString("title():portabletype"));
+        assertThat(query.toString(), containsString("title():coherence"));
+        }
+
+    @Test
+    void testLuceneSyntaxCharactersAreEscapedInUserText()
+        {
+        LuceneQueryParser parser = LuceneQueryParser.create(TITLE);
+        Query query = parser.parse("C++ tips for foo:bar and search/path?");
+
+        assertThat(query, is(notNullValue()));
+        assertThat(query.toString(), containsString("title():tips"));
+        assertThat(query.toString(), containsString("title():foo:bar"));
+        assertThat(query.toString(), containsString("title():search"));
+        assertThat(query.toString(), containsString("title():path"));
         }
 
     @Test
