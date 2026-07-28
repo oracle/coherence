@@ -207,7 +207,10 @@ public class Index implements Closeable
      */
     public int getLength()
         {
-        checkIndexIsNotCleared();
+        if (cleared)
+            {
+            return 0;
+            }
         return hnswlib.getIndexLength(reference);
         }
 
@@ -218,7 +221,10 @@ public class Index implements Closeable
      */
     public int getMaxLength()
         {
-        checkIndexIsNotCleared();
+        if (cleared)
+            {
+            return 0;
+            }
         return hnswlib.getMaxIndexLength(reference);
         }
 
@@ -229,7 +235,10 @@ public class Index implements Closeable
      */
     public int getIndexSize()
         {
-        checkIndexIsNotCleared();
+        if (cleared)
+            {
+            return 0;
+            }
         return hnswlib.getIndexSize(reference);
         }
 
@@ -422,7 +431,10 @@ public class Index implements Closeable
      */
     public boolean hasId(int id)
         {
-        checkIndexIsNotCleared();
+        if (cleared)
+            {
+            return false;
+            }
         return hnswlib.hasId(reference, id) == RESULT_SUCCESSFUL;
         }
 
@@ -435,7 +447,10 @@ public class Index implements Closeable
      */
     public Optional<float[]> getData(int id)
         {
-        checkIndexIsNotCleared();
+        if (cleared)
+            {
+            return Optional.empty();
+            }
         float[] vector = new float[dimension];
         int success = hnswlib.getData(reference, id, vector, dimension);
         if (success == RESULT_SUCCESSFUL)
