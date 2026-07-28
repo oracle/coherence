@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -99,6 +99,7 @@ public class MetricsStartupModeTests
         // Use ephemeral port
         propServer.put("coherence.metrics.http.port", "0");
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
         try (CoherenceClusterMember member1 = startCacheServer(sPrefix + "1", propServer);
@@ -124,6 +125,7 @@ public class MetricsStartupModeTests
         Properties propServer = new Properties();
 
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.management.extendedmbeanname", "true");
 
         try (CoherenceClusterMember member = startCacheServer(sName, propServer))
@@ -170,6 +172,7 @@ public class MetricsStartupModeTests
         Properties            propServer   = new Properties();
 
         propServer.put("coherence.metrics.http.enabled", "true");
+        propServer.put("coherence.metrics.http.auth", "none");
         propServer.put("coherence.metrics.http.port", Integer.toString(nMetricsPort));
         propServer.put("coherence.management.extendedmbeanname", "true");
 
@@ -189,6 +192,18 @@ public class MetricsStartupModeTests
     public void validateInvalidAuthConfig() throws IOException
         {
         testFailedMetricsSSLConfiguration("coherence.metrics.http.auth", "notvalid");
+        }
+
+    @Test
+    public void validateCertAuthRequiresSSL() throws IOException
+        {
+        testFailedMetricsSSLConfiguration("coherence.metrics.http.auth", "cert");
+        }
+
+    @Test
+    public void validateCertBasicAuthRequiresSSL() throws IOException
+        {
+        testFailedMetricsSSLConfiguration("coherence.metrics.http.auth", "cert+basic");
         }
 
     @Test
@@ -228,12 +243,12 @@ public class MetricsStartupModeTests
             assertThat("validate a HTTP metrics url returned for each server by lookupHTTPMetricsURL, none since auth set to invalid value",
                 colMetricsURL.size(), is(0));
             assertThat("failed to find log message detecting metrics proxy configuration invalid in server log",
-                validateLogFileContainsIllegalArgumentException(new File(ensureOutputDir("metrics"),
+                validateLogFileContainsAuthConfigurationException(new File(ensureOutputDir("metrics"),
                     sMemberName  + ".out")), is(true));
             }
         }
 
-    private static boolean validateLogFileContainsIllegalArgumentException(File fileLog) throws IOException
+    private static boolean validateLogFileContainsAuthConfigurationException(File fileLog) throws IOException
         {
         FileReader     fileReader     = new FileReader( fileLog);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
@@ -241,7 +256,8 @@ public class MetricsStartupModeTests
         String line;
         while ((line = bufferedReader.readLine()) != null)
             {
-            if (line.contains("<Error>") && line.contains("Metrics") && line.contains("IllegalArgumentException"))
+            if (line.contains("<Error>") && line.contains("Metrics")
+                    && (line.contains("IllegalArgumentException") || line.contains("IllegalStateException")))
                 {
                 return true;
                 }

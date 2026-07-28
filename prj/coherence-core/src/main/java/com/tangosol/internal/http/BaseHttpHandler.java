@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpsExchange;
+
+import com.tangosol.coherence.http.AbstractGenericHttpServer;
 
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.net.Service;
@@ -32,16 +34,26 @@ import java.net.URLDecoder;
 
 import java.nio.charset.StandardCharsets;
 
+import java.security.Principal;
+import java.security.cert.Certificate;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import java.util.function.Function;
 
 import java.util.zip.GZIPOutputStream;
+
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+
+import javax.security.auth.Subject;
 
 /**
  * A base class for {@link HttpHandler} implementations.
@@ -279,6 +291,16 @@ public abstract class BaseHttpHandler
             f_uriRequest       = uriBase.resolve(exchange.getRequestURI());
             f_queryParameters  = createQueryParameter(exchange);
             f_resourceRegistry = new SimpleResourceRegistry();
+
+            Subject subject = (Subject) exchange.getAttribute(AbstractGenericHttpServer.ATTR_SUBJECT);
+            if (subject == null && exchange instanceof HttpsExchange)
+                {
+                subject = getSubjectFromSession(((HttpsExchange) exchange).getSSLSession());
+                }
+            if (subject != null)
+                {
+                f_resourceRegistry.registerResource(Subject.class, subject);
+                }
             }
 
         // ----- HttpRequest methods ----------------------------------------
@@ -435,6 +457,27 @@ public abstract class BaseHttpHandler
                 nLast = nNext + 1;
                 }
             return result;
+            }
+
+        /**
+         * Create a {@link Subject} from a verified TLS peer.
+         *
+         * @param session  the SSL session
+         *
+         * @return the subject, or {@code null} when the peer is not verified
+         */
+        private static Subject getSubjectFromSession(SSLSession session)
+            {
+            try
+                {
+                Set<Principal> setPrincipals = Collections.singleton(session.getPeerPrincipal());
+                Set<Certificate> setCredentials = new HashSet<>(Arrays.asList(session.getPeerCertificates()));
+                return new Subject(true, setPrincipals, setCredentials, Collections.emptySet());
+                }
+            catch (SSLPeerUnverifiedException e)
+                {
+                return null;
+                }
             }
 
         // ----- data members -----------------------------------------------

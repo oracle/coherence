@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -153,6 +153,7 @@ public class DefaultHttpServer
             }
         else
             {
+            ensureCertAuthUsesSsl();
             server = HttpServer.create(addr, 0);
             }
 
@@ -171,6 +172,17 @@ public class DefaultHttpServer
             }
 
         return server;
+        }
+
+    /**
+     * Ensure certificate authentication is only used with SSL.
+     */
+    protected void ensureCertAuthUsesSsl()
+        {
+        if (isAuthMethodCert())
+            {
+            throw new IllegalStateException("Certificate authentication requires an SSL socket provider");
+            }
         }
 
     // ----- inner class: HttpServerContainer -------------------------------

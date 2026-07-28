@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -327,20 +327,15 @@ public abstract class AbstractGenericHttpServer<R>
      */
     protected Subject authenticate(String sAuth)
         {
-        if (sAuth != null && sAuth.startsWith("Basic "))
+        try
             {
-            sAuth = sAuth.substring("Basic ".length());
-
-            String[] values = fromBase64(sAuth).split(":");
-            if (values.length == 2)
+            BasicAuthentication.Credentials credentials = BasicAuthentication.parse(sAuth);
+            if (credentials != null)
                 {
-                String sUsername = values[0];
-                String sPassword = values[1];
-
                 try
                     {
                     return getIdentityAsserter().assertIdentity(
-                            new UsernameAndPassword(sUsername, sPassword),
+                            new UsernameAndPassword(credentials.getUsername(), credentials.getPassword()),
                             getParentService());
                     }
                 catch (SecurityException ignore)
@@ -348,6 +343,10 @@ public abstract class AbstractGenericHttpServer<R>
                     // fall through and return null
                     }
                 }
+            }
+        catch (IllegalArgumentException ignore)
+            {
+            // fall through and return null
             }
 
         return null;

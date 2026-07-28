@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -165,6 +165,7 @@ public class ManagementStartupModeTests
 
         propServer.put("coherence.management", "all");
         propServer.put("coherence.management.http", "all");
+        propServer.put("coherence.management.http.auth", "none");
         propServer.put("coherence.management.http.override-port", Integer.toString(nMgmtPort));
 
         try (CoherenceClusterMember member = startCacheServer(SERVER_MEMBERNAME, PROJECT_NAME, null, propServer, true))
@@ -192,6 +193,7 @@ public class ManagementStartupModeTests
 
         propServer.put("coherence.management",      "all");
         propServer.put("coherence.management.http", "all");
+        propServer.put("coherence.management.http.auth", "none");
 
         // harden this test to not used a fixed port, intermittently the port was in use by another process.
         propServer.put("coherence.management.http.override-port", "0");
@@ -231,6 +233,7 @@ public class ManagementStartupModeTests
 
         System.setProperty("coherence.management", "all");
         System.setProperty("coherence.management.http", "inherit");
+        System.setProperty("coherence.management.http.auth", "none");
         System.setProperty("coherence.management.remote", "true");
         System.setProperty("coherence.management.http.override-port", String.valueOf(nMgmtPort));
         try
@@ -246,6 +249,7 @@ public class ManagementStartupModeTests
             AbstractFunctionalTest._shutdown();
             System.clearProperty("coherence.management");
             System.clearProperty("coherence.management.http");
+            System.clearProperty("coherence.management.http.auth");
             System.clearProperty("coherence.management.remote");
             System.clearProperty("coherence.management.http.override-port");
             }
@@ -269,6 +273,7 @@ public class ManagementStartupModeTests
         Properties propServer  = new Properties();
 
         propServer.setProperty("coherence.management", sMgmt);
+        propServer.setProperty("coherence.management.http.auth", "none");
         propServer.setProperty("coherence.management.http.override-port", "0");
 
         if (sHttpMgmt != null)

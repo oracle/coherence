@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.reporter;
@@ -254,6 +254,7 @@ public class JMXQueryHandler
         if (FMultiTenant == null)
             {
             String sPattern = replaceMacros(m_sQueryTemp, null);
+            ReporterSecurity.validateObjectNamePattern(sPattern, "reporter-core");
             try
                 {
                 Optional<ObjectName> optName = getMBeanServer()
@@ -348,10 +349,18 @@ public class JMXQueryHandler
                  columnLocator.configure(xmlColDef, this, m_source);
                  mapColumns.put(getColumnKey(xmlColDef), columnLocator);
                  }
+             catch (ReporterSecurity.ReporterSecurityException e)
+                 {
+                 throw e;
+                 }
              catch (IllegalArgumentException e)
                  {
                  // Missing column-ref is already logged. See getColumnCfg()
                  return null;
+                 }
+             catch (SecurityException e)
+                 {
+                 throw e;
                  }
              catch (Exception e) // ClassNotFoundException, InstantiationException, IllegalAccessException
                  {
@@ -392,7 +401,8 @@ public class JMXQueryHandler
 
         if (sTypeValue.equals(VALUE_CUSTOM))
             {
-            sClass = xmlColumn.getSafeElement(TAG_CLASS).getString();
+            ReporterSecurity.rejectColumnClass(sTypeValue, xmlColumn.getSafeElement(TAG_CLASS).getString());
+            return null;
             }
         else
             {
@@ -413,7 +423,8 @@ public class JMXQueryHandler
 
         if (sClass == null || sClass.length() == 0)
             {
-            sClass = sTypeValue;
+            ReporterSecurity.rejectColumnClass(sTypeValue, sClass);
+            return null;
             }
 
         try
@@ -542,6 +553,7 @@ public class JMXQueryHandler
             {
             String      sTemplate  = m_sQueryTemp;
             String      sQuery     = replaceMacros(sTemplate, null);
+            ReporterSecurity.validateObjectNamePattern(sQuery, "reporter-core");
             m_mbeanQuery = query = new MBeanQuery(sQuery, getMBeanServer());
             }
         return query;
@@ -664,6 +676,26 @@ public class JMXQueryHandler
         return m_source == null ? null : m_source.getMBeanServer();
         }
 
+    /**
+    * Set the provenance of the current report definition.
+    *
+    * @param source  the report source
+    */
+    public void setReportSource(ReporterSecurity.ReportSource source)
+        {
+        m_reportSource = source == null ? ReporterSecurity.ReportSource.UNKNOWN : source;
+        }
+
+    /**
+    * Return the current report definition provenance.
+    *
+    * @return the report source
+    */
+    public ReporterSecurity.ReportSource getReportSource()
+        {
+        return m_reportSource;
+        }
+
     // ----- data members ----------------------------------------------------
 
     /**
@@ -745,6 +777,11 @@ public class JMXQueryHandler
     * Whether MBeans with a multi-tenant attribute exist.
     */
     protected Boolean m_FMultiTenant;
+
+    /**
+    * The provenance of the current report definition.
+    */
+    protected ReporterSecurity.ReportSource m_reportSource = ReporterSecurity.ReportSource.UNKNOWN;
 
     /**
     * A static Map between the String name of the macro and the implementation of it.
