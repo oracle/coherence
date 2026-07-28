@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,6 +121,7 @@ public class NamedTopicTests
     public static void setup() throws Exception
         {
         System.setProperty("coherence.topic.publisher.close.timeout", "2s");
+        System.setProperty("coherence.topic.reconnect.wait", "1s");
 
         String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
         System.setProperty("coherence.localhost", sHost);
@@ -141,7 +142,7 @@ public class NamedTopicTests
         CompletableFuture<Subscriber.Element<String>> future1 = foo.receive();
         CompletableFuture<Subscriber.Element<String>> future2 = foo.receive();
 
-        Thread.sleep(5000);
+        Thread.sleep(500);
 
         topic.destroySubscriberGroup("foo");
 
@@ -220,6 +221,7 @@ public class NamedTopicTests
                             JMXManagementMode.ALL,
                             IPv4Preferred.yes(),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
+                            SystemProperty.of("coherence.topic.reconnect.wait", "1s"),
                             SystemProperty.of("coherence.management.remote", "true"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY,

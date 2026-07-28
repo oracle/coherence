@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -76,6 +76,12 @@
     </topic-mapping>
 
     <topic-mapping>
+      <topic-name>pof-tiny-rewindable*</topic-name>
+      <scheme-name>pof-tiny-topic-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
+    </topic-mapping>
+
+    <topic-mapping>
       <topic-name>pof-fixed*</topic-name>
       <scheme-name>pof-fixed-scheme</scheme-name>
       <value-type>java.lang.String</value-type>
@@ -139,6 +145,12 @@
           <param-value>true</param-value>
         </init-param>
       </init-params>
+    </topic-mapping>
+
+    <topic-mapping>
+      <topic-name>java-tiny-rewindable*</topic-name>
+      <scheme-name>java-tiny-topic-scheme</scheme-name>
+      <value-type>java.lang.String</value-type>
     </topic-mapping>
 
     <topic-mapping>
@@ -232,6 +244,14 @@
     </paged-topic-scheme>
 
     <paged-topic-scheme>
+      <scheme-name>pof-tiny-topic-scheme</scheme-name>
+      <scheme-ref>common-pof-topic-scheme</scheme-ref>
+      <page-size>10</page-size>
+      <retain-consumed>true</retain-consumed>
+      <element-calculator>FIXED</element-calculator>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
       <scheme-name>common-pof-topic-scheme</scheme-name>
       <service-name>pof-topic-service</service-name>
       <serializer>pof</serializer>
@@ -241,6 +261,7 @@
       <page-size system-property="page.size">100B</page-size>
       <retain-consumed>{retain-values false}</retain-consumed>
       <subscriber-timeout system-property="coherence.topic.subscriber.timeout"/>
+      <reconnect-wait system-property="coherence.topic.reconnect.wait"/>
     </paged-topic-scheme>
 
     <paged-topic-scheme>
@@ -253,10 +274,19 @@
       <high-units>{high-units 0B}</high-units>
       <retain-consumed>{retain-values false}</retain-consumed>
       <element-calculator>{calculator BINARY}</element-calculator>
+      <reconnect-wait system-property="coherence.topic.reconnect.wait"/>
     </paged-topic-scheme>
 
     <paged-topic-scheme>
       <scheme-name>java-fixed-scheme</scheme-name>
+      <scheme-ref>java-topic-scheme</scheme-ref>
+      <page-size>10</page-size>
+      <retain-consumed>true</retain-consumed>
+      <element-calculator>FIXED</element-calculator>
+    </paged-topic-scheme>
+
+    <paged-topic-scheme>
+      <scheme-name>java-tiny-topic-scheme</scheme-name>
       <scheme-ref>java-topic-scheme</scheme-ref>
       <page-size>10</page-size>
       <retain-consumed>true</retain-consumed>

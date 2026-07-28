@@ -589,7 +589,7 @@ public abstract class AbstractNamedTopicTests
     public void shouldFillAndEmptyOneByOne()
             throws Exception
         {
-        int                nCount = 1000;
+        int                nCount = FILL_AND_EMPTY_MESSAGE_COUNT;
         NamedTopic<String> topic  = ensureTopic();
         String             sGroup = ensureGroupName();
 
@@ -1169,7 +1169,7 @@ public abstract class AbstractNamedTopicTests
         String             sName      = topic.getName();
         PagedTopicCaches   caches     = new PagedTopicCaches(sName, (PagedTopicService) service);
         int                cbPageSize = getServerDependencies(topic.getName(), PagedTopicDependencies::getPageCapacity);
-        int                cMessage     = cbPageSize * caches.getPartitionCount() * 3;
+        int                cMessage   = cbPageSize * caches.getChannelCount() * 3;
 
         Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
             cbPageSize, lessThanOrEqualTo(100));
@@ -1184,7 +1184,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i = 0; i < cMessage; i++)
                 {
-                publisher.publish("element-" + i).get(2, TimeUnit.MINUTES);
+                publisher.publish("element-" + i);
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
 
@@ -1322,7 +1322,7 @@ public abstract class AbstractNamedTopicTests
         String             sName      = topic.getName();
         PagedTopicCaches   caches     = new PagedTopicCaches(sName, (PagedTopicService) service);
         int                cbPageSize = getServerDependencies(topic.getName(), PagedTopicDependencies::getPageCapacity);
-        int                cMessage     = cbPageSize * caches.getPartitionCount() * 3;
+        int                cMessage   = cbPageSize * caches.getChannelCount() * 3;
 
         Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
             cbPageSize, lessThanOrEqualTo(100));
@@ -1337,7 +1337,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i = 0; i < cMessage; i++)
                 {
-                publisher.publish("element-" + i).get(2, TimeUnit.MINUTES);
+                publisher.publish("element-" + i);
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
 
@@ -1380,7 +1380,7 @@ public abstract class AbstractNamedTopicTests
         String             sName      = topic.getName();
         PagedTopicCaches   caches     = new PagedTopicCaches(sName, (PagedTopicService) service);
         int                cbPageSize = getServerDependencies(topic.getName(), PagedTopicDependencies::getPageCapacity);
-        int                cMessage     = cbPageSize * caches.getPartitionCount() * 3;
+        int                cMessage   = cbPageSize * caches.getChannelCount() * 3;
 
         Assume.assumeThat("Test only applies if paged-topic-scheme sets page-size to a much lower value than default page-size",
             cbPageSize, lessThanOrEqualTo(100));
@@ -1395,7 +1395,7 @@ public abstract class AbstractNamedTopicTests
             {
             for (int i = 0; i < cMessage; i++)
                 {
-                publisher.publish("element-" + i).get(2, TimeUnit.MINUTES);
+                publisher.publish("element-" + i);
                 }
             publisher.flush().get(2, TimeUnit.MINUTES);
 
@@ -2314,7 +2314,7 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic        = ensureTopic();
         String             sPrefix      = "Element-";
         String             sGroup       = ensureGroupName();
-        int                nCount       = 300;
+        int                nCount       = COME_AND_GO_MESSAGES_PER_CHANNEL;
         Element<String>    element;
         int                cChannel;
 
@@ -2343,14 +2343,15 @@ public abstract class AbstractNamedTopicTests
                         {
                         String sMsg = sPrefix + c + "-" + i;
                         list.add(sMsg);
-                        Status metadata = publisher.publish(sMsg).get(2, TimeUnit.MINUTES);
-                        listLog.add("Sent: " + sMsg + " to " + metadata.getPosition());
+                        publisher.publish(sMsg);
+                        listLog.add("Sent: " + sMsg);
                         cMessages++;
                         }
 
                     mapSent.put(c, list);
                     mapReceived.put(c, new ArrayList<>());
                     }
+                publisher.flush().get(2, TimeUnit.MINUTES);
                 }
 
             Set<ChannelPosition>   setPosition = new HashSet<>();
@@ -2747,7 +2748,8 @@ public abstract class AbstractNamedTopicTests
         NamedTopic<String> topic    = ensureTopic();
         AtomicLong         cPending = new AtomicLong();
         AtomicLong         cReceive = new AtomicLong();
-        long               nHigh    = CacheFactory.getCluster().getDependencies().getPublisherCloggedCount();
+        long               nHigh    = Math.min(CacheFactory.getCluster().getDependencies().getPublisherCloggedCount(),
+                                      THROTTLE_PENDING_RECEIVE_COUNT);
 
         try (Subscriber<String> subscriber = topic.createSubscriber(inGroup(ensureGroupName() + "subscriber")))
             {
@@ -3348,19 +3350,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekGroupSubscriberForwards() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-3");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-3");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                 fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10001; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -3380,7 +3382,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber two on by receiving pages (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3420,7 +3422,7 @@ public abstract class AbstractNamedTopicTests
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < SEEK_BUFFER_MESSAGE_COUNT; i++)
                 {
                 String sMsg   = "element-" + i + sSuffix;
                 CompletableFuture<Status> future = publisher.publish(sMsg);
@@ -3440,7 +3442,7 @@ public abstract class AbstractNamedTopicTests
             // move subscriber two on by receiving pages
             // (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < SEEK_BUFFER_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3451,7 +3453,7 @@ public abstract class AbstractNamedTopicTests
 
             // Read some messages from subscriber one before seeking, as we buffer
             // we should have fetched the page back and need to clear the buffer on seeking
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < SEEK_BUFFER_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -3486,19 +3488,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberForwardsToEndOfPage() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-4");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-4");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10019; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -3516,7 +3518,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber two on by receiving pages (we'll then seek subscriber one to the same place)
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 5019; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3562,14 +3564,14 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberForwardsToEndOfTopic() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-5");
-        int                cMsg    = 10019;
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-5");
+        int                cMsg    = SEEK_MESSAGE_COUNT;
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
                           fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3615,19 +3617,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberForwardsToEndOfTopicWhereTopicEndsOnPageEnd() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-6");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-6");
         TopicService       service = topic.getTopicService();
 
         Assume.assumeTrue("Test skipped for remote topics", service instanceof PagedTopicService);
 
         PagedTopicCaches caches  = new PagedTopicCaches(topic.getName(), (PagedTopicService) service, false);
-        int              cMsg    = 10019;
+        int              cMsg    = SEEK_MESSAGE_COUNT;
         boolean          fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
         int                       i;
@@ -3699,14 +3701,14 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberForwardsPastEndOfTopic() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-5");
-        int                cMsg    = 10019;
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-5");
+        int                cMsg    = SEEK_MESSAGE_COUNT;
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
@@ -3751,19 +3753,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekGroupSubscriberBackwards() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-3");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-3");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10001; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -3781,7 +3783,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -3789,7 +3791,7 @@ public abstract class AbstractNamedTopicTests
             future.get(2, TimeUnit.MINUTES);
 
             // move subscriber two not as far as subscriber one by receiving fewer messages (we'll then seek subscriber one back to the same place)
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3818,19 +3820,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekGroupSubscriberBackAndResetCommitRewindableTopic() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-3");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-3");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10001; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -3848,7 +3850,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -3859,7 +3861,7 @@ public abstract class AbstractNamedTopicTests
             System.err.println("Committed One at: " + commitResult.getPosition());
 
             // move subscriber two not as far as subscriber one by receiving fewer messages (we'll then seek subscriber one back to the same place)
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3892,7 +3894,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekGroupSubscriberBackAndResetCommit() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-4");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-4");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
@@ -3904,13 +3906,13 @@ public abstract class AbstractNamedTopicTests
         try (NamedTopicSubscriber<String> subscriberOne = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "one"));
              NamedTopicSubscriber<String> subscriberTwo = (NamedTopicSubscriber<String>) topic.createSubscriber(inGroup(sGroupPrefix + "two")))
             {
-            // publish a lot os messages, so we have multiple pages spread over all the partitions
+            // publish enough messages to span multiple pages on the tiny test topic
             CompletableFuture<Status> futurePublish = null;
             int                       nChannel      = 1;
 
             try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
                 {
-                for (int i = 0; i < 10001; i++)
+                for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                     {
                     futurePublish = publisher.publish("element-" + i);
                     }
@@ -3922,7 +3924,7 @@ public abstract class AbstractNamedTopicTests
 
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -3933,7 +3935,7 @@ public abstract class AbstractNamedTopicTests
             System.err.println("Committed One at: " + commitResult.getPosition());
 
             // move subscriber two not as far as subscriber one by receiving fewer messages (we'll then seek subscriber one back to the same place)
-            for (int i = 0; i < 5000; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -3966,19 +3968,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberBackwardsToEndOfPage() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-4");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-4");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10019; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -3995,7 +3997,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -4003,7 +4005,7 @@ public abstract class AbstractNamedTopicTests
             future.get(2, TimeUnit.MINUTES);
 
             // move subscriber two not as far as subscriber one by receiving fewer messages (we'll then seek subscriber one back to the same place)
-            for (int i = 0; i < 5019; i++)
+            for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                 {
                 future = subscriberTwo.receive();
                 }
@@ -4048,19 +4050,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberBackToBeginningOfTopic() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-4");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-4");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10019; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -4077,7 +4079,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -4110,19 +4112,19 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekAnonymousSubscriberBackBeforeBeginningOfTopic() throws Exception
         {
-        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-rewindable-4");
+        NamedTopic<String> topic   = ensureTopic(m_sSerializer + "-tiny-rewindable-4");
         boolean            fRetain = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
         Assume.assumeThat("Test only applies when paged-topic-scheme has retain-consumed configured",
             fRetain, is(true));
 
-        // publish a lot os messages, so we have multiple pages spread over all the partitions
+        // publish enough messages to span multiple pages on the tiny test topic
         CompletableFuture<Status> futurePublish = null;
         int                       nChannel      = 1;
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10019; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -4139,7 +4141,7 @@ public abstract class AbstractNamedTopicTests
             {
             // move subscriber one on by receiving pages
             CompletableFuture<Element<String>> future = null;
-            for (int i = 0; i < 8000; i++)
+            for (int i = 0; i < SEEK_ADVANCED_RECEIVE_COUNT; i++)
                 {
                 future = subscriberOne.receive();
                 }
@@ -4170,7 +4172,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToTail() throws Exception
         {
-        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-tiny-rewindable-5");
         int                nChannel = 1;
         boolean            fRetain  = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
@@ -4181,7 +4183,7 @@ public abstract class AbstractNamedTopicTests
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             CompletableFuture<Status> futurePublish = null;
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -4224,7 +4226,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToHead() throws Exception
         {
-        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-tiny-rewindable-5");
         int                nChannel = 1;
         boolean            fRetain  = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
 
@@ -4233,7 +4235,7 @@ public abstract class AbstractNamedTopicTests
 
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 int n = i;
                 String sMsg = "element-" + i;
@@ -4254,7 +4256,7 @@ public abstract class AbstractNamedTopicTests
                 System.setProperty("test.log.page", String.valueOf(((PagedPosition) elementHead.getPosition()).getPage()));
 
                 CompletableFuture<Element<String>> future = null;
-                for (int i = 0; i < 5000; i ++)
+                for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i ++)
                     {
                     future = subscriber.receive();
                     }
@@ -4284,7 +4286,7 @@ public abstract class AbstractNamedTopicTests
     @Test
     public void shouldSeekToHeadRollingBackCommit() throws Exception
         {
-        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-rewindable-5");
+        NamedTopic<String> topic    = ensureTopic(m_sSerializer + "-tiny-rewindable-5");
         String             sGroup   = ensureGroupName();
         int                nChannel = 1;
         boolean            fRetain  = getServerDependencies(topic.getName(), PagedTopicDependencies::isRetainConsumed);
@@ -4295,7 +4297,7 @@ public abstract class AbstractNamedTopicTests
         try (Publisher<String> publisher = topic.createPublisher(OrderBy.id(nChannel)))
             {
             CompletableFuture<Status> futurePublish = null;
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < SEEK_MESSAGE_COUNT; i++)
                 {
                 futurePublish = publisher.publish("element-" + i);
                 }
@@ -4313,7 +4315,7 @@ public abstract class AbstractNamedTopicTests
                 assertThat(elementHead.getValue(), is("element-0"));
 
                 CompletableFuture<Element<String>> future = null;
-                for (int i = 0; i < 5000; i++)
+                for (int i = 0; i < SEEK_TARGET_RECEIVE_COUNT; i++)
                     {
                     future = subscriber.receive();
                     }
@@ -5632,6 +5634,24 @@ public abstract class AbstractNamedTopicTests
     static public final String DEFAULT_COHERENCE_CACHE_CONFIG = "coherence-cache-config.xml";
 
     static public final String CUSTOMIZED_CACHE_CONFIG        = "topic-cache-config.xml";
+
+    private static final int FILL_AND_EMPTY_MESSAGE_COUNT = 100;
+
+    private static final int COME_AND_GO_MESSAGES_PER_CHANNEL = 30;
+
+    private static final int THROTTLE_PENDING_RECEIVE_COUNT = 512;
+
+    private static final int SEEK_MESSAGE_COUNT = 11;
+
+    private static final int SEEK_ADVANCED_RECEIVE_COUNT = 8;
+
+    private static final int SEEK_TARGET_RECEIVE_COUNT = 5;
+
+    private static final int SEEK_BUFFER_MESSAGE_COUNT = 100;
+
+    private static final int SEEK_BUFFER_TARGET_RECEIVE_COUNT = 20;
+
+    private static final int SEEK_BUFFER_ADVANCED_RECEIVE_COUNT = 5;
 
     // ----- data members ---------------------------------------------------
 
