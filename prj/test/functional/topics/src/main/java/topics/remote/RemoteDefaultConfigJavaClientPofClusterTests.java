@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -155,7 +155,8 @@ public class RemoteDefaultConfigJavaClientPofClusterTests
     @ClassRule
     public static CoherenceClusterResource cluster =
         new CoherenceClusterResource()
-            .with(ClusterName.of(RemoteDefaultConfigJavaClientPofClusterTests.class.getSimpleName() + "Cluster"),
+            .with(ClusterName.of(Config.getProperty("coherence.cluster",
+                                      RemoteDefaultConfigJavaClientPofClusterTests.class.getSimpleName() + "Cluster")),
                   CacheConfig.of(CACHE_CONFIG_FILE),
                   Logging.atMax(),
                   Pof.config("pof-config.xml"),

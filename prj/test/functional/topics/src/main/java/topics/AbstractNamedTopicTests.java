@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2391,7 +2391,7 @@ public abstract class AbstractNamedTopicTests
             subscriber1.commitAsync(commits1).get(1, TimeUnit.MINUTES);
             commits1.clear();
             subscriber2.commitAsync(commits2).get(1, TimeUnit.MINUTES);
-            commits1.clear();
+            commits2.clear();
             subscriber3.commitAsync(commits3).get(1, TimeUnit.MINUTES);
             commits3.clear();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.coherence.common.util.SafeClock;
 import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.topic.SeekResult;
+import com.tangosol.internal.net.topic.SimpleChannelAllocationStrategy;
 import com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor;
 import com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor;
@@ -1240,7 +1241,7 @@ public class PagedTopicPartition
             }
 
         long                   lId                    = f_service.getSubscriptionId(f_sName, key.getGroupId());
-        PagedTopicSubscription pagedTopicSubscription = f_service.getSubscription(lId);
+        PagedTopicSubscription pagedTopicSubscription = ensureClosedSubscription(f_service.getSubscription(lId), subscriberId, cChannel);
 
         if (pagedTopicSubscription == null)
             {
@@ -1269,6 +1270,37 @@ public class PagedTopicPartition
                     }
                 }
             }
+        }
+
+    /**
+     * Return a subscription that reflects the subscriber removal being closed.
+     *
+     * @param pagedTopicSubscription  the service subscription
+     * @param subscriberId             the closed subscriber
+     * @param cChannel                 the channel count
+     *
+     * @return the subscription state to use for channel ownership updates
+     */
+    private PagedTopicSubscription ensureClosedSubscription(PagedTopicSubscription pagedTopicSubscription, SubscriberId subscriberId, int cChannel)
+        {
+        if (pagedTopicSubscription == null
+                || subscriberId == null
+                || !pagedTopicSubscription.hasSubscriber(subscriberId))
+            {
+            return pagedTopicSubscription;
+            }
+
+        PagedTopicSubscription updated = new PagedTopicSubscription(pagedTopicSubscription);
+        boolean                fUpdate = SubscriberId.NullSubscriber.equals(subscriberId)
+                ? updated.removeAllSubscribers()
+                : updated.removeSubscribers(subscriberId);
+
+        if (fUpdate)
+            {
+            updated.updateChannelAllocations(new SimpleChannelAllocationStrategy(), cChannel);
+            }
+
+        return updated;
         }
 
     /**

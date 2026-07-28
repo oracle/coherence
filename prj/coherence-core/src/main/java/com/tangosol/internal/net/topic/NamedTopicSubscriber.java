@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -2194,7 +2194,7 @@ public class NamedTopicSubscriber<V>
 
                 if (!f_fAnonymous)
                     {
-                    // reset revoked channel heads - we'll re-sync if they are reallocated
+                    // reset channel heads - we'll re-sync added channels from the group head
                     TopicChannel[] aChannel = m_aChannel;
 
                     // if we're initializing and not anonymous, we do not own any channels,
@@ -2226,12 +2226,14 @@ public class NamedTopicSubscriber<V>
                     for (int c : setAdded)
                         {
                         TopicChannel channel = aChannel[c];
+                        channel.resetHead();
                         channel.clearPolled();
                         channel.clearHit();
                         }
                     for (int c : setRevoked)
                         {
                         TopicChannel channel = aChannel[c];
+                        channel.resetHead();
                         channel.clearPolled();
                         channel.clearHit();
                         }
@@ -3362,6 +3364,11 @@ public class NamedTopicSubscriber<V>
             }
 
         /**
+         * Reset the channel head so the next poll re-syncs from the subscriber group.
+         */
+        protected abstract void resetHead();
+
+        /**
          * Update the head position if the specified head is
          * higher than the current head.
          *
@@ -3958,7 +3965,7 @@ public class NamedTopicSubscriber<V>
                         break;
                     case Unsubscribed:
                         onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
-                        disconnectInternal(false);
+                        CompletableFuture.runAsync(() -> disconnectInternal(false), f_executor);
                         break;
                     case ChannelPopulated:
                         // must use the channel executor
@@ -3977,7 +3984,7 @@ public class NamedTopicSubscriber<V>
                         CompletableFuture.runAsync(() -> closeInternal(true), f_executor);
                         break;
                     case Disconnected:
-                        disconnectInternal(false);
+                        CompletableFuture.runAsync(() -> disconnectInternal(false), f_executor);
                         break;
                     default:
                         throw new IllegalStateException("Unexpected event type: " + evt.getType());
