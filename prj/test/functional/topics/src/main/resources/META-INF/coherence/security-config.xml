@@ -13,6 +13,12 @@
     <class name="topics.AbstractTopicsStorageRecoveryTests$Message" source="manual"/>
     <class name="topics.AddInvocable" source="manual" executable="true"/>
     <class name="topics.TopicAssertions$AssertPublishedOrderInvocable" source="manual" executable="true"/>
+    <class name="topics.TopicsSubscriberReplayIntegrationTest$DriftFilter" source="manual"/>
+    <class name="topics.TopicsSubscriberInstallModeMatrixIntegrationTest" source="manual" lambda-target="true"/>
+    <class name="topics.TopicsSubscriberInstallModeMatrixIntegrationTest$AnnotatedExtractor" source="manual" executable="true"/>
+    <class name="topics.TopicsSubscriberInstallModeMatrixIntegrationTest$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="topics.TopicsSubscriberInstallModeMatrixIntegrationTest$PlainExtractor" source="manual"/>
+    <class name="topics.TopicsSubscriberInstallModeMatrixIntegrationTest$PlainFilter" source="manual"/>
     <class name="topics.TopicsRecoveryTests$Message" source="manual"/>
     <class name="topics.data.Address" source="manual"/>
     <class name="topics.data.AddressExternalizableLite" source="manual"/>

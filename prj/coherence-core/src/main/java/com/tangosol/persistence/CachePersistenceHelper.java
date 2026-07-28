@@ -1421,75 +1421,78 @@ public class CachePersistenceHelper
         {
         return (lExtentId, bufKey, bufValue) ->
                 {
-                if (lExtentId > 0L)
+                try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.PERSISTENCE))
                     {
-                    return visitorCache.visitCacheEntry(lExtentId,
-                            bufKey.toBinary(), bufValue.toBinary());
-                    }
-
-                if (META_EXTENT == lExtentId)
-                    {
-                    // completely internal to CachePersistenceHelper
-                    return true;
-                    }
-
-                BufferInput in = bufKey.getBufferInput();
-                try
-                    {
-                    switch (in.readByte())  // key type
+                    if (lExtentId > 0L)
                         {
-                        case KEY_TYPE_LISTENER:
-                            {
-                            long    lListenerId = in.readLong();
-                            long    lCacheId    = in.readLong();
-                            boolean fLite       = Base.equals(bufValue, BINARY_TRUE);
-                            int     cbHeader    = 17;
-
-                            Binary  binCacheKey = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
-
-                            return visitorCache.visitListener(lCacheId, binCacheKey, lListenerId, fLite);
-                            }
-
-                        case KEY_TYPE_LOCK:
-                            {
-                            long   lHolderId = in.readLong();
-                            long   lThreadId = in.readLong();
-                            long   lCacheId  = in.readLong();
-                            int    cbHeader  = 25;
-
-                            Binary binCacheKey = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
-
-                            return visitorCache.visitLock(lCacheId, binCacheKey, lHolderId, lThreadId);
-                            }
-
-                        case KEY_TYPE_INDEX:
-                            {
-                            long lCacheId = in.readLong();
-                            int  cbHeader = 9;
-
-                            Binary binExtractor  = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
-                            Binary binComparator = bufValue.toBinary();
-
-                            return visitorCache.visitIndex(lCacheId, binExtractor, binComparator);
-                            }
-
-                        case KEY_TYPE_TRIGGER:
-                            {
-                            long lCacheId = in.readLong();
-                            int  cbHeader = 9;
-
-                            Binary binTrigger = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
-
-                            return visitorCache.visitTrigger(lCacheId, binTrigger);
-                            }
-
-                        default:
-                            return false;
+                        return visitorCache.visitCacheEntry(lExtentId,
+                                bufKey.toBinary(), bufValue.toBinary());
                         }
-                    }
-                catch (IOException e)
-                    {
-                    throw Base.ensureRuntimeException(e);
+
+                    if (META_EXTENT == lExtentId)
+                        {
+                        // completely internal to CachePersistenceHelper
+                        return true;
+                        }
+
+                    BufferInput in = bufKey.getBufferInput();
+                    try
+                        {
+                        switch (in.readByte())  // key type
+                            {
+                            case KEY_TYPE_LISTENER:
+                                {
+                                long    lListenerId = in.readLong();
+                                long    lCacheId    = in.readLong();
+                                boolean fLite       = Base.equals(bufValue, BINARY_TRUE);
+                                int     cbHeader    = 17;
+
+                                Binary  binCacheKey = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
+
+                                return visitorCache.visitListener(lCacheId, binCacheKey, lListenerId, fLite);
+                                }
+
+                            case KEY_TYPE_LOCK:
+                                {
+                                long   lHolderId = in.readLong();
+                                long   lThreadId = in.readLong();
+                                long   lCacheId  = in.readLong();
+                                int    cbHeader  = 25;
+
+                                Binary binCacheKey = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
+
+                                return visitorCache.visitLock(lCacheId, binCacheKey, lHolderId, lThreadId);
+                                }
+
+                            case KEY_TYPE_INDEX:
+                                {
+                                long lCacheId = in.readLong();
+                                int  cbHeader = 9;
+
+                                Binary binExtractor  = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
+                                Binary binComparator = bufValue.toBinary();
+
+                                return visitorCache.visitIndex(lCacheId, binExtractor, binComparator);
+                                }
+
+                            case KEY_TYPE_TRIGGER:
+                                {
+                                long lCacheId = in.readLong();
+                                int  cbHeader = 9;
+
+                                Binary binTrigger = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
+
+                                return visitorCache.visitTrigger(lCacheId, binTrigger);
+                                }
+
+                            default:
+                                return false;
+                            }
+                        }
+                    catch (IOException e)
+                        {
+                        throw Base.ensureRuntimeException(e);
+                        }
                     }
                 };
         }

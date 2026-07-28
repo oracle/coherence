@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,8 @@ import com.tangosol.internal.net.topic.impl.paged.model.PagedPosition;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
+import com.tangosol.internal.util.security.RemoteInstallGate;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
@@ -263,6 +265,9 @@ public class NamedTopicFactory
             {
             NamedTopic<?> topic = getNamedTopic();
             _assert(topic != null);
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceTopicSubscriberInstall(m_filter, m_extractor, SerializationRole.TOPICS,
+                    channel == null ? null : channel.getSubject());
             //noinspection DataFlowIssue
             topic.ensureSubscriberGroup(m_sSubscriberGroup, m_filter, m_extractor);
             }
