@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package concurrent.locks;
+
+import concurrent.ConcurrentHelper;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 
@@ -63,6 +65,9 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
     @BeforeEach
     void beforeEach(TestInfo info)
         {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+
         // print a message in the logs of all the cluster members that are still running
         // to indicate the name of the test that is about to start
         String sMessage = ">>>>> Starting test method " + info.getDisplayName();
@@ -75,7 +80,14 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         // print a message in the logs of all the cluster members that are still running
         // to indicate the name of the test that has just finished
         String sMessage = "<<<<< Completed test method " + info.getDisplayName();
-        logOnEachMember(sMessage);
+        try
+            {
+            logOnEachMember(sMessage);
+            }
+        finally
+            {
+            clearLocksOnEachMember();
+            }
         }
 
     private void logOnEachMember(String sMessage)
@@ -99,15 +111,48 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
                          });
         }
 
+    private void clearLocksOnEachMember()
+        {
+        m_coherenceResource.getCluster()
+                .forEach(member ->
+                         {
+                         try
+                             {
+                             member.invoke(() ->
+                                      {
+                                      ConcurrentHelper.clearLocks();
+                                      return null;
+                                      });
+                             }
+                         catch (Throwable ignore)
+                             {
+                             // ignoring "RemoteChannel is closed" exception from members that were shut down
+                             }
+                         });
+        }
+
+    /**
+     * Return a test-scoped lock name.
+     *
+     * @param sSuffix  the lock name suffix
+     *
+     * @return a test-scoped lock name
+     */
+    private String lockName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
     @Test
     public void shouldAcquireAndReleaseLocksOnStorageMember()
         {
         // Get a storage member from the cluster
         CoherenceClusterMember member = m_coherenceResource.getCluster().get("storage-1");
+        String                 sName  = lockName("storage");
 
         // If any assertions in the methods below fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndReleaseWriteLock);
-        member.invoke(this::shouldAcquireAndReleaseReadLock);
+        member.invoke(() -> shouldAcquireAndReleaseWriteLock(sName));
+        member.invoke(() -> shouldAcquireAndReleaseReadLock(sName));
         }
 
     @Test
@@ -115,10 +160,11 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         {
         // Get a storage disabled application member from the cluster
         CoherenceClusterMember member = m_coherenceResource.getCluster().get("application-1");
+        String                 sName  = lockName("application");
 
         // If any assertions in the methods below fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndReleaseWriteLock);
-        member.invoke(this::shouldAcquireAndReleaseReadLock);
+        member.invoke(() -> shouldAcquireAndReleaseWriteLock(sName));
+        member.invoke(() -> shouldAcquireAndReleaseReadLock(sName));
         }
 
     /**
@@ -133,10 +179,10 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      *
      * @return always returns Void (null).
      */
-    Void shouldAcquireAndReleaseWriteLock()
+    Void shouldAcquireAndReleaseWriteLock(String sName)
         {
         Logger.info("In shouldAcquireAndReleaseWriteLock()");
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(sName);
 
         lock.writeLock().lock();
         System.out.println("Write lock acquired by " + lock.getOwner());
@@ -152,10 +198,10 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         return null;
         }
 
-    Void shouldAcquireAndReleaseReadLock()
+    Void shouldAcquireAndReleaseReadLock(String sName)
         {
         Logger.info("In shouldAcquireAndReleaseReadLock()");
-        RemoteReadWriteLock lock = Locks.remoteReadWriteLock("foo");
+        RemoteReadWriteLock lock = Locks.remoteReadWriteLock(sName);
 
         lock.readLock().lock();
         System.out.println("Read lock acquired by " + Thread.currentThread());
@@ -178,7 +224,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        shouldTimeOutIfWriteLockIsHeldByAnotherMember(member1, member2);
+        shouldTimeOutIfWriteLockIsHeldByAnotherMember(member1, member2, lockName("write-held-storage-members"));
         }
 
     @Test
@@ -188,7 +234,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldTimeOutIfWriteLockIsHeldByAnotherMember(member1, member2);
+        shouldTimeOutIfWriteLockIsHeldByAnotherMember(member1, member2, lockName("write-held-storage-disabled-members"));
         }
 
     /**
@@ -200,9 +246,9 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      *
      * @throws Exception if the test fails
      */
-    void shouldTimeOutIfWriteLockIsHeldByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldTimeOutIfWriteLockIsHeldByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2,
+                                                       String sLockName) throws Exception
         {
-        String            sLockName = "foo";
         LockEventListener listener1  = new LockEventListener(sLockName);
         LockEventListener listener2  = new LockEventListener(sLockName);
 
@@ -252,7 +298,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        shouldAcquireReadLockFromMultipleMembers(member1, member2);
+        shouldAcquireReadLockFromMultipleMembers(lockName("read-storage-members"), member1, member2);
         }
 
     @Test
@@ -262,7 +308,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldAcquireReadLockFromMultipleMembers(member1, member2);
+        shouldAcquireReadLockFromMultipleMembers(lockName("read-storage-disabled-members"), member1, member2);
         }
 
     @Test
@@ -274,7 +320,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member3 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member4 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldAcquireReadLockFromMultipleMembers(member1, member2, member3, member4);
+        shouldAcquireReadLockFromMultipleMembers(lockName("read-all-members"), member1, member2, member3, member4);
         }
 
     /**
@@ -284,10 +330,8 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      *
      * @throws Exception if the test fails
      */
-    void shouldAcquireReadLockFromMultipleMembers(CoherenceClusterMember... aMembers) throws Exception
+    void shouldAcquireReadLockFromMultipleMembers(String sLockName, CoherenceClusterMember... aMembers) throws Exception
         {
-        String sLockName = "foo";
-
         Set<CoherenceClusterMember> members = Set.of(aMembers);
 
         // Add the listeners to listen for lock events from each first member.
@@ -322,7 +366,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2);
+        shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2, lockName("ordered-storage-members"));
         }
 
     @Test
@@ -332,7 +376,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2);
+        shouldAcquireAndReleaseLockInOrderFromMultipleMembers(member1, member2, lockName("ordered-storage-disabled-members"));
         }
 
     /**
@@ -345,9 +389,9 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      *
      * @throws Exception if the test fails
      */
-    void shouldAcquireAndReleaseLockInOrderFromMultipleMembers(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldAcquireAndReleaseLockInOrderFromMultipleMembers(CoherenceClusterMember member1, CoherenceClusterMember member2,
+                                                               String sLockName) throws Exception
         {
-        String            sLockName = "foo";
         LockEventListener listener1 = new LockEventListener(sLockName);
         LockEventListener listener2 = new LockEventListener(sLockName);
 
@@ -388,7 +432,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-3");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        shouldAcquireLockHeldByFailedMember(member1, member2);
+        shouldAcquireLockHeldByFailedMember(member1, member2, lockName("failed-storage-member"));
         }
 
     @Test
@@ -398,7 +442,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("application-3");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldAcquireLockHeldByFailedMember(member1, member2);
+        shouldAcquireLockHeldByFailedMember(member1, member2, lockName("failed-storage-disabled-member"));
         }
 
     /**
@@ -410,12 +454,15 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      *
      * @throws Exception if the test fails
      */
-    void shouldAcquireLockHeldByFailedMember(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldAcquireLockHeldByFailedMember(CoherenceClusterMember member1, CoherenceClusterMember member2,
+                                             String sLockName) throws Exception
         {
-        LockEventListener foo1  = new LockEventListener("foo");
-        LockEventListener foo2  = new LockEventListener("foo");
-        LockEventListener bar1  = new LockEventListener("bar");
-        LockEventListener bar2  = new LockEventListener("bar");
+        String            sFooName = sLockName + "-foo";
+        String            sBarName = sLockName + "-bar";
+        LockEventListener foo1     = new LockEventListener(sFooName);
+        LockEventListener foo2     = new LockEventListener(sFooName);
+        LockEventListener bar1     = new LockEventListener(sBarName);
+        LockEventListener bar2     = new LockEventListener(sBarName);
 
         // Add the listeners to listen for lock events from the first member.
         member1.addListener(foo1);
@@ -428,16 +475,16 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
 
         // Acquire read and write lock on first member (the lock will be held for 1 minute,
         // but should be released as soon as the member is killed)
-        member1.submit(new AcquireWriteLock("foo", Duration.ofMinutes(1)));
-        member1.submit(new AcquireReadLock("bar", Duration.ofMinutes(1)));
+        member1.submit(new AcquireWriteLock(sFooName, Duration.ofMinutes(1)));
+        member1.submit(new AcquireReadLock(sBarName, Duration.ofMinutes(1)));
 
         // wait for write and read lock acquired event
         foo1.awaitWriteAcquired(Duration.ofMinutes(1));
         bar1.awaitReadAcquired(Duration.ofMinutes(1));
 
         // Acquire write locks on second member
-        member2.submit(new AcquireWriteLock("foo", Duration.ofSeconds(5)));
-        member2.submit(new AcquireWriteLock("bar", Duration.ofSeconds(5)));
+        member2.submit(new AcquireWriteLock(sFooName, Duration.ofSeconds(5)));
+        member2.submit(new AcquireWriteLock(sBarName, Duration.ofSeconds(5)));
 
         // Kill first member
         member1.close();
@@ -1027,7 +1074,12 @@ public abstract class AbstractClusteredRemoteReadWriteLockIT
      * A Bedrock JUnit5 extension with a Coherence cluster for the tests.
      */
     static CoherenceClusterExtension m_coherenceResource;
-    
+
+    /**
+     * The current test name, used to scope lock names.
+     */
+    private String m_sTestName;
+
     /**
      * This is a work-around to fix the fact that the JUnit5 test logs extension
      * in Bedrock does not work for BeforeAll methods and extensions.

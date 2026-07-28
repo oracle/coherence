@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,9 +19,14 @@ import com.oracle.coherence.concurrent.atomic.Atomics;
 
 import com.oracle.coherence.concurrent.internal.LatchCounter;
 
+import com.oracle.coherence.concurrent.locks.Locks;
+
 import com.tangosol.net.NamedMap;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+
+import java.util.Map;
 
 import org.hamcrest.core.Is;
 
@@ -62,6 +67,59 @@ public class ConcurrentHelper
             {
             throw Exceptions.ensureRuntimeException(e);
             }
+        }
+
+    /**
+     * Clear all local and remote latches.
+     */
+    public static void clearLatches()
+        {
+        try
+            {
+            clearMap(Latches.class, "f_mapLatchLocal");
+            clearMap(Latches.class, "f_mapLatch");
+            latchesMap().clear();
+            }
+        catch (Throwable e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Clear all local and remote locks.
+     */
+    public static void clearLocks()
+        {
+        try
+            {
+            clearMap(Locks.class, "f_mapExclusiveLocal");
+            clearMap(Locks.class, "f_mapReadWriteLocal");
+            clearMap(Locks.class, "f_mapExclusive");
+            clearMap(Locks.class, "f_mapReadWrite");
+            Locks.exclusiveLocksMap().clear();
+            Locks.readWriteLocksMap().clear();
+            }
+        catch (Throwable e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Clear the named static map field.
+     *
+     * @param clz         the type declaring the field
+     * @param sFieldName  the field name
+     *
+     * @throws Exception if the map cannot be cleared
+     */
+    private static void clearMap(Class<?> clz, String sFieldName)
+            throws Exception
+        {
+        Field field = clz.getDeclaredField(sFieldName);
+        field.setAccessible(true);
+        ((Map<?, ?>) field.get(null)).clear();
         }
 
     /**

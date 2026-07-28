@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package concurrent.locks;
+
+import concurrent.ConcurrentHelper;
 
 import com.oracle.bedrock.junit.CoherenceClusterExtension;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
@@ -46,6 +48,9 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
     @BeforeEach
     void beforeEach(TestInfo info)
         {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+
         // print a message in the logs of all the cluster members that are still running
         // to indicate the name of the test that is about to start
         String sMessage = ">>>>> Starting test method " + info.getDisplayName();
@@ -58,7 +63,14 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
         // print a message in the logs of all the cluster members that are still running
         // to indicate the name of the test that has just finished
         String sMessage = "<<<<< Completed test method " + info.getDisplayName();
-        logOnEachMember(sMessage);
+        try
+            {
+            logOnEachMember(sMessage);
+            }
+        finally
+            {
+            clearLocksOnEachMember();
+            }
         }
 
     private void logOnEachMember(String sMessage)
@@ -78,8 +90,40 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
                                  {
                                  // ignoring "RemoteChannel is closed" exception
                                  // from members that were shut down
+                             }
+                         });
+        }
+
+    private void clearLocksOnEachMember()
+        {
+        m_coherenceResource.getCluster()
+                .forEach(member ->
+                             {
+                             try
+                                 {
+                                 member.invoke(() ->
+                                              {
+                                              ConcurrentHelper.clearLocks();
+                                              return null;
+                                              });
+                                 }
+                             catch (Throwable ignore)
+                                 {
+                                 // ignoring "RemoteChannel is closed" exception from members that were shut down
                                  }
                              });
+        }
+
+    /**
+     * Return a test-scoped lock name.
+     *
+     * @param sSuffix  the lock name suffix
+     *
+     * @return a test-scoped lock name
+     */
+    private String lockName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
         }
 
     @Test
@@ -89,7 +133,7 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("client-3");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("client-2");
 
-        shouldNotAcquireLockHeldByExtendClientThroughFailedProxy(member1, member2);
+        shouldNotAcquireLockHeldByExtendClientThroughFailedProxy(member1, member2, lockName("failed-proxy"));
         }
 
     /**
@@ -101,12 +145,15 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
      *
      * @throws Exception if the test fails
      */
-    void shouldNotAcquireLockHeldByExtendClientThroughFailedProxy(CoherenceClusterMember member1, CoherenceClusterMember member2) throws Exception
+    void shouldNotAcquireLockHeldByExtendClientThroughFailedProxy(CoherenceClusterMember member1, CoherenceClusterMember member2,
+                                                                  String sLockName) throws Exception
         {
-        LockEventListener foo1  = new LockEventListener("foo");
-        LockEventListener foo2  = new LockEventListener("foo");
-        LockEventListener bar1  = new LockEventListener("bar");
-        LockEventListener bar2  = new LockEventListener("bar");
+        String            sFooName = sLockName + "-foo";
+        String            sBarName = sLockName + "-bar";
+        LockEventListener foo1     = new LockEventListener(sFooName);
+        LockEventListener foo2     = new LockEventListener(sFooName);
+        LockEventListener bar1     = new LockEventListener(sBarName);
+        LockEventListener bar2     = new LockEventListener(sBarName);
 
         // Add the listeners to listen for lock events from the first member.
         member1.addListener(foo1);
@@ -118,11 +165,11 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
         Base.sleep(1000);
 
         // Acquire read and write lock on first member (the lock will be held for 40 seconds)
-        member1.submit(new AcquireWriteLock("foo", Duration.ofSeconds(40)));
-        member1.submit(new AcquireReadLock("bar", Duration.ofSeconds(40)));
+        member1.submit(new AcquireWriteLock(sFooName, Duration.ofSeconds(40)));
+        member1.submit(new AcquireReadLock(sBarName, Duration.ofSeconds(40)));
 
         // Acquire read lock on second member
-        member2.submit(new AcquireReadLock("bar", Duration.ofSeconds(40)));
+        member2.submit(new AcquireReadLock(sBarName, Duration.ofSeconds(40)));
 
         // wait for write and read lock acquired event
         foo1.awaitWriteAcquired(Duration.ofSeconds(20));
@@ -152,8 +199,8 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
                                       }, instanceOf(Exception.class));
 
         // Try for 10 seconds to acquire write lock on second member (should fail)
-        assertThat(member2.invoke(new TryWriteLock("foo", Duration.ofSeconds(10))), is(false));
-        assertThat(member2.invoke(new TryReadLock("bar", Duration.ofSeconds(10))), is(true));
+        assertThat(member2.invoke(new TryWriteLock(sFooName, Duration.ofSeconds(10))), is(false));
+        assertThat(member2.invoke(new TryReadLock(sBarName, Duration.ofSeconds(10))), is(true));
 
         foo1.awaitWriteReleased(Duration.ofSeconds(40));
         bar1.awaitReadReleased(Duration.ofSeconds(40));
@@ -175,6 +222,11 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendProxyIT
      * A Bedrock JUnit5 extension with a Coherence cluster for the tests.
      */
     static CoherenceClusterExtension m_coherenceResource;
+
+    /**
+     * The current test name, used to scope lock names.
+     */
+    private String m_sTestName;
 
     /**
      * This is a work-around to fix the fact that the JUnit5 test logs extension

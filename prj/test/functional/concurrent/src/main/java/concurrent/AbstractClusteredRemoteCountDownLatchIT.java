@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.oracle.bedrock.runtime.concurrent.RemoteEvent;
 import com.oracle.bedrock.runtime.concurrent.RemoteEventListener;
 import com.oracle.bedrock.runtime.concurrent.RemoteRunnable;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.AbstractTestLogs;
 
 import com.oracle.coherence.common.base.Logger;
@@ -70,14 +71,13 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
     @BeforeEach
     void beforeEach(TestInfo info)
         {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+
         // print a message in the logs of all the cluster member to indicate the name of the test
         // that is about to start, this make debugging the logs simpler.
         String sMessage = ">>>>> Starting test method " + info.getDisplayName();
-        m_coherenceResource.getCluster().forEach(m -> m.invoke(() ->
-        {
-        Logger.info(sMessage);
-        return null;
-        }));
+        logOnEachMember(sMessage);
         }
 
     @AfterEach
@@ -86,11 +86,54 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         // print a message in the logs of all the cluster member to indicate the name of the test
         // that has just finished, this make debugging the logs simpler.
         String sMessage = "<<<<< Completed test method " + info.getDisplayName();
-        m_coherenceResource.getCluster().forEach(m -> m.invoke(() ->
+        try
+            {
+            logOnEachMember(sMessage);
+            }
+        finally
+            {
+            clearLatchesOnEachMember();
+            }
+        }
+
+    private void logOnEachMember(String sMessage)
         {
-        Logger.info(sMessage);
-        return null;
-        }));
+        m_coherenceResource.getCluster()
+                .forEach(member ->
+                             {
+                             try
+                                 {
+                                 member.invoke(() ->
+                                                   {
+                                                   Logger.info(sMessage);
+                                                   return null;
+                                                   });
+                                 }
+                             catch (Throwable ignore)
+                                 {
+                                 // ignoring "RemoteChannel is closed" exception from members that were shut down
+                                 }
+                             });
+        }
+
+    private void clearLatchesOnEachMember()
+        {
+        m_coherenceResource.getCluster()
+                .forEach(member ->
+                             {
+                             try
+                                 {
+                                 member.invoke(() ->
+                                                   {
+                                                   ConcurrentHelper.clearLatches();
+                                                   return null;
+                                                   });
+                                 }
+                             catch (Throwable ignore)
+                                 {
+                                 // ignoring "RemoteChannel is closed" exception from members that were shut down
+                                 }
+                             });
         }
 
     @Test
@@ -98,9 +141,10 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         {
         // Get a storage member from the cluster
         CoherenceClusterMember member = m_coherenceResource.getCluster().get("storage-1");
+        String                 sName  = latchName("storage");
         // Run the "shouldAcquireAndCountDown" method on the storage member
         // If any assertions fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndCountDown);
+        member.invoke(() -> shouldAcquireAndCountDown(sName));
         }
 
     @Test
@@ -108,9 +152,10 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         {
         // Get a storage disabled application member from the cluster
         CoherenceClusterMember member = m_coherenceResource.getCluster().get("application-1");
+        String                 sName  = latchName("application");
         // Run the "shouldAcquireAndCountDown" method on the storage disabled member
         // If any assertions fail this method will throw an exception
-        member.invoke(this::shouldAcquireAndCountDown);
+        member.invoke(() -> shouldAcquireAndCountDown(sName));
         }
 
     @Test
@@ -120,7 +165,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        shouldCountDownIfTheLatchIsCreatedByAnotherMember(member1, member2);
+        shouldCountDownIfTheLatchIsCreatedByAnotherMember(member1, member2, latchName("storage-members"));
         }
 
     @Test
@@ -130,7 +175,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("application-2");
 
-        shouldCountDownIfTheLatchIsCreatedByAnotherMember(member1, member2);
+        shouldCountDownIfTheLatchIsCreatedByAnotherMember(member1, member2, latchName("storage-disabled-members"));
         }
 
     /**
@@ -148,7 +193,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         CoherenceClusterMember member3 = m_coherenceResource.getCluster().get("application-1");
         CoherenceClusterMember member4 = m_coherenceResource.getCluster().get("application-2");
 
-        String                                                  sName     = "foo";
+        String                                                  sName     = latchName("multiple-members");
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
@@ -163,8 +208,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         CompletableFuture<Boolean> futureAcquire = member1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
         listener1.awaitAcquired(Duration.ofSeconds(20));
 
-        CompletableFuture<Long> currentCount = member1.submit(new GetCount(sName, count));
-        assertThat(currentCount.get().intValue(), is(count));
+        assertRemoteCount(member1, sName, count, count);
 
         AbstractClusteredRemoteCountDownLatchIT.CountDown countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         CompletableFuture<Void>                        futureCountDown = member1.submit(countDown);
@@ -181,16 +225,14 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         catch (TimeoutException e)
             {}
 
-        currentCount = member4.submit(new GetCount(sName, count));
-        assertThat(currentCount.get(), is(3L));
+        assertRemoteCount(member4, sName, count, 3);
 
         countDown       = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         futureCountDown = member2.submit(countDown);
         listener2.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
 
-        currentCount = member3.submit(new GetCount(sName, count));
-        assertThat(currentCount.get(), is(2L));
+        assertRemoteCount(member3, sName, count, 2);
 
         countDown = new AbstractClusteredRemoteCountDownLatchIT.CountDown(sName, count, Duration.ofSeconds(random.nextInt(limit)));
         member3.submit(countDown);
@@ -228,7 +270,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         CoherenceClusterMember member1 = m_coherenceResource.getCluster().get("storage-1");
         CoherenceClusterMember member2 = m_coherenceResource.getCluster().get("storage-2");
 
-        String                                                  sName     = "foo";
+        String                                                  sName     = latchName("rolling-restart");
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
@@ -250,19 +292,20 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
         listener1.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
 
-        CompletableFuture<Long> currentCount = member2.submit(new GetCount(sName, count));
-        assertThat(currentCount.get().intValue(), is(2));
+        assertRemoteCount(member2, sName, count, 2);
 
         m_coherenceResource.getCluster().filter(member -> member.getLocalMemberUID().equals(member1.getLocalMemberUID())).relaunch();
         CoherenceClusterMember newMember1 = m_coherenceResource.getCluster().get("storage-1");
 
         ConcurrentHelper.ensureConcurrentServiceRunning(m_coherenceResource.getCluster());
 
-        futureAcquire = newMember1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
-        listener1.awaitAcquired(Duration.ofSeconds(10));
+        LatchEventListener listener3 = new LatchEventListener(sName);
+        newMember1.addListener(listener3);
 
-        currentCount = newMember1.submit(new GetCount(sName, count));
-        assertThat(currentCount.get().intValue(), is(2));
+        futureAcquire = newMember1.submit(new AbstractClusteredRemoteCountDownLatchIT.AcquireLatch(sName, count));
+        listener3.awaitAcquired(Duration.ofSeconds(10));
+
+        assertRemoteCount(newMember1, sName, count, 2);
 
         futureCountDown = member2.submit(countDown);
         listener2.awaitCountedDown(Duration.ofSeconds(20));
@@ -277,16 +320,53 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
             {}
 
         futureCountDown = newMember1.submit(countDown);
-        listener1.awaitCountedDown(Duration.ofSeconds(20));
+        listener3.awaitCountedDown(Duration.ofSeconds(20));
         assertThat(futureCountDown.get(), nullValue());
         assertThat(futureAcquire.get(), is(true));
 
         GetLatchsMapSize getSize = new GetLatchsMapSize();
         assertThat(newMember1.submit(getSize).get().intValue(), is(0));
         assertThat(member2.submit(getSize).get().intValue(), is(0));
+
+        newMember1.removeListener(listener3);
         }
 
     //---- helper methods ---------------------------------------------------
+
+    /**
+     * Return a test-scoped latch name.
+     *
+     * @param sSuffix  the latch name suffix
+     *
+     * @return a test-scoped latch name
+     */
+    private String latchName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
+    /**
+     * Eventually assert a remote latch count.
+     *
+     * @param member  the cluster member to query
+     * @param sName   the latch name
+     * @param count   the initial latch count
+     * @param nValue  the expected current count
+     */
+    private void assertRemoteCount(CoherenceClusterMember member, String sName, int count, int nValue)
+        {
+        Eventually.assertDeferred(() ->
+            {
+            try
+                {
+                return member.submit(new GetCount(sName, count)).get().intValue();
+                }
+            catch (Exception e)
+                {
+                throw new RuntimeException(e);
+                }
+            }, is(nValue));
+        }
 
     /**
      * This test method is invoked on remote processes by Bedrock.
@@ -300,10 +380,10 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
      *
      * @return always returns Void (null).
      */
-    Void shouldAcquireAndCountDown() throws InterruptedException
+    Void shouldAcquireAndCountDown(String sName) throws InterruptedException
         {
         Logger.info("In shouldAcquireAndCountDown()");
-        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch("foo", 1);
+        RemoteCountDownLatch latch     = Latches.remoteCountDownLatch(sName, 1);
         Semaphore                 semaphore = new Semaphore(0);
         Thread                    worker    = new Thread(new Runnable()
             {
@@ -335,10 +415,10 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
      *
      * @throws Exception if the test fails
      */
-    void shouldCountDownIfTheLatchIsCreatedByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2)
+    void shouldCountDownIfTheLatchIsCreatedByAnotherMember(CoherenceClusterMember member1, CoherenceClusterMember member2,
+                                                            String sName)
             throws Exception
         {
-        String                                                  sName     = "foo";
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener1 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
         AbstractClusteredRemoteCountDownLatchIT.LatchEventListener listener2 = new AbstractClusteredRemoteCountDownLatchIT.LatchEventListener(sName);
 
@@ -417,6 +497,7 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
             catch (IllegalArgumentException e)
                 {
                 Logger.info("Acquired latch " + f_sName + " with count " + f_count + " got exception: " + e);
+                throw e;
                 }
 
             return true;
@@ -714,6 +795,11 @@ public abstract class AbstractClusteredRemoteCountDownLatchIT
      * A Bedrock JUnit5 extension with a Coherence cluster for the tests.
      */     
     static CoherenceClusterExtension m_coherenceResource;
+
+    /**
+     * The current test name, used to scope latch names.
+     */
+    private String m_sTestName;
 
     /**
      * This is a work-around to fix the fact that the JUnit5 test logs extension

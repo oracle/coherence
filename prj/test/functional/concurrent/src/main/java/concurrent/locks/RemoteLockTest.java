@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package concurrent.locks;
+
+import concurrent.ConcurrentHelper;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -52,18 +54,28 @@ public class RemoteLockTest
     @BeforeEach
     void beforeEach(TestInfo info)
         {
+        m_sTestName = getClass().getSimpleName() + "-"
+                + info.getTestMethod().map(method -> method.getName()).orElse(info.getDisplayName());
+
         System.out.println(">>>>> Starting test method " + info.getDisplayName());
         }
 
     @AfterEach
     void afterEach(TestInfo info)
         {
-        // sanity check: let's make sure the lock is not locked, and there are
-        // no pending locks on it
-        RemoteLock lock = Locks.remoteLock("foo");
-        assertThat(lock.isLocked(), is(false));
-        assertThat(lock.isHeldByCurrentThread(), is(false));
-        assertThat(lock.getHoldCount(), is(0L));
+        try
+            {
+            // sanity check: let's make sure the lock is not locked, and there are
+            // no pending locks on it
+            RemoteLock lock = Locks.remoteLock(lockName("foo"));
+            assertThat(lock.isLocked(), is(false));
+            assertThat(lock.isHeldByCurrentThread(), is(false));
+            assertThat(lock.getHoldCount(), is(0L));
+            }
+        finally
+            {
+            ConcurrentHelper.clearLocks();
+            }
 
         System.out.println("<<<<< Completed test method " + info.getDisplayName());
         }
@@ -73,7 +85,7 @@ public class RemoteLockTest
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void stressLocks() throws InterruptedException
         {
-        Lock lock = Locks.remoteLock("foo");
+        Lock lock = Locks.remoteLock(lockName("foo"));
         ExecutorService e = Executors.newFixedThreadPool(8);
         Runnable r = () ->
                 {
@@ -109,7 +121,7 @@ public class RemoteLockTest
     @Test
     void shouldAcquireAndReleaseLock()
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         lock.lock();
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -123,7 +135,7 @@ public class RemoteLockTest
     @Test
     void shouldAcquireAndReleaseLockInterruptibly() throws InterruptedException
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         lock.lockInterruptibly();
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -137,7 +149,7 @@ public class RemoteLockTest
     @Test
     void shouldAcquireAndReleaseLockWithoutBlocking()
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         assertThat(lock.tryLock(), is(true));
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -151,7 +163,7 @@ public class RemoteLockTest
     @Test
     void shouldAcquireAndReleaseLockWithTimeout() throws InterruptedException
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         assertThat(lock.tryLock(1L, TimeUnit.SECONDS), is(true));
         System.out.println("Lock acquired by " + Thread.currentThread());
         assertThat(lock.isLocked(), is(true));
@@ -165,7 +177,7 @@ public class RemoteLockTest
     @Test
     void shouldAcquireAndReleaseReentrantLock()
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         lock.lock();
         lock.lock();
         lock.lock();
@@ -191,7 +203,7 @@ public class RemoteLockTest
     void shouldAcquireAndReleaseLockInOrderFromMultipleThreads()
             throws InterruptedException
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -243,7 +255,7 @@ public class RemoteLockTest
     void shouldTimeOutIfTheLockIsHeldByAnotherThread()
             throws InterruptedException
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         Semaphore s1 = new Semaphore(0);
         Semaphore s2 = new Semaphore(0);
 
@@ -271,7 +283,7 @@ public class RemoteLockTest
     void shouldBeAbleToInterruptLockRequest()
             throws InterruptedException
         {
-        RemoteLock lock = Locks.remoteLock("foo");
+        RemoteLock lock = Locks.remoteLock(lockName("foo"));
         Thread thread = new Thread(() ->
                {
                try
@@ -302,4 +314,23 @@ public class RemoteLockTest
         System.out.println("Lock released by " + Thread.currentThread());
         lock.unlock();
         }
+
+    /**
+     * Return a test-scoped lock name.
+     *
+     * @param sSuffix  the lock name suffix
+     *
+     * @return a test-scoped lock name
+     */
+    private String lockName(String sSuffix)
+        {
+        return m_sTestName + "-" + sSuffix;
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /**
+     * The current test name, used to scope lock names.
+     */
+    private String m_sTestName;
     }
