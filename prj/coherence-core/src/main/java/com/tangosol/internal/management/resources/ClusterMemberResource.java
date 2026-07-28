@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -291,8 +291,14 @@ public class ClusterMemberResource
      */
     public Response diagnosticCmd(HttpRequest request)
         {
-        String       sMemberKey   = request.getFirstPathParameter(MEMBER_KEY);
         String       sCmd         = request.getFirstPathParameter(JFR_CMD);
+
+        if (!isJfrDiagnosticCommand(sCmd))
+            {
+            return unsupportedDiagnosticCommandResponse("member", sCmd);
+            }
+
+        String       sMemberKey   = request.getFirstPathParameter(MEMBER_KEY);
         String       sOptions     = request.getFirstQueryParameter(OPTIONS);
         String       sBaseQuery   = ":type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand";
         QueryBuilder queryBuilder = createQueryBuilder(request).withBaseQuery(sBaseQuery).withMember(sMemberKey);
