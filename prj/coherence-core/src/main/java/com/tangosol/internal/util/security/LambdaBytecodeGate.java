@@ -12,6 +12,7 @@ import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.asm.ClassReaderInternal;
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.util.Base;
@@ -246,6 +247,11 @@ public final class LambdaBytecodeGate
         {
         if (result instanceof Result.Rejected rejected)
             {
+            if (isCompatibilityShadow(rejected))
+                {
+                return;
+                }
+
             String sRemediation;
             if (REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()))
                 {
@@ -305,7 +311,9 @@ public final class LambdaBytecodeGate
 
     private static void record(Site site, Result result)
         {
-        String sResult = result instanceof Result.Rejected ? "rejected" : "allowed";
+        String sResult = result instanceof Result.Rejected rejected && isCompatibilityShadow(rejected)
+                ? "would_reject"
+                : result instanceof Result.Rejected ? "rejected" : "allowed";
         String sReason = result instanceof Result.Rejected rejected ? rejected.reason() : "none";
         METRICS.computeIfAbsent(metricKey(sResult, sReason, site), key -> new LongAdder()).increment();
         SerializationTelemetry.recordLambdaBytecodeCheck(sResult, sReason);
@@ -315,6 +323,11 @@ public final class LambdaBytecodeGate
             SerializationTelemetry.logRejection("lambda-bytecode-deny", SerializationRole.current().name(),
                     null, rejected.deniedRef(), rejected.reason());
             }
+        }
+
+    private static boolean isCompatibilityShadow(Result.Rejected rejected)
+        {
+        return REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()) && CoherenceMode.isLegacy();
         }
 
     private static String metricKey(String sResult, String sReason, Site site)
