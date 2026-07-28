@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
 import com.oracle.coherence.grpc.messages.cache.v0.AddIndexRequest;
@@ -71,7 +72,19 @@ public class NamedCacheServiceGrpcImpl
      */
     public NamedCacheServiceGrpcImpl(NamedCacheService service)
         {
+        this(service, null);
+        }
+
+    /**
+     * Create a {@link NamedCacheServiceGrpcImpl}.
+     *
+     * @param service       the {@link NamedCacheService} to use
+     * @param dependencies  the optional service dependencies
+     */
+    public NamedCacheServiceGrpcImpl(NamedCacheService service, GrpcService.Dependencies dependencies)
+        {
         m_service = service;
+        m_sErrorDisclosure = dependencies == null ? null : dependencies.getErrorDisclosure();
         }
 
     // ----- BindableGrpcProxyService methods -------------------------------
@@ -87,175 +100,175 @@ public class NamedCacheServiceGrpcImpl
     @Override
     public void addIndex(AddIndexRequest request, StreamObserver<Empty> observer)
         {
-        m_service.addIndex(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.addIndex(request, safe(observer));
         }
 
     @Override
     public void aggregate(AggregateRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.aggregate(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.aggregate(request, safe(observer));
         }
 
     @Override
     public void clear(ClearRequest request, StreamObserver<Empty> observer)
         {
-        m_service.clear(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.clear(request, safe(observer));
         }
 
     @Override
     public void containsEntry(ContainsEntryRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.containsEntry(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.containsEntry(request, safe(observer));
         }
 
     @Override
     public void containsKey(ContainsKeyRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.containsKey(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.containsKey(request, safe(observer));
         }
 
     @Override
     public void containsValue(ContainsValueRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.containsValue(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.containsValue(request, safe(observer));
         }
 
     @Override
     public void destroy(DestroyRequest request, StreamObserver<Empty> observer)
         {
-        m_service.destroy(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.destroy(request, safe(observer));
         }
 
     @Override
     public void entrySet(EntrySetRequest request, StreamObserver<Entry> observer)
         {
-        m_service.entrySet(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.entrySet(request, safe(observer));
         }
 
     @Override
     public StreamObserver<MapListenerRequest> events(StreamObserver<MapListenerResponse> observer)
         {
-        return m_service.events(SafeStreamObserver.ensureSafeObserver(observer));
+        return m_service.events(safe(observer));
         }
 
     @Override
     public void get(GetRequest request, StreamObserver<OptionalValue> observer)
         {
-        m_service.get(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.get(request, safe(observer));
         }
 
     @Override
     public void getAll(GetAllRequest request, StreamObserver<Entry> observer)
         {
-        m_service.getAll(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.getAll(request, safe(observer));
         }
 
     @Override
     public void invoke(InvokeRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.invoke(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.invoke(request, safe(observer));
         }
 
     @Override
     public void invokeAll(InvokeAllRequest request, StreamObserver<Entry> observer)
         {
-        m_service.invokeAll(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.invokeAll(request, safe(observer));
         }
 
     @Override
     public void isEmpty(IsEmptyRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.isEmpty(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.isEmpty(request, safe(observer));
         }
 
     @Override
     public void isReady(IsReadyRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.isReady(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.isReady(request, safe(observer));
         }
 
         @Override
     public void keySet(KeySetRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.keySet(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.keySet(request, safe(observer));
         }
 
     @Override
     public void nextEntrySetPage(PageRequest request, StreamObserver<EntryResult> observer)
         {
-        m_service.nextEntrySetPage(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.nextEntrySetPage(request, safe(observer));
         }
 
     @Override
     public void nextKeySetPage(PageRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.nextKeySetPage(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.nextKeySetPage(request, safe(observer));
         }
 
     @Override
     public void put(PutRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.put(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.put(request, safe(observer));
         }
 
     @Override
     public void putAll(PutAllRequest request, StreamObserver<Empty> observer)
         {
-        m_service.putAll(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.putAll(request, safe(observer));
         }
 
     @Override
     public void putIfAbsent(PutIfAbsentRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.putIfAbsent(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.putIfAbsent(request, safe(observer));
         }
 
     @Override
     public void remove(RemoveRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.remove(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.remove(request, safe(observer));
         }
 
     @Override
     public void removeIndex(RemoveIndexRequest request, StreamObserver<Empty> observer)
         {
-        m_service.removeIndex(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.removeIndex(request, safe(observer));
         }
 
     @Override
     public void removeMapping(RemoveMappingRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.removeMapping(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.removeMapping(request, safe(observer));
         }
 
     @Override
     public void replace(ReplaceRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.replace(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.replace(request, safe(observer));
         }
 
     @Override
     public void replaceMapping(ReplaceMappingRequest request, StreamObserver<BoolValue> observer)
         {
-        m_service.replaceMapping(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.replaceMapping(request, safe(observer));
         }
 
     @Override
     public void size(SizeRequest request, StreamObserver<Int32Value> observer)
         {
-        m_service.size(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.size(request, safe(observer));
         }
 
     @Override
     public void truncate(TruncateRequest request, StreamObserver<Empty> observer)
         {
-        m_service.truncate(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.truncate(request, safe(observer));
         }
 
     @Override
     public void values(ValuesRequest request, StreamObserver<BytesValue> observer)
         {
-        m_service.values(request, SafeStreamObserver.ensureSafeObserver(observer));
+        m_service.values(request, safe(observer));
         }
 
     @Override
@@ -264,10 +277,24 @@ public class NamedCacheServiceGrpcImpl
         m_service.close();
         }
 
+    // ----- helper methods -------------------------------------------------
+
+    private <T> StreamObserver<T> safe(StreamObserver<T> observer)
+        {
+        return m_sErrorDisclosure == null
+                ? SafeStreamObserver.ensureSafeObserver(observer)
+                : SafeStreamObserver.ensureSafeObserver(observer, m_sErrorDisclosure);
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
      * The {@link NamedCacheService} to call.
      */
     private final NamedCacheService m_service;
+
+    /**
+     * The gRPC error-disclosure policy, or {@code null} for the default.
+     */
+    private final String m_sErrorDisclosure;
     }

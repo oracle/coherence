@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc;
+
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import io.grpc.Status;
 
@@ -33,7 +35,19 @@ public class SafeStreamObserver<T>
      */
     private SafeStreamObserver(StreamObserver<? super T> streamObserver)
         {
-        delegate = streamObserver;
+        this(streamObserver, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create a {@link SafeStreamObserver} that wraps another {@link io.grpc.stub.StreamObserver}.
+     *
+     * @param streamObserver     the {@link io.grpc.stub.StreamObserver} to wrap
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     */
+    private SafeStreamObserver(StreamObserver<? super T> streamObserver, String sErrorDisclosure)
+        {
+        delegate            = streamObserver;
+        f_sErrorDisclosure  = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sErrorDisclosure);
         }
 
     @Override
@@ -76,7 +90,7 @@ public class SafeStreamObserver<T>
             else
                 {
                 setDone(thrown);
-                delegate.onError(ErrorsHelper.ensureStatusRuntimeException(checkNotNull(thrown)));
+                delegate.onError(ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(checkNotNull(thrown), f_sErrorDisclosure));
                 }
             }
         catch (Throwable t)
@@ -234,12 +248,28 @@ public class SafeStreamObserver<T>
      */
     public static <T> StreamObserver<T> ensureSafeObserver(StreamObserver<T> observer)
         {
+        return ensureSafeObserver(observer, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Ensure that the specified {@link StreamObserver} is a safe observer.
+     * <p>
+     * If the specified observer is not an instance of {@link SafeStreamObserver} then wrap it in a
+     * {@link SafeStreamObserver}.
+     *
+     * @param observer           the {@link StreamObserver} to test
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     * @param <T>                the response type expected by the observer
+     * @return a safe {@link StreamObserver}
+     */
+    public static <T> StreamObserver<T> ensureSafeObserver(StreamObserver<T> observer, String sErrorDisclosure)
+        {
         if (observer instanceof SafeStreamObserver)
             {
             return observer;
             }
 
-        return new SafeStreamObserver<>(observer);
+        return new SafeStreamObserver<>(observer, sErrorDisclosure);
         }
 
     // ----- constants ------------------------------------------------------
@@ -248,6 +278,11 @@ public class SafeStreamObserver<T>
      * The actual StreamObserver.
      */
     private final StreamObserver<? super T> delegate;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    private final String f_sErrorDisclosure;
 
     // ----- data members ---------------------------------------------------
 

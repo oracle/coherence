@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<coherence xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config"
+           xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-operational-config coherence-operational-config.xsd"
+           xml-override="common/tangosol-coherence-override.xml">
+
+  <cluster-config>
+    <storage-authorizers>
+      <storage-authorizer id="grpc-auth-capture">
+        <class-name>netty.grpc.proxy.GrpcAuthenticationIT$CapturingAuthorizer</class-name>
+      </storage-authorizer>
+    </storage-authorizers>
+  </cluster-config>
+
+  <security-config>
+    <identity-asserter>
+      <class-name>netty.grpc.proxy.GrpcAuthenticationIT$TestIdentityAsserter</class-name>
+    </identity-asserter>
+    <subject-scope>true</subject-scope>
+  </security-config>
+</coherence>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.google.protobuf.ByteString;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.v0.CacheRequestHolder;
 
 import com.oracle.coherence.grpc.messages.cache.v0.CacheDestroyedResponse;
@@ -34,6 +35,7 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheEvent;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Binary;
@@ -87,8 +89,27 @@ public class MapListenerProxy
     @SuppressWarnings("unchecked")
     public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer, long nHeartbeatMillis)
         {
+        this(service, observer, nHeartbeatMillis, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create a {@link MapListenerProxy} to handle a{@link com.tangosol.util.MapListener}
+     * subscription to a cache.
+     *
+     * @param service            the {@link NamedCacheService} to proxy
+     * @param observer           the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
+     *                           instances to
+     * @param nHeartbeatMillis   the heart beat frequency
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     */
+    @SuppressWarnings("unchecked")
+    public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer, long nHeartbeatMillis,
+            String sErrorDisclosure)
+        {
         f_service              = service;
-        f_observer             = (SafeStreamObserver<MapListenerResponse>) SafeStreamObserver.ensureSafeObserver(observer);
+        f_sErrorDisclosure     = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sErrorDisclosure);
+        f_observer             = (SafeStreamObserver<MapListenerResponse>) SafeStreamObserver.ensureSafeObserver(
+                observer, f_sErrorDisclosure);
         f_mapFilter            = new SegmentedConcurrentMap();
         f_mapKeys              = new SegmentedConcurrentMap();
         f_setKeys              = new HashSet<>();
@@ -816,9 +837,10 @@ public class MapListenerProxy
      */
     protected MapListenerErrorResponse error(String uid, Throwable t)
         {
+        boolean fSafe = GrpcDiagnosticsPolicy.isErrorDisclosureSafe(f_sErrorDisclosure);
         MapListenerErrorResponse.Builder builder = MapListenerErrorResponse.newBuilder()
                 .setUid(uid)
-                .setMessage(String.valueOf(t.getMessage()));
+                .setMessage(fSafe ? safeMessage(t) : String.valueOf(t.getMessage()));
 
         if (t instanceof StatusException)
             {
@@ -841,12 +863,24 @@ public class MapListenerProxy
             builder.setCode(Status.Code.INTERNAL.value());
             }
 
-        for (StackTraceElement element : t.getStackTrace())
+        if (!fSafe)
             {
-            builder.addStack(element.toString());
+            for (StackTraceElement element : t.getStackTrace())
+                {
+                builder.addStack(element.toString());
+                }
             }
 
         return builder.build();
+        }
+
+    private String safeMessage(Throwable t)
+        {
+        StatusRuntimeException exception = ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(t, f_sErrorDisclosure);
+        String                 sMessage  = exception.getStatus().getDescription();
+        return sMessage == null || sMessage.isBlank()
+                ? ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE
+                : sMessage;
         }
 
     // ----- inner class: DeactivationListener ------------------------------
@@ -1107,6 +1141,11 @@ public class MapListenerProxy
      * The {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent} instances to.
      */
     protected final SafeStreamObserver<MapListenerResponse> f_observer;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    private final String f_sErrorDisclosure;
 
     /**
      * The map of {@link Filter Filters} that this {@link MapListenerProxy} was registered with.

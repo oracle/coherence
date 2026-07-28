@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.internal.net.service.peer.acceptor.GrpcAcceptorDependencies;
 
 import com.tangosol.net.grpc.GrpcAcceptorController;
 import com.tangosol.net.grpc.GrpcDependencies;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.net.messaging.ConnectionAcceptor;
 import io.grpc.BindableService;
@@ -63,13 +64,11 @@ public abstract class BaseGrpcAcceptorController
             defaultDeps.setAcceptor(m_acceptor);
 
             GrpcAcceptorDependencies      dependencies = getDependencies();
+            defaultDeps.setErrorDisclosure(dependencies.getErrorDisclosure());
             GrpcServiceDependencies       serviceDeps  = createServiceDeps(defaultDeps);
             List<ServerServiceDefinition> listService  = ensureServices(serviceDeps);
             List<String>                  listName     = listService.stream().map(s -> s.getServiceDescriptor().getName()).toList();
-            List<BindableService>         listBindable = new ArrayList<>();
-
-            listBindable.add(ChannelzService.newInstance(dependencies.getChannelzPageSize()));
-            listBindable.add(m_healthStatusManager.getHealthService());
+            List<BindableService>         listBindable = createBindableServices(dependencies, m_healthStatusManager);
 
             startInternal(listService, listBindable);
 
@@ -90,6 +89,26 @@ public abstract class BaseGrpcAcceptorController
     protected abstract GrpcServiceDependencies createServiceDeps(GrpcServiceDependencies defaultDeps);
 
     protected abstract void startInternal(List<ServerServiceDefinition> listService, List<BindableService> listBindable) throws IOException;
+
+    /**
+     * Create the extra bindable services registered next to the Coherence services.
+     *
+     * @param dependencies         the gRPC acceptor dependencies
+     * @param healthStatusManager  the health status manager
+     *
+     * @return the extra bindable services
+     */
+    protected List<BindableService> createBindableServices(GrpcAcceptorDependencies dependencies,
+            HealthStatusManager healthStatusManager)
+        {
+        List<BindableService> listBindable = new ArrayList<>();
+        if (GrpcDiagnosticsPolicy.isChannelzEnabled(dependencies.getChannelz()))
+            {
+            listBindable.add(ChannelzService.newInstance(dependencies.getChannelzPageSize()));
+            }
+        listBindable.add(healthStatusManager.getHealthService());
+        return listBindable;
+        }
 
     @Override
     public final void stop()
@@ -230,9 +249,10 @@ public abstract class BaseGrpcAcceptorController
 
     protected ServerServiceDefinition applyInterceptors(BindableGrpcProxyService service)
         {
-        GrpcMetricsInterceptor  metricsInterceptor = new GrpcMetricsInterceptor(service.getMetrics());
-        ProxyServiceInterceptor proxyInterceptor   = new ProxyServiceInterceptor();
-        return ServerInterceptors.intercept(service, metricsInterceptor, proxyInterceptor);
+        GrpcMetricsInterceptor        metricsInterceptor = new GrpcMetricsInterceptor(service.getMetrics());
+        GrpcAuthenticationInterceptor authInterceptor    = new GrpcAuthenticationInterceptor(getDependencies(), m_acceptor);
+        ProxyServiceInterceptor       proxyInterceptor   = new ProxyServiceInterceptor();
+        return ServerInterceptors.intercept(service, metricsInterceptor, authInterceptor, proxyInterceptor);
         }
 
     // ----- data members ---------------------------------------------------

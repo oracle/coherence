@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@ import com.oracle.coherence.common.net.SSLSocketProvider;
 
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
-import com.tangosol.net.SocketProviderFactory;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 
 import io.helidon.common.tls.TlsConfig;
 
@@ -32,32 +32,34 @@ public class HelidonCredentialsHelper
      */
     public static Optional<TlsConfig> createTlsConfig(SocketProviderBuilder socketBuilder)
         {
-        if (socketBuilder != null)
+        return createTlsConfig(socketBuilder, GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL);
+        }
+
+    /**
+     * Create a Helidon {@link TlsConfig} from a {@link SocketProviderBuilder}.
+     *
+     * @param socketBuilder      the {@link SocketProviderBuilder} to use to create the TLS configuration
+     * @param sSecureTransport  the secure transport policy
+     *
+     * @return a Helidon {@link TlsConfig}
+     */
+    public static Optional<TlsConfig> createTlsConfig(SocketProviderBuilder socketBuilder, String sSecureTransport)
+        {
+        GrpcTransportSecurity.Transport transport = GrpcTransportSecurity.enforce(socketBuilder, sSecureTransport);
+        if (transport == GrpcTransportSecurity.Transport.INSECURE_EXPLICIT)
             {
-            SocketProviderFactory.Dependencies depsFactory = socketBuilder.getDependencies();
-            if (depsFactory == null)
-                {
-                return Optional.empty();
-                }
+            return Optional.of(TlsConfig.builder().enabled(false).buildPrototype());
+            }
 
-            String                                          sSocketId   = socketBuilder.getId();
-            SocketProviderFactory.Dependencies.ProviderType type        = depsFactory.getProviderType(sSocketId);
+        if (transport == GrpcTransportSecurity.Transport.TLS)
+            {
+            SSLSocketProvider.Dependencies dependencies = GrpcTransportSecurity.getSSLDependencies(socketBuilder);
+            SSLContext                     sslContext   = dependencies.getSSLContext();
+            TlsConfig                      tlsConfig    = TlsConfig.builder()
+                    .sslContext(sslContext)
+                    .buildPrototype();
 
-            if (type == SocketProviderFactory.Dependencies.ProviderType.GRPC)
-                {
-                return Optional.of(TlsConfig.builder().enabled(false).buildPrototype());
-                }
-
-            SSLSocketProvider.Dependencies dependencies = depsFactory.getSSLDependencies(sSocketId);
-            if (dependencies != null)
-                {
-                SSLContext sslContext = dependencies.getSSLContext();
-                TlsConfig tlsConfig = TlsConfig.builder()
-                        .sslContext(sslContext)
-                        .buildPrototype();
-
-                return Optional.of(tlsConfig);
-                }
+            return Optional.of(tlsConfig);
             }
 
         return Optional.empty();

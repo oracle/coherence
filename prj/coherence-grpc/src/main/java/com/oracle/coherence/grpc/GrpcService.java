@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.
 import com.tangosol.coherence.config.Config;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -40,6 +41,20 @@ public interface GrpcService
      * @return  the named serializer
      */
     Serializer getSerializer(String sFormat, ClassLoader loader);
+
+    /**
+     * Return a {@link Serializer} for a format selected by a remote gRPC client.
+     *
+     * @param sFormat  the client-selected format (name) of the serializer
+     * @param loader   the {@link ClassLoader} for the serializer
+     *
+     * @return the named serializer
+     */
+    default Serializer getClientSerializer(String sFormat, ClassLoader loader)
+        {
+        GrpcSerializerPolicy.validateClientFormat(sFormat);
+        return getSerializer(sFormat, loader);
+        }
 
     /**
      * Return the service dependencies.
@@ -83,6 +98,16 @@ public interface GrpcService
          * @return the optional application {@link Context}
          */
         Optional<Context> getContext();
+
+        /**
+         * Return the gRPC error-disclosure policy.
+         *
+         * @return the gRPC error-disclosure policy
+         */
+        default String getErrorDisclosure()
+            {
+            return GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC;
+            }
         }
 
     /**

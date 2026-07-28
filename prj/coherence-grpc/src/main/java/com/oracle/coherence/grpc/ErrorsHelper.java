@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import io.grpc.Metadata;
 import io.grpc.Status;
@@ -29,6 +30,9 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Base64;
 import java.util.Optional;
+
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import java.util.function.BiFunction;
 
@@ -62,20 +66,40 @@ public final class ErrorsHelper
      */
     public static StatusRuntimeException ensureStatusRuntimeException(Throwable t)
         {
-        if (t instanceof StatusRuntimeException)
+        return ensureStatusRuntimeExceptionWithPolicy(t, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Convert a {@link java.lang.Throwable} to a {@link io.grpc.StatusRuntimeException}.
+     *
+     * @param t                 the {@link java.lang.Throwable} to convert
+     * @param sErrorDisclosure  the gRPC error-disclosure policy
+     *
+     * @return a {@link io.grpc.StatusRuntimeException}
+     */
+    public static StatusRuntimeException ensureStatusRuntimeExceptionWithPolicy(Throwable t, String sErrorDisclosure)
+        {
+        Throwable cause = unwrapStatusException(t);
+        boolean   fSafe = GrpcDiagnosticsPolicy.isErrorDisclosureSafe(sErrorDisclosure);
+
+        if (cause instanceof StatusRuntimeException)
             {
-            return enrich((StatusRuntimeException) t);
+            return fSafe
+                    ? sanitize((StatusRuntimeException) cause)
+                    : enrich((StatusRuntimeException) cause);
             }
-        else if (t instanceof StatusException)
+        else if (cause instanceof StatusException)
             {
-            return ((StatusException) t).getStatus()
-                    .asRuntimeException(getErrorMetadata(t));
+            Status status = ((StatusException) cause).getStatus();
+            return fSafe
+                    ? sanitize(status).asRuntimeException()
+                    : status.asRuntimeException(getErrorMetadata(cause));
             }
         else
             {
             return Status.INTERNAL.withCause(t)
-                    .withDescription(t.getMessage())
-                    .asRuntimeException(getErrorMetadata(t));
+                    .withDescription(fSafe ? SAFE_INTERNAL_ERROR_MESSAGE : t.getMessage())
+                    .asRuntimeException(fSafe ? new Metadata() : getErrorMetadata(t));
             }
         }
 
@@ -89,22 +113,39 @@ public final class ErrorsHelper
      */
     public static StatusRuntimeException ensureStatusRuntimeException(Throwable t, String description)
         {
+        return ensureStatusRuntimeException(t, description, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Convert a {@link java.lang.Throwable} to a {@link io.grpc.StatusRuntimeException}.
+     *
+     * @param t                 the {@link java.lang.Throwable} to convert
+     * @param description       the description to add to the exception
+     * @param sErrorDisclosure  the gRPC error-disclosure policy
+     *
+     * @return a {@link io.grpc.StatusRuntimeException}
+     */
+    public static StatusRuntimeException ensureStatusRuntimeException(Throwable t, String description, String sErrorDisclosure)
+        {
         Status status;
-        if (t instanceof StatusRuntimeException)
+        Throwable cause = unwrapStatusException(t);
+        boolean   fSafe = GrpcDiagnosticsPolicy.isErrorDisclosureSafe(sErrorDisclosure);
+
+        if (cause instanceof StatusRuntimeException)
             {
-            status = ((StatusRuntimeException) t).getStatus().getCode().toStatus();
+            status = ((StatusRuntimeException) cause).getStatus().getCode().toStatus();
             }
-        else if (t instanceof StatusException)
+        else if (cause instanceof StatusException)
             {
-            status = ((StatusException) t).getStatus().getCode().toStatus();
+            status = ((StatusException) cause).getStatus().getCode().toStatus();
             }
         else
             {
             status = Status.INTERNAL;
             }
         return status.withCause(t)
-                .withDescription(description)
-                .asRuntimeException(getErrorMetadata(t));
+                .withDescription(fSafe ? bound(description) : description)
+                .asRuntimeException(fSafe ? new Metadata() : getErrorMetadata(t));
         }
 
     /**
@@ -184,8 +225,23 @@ public final class ErrorsHelper
      */
     public static ErrorMessage createErrorMessage(Throwable error, Serializer serializer)
         {
-        String sMsg = error.getMessage();
-        if (sMsg == null || sMsg.isEmpty())
+        return createErrorMessage(error, serializer, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create an {@link ErrorMessage} from a {@link Throwable}.
+     *
+     * @param error             the error to create the message from
+     * @param serializer        the serializer to use to serialize the stack trace
+     * @param sErrorDisclosure  the gRPC error-disclosure policy
+     *
+     * @return  the error message
+     */
+    public static ErrorMessage createErrorMessage(Throwable error, Serializer serializer, String sErrorDisclosure)
+        {
+        boolean fSafe = GrpcDiagnosticsPolicy.isErrorDisclosureSafe(sErrorDisclosure);
+        String  sMsg  = fSafe ? getSafeMessage(error) : error.getMessage();
+        if (!fSafe && (sMsg == null || sMsg.isEmpty()))
             {
             sMsg = error.getClass().getSimpleName();
             }
@@ -193,7 +249,7 @@ public final class ErrorsHelper
         ErrorMessage.Builder builder = ErrorMessage.newBuilder()
                 .setMessage(sMsg);
 
-        if (serializer != null)
+        if (!fSafe && serializer != null)
             {
             try
                 {
@@ -226,6 +282,23 @@ public final class ErrorsHelper
 
     // ----- helper methods -------------------------------------------------
 
+    private static StatusRuntimeException sanitize(StatusRuntimeException e)
+        {
+        return sanitize(e.getStatus()).asRuntimeException();
+        }
+
+    private static Status sanitize(Status status)
+        {
+        String sDescription = status.getDescription();
+        if (hasInternalCause(status))
+            {
+            sDescription = SAFE_INTERNAL_ERROR_MESSAGE;
+            }
+        return status.getCode().toStatus()
+                .withCause(status.getCause())
+                .withDescription(sDescription == null ? null : bound(sDescription));
+        }
+
     private static StatusRuntimeException enrich(StatusRuntimeException e)
         {
         Metadata metadata = e.getTrailers();
@@ -236,6 +309,31 @@ public final class ErrorsHelper
             }
         metadata.put(KEY_ERROR, getStackTrace(e));
         return e;
+        }
+
+    private static Throwable unwrapStatusException(Throwable t)
+        {
+        Throwable result = t;
+        Throwable cause  = result.getCause();
+        while (cause != null && isStatusException(cause) && isStatusWrapper(result))
+            {
+            result = cause;
+            cause  = result.getCause();
+            }
+        return result;
+        }
+
+    private static boolean isStatusWrapper(Throwable t)
+        {
+        return t instanceof CompletionException
+                || t instanceof ExecutionException
+                || (t instanceof StatusRuntimeException sre && sre.getStatus().getCode() == Status.Code.INTERNAL)
+                || (t instanceof StatusException se && se.getStatus().getCode() == Status.Code.INTERNAL);
+        }
+
+    private static boolean isStatusException(Throwable t)
+        {
+        return t instanceof StatusRuntimeException || t instanceof StatusException;
         }
 
     private static Metadata getErrorMetadata(Throwable t)
@@ -262,6 +360,46 @@ public final class ErrorsHelper
             abEncoded = s_encoder.encode(abStack);
             }
         return new String(abEncoded);
+        }
+
+    private static String getSafeMessage(Throwable error)
+        {
+        Throwable cause = unwrapStatusException(error);
+        if (cause instanceof StatusRuntimeException)
+            {
+            return safeStatusMessage(((StatusRuntimeException) cause).getStatus());
+            }
+        if (cause instanceof StatusException)
+            {
+            return safeStatusMessage(((StatusException) cause).getStatus());
+            }
+        return SAFE_INTERNAL_ERROR_MESSAGE;
+        }
+
+    private static String safeStatusMessage(Status status)
+        {
+        if (hasInternalCause(status))
+            {
+            return SAFE_INTERNAL_ERROR_MESSAGE;
+            }
+        String sDescription = status.getDescription();
+        return sDescription == null || sDescription.isBlank()
+                ? SAFE_INTERNAL_ERROR_MESSAGE
+                : bound(sDescription);
+        }
+
+    private static boolean hasInternalCause(Status status)
+        {
+        return status.getCause() != null;
+        }
+
+    private static String bound(String sDescription)
+        {
+        if (sDescription == null || sDescription.length() <= MAX_DESCRIPTION_LENGTH)
+            {
+            return sDescription;
+            }
+        return sDescription.substring(0, MAX_DESCRIPTION_LENGTH);
         }
 
     /**
@@ -330,4 +468,11 @@ public final class ErrorsHelper
     private static final Base64.Decoder s_decoder = Base64.getDecoder();
 
     private static final int MAX_STACK_LENGTH = 1000;
+
+    /**
+     * Bounded generic message for unhandled internal errors in safe mode.
+     */
+    public static final String SAFE_INTERNAL_ERROR_MESSAGE = "internal gRPC request failed";
+
+    private static final int MAX_DESCRIPTION_LENGTH = 1000;
     }

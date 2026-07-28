@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -62,6 +62,13 @@ public interface GrpcChannelDependencies
      * @return the socket provider builder
      */
     SocketProviderBuilder getSocketProviderBuilder();
+
+    /**
+     * Return the gRPC secure transport policy.
+     *
+     * @return the gRPC secure transport policy
+     */
+    String getSecureTransport();
 
     /**
      * Returns the optional value to use to set the channel builder's overrideAuthority setting.
@@ -164,6 +171,16 @@ public interface GrpcChannelDependencies
      * The system property that sets the value to use to CA file.
      */
     String PROP_TLS_AUTHORITY = "coherence.grpc.channels.%s.tls.authority";
+
+    /**
+     * The system property that sets the secure transport policy for a named Channel.
+     */
+    String PROP_SECURE_TRANSPORT = "coherence.grpc.channels.%s.secure-transport";
+
+    /**
+     * The system property that sets the secure transport policy for the default Channel.
+     */
+    String PROP_DEFAULT_CHANNEL_SECURE_TRANSPORT = String.format(PROP_SECURE_TRANSPORT, DEFAULT_CHANNEL_NAME);
 
     /**
      * The system property that sets the value to use for the serializer format.

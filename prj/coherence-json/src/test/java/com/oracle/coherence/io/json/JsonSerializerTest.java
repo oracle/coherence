@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2019, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,7 +18,10 @@ import com.oracle.coherence.io.json.genson.JsonBindingException;
 import com.oracle.coherence.io.json.genson.stream.JsonReader;
 import com.oracle.coherence.io.json.genson.stream.JsonWriter;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -79,6 +82,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -550,6 +554,115 @@ class JsonSerializerTest
         }
 
     @Test
+    void shouldRejectKnownExecutableClassMetadataAliases()
+        {
+        JsonSerializer serializer = new JsonSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertClassMetadataRejected(serializer, "processor.MethodInvocationProcessor");
+            assertClassMetadataRejected(serializer, "processor.ScriptProcessor");
+            assertClassMetadataRejected(serializer, "filter.ScriptFilter");
+            assertClassMetadataRejected(serializer, "extractor.ReflectionExtractor");
+            assertClassMetadataRejected(serializer, "internal.util.invoke.RemoteConstructor");
+            }
+        }
+
+    @Test
+    void shouldRejectKnownExecutableClassMetadataNames()
+        {
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertClassMetadataRejected(serializer, "com.tangosol.util.processor.MethodInvocationProcessor");
+            assertClassMetadataRejected(serializer, "com.tangosol.util.filter.ScriptFilter");
+            assertClassMetadataRejected(serializer, "com.tangosol.util.extractor.ReflectionExtractor");
+            assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.RemoteConstructor");
+            assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.ClassDefinition");
+            }
+        }
+
+    @Test
+    void shouldAllowClassMetadataThatPassesGateWhenTypeEnforcementDisabled()
+        {
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+
+        Object result = serializer.underlying().deserialize("{\"@class\":\"common.data.Person\","
+                                                            + "\"name\":\"Tim\",\"age\":42,\"minor\":false}",
+                                                            Object.class);
+
+        assertThat(result, is(new Person("Tim", 42, false)));
+        }
+
+    @Test
+    void shouldRejectNestedKnownExecutableClassMetadata()
+        {
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+        String json = "{\"@class\":\"" + Holder.class.getName() + "\","
+                      + "\"value\":{\"@class\":\"internal.util.invoke.RemoteConstructor\"}}";
+
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
+            {
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod())
+                {
+                assertThrows(JsonBindingException.class, () -> serializer.underlying().deserialize(json, Object.class));
+                }
+            }
+        }
+
+    @Test
+    void shouldAllowNestedClassMetadataThatPassesGate()
+        {
+        JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                       builder -> builder.setEnforceTypeAliases(false),
+                                                       false);
+        String json = "{\"@class\":\"" + Holder.class.getName() + "\","
+                      + "\"value\":{\"@class\":\"common.data.Person\","
+                      + "\"name\":\"Nina\",\"age\":31,\"minor\":false}}";
+
+        Holder<Person> result;
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
+            {
+            result = (Holder<Person>) serializer.underlying().deserialize(json, Object.class);
+            }
+
+        assertThat(result.getValue(), is(new Person("Nina", 31, false)));
+        }
+
+    @Test
+    void shouldRejectJavaClassMetadataThroughGate()
+        {
+        JsonSerializer serializer = new JsonSerializer();
+
+        assertClassMetadataRejected(serializer, "java.lang.ProcessBuilder");
+        assertClassMetadataRejected(serializer, "javax.naming.Reference");
+        }
+
+    @Test
+    void shouldRejectBeforeClassInitialization()
+        {
+        InitProbeState.s_fInitialized = false;
+        String sClassName = JsonSerializerTest.class.getName() + "$InitProbe";
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
+                                                           builder -> builder.setEnforceTypeAliases(false),
+                                                           false);
+
+            assertClassMetadataRejected(serializer, sClassName);
+            assertFalse(InitProbeState.s_fInitialized);
+            }
+        }
+
+    @Test
     public void shouldBeAbleToDisableTypeEnforcementSysProp()
         {
         System.setProperty("coherence.json.type.enforcement", "false");
@@ -810,6 +923,34 @@ class JsonSerializerTest
         assertEquals("\\u00Z", reader.valueAsString());
         }
 
+
+    private static void assertClassMetadataRejected(JsonSerializer serializer, String sClassMetadata)
+        {
+        assertThrows(JsonBindingException.class,
+                () -> serializer.underlying().deserialize("{\"@class\":\"" + sClassMetadata + "\"}",
+                        Object.class));
+        }
+
+    // ----- inner class: InitProbe -----------------------------------------
+
+    public static class InitProbe
+        {
+        static
+            {
+            InitProbeState.s_fInitialized = true;
+            }
+
+        public InitProbe()
+            {
+            }
+        }
+
+    // ----- inner class: InitProbeState ------------------------------------
+
+    private static class InitProbeState
+        {
+        private static boolean s_fInitialized;
+        }
 
     // ----- inner class: Holder --------------------------------------------
 

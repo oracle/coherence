@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.google.protobuf.Message;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Objects;
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.NamedCacheProtocol;
 
 import com.oracle.coherence.grpc.messages.cache.v1.EnsureCacheRequest;
@@ -43,6 +44,9 @@ import com.oracle.coherence.grpc.messages.common.v1.ErrorMessage;
 import com.oracle.coherence.grpc.messages.proxy.v1.InitRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyRequest;
 import com.oracle.coherence.grpc.messages.proxy.v1.ProxyResponse;
+
+import com.oracle.coherence.io.json.JsonSerializer;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.oracle.coherence.grpc.proxy.common.ProxyServiceChannel;
 
@@ -80,6 +84,7 @@ import grpc.proxy.TestStreamObserver;
 import io.grpc.stub.StreamObserver;
 
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
@@ -2365,6 +2370,80 @@ public class NamedCacheProxyProtocolIT
         }
 
     // ----- Put ------------------------------------------------------------
+
+    @Test
+    public void shouldInsertNewEntryWithJsonSerializerInProd() throws Exception
+        {
+        String                     sCacheName = ensureUniqueName("test-cache-json");
+        NamedCache<String, String> cache      = ensureEmptyCache(null, sCacheName);
+        cache.clear();
+
+        TestProxyResponseStreamObserver observer = new TestProxyResponseStreamObserver();
+        StreamObserver<ProxyRequest>    channel  = openChannel(observer);
+        JsonSerializer                  serializer = new JsonSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            init(channel, observer, serializer, "");
+            int cacheId = ensureCache(channel, observer, sCacheName);
+
+            PutRequest request = PutRequest.newBuilder()
+                    .setKey(toByteString("key-1", serializer))
+                    .setValue(toByteString("value-1", serializer))
+                    .build();
+
+            NamedCacheResponse response = sendCacheRequest(channel, observer, cacheId, NamedCacheRequestType.Put,
+                    request);
+            BytesValue         oResult  = response.getMessage().unpack(BytesValue.class);
+            assertThat(fromBytesValue(oResult, serializer, String.class), is(nullValue()));
+            assertThat(cache.get("key-1"), is("value-1"));
+            }
+        }
+
+    @Test
+    public void shouldRejectJsonClassMetadataGadgetInProd() throws Exception
+        {
+        String sCacheName = ensureUniqueName("test-cache-json-gadget");
+        ensureEmptyCache(null, sCacheName);
+
+        TestProxyResponseStreamObserver observer = new TestProxyResponseStreamObserver();
+        StreamObserver<ProxyRequest>    channel  = openChannel(observer);
+        JsonSerializer                  serializer = new JsonSerializer();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            init(channel, observer, serializer, "");
+            int cacheId = ensureCache(channel, observer, sCacheName);
+
+            BytesValue binKey = BytesValue.newBuilder()
+                    .setValue(jsonPayload("{\"@class\":\"internal.util.invoke.RemoteConstructor\"}"))
+                    .build();
+            NamedCacheRequest request = NamedCacheRequest.newBuilder()
+                    .setCacheId(cacheId)
+                    .setType(NamedCacheRequestType.ContainsKey)
+                    .setMessage(Any.pack(binKey))
+                    .build();
+            ProxyRequest proxyRequest = newRequest(request);
+
+            int cResponse = observer.valueCount() + 1;
+            channel.onNext(proxyRequest);
+            observer.awaitCount(cResponse, 1, TimeUnit.MINUTES);
+
+            ProxyResponse response = observer.values().stream()
+                    .filter(r -> r.getId() == proxyRequest.getId())
+                    .findFirst()
+                    .orElseThrow();
+            assertThat(response.getResponseCase(), is(ProxyResponse.ResponseCase.ERROR));
+            ErrorMessage error = response.getError();
+            assertThat(error.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
+            }
+        }
+
+    private static ByteString jsonPayload(String sJson)
+        {
+        return ByteString.copyFrom(new byte[] {(byte) ExternalizableHelper.FMT_EXT})
+                .concat(ByteString.copyFromUtf8(sJson));
+        }
 
     @ParameterizedTest(name = "{index} serializer={0} scope={2}")
     @MethodSource("serializers")

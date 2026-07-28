@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -77,7 +77,7 @@ public class HelidonGrpcAcceptorController
 
         listBindable.forEach(s -> routingBuilder.service(null, s));
 
-        HelidonCredentialsHelper.createTlsConfig(dependencies.getSocketProviderBuilder())
+        HelidonCredentialsHelper.createTlsConfig(dependencies.getSocketProviderBuilder(), dependencies.getSecureTransport())
                 .ifPresent(serverBuilder::tls);
 
         m_server = serverBuilder

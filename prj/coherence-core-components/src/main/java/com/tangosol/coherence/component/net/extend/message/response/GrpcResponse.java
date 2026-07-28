@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.google.protobuf.Message;
 import com.tangosol.coherence.component.net.extend.message.Response;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import io.grpc.stub.StreamObserver;
 
@@ -92,6 +93,26 @@ public abstract class GrpcResponse
         }
 
     /**
+     * Set the gRPC error-disclosure policy.
+     *
+     * @param sErrorDisclosure  the gRPC error-disclosure policy
+     */
+    public void setErrorDisclosure(String sErrorDisclosure)
+        {
+        m_sErrorDisclosure = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sErrorDisclosure);
+        }
+
+    /**
+     * Return the gRPC error-disclosure policy.
+     *
+     * @return the gRPC error-disclosure policy
+     */
+    public String getErrorDisclosure()
+        {
+        return m_sErrorDisclosure;
+        }
+
+    /**
      * Return {@code true} if the {@link StreamObserver} should be
      * completed after returning the response.
      *
@@ -121,6 +142,11 @@ public abstract class GrpcResponse
      * The {@link Serializer}.
      */
     protected Serializer m_serializer;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    protected String m_sErrorDisclosure = GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC;
 
     /**
      * The {@link StreamObserver} to send responses to.

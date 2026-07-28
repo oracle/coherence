@@ -374,7 +374,7 @@ public class GrpcNamedTopicFactory
         public Message getProtoResponse()
             {
             PublishResult result = (PublishResult) getResult();
-            return TopicHelper.toProtobufPublishResult(result, m_serializer);
+            return TopicHelper.toProtobufPublishResult(result, m_serializer, getErrorDisclosure());
             }
 
 
@@ -572,7 +572,7 @@ public class GrpcNamedTopicFactory
             Object oResult = getResult();
             if (oResult instanceof Throwable)
                 {
-                return ErrorsHelper.createErrorMessage((Throwable) oResult, m_serializer);
+                return ErrorsHelper.createErrorMessage((Throwable) oResult, m_serializer, getErrorDisclosure());
                 }
 
             SimpleReceiveResult result = (SimpleReceiveResult) oResult;
@@ -617,7 +617,7 @@ public class GrpcNamedTopicFactory
             Object oResult = getResult();
             if (oResult instanceof Throwable)
                 {
-                return ErrorsHelper.createErrorMessage((Throwable) oResult, m_serializer);
+                return ErrorsHelper.createErrorMessage((Throwable) oResult, m_serializer, getErrorDisclosure());
                 }
 
             SimpleReceiveResult result = (SimpleReceiveResult) oResult;
@@ -754,7 +754,8 @@ public class GrpcNamedTopicFactory
                 .setStatus(status);
 
             result.getChannel().ifPresent(builder::setChannel);
-            result.getError().ifPresent(err -> builder.setError(ErrorsHelper.createErrorMessage(err, m_serializer)));
+            result.getError().ifPresent(err -> builder.setError(
+                    ErrorsHelper.createErrorMessage(err, m_serializer, getErrorDisclosure())));
             result.getPosition().ifPresent(pos -> builder.setPosition(TopicHelper.toProtobufPosition(pos)));
             return builder.build();
             }

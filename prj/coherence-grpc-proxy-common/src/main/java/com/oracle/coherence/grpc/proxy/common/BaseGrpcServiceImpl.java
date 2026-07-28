@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.grpc.proxy.common;
 import com.oracle.coherence.common.base.Classes;
 import com.oracle.coherence.common.base.Exceptions;
 
+import com.oracle.coherence.grpc.GrpcSecurityContext;
 import com.oracle.coherence.grpc.GrpcService;
 import com.tangosol.application.ContainerContext;
 import com.tangosol.application.Context;
@@ -81,7 +82,8 @@ public class BaseGrpcServiceImpl
     public BaseGrpcServiceImpl(Dependencies dependencies, String sMBeanName, String sPoolName)
         {
         f_dependencies         = dependencies;
-        f_executor             = dependencies.getExecutor().orElseGet(() -> createDefaultExecutor(sPoolName));
+        Executor executor      = dependencies.getExecutor().orElseGet(() -> createDefaultExecutor(sPoolName));
+        f_executor             = GrpcSecurityContext.contextAware(executor);
         f_cacheFactorySupplier = dependencies.getCacheFactorySupplier().orElse(ConfigurableCacheFactorySuppliers.DEFAULT);
         f_serializerProducer   = dependencies.getNamedSerializerFactory().orElse(NamedSerializerFactory.DEFAULT);
         f_acceptor             = dependencies.getAcceptor().orElseThrow(() -> new IllegalStateException("No GrpcAcceptor found in dependencies"));
@@ -89,8 +91,8 @@ public class BaseGrpcServiceImpl
 
         dependencies.getTransferThreshold().ifPresent(this::setTransferThreshold);
 
-        DaemonPoolExecutor.DaemonPoolManagement management = f_executor instanceof DaemonPoolExecutor
-                ? ((DaemonPoolExecutor) f_executor).getManagement() : null;
+        DaemonPoolExecutor.DaemonPoolManagement management = executor instanceof DaemonPoolExecutor
+                ? ((DaemonPoolExecutor) executor).getManagement() : null;
 
         Registry registry = dependencies.getRegistry().orElseGet(() -> CacheFactory.getCluster().getManagement());
 
@@ -364,7 +366,7 @@ public class BaseGrpcServiceImpl
         else
             {
             ClassLoader loader = supplierLoader.get();
-            serializer = getSerializer(sFormatRequest, loader);
+            serializer = getClientSerializer(sFormatRequest, loader);
             }
 
         if (serializer == null)

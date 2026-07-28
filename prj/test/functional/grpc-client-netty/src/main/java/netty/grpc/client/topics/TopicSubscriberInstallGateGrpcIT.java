@@ -24,6 +24,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
 
 import com.oracle.coherence.common.base.Classes;
+import com.oracle.coherence.grpc.GrpcSerializerPolicy;
 import com.oracle.coherence.grpc.GrpcService;
 
 import com.tangosol.coherence.config.Config;
@@ -35,6 +36,7 @@ import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Session;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Subscriber;
 
@@ -258,6 +260,9 @@ public class TopicSubscriberInstallGateGrpcIT
                             IPv4Preferred.yes(),
                             SystemProperty.of("coherence.mode", "prod"),
                             SystemProperty.of("coherence.proxy.enabled", "true"),
+                            SystemProperty.of(GrpcDiagnosticsPolicy.PROP_ERROR_DISCLOSURE,
+                                    GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC),
+                            SystemProperty.of(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS, "java"),
                             SystemProperty.of(GrpcService.PROP_LOG_MESSAGES,
                                     System.getProperty(GrpcService.PROP_LOG_MESSAGES)),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),

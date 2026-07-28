@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId;
 import com.tangosol.internal.net.topic.impl.paged.model.SubscriberId;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Publisher;
@@ -150,6 +151,21 @@ public abstract class TopicHelper
     public static com.oracle.coherence.grpc.messages.topic.v1.PublishResult
     toProtobufPublishResult(PublishResult result, Serializer serializer)
         {
+        return toProtobufPublishResult(result, serializer, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create a protobuf publish result.
+     *
+     * @param result             the {@link PublishResult}
+     * @param serializer         the serializer to use
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     *
+     * @return the protobuf publish result
+     */
+    public static com.oracle.coherence.grpc.messages.topic.v1.PublishResult
+    toProtobufPublishResult(PublishResult result, Serializer serializer, String sErrorDisclosure)
+        {
         com.oracle.coherence.grpc.messages.topic.v1.PublishResult.Builder builder
                 = com.oracle.coherence.grpc.messages.topic.v1.PublishResult.newBuilder();
 
@@ -178,7 +194,7 @@ public abstract class TopicHelper
                 if (aErrors != null && aErrors.exists(i))
                     {
                     Throwable throwable = aErrors.get(i);
-                    statusBuilder.setError(ErrorsHelper.createErrorMessage(throwable, serializer));
+                    statusBuilder.setError(ErrorsHelper.createErrorMessage(throwable, serializer, sErrorDisclosure));
                     }
                 else
                     {
@@ -249,7 +265,7 @@ public abstract class TopicHelper
             if (valueStatus.hasError())
                 {
                 ErrorMessage error     = valueStatus.getError();
-                Throwable    throwable = BinaryHelper.fromByteString(error.getError(), serializer);
+                Throwable    throwable = ErrorsHelper.createException(error, serializer);
                 aError.set(i, throwable);
                 }
             else
