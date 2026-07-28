@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.events.internal;
 
@@ -20,6 +20,8 @@ import com.tangosol.config.expression.Parameter;
 import com.tangosol.config.injection.Injector;
 import com.tangosol.config.injection.SimpleInjector;
 
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
 import com.tangosol.net.events.EventInterceptor;
 import com.tangosol.net.events.InterceptorRegistry;
 import com.tangosol.net.events.NamedEventInterceptor;
@@ -29,7 +31,9 @@ import com.tangosol.util.ChainedResourceResolver;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.ResourceResolver;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static com.tangosol.util.ResourceResolverHelper.resourceResolverFrom;
 
@@ -167,6 +171,7 @@ public class InterceptorManager
                     new ChainedResourceResolver(resourceResolverFrom(parameters,
                             config.getDefaultParameterResolver()), resourceResolverFrom(ResourceRegistry.class,
                             registry), registry);
+            Set<String> setAdvisoryDedup = new HashSet<>();
 
             InterceptorRegistry registryIntcptr = registry.getResource(InterceptorRegistry.class);
 
@@ -177,6 +182,7 @@ public class InterceptorManager
 
                 // inject values into the wrapped EventInterceptor
                 injector.inject(interceptor.getInterceptor(), resourceResolver);
+                RemoteInstallGate.adviseDeclaredEventInterceptor(interceptor.getInterceptor(), setAdvisoryDedup);
 
                 registryIntcptr.registerEventInterceptor(interceptor);
                 }
