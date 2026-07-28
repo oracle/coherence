@@ -1,17 +1,19 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.memcached.server;
 
 import com.tangosol.io.ReadBuffer;
-import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.ReadBuffer.BufferInput;
+import com.tangosol.io.Serializer;
+import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.WriteBuffer.BufferOutput;
 
 import com.tangosol.net.BackingMapManagerContext;
+import com.tangosol.net.CacheService;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
@@ -106,7 +108,8 @@ public abstract class MemcachedHelper
                 lVersion = bufInput.readLong();
                 abValue  = fBinaryPassThru
                                ? binValue.toByteArray()
-                               : (byte[]) mgrCtx.getValueFromInternalConverter().convert(binValue);
+                               : (byte[]) mgrCtx.getValueFromInternalConverter().convert(
+                                       validatePassThroughValue(binValue, getSerializer(mgrCtx)));
                 }
             else
                 {
@@ -120,6 +123,52 @@ public abstract class MemcachedHelper
             }
 
         return new DataHolder(abValue, nFlag, lVersion);
+        }
+
+    /**
+     * Validate a Memcached binary pass-through value before it is stored or
+     * materialized as a normal Coherence value.
+     *
+     * @param abValue  the raw pass-through bytes
+     *
+     * @return the validated binary
+     */
+    public static Binary validatePassThroughValue(byte[] abValue)
+        {
+        if (abValue == null)
+            {
+            throw new IllegalArgumentException("Memcached pass-through value is null");
+            }
+        return validatePassThroughValue(new Binary(abValue));
+        }
+
+    /**
+     * Validate a Memcached binary pass-through value before it is stored or
+     * materialized as a normal Coherence value.
+     *
+     * @param binValue  the raw pass-through binary
+     *
+     * @return the validated binary
+     */
+    public static Binary validatePassThroughValue(Binary binValue)
+        {
+        ExternalizableHelper.validateMemcachedPassThroughValue(binValue);
+        return binValue;
+        }
+
+    /**
+     * Validate a Memcached binary pass-through value before it is materialized
+     * as a normal Coherence value.
+     *
+     * @param binValue    the raw pass-through binary
+     * @param serializer  the active materialization serializer
+     *
+     * @return the validated binary
+     */
+    public static Binary validatePassThroughValue(Binary binValue, Serializer serializer)
+        {
+        ExternalizableHelper.validateMemcachedPassThroughValue(binValue, serializer);
+        return binValue;
         }
 
     /**
@@ -161,6 +210,19 @@ public abstract class MemcachedHelper
             throw new RuntimeException(
                     "The MemcachedAcceptor is only supported by the DistributedCache");
             }
+        }
+
+    /**
+     * Return the serializer for the backing context, if known.
+     *
+     * @param mgrCtx  the backing map manager context
+     *
+     * @return the serializer, or null if it cannot be proven
+     */
+    private static Serializer getSerializer(BackingMapManagerContext mgrCtx)
+        {
+        CacheService service = mgrCtx == null ? null : mgrCtx.getCacheService();
+        return service == null ? null : service.getSerializer();
         }
 
     // ----- constants ------------------------------------------------------
