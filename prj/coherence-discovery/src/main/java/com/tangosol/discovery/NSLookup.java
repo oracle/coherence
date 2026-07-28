@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,9 +18,13 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.MulticastSocket;
 import java.net.NetworkInterface;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 import java.net.URL;
+
+import java.nio.charset.StandardCharsets;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -95,7 +99,7 @@ public class NSLookup
             throws IOException
         {
         String sURL = lookup(sCluster, JMX_CONNECTOR_URL, socketAddr, DEFAULT_TIMEOUT);
-        return sURL == null ? null : new JMXServiceURL(sURL);
+        return sURL == null ? null : validateJMXServiceURL(new JMXServiceURL(sURL));
         }
 
     /**
@@ -441,6 +445,10 @@ public class NSLookup
         else if (cb == 0)
             {
             throw new IOException("Received a message with a length of zero");
+            }
+        else if (cb > MAX_MESSAGE_BYTES)
+            {
+            throw new IOException("Received a message with a length greater than " + MAX_MESSAGE_BYTES + ": " + cb);
             }
         else
             {
@@ -880,25 +888,88 @@ public class NSLookup
         {
         try
             {
-            int cbResult = in.readInt();
-            if (cbResult == 0)
+            int nHeader = in.readInt();
+            if (nHeader == 0)
                 {
                 return null;
                 }
+            else if (nHeader < 0)
+                {
+                throw new IOException("Received a NameService result with an invalid header: " + nHeader);
+                }
             else
                 {
-                in.readShort(); // pof header we know it can only be a string;
+                int nStringHeader = in.readUnsignedShort();
+                if ((nStringHeader & 0xFF) != POF_TYPE_STRING)
+                    {
+                    throw new IOException("Received a NameService result with an invalid string header: " + nStringHeader);
+                    }
 
-                byte[] abResult = new byte[readPackedInt(in)];
+                int cbString = readPackedInt(in);
+                if (cbString < 0)
+                    {
+                    throw new IOException("Received a NameService string with a negative length");
+                    }
+                else if (cbString > MAX_STRING_BYTES)
+                    {
+                    throw new IOException("Received a NameService string greater than " + MAX_STRING_BYTES + ": " + cbString);
+                    }
+
+                byte[] abResult = new byte[cbString];
 
                 in.readFully(abResult);
-                return new String(abResult);
+                return new String(abResult, StandardCharsets.UTF_8);
                 }
             }
         catch (IOException e)
             {
             throw new RuntimeException(e);
             }
+        }
+
+    /**
+     * Validate a JMX service URL returned by NameService.
+     *
+     * @param url  the URL
+     *
+     * @return the validated URL
+     *
+     * @throws IOException if the URL is not supported
+     */
+    protected static JMXServiceURL validateJMXServiceURL(JMXServiceURL url)
+            throws IOException
+        {
+        String sProtocol = url.getProtocol();
+        if (!"rmi".equalsIgnoreCase(sProtocol))
+            {
+            throw new IOException("Unsupported JMX service URL protocol: " + sProtocol);
+            }
+
+        String sPath = url.getURLPath();
+        if (sPath == null || sPath.isEmpty())
+            {
+            return url;
+            }
+        if (!sPath.startsWith("/jndi/"))
+            {
+            throw new IOException("Unsupported JMX service URL path: " + sPath);
+            }
+
+        String sUri = sPath.substring("/jndi/".length());
+        try
+            {
+            URI uri = new URI(sUri);
+            if (!"rmi".equalsIgnoreCase(uri.getScheme()) || uri.getHost() == null)
+                {
+                throw new IOException("Unsupported JMX service URL provider protocol: " + uri.getScheme());
+                }
+            }
+        catch (URISyntaxException e)
+            {
+            throw new IOException("Invalid JMX service URL provider path: " + sPath, e);
+            }
+
+        return url;
         }
 
     /**
@@ -1240,6 +1311,21 @@ public class NSLookup
      * Default name.
      */
     public static final String DEFAULT_NAME = "Cluster/info";
+
+    /**
+     * Maximum TCP NameService frame length.
+     */
+    protected static final int MAX_MESSAGE_BYTES = 16 * 1024 * 1024;
+
+    /**
+     * Maximum NameService string result length.
+     */
+    protected static final int MAX_STRING_BYTES = 64 * 1024;
+
+    /**
+     * POF type identifier for a NameService string result.
+     */
+    protected static final int POF_TYPE_STRING = 0x4E;
 
     // ----- inner classes -------------------------------------------
 

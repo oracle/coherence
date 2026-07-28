@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,7 @@
             Copyright (c) 2000, 2022, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -3279,6 +3279,9 @@
                 The storage-authorizer element contains the declarative data for
                 a storage access authorizer, which must be an instance of the
                 com.tangosol.net.security.StorageAccessAuthorizer interface.
+                The optional subject-proof-required attribute enables explicit
+                subject-proof verification before non-null request-context
+                subjects reach the configured authorizer.
 
                 Used in: storage-authorizers
             </xsd:documentation>
@@ -3289,6 +3292,7 @@
             </xsd:sequence>
             <xsd:attribute name="xml-override" use="optional" />
             <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
+            <xsd:attribute name="subject-proof-required" type="xsd:boolean" use="optional" default="false" />
         </xsd:complexType>
     </xsd:element>
 

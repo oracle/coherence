@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,7 +17,6 @@ import com.oracle.bedrock.runtime.coherence.CoherenceClusterBuilder;
 import com.oracle.bedrock.runtime.coherence.options.ClusterName;
 import com.oracle.bedrock.runtime.coherence.options.OperationalOverride;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
-import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
 import com.oracle.bedrock.runtime.network.AvailablePortIterator;
 import com.oracle.bedrock.runtime.options.DisplayName;
 
@@ -67,6 +66,7 @@ public class NSLookupTests
         final AvailablePortIterator ports = platform.getAvailablePorts();
         s_nClusterPort = new Capture<>(ports).next();
         final Capture<Integer> nRMIPort = new Capture<>(ports);
+        final Capture<Integer> nRMIRegistryPort = new Capture<>(ports);
         s_nProxyPort = new Capture<>(ports).next();
         s_addrNameService = new InetSocketAddress(s_sHostName, s_nClusterPort);
 
@@ -82,10 +82,11 @@ public class NSLookupTests
                                SystemProperty.of("coherence.extend.port", s_nProxyPort),
                                SystemProperty.of("coherence.proxy.enabled", "true"),
                                SystemProperty.of("coherence.management", "dynamic"),
-                               JmxProfile.enabled(),
-                               JmxProfile.authentication(false),
-                               JmxProfile.hostname(s_sHostName),
+                               SystemProperty.of("com.sun.management.jmxremote.authenticate", "false"),
+                               SystemProperty.of("com.sun.management.jmxremote.ssl", "false"),
+                               SystemProperty.of(MBeanConnector.RMI_HOST_PROPERTY, s_sHostName),
                                SystemProperty.of(MBeanConnector.RMI_CONNECTION_PORT_PROPERTY, nRMIPort),
+                               SystemProperty.of(MBeanConnector.RMI_REGISTRY_PORT_PROPERTY, nRMIRegistryPort),
                                Logging.atMax(),
                                IPv4Preferred.yes(),
                                s_testLogs);
@@ -118,6 +119,9 @@ public class NSLookupTests
         Eventually.assertDeferred(deferredJmxURL, is(notNullValue()));
 
         JMXServiceURL         jmxServiceURL = deferredJmxURL.get();
+
+        assertThat(jmxServiceURL.getURLPath().startsWith("/jndi/rmi://"), is(true));
+
         JMXConnector          jmxConnector  = JMXConnectorFactory.connect(jmxServiceURL, null);
         MBeanServerConnection conn          = jmxConnector.getMBeanServerConnection();
         Set<ObjectName>       setCluster    = conn.queryNames(new ObjectName("Coherence:type=Cluster,*"), null);

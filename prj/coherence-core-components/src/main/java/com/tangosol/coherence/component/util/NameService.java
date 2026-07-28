@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.SocketAddressProvider;
 import com.tangosol.net.internal.NameServicePofContext;
+import com.tangosol.net.internal.NameServiceValuePolicy;
 import com.tangosol.net.internal.WrapperSocketAddressProvider;
 import com.tangosol.util.SafeHashSet;
 import java.net.ServerSocket;
@@ -333,6 +334,7 @@ public class NameService
         // import Component.Net.Cluster;
         // import Component.Net.Extend.Connection.TcpConnection;
         // import com.tangosol.net.NameService$Resolvable as com.tangosol.net.NameService.Resolvable;
+        // import com.tangosol.net.internal.NameServiceValuePolicy;
         // import com.tangosol.util.SafeHashSet;
         // import com.oracle.coherence.common.net.InetAddresses;
         // import java.util.Map;
@@ -356,6 +358,8 @@ public class NameService
                 throw new UnsupportedOperationException("remote com.tangosol.net.NameService.Resolvable bind is not supported");
                 }
             }
+
+        NameServiceValuePolicy.validateBindResource(sName, o, chan != null);
             
         if (getDirectory().putIfAbsent(sName, o) == null)
             {
@@ -668,6 +672,7 @@ public class NameService
         {
         // import com.tangosol.net.NameService$LookupCallback as com.tangosol.net.NameService.LookupCallback;
         // import com.tangosol.net.NameService$Resolvable as com.tangosol.net.NameService.Resolvable;
+        // import com.tangosol.net.internal.NameServiceValuePolicy;
         // import java.util.Iterator;
         // import java.util.Map;
         // import javax.naming.NamingException;
@@ -695,9 +700,12 @@ public class NameService
                 }
             }
         
-        return oResult instanceof com.tangosol.net.NameService.Resolvable
+        oResult = oResult instanceof com.tangosol.net.NameService.Resolvable
             ? ((com.tangosol.net.NameService.Resolvable) oResult).resolve(context)
             : oResult;
+
+        NameServiceValuePolicy.validateLookupResult(sName, oResult);
+        return oResult;
         }
     
     /**
