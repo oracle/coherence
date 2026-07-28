@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1459,6 +1459,17 @@ public class Member
     public int getMode()
         {
         return __m_Mode;
+        }
+
+    /**
+     * Update the advertised license mode for join-time LEGACY compatibility.
+     *
+     * @param nMode  the license mode to advertise
+     */
+    public void setLegacyCompatibleMode(int nMode)
+        {
+        _assert(nMode >= 0 && nMode <= 2);
+        __m_Mode = nMode;
         }
     
     // Accessor for the property "NewestFromPacketId"
