@@ -345,6 +345,19 @@ extractors and converters use `OperationReason.EXTRACT`; both publish
 `META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
 `DEV` and `PROD` and shadowed in `LEGACY`.
 
+Coherence also walks shipped topic subscriber containers that can hide nested
+executable state before install and again during persisted replay. This
+includes filter wrappers such as `ArrayFilter`, `ExtractorFilter`,
+`LimitFilter`, and `FilterWrapper`; extractor wrappers such as
+`ConditionalExtractor`, `CollectionExtractor`, `KeyExtractor`, fragment
+extractors, and transaction wrappers; comparator wrappers such as
+`ExtractorComparator`, `ChainedComparator`, and `SafeComparator`; and
+script-backed subscriber filters and extractors. Each nested class is checked
+with topic subscriber telemetry and replay-drift handling. Customer-defined
+composites with opaque fields are not inspected reflectively; annotate or
+allowlist the composite class and any nested classes exposed through the
+built-in containers.
+
 Dynamic or lambda-shaped subscriber filter and extractor classes use the same
 dynamic remote mode gate as DYNAMIC lambdas, `MethodInvocationProcessor`,
 `ScriptProcessor`, and remote `MapTrigger` installs. `PROD` denies dynamic
