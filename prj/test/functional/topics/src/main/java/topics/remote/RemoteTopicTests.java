@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -36,20 +36,18 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
+import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.Session;
 import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.net.topic.Publisher;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.util.Binary;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import topics.AbstractNamedTopicTests;
-import topics.NamedTopicTests;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -79,36 +77,6 @@ public class RemoteTopicTests
         System.setProperty(LocalStorage.PROPERTY, "false");
         }
 
-    @Before
-    public void logStart()
-        {
-        String sMsg = ">>>>> Starting test: " + m_testWatcher.getMethodName();
-        for (CoherenceClusterMember member : cluster.getCluster())
-            {
-            member.submit(() ->
-                {
-                System.err.println(sMsg);
-                System.err.flush();
-                return null;
-                }).join();
-            }
-        }
-
-    @After
-    public void logEnd()
-        {
-        String sMsg = ">>>>> Finished test: " + m_testWatcher.getMethodName();
-        for (CoherenceClusterMember member : cluster.getCluster())
-            {
-            member.submit(() ->
-                {
-                System.err.println(sMsg);
-                System.err.flush();
-                return null;
-                }).join();
-            }
-        }
-
     // ----- test lifecycle methods -----------------------------------------
 
     @Parameterized.Parameters(name = "serializer={0} extend={1}")
@@ -124,6 +92,7 @@ public class RemoteTopicTests
     public static void setup() throws Exception
         {
         System.setProperty("coherence.topic.publisher.close.timeout", "2s");
+        System.setProperty("coherence.topic.reconnect.wait", "1s");
         System.setProperty("com.oracle.coherence.common.internal.util.HeapDump.Bug-27585336-tmb-migration", "true");
 
         String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
@@ -198,19 +167,9 @@ public class RemoteTopicTests
         CompletableFuture<Subscriber.Element<String>> future1 = foo.receive();
         CompletableFuture<Subscriber.Element<String>> future2 = foo.receive();
 
-        Thread.sleep(5000);
+        assertThat(future1.get(1, TimeUnit.MINUTES).getValue(), is("value-1"));
 
         topic.destroySubscriberGroup("foo");
-
-        future1.handle((v, err) ->
-            {
-            if (err != null)
-                {
-                err.printStackTrace();
-                }
-
-            return null;
-            });
 
         future2.handle((v, err) ->
             {
@@ -274,24 +233,25 @@ public class RemoteTopicTests
 
     public static final int STORAGE_MEMBER_COUNT = 2;
 
-    public static final String CLUSTER_NAME = "RemoteTopicTests";
+    public static final String CLUSTER_NAME = getClusterName();
 
     public static final String CACHE_CONFIG_FILE = "topic-cache-config.xml";
 
     @ClassRule
-    public static TestLogs s_testLogs = new TestLogs(NamedTopicTests.class);
+    public static TestLogs s_testLogs = new TestLogs(RemoteTopicTests.class);
 
     @ClassRule
     public static CoherenceClusterResource cluster =
             new CoherenceClusterResource()
                     .with(ClusterName.of(CLUSTER_NAME),
-                            Logging.at(9),
+                            Logging.at(5),
                             CacheConfig.of(CACHE_CONFIG_FILE),
                             LocalHost.only(),
                             WellKnownAddress.of("127.0.0.1"),
                             JMXManagementMode.ALL,
                             IPv4Preferred.yes(),
                             SystemProperty.of("coherence.topic.publisher.close.timeout", "2s"),
+                            SystemProperty.of("coherence.topic.reconnect.wait", "1s"),
                             SystemProperty.of("coherence.management.remote", "true"),
                             SystemProperty.of("coherence.management.refresh.expiry", "1ms"),
                             SystemProperty.of("com.oracle.coherence.common.internal.util.HeapDump.Bug-27585336-tmb-migration", "true"),
@@ -302,4 +262,17 @@ public class RemoteTopicTests
                              DisplayName.of("storage"),
                              RoleName.of("storage"),
                              s_testLogs.builder());
+
+    private static String getClusterName()
+        {
+        String sCluster = Config.getProperty("coherence.cluster");
+        if (sCluster == null)
+            {
+            return RemoteTopicTests.class.getSimpleName();
+            }
+
+        String sSuffix    = "-RT";
+        int    cMaxPrefix = MemberIdentity.MEMBER_IDENTITY_LIMIT - sSuffix.length();
+        return sCluster.substring(0, Math.min(sCluster.length(), cMaxPrefix)) + sSuffix;
+        }
     }

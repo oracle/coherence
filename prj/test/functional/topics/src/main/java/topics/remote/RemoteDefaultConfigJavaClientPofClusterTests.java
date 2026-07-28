@@ -30,11 +30,10 @@ import com.tangosol.net.ExtensibleConfigurableCacheFactory;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
+import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.Session;
 import com.tangosol.util.Base;
-import org.junit.After;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Ignore;
@@ -67,26 +66,6 @@ public class RemoteDefaultConfigJavaClientPofClusterTests
         System.setProperty("coherence.serializer", "java");
         System.setProperty("coherence.cacheconfig.override", "coherence-cache-config-override.xml");
         System.setProperty(LocalStorage.PROPERTY, "false");
-        }
-
-    @Before
-    public void logStart()
-        {
-        String sMsg = ">>>>> Starting test: " + m_testWatcher.getMethodName();
-        for (CoherenceClusterMember member : cluster.getCluster())
-            {
-            member.submit(() -> System.err.println(sMsg)).join();
-            }
-        }
-
-    @After
-    public void logEnd()
-        {
-        String sMsg = ">>>>> Finished test: " + m_testWatcher.getMethodName();
-        for (CoherenceClusterMember member : cluster.getCluster())
-            {
-            member.submit(() -> System.err.println(sMsg)).join();
-            }
         }
 
     @Test
@@ -155,10 +134,9 @@ public class RemoteDefaultConfigJavaClientPofClusterTests
     @ClassRule
     public static CoherenceClusterResource cluster =
         new CoherenceClusterResource()
-            .with(ClusterName.of(Config.getProperty("coherence.cluster",
-                                      RemoteDefaultConfigJavaClientPofClusterTests.class.getSimpleName() + "Cluster")),
+            .with(ClusterName.of(getClusterName()),
                   CacheConfig.of(CACHE_CONFIG_FILE),
-                  Logging.atMax(),
+                  Logging.at(5),
                   Pof.config("pof-config.xml"),
                   SystemProperty.of("coherence.serializer", "pof"),
                   SystemProperty.of("coherence.extend.serializer", "java"),
@@ -173,4 +151,17 @@ public class RemoteDefaultConfigJavaClientPofClusterTests
                      DisplayName.of("storage"),
                      s_testLogs.builder(),
                      LocalStorage.enabled());
+
+    private static String getClusterName()
+        {
+        String sCluster = Config.getProperty("coherence.cluster");
+        if (sCluster == null)
+            {
+            return RemoteDefaultConfigJavaClientPofClusterTests.class.getSimpleName() + "Cluster";
+            }
+
+        String sSuffix    = "-RD-JCPC";
+        int    cMaxPrefix = MemberIdentity.MEMBER_IDENTITY_LIMIT - sSuffix.length();
+        return sCluster.substring(0, Math.min(sCluster.length(), cMaxPrefix)) + sSuffix;
+        }
     }
