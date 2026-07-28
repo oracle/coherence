@@ -1,0 +1,817 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.oracle.coherence.ai.BitVector" source="manual"/>
+    <class name="com.oracle.coherence.ai.DocumentChunk" source="manual"/>
+    <class name="com.oracle.coherence.ai.DocumentChunk$Id" source="manual"/>
+    <class name="com.oracle.coherence.ai.Float32Vector" source="manual"/>
+    <class name="com.oracle.coherence.ai.Int8Vector" source="manual"/>
+    <class name="com.oracle.coherence.ai.distance.CosineDistance" source="manual"/>
+    <class name="com.oracle.coherence.ai.distance.InnerProductDistance" source="manual"/>
+    <class name="com.oracle.coherence.ai.distance.L2SquaredDistance" source="manual"/>
+    <class name="com.oracle.coherence.ai.index.BinaryQuantIndex" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.ai.search.BinaryQueryResult" source="manual"/>
+    <class name="com.oracle.coherence.ai.search.ConverterResult" source="manual"/>
+    <class name="com.oracle.coherence.ai.search.SimilaritySearch" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.ai.search.SimilaritySearch$ResultConverter" source="manual"/>
+    <class name="com.oracle.coherence.ai.search.SimpleQueryResult" source="manual"/>
+    <class name="com.oracle.coherence.caffeine.CaffeineCache$CacheEntry" source="manual"/>
+    <class name="com.oracle.coherence.caffeine.CaffeineCache$WriteThroughEntry" source="manual"/>
+    <class name="com.oracle.coherence.common.base.IdentityHolder" source="manual"/>
+    <class name="com.oracle.coherence.common.base.MutableLong" source="manual"/>
+    <class name="com.oracle.coherence.common.base.SimpleHolder" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.ConcurrentHashMap" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.ConcurrentLinkedQueue" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.InflatableMap" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.InflatableMap$EntrySet" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.ObservableConcurrentMap" source="manual"/>
+    <class name="com.oracle.coherence.common.collections.SingleConsumerBlockingQueue" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.MultiplexedSocketProvider$WellKnownSubPorts" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.SignalEvent" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.WrapperSelector$KeySet" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus$BusState" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus$ConnectionState" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus$HandshakePhase" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.MultiBufferMessageEvent" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.SingleBufferMessageEvent" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.net.socketbus.SocketMessageBus$MessageConnection$ReadBatch" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.security.SecurityProvider" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.util.Histogram" source="manual"/>
+    <class name="com.oracle.coherence.common.internal.util.ScaledHistogram" source="manual"/>
+    <class name="com.oracle.coherence.common.io.DoubleBufferSequence" source="manual"/>
+    <class name="com.oracle.coherence.common.io.MultiBufferSequence" source="manual"/>
+    <class name="com.oracle.coherence.common.io.SingleBufferSequence" source="manual"/>
+    <class name="com.oracle.coherence.common.io.TripleBufferSequence" source="manual"/>
+    <class name="com.oracle.coherence.common.net.InetSocketAddress32" source="manual"/>
+    <class name="com.oracle.coherence.common.net.SSLSocketProvider$ClientAuthMode" source="manual"/>
+    <class name="com.oracle.coherence.common.net.SelectionServices$LoadBalancer" source="manual"/>
+    <class name="com.oracle.coherence.common.net.exabus.Event$Type" source="manual"/>
+    <class name="com.oracle.coherence.common.schema.util.CapitalizationTransformer$Mode" source="manual"/>
+    <class name="com.oracle.coherence.common.schema.util.PrefixTransformer$Mode" source="manual"/>
+    <class name="com.oracle.coherence.common.schema.util.SuffixTransformer$Mode" source="manual"/>
+    <class name="com.oracle.coherence.common.util.Bandwidth$Magnitude" source="manual"/>
+    <class name="com.oracle.coherence.common.util.Bandwidth$Rate" source="manual"/>
+    <class name="com.oracle.coherence.common.util.ConcurrentAssociationPile$CloseableQueue" source="manual"/>
+    <class name="com.oracle.coherence.common.util.Duration$Magnitude" source="manual"/>
+    <class name="com.oracle.coherence.common.util.MemorySize$Magnitude" source="manual"/>
+    <class name="com.oracle.coherence.common.util.SafeClock" source="manual"/>
+    <class name="com.oracle.coherence.common.util.SimpleAssociationPile$Contention" source="manual"/>
+    <class name="com.oracle.coherence.common.util.ThreadGate$LiteContender" source="manual"/>
+    <class name="com.oracle.coherence.common.util.Threads$LockAnalysis" source="manual"/>
+    <class name="com.oracle.coherence.persistence.AsyncPersistenceException" source="manual"/>
+    <class name="com.oracle.coherence.persistence.ConcurrentAccessException" source="manual"/>
+    <class name="com.oracle.coherence.persistence.FatalAccessException" source="manual"/>
+    <class name="com.oracle.coherence.persistence.PersistenceException" source="manual"/>
+    <class name="com.oracle.coherence.persistence.PersistentStoreInfo" source="manual"/>
+    <class name="com.oracle.coherence.repository.AbstractRepositoryBase" source="manual"/>
+    <class name="com.tangosol.coherence.config.ParameterMacroExpression" source="manual"/>
+    <class name="com.tangosol.coherence.config.ResolvableParameterList" source="manual"/>
+    <class name="com.tangosol.coherence.config.SimpleParameterList" source="manual"/>
+    <class name="com.tangosol.coherence.config.builder.InstanceBuilder" source="manual"/>
+    <class name="com.tangosol.coherence.config.builder.SSLSocketProviderDependenciesBuilder$NameListDependencies$USAGE" source="manual"/>
+    <class name="com.tangosol.coherence.config.builder.StaticFactoryInstanceBuilder" source="manual"/>
+    <class name="com.tangosol.coherence.config.xml.processor.AbstractEmptyElementProcessor$EmptyElementBehavior" source="manual"/>
+    <class name="com.tangosol.coherence.dslquery.CohQLException" source="manual"/>
+    <class name="com.tangosol.coherence.dsltools.base.BaseTokenScannerException" source="manual"/>
+    <class name="com.tangosol.coherence.dsltools.precedence.OPException" source="manual"/>
+    <class name="com.tangosol.coherence.memcached.Response$ResponseCode" source="manual"/>
+    <class name="com.tangosol.coherence.memcached.processor.AddReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.AppendPrependProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.DeleteProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.GetProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.IncrDecrProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.MemcachedAsyncProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.PutProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.processor.TouchProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.memcached.server.DataHolder" source="manual"/>
+    <class name="com.tangosol.coherence.reporter.Collection" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.QueryExpFilter" source="manual"/>
+    <class name="com.tangosol.coherence.reporter.extractor.AddExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.AggregateExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.AttributeExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.ConstantExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.CorrelatedExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.DeltaExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.DivideExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.JoinExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.KeyExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.MultiplyExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.OperationExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.SubQueryExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.reporter.extractor.SubtractExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.config.ConfigurationException" source="manual"/>
+    <class name="com.tangosol.config.expression.ChainedParameterResolver" source="manual"/>
+    <class name="com.tangosol.config.expression.LiteralExpression" source="manual"/>
+    <class name="com.tangosol.config.expression.NullParameterResolver" source="manual"/>
+    <class name="com.tangosol.config.expression.Parameter" source="manual"/>
+    <class name="com.tangosol.config.expression.ScopedParameterResolver" source="manual"/>
+    <class name="com.tangosol.config.expression.ValueMacroExpression" source="manual"/>
+    <class name="com.tangosol.dev.assembler.StackMapTableAttribute$VariableInfoType" source="manual"/>
+    <class name="com.tangosol.dev.compiler.CompilerException" source="manual"/>
+    <class name="com.tangosol.dev.compiler.SyntaxException" source="manual"/>
+    <class name="com.tangosol.dev.compiler.java.UnicodeDataFormatException" source="manual"/>
+    <class name="com.tangosol.dev.component.Component" source="manual"/>
+    <class name="com.tangosol.dev.component.ComponentException" source="manual"/>
+    <class name="com.tangosol.dev.component.DerivationException" source="manual"/>
+    <class name="com.tangosol.dev.component.SubChangeEvent" source="manual"/>
+    <class name="com.tangosol.dev.introspect.ClassPathResourceDiscoverer" source="manual" executable="true"/>
+    <class name="com.tangosol.dev.introspect.ClassPathResourceDiscoverer$FileBasedResourceDiscoverer" source="manual" executable="true"/>
+    <class name="com.tangosol.dev.introspect.ClassPathResourceDiscoverer$InformedResourceDiscoverer" source="manual" executable="true"/>
+    <class name="com.tangosol.dev.introspect.ClassPathResourceDiscoverer$JarFileBasedResourceDiscoverer" source="manual" executable="true"/>
+    <class name="com.tangosol.dev.packager.ClassPackagerPath" source="manual"/>
+    <class name="com.tangosol.dev.packager.ClassReference" source="manual"/>
+    <class name="com.tangosol.dev.packager.DirectoryPackagerPath" source="manual"/>
+    <class name="com.tangosol.dev.packager.ExistingArchiveResourceSet" source="manual"/>
+    <class name="com.tangosol.dev.packager.FilePackagerPath" source="manual"/>
+    <class name="com.tangosol.dev.packager.JarFilePackagerSet" source="manual"/>
+    <class name="com.tangosol.dev.packager.JavaPackagePackagerPath" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackageOwnerResourceSet" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerClassEntry" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerComponentEntry" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerDependencyClassElement" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerEntryNotFoundException" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerException" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerFileEntry" source="manual"/>
+    <class name="com.tangosol.dev.packager.PackagerJavaPackageEntry" source="manual"/>
+    <class name="com.tangosol.dev.packager.UnexpectedPackagerException" source="manual"/>
+    <class name="com.tangosol.internal.cdi.MethodKey" source="manual"/>
+    <class name="com.tangosol.internal.http.HttpException" source="manual"/>
+    <class name="com.tangosol.internal.http.HttpMethod" source="manual"/>
+    <class name="com.tangosol.internal.http.Response$Status" source="manual"/>
+    <class name="com.tangosol.internal.http.Response$Status$Family" source="manual"/>
+    <class name="com.tangosol.internal.management.Message$Severity" source="manual"/>
+    <class name="com.tangosol.internal.metrics.MetricsHttpHandler$Format" source="manual"/>
+    <class name="com.tangosol.internal.metrics.MetricsMBeanAttributeFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.InetAddressRangeFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.management.CacheMBeanAttribute" source="manual"/>
+    <class name="com.tangosol.internal.net.management.MBeanCollectorFunction" source="manual"/>
+    <class name="com.tangosol.internal.net.management.ServiceMBeanAttribute" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.ConverterNamedMapDeque" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.ConverterNamedMapQueue" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.extractor.QueueKeyExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.model.QueueKey" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.model.QueueOfferResult" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.model.QueuePageResult" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.model.QueuePollResult" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.Bucket" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.ClearQueueProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.HeadIncrementProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.InitialiseQueueInfoProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.PagedQueueCacheNames" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.PagedQueueKey" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.PeekWholeBucketAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.QueueInfo" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.QueueOfferTailProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.QueuePollPeekHeadProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.QueueVersionInfo" source="manual"/>
+    <class name="com.tangosol.internal.net.queue.paged.RemoveBucketElementProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.paged.TailIncrementProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.MaybePagedQueueProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueueNameHash" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueueOffer" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueuePage" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueuePeek" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueuePoll" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.queue.processor.QueueRemove" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.ssl.SSLContextProvider" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisher$ChannelCount" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisher$FlushMode" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisher$PublisherEvent" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisher$PublisherEvent$Type" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisher$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicPublisherChannel$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicSubscriber$FlushMode" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicSubscriber$PositionType" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.NamedTopicSubscriber$SeekType" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.PublishResult$Status" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.ReceiveResult$Status" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SimplePublishResult" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SimplePublisherStatus" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SimpleReceiveResult" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SimpleSubscriberOption" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SubscriberConnector$SubscriberEvent" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.SubscriberConnector$SubscriberEvent$Type" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.BatchingOperationsQueue$OnErrorAction" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.BatchingOperationsQueue$OperationCancelledException" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names$Storage" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicChannelPublisherConnector$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.DestroySubscriptionProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.EnsureSubscriptionProcessor$Result" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.EvictSubscriber" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.HeadAdvancer" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor$Result" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.OfferProcessor$Result$Status" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.PollProcessor$Result" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.SeekProcessor$Result" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.SubscriberHeartbeatProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.TailAdvancer" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.agent.TopicInitialiseProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter$ContentKeyChannelExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.filter.UnreadTopicContentFilter$ContentKeyExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.NotificationKey" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Page" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Page$ElementExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Page$HeadExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Page$Key" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Page$TailExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.PageElement" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.PagedPosition" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.PagedTopicSubscription$Key" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberGroupId" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberId" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo$GroupIdExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo$Key" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo$MemberIdExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Subscription" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Subscription$HeadExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Subscription$Key" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Usage" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.model.Usage$Key" source="manual"/>
+    <class name="com.tangosol.internal.tracing.Span$Association" source="manual"/>
+    <class name="com.tangosol.internal.tracing.Span$Metadata" source="manual"/>
+    <class name="com.tangosol.internal.tracing.Span$Type" source="manual"/>
+    <class name="com.tangosol.internal.util.CoherenceMode" source="manual"/>
+    <class name="com.tangosol.internal.util.DoubleBag" source="manual"/>
+    <class name="com.tangosol.internal.util.DoubleSummaryStatistics" source="manual"/>
+    <class name="com.tangosol.internal.util.HeuristicCommitException" source="manual"/>
+    <class name="com.tangosol.internal.util.IntBag" source="manual"/>
+    <class name="com.tangosol.internal.util.IntSummaryStatistics" source="manual"/>
+    <class name="com.tangosol.internal.util.LockContentionException" source="manual"/>
+    <class name="com.tangosol.internal.util.LongBag" source="manual"/>
+    <class name="com.tangosol.internal.util.LongSummaryStatistics" source="manual"/>
+    <class name="com.tangosol.internal.util.SimpleBinaryEntry" source="manual"/>
+    <class name="com.tangosol.internal.util.UnsafeSubSet$WrapperSet" source="manual"/>
+    <class name="com.tangosol.internal.util.aggregator.BigDecimalSerializationWrapper" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.ConvertingNamedCache" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableCollection" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableConcurrentMap" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableList" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableList$Unmodifiable" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableMap" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableMap$Unmodifiable" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableSet" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableSet$Unmodifiable" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableSortedMap" source="manual"/>
+    <class name="com.tangosol.internal.util.collection.PortableSortedSet" source="manual"/>
+    <class name="com.tangosol.internal.util.extractor.ReflectionAllowedFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.extractor.ReflectionAllowedFilter$Status" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.ClassDefinition" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.ClassIdentity" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.Lambdas$SerializationMode" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.RemoteConstructor" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.lambda.LambdaIdentity" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo" source="manual"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryBlindPutProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryContainsValueProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryGetProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllWithExpiryProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutIfAbsentProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryRemoveProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors" source="manual"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$BinaryGet" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Get" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$GetOrDefault" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Null" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Put" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$PutAll" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$PutAllWithExpiry" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$PutIfAbsent" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Remove" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$RemoveBlind" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$RemoveNoResults" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$RemoveValue" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Replace" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$ReplaceValue" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.security.LambdaBytecodeGate$Site" source="manual"/>
+    <class name="com.tangosol.internal.util.security.SecurityConfigGenerator$ReadFailure" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.CollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.DoubleCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline$FinderAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline$MatcherAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline$Optional" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline$StatefulOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline$StatelessOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.IntCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline$FinderAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline$MatcherAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline$Optional" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline$StatefulOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline$StatelessOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.LongCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline$FinderAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline$MatcherAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline$Optional" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline$StatefulOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline$StatelessOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline$FinderAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline$Head" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline$MatcherAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline$StatefulOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline$StatelessOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.AveragingDoubleCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.AveragingIntCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.AveragingLongCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.BiReducingCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.CollectingAndThenCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.CollectionCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.GroupingByCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.MapCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.MappingCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.ReducingCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SimpleRemoteCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummarizingDoubleCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummarizingIntCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummarizingLongCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummingDoubleCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummingIntCollector" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.collectors.SummingLongCollector" source="manual"/>
+    <class name="com.tangosol.io.SerializationRole" source="manual"/>
+    <class name="com.tangosol.io.nio.BinaryMap$Entry" source="manual"/>
+    <class name="com.tangosol.io.pof.DateMode" source="manual"/>
+    <class name="com.tangosol.io.pof.EvolvableHolder" source="manual"/>
+    <class name="com.tangosol.io.pof.PortableException" source="manual"/>
+    <class name="com.tangosol.io.pof.RawQuad" source="manual"/>
+    <class name="com.tangosol.io.pof.reflect.PofNavigationException" source="manual"/>
+    <class name="com.tangosol.io.pof.reflect.SimplePofPath" source="manual"/>
+    <class name="com.tangosol.license.LicenseException" source="manual"/>
+    <class name="com.tangosol.license.LicensedObject$LicenseData" source="manual"/>
+    <class name="com.tangosol.net.ClusterException" source="manual"/>
+    <class name="com.tangosol.net.ClusterPermission" source="manual"/>
+    <class name="com.tangosol.net.Coherence$Mode" source="manual"/>
+    <class name="com.tangosol.net.ConfigurableQuorumPolicy$PartitionedCacheQuorumPolicy$ActionRule" source="manual"/>
+    <class name="com.tangosol.net.InetAddressHelper$RoutableFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.InetAddressHelper$SubnetMaskFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.MemberEvent" source="manual"/>
+    <class name="com.tangosol.net.RequestIncompleteException" source="manual"/>
+    <class name="com.tangosol.net.RequestPolicyException" source="manual"/>
+    <class name="com.tangosol.net.RequestTimeoutException" source="manual"/>
+    <class name="com.tangosol.net.ServiceStoppedException" source="manual"/>
+    <class name="com.tangosol.net.SocketProviderFactory$Dependencies$ProviderType" source="manual"/>
+    <class name="com.tangosol.net.cache.CacheEvent" source="manual"/>
+    <class name="com.tangosol.net.cache.CacheEvent$TransformationState" source="manual"/>
+    <class name="com.tangosol.net.cache.CacheStoreMap" source="manual"/>
+    <class name="com.tangosol.net.cache.ContinuousQueryCache$ConverterAsynchronousProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.net.cache.LocalCache" source="manual"/>
+    <class name="com.tangosol.net.cache.LocalCache$Entry" source="manual"/>
+    <class name="com.tangosol.net.cache.LocalCache$EntrySet" source="manual"/>
+    <class name="com.tangosol.net.cache.LocalCache$KeySet" source="manual"/>
+    <class name="com.tangosol.net.cache.LocalCache$ValuesCollection" source="manual"/>
+    <class name="com.tangosol.net.cache.OverflowMap$HistoricCacheEvent" source="manual"/>
+    <class name="com.tangosol.net.cache.SerializationCache$EntrySet$Entry" source="manual"/>
+    <class name="com.tangosol.net.cache.SimpleCacheStatistics" source="manual"/>
+    <class name="com.tangosol.net.cache.SimpleOverflowMap$FrontFilterConverter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.events.CoherenceLifecycleEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.EventDispatcher$InterceptorRegistrationEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.SessionLifecycleEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.annotation.Interceptor$Order" source="manual"/>
+    <class name="com.tangosol.net.events.application.LifecycleEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.federation.FederatedChangeEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.federation.FederatedConnectionEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.federation.FederatedPartitionEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.TransactionEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.TransferEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.UnsolicitedCommitEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.cache.CacheLifecycleEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.cache.EntryEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.partition.cache.EntryProcessorEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.events.topics.TopicLifecycleEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.grpc.GrpcDependencies$ServerType" source="manual"/>
+    <class name="com.tangosol.net.internal.ClusterJoinException" source="manual"/>
+    <class name="com.tangosol.net.internal.LockHolderLookup" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.PartitionSize" source="manual"/>
+    <class name="com.tangosol.net.internal.PartitionSizeAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.PartitionVersions" source="manual"/>
+    <class name="com.tangosol.net.internal.QuorumInfo" source="manual"/>
+    <class name="com.tangosol.net.internal.RemoveEntryProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.SessionExpiryExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.SessionLocalBackingMap" source="manual"/>
+    <class name="com.tangosol.net.internal.SessionLocalBackingMap$EntrySet" source="manual"/>
+    <class name="com.tangosol.net.internal.SessionOptimisticPut" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.SessionOptimisticRemove" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.SessionUpdateTimestamp" source="manual" executable="true"/>
+    <class name="com.tangosol.net.internal.SimpleConverterEntry" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$GetAttributes" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$Invoke" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$QueryBuilder$ParsedQuery" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanAccessor$SetAttributes" source="manual"/>
+    <class name="com.tangosol.net.management.MBeanHelper$QueryExpFilter" source="manual"/>
+    <class name="com.tangosol.net.management.ObjectNameExcludeFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.messaging.ConnectionEvent" source="manual"/>
+    <class name="com.tangosol.net.messaging.ConnectionException" source="manual"/>
+    <class name="com.tangosol.net.messaging.SuspectConnectionException" source="manual"/>
+    <class name="com.tangosol.net.metrics.MBeanMetric$Scope" source="manual"/>
+    <class name="com.tangosol.net.partition.DefaultVersionedPartitions" source="manual"/>
+    <class name="com.tangosol.net.partition.ObservableSplittingBackingCache$EntrySet$Entry" source="manual"/>
+    <class name="com.tangosol.net.partition.Ownership" source="manual"/>
+    <class name="com.tangosol.net.partition.PartitionEvent" source="manual"/>
+    <class name="com.tangosol.net.partition.PartitionSet" source="manual"/>
+    <class name="com.tangosol.net.partition.PartitionStatistics" source="manual"/>
+    <class name="com.tangosol.net.partition.SimpleAssignmentStrategy$AnalysisContext$NotOwnedFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.partition.SimpleAssignmentStrategy$AnalysisContext$SafetyFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.partition.SimpleAssignmentStrategy$AnalysisContext$UnderloadedFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.net.partition.SimplePartitionKey" source="manual"/>
+    <class name="com.tangosol.net.partition.SimpleStrategyMBean$HAStatus" source="manual"/>
+    <class name="com.tangosol.net.partition.VersionedOwnership" source="manual"/>
+    <class name="com.tangosol.net.security.LocalPermission" source="manual"/>
+    <class name="com.tangosol.net.security.PermissionException" source="manual"/>
+    <class name="com.tangosol.net.security.PermissionInfo" source="manual"/>
+    <class name="com.tangosol.net.security.SecurityProvider" source="manual"/>
+    <class name="com.tangosol.net.topic.NamedTopic" source="manual"/>
+    <class name="com.tangosol.net.topic.NamedTopicEvent" source="manual"/>
+    <class name="com.tangosol.net.topic.NamedTopicEvent$Type" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$FailOnFull" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OnFailure" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OrderById" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OrderByNone" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OrderByRoundRobin" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OrderByThread" source="manual"/>
+    <class name="com.tangosol.net.topic.Publisher$OrderByValue" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$CommitResult" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$CommitResultStatus" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$CompleteOnEmpty" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$Convert" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$Element" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$Filtered" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$Name" source="manual"/>
+    <class name="com.tangosol.net.topic.TopicException" source="manual"/>
+    <class name="com.tangosol.net.topic.TopicPublisherException" source="manual"/>
+    <class name="com.tangosol.run.component.EventDeathException" source="manual"/>
+    <class name="com.tangosol.run.component.IntegrationException" source="manual"/>
+    <class name="com.tangosol.run.xml.ArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.CollectionAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.DateFormatAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.DateTimeAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.MapAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$BooleanArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$ByteArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$CharArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$DoubleArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$FloatArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$IntArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$LongArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.PrimitiveArrayAdapter$ShortArrayAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.QNameAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.RestrictedStringAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SerializableAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$BigDecimalAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$BigIntegerAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$BooleanAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$ByteAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$CharAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$DateAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$DoubleAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$FloatAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$IntAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$LongAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$OldDateAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$ShortAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$StringAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$SystemTimeAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$TimeAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleAdapter$TimestampAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleDocument" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleElement" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleElement$AttributeMap" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleElement$AttributeMap$Entry" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleElement$AttributeMap$EntrySet" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleElement$ElementList" source="manual"/>
+    <class name="com.tangosol.run.xml.SimpleValue" source="manual"/>
+    <class name="com.tangosol.run.xml.XmlElementAdapter" source="manual"/>
+    <class name="com.tangosol.run.xml.XmlSerializableAdapter" source="manual"/>
+    <class name="com.tangosol.util.AbstractKeyBasedMap$EntrySet$Entry" source="manual"/>
+    <class name="com.tangosol.util.AbstractScript" source="manual"/>
+    <class name="com.tangosol.util.Aggregators" source="manual"/>
+    <class name="com.tangosol.util.AnyEvent" source="manual"/>
+    <class name="com.tangosol.util.AssertionException" source="manual"/>
+    <class name="com.tangosol.util.Binary" source="manual"/>
+    <class name="com.tangosol.util.CacheCollator" source="manual"/>
+    <class name="com.tangosol.util.ChainedMap" source="manual"/>
+    <class name="com.tangosol.util.ChainedMap$EntrySet" source="manual"/>
+    <class name="com.tangosol.util.CheckedWrapperException" source="manual"/>
+    <class name="com.tangosol.util.CircularArrayList" source="manual"/>
+    <class name="com.tangosol.util.ClassFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.CollatedKey" source="manual"/>
+    <class name="com.tangosol.util.CompositeKey" source="manual"/>
+    <class name="com.tangosol.util.ConcurrentKeyLock$OwnedReentrantLock" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterCacheEntry" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterCacheEvent" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterCacheMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterCollection" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterConcurrentMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterEntry" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterEntrySet" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterEntrySet$ConverterEntry" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterHolder" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterInvocableMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterList" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterLongArray" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterMapEvent" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterNamedCache" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterObservableMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterQueryMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterQueue" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterSet" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterSortedMap" source="manual"/>
+    <class name="com.tangosol.util.ConverterCollections$ConverterSortedSet" source="manual"/>
+    <class name="com.tangosol.util.CopyOnWriteLongArray" source="manual"/>
+    <class name="com.tangosol.util.DeltaSet" source="manual"/>
+    <class name="com.tangosol.util.Dequeue" source="manual"/>
+    <class name="com.tangosol.util.ErrorList$OverflowException" source="manual"/>
+    <class name="com.tangosol.util.Extractors" source="manual"/>
+    <class name="com.tangosol.util.ExternalizableHelper$IntDecoratedObject" source="manual"/>
+    <class name="com.tangosol.util.Filter" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.FilterBuildingException" source="manual"/>
+    <class name="com.tangosol.util.Filters" source="manual"/>
+    <class name="com.tangosol.util.Fragment" source="manual"/>
+    <class name="com.tangosol.util.IllegalStringException" source="manual"/>
+    <class name="com.tangosol.util.ImmutableArrayList" source="manual"/>
+    <class name="com.tangosol.util.ImmutableArrayList$ListView" source="manual"/>
+    <class name="com.tangosol.util.ImmutableArrayList$SetView" source="manual"/>
+    <class name="com.tangosol.util.ImmutableArrayList$SortedSetView" source="manual"/>
+    <class name="com.tangosol.util.ImmutableMultiList$ListView" source="manual"/>
+    <class name="com.tangosol.util.ImmutableMultiList$SetView" source="manual"/>
+    <class name="com.tangosol.util.InflatableList$InflatedList" source="manual"/>
+    <class name="com.tangosol.util.InflatableSet$InflatedSet" source="manual"/>
+    <class name="com.tangosol.util.InvocableMap" source="manual"/>
+    <class name="com.tangosol.util.InvocableMap$Entry" source="manual"/>
+    <class name="com.tangosol.util.InvocableMapHelper$SimpleEntry" source="manual"/>
+    <class name="com.tangosol.util.ListMap" source="manual"/>
+    <class name="com.tangosol.util.Listeners" source="manual"/>
+    <class name="com.tangosol.util.LiteMap" source="manual"/>
+    <class name="com.tangosol.util.LiteSet" source="manual"/>
+    <class name="com.tangosol.util.MapEvent" source="manual"/>
+    <class name="com.tangosol.util.MapListenerSupport$FilterEvent" source="manual"/>
+    <class name="com.tangosol.util.MapNotFoundException" source="manual"/>
+    <class name="com.tangosol.util.MapSet" source="manual"/>
+    <class name="com.tangosol.util.NullFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.NullImplementation$NullEntryProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.NullImplementation$NullLongArray" source="manual"/>
+    <class name="com.tangosol.util.NullImplementation$NullMap" source="manual"/>
+    <class name="com.tangosol.util.NullImplementation$NullObservableMap" source="manual"/>
+    <class name="com.tangosol.util.NullImplementation$NullSet" source="manual"/>
+    <class name="com.tangosol.util.NullImplementation$NullValueExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.ObservableHashMap" source="manual"/>
+    <class name="com.tangosol.util.ObservableHashMap$Entry" source="manual"/>
+    <class name="com.tangosol.util.OpenHashMap$EntrySet$Entry" source="manual"/>
+    <class name="com.tangosol.util.OperationReason" source="manual"/>
+    <class name="com.tangosol.util.PrimitiveSparseArray" source="manual"/>
+    <class name="com.tangosol.util.PrimitiveSparseArray$PrimitiveNode" source="manual"/>
+    <class name="com.tangosol.util.Processors" source="manual"/>
+    <class name="com.tangosol.util.ReadHeavyLongArray" source="manual"/>
+    <class name="com.tangosol.util.RecyclingLinkedList" source="manual"/>
+    <class name="com.tangosol.util.RecyclingLinkedList$Node" source="manual"/>
+    <class name="com.tangosol.util.RegistrationBehavior" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedCollection" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedEntrySet" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedEntrySet$RestrictedEntry" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedList" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedMap" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedSet" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedSortedMap" source="manual"/>
+    <class name="com.tangosol.util.RestrictedCollections$RestrictedSortedSet" source="manual"/>
+    <class name="com.tangosol.util.SafeClock" source="manual"/>
+    <class name="com.tangosol.util.SafeHashMap" source="manual"/>
+    <class name="com.tangosol.util.SafeHashMap$Entry" source="manual"/>
+    <class name="com.tangosol.util.SafeHashMap$EntrySet" source="manual"/>
+    <class name="com.tangosol.util.SafeHashMap$KeySet" source="manual"/>
+    <class name="com.tangosol.util.SafeHashMap$ValuesCollection" source="manual"/>
+    <class name="com.tangosol.util.SafeHashSet" source="manual"/>
+    <class name="com.tangosol.util.SafeLinkedList" source="manual"/>
+    <class name="com.tangosol.util.SafeLinkedList$Node" source="manual"/>
+    <class name="com.tangosol.util.SafeLongArray" source="manual"/>
+    <class name="com.tangosol.util.SafeSortedMap" source="manual"/>
+    <class name="com.tangosol.util.SafeSortedMap$SubMap" source="manual"/>
+    <class name="com.tangosol.util.ScriptException" source="manual"/>
+    <class name="com.tangosol.util.SegmentedHashSet" source="manual"/>
+    <class name="com.tangosol.util.ServiceEvent" source="manual"/>
+    <class name="com.tangosol.util.SimpleHolder" source="manual"/>
+    <class name="com.tangosol.util.SimpleLongArray" source="manual"/>
+    <class name="com.tangosol.util.SimpleMapEntry" source="manual"/>
+    <class name="com.tangosol.util.SimpleMapIndex$IndexCalculator$CalculatorState" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord$PartialResult" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord$PartialResult$ExplainStep" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord$PartialResult$IndexLookupRecord" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord$PartialResult$Step" source="manual"/>
+    <class name="com.tangosol.util.SimpleQueryRecord$PartialResult$TraceStep" source="manual"/>
+    <class name="com.tangosol.util.SimpleStack" source="manual"/>
+    <class name="com.tangosol.util.SparseArray" source="manual"/>
+    <class name="com.tangosol.util.SparseArray$ObjectNode" source="manual"/>
+    <class name="com.tangosol.util.StringMap" source="manual"/>
+    <class name="com.tangosol.util.StringTable" source="manual"/>
+    <class name="com.tangosol.util.Tree" source="manual"/>
+    <class name="com.tangosol.util.UID" source="manual"/>
+    <class name="com.tangosol.util.UUID" source="manual"/>
+    <class name="com.tangosol.util.UniversalManipulator" source="manual"/>
+    <class name="com.tangosol.util.ValueExtractor" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperCollection" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperList" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperMap" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSet" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedMap" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedSet" source="manual"/>
+    <class name="com.tangosol.util.WrapperException" source="manual"/>
+    <class name="com.tangosol.util.aggregator.AsynchronousAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.BigDecimalAverage" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.BigDecimalMax" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.BigDecimalMin" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.BigDecimalSum" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.ComparableMax" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.ComparableMin" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.CompositeAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.CompositeAggregator$Parallel" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.Count" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.DistinctValues" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.DoubleAverage" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.DoubleMax" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.DoubleMin" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.DoubleSum" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.GroupAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.GroupAggregator$Parallel" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.LongMax" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.LongMin" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.LongSum" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.PriorityAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.QueryRecorder" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.QueryRecorder$RecordType" source="manual"/>
+    <class name="com.tangosol.util.aggregator.ReducerAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.ScriptAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.TopNAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.aggregator.TopNAggregator$PartialResult" source="manual"/>
+    <class name="com.tangosol.util.comparator.ChainedComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.comparator.EntryComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.comparator.ExtractorComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.comparator.InverseComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.comparator.SafeComparator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.ChainedExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.ChainedFragmentExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.CollectionExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.ComparisonValueExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.CompositeUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.ConditionalExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.DeserializationAccelerator" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.FragmentExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.IdentityExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.KeyExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.MultiExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.PofExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.PofUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.ReflectionExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.ReflectionUpdater" source="manual"/>
+    <class name="com.tangosol.util.extractor.ScriptValueExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.UniversalExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.UniversalUpdater" source="manual"/>
+    <class name="com.tangosol.util.filter.AllFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.AlwaysFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.AndFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.AnyFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.BetweenFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.CacheEventFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ContainsAllFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ContainsAnyFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ContainsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.EqualsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.FilterTrigger" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.GreaterEqualsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.GreaterFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.InFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.InKeySetFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.IsNotNullFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.IsNullFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.KeyAssociatedFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.KeyFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.LessEqualsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.LessFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.LikeFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.LikeFilter$MatchStep" source="manual"/>
+    <class name="com.tangosol.util.filter.LimitFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.MapEventFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.MapEventTransformerFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.NeverFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.NotEqualsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.NotFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.OrFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.PartitionedFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.PredicateFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.PresentFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.PriorityFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.RegexFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ScriptFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.ValueChangeEventFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.WrapperQueryRecorderFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.XorFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.function.Remote" source="manual"/>
+    <class name="com.tangosol.util.function.Remote$BiConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BiPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BooleanSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Callable" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Comparator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Consumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoublePredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Function" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjDoubleConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjIntConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjLongConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Predicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Runnable" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Supplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToBigDecimalFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToComparableFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToDoubleBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToIntBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToLongBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$UnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.fsm.NonBlockingFiniteStateMachine$CoalescedEvent$Process" source="manual"/>
+    <class name="com.tangosol.util.fsm.RollbackTransitionException" source="manual"/>
+    <class name="com.tangosol.util.processor.AbstractProcessor" source="manual"/>
+    <class name="com.tangosol.util.processor.AsynchronousProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.CompositeProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.ConditionalProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.ConditionalPut" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.ConditionalPutAll" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.ConditionalRemove" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.ExtractorProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.MethodInvocationProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.NumberIncrementor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.NumberMultiplier" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.PreloadRequest" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.PriorityProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.PropertyManipulator" source="manual"/>
+    <class name="com.tangosol.util.processor.ScriptProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.SingleEntryAsynchronousProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.StreamingAsynchronousProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.TouchProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.UpdaterProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.VersionedPut" source="manual" executable="true"/>
+    <class name="com.tangosol.util.processor.VersionedPutAll" source="manual" executable="true"/>
+    <class name="com.tangosol.util.stream.RemoteCollectors" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteDoubleStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteIntStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteLongStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteStream" source="manual"/>
+    <class name="com.tangosol.util.transformer.ExtractorEventTransformer" source="manual"/>
+    <class name="com.tangosol.util.transformer.SamplingEventTransformer" source="manual"/>
+    <class name="com.tangosol.util.transformer.SemiLiteEventTransformer" source="manual"/>
+  </allowed-classes>
+</security-config>

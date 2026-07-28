@@ -1,34 +1,27 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.preload.cachestore;
 
-
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.guides.preload.processors.GetPartitionCount;
-
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.ExternalizableLite;
-
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-
 import com.tangosol.net.NamedMap;
-
 import com.tangosol.net.cache.ReadWriteBackingMap;
-
 import com.tangosol.net.partition.SimplePartitionKey;
-
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ObservableMap;
 
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,6 +33,7 @@ import java.util.Set;
  * @param <K>  the type of the cache keys
  * @param <V>  the type of the cache values
  */
+@Remote.Executable
 public class IsCacheStoreEnabled<K, V>
         implements InvocableMap.StreamingAggregator<K, V, Boolean, Boolean>,
         PortableObject, ExternalizableLite {

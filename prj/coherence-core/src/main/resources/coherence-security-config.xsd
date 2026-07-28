@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://xmlns.oracle.com/coherence/coherence-security-config"
+            xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified"
+            version="1.0">
+
+  <xsd:annotation>
+    <xsd:documentation>
+      Security configuration for Coherence serialization gates.
+    </xsd:documentation>
+  </xsd:annotation>
+
+  <xsd:element name="security-config">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="allowed-classes"/>
+      </xsd:sequence>
+      <xsd:attribute name="version" type="version-type" use="required"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="allowed-classes">
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element ref="class" minOccurs="0" maxOccurs="unbounded"/>
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:element name="class">
+    <xsd:complexType>
+      <xsd:attribute name="name" type="class-name-type" use="required"/>
+      <xsd:attribute name="source" type="source-type" use="optional"/>
+      <xsd:attribute name="executable" type="xsd:boolean" use="optional" default="false"/>
+      <xsd:attribute name="lambda-target" type="xsd:boolean" use="optional" default="false"/>
+    </xsd:complexType>
+  </xsd:element>
+
+  <xsd:simpleType name="version-type">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="1.0"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="source-type">
+    <xsd:restriction base="xsd:token">
+      <xsd:enumeration value="@Remote.Allowed"/>
+      <xsd:enumeration value="@Remote.Allowed(package)"/>
+      <xsd:enumeration value="@Remote.Executable"/>
+      <xsd:enumeration value="@PortableType"/>
+      <xsd:enumeration value="scan"/>
+      <xsd:enumeration value="manual"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+
+  <xsd:simpleType name="class-name-type">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[A-Za-z_$][A-Za-z0-9_$]*(\.[A-Za-z_$][A-Za-z0-9_$]*)+"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

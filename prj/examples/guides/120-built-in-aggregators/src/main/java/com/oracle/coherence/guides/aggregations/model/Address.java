@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.guides.aggregations.model;
@@ -10,11 +10,14 @@ package com.oracle.coherence.guides.aggregations.model;
 import java.io.Serializable;
 import java.util.Objects;
 
+import com.tangosol.util.function.Remote;
+
 /**
  * Class to represent an Australian address.
  *
  * @author Tim Middleton 2021-02-25
  */
+@Remote.Allowed
 public class Address
         implements Serializable {
 

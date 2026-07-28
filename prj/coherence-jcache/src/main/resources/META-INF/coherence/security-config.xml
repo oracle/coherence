@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.tangosol.coherence.jcache.common.CoherenceEntryProcessorResult" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.common.ContextJCacheStatistics" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.common.JCacheEntryMetaInf" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.common.JCacheIdentifier" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.common.MBeanServerRegistrationUtility$ObjectNameType" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.localcache.LocalCacheAsynchronousMapListener$NonSyntheticEntryFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.LocalCacheConfiguration" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.localcache.LocalCacheValue$JCacheSyntheticKind" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.ConditionalRemoveProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.GetAndReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.InvokeProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.MutableEntryOperation" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.ReplaceIfExistsProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.ReplaceWithProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.localcache.processors.SyntheticDeleteProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheAsynchronousMapListener$NonSyntheticEntryFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheConfiguration" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheSyntheticDeleteMapListener$JCacheExpiryEntryFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$CacheStatisticsExtractor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$PartitionedCacheStatisticsAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.PartitionedJCacheStatistics$PartitionedCacheStatisticsClear" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.CacheLoaderProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.ClearProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.ConditionalRemoveProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.ConditionalReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.ContainsKeyProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.GetAndPutProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.GetAndRemoveProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.GetAndReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.GetPartitionCountEP" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.GetProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.InvokeProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.InvokeProcessor$MutableEntryOperation" source="manual"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.PutAllProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.PutIfAbsentProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.PutProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.RemoveProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.partitionedcache.processors.ReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.passthroughcache.PassThroughFilterAdapter" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.passthroughcache.processors.GetAndReplaceProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.passthroughcache.processors.InvokeProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.passthroughcache.processors.ReplaceIfExistsProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.passthroughcache.processors.ReplaceWithProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.jcache.remotecache.RemoteCacheConfiguration" source="manual"/>
+  </allowed-classes>
+</security-config>

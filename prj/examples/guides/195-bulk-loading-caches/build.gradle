@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 java {
@@ -65,4 +66,8 @@ test {
     systemProperty "java.net.preferIPv4Stack", "true"
 	forkEvery 1
 	testLogging.showStandardStreams = true
+}
+
+securityConfig {
+    processTestClasses = true
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -1192,7 +1192,7 @@ to find specific notes on changes suggested for production use.
 
   <license-config>
     <edition-name system-property="coherence.edition">CE</edition-name>
-    <license-mode system-property="coherence.mode">dev</license-mode>
+    <license-mode system-property="coherence.mode">prod</license-mode>
     <build-number>${project.build.number}</build-number>
     <build-description>${project.impl.description}</build-description>
     <version>${project.version.official}</version>

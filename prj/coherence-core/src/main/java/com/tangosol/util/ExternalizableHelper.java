@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,8 @@ import com.tangosol.io.WrapperObjectOutputStream;
 import com.tangosol.io.WrapperOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.WriteBuffer.BufferOutput;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.PofContext;
@@ -2450,12 +2452,15 @@ public abstract class ExternalizableHelper
             }
         else
             {
+            ensureDefaultObjectInputFilter(in);
+
             // instantiate the object
             String sClass = readUTF(in);
             try
                 {
-                value = (XmlSerializable) loadClass(sClass, loader, null)
-                        .getDeclaredConstructor().newInstance();
+                Class<?> clz = loadClass(sClass, loader, null);
+                validateLoadClass(clz, in);
+                value = (XmlSerializable) clz.getDeclaredConstructor().newInstance();
                 }
             catch (Exception e)
                 {
@@ -2546,6 +2551,8 @@ public abstract class ExternalizableHelper
             }
         else
             {
+            ensureDefaultObjectInputFilter(in);
+
             Class<?>           clz  = null;
             ExternalizableType type = null;
 
@@ -2657,8 +2664,10 @@ public abstract class ExternalizableHelper
     protected static void validateLoadClass(Class clz, DataInput in)
             throws InvalidClassException
         {
+        ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "class-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " was rejected");
             }
         }
@@ -2677,8 +2686,10 @@ public abstract class ExternalizableHelper
     public static void validateLoadArray(Class clz, int cLength, DataInput in)
             throws InvalidClassException
         {
+        ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, cLength, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "array-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " with array length " + cLength + " was rejected");
             }
         }
@@ -2750,6 +2761,8 @@ public abstract class ExternalizableHelper
             }
         else if (USE_XMLBEAN_CLASS_CACHE)
             {
+            ensureDefaultObjectInputFilter(in);
+
             int nBeanId = readInt(in);
             if (nBeanId < 0)
                 {
@@ -2963,6 +2976,8 @@ public abstract class ExternalizableHelper
             return (T) ((PofInputStream) in).readObject();
             }
 
+        ensureDefaultObjectInputFilter(in);
+
         Object o = readObjectInternal(in, in.readUnsignedByte(), loader);
         return (T) safeRealize(o, ensureSerializer(loader), in);
         }
@@ -3010,6 +3025,7 @@ public abstract class ExternalizableHelper
         switch (nType)
             {
             default:
+                SerializationTelemetry.recordFmtCheck("rejected", "invalid-format", nType);
                 throw new StreamCorruptedException("invalid type: " + nType);
 
             case FMT_UNKNOWN:
@@ -3609,6 +3625,8 @@ public abstract class ExternalizableHelper
             {
             in = supplierBufferIn.apply(in);
             }
+
+        ensureDefaultObjectInputFilter(in);
 
         Object o = nType == FMT_EXT
                    ? serializer.deserialize(in, clazz)
@@ -5962,7 +5980,7 @@ public abstract class ExternalizableHelper
             loader = ensureClassLoader(loader == null && in instanceof WrapperDataInputStream
                          ? ((WrapperDataInputStream) in).getClassLoader()
                          : loader);
-            return new ResolvingObjectInputStream(stream, RemotableSupport.get(loader));
+            return newFilteredObjectInputStream(stream, loader);
 
             }
 
@@ -5995,6 +6013,25 @@ public abstract class ExternalizableHelper
                 return new ResolvingObjectOutputStream(stream);
                 }
             }
+        }
+
+    /**
+     * Construct an ObjectInputStream with Coherence's default filter attached.
+     *
+     * @param stream  the stream to read from
+     * @param loader  the class loader to use
+     *
+     * @return a filtered ObjectInputStream
+     *
+     * @throws IOException if an I/O exception occurs
+     */
+    public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader)
+            throws IOException
+        {
+        ObjectInputStream ois = new ResolvingObjectInputStream(stream,
+                RemotableSupport.get(ensureClassLoader(loader)));
+        ois.setObjectInputFilter(DefaultObjectInputFilter.create());
+        return ois;
         }
 
 
@@ -6403,7 +6440,7 @@ public abstract class ExternalizableHelper
             {
             if (oFilter == null)
                 {
-                return true;
+                return false;
                 }
 
             DynamicFilterInfo dynamic = s_tloHandler.get();
@@ -6439,6 +6476,25 @@ public abstract class ExternalizableHelper
         catch (Throwable t) {}
 
         return false;
+        }
+
+    /**
+     * Attach Coherence's default ObjectInputFilter to a BufferInput.
+     *
+     * @param in  the input to update
+     */
+    private static void ensureDefaultObjectInputFilter(DataInput in)
+        {
+        if (in instanceof BufferInput)
+            {
+            try
+                {
+                ((BufferInput) in).setObjectInputFilter(DefaultObjectInputFilter.create());
+                }
+            catch (IllegalStateException ignored)
+                {
+                }
+            }
         }
 
     /**

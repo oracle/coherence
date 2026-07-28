@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 java {
@@ -69,4 +70,8 @@ task copyLibToBuild() {
 		from configurations.runtimeClasspath
 		into "$buildDir/../distribution/lib"
 	}
+}
+
+securityConfig {
+    processTestClasses = true
 }

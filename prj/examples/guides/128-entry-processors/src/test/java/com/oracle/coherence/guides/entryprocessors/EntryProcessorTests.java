@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.util.BinaryEntry;
 import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.GreaterEqualsFilter;
+import com.tangosol.util.function.Remote;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *
  * @author Gunnar Hillert  2022.05.04
  */
+@Remote.Allowed
 class EntryProcessorTests {
     // # tag::bootstrap[]
     @BeforeAll

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,7 @@ import com.oracle.bedrock.runtime.coherence.options.RoleName;
 import com.oracle.bedrock.runtime.java.options.Headless;
 import com.oracle.bedrock.runtime.java.options.HeapSize;
 import com.oracle.bedrock.runtime.java.options.HotSpot;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Console;
 import com.oracle.bedrock.runtime.options.PlatformPredicate;
 import com.oracle.bedrock.testsupport.junit.AbstractBaseAssembly;
@@ -69,6 +70,12 @@ public class CoherenceClusterExtension
             {
             throw new IllegalStateException("CoherenceClusterResource fails to define members to include when launching");
             }
+
+        inheritSystemProperty(COHERENCE_MODE_PROPERTY);
+        inheritSystemProperty(COHERENCE_CLUSTER_PROPERTY);
+        inheritSystemProperty(COHERENCE_WKA_PROPERTY);
+        inheritSystemProperty(COHERENCE_LOCALHOST_PROPERTY);
+        inheritSystemProperty(COHERENCE_TRACE_SHIM_PROPERTY);
 
         // take a snapshot of the current system properties so we can restore them when cleaning up the resource
         m_systemProperties = com.oracle.bedrock.util.SystemProperties.createSnapshot();
@@ -137,6 +144,28 @@ public class CoherenceClusterExtension
             Option... options)
         {
         return include(count, CoherenceClusterMember.class, options);
+        }
+
+    /**
+     * Inherit an invocation-level system property unless the extension already defines it.
+     *
+     * @param sName the property name
+     */
+    private void inheritSystemProperty(String sName)
+        {
+        String sValue = System.getProperty(sName);
+        if (sValue == null)
+            {
+            return;
+            }
+
+        com.oracle.bedrock.runtime.java.options.SystemProperties properties =
+                commonOptionsByType.get(com.oracle.bedrock.runtime.java.options.SystemProperties.class);
+
+        if (properties == null || properties.get(sName) == null)
+            {
+            commonOptionsByType.add(SystemProperty.of(sName, sValue));
+            }
         }
 
 
@@ -225,4 +254,29 @@ public class CoherenceClusterExtension
      * {@link CoherenceCluster} using this {@link CoherenceClusterResource}.
      */
     private final Map<SessionBuilder, Session> f_mapSession;
+
+    /**
+     * The Coherence runtime mode property.
+     */
+    private static final String COHERENCE_MODE_PROPERTY = "coherence.mode";
+
+    /**
+     * The Coherence cluster name property.
+     */
+    private static final String COHERENCE_CLUSTER_PROPERTY = "coherence.cluster";
+
+    /**
+     * The Coherence WKA property.
+     */
+    private static final String COHERENCE_WKA_PROPERTY = "coherence.wka";
+
+    /**
+     * The Coherence localhost property.
+     */
+    private static final String COHERENCE_LOCALHOST_PROPERTY = "coherence.localhost";
+
+    /**
+     * The dynamic shim trace property.
+     */
+    private static final String COHERENCE_TRACE_SHIM_PROPERTY = "coherence.internal.invoke.trace.shim";
     }

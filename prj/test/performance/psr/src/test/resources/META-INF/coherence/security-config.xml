@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.tangosol.coherence.performance.psr.Agent$StartRunnerInvocable" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.performance.psr.Agent$StopRunnerInvocable" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.performance.psr.ComplexTestValue" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.Histogram" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$BenchMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$ClearRequest" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$DistinctMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$Get2ServMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$GetMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$IndexRequest" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$LoadRequest" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$PutMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$PutMessage2Serv" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$PutMixedContentComplexValueMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$PutMixedContentValueMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$PutMixedMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$QueryMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$RunMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$RunnerResponse" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$SampleRequest" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.RunnerProtocol$TestResultMessage" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.ScaledHistogram" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.TestResult" source="manual"/>
+    <class name="com.tangosol.coherence.performance.psr.TestValue" source="manual"/>
+  </allowed-classes>
+</security-config>

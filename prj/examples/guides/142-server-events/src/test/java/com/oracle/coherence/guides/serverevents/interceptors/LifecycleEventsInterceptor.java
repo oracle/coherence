@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,8 +10,8 @@ package com.oracle.coherence.guides.serverevents.interceptors;
 
 import java.io.Serializable;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.net.events.EventInterceptor;
-
 import com.tangosol.net.events.annotation.Interceptor;
 import com.tangosol.net.events.annotation.LifecycleEvents;
 import com.tangosol.net.events.application.LifecycleEvent;
@@ -25,6 +25,7 @@ import com.tangosol.net.events.application.LifecycleEvent;
 // #tag::class[]
 @Interceptor(identifier = "LifecycleEventsInterceptor")
 @LifecycleEvents({LifecycleEvent.Type.ACTIVATING, LifecycleEvent.Type.ACTIVATED, LifecycleEvent.Type.DISPOSING})
+@Remote.Executable
 public class LifecycleEventsInterceptor
         implements EventInterceptor<LifecycleEvent>, Serializable {
 

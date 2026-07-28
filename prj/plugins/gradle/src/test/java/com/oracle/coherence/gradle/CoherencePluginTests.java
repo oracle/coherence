@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -101,7 +101,7 @@ public class CoherencePluginTests
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("coherencePof")
+                .withArguments("portableTypes")
                 .withDebug(true)
                 .withPluginClasspath()
                 .build();
@@ -123,14 +123,14 @@ public class CoherencePluginTests
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("coherencePofTest")
+                .withArguments("portableTypesTest")
                 .withDebug(true)
                 .withPluginClasspath()
                 .build();
 
         logOutput(gradleResult);
 
-        assertSuccess(gradleResult, ":coherencePofTest");
+        assertSuccess(gradleResult, ":portableTypesTest");
         String sOutput = gradleResult.getOutput();
         assertThat(sOutput, containsString("Task :compileTestJava NO-SOURCE"));
         }
@@ -153,7 +153,7 @@ public class CoherencePluginTests
 
         String sOutput = gradleResult.getOutput();
         assertThat(sOutput, containsString("Coherence tasks"));
-        assertThat(sOutput, containsString("coherencePof - Generate Pof-instrumented classes."));
+        assertThat(sOutput, containsString("portableTypes - Generate Pof-instrumented classes."));
         }
 
     @Test
@@ -569,7 +569,7 @@ public class CoherencePluginTests
 
         BuildResult gradleResult = GradleRunner.create()
                 .withProjectDir(m_gradleProjectRootDirectory)
-                .withArguments("coherencePof", "--info")
+                .withArguments("portableTypes", "--info")
                 .withDebug(true)
                 .withPluginClasspath()
                 .build();
@@ -762,7 +762,7 @@ public class CoherencePluginTests
 
     void assertSuccess(BuildResult gradleResult)
         {
-        assertSuccess(gradleResult, ":coherencePof");
+        assertSuccess(gradleResult, ":portableTypes");
         }
 
     void assertSuccess(BuildResult gradleResult, String sTaskName)
@@ -799,5 +799,5 @@ public class CoherencePluginTests
     @TempDir
     private File m_gradleProjectRootDirectory;
 
-    private final CoherenceBuildTimeProperties f_coherenceBuildTimeProperties = new CoherenceBuildTimeProperties();
+    private final BuildTimeProperties f_coherenceBuildTimeProperties = new BuildTimeProperties();
     }

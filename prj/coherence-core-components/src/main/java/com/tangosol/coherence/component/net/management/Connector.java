@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,6 +27,7 @@ import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.net.InetAddresses;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.discovery.NSLookup;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.internal.health.HealthHttpHandler;
 import com.tangosol.internal.net.management.ConnectorDependencies;
 import com.tangosol.internal.net.management.DefaultConnectorDependencies;
@@ -3586,8 +3587,10 @@ public class Connector
             
             setAction(nAction);
             setName(com.tangosol.util.ExternalizableHelper.readSafeUTF(in));
-            
-            switch (nAction)
+
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.JMX))
+                {
+                switch (nAction)
                 {
                 case ACTION_GET:
                     setAttributeName(com.tangosol.util.ExternalizableHelper.readSafeUTF(in));
@@ -3663,6 +3666,7 @@ public class Connector
                         }
                     break;
                     }
+                }
                 }
             }
         

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,8 +24,10 @@ import com.oracle.bedrock.runtime.java.options.Freeforms;
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.java.profiles.JmxProfile;
-
 import com.oracle.bedrock.runtime.options.Console;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
+
 import com.tangosol.coherence.jcache.partitionedcache.PartitionedCacheConfiguration;
 import com.tangosol.coherence.jcache.CoherenceBasedCompleteConfiguration;
 
@@ -211,7 +213,7 @@ public class PartitionedCacheMultipleServersTests
                     "-XX:HeapDumpPath=" + ensureOutputDir("jcache").getAbsolutePath(),
                     "-XX:+ExitOnOutOfMemoryError"};
 
-        return  OptionsByType.of(
+        OptionsByType optionsByType = OptionsByType.of(
                 CacheConfig.of(cacheconfigfile),
                 new Freeforms(new Freeform(defaultJvmOpts)),
                 JmxProfile.enabled(),
@@ -222,6 +224,8 @@ public class PartitionedCacheMultipleServersTests
                 LocalHost.only(),
                 IPv4Preferred.yes()
                 );
+
+        return BedrockInvocationProperties.inherit(optionsByType);
         }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -90,6 +90,21 @@ public class CESJavaClusterPerTests
     public TestLogs m_testLogs = new TestLogs();
 
     /**
+     * The cluster port for this test instance.
+     */
+    private final int m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
+
+    /**
+     * The Extend port for this test instance.
+     */
+    private final int m_nExtendPort = LocalPlatform.get().getAvailablePorts().next();
+
+    /**
+     * The cluster name for this test instance.
+     */
+    private final String m_sClusterName = getClass().getSimpleName() + '-' + m_nClusterPort;
+
+    /**
      * The {@link CoherenceClusterResource} to establish a {@link CoherenceCluster} for testing.
      */
     @Rule
@@ -102,11 +117,11 @@ public class CESJavaClusterPerTests
                           Logging.at(9),
                           Pof.disabled(),
                           CacheConfig.of(CACHE_CONFIG),
-                          ClusterPort.of(7574),
-                          ClusterName.of(CESJavaSingleClusterTests.class.getSimpleName()), // default name is too long
+                          ClusterPort.of(m_nClusterPort),
+                          ClusterName.of(m_sClusterName),
                           SystemProperty.of("coherence.concurrent.scope", "$SYS"),
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, LocalPlatform.get().getLoopbackAddress().getHostAddress()),
-                          SystemProperty.of(EXTEND_PORT_PROPERTY, "9099"),
+                          SystemProperty.of(EXTEND_PORT_PROPERTY, String.valueOf(m_nExtendPort)),
                           JmxFeature.enabled(),
                           m_testLogs)
                     .include(STORAGE_ENABLED_MEMBER_COUNT,

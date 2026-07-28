@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 
 package com.oracle.coherence.guides.preload.model;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.AbstractEvolvable;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.EvolvablePortableObject;
@@ -21,6 +22,7 @@ import java.io.IOException;
 /**
  * A class representing a customer.
  */
+@Remote.Allowed
 public class Customer
         extends AbstractEvolvable
         implements ExternalizableLite, EvolvablePortableObject {

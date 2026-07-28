@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -25,6 +25,7 @@ import com.tangosol.io.pof.PofContext;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofSerializer;
 import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.messaging.ConnectionException;
 import com.tangosol.net.messaging.Message;
@@ -614,7 +615,10 @@ public class Channel
         in.readRemainder();
         
         // use the serializer to read the object from a binary property
-        return serializer.deserialize(bin.getBufferInput());
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(getSerializationRole()))
+            {
+            return serializer.deserialize(bin.getBufferInput());
+            }
         }
     
     // From interface: com.tangosol.io.pof.PofContext
@@ -624,8 +628,23 @@ public class Channel
         // import com.tangosol.io.pof.PofBufferReader;
         // import com.tangosol.io.pof.PofReader;
         
-        PofReader reader = new PofBufferReader(in, this);
-        return reader.readObject(-1);
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(getSerializationRole()))
+            {
+            PofReader reader = new PofBufferReader(in, this);
+            return reader.readObject(-1);
+            }
+        }
+
+    /**
+     * Return the serialization role for this Extend channel.
+     *
+     * @return the role for the channel direction
+     */
+    protected SerializationRole getSerializationRole()
+        {
+        return getConnectionManager() instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor
+                ? SerializationRole.EXTEND_PROXY
+                : SerializationRole.EXTEND_CLIENT;
         }
     
     /**

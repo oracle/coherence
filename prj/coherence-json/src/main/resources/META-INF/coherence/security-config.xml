@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.oracle.coherence.io.json.JsonObject" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.EncodingAwareReaderFactory$UTFEncoding" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.JsonBindingException" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.Trilean" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.datetime.TimestampFormat" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.stream.JsonStreamException" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.stream.JsonType" source="manual"/>
+    <class name="com.oracle.coherence.io.json.genson.stream.ValueType" source="manual"/>
+    <class name="com.oracle.coherence.io.json.internal.JsonPortableException" source="manual"/>
+  </allowed-classes>
+</security-config>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+ * Copyright (c) 2000-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
 }
 
 java {
@@ -65,4 +66,8 @@ task runServer(type: Exec) {
     group = "Execution"
     description = "Run a Coherence Cache Server"
     commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "com.tangosol.net.Coherence"
+}
+
+securityConfig {
+    processTestClasses = true
 }

@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Creating Guides and Tutorials
 :description: Create Coherence Guides
@@ -162,6 +162,50 @@ as unit tests. These tests are then executed as part of the Coherence CI build t
 More complex examples and especially tutorials might need to be written more like mini applications.
 For these examples some proper tests should be written to verify that the steps and instructions given in the example
 `README.adoc` actually work.
+
+=== Serialization Security Configuration
+
+Any example class that can cross a Coherence wire boundary must opt in to generated serialization security metadata.
+Use `@Remote.Allowed` for data classes that are serialized as values, keys or messages.
+Use the `Remote.Executable` annotation for entry processors, aggregators, extractors, interceptors and other classes
+that Coherence executes on behalf of a client.
+If a data class is already POF-managed with `@PortableType`, keep that annotation; the security-config scanner treats
+it as the allow-list signal for that class.
+
+Each example Maven build that contains wire-crossing classes should run the security config plugin:
+
+[source,xml]
+----
+<plugin>
+    <groupId>${coherence.group.id}</groupId>
+    <artifactId>security-config-maven-plugin</artifactId>
+    <version>${coherence.version}</version>
+    <executions>
+        <execution>
+            <id>generate-security-config</id>
+            <goals>
+                <goal>generate</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+----
+
+The matching Gradle build applies the Coherence plugin:
+
+[source,groovy]
+----
+plugins {
+    id 'java'
+    id 'com.oracle.coherence' version "${coherenceVersion}"
+}
+----
+
+The scanner writes `META-INF/coherence/security-config.xml` under the compiled output directory, for example
+`target/classes/META-INF/coherence/security-config.xml` for Maven main classes.
+If an example's security-relevant classes are test fixtures, configure the Maven plugin or Gradle `securityConfig`
+extension to scan test classes as well.
+For the full runtime behavior and migration details, see `docs/core/04_serialization_hardening.adoc`.
 
 === Document Structure
 
@@ -333,4 +377,3 @@ to `<coherence.group.id>com.oracle.coherence.ce</coherence.group.id>`
 
 * Change the `coherenceGroupId=com.oracle.coherence` property in the `gradle.properties` file
 to `coherenceGroupId=com.oracle.coherence.ce`
-

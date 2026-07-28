@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="data.Address" source="manual"/>
+    <class name="data.AddressExternalizableLite" source="manual"/>
+    <class name="data.Blob" source="manual"/>
+    <class name="data.BlobExternalizableLite" source="manual"/>
+    <class name="data.Customer" source="manual"/>
+    <class name="data.CustomerExternalizableLite" source="manual"/>
+    <class name="data.portabletype.Address" source="manual"/>
+    <class name="data.portabletype.Country" source="manual"/>
+    <class name="data.portabletype.Person" source="manual"/>
+    <class name="io.BDBStoreTests$AddAndGetFromBDBStore" source="manual"/>
+    <class name="io.BDBStoreTests$Foo" source="manual"/>
+    <class name="io.BDBStoreTests$ValidateLogCleanup" source="manual"/>
+    <class name="io.ObjectInputFilterTests$TestBufferInput" source="manual"/>
+    <class name="io.ObjectInputFilterTests$TestObjectInputStream" source="manual"/>
+    <class name="io.OptionalDeserializationTest$MyResult" source="manual"/>
+    <class name="io.OptionalDeserializationTest$ReturnOptionalResult" source="manual" executable="true"/>
+    <class name="io.PofConfigDiscoveryTests$PofTypeOne" source="manual"/>
+    <class name="io.PofConfigDiscoveryTests$PofTypeThree" source="manual"/>
+    <class name="io.PofConfigDiscoveryTests$PofTypeTwo" source="manual"/>
+    <class name="io.ProcessWideObjectInputFilterPerformanceTests$TestBufferInput" source="manual"/>
+    <class name="io.ProcessWideObjectInputFilterPerformanceTests$TestObjectInputStream" source="manual"/>
+    <class name="lambda.AbstractRemoteFunctionTests" source="manual" lambda-target="true"/>
+  </allowed-classes>
+</security-config>

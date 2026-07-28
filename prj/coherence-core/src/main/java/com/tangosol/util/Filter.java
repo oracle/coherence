@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,8 @@ import com.tangosol.util.filter.LimitFilter;
 import com.tangosol.util.filter.OrFilter;
 import com.tangosol.util.filter.PartitionedFilter;
 import com.tangosol.util.filter.XorFilter;
+
+import com.tangosol.util.function.Remote;
 
 import java.io.Serializable;
 
@@ -34,6 +36,7 @@ import java.util.Objects;
  * @since 1.0
  */
 @FunctionalInterface
+@Remote.Executable
 public interface Filter<T>
         extends Serializable
     {
@@ -170,4 +173,3 @@ public interface Filter<T>
         return new LimitFilter<>(this, cPageSize);
         }
     }
-

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.guides.preload.processors;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -28,6 +29,7 @@ import java.io.IOException;
  * @param <K>  the type of the cache keys
  * @param <V>  the type of the cache values
  */
+@Remote.Executable
 public class GetPartitionCount<K, V>
         implements InvocableMap.EntryProcessor<K, V, Integer>,
                    PortableObject, ExternalizableLite
