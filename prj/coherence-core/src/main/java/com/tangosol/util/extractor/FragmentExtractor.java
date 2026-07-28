@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.extractor;
 
@@ -79,6 +79,18 @@ public class FragmentExtractor<T>
             mapAttr.put(sName, extractor.extract(target));
             }
         return new Fragment<>(mapAttr);
+        }
+
+    // ---- accessors ------------------------------------------------------
+
+    /**
+     * Obtain the underlying extractors.
+     *
+     * @return the extractors
+     */
+    public List<ValueExtractor<? super T, ?>> getExtractors()
+        {
+        return m_lstExtractors;
         }
 
     // ---- ExternalizableLite interface ------------------------------------

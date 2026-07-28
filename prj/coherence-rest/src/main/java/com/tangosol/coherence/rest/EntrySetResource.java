@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,10 @@ import com.tangosol.coherence.rest.util.PropertySet;
 import com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 
@@ -116,6 +120,7 @@ public class EntrySetResource
     public Response aggregate(@PathParam("aggr") String sAggr)
         {
         InvocableMap.EntryAggregator aggr = m_aggregatorRegistry.getAggregator(sAggr);
+        RemoteInstallGate.enforceCacheAggregatorInstall(aggr, SerializationRole.REST, null);
 
         Object oResult = m_cache.aggregate(m_setKeys, aggr);
         return Response.ok(oResult).build();
@@ -135,6 +140,7 @@ public class EntrySetResource
     public Response process(@PathParam("proc") String sProc)
         {
         InvocableMap.EntryProcessor proc = m_processorRegistry.getProcessor(sProc);
+        RemoteInstallGate.enforceCacheProcessorInstall(proc, SerializationRole.REST, null);
 
         Map mapResult = m_cache.invokeAll(m_setKeys, proc);
         return Response.ok(mapResult).build();

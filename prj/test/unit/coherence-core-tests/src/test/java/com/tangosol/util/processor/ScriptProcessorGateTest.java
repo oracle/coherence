@@ -18,6 +18,9 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.OperationReason;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.ValueUpdater;
+import com.tangosol.util.aggregator.ScriptAggregator;
+import com.tangosol.util.extractor.ScriptValueExtractor;
+import com.tangosol.util.filter.ScriptFilter;
 
 import org.junit.After;
 import org.junit.Before;
@@ -134,6 +137,60 @@ public class ScriptProcessorGateTest
                 .process(new SimpleEntry<>("key", "value", true)));
 
         assertModeGateAbsent("legacy");
+        }
+
+    @Test
+    public void scriptFilterUsesSameModeGate()
+        {
+        setMode("prod", null);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new ScriptFilter<String>("js", "ValuePresentFilter").evaluate("value"));
+
+        assertEquals("script-eval-denied-by-mode", e.getMessage());
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+
+        setMode("dev", null);
+        assertTrue(new ScriptFilter<String>("js", "ValuePresentFilter").evaluate("value"));
+        assertPolicyCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertModeGateAbsent("dev");
+        }
+
+    @Test
+    public void scriptValueExtractorUsesSameModeGate()
+        {
+        setMode("prod", null);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new ScriptValueExtractor<String, String>("js", "IdentityExtractor").extract("value"));
+
+        assertEquals("script-eval-denied-by-mode", e.getMessage());
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+
+        setMode("prod", "allow");
+        assertEquals("value", new ScriptValueExtractor<String, String>("js", "IdentityExtractor").extract("value"));
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertModeGateAbsent("prod");
+        }
+
+    @Test
+    public void scriptAggregatorUsesSameModeGateBeforeDelegateCreation()
+        {
+        setMode("prod", null);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new ScriptAggregator<String, String, Integer, Integer>("js", "CountAggregator", 0).supply());
+
+        assertEquals("script-eval-denied-by-mode", e.getMessage());
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+
+        setMode("prod", "allow");
+        new ScriptAggregator<String, String, Integer, Integer>("js", "CountAggregator", 0).supply();
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertModeGateAbsent("prod");
         }
 
     private static void assertPolicyCounter(String sMode, String sResult, String sSubReason, long cExpected)

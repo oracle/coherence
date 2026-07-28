@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,8 +33,10 @@ import com.oracle.coherence.grpc.messages.cache.v0.PutAllRequest;
 import com.oracle.coherence.grpc.messages.cache.v0.RemoveIndexRequest;
 
 import com.tangosol.internal.util.processor.BinaryProcessors;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
@@ -144,6 +146,8 @@ public abstract class BaseNamedCacheServiceImpl
         ValueExtractor  extractor  = ensureValueExtractor(request.getExtractor(), serializer);
         Comparator<?>   comparator = BinaryHelper.fromByteString(request.getComparator(), serializer);
 
+        RemoteInstallGate.enforceCacheExtractorInstall(extractor, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
         cache.addIndex(extractor, request.getSorted(), comparator);
         return BinaryHelper.EMPTY;
         }
@@ -188,6 +192,8 @@ public abstract class BaseNamedCacheServiceImpl
         InvocableMap.EntryAggregator<Binary, Binary, Binary> aggregator
                 = BinaryHelper.fromByteString(processorBytes, holder.getSerializer());
 
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
         return holder.runAsync(holder.getAsyncCache().aggregate(filter, aggregator))
                 .thenApplyAsync(h -> BinaryHelper.toBytesValue(h.getResult(), h.getSerializer()), executor);
         }
@@ -227,6 +233,7 @@ public abstract class BaseNamedCacheServiceImpl
         InvocableMap.EntryAggregator<Binary, Binary, Binary> aggregator
                 = BinaryHelper.fromByteString(request.getAggregator(), holder.getSerializer());
 
+        RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
         return holder.runAsync(holder.getAsyncCache().aggregate(keys, aggregator))
                 .thenApplyAsync(h -> BinaryHelper.toBytesValue(h.getResult(), h.getSerializer()), executor);
         }
@@ -403,6 +410,7 @@ public abstract class BaseNamedCacheServiceImpl
         NamedCache<Binary, Binary> cache     = holder.getCache();
         ValueExtractor             extractor = ensureValueExtractor(request.getExtractor(), holder.getSerializer());
 
+        RemoteInstallGate.enforceCacheExtractorInstall(extractor, SerializationRole.GRPC, null);
         cache.removeIndex(extractor);
         return BinaryHelper.EMPTY;
         }

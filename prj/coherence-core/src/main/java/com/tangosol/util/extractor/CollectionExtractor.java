@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -115,6 +115,18 @@ public class CollectionExtractor<T, E>
     public ValueExtractor<Collection<T>, List<E>> fromKey()
         {
         return new CollectionExtractor<T, E>(m_extractor, KEY);
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Obtain the underlying extractor.
+     *
+     * @return the extractor
+     */
+    public ValueExtractor<T, E> getExtractor()
+        {
+        return m_extractor;
         }
 
 // ----- CanonicallyNamed interface -------------------------------------

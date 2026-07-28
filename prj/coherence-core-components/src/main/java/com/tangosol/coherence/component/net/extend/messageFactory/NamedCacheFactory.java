@@ -463,6 +463,10 @@ public class NamedCacheFactory
             
             NamedCache cache = getNamedCache();
             _assert(cache != null);
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheAggregatorInstall(getAggregator(), SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             response.setResult(cache.aggregate(getKeySet(), getAggregator()));
             }
@@ -828,6 +832,12 @@ public class NamedCacheFactory
             
             NamedCache cache = getNamedCache();
             _assert(cache != null);
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheFilterInstall(getFilter(), SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
+            RemoteInstallGate.enforceCacheAggregatorInstall(getAggregator(), SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             response.setResult(cache.aggregate(getFilter(), getAggregator()));
             }
@@ -2897,10 +2907,18 @@ public class NamedCacheFactory
             
             if (isAdd())
                 {
+                Channel channel = getChannel();
+                RemoteInstallGate.enforceCacheExtractorInstall(getExtractor(), SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
+                RemoteInstallGate.enforceCacheComparatorInstall(getComparator(), SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
                 cache.addIndex(getExtractor(), isOrdered(), getComparator());
                 }
             else
                 {
+                Channel channel = getChannel();
+                RemoteInstallGate.enforceCacheExtractorInstall(getExtractor(), SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
                 cache.removeIndex(getExtractor());
                 }
             }
@@ -3292,6 +3310,10 @@ public class NamedCacheFactory
             
             NamedCache cache = getNamedCache();
             _assert(cache != null);
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheProcessorInstall(getProcessor(), SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             response.setResult(cache.invokeAll(getKeySet(), getProcessor()));
             }
@@ -3781,6 +3803,11 @@ public class NamedCacheFactory
                      filter instanceof KeyAssociatedFilter ||
                      filter instanceof PartitionedFilter)
                 {
+                Channel channel = getChannel();
+                RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
+                RemoteInstallGate.enforceCacheProcessorInstall(getProcessor(), SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
                 response.setResult(cache.invokeAll(filter, getProcessor()));
                 return;
                 }
@@ -3790,6 +3817,12 @@ public class NamedCacheFactory
             PartitionSet   parts    = (PartitionSet) aoCookie[0];
             int            cBatch   = ((Integer) aoCookie[1]).intValue();
             int            cPart    = parts.getPartitionCount();
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
+            RemoteInstallGate.enforceCacheProcessorInstall(agent, SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             Map map;
             if (cBatch == 0)
@@ -4192,6 +4225,10 @@ public class NamedCacheFactory
             
             NamedCache cache = getNamedCache();
             _assert(cache != null);
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheProcessorInstall(getProcessor(), SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             response.setResult(cache.invoke(getKey(), getProcessor()));
             }
@@ -7911,6 +7948,10 @@ public class NamedCacheFactory
             
                     ((LimitFilter) filter).setCookie(oCookie);
                     }
+
+                Channel channel = getChannel();
+                RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                        channel == null ? null : channel.getSubject());
             
                 if (isKeysOnly())
                     {
@@ -7961,6 +8002,10 @@ public class NamedCacheFactory
             PartitionSet parts     = (PartitionSet) aoCookie[0];
             int          cBatch    = ((Integer) aoCookie[1]).intValue();
             int          cPart     = parts.getPartitionCount();
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
             
             Set set;
             if (cBatch == 0)

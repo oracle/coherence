@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -137,6 +137,18 @@ public class ConditionalPutAll<K, V>
             }
 
         return NullImplementation.getMap();
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+    * Obtain the underlying filter.
+    *
+    * @return the filter used by this ConditionalPutAll
+    */
+    public Filter getFilter()
+        {
+        return m_filter;
         }
 
 

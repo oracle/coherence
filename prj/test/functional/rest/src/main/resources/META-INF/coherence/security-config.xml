@@ -9,8 +9,20 @@
                  version="1.0">
   <allowed-classes>
     <class name="rest.AbstractRestTests$GetPortProcessor" source="manual" executable="true"/>
+    <class name="rest.RestEnforcementIntegrationTest$GetTelemetryProcessor" source="manual" executable="true"/>
+    <class name="rest.RestEnforcementIntegrationTest$ResetTelemetryProcessor" source="manual" executable="true"/>
+    <class name="rest.RestEnforcementIntegrationTest$AllowedConstructorSideEffectAggregator" source="manual" executable="true"/>
+    <class name="rest.RestEnforcementIntegrationTest$AllowedConstructorSideEffectProcessor" source="manual" executable="true"/>
+    <class name="rest.RestEnforcementIntegrationTest$PlainLongSum" source="manual"/>
+    <class name="rest.RestEnforcementIntegrationTest$PlainNumberDoubler" source="manual"/>
     <class name="rest.data.CustomLongSum" source="manual" executable="true"/>
     <class name="rest.data.CustomNumberDoubler" source="manual" executable="true"/>
+    <class name="data.pof.Address" source="manual"/>
+    <class name="data.pof.Person" source="manual"/>
+    <class name="data.pof.PersonLite" source="manual"/>
+    <class name="data.pof.PhoneNumber" source="manual"/>
+    <class name="data.pof.PortablePerson" source="manual"/>
+    <class name="data.pof.VersionablePortablePerson" source="manual"/>
     <class name="rest.data.Persona" source="manual"/>
   </allowed-classes>
 </security-config>

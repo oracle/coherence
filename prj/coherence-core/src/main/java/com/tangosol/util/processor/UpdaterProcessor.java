@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -117,6 +117,16 @@ public class UpdaterProcessor<K, V, T>
             return Boolean.FALSE;
             }
         return Boolean.TRUE;
+        }
+
+    /**
+    * Return the nested value updater used by this processor.
+    *
+    * @return the nested value updater
+    */
+    public ValueUpdater<V, T> getValueUpdater()
+        {
+        return m_updater;
         }
 
 

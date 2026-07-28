@@ -15,6 +15,8 @@ import com.tangosol.coherence.rest.util.PropertySet;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
 
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
 import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
@@ -203,6 +205,7 @@ public class EntryResource
     public Response process(@PathParam("proc") String sProc)
         {
         InvocableMap.EntryProcessor proc = m_processorRegistry.getProcessor(sProc);
+        RemoteInstallGate.enforceCacheProcessorInstall(proc, SerializationRole.REST, null);
 
         Object oResult = m_cache.invoke(m_oKey, proc);
         return Response.ok(oResult).build();

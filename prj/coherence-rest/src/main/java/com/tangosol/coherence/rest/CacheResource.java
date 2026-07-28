@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,10 @@ import com.tangosol.coherence.rest.util.RestHelper;
 import com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry;
 
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 
@@ -259,6 +263,7 @@ public class CacheResource
         try
             {
             aggregator = m_aggregatorRegistry.getAggregator(sAggr);
+            RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
             {
@@ -313,6 +318,7 @@ public class CacheResource
         try
             {
             processor = m_processorRegistry.getProcessor(sProc);
+            RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
             {

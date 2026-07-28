@@ -1,13 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.aggregator;
 
-
 import com.tangosol.internal.util.graal.ScriptManager;
+import com.tangosol.internal.util.security.RemoteScriptGate;
 
 import com.tangosol.io.SerializationSupport;
 
@@ -167,6 +167,7 @@ public class ScriptAggregator<K, V, P, R>
     @SuppressWarnings("unchecked")
     private InvocableMap.StreamingAggregator<K, V, P, R> createDelegate()
         {
+        RemoteScriptGate.enforceScriptEvaluation(this.getClass(), m_sLanguage, m_sName);
         return ScriptManager.getInstance()
                             .execute(m_sLanguage, m_sName, m_aoArgs)
                             .as(InvocableMap.StreamingAggregator.class);

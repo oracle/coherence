@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,15 +21,19 @@ import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
 
 import com.oracle.coherence.grpc.client.common.v0.GrpcConnectionV0;
 import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
+import com.google.protobuf.Message;
 import com.tangosol.internal.net.grpc.DefaultRemoteGrpcCacheServiceDependencies;
 import com.tangosol.internal.net.grpc.RemoteGrpcServiceDependencies;
 
 import com.tangosol.io.Serializer;
 
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Coherence;
 import com.tangosol.net.CoherenceConfiguration;
 import com.tangosol.net.Session;
 import com.tangosol.net.SessionConfiguration;
+import com.tangosol.net.events.EventDispatcher;
+import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.grpc.GrpcDependencies;
 
 import io.grpc.Channel;
@@ -54,6 +58,7 @@ import java.util.Properties;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.IntPredicate;
 
 /**
  * A utility class to deploy the Coherence gRPC proxy service
@@ -163,9 +168,11 @@ public final class ServerHelper
             GrpcConnection.Dependencies connectionDeps
                     = new GrpcConnection.DefaultDependencies(NamedCacheProtocol.PROTOCOL_NAME, serviceDeps,
                     m_channel, m_nProtocolVersion, m_nProtocolVersion, serializer);
+            GrpcRemoteService<?> service = new TestGrpcRemoteService();
+            service.setCluster(CacheFactory.getCluster());
 
-            connection = GrpcRemoteService.connect(null, connectionDeps, NamedCacheResponse.class,
-                    GrpcConnectionV0.SERVICE_VERSION);
+            connection = GrpcRemoteService.connect(service, connectionDeps, NamedCacheResponse.class,
+                    m_nProtocolVersion > 0 ? m_nProtocolVersion : GrpcConnectionV0.SERVICE_VERSION);
             }
 
         NamedCacheClientChannel protocol = NamedCacheClientChannel.createProtocol(deps, connection);
@@ -309,4 +316,75 @@ public final class ServerHelper
     private final Map<String, Map<String, AsyncNamedCacheClient<?, ?>>> clients = new ConcurrentHashMap<>();
 
     private volatile boolean m_fRunning;
+
+    // ----- inner class: TestGrpcRemoteService ----------------------------
+
+    private static class TestGrpcRemoteService
+            extends GrpcRemoteService<RemoteGrpcServiceDependencies>
+        {
+        TestGrpcRemoteService()
+            {
+            super("TestGrpcRemoteService");
+            }
+
+        @Override
+        protected Class<? extends Message> getResponseType()
+            {
+            return NamedCacheResponse.class;
+            }
+
+        @Override
+        protected void stopInternal()
+            {
+            }
+
+        @Override
+        protected EventDispatcherRegistry getDefaultEventDispatcherRegistry()
+            {
+            return NULL_EVENT_DISPATCHER_REGISTRY;
+            }
+
+        @Override
+        public int getMinimumServiceVersion()
+            {
+            return CacheFactory.VERSION_ENCODED;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nYear, int nMonth, int nPatch)
+            {
+            return true;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nMajor, int nMinor, int nMicro, int nPatchSet, int nPatch)
+            {
+            return true;
+            }
+
+        @Override
+        public boolean isVersionCompatible(int nVersion)
+            {
+            return true;
+            }
+
+        @Override
+        public boolean isVersionCompatible(IntPredicate predicate)
+            {
+            return predicate.test(getMinimumServiceVersion());
+            }
+        }
+
+    private static final EventDispatcherRegistry NULL_EVENT_DISPATCHER_REGISTRY = new EventDispatcherRegistry()
+        {
+        @Override
+        public void registerEventDispatcher(EventDispatcher dispatcher)
+            {
+            }
+
+        @Override
+        public void unregisterEventDispatcher(EventDispatcher dispatcher)
+            {
+            }
+        };
     }

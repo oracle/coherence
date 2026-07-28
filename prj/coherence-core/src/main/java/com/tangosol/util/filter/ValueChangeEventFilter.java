@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -109,6 +109,18 @@ public class ValueChangeEventFilter<V, E>
     protected E extract(V target)
         {
         return m_extractor.extract(target);
+        }
+
+    // ---- accessors ------------------------------------------------------
+
+    /**
+     * Obtain the underlying extractor.
+     *
+     * @return the extractor
+     */
+    public ValueExtractor<? super V, ? extends E> getValueExtractor()
+        {
+        return m_extractor;
         }
 
 

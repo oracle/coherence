@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.extractor;
 
@@ -66,6 +66,28 @@ public class ChainedFragmentExtractor<T, E>
     public String getCanonicalName()
         {
         return m_from.getCanonicalName();
+        }
+
+    // ---- accessors ------------------------------------------------------
+
+    /**
+     * Obtain the extractor for the nested property.
+     *
+     * @return the nested-property extractor
+     */
+    public ValueExtractor<? super T, ? extends E> getExtractor()
+        {
+        return m_from;
+        }
+
+    /**
+     * Obtain the fragment extractor.
+     *
+     * @return the fragment extractor
+     */
+    public FragmentExtractor<E> getFragmentExtractor()
+        {
+        return m_fragmentExtractor;
         }
 
     // ---- ExternalizableLite interface ------------------------------------

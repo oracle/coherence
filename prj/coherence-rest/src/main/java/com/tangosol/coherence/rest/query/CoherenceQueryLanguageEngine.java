@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,10 @@ import com.tangosol.coherence.dslquery.ExtractorBuilder;
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
 import com.tangosol.coherence.rest.util.ComparatorHelper;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
+
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 
@@ -81,6 +85,7 @@ public class CoherenceQueryLanguageEngine
                 mapBindings,
                 f_language
                 );
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.REST, null);
 
         return new CoherenceQueryLanguageQuery(filter);
         }
@@ -121,6 +126,7 @@ public class CoherenceQueryLanguageEngine
                 if (sOrder != null && sOrder.length() > 0)
                     {
                     comparator = ComparatorHelper.createComparator(sOrder);
+                    RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.REST, null);
                     }
 
                 setEntries = comparator == null
