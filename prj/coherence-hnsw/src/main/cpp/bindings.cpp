@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -20,18 +20,21 @@
 
 /**
  * Simplified C binding for hnswlib able to work with JNA (Java Native Access)
- * in order to get a similar native performance on Java. This code is based on the python 
+ * in order to get a similar native performance on Java. This code is based on the python
  * binding available at: https://github.com/nmslib/hnswlib/blob/master/python_bindings/bindings.cpp
- * 
- * Some modifications and simplifications have been done on the C side. 
+ *
+ * Some modifications and simplifications have been done on the C side.
  * The multi-threading support can be used and handled on the Java side.
- * 
+ *
  * This work is still in progress. Please feel free to contribute and give ideas.
  */
 
-#include <iostream>
 #include <atomic>
+#include <cstdint>
 #include <cmath>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
 #include "hnswlib/hnswlib.h"
 
 #if _WIN32
@@ -52,10 +55,44 @@
 #define RESULT_ID_NOT_IN_INDEX 7
 #define RESULT_INDEX_NOT_INITIALIZED 8
 
+#define HNSW_MAX_DIMENSION 65536
+#define HNSW_MAX_ELEMENTS 16777216
+#define HNSW_MAX_M 100
+#define HNSW_MAX_EF_CONSTRUCTION 4096
+#define HNSW_MAX_EF_SEARCH 4096
+
 #define TRY_CATCH_NO_INITIALIZE_CHECK_AND_RETURN_INT_BLOCK(block)    if (index_cleared) return RESULT_ONCE_INDEX_IS_CLEARED_IT_CANNOT_BE_REUSED;  int result_code = RESULT_SUCCESSFUL; try { block } catch (...) { result_code = RESULT_EXCEPTION_THROWN; }; return result_code;
 #define TRY_CATCH_RETURN_INT_BLOCK(block)    if (!index_initialized) return RESULT_INDEX_NOT_INITIALIZED; TRY_CATCH_NO_INITIALIZE_CHECK_AND_RETURN_INT_BLOCK(block)
 
 typedef bool (*filter_func) (hnswlib::labeltype);
+
+bool is_valid_space_name(const std::string &space_name) {
+    return space_name == "L2" || space_name == "IP" || space_name == "COSINE";
+}
+
+bool is_valid_dimension(const int dim) {
+    return dim >= 1 && dim <= HNSW_MAX_DIMENSION;
+}
+
+bool is_valid_max_elements(const int maxElements) {
+    return maxElements >= 1 && maxElements <= HNSW_MAX_ELEMENTS;
+}
+
+bool is_valid_M(const int M) {
+    return M >= 2 && M <= HNSW_MAX_M;
+}
+
+bool is_valid_ef_construction(const int efConstruction) {
+    return efConstruction >= 1 && efConstruction <= HNSW_MAX_EF_CONSTRUCTION;
+}
+
+bool is_valid_ef_search(const int ef) {
+    return ef >= 1 && ef <= HNSW_MAX_EF_SEARCH;
+}
+
+bool is_valid_size_multiplication(const size_t count, const size_t size) {
+    return count == 0 || size <= SIZE_MAX / count;
+}
 
 class FilterWrapper: public hnswlib::BaseFilterFunctor {
     filter_func fn;
@@ -73,6 +110,9 @@ class Index {
 public:
     Index(const std::string &space_name, const int dim) :
             space_name(space_name), dim(dim) {
+        if (!is_valid_dimension(dim) || !is_valid_space_name(space_name)) {
+            throw std::runtime_error("Invalid HNSW index configuration");
+        }
         if(space_name=="L2") {
             l2space = new hnswlib::L2Space(dim);
         } else if(space_name=="IP") {
@@ -87,6 +127,10 @@ public:
 
     int init_new_index(const size_t maxElements, const size_t M, const size_t efConstruction, const size_t random_seed, const bool allow_replace_deleted) {
         TRY_CATCH_NO_INITIALIZE_CHECK_AND_RETURN_INT_BLOCK({
+            if (maxElements < 1 || maxElements > HNSW_MAX_ELEMENTS || M < 2 || M > HNSW_MAX_M
+                    || efConstruction < 1 || efConstruction > HNSW_MAX_EF_CONSTRUCTION) {
+                return RESULT_EXCEPTION_THROWN;
+            }
             if (appr_alg) {
                 return RESULT_INDEX_ALREADY_INITIALIZED;
             }
@@ -97,6 +141,9 @@ public:
 
     int set_ef(size_t ef) {
      	TRY_CATCH_RETURN_INT_BLOCK({
+            if (ef < 1 || ef > HNSW_MAX_EF_SEARCH) {
+                return RESULT_EXCEPTION_THROWN;
+            }
         	appr_alg->ef_ = ef;
     	});
     }
@@ -120,23 +167,43 @@ public:
     }
 
     int load_index(const std::string &path_to_index, size_t max_elements) {
-        TRY_CATCH_NO_INITIALIZE_CHECK_AND_RETURN_INT_BLOCK({
-            if (appr_alg) {
-                std::cerr << "Warning: Calling load_index for an already initialized index. Old index is being deallocated.";
-                delete appr_alg;
+        if (index_cleared)
+            return RESULT_ONCE_INDEX_IS_CLEARED_IT_CANNOT_BE_REUSED;
+        int result_code = RESULT_SUCCESSFUL;
+        try {
+            std::unique_ptr<hnswlib::HierarchicalNSW<dist_t>> loaded(
+                    new hnswlib::HierarchicalNSW<dist_t>(l2space, path_to_index, false, max_elements));
+            hnswlib::HierarchicalNSW<dist_t> *previous = appr_alg;
+            appr_alg = loaded.release();
+            delete previous;
+            index_initialized = true;
+            index_cleared = false;
+        } catch (...) {
+            if (!appr_alg) {
+                index_initialized = false;
+                index_cleared = false;
             }
-            appr_alg = new hnswlib::HierarchicalNSW<dist_t>(l2space, path_to_index, false, max_elements);
-        });
+            result_code = RESULT_EXCEPTION_THROWN;
+        }
+        return result_code;
     }
 
     int add_item(float* item, int id, bool replaceDeleted = false) {
         TRY_CATCH_RETURN_INT_BLOCK({
+            if (item == NULL) {
+                return RESULT_EXCEPTION_THROWN;
+            }
             int max_elements = get_max_elements();
             if (get_current_count() >= max_elements) {
-                if (max_elements < 0x7FFFFF)
-                    resize_index(max_elements << 1);
-                else
-                    resize_index(max_elements + (max_elements >> 1));
+                if (max_elements >= HNSW_MAX_ELEMENTS) {
+                    return RESULT_ITEM_CANNOT_BE_INSERTED_INTO_THE_VECTOR_SPACE;
+                }
+                int result = max_elements < 0x7FFFFF
+                        ? resize_index(max_elements << 1)
+                        : resize_index(max_elements + (max_elements >> 1));
+                if (result != RESULT_SUCCESSFUL) {
+                    return result;
+                }
             }
             int current_id = id != -1 ? id : incremental_id++;
             appr_alg->addPoint(item, current_id, replaceDeleted);
@@ -155,6 +222,9 @@ public:
 
     int getDataById(int id, float* data, int dim) {
     	TRY_CATCH_RETURN_INT_BLOCK({
+            if (data == NULL || dim != this->dim) {
+                return RESULT_GET_DATA_FAILED;
+            }
 			int label_c;
 			auto search = (appr_alg->label_lookup_.find(id));
 			if (search == (appr_alg->label_lookup_.end()) || (appr_alg->isMarkedDeleted(search->second))) {
@@ -173,6 +243,9 @@ public:
     float compute_similarity(float* vector1, float* vector2) {
     	float similarity;
         try {
+            if (!index_initialized || vector1 == NULL || vector2 == NULL) {
+                return NAN;
+            }
         	similarity = (appr_alg->fstdistfunc_(vector1, vector2, (appr_alg -> dist_func_param_)));
         } catch (...) {
         	similarity = NAN;
@@ -183,6 +256,9 @@ public:
     int knn_query(float* input, int k, int* indices, /* output */ float* coefficients /* output */, hnswlib::BaseFilterFunctor* filter = nullptr) {
         std::priority_queue<std::pair<dist_t, hnswlib::labeltype >> result;
         TRY_CATCH_RETURN_INT_BLOCK({
+            if (input == NULL || indices == NULL || coefficients == NULL || k <= 0 || k > get_current_count()) {
+                return RESULT_QUERY_CANNOT_RETURN;
+            }
             result = appr_alg->searchKnn((void*) input, k, filter);
             if (result.size() != k)
                 return RESULT_QUERY_CANNOT_RETURN;
@@ -191,7 +267,7 @@ public:
                 coefficients[i] = result_tuple.first;
                 indices[i] = result_tuple.second;
                 result.pop();
-            }       
+            }
         });
     }
 
@@ -205,8 +281,19 @@ public:
         return appr_alg->indexFileSize();
     }
 
-    void resize_index(size_t new_size) {
+    int resize_index(size_t new_size) {
+        if (!index_initialized) {
+            return RESULT_INDEX_NOT_INITIALIZED;
+        }
+        if (new_size < static_cast<size_t>(get_current_count()) || new_size > HNSW_MAX_ELEMENTS) {
+            return RESULT_EXCEPTION_THROWN;
+        }
+        if (!is_valid_size_multiplication(new_size, appr_alg->size_data_per_element_)
+                || !is_valid_size_multiplication(new_size, sizeof(void *))) {
+            return RESULT_EXCEPTION_THROWN;
+        }
         appr_alg->resizeIndex(new_size);
+        return RESULT_SUCCESSFUL;
     }
 
     int get_max_elements() const {
@@ -242,6 +329,9 @@ public:
 EXTERN_C DLLEXPORT Index<float>* createNewIndex(char* spaceName, int dimension){
     Index<float>* index;
     try {
+        if (spaceName == NULL || !is_valid_dimension(dimension)) {
+            return NULL;
+        }
         index = new Index<float>(spaceName, dimension);
     } catch (...) {
     	index = NULL;
@@ -250,14 +340,23 @@ EXTERN_C DLLEXPORT Index<float>* createNewIndex(char* spaceName, int dimension){
 }
 
 EXTERN_C DLLEXPORT int initNewIndex(Index<float>* index, int maxNumberOfElements, int M = 16, int efConstruction = 200, int randomSeed = 100, bool allow_replace_deleted = false) {
+    if (index == NULL || !is_valid_max_elements(maxNumberOfElements) || !is_valid_M(M) || !is_valid_ef_construction(efConstruction)) {
+        return RESULT_EXCEPTION_THROWN;
+    }
 	return index->init_new_index(maxNumberOfElements, M, efConstruction, randomSeed, allow_replace_deleted);
-} 
+}
 
 EXTERN_C DLLEXPORT int addItemToIndex(Index<float>* index, float* item, int label, bool replaceDeleted = false) {
+    if (index == NULL || item == NULL) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     return index->add_item(item, label, replaceDeleted);
 }
 
 EXTERN_C DLLEXPORT int getIndexLength(Index<float>* index) {
+    if (index == NULL) {
+        return 0;
+    }
     if (index->appr_alg) {
         return index->appr_alg->cur_element_count;
     } else {
@@ -266,10 +365,16 @@ EXTERN_C DLLEXPORT int getIndexLength(Index<float>* index) {
 }
 
 EXTERN_C DLLEXPORT int getMaxIndexLength(Index<float>* index) {
+    if (index == NULL || !index->appr_alg) {
+        return 0;
+    }
     return index->get_max_elements();
 }
 
 EXTERN_C DLLEXPORT int getIndexSize(Index<float>* index) {
+    if (index == NULL) {
+        return 0;
+    }
     if (index->appr_alg) {
         return index->get_index_size();
     } else {
@@ -277,62 +382,104 @@ EXTERN_C DLLEXPORT int getIndexSize(Index<float>* index) {
     }
 }
 
-EXTERN_C DLLEXPORT void resizeIndex(Index<float>* index, int maxNumberOfElements) {
-    index->resize_index(maxNumberOfElements);
+EXTERN_C DLLEXPORT int resizeIndex(Index<float>* index, int maxNumberOfElements) {
+    if (index == NULL || !is_valid_max_elements(maxNumberOfElements)) {
+        return RESULT_EXCEPTION_THROWN;
+    }
+    return index->resize_index(maxNumberOfElements);
 }
 
 EXTERN_C DLLEXPORT int saveIndexToPath(Index<float>* index, char* path) {
+    if (index == NULL || path == NULL) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     std::string path_string(path);
     return index->save_index(path_string);
 }
 
-EXTERN_C DLLEXPORT int loadIndexFromPath(Index<float>* index, size_t maxNumberOfElements, char* path) {
+EXTERN_C DLLEXPORT int loadIndexFromPath(Index<float>* index, int maxNumberOfElements, char* path) {
+    if (index == NULL || path == NULL || !is_valid_max_elements(maxNumberOfElements)) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     std::string path_string(path);
     return index->load_index(path_string, maxNumberOfElements);
 }
 
 EXTERN_C DLLEXPORT int knnQuery(Index<float>* index, float* input, int k, int* indices /* output */, float* coefficients /* output */) {
+    if (index == NULL || input == NULL || indices == NULL || coefficients == NULL || k <= 0) {
+        return RESULT_QUERY_CANNOT_RETURN;
+    }
     return index->knn_query(input, k, indices, coefficients);
 }
 
 EXTERN_C DLLEXPORT int knnFilterQuery(Index<float>* index, float* input, int k, filter_func filter, int* indices /* output */, float* coefficients /* output */) {
+    if (index == NULL || input == NULL || filter == NULL || indices == NULL || coefficients == NULL || k <= 0) {
+        return RESULT_QUERY_CANNOT_RETURN;
+    }
     FilterWrapper fn(filter);
     return index->knn_query(input, k, indices, coefficients, &fn);
 }
 
 EXTERN_C DLLEXPORT int clearIndex(Index<float>* index) {
+    if (index == NULL) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     return index->clear_index();
 }
 
 EXTERN_C DLLEXPORT int setEf(Index<float>* index, int ef) {
+    if (index == NULL || !is_valid_ef_search(ef)) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     return index->set_ef(ef);
 }
 
 EXTERN_C DLLEXPORT int getData(Index<float>* index, int id, float* vector, int dim) {
+    if (index == NULL || vector == NULL || dim != index->dim) {
+        return RESULT_GET_DATA_FAILED;
+    }
 	return index->getDataById(id, vector, dim);
 }
 
 EXTERN_C DLLEXPORT int hasId(Index<float>* index, int id) {
+    if (index == NULL) {
+        return RESULT_ID_NOT_IN_INDEX;
+    }
 	return index->hasId(id);
 }
 
 EXTERN_C DLLEXPORT float computeSimilarity(Index<float>* index, float* vector1, float* vector2) {
+    if (index == NULL || vector1 == NULL || vector2 == NULL) {
+        return NAN;
+    }
 	return index->compute_similarity(vector1, vector2);
 }
 
 EXTERN_C DLLEXPORT int getM(Index<float>* index) {
+    if (index == NULL || !index->index_initialized) {
+        return 0;
+    }
     return index->get_M();
 }
 
 EXTERN_C DLLEXPORT int getEfConstruction(Index<float>* index) {
+    if (index == NULL || !index->index_initialized) {
+        return 0;
+    }
     return index->get_ef_construction();
 }
 
 EXTERN_C DLLEXPORT int getEf(Index<float>* index) {
+    if (index == NULL || !index->index_initialized) {
+        return 0;
+    }
     return index->get_ef();
 }
 
 EXTERN_C DLLEXPORT int markDeleted(Index<float>* index, int id) {
+    if (index == NULL) {
+        return RESULT_EXCEPTION_THROWN;
+    }
     return index->mark_deleted(id);
 }
 

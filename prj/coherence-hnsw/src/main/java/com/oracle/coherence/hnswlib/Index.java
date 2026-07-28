@@ -17,6 +17,8 @@ import com.sun.jna.Pointer;
 
 import java.io.Closeable;
 import java.nio.file.Path;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -48,8 +50,8 @@ public class Index implements Closeable
 
     public Index(SpaceName spaceName, int dimension)
         {
-        this.spaceName = spaceName;
-        this.dimension = dimension;
+        this.spaceName = Objects.requireNonNull(spaceName, "spaceName");
+        this.dimension = validateDimension(dimension);
         this.reference = hnswlib.createNewIndex(spaceName.toString(), dimension);
         if (reference == null)
             {
@@ -150,6 +152,9 @@ public class Index implements Closeable
     public void initialize(int maxNumberOfElements, int m, int efConstruction, int randomSeed, boolean allowReplaceDeleted)
         {
         checkIndexIsNotCleared();
+        validateMaxElements(maxNumberOfElements);
+        validateM(m);
+        validateEfConstruction(efConstruction);
         if (initialized)
             {
             throw new IndexAlreadyInitializedException();
@@ -197,6 +202,7 @@ public class Index implements Closeable
     public void addItem(float[] item, int id, boolean replaceDeleted)
         {
         checkIndexIsNotCleared();
+        validateVector(item, dimension, "item");
         checkResultCode(hnswlib.addItemToIndex(reference, item, id, replaceDeleted));
         }
 
@@ -250,7 +256,13 @@ public class Index implements Closeable
     void resize(int maxSize)
         {
         checkIndexIsNotCleared();
-        hnswlib.resizeIndex(reference, maxSize);
+        validateMaxElements(maxSize);
+        int length = getLength();
+        if (maxSize < length)
+            {
+            throw new IllegalArgumentException("maxSize must be greater than or equal to current index length: " + length);
+            }
+        checkResultCode(hnswlib.resizeIndex(reference, maxSize));
         }
 
     /**
@@ -282,6 +294,8 @@ public class Index implements Closeable
     public QueryTuple knnQuery(float[] input, int k, Hnswlib.QueryFilter filter)
         {
         checkIndexIsNotCleared();
+        validateVector(input, dimension, "input");
+        validateK(k);
         int length = getLength();
         if (length == 0)
             {
@@ -352,7 +366,10 @@ public class Index implements Closeable
     public void load(Path path, int maxNumberOfElements)
         {
         checkIndexIsNotCleared();
+        Objects.requireNonNull(path, "path");
+        validateMaxElements(maxNumberOfElements);
         checkResultCode(hnswlib.loadIndexFromPath(reference, maxNumberOfElements, path.toAbsolutePath().toString()));
+        initialized = true;
         }
 
     /**
@@ -473,6 +490,8 @@ public class Index implements Closeable
         {
         checkIndexIsNotCleared();
         checkIndexIsInitialized();
+        validateVector(vector1, dimension, "vector1");
+        validateVector(vector2, dimension, "vector2");
         return hnswlib.computeSimilarity(reference, vector1, vector2);
         }
 
@@ -508,6 +527,7 @@ public class Index implements Closeable
     public void setEf(int ef)
         {
         checkIndexIsNotCleared();
+        validateEfSearch(ef);
         checkResultCode(hnswlib.setEf(reference, ef));
         }
 
@@ -549,6 +569,163 @@ public class Index implements Closeable
             throw new IndexNotInitializedException();
             }
         }
+
+    /**
+     * Validate an HNSW vector dimension.
+     *
+     * @param dimension  the dimension to validate
+     *
+     * @return the validated dimension
+     */
+    public static int validateDimension(int dimension)
+        {
+        return validateRange("dimension", dimension, 1, MAX_DIMENSION);
+        }
+
+    /**
+     * Validate an HNSW max-elements value.
+     *
+     * @param maxElements  the max-elements value to validate
+     *
+     * @return the validated max-elements value
+     */
+    public static int validateMaxElements(int maxElements)
+        {
+        return validateRange("maxElements", maxElements, 1, MAX_ELEMENTS);
+        }
+
+    /**
+     * Validate an HNSW M value.
+     *
+     * @param m  the M value to validate
+     *
+     * @return the validated M value
+     */
+    public static int validateM(int m)
+        {
+        return validateRange("M", m, 2, MAX_M);
+        }
+
+    /**
+     * Validate an HNSW efConstruction value.
+     *
+     * @param efConstruction  the efConstruction value to validate
+     *
+     * @return the validated efConstruction value
+     */
+    public static int validateEfConstruction(int efConstruction)
+        {
+        return validateRange("efConstruction", efConstruction, 1, MAX_EF_CONSTRUCTION);
+        }
+
+    /**
+     * Validate an HNSW efSearch value.
+     *
+     * @param efSearch  the efSearch value to validate
+     *
+     * @return the validated efSearch value
+     */
+    public static int validateEfSearch(int efSearch)
+        {
+        return validateRange("efSearch", efSearch, 1, MAX_EF_SEARCH);
+        }
+
+    /**
+     * Validate an HNSW query count.
+     *
+     * @param k  the query count to validate
+     *
+     * @return the validated query count
+     */
+    public static int validateK(int k)
+        {
+        if (k <= 0)
+            {
+            throw new IllegalArgumentException("k must be greater than zero: " + k);
+            }
+        return k;
+        }
+
+    /**
+     * Validate an HNSW vector.
+     *
+     * @param vector     the vector to validate
+     * @param dimension  the expected dimension
+     * @param name       the argument name
+     *
+     * @return the validated vector
+     */
+    public static float[] validateVector(float[] vector, int dimension, String name)
+        {
+        Objects.requireNonNull(vector, name);
+        validateDimension(dimension);
+        if (vector.length != dimension)
+            {
+            throw new IllegalArgumentException(name + " length must match index dimension "
+                    + dimension + ": " + vector.length);
+            }
+        return vector;
+        }
+
+    /**
+     * Validate an HNSW space name.
+     *
+     * @param spaceName  the space name to validate
+     *
+     * @return the normalized space name
+     */
+    public static String validateSpaceName(String spaceName)
+        {
+        if (spaceName == null || spaceName.isBlank())
+            {
+            throw new IllegalArgumentException("spaceName must be one of L2, IP, or COSINE");
+            }
+        try
+            {
+            return SpaceName.valueOf(spaceName.trim().toUpperCase(Locale.ROOT)).name();
+            }
+        catch (IllegalArgumentException e)
+            {
+            throw new IllegalArgumentException("spaceName must be one of L2, IP, or COSINE: " + spaceName, e);
+            }
+        }
+
+    /**
+     * Validate a bounded HNSW integer parameter.
+     */
+    private static int validateRange(String name, int value, int min, int max)
+        {
+        if (value < min || value > max)
+            {
+            throw new IllegalArgumentException(name + " must be between " + min + " and " + max + ": " + value);
+            }
+        return value;
+        }
+
+    /**
+     * Maximum supported HNSW vector dimension.
+     */
+    public static final int MAX_DIMENSION = 65_536;
+
+    /**
+     * Maximum supported Java/API-created HNSW element count.
+     */
+    public static final int MAX_ELEMENTS = 16_777_216;
+
+    /**
+     * Maximum supported HNSW M value.
+     */
+    public static final int MAX_M = 100;
+
+    /**
+     * Maximum supported HNSW efConstruction value.
+     */
+    public static final int MAX_EF_CONSTRUCTION = 4_096;
+
+    /**
+     * Maximum supported HNSW efSearch value.
+     */
+    public static final int MAX_EF_SEARCH = 4_096;
 
     protected static class CapturingFilter
             implements Hnswlib.QueryFilter

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2024, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -22,6 +22,9 @@
 #include "visited_list_pool.h"
 #include "hnswlib.h"
 #include <atomic>
+#include <cmath>
+#include <cstring>
+#include <limits>
 #include <random>
 #include <stdlib.h>
 #include <assert.h>
@@ -38,6 +41,11 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
  public:
     static const tableint MAX_LABEL_OPERATION_LOCKS = 65536;
     static const unsigned char DELETE_MARK = 0x01;
+    static const size_t MAX_ALLOWED_ELEMENTS = 16777216;
+    static const size_t MAX_ALLOWED_M = 100;
+    static const size_t MAX_ALLOWED_EF_CONSTRUCTION = 4096;
+    static const linklistsizeint LIST_COUNT_MASK = 0x0000FFFF;
+    static const linklistsizeint LIST_DELETE_MARK_MASK = 0x00010000;
 
     size_t max_elements_{0};
     mutable std::atomic<size_t> cur_element_count{0};  // current number of elements
@@ -177,7 +185,99 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         free(linkLists_);
         linkLists_ = nullptr;
         cur_element_count = 0;
+        num_deleted_ = 0;
+        label_lookup_.clear();
+        deleted_elements.clear();
+        element_levels_.clear();
         visited_list_pool_.reset(nullptr);
+    }
+
+
+    struct MallocDeleter {
+        template<typename T>
+        void operator()(T *ptr) const {
+            free(ptr);
+        }
+    };
+
+
+    static size_t checkedAdd(size_t left, size_t right, const char *message) {
+        if (left > std::numeric_limits<size_t>::max() - right)
+            throw std::runtime_error(message);
+        return left + right;
+    }
+
+
+    static size_t checkedMultiply(size_t left, size_t right, const char *message) {
+        if (left != 0 && right > std::numeric_limits<size_t>::max() / left)
+            throw std::runtime_error(message);
+        return left * right;
+    }
+
+
+    template<typename T>
+    static void readBinaryPODChecked(std::istream &input, T &value, const char *message) {
+        readBinaryPOD(input, value);
+        if (!input)
+            throw std::runtime_error(message);
+    }
+
+
+    static void readBytesChecked(std::istream &input, char *data, size_t length, const char *message) {
+        if (length == 0)
+            return;
+        input.read(data, length);
+        if (!input)
+            throw std::runtime_error(message);
+    }
+
+
+    static bool isValidElementId(tableint id, size_t element_count) {
+        return static_cast<size_t>(id) < element_count;
+    }
+
+
+    void checkElementId(tableint id) const {
+        if (!isValidElementId(id, cur_element_count))
+            throw std::runtime_error("Invalid HNSW graph element id");
+    }
+
+
+    static size_t getListCountFromHeader(linklistsizeint header) {
+        return header & LIST_COUNT_MASK;
+    }
+
+
+    static void validateLinkList(
+            const char *linkList,
+            size_t maxConnections,
+            bool allowDeleteMark,
+            tableint elementId,
+            size_t elementCount) {
+        linklistsizeint header;
+        std::memcpy(&header, linkList, sizeof(header));
+        size_t          count = getListCountFromHeader(header);
+        linklistsizeint flags = header & ~LIST_COUNT_MASK;
+        if (count > maxConnections)
+            throw std::runtime_error("Invalid HNSW link-list count");
+        if (allowDeleteMark) {
+            if (flags != 0 && flags != LIST_DELETE_MARK_MASK)
+                throw std::runtime_error("Invalid HNSW level-0 link-list flags");
+        } else if (flags != 0) {
+            throw std::runtime_error("Invalid HNSW upper-level link-list flags");
+        }
+
+        const tableint *neighbors = reinterpret_cast<const tableint *>(linkList + sizeof(linklistsizeint));
+        std::unordered_set<tableint> seen;
+        for (size_t i = 0; i < count; i++) {
+            tableint neighbor = neighbors[i];
+            if (!isValidElementId(neighbor, elementCount))
+                throw std::runtime_error("Invalid HNSW neighbor id");
+            if (neighbor == elementId)
+                throw std::runtime_error("Invalid HNSW self-neighbor");
+            if (!seen.insert(neighbor).second)
+                throw std::runtime_error("Invalid HNSW duplicate neighbor");
+        }
     }
 
 
@@ -243,6 +343,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
     std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst>
     searchBaseLayer(tableint ep_id, const void *data_point, int layer) {
+        checkElementId(ep_id);
         VisitedList *vl = visited_list_pool_->getFreeVisitedList();
         vl_type *visited_array = vl->mass;
         vl_type visited_array_tag = vl->curV;
@@ -270,6 +371,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             candidateSet.pop();
 
             tableint curNodeNum = curr_el_pair.second;
+            checkElementId(curNodeNum);
 
             std::unique_lock <std::mutex> lock(link_list_locks_[curNodeNum]);
 
@@ -283,18 +385,24 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             size_t size = getListCount((linklistsizeint*)data);
             tableint *datal = (tableint *) (data + 1);
 #ifdef USE_SSE
-            _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
-            _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
-            _mm_prefetch(getDataByInternalId(*datal), _MM_HINT_T0);
-            _mm_prefetch(getDataByInternalId(*(datal + 1)), _MM_HINT_T0);
+            if (size > 0 && isValidElementId(*datal, cur_element_count)) {
+                _mm_prefetch((char *) (visited_array + *datal), _MM_HINT_T0);
+                _mm_prefetch((char *) (visited_array + *datal + 64), _MM_HINT_T0);
+                _mm_prefetch(getDataByInternalId(*datal), _MM_HINT_T0);
+                if (size > 1 && isValidElementId(*(datal + 1), cur_element_count))
+                    _mm_prefetch(getDataByInternalId(*(datal + 1)), _MM_HINT_T0);
+            }
 #endif
 
             for (size_t j = 0; j < size; j++) {
                 tableint candidate_id = *(datal + j);
+                checkElementId(candidate_id);
 //                    if (candidate_id == 0) continue;
 #ifdef USE_SSE
-                _mm_prefetch((char *) (visited_array + *(datal + j + 1)), _MM_HINT_T0);
-                _mm_prefetch(getDataByInternalId(*(datal + j + 1)), _MM_HINT_T0);
+                if (j + 1 < size && isValidElementId(*(datal + j + 1), cur_element_count)) {
+                    _mm_prefetch((char *) (visited_array + *(datal + j + 1)), _MM_HINT_T0);
+                    _mm_prefetch(getDataByInternalId(*(datal + j + 1)), _MM_HINT_T0);
+                }
 #endif
                 if (visited_array[candidate_id] == visited_array_tag) continue;
                 visited_array[candidate_id] = visited_array_tag;
@@ -333,6 +441,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         size_t ef,
         BaseFilterFunctor* isIdAllowed = nullptr,
         BaseSearchStopCondition<dist_t>* stop_condition = nullptr) const {
+        checkElementId(ep_id);
         VisitedList *vl = visited_list_pool_->getFreeVisitedList();
         vl_type *visited_array = vl->mass;
         vl_type visited_array_tag = vl->curV;
@@ -341,7 +450,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         std::priority_queue<std::pair<dist_t, tableint>, std::vector<std::pair<dist_t, tableint>>, CompareByFirst> candidate_set;
 
         dist_t lowerBound;
-        if (bare_bone_search || 
+        if (bare_bone_search ||
             (!isMarkedDeleted(ep_id) && ((!isIdAllowed) || (*isIdAllowed)(getExternalLabel(ep_id))))) {
             char* ep_data = getDataByInternalId(ep_id);
             dist_t dist = fstdistfunc_(data_point, ep_data, dist_func_param_);
@@ -378,6 +487,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             candidate_set.pop();
 
             tableint current_node_id = current_node_pair.second;
+            checkElementId(current_node_id);
             int *data = (int *) get_linklist0(current_node_id);
             size_t size = getListCount((linklistsizeint*)data);
 //                bool cur_node_deleted = isMarkedDeleted(current_node_id);
@@ -387,19 +497,24 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             }
 
 #ifdef USE_SSE
-            _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
-            _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
-            _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
-            _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
+            if (size > 0 && isValidElementId(*(data + 1), cur_element_count)) {
+                _mm_prefetch((char *) (visited_array + *(data + 1)), _MM_HINT_T0);
+                _mm_prefetch((char *) (visited_array + *(data + 1) + 64), _MM_HINT_T0);
+                _mm_prefetch(data_level0_memory_ + (*(data + 1)) * size_data_per_element_ + offsetData_, _MM_HINT_T0);
+                _mm_prefetch((char *) (data + 2), _MM_HINT_T0);
+            }
 #endif
 
             for (size_t j = 1; j <= size; j++) {
                 int candidate_id = *(data + j);
+                checkElementId(candidate_id);
 //                    if (candidate_id == 0) continue;
 #ifdef USE_SSE
-                _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
-                _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
-                                _MM_HINT_T0);  ////////////
+                if (j < size && isValidElementId(*(data + j + 1), cur_element_count)) {
+                    _mm_prefetch((char *) (visited_array + *(data + j + 1)), _MM_HINT_T0);
+                    _mm_prefetch(data_level0_memory_ + (*(data + j + 1)) * size_data_per_element_ + offsetData_,
+                                    _MM_HINT_T0);  ////////////
+                }
 #endif
                 if (!(visited_array[candidate_id] == visited_array_tag)) {
                     visited_array[candidate_id] = visited_array_tag;
@@ -422,7 +537,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                                         _MM_HINT_T0);  ////////////////////////
 #endif
 
-                        if (bare_bone_search || 
+                        if (bare_bone_search ||
                             (!isMarkedDeleted(candidate_id) && ((!isIdAllowed) || (*isIdAllowed)(getExternalLabel(candidate_id))))) {
                             top_candidates.emplace(dist, candidate_id);
                             if (!bare_bone_search && stop_condition) {
@@ -703,7 +818,6 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
     void saveIndex(const std::string &location) {
         std::ofstream output(location, std::ios::binary);
-        std::streampos position;
 
         writeBinaryPOD(output, offsetLevel0_);
         writeBinaryPOD(output, max_elements_);
@@ -738,106 +852,222 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         if (!input.is_open())
             throw std::runtime_error("Cannot open file");
 
-        clear();
         // get file size:
         input.seekg(0, input.end);
-        std::streampos total_filesize = input.tellg();
+        std::streamoff total_filesize = input.tellg();
+        if (total_filesize < 0)
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
         input.seekg(0, input.beg);
 
-        readBinaryPOD(input, offsetLevel0_);
-        readBinaryPOD(input, max_elements_);
-        readBinaryPOD(input, cur_element_count);
+        size_t   loaded_offsetLevel0;
+        size_t   loaded_max_elements;
+        size_t   loaded_cur_element_count;
+        size_t   loaded_size_data_per_element;
+        size_t   loaded_label_offset;
+        size_t   loaded_offsetData;
+        int      loaded_maxlevel;
+        tableint loaded_enterpoint_node;
+        size_t   loaded_maxM;
+        size_t   loaded_maxM0;
+        size_t   loaded_M;
+        double   loaded_mult;
+        size_t   loaded_ef_construction;
 
-        size_t max_elements = max_elements_i;
-        if (max_elements < cur_element_count)
-            max_elements = max_elements_;
-        max_elements_ = max_elements;
-        readBinaryPOD(input, size_data_per_element_);
-        readBinaryPOD(input, label_offset_);
-        readBinaryPOD(input, offsetData_);
-        readBinaryPOD(input, maxlevel_);
-        readBinaryPOD(input, enterpoint_node_);
+        readBinaryPODChecked(input, loaded_offsetLevel0, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_max_elements, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_cur_element_count, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_size_data_per_element, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_label_offset, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_offsetData, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_maxlevel, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_enterpoint_node, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_maxM, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_maxM0, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_M, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_mult, "Index seems to be corrupted or unsupported");
+        readBinaryPODChecked(input, loaded_ef_construction, "Index seems to be corrupted or unsupported");
 
-        readBinaryPOD(input, maxM_);
-        readBinaryPOD(input, maxM0_);
-        readBinaryPOD(input, M_);
-        readBinaryPOD(input, mult_);
-        readBinaryPOD(input, ef_construction_);
+        size_t loaded_data_size = s->get_data_size();
+        size_t loaded_size_links_level0 = checkedAdd(
+                checkedMultiply(loaded_maxM0, sizeof(tableint), "Invalid HNSW link-list layout"),
+                sizeof(linklistsizeint),
+                "Invalid HNSW link-list layout");
+        size_t loaded_size_links_per_element = checkedAdd(
+                checkedMultiply(loaded_maxM, sizeof(tableint), "Invalid HNSW link-list layout"),
+                sizeof(linklistsizeint),
+                "Invalid HNSW link-list layout");
+        size_t expected_label_offset = checkedAdd(loaded_size_links_level0, loaded_data_size, "Invalid HNSW data layout");
+        size_t expected_size_data_per_element = checkedAdd(expected_label_offset, sizeof(labeltype), "Invalid HNSW data layout");
 
-        data_size_ = s->get_data_size();
-        fstdistfunc_ = s->get_dist_func();
-        dist_func_param_ = s->get_dist_func_param();
-
-        auto pos = input.tellg();
-
-        /// Optional - check if index is ok:
-        input.seekg(cur_element_count * size_data_per_element_, input.cur);
-        for (size_t i = 0; i < cur_element_count; i++) {
-            if (input.tellg() < 0 || input.tellg() >= total_filesize) {
-                throw std::runtime_error("Index seems to be corrupted or unsupported");
-            }
-
-            unsigned int linkListSize;
-            readBinaryPOD(input, linkListSize);
-            if (linkListSize != 0) {
-                input.seekg(linkListSize, input.cur);
-            }
+        if (loaded_offsetLevel0 != 0
+                || loaded_max_elements < 1 || loaded_max_elements > MAX_ALLOWED_ELEMENTS
+                || loaded_cur_element_count > loaded_max_elements
+                || loaded_M < 2 || loaded_M > MAX_ALLOWED_M
+                || loaded_maxM != loaded_M
+                || loaded_maxM0 != checkedMultiply(loaded_M, 2, "Invalid HNSW M layout")
+                || loaded_ef_construction < 1 || loaded_ef_construction > MAX_ALLOWED_EF_CONSTRUCTION
+                || loaded_ef_construction < loaded_M
+                || loaded_offsetData != loaded_size_links_level0
+                || loaded_label_offset != expected_label_offset
+                || loaded_size_data_per_element != expected_size_data_per_element
+                || !std::isfinite(loaded_mult) || loaded_mult <= 0.0) {
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
         }
 
-        // throw exception if it either corrupted or old index
-        if (input.tellg() != total_filesize)
+        double expected_mult = 1.0 / log(1.0 * loaded_M);
+        double tolerance = std::max(1e-12, std::fabs(expected_mult) * 1e-9);
+        if (std::fabs(loaded_mult - expected_mult) > tolerance)
             throw std::runtime_error("Index seems to be corrupted or unsupported");
 
-        input.clear();
-        /// Optional check end
+        size_t effective_max_elements = max_elements_i == 0 ? loaded_max_elements : max_elements_i;
+        if (effective_max_elements < 1 || effective_max_elements > MAX_ALLOWED_ELEMENTS
+                || loaded_cur_element_count > effective_max_elements)
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
 
-        input.seekg(pos, input.beg);
+        if (loaded_cur_element_count == 0) {
+            if (loaded_maxlevel != -1 || loaded_enterpoint_node != static_cast<tableint>(-1))
+                throw std::runtime_error("Index seems to be corrupted or unsupported");
+        } else {
+            if (loaded_maxlevel < 0 || !isValidElementId(loaded_enterpoint_node, loaded_cur_element_count))
+                throw std::runtime_error("Index seems to be corrupted or unsupported");
+        }
 
-        data_level0_memory_ = (char *) malloc(max_elements * size_data_per_element_);
-        if (data_level0_memory_ == nullptr)
+        std::streamoff data_position = input.tellg();
+        if (data_position < 0)
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
+
+        size_t loaded_data_bytes = checkedMultiply(
+                loaded_cur_element_count,
+                loaded_size_data_per_element,
+                "Invalid HNSW data layout");
+        if (loaded_data_bytes > static_cast<size_t>(total_filesize - data_position))
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
+
+        checkedMultiply(effective_max_elements, loaded_size_data_per_element, "Invalid HNSW data layout");
+        checkedMultiply(effective_max_elements, sizeof(void *), "Invalid HNSW link-list layout");
+
+        std::unique_ptr<char, MallocDeleter> loaded_data(
+                (char *) malloc(checkedMultiply(effective_max_elements, loaded_size_data_per_element, "Invalid HNSW data layout")));
+        if (loaded_data == nullptr)
             throw std::runtime_error("Not enough memory: loadIndex failed to allocate level0");
-        input.read(data_level0_memory_, cur_element_count * size_data_per_element_);
+        readBytesChecked(input, loaded_data.get(), loaded_data_bytes, "Index seems to be corrupted or unsupported");
 
-        size_links_per_element_ = maxM_ * sizeof(tableint) + sizeof(linklistsizeint);
-
-        size_links_level0_ = maxM0_ * sizeof(tableint) + sizeof(linklistsizeint);
-        std::vector<std::mutex>(max_elements).swap(link_list_locks_);
-        std::vector<std::mutex>(MAX_LABEL_OPERATION_LOCKS).swap(label_op_locks_);
-
-        visited_list_pool_.reset(new VisitedListPool(1, max_elements));
-
-        linkLists_ = (char **) malloc(sizeof(void *) * max_elements);
-        if (linkLists_ == nullptr)
+        std::unique_ptr<char*, MallocDeleter> loaded_link_lists(
+                (char **) malloc(checkedMultiply(effective_max_elements, sizeof(void *), "Invalid HNSW link-list layout")));
+        if (loaded_link_lists == nullptr)
             throw std::runtime_error("Not enough memory: loadIndex failed to allocate linklists");
-        element_levels_ = std::vector<int>(max_elements);
-        revSize_ = 1.0 / mult_;
-        ef_ = 10;
-        for (size_t i = 0; i < cur_element_count; i++) {
-            label_lookup_[getExternalLabel(i)] = i;
+        for (size_t i = 0; i < effective_max_elements; i++) {
+            loaded_link_lists.get()[i] = nullptr;
+        }
+
+        std::vector<int> loaded_element_levels(effective_max_elements);
+        std::vector<std::unique_ptr<char, MallocDeleter>> upper_link_lists(effective_max_elements);
+
+        for (size_t i = 0; i < loaded_cur_element_count; i++) {
+            char *level0 = loaded_data.get() + checkedMultiply(i, loaded_size_data_per_element, "Invalid HNSW data layout");
+            validateLinkList(level0, loaded_maxM0, true, static_cast<tableint>(i), loaded_cur_element_count);
+
             unsigned int linkListSize;
-            readBinaryPOD(input, linkListSize);
+            readBinaryPODChecked(input, linkListSize, "Index seems to be corrupted or unsupported");
             if (linkListSize == 0) {
-                element_levels_[i] = 0;
-                linkLists_[i] = nullptr;
+                loaded_element_levels[i] = 0;
             } else {
-                element_levels_[i] = linkListSize / size_links_per_element_;
-                linkLists_[i] = (char *) malloc(linkListSize);
-                if (linkLists_[i] == nullptr)
+                if (loaded_maxlevel < 1
+                        || linkListSize % loaded_size_links_per_element != 0
+                        || linkListSize / loaded_size_links_per_element > static_cast<size_t>(loaded_maxlevel))
+                    throw std::runtime_error("Index seems to be corrupted or unsupported");
+                checkedMultiply(loaded_size_links_per_element, linkListSize / loaded_size_links_per_element, "Invalid HNSW link-list layout");
+                std::streamoff link_position = input.tellg();
+                if (link_position < 0 || linkListSize > static_cast<size_t>(total_filesize - link_position))
+                    throw std::runtime_error("Index seems to be corrupted or unsupported");
+                upper_link_lists[i].reset((char *) malloc(linkListSize));
+                if (upper_link_lists[i] == nullptr)
                     throw std::runtime_error("Not enough memory: loadIndex failed to allocate linklist");
-                input.read(linkLists_[i], linkListSize);
+                readBytesChecked(input, upper_link_lists[i].get(), linkListSize, "Index seems to be corrupted or unsupported");
+                loaded_element_levels[i] = linkListSize / loaded_size_links_per_element;
+                for (int level = 0; level < loaded_element_levels[i]; level++) {
+                    validateLinkList(
+                            upper_link_lists[i].get() + checkedMultiply(level, loaded_size_links_per_element, "Invalid HNSW link-list layout"),
+                            loaded_maxM,
+                            false,
+                            static_cast<tableint>(i),
+                            loaded_cur_element_count);
+                }
             }
         }
 
-        for (size_t i = 0; i < cur_element_count; i++) {
+        int actual_maxlevel = 0;
+        for (size_t i = 0; i < loaded_cur_element_count; i++) {
+            actual_maxlevel = std::max(actual_maxlevel, loaded_element_levels[i]);
+        }
+        if (loaded_cur_element_count > 0
+                && (actual_maxlevel != loaded_maxlevel
+                    || loaded_element_levels[loaded_enterpoint_node] < loaded_maxlevel)) {
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
+        }
+
+        for (size_t i = 0; i < loaded_cur_element_count; i++) {
+            for (int level = 1; level <= loaded_element_levels[i]; level++) {
+                char *linkList = upper_link_lists[i].get() + checkedMultiply(
+                        static_cast<size_t>(level - 1),
+                        loaded_size_links_per_element,
+                        "Invalid HNSW link-list layout");
+                linklistsizeint header;
+                std::memcpy(&header, linkList, sizeof(header));
+                size_t count = getListCountFromHeader(header);
+                const tableint *neighbors = reinterpret_cast<const tableint *>(linkList + sizeof(linklistsizeint));
+                for (size_t n = 0; n < count; n++) {
+                    tableint neighbor = neighbors[n];
+                    if (loaded_element_levels[neighbor] < level)
+                        throw std::runtime_error("Index seems to be corrupted or unsupported");
+                }
+            }
+        }
+
+        std::streamoff final_position = input.tellg();
+        if (final_position < 0 || final_position != total_filesize)
+            throw std::runtime_error("Index seems to be corrupted or unsupported");
+
+        clear();
+
+        offsetLevel0_ = loaded_offsetLevel0;
+        max_elements_ = effective_max_elements;
+        cur_element_count = loaded_cur_element_count;
+        size_data_per_element_ = loaded_size_data_per_element;
+        label_offset_ = loaded_label_offset;
+        offsetData_ = loaded_offsetData;
+        maxlevel_ = loaded_maxlevel;
+        enterpoint_node_ = loaded_enterpoint_node;
+        maxM_ = loaded_maxM;
+        maxM0_ = loaded_maxM0;
+        M_ = loaded_M;
+        mult_ = loaded_mult;
+        ef_construction_ = loaded_ef_construction;
+        data_size_ = loaded_data_size;
+        fstdistfunc_ = s->get_dist_func();
+        dist_func_param_ = s->get_dist_func_param();
+        size_links_per_element_ = loaded_size_links_per_element;
+        size_links_level0_ = loaded_size_links_level0;
+        revSize_ = 1.0 / mult_;
+        ef_ = 10;
+        num_deleted_ = 0;
+
+        std::vector<std::mutex>(effective_max_elements).swap(link_list_locks_);
+        std::vector<std::mutex>(MAX_LABEL_OPERATION_LOCKS).swap(label_op_locks_);
+        visited_list_pool_.reset(new VisitedListPool(1, effective_max_elements));
+        element_levels_.swap(loaded_element_levels);
+        data_level0_memory_ = loaded_data.release();
+        linkLists_ = loaded_link_lists.release();
+
+        for (size_t i = 0; i < loaded_cur_element_count; i++) {
+            if (element_levels_[i] > 0)
+                linkLists_[i] = upper_link_lists[i].release();
+            label_lookup_[getExternalLabel(i)] = i;
             if (isMarkedDeleted(i)) {
                 num_deleted_ += 1;
                 if (allow_replace_deleted_) deleted_elements.insert(i);
             }
         }
-
-        input.close();
-
-        return;
     }
 
 
@@ -845,7 +1075,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
     std::vector<data_t> getDataByLabel(labeltype label) const {
         // lock all operations with element by label
         std::unique_lock <std::mutex> lock_label(getLabelOpMutex(label));
-        
+
         std::unique_lock <std::mutex> lock_table(label_lookup_lock);
         auto search = label_lookup_.find(label);
         if (search == label_lookup_.end() || isMarkedDeleted(search->second)) {
@@ -907,7 +1137,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
     /*
     * Removes the deleted mark of the node, does NOT really change the current graph.
-    * 
+    *
     * Note: the method is not safe to use when replacement of deleted elements is enabled,
     *  because elements marked as deleted can be completely removed by addPoint
     */
@@ -1097,6 +1327,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         int dataPointLevel,
         int maxLevel) {
         tableint currObj = entryPointInternalId;
+        checkElementId(currObj);
         if (dataPointLevel < maxLevel) {
             dist_t curdist = fstdistfunc_(dataPoint, getDataByInternalId(currObj), dist_func_param_);
             for (int level = maxLevel; level > dataPointLevel; level--) {
@@ -1109,13 +1340,16 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                     int size = getListCount(data);
                     tableint *datal = (tableint *) (data + 1);
 #ifdef USE_SSE
-                    _mm_prefetch(getDataByInternalId(*datal), _MM_HINT_T0);
+                    if (size > 0 && isValidElementId(*datal, cur_element_count))
+                        _mm_prefetch(getDataByInternalId(*datal), _MM_HINT_T0);
 #endif
                     for (int i = 0; i < size; i++) {
 #ifdef USE_SSE
-                        _mm_prefetch(getDataByInternalId(*(datal + i + 1)), _MM_HINT_T0);
+                        if (i + 1 < size && isValidElementId(*(datal + i + 1), cur_element_count))
+                            _mm_prefetch(getDataByInternalId(*(datal + i + 1)), _MM_HINT_T0);
 #endif
                         tableint cand = datal[i];
+                        checkElementId(cand);
                         dist_t d = fstdistfunc_(dataPoint, getDataByInternalId(cand), dist_func_param_);
                         if (d < curdist) {
                             curdist = d;
@@ -1159,6 +1393,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
 
     std::vector<tableint> getConnectionsWithLock(tableint internalId, int level) {
+        checkElementId(internalId);
         std::unique_lock <std::mutex> lock(link_list_locks_[internalId]);
         unsigned int *data = get_linklist_at_level(internalId, level);
         int size = getListCount(data);
@@ -1243,9 +1478,8 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
 
                         tableint *datal = (tableint *) (data + 1);
                         for (int i = 0; i < size; i++) {
-                            tableint cand = datal[i];
-                            if (cand < 0 || cand > max_elements_)
-                                throw std::runtime_error("cand error");
+                        tableint cand = datal[i];
+                            checkElementId(cand);
                             dist_t d = fstdistfunc_(data_point, getDataByInternalId(cand), dist_func_param_);
                             if (d < curdist) {
                                 curdist = d;
@@ -1292,6 +1526,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         if (cur_element_count == 0) return result;
 
         tableint currObj = enterpoint_node_;
+        checkElementId(currObj);
         dist_t curdist = fstdistfunc_(query_data, getDataByInternalId(enterpoint_node_), dist_func_param_);
 
         for (int level = maxlevel_; level > 0; level--) {
@@ -1308,8 +1543,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                 tableint *datal = (tableint *) (data + 1);
                 for (int i = 0; i < size; i++) {
                     tableint cand = datal[i];
-                    if (cand < 0 || cand > max_elements_)
-                        throw std::runtime_error("cand error");
+                    checkElementId(cand);
                     dist_t d = fstdistfunc_(query_data, getDataByInternalId(cand), dist_func_param_);
 
                     if (d < curdist) {
@@ -1352,6 +1586,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
         if (cur_element_count == 0) return result;
 
         tableint currObj = enterpoint_node_;
+        checkElementId(currObj);
         dist_t curdist = fstdistfunc_(query_data, getDataByInternalId(enterpoint_node_), dist_func_param_);
 
         for (int level = maxlevel_; level > 0; level--) {
@@ -1368,8 +1603,7 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
                 tableint *datal = (tableint *) (data + 1);
                 for (int i = 0; i < size; i++) {
                     tableint cand = datal[i];
-                    if (cand < 0 || cand > max_elements_)
-                        throw std::runtime_error("cand error");
+                    checkElementId(cand);
                     dist_t d = fstdistfunc_(query_data, getDataByInternalId(cand), dist_func_param_);
 
                     if (d < curdist) {
