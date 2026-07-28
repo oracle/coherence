@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,11 +11,14 @@
 package com.tangosol.coherence.component.net.extend.messageFactory;
 
 import com.tangosol.coherence.component.net.extend.Channel;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.messaging.ConnectionException;
+import com.tangosol.util.OperationReason;
+import com.tangosol.util.RemoteExecutablePolicy;
 
 /**
  * MessageFactory for version 1 of the InvocationService Protocol.
@@ -153,6 +156,16 @@ public class InvocationServiceFactory
          * The Invocable task to execute.
          */
         private com.tangosol.net.Invocable __m_Task;
+
+        /**
+         * Cached executable-policy failure for this request's task.
+         */
+        private transient volatile Throwable __m_TaskPolicyFailure;
+
+        /**
+         * True after this request's task has passed or shadowed the executable-policy check.
+         */
+        private transient volatile boolean __m_TaskPolicyChecked;
         
         /**
          * Property TYPE_ID
@@ -287,9 +300,12 @@ public class InvocationServiceFactory
             // import com.tangosol.net.PriorityTask;
             
             Invocable task = getTask();
-            return task instanceof PriorityTask
-                    ? ((PriorityTask) task).getExecutionTimeoutMillis()
-                    : PriorityTask.TIMEOUT_NONE;
+            if (task instanceof PriorityTask)
+                {
+                ensureTaskExecutable(task);
+                return ((PriorityTask) task).getExecutionTimeoutMillis();
+                }
+            return PriorityTask.TIMEOUT_NONE;
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -299,9 +315,12 @@ public class InvocationServiceFactory
             // import com.tangosol.net.PriorityTask;
             
             Invocable task = getTask();
-            return task instanceof PriorityTask
-                    ? ((PriorityTask) task).getRequestTimeoutMillis()
-                    : PriorityTask.TIMEOUT_NONE;
+            if (task instanceof PriorityTask)
+                {
+                ensureTaskExecutable(task);
+                return ((PriorityTask) task).getRequestTimeoutMillis();
+                }
+            return PriorityTask.TIMEOUT_NONE;
             }
         
         // From interface: com.tangosol.net.PriorityTask
@@ -311,9 +330,69 @@ public class InvocationServiceFactory
             // import com.tangosol.net.PriorityTask;
             
             Invocable task = getTask();
-            return task instanceof PriorityTask
-                    ? ((PriorityTask) task).getSchedulingPriority()
-                    : PriorityTask.SCHEDULE_STANDARD;
+            if (task instanceof PriorityTask)
+                {
+                ensureTaskExecutable(task);
+                return ((PriorityTask) task).getSchedulingPriority();
+                }
+            return PriorityTask.SCHEDULE_STANDARD;
+            }
+
+        /**
+         * Enforce the executable policy for the request task before any task
+         * method is invoked.
+        *
+        * @param task  the task to check
+         */
+        protected void ensureTaskExecutable(Invocable task)
+            {
+            if (task == null)
+                {
+                return;
+                }
+
+            com.tangosol.net.messaging.Channel channel = getChannel();
+            if (channel == null)
+                {
+                return;
+                }
+
+            Throwable failure = __m_TaskPolicyFailure;
+            if (failure != null)
+                {
+                rethrowTaskPolicyFailure(failure);
+                }
+
+            if (__m_TaskPolicyChecked)
+                {
+                return;
+                }
+
+            synchronized (this)
+                {
+                failure = __m_TaskPolicyFailure;
+                if (failure != null)
+                    {
+                    rethrowTaskPolicyFailure(failure);
+                    }
+
+                if (__m_TaskPolicyChecked)
+                    {
+                    return;
+                    }
+
+                try
+                    {
+                    RemoteExecutablePolicy.current().enforce(task.getClass(), OperationReason.INVOKE,
+                            SerializationRole.EXTEND_PROXY, channel.getSubject());
+                    __m_TaskPolicyChecked = true;
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    __m_TaskPolicyFailure = e;
+                    throw e;
+                    }
+                }
             }
         
         // Accessor for the property "Task"
@@ -343,16 +422,34 @@ public class InvocationServiceFactory
             {
             // import com.tangosol.net.Invocable;
             // import com.tangosol.net.InvocationService;
-            // import com.tangosol.net.messaging.Channel as com.tangosol.net.messaging.Channel;
             
-            com.tangosol.net.messaging.Channel   channel = getChannel();
             Invocable task    = getTask();
             _assert(task != null);
             
             InvocationService service = getInvocationService();
             _assert(service != null);
+
+            ensureTaskExecutable(task);
             
             response.setResult(service.query(task, null).values().iterator().next());
+            }
+
+        /**
+         * Rethrow a cached executable-policy failure without recording telemetry again.
+        *
+        * @param failure  the cached policy failure
+         */
+        protected void rethrowTaskPolicyFailure(Throwable failure)
+            {
+            if (failure instanceof RuntimeException)
+                {
+                throw (RuntimeException) failure;
+                }
+            if (failure instanceof Error)
+                {
+                throw (Error) failure;
+                }
+            throw ensureRuntimeException(failure);
             }
         
         // Declared at the super level
@@ -382,6 +479,7 @@ public class InvocationServiceFactory
                 Invocable task = getTask();
                 if (task instanceof PriorityTask)
                     {
+                    ensureTaskExecutable(task);
                     ((PriorityTask) task).runCanceled(fAbandoned);
                     }
             
@@ -427,6 +525,8 @@ public class InvocationServiceFactory
         public void setTask(com.tangosol.net.Invocable task)
             {
             __m_Task = task;
+            __m_TaskPolicyChecked = false;
+            __m_TaskPolicyFailure = null;
             }
         
         // Declared at the super level
