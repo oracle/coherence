@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -507,13 +507,15 @@ public class TestingUtils
                 return false;
                 }
             return Objects.equals(getName(), treeNode.getName())
-                   && Objects.equals(f_children, treeNode.f_children);
+                   && matches(f_children, treeNode.f_children);
             }
 
         @Override
         public int hashCode()
             {
-            return Objects.hashCode(f_children);
+            return Objects.hash(getName(), f_children.stream()
+                    .mapToInt(Node::hashCode)
+                    .sum());
             }
 
         @Override
@@ -554,6 +556,44 @@ public class TestingUtils
             {
             sb.append(indent).append("- ").append(node.getName()).append("\n");
             node.getChildren().forEach(child -> printTree(sb, child, indent + "  "));
+            }
+
+        /**
+         * Returns {@code true} if the two child lists contain matching nodes.
+         *
+         * @param listOne  the first child list
+         * @param listTwo  the second child list
+         *
+         * @return {@code true} if the two child lists contain matching nodes
+         */
+        private static boolean matches(List<Node> listOne, List<Node> listTwo)
+            {
+            if (listOne.size() != listTwo.size())
+                {
+                return false;
+                }
+
+            boolean[] afMatched = new boolean[listTwo.size()];
+            for (Node nodeOne : listOne)
+                {
+                boolean fFound = false;
+                for (int i = 0; i < listTwo.size(); i++)
+                    {
+                    if (!afMatched[i] && nodeOne.equals(listTwo.get(i)))
+                        {
+                        afMatched[i] = true;
+                        fFound      = true;
+                        break;
+                        }
+                    }
+
+                if (!fFound)
+                    {
+                    return false;
+                    }
+                }
+
+            return true;
             }
 
         // ----- data members -----------------------------------------------
@@ -612,10 +652,7 @@ public class TestingUtils
                      int nComp = Long.compare(spanNode1.f_span.getStartTimeUnixNano(), spanNode2.f_span.getStartTimeUnixNano());
                      if (nComp == 0)
                          {
-                         if (spanNode1.getName().endsWith(".post"))
-                             {
-                             return 1;
-                             }
+                         nComp = Boolean.compare(spanNode1.getName().endsWith(".post"), spanNode2.getName().endsWith(".post"));
                          }
 
                      return nComp;
