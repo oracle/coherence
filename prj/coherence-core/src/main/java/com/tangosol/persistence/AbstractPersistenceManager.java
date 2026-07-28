@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,7 +29,6 @@ import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.ReadBuffer.BufferInput;
-import com.tangosol.io.WrapperBufferOutput;
 import com.tangosol.io.WriteBuffer.BufferOutput;
 
 import com.tangosol.net.cache.KeyAssociation;
@@ -42,14 +41,10 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.SimpleMapEntry;
 
-import java.io.DataInputStream;
 import java.io.DataOutput;
-import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 
 import java.nio.channels.FileLock;
@@ -902,6 +897,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         if (sId.length() == 0)
             {
             throw new IllegalArgumentException("empty identifier");
+            }
+        if (!sId.equals(FileHelper.toFilename(sId)))
+            {
+            throw new IllegalArgumentException("invalid identifier: " + sId);
             }
 
         return sId;

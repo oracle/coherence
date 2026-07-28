@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,8 @@ import com.tangosol.internal.http.Response;
 
 import com.tangosol.internal.management.EntityMBeanResponse;
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
+
+import com.tangosol.persistence.CachePersistenceHelper;
 
 import com.tangosol.util.Filter;
 
@@ -109,7 +111,7 @@ public class PersistenceResource
      */
     public Response getArchiveStores(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -124,7 +126,7 @@ public class PersistenceResource
      */
     public Response getSnapshotStatus(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
         return response(getResponseFromMBeanOperation(request, getQuery(request),
@@ -138,7 +140,7 @@ public class PersistenceResource
      */
     public Response getSnapshotRecoveryStatus(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
         return response(getResponseFromMBeanOperation(request, getQuery(request),
@@ -164,7 +166,7 @@ public class PersistenceResource
      */
     public Response createSnapshot(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -178,7 +180,7 @@ public class PersistenceResource
      */
     public Response recoverSnapshot(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -192,7 +194,7 @@ public class PersistenceResource
      */
     public Response archiveSnapshot(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -206,7 +208,7 @@ public class PersistenceResource
      */
     public Response retrieveArchivedSnapshot(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -222,7 +224,7 @@ public class PersistenceResource
      */
     public Response deleteSnapshot(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -239,7 +241,7 @@ public class PersistenceResource
      */
     public Response deleteArchive(HttpRequest request)
         {
-        String   sSnapshotName = request.getFirstPathParameter(SNAPSHOT_NAME);
+        String   sSnapshotName = getSnapshotName(request);
         String[] asSignature   = {String.class.getName()};
         Object[] aoArguments   = {sSnapshotName};
 
@@ -261,6 +263,18 @@ public class PersistenceResource
         }
 
     // ----- PersistenceResource methods-------------------------------------
+
+    /**
+     * Return the validated snapshot path parameter.
+     *
+     * @param request  the {@link HttpRequest}
+     *
+     * @return the validated snapshot name
+     */
+    protected String getSnapshotName(HttpRequest request)
+        {
+        return CachePersistenceHelper.validateSnapshotName(request.getFirstPathParameter(SNAPSHOT_NAME));
+        }
 
     /**
      * MBean query to retrieve PersistenceController for the provided service.

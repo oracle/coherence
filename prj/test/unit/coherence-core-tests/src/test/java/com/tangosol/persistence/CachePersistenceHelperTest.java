@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,14 +13,21 @@ import com.oracle.coherence.persistence.PersistenceManager;
 import com.oracle.coherence.persistence.PersistentStore;
 import com.oracle.coherence.persistence.PersistenceTools;
 
+import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.WriteBuffer.BufferOutput;
 
 import com.tangosol.net.Cluster;
 import com.tangosol.net.Member;
+import com.tangosol.net.MemberIdentity;
 import com.tangosol.net.PartitionedService;
 import com.tangosol.net.ServiceInfo;
 
+import com.tangosol.net.internal.QuorumInfo;
+
+import com.tangosol.persistence.bdb.BerkeleyDBEnvironment;
 import com.tangosol.persistence.bdb.BerkeleyDBManager;
 
 import com.tangosol.util.Base;
@@ -38,12 +45,19 @@ import com.tangosol.util.extractor.ReflectionExtractor;
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.FilterTrigger;
 
+import java.io.DataInput;
+import java.io.DataOutput;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.After;
 import org.junit.Before;
@@ -167,6 +181,148 @@ public class CachePersistenceHelperTest
         }
 
     @Test
+    public void testPartitionCountMetadataAcceptsSafeScalarEncoding()
+        {
+        storeMeta(BINARY_PARTITION_COUNT, ExternalizableHelper.toBinary(Integer.valueOf(257)));
+
+        assertEquals(257, CachePersistenceHelper.getPartitionCount(m_store));
+        }
+
+    @Test
+    public void testPartitionCountMetadataRejectsObjectPayloadBeforeMaterialization()
+        {
+        MaterializationSentinel.reset();
+        storeMeta(BINARY_PARTITION_COUNT, ExternalizableHelper.toBinary(new MaterializationSentinel()));
+
+        assertThrows(PersistenceException.class, () -> CachePersistenceHelper.getPartitionCount(m_store));
+        assertFalse(MaterializationSentinel.wasMaterialized());
+        }
+
+    @Test
+    public void testPersistenceVersionMetadataAcceptsSafeLegacyEncodings()
+        {
+        storeMeta(BINARY_PERSISTENCE_VERSION,
+                ExternalizableHelper.toBinary(String.valueOf(CachePersistenceHelper.PERSISTENCE_VERSION)));
+        assertEquals(CachePersistenceHelper.PERSISTENCE_VERSION, CachePersistenceHelper.getPersistenceVersion(m_store));
+
+        storeMeta(BINARY_PERSISTENCE_VERSION,
+                ExternalizableHelper.toBinary(Integer.valueOf(CachePersistenceHelper.PERSISTENCE_VERSION)));
+        assertEquals(CachePersistenceHelper.PERSISTENCE_VERSION, CachePersistenceHelper.getPersistenceVersion(m_store));
+        }
+
+    @Test
+    public void testPersistenceVersionMetadataRejectsObjectPayloadBeforeMaterialization()
+        {
+        MaterializationSentinel.reset();
+        storeMeta(BINARY_PERSISTENCE_VERSION, ExternalizableHelper.toBinary(new MaterializationSentinel()));
+
+        assertThrows(PersistenceException.class, () -> CachePersistenceHelper.getPersistenceVersion(m_store));
+        assertFalse(MaterializationSentinel.wasMaterialized());
+        }
+
+    @Test
+    public void testPersistenceVersionMetadataRejectsMalformedScalar()
+        {
+        storeMeta(BINARY_PERSISTENCE_VERSION, ExternalizableHelper.toBinary("not-a-version"));
+
+        assertThrows(PersistenceException.class, () -> CachePersistenceHelper.getPersistenceVersion(m_store));
+        }
+
+    @Test
+    public void testQuorumMetadataAcceptsProductMemberShape()
+            throws IOException
+        {
+        PartitionedService service = mockPartitionedService();
+        Member             member  = createProductMember(1);
+
+        when(service.getPartitionCount()).thenReturn(2);
+        when(service.getOwnershipEnabledMembers()).thenReturn(Set.of(member));
+        when(service.getPartitionOwner(0)).thenReturn(member);
+        when(service.getPartitionOwner(1)).thenReturn(null);
+        when(service.getOwnershipVersion(0)).thenReturn(7);
+        when(service.getOwnershipVersion(1)).thenReturn(11);
+
+        CachePersistenceHelper.writeQuorum(m_store, service);
+        QuorumInfo info = CachePersistenceHelper.readQuorum(m_store);
+
+        assertEquals(1, info.getMembers().size());
+        assertArrayEquals(new int[] {1, 0}, info.getOwners());
+        assertArrayEquals(new int[] {7, 11}, info.getVersions());
+        }
+
+    @Test
+    public void testQuorumMetadataRejectsTopLevelObjectPayloadBeforeMaterialization()
+        {
+        ExternalizableLiteSentinel.reset();
+        storeMeta(BINARY_QUORUM, ExternalizableHelper.toBinary(new ExternalizableLiteSentinel()));
+
+        assertThrows(PersistenceException.class, () -> CachePersistenceHelper.readQuorum(m_store));
+        assertFalse(ExternalizableLiteSentinel.wasMaterialized());
+        }
+
+    @Test
+    public void testQuorumMetadataRejectsNestedObjectPayloadBeforeMaterialization()
+            throws IOException
+        {
+        ExternalizableLiteSentinel.reset();
+        storeMeta(BINARY_QUORUM, createQuorumWithSentinelMember());
+
+        assertThrows(PersistenceException.class, () -> CachePersistenceHelper.readQuorum(m_store));
+        assertFalse(ExternalizableLiteSentinel.wasMaterialized());
+        }
+
+    @Test
+    public void testGetPersistenceToolsUsesSafeMetadataReaders()
+        {
+        PartitionedService service = mockPartitionedService();
+        CachePersistenceHelper.seal(m_store, service, null);
+
+        OfflinePersistenceInfo info = ((AbstractPersistenceTools) m_manager.getPersistenceTools()).getPersistenceInfo();
+
+        assertEquals(257, info.getPartitionCount());
+        assertEquals(CachePersistenceHelper.PERSISTENCE_VERSION, info.getPersistenceVersion());
+        }
+
+    @Test
+    public void testSnapshotNameAndStoreIdValidationRejectUnsafeNames()
+        {
+        assertEquals("safe-snapshot", CachePersistenceHelper.validateSnapshotName("safe-snapshot"));
+        assertThrows(IllegalArgumentException.class, () -> CachePersistenceHelper.validateSnapshotName("../snapshot"));
+        assertThrows(IllegalArgumentException.class,
+                () -> ((AbstractPersistenceManager) m_manager).validatePersistentStoreId("../store"));
+        }
+
+    @Test
+    public void testSnapshotStatusHelpersRejectUnsafeNamesBeforeEscapingRoot()
+            throws IOException
+        {
+        File fileSnapshot = FileHelper.ensureDir(new File(m_file, "snapshots"));
+        File fileEscaped  = FileHelper.ensureDir(new File(fileSnapshot, "../escaped"));
+        File fileRecovery = new File(fileEscaped, CachePersistenceHelper.RECOVERY_META_FILENAME);
+
+        Properties props = new Properties();
+        props.setProperty(CachePersistenceHelper.RECOVERY_META_STATUS_PROPERTY, "escaped");
+        try (FileWriter writer = new FileWriter(fileRecovery))
+            {
+            props.store(writer, null);
+            }
+
+        BerkeleyDBEnvironment env = new BerkeleyDBEnvironment(
+                new File(m_file, "active"), fileSnapshot, new File(m_file, "trash"));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> CachePersistenceHelper.getSnapshotStatus(env, "../escaped"));
+        assertThrows(IllegalArgumentException.class,
+                () -> CachePersistenceHelper.getSnapshotRecoveryStatus(env, "../escaped"));
+        assertThrows(IllegalArgumentException.class,
+                () -> CachePersistenceHelper.getSnapshotStatus(env, "bad/name"));
+        assertThrows(IllegalArgumentException.class,
+                () -> CachePersistenceHelper.getSnapshotRecoveryStatus(env, ""));
+        assertThrows(IllegalArgumentException.class,
+                () -> CachePersistenceHelper.getSnapshotRecoveryStatus(env, null));
+        }
+
+    @Test
     public void testStoreAndGetCacheNames()
         {
         PartitionedService service = mock(PartitionedService.class);
@@ -207,6 +363,65 @@ public class CachePersistenceHelperTest
                 visitor.f_mapEntries.get(TEST_KEY_2));
         assertEquals(new SimpleMapEntry(TEST_KEY_3, TEST_VALUE_3),
                 visitor.f_mapEntries.get(TEST_KEY_3));
+        }
+
+    protected PartitionedService mockPartitionedService()
+        {
+        PartitionedService service = mock(PartitionedService.class);
+        ServiceInfo        info    = mock(ServiceInfo.class);
+        Cluster            cluster = mock(Cluster.class);
+        Member             member  = mock(Member.class);
+
+        when(service.getPartitionCount()).thenReturn(257);
+        when(service.getInfo()).thenReturn(info);
+        when(info.getServiceVersion(member)).thenReturn("12.1.3");
+        when(service.getCluster()).thenReturn(cluster);
+        when(cluster.getLocalMember()).thenReturn(member);
+
+        return service;
+        }
+
+    protected void storeMeta(Binary binKey, Binary binValue)
+        {
+        m_store.ensureExtent(CachePersistenceHelper.META_EXTENT);
+        m_store.store(CachePersistenceHelper.META_EXTENT, binKey, binValue, null);
+        }
+
+    protected Member createProductMember(int nId)
+            throws IOException
+        {
+        MemberIdentity identity = mock(MemberIdentity.class);
+        when(identity.getClusterName()).thenReturn("test-cluster");
+        when(identity.getSiteName()).thenReturn("test-site");
+        when(identity.getRackName()).thenReturn("test-rack");
+        when(identity.getMachineName()).thenReturn("test-machine");
+        when(identity.getProcessName()).thenReturn("test-process");
+        when(identity.getMemberName()).thenReturn("test-member-" + nId);
+        when(identity.getRoleName()).thenReturn("storage");
+        when(identity.getPriority()).thenReturn(5);
+
+        com.tangosol.coherence.component.net.Member member =
+                new com.tangosol.coherence.component.net.Member();
+        member.configure(identity, java.net.InetAddress.getLoopbackAddress(), 7574 + nId);
+        member.setId(nId);
+        return member;
+        }
+
+    protected Binary createQuorumWithSentinelMember()
+            throws IOException
+        {
+        ByteArrayWriteBuffer buf = new ByteArrayWriteBuffer(256);
+        BufferOutput         out = buf.getBufferOutput();
+
+        out.writeByte(ExternalizableHelper.FMT_OBJ_EXT);
+        ExternalizableHelper.writeUTF(out, QuorumInfo.class.getName());
+        ExternalizableHelper.writeInt(out, 1);
+        ExternalizableHelper.writeInt(out, 1);
+        ExternalizableHelper.writeObject(out, new ExternalizableLiteSentinel());
+        ExternalizableHelper.writeInt(out, 0);
+        ExternalizableHelper.writeInt(out, 0);
+
+        return buf.toBinary();
         }
 
     @Test
@@ -387,6 +602,60 @@ public class CachePersistenceHelperTest
             }
         }
 
+    // ----- inner class: MaterializationSentinel --------------------------
+
+    public static class MaterializationSentinel
+            implements Serializable
+        {
+        private void readObject(ObjectInputStream in)
+                throws IOException, ClassNotFoundException
+            {
+            f_materialized.set(true);
+            in.defaultReadObject();
+            }
+
+        static void reset()
+            {
+            f_materialized.set(false);
+            }
+
+        static boolean wasMaterialized()
+            {
+            return f_materialized.get();
+            }
+
+        private static final AtomicBoolean f_materialized = new AtomicBoolean();
+        }
+
+    // ----- inner class: ExternalizableLiteSentinel ------------------------
+
+    public static class ExternalizableLiteSentinel
+            implements ExternalizableLite
+        {
+        @Override
+        public void readExternal(DataInput in)
+            {
+            f_materialized.set(true);
+            }
+
+        @Override
+        public void writeExternal(DataOutput out)
+            {
+            }
+
+        static void reset()
+            {
+            f_materialized.set(false);
+            }
+
+        static boolean wasMaterialized()
+            {
+            return f_materialized.get();
+            }
+
+        private static final AtomicBoolean f_materialized = new AtomicBoolean();
+        }
+
     // ----- inner class: TestPersistenceManager ----------------------------
 
     public static class TestPersistenceManager extends AbstractPersistenceManager
@@ -517,6 +786,17 @@ public class CachePersistenceHelperTest
     public static final Binary TEST_VALUE_1 = ExternalizableHelper.toBinary("test value 1");
     public static final Binary TEST_VALUE_2 = ExternalizableHelper.toBinary("test value 2");
     public static final Binary TEST_VALUE_3 = ExternalizableHelper.toBinary("test value 3");
+
+    protected static final Binary BINARY_QUORUM =
+            new Binary(new byte[] { 0x51, 0x55, 0x4F, 0x52, 0x55, 0x4D }); // QUORUM
+
+    protected static final Binary BINARY_PARTITION_COUNT =
+            new Binary(new byte[] { 0x50, 0x41, 0x52, 0x54, 0x49, 0x54, 0x49,
+                                    0x4F, 0x4E, 0x5F, 0x43, 0x4F, 0x55, 0x4E, 0x54 }); // PARTITION_COUNT
+
+    protected static final Binary BINARY_PERSISTENCE_VERSION =
+            new Binary(new byte[] { 0x53, 0x45, 0x52, 0x56, 0x49, 0x43, 0x45,
+                                    0x5F, 0x56, 0x45, 0x52, 0x53, 0x49, 0x4F, 0x4E}); // SERVICE_VERSION
 
     // ----- data members ---------------------------------------------------
 

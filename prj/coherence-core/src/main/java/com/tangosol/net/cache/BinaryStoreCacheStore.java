@@ -139,7 +139,13 @@ public class BinaryStoreCacheStore<K, V>
     public Iterator<K> keys()
         {
         Iterator<Binary>     iter = getBinaryStore().keys();
-        Converter<Binary, K> conv = bin -> (K) fromBinary(bin);
+        Converter<Binary, K> conv = bin ->
+            {
+            try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.CACHE_STORE))
+                {
+                return (K) fromBinary(bin);
+                }
+            };
 
         return new ConverterCollections.ConverterEnumerator<>(iter, conv);
         }
