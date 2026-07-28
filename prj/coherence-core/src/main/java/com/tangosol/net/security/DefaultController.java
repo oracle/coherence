@@ -671,6 +671,10 @@ public final class DefaultController
                 {
                 throw new PermissionException("Verified signing principal is not present in the subject");
                 }
+            if (CoherenceMode.isLegacy())
+                {
+                return subject.getPrincipals();
+                }
             return Collections.singleton(principal);
             }
 
@@ -680,12 +684,15 @@ public final class DefaultController
             try
                 {
                 Set setSigners = findTrustedSigners(subject);
-                if (setSigners.size() == 1 && subject.getPrincipals().size() == 1)
+                if (setSigners.size() == 1
+                        && (CoherenceMode.isLegacy() || subject.getPrincipals().size() == 1))
                     {
                     VerifiedSigner signer = (VerifiedSigner) setSigners.iterator().next();
                     if (subject.getPrincipals().contains(signer.getPrincipal()))
                         {
-                        return Collections.singleton(signer.getPrincipal());
+                        return CoherenceMode.isLegacy()
+                                ? subject.getPrincipals()
+                                : Collections.singleton(signer.getPrincipal());
                         }
                     }
                 }
