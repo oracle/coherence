@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -149,6 +149,7 @@ public class Index implements Closeable
      */
     public void initialize(int maxNumberOfElements, int m, int efConstruction, int randomSeed, boolean allowReplaceDeleted)
         {
+        checkIndexIsNotCleared();
         if (initialized)
             {
             throw new IndexAlreadyInitializedException();
@@ -195,6 +196,7 @@ public class Index implements Closeable
      */
     public void addItem(float[] item, int id, boolean replaceDeleted)
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.addItemToIndex(reference, item, id, replaceDeleted));
         }
 
@@ -205,6 +207,7 @@ public class Index implements Closeable
      */
     public int getLength()
         {
+        checkIndexIsNotCleared();
         return hnswlib.getIndexLength(reference);
         }
 
@@ -215,6 +218,7 @@ public class Index implements Closeable
      */
     public int getMaxLength()
         {
+        checkIndexIsNotCleared();
         return hnswlib.getMaxIndexLength(reference);
         }
 
@@ -225,6 +229,7 @@ public class Index implements Closeable
      */
     public int getIndexSize()
         {
+        checkIndexIsNotCleared();
         return hnswlib.getIndexSize(reference);
         }
 
@@ -235,6 +240,7 @@ public class Index implements Closeable
      */
     void resize(int maxSize)
         {
+        checkIndexIsNotCleared();
         hnswlib.resizeIndex(reference, maxSize);
         }
 
@@ -266,6 +272,7 @@ public class Index implements Closeable
      */
     public QueryTuple knnQuery(float[] input, int k, Hnswlib.QueryFilter filter)
         {
+        checkIndexIsNotCleared();
         int length = getLength();
         if (length == 0)
             {
@@ -320,6 +327,7 @@ public class Index implements Closeable
      */
     public void save(Path path)
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.saveIndexToPath(reference, path.toAbsolutePath().toString()));
         }
 
@@ -334,6 +342,7 @@ public class Index implements Closeable
      */
     public void load(Path path, int maxNumberOfElements)
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.loadIndexFromPath(reference, maxNumberOfElements, path.toAbsolutePath().toString()));
         }
 
@@ -344,6 +353,7 @@ public class Index implements Closeable
      */
     public void clear()
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.clearIndex(reference));
         cleared = true;
         }
@@ -412,6 +422,7 @@ public class Index implements Closeable
      */
     public boolean hasId(int id)
         {
+        checkIndexIsNotCleared();
         return hnswlib.hasId(reference, id) == RESULT_SUCCESSFUL;
         }
 
@@ -424,6 +435,7 @@ public class Index implements Closeable
      */
     public Optional<float[]> getData(int id)
         {
+        checkIndexIsNotCleared();
         float[] vector = new float[dimension];
         int success = hnswlib.getData(reference, id, vector, dimension);
         if (success == RESULT_SUCCESSFUL)
@@ -444,6 +456,7 @@ public class Index implements Closeable
      */
     public float computeSimilarity(float[] vector1, float[] vector2)
         {
+        checkIndexIsNotCleared();
         checkIndexIsInitialized();
         return hnswlib.computeSimilarity(reference, vector1, vector2);
         }
@@ -455,6 +468,7 @@ public class Index implements Closeable
      */
     public int getM()
         {
+        checkIndexIsNotCleared();
         checkIndexIsInitialized();
         return hnswlib.getM(reference);
         }
@@ -466,6 +480,7 @@ public class Index implements Closeable
      */
     public int getEf()
         {
+        checkIndexIsNotCleared();
         checkIndexIsInitialized();
         return hnswlib.getEf(reference);
         }
@@ -477,6 +492,7 @@ public class Index implements Closeable
      */
     public void setEf(int ef)
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.setEf(reference, ef));
         }
 
@@ -487,6 +503,7 @@ public class Index implements Closeable
      */
     public int getEfConstruction()
         {
+        checkIndexIsNotCleared();
         checkIndexIsInitialized();
         return hnswlib.getEfConstruction(reference);
         }
@@ -498,7 +515,16 @@ public class Index implements Closeable
      */
     public void markDeleted(int id)
         {
+        checkIndexIsNotCleared();
         checkResultCode(hnswlib.markDeleted(reference, id));
+        }
+
+    private void checkIndexIsNotCleared()
+        {
+        if (cleared)
+            {
+            throw new OnceIndexIsClearedItCannotBeReusedException();
+            }
         }
 
     private void checkIndexIsInitialized()
