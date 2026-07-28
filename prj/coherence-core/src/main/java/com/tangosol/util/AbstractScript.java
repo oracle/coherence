@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -91,10 +91,14 @@ public class AbstractScript
         m_sLanguage = in.readUTF();
         m_sName     = in.readUTF();
         int numArgs = in.readInt();
-        Base.azzert(numArgs < 256, "Unexpected number of arguments");
+        if (numArgs < 0 || numArgs >= MAX_ARGUMENT_COUNT)
+            {
+            throw new IOException("Unexpected number of script arguments: " + numArgs);
+            }
 
+        ExternalizableHelper.validateLoadArray(Object[].class, numArgs, in);
         m_aoArgs    = new Object[numArgs];
-        for (int i = 0; i< numArgs; i++)
+        for (int i = 0; i < numArgs; i++)
             {
             m_aoArgs[i] = ExternalizableHelper.readObject(in);
             }
@@ -151,4 +155,9 @@ public class AbstractScript
      */
     @JsonbProperty("args")
     protected Object[] m_aoArgs;
+
+    /**
+     * Exclusive upper bound for the number of script arguments.
+     */
+    private static final int MAX_ARGUMENT_COUNT = 256;
     }

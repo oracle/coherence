@@ -14,7 +14,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
             https://oss.oracle.com/licenses/upl.
@@ -994,6 +994,7 @@
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:group ref="instance" />
+                <xsd:element ref="limits" minOccurs="0" />
             </xsd:sequence>
             <xsd:attribute name="xml-override" use="optional" />
             <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />
