@@ -1,10 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.rest;
+
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
 
 import com.tangosol.coherence.rest.util.PartialObject;
 
@@ -25,6 +29,7 @@ import java.util.Set;
 
 import jakarta.ws.rs.core.Response;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,6 +39,11 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for {@link EntrySetResource}.
+ * <p>
+ * Prompt 04 at
+ * design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md
+ * adds alias-policy coverage for entry-set projection, aggregation, and
+ * processor paths.
  *
  * @author ic  2011.07.01
  */
@@ -44,9 +54,15 @@ public class EntrySetResourceTest
     public void setUp()
         {
         m_cache = new WrapperNamedCache(new HashMap<Integer, Person>(), "persons");
-        m_cache.put(2, new Person("Aleks", new Date(74, 7, 24)));
-        m_cache.put(3, new Person("Vaso", new Date(74, 7, 7)));
-        m_cache.put(1, new Person("Ivan", new Date(78, 3, 25)));
+        m_cache.put(2, new Person("Aleks", new Date(74, 7, 24), 39));
+        m_cache.put(3, new Person("Vaso", new Date(74, 7, 7), 40));
+        m_cache.put(1, new Person("Ivan", new Date(78, 3, 25), 36));
+        }
+
+    @After
+    public void cleanup()
+        {
+        CoherenceModeHelper.clear();
         }
 
     @Test
@@ -90,7 +106,7 @@ public class EntrySetResourceTest
     public void testPartialGet()
         {
         EntrySetResource resource = new EntrySetResource(m_cache, Collections.singleton(1), Person.class);
-        Response         response = resource.getValues(com.tangosol.coherence.rest.util.PropertySet.fromString("dateOfBirth"));
+        Response         response = resource.getValues("dateOfBirth");
 
         assertEquals(200 /* OK */, response.getStatus());
 
@@ -110,6 +126,37 @@ public class EntrySetResourceTest
 
         assertNull(m_cache.get(1));
         assertNull(m_cache.get(2));
+        }
+
+    @Test
+    public void shouldRejectRawAndAllowAliasesInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            EntrySetResource resource = new EntrySetResource(m_cache, Collections.singleton(1), Person.class);
+            resource.setExpressionAliases(createExpressionAliases());
+
+            assertEquals(400 , resource.getValues("dateOfBirth").getStatus());
+            assertEquals(200 /* OK */, resource.getValues("dob").getStatus());
+
+            resource.m_aggregatorRegistry = new com.tangosol.coherence.rest.util.aggregator.AggregatorRegistry();
+            resource.m_processorRegistry  = new com.tangosol.coherence.rest.util.processor.ProcessorRegistry();
+
+            assertEquals(400 , resource.aggregate("long-sum(dateOfBirth)").getStatus());
+            assertEquals(200 /* OK */, resource.aggregate("long-sum(age)").getStatus());
+
+            assertEquals(400 , resource.process("increment(dateOfBirth,1)").getStatus());
+            assertEquals(200 /* OK */, resource.process("increment(age,1)").getStatus());
+            }
+        }
+
+    protected ExpressionAliasConfig createExpressionAliases()
+        {
+        return ExpressionAliasConfig.builder()
+                .addProjectionAlias("dob", "dateOfBirth")
+                .addAggregatorArgumentAlias("long-sum", "age", "age")
+                .addProcessorArgumentAlias("increment", "age", "age")
+                .build();
         }
 
     // ---- data members ----------------------------------------------------

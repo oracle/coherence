@@ -6,6 +6,7 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
 import com.tangosol.coherence.rest.config.NamedQuery;
 
 import com.tangosol.coherence.rest.events.MapEventOutput;
@@ -32,8 +33,6 @@ import com.tangosol.util.FilterBuildingException;
 import com.tangosol.util.InvocableMap.EntryAggregator;
 import com.tangosol.util.InvocableMap.EntryProcessor;
 
-import com.tangosol.util.QueryHelper;
-import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.ValueExtractor;
 
 import java.util.Collection;
@@ -105,13 +104,14 @@ public class NamedQueryResource
         EntryAggregator aggregator;
         try
             {
-            aggregator = m_aggregatorRegistry.getAggregator(sAggr);
+            aggregator = m_aggregatorRegistry.getAggregator(
+                    RestExpressionPolicy.resolveAggregator(m_expressionAliases, sAggr));
             RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
             {
             RestHelper.log(e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(CacheResource.BAD_REQUEST_MSG).build();
             }
 
         Collection colKeys = keys(uriInfo);
@@ -140,7 +140,8 @@ public class NamedQueryResource
         EntryProcessor processor;
         try
             {
-            processor = m_processorRegistry.getProcessor(sProc);
+            processor = m_processorRegistry.getProcessor(
+                    RestExpressionPolicy.resolveProcessor(m_expressionAliases, sProc));
             RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.REST, null);
             }
         catch (IllegalArgumentException e)
@@ -163,7 +164,7 @@ public class NamedQueryResource
      * @param nStart       the starting index of result set to be returned
      * @param cResults     the size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
-     * @param propertySet  properties to return (if null, values will be
+     * @param sProjection  properties to return (if null, values will be
      *                     returned)
      *
      * @return values that satisfy criteria defined by this resource
@@ -173,16 +174,12 @@ public class NamedQueryResource
                               @MatrixParam("start") @DefaultValue("0") int nStart,
                               @MatrixParam("count") @DefaultValue("-1") int cResults,
                               @MatrixParam("sort") String sSort,
-                              @MatrixParam("p") PropertySet propertySet)
+                              @MatrixParam("p") String sProjection)
         {
-        ValueExtractor<Map.Entry, ?> extractor = Map.Entry::getValue;
-        if (propertySet != null)
-            {
-            extractor = extractor.andThen(propertySet);
-            }
-
         try
             {
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            ValueExtractor<Map.Entry, ?> extractor = RestValueExtractors.valueExtractor(propertySet);
             return Response.ok(executeQuery(uriInfo, extractor, nStart, cResults, sSort)).build();
             }
         catch (FilterBuildingException | QueryException | IllegalArgumentException e)
@@ -200,7 +197,7 @@ public class NamedQueryResource
      * @param nStart       the starting index of result set to be returned
      * @param cResults     the size of result set to be returned (page size)
      * @param sSort        a string expression that represents ordering
-     * @param propertySet  the subset of properties to return for each value
+     * @param sProjection  the subset of properties to return for each value
      *                     (if null, the complete values will be returned)
      *
      * @return the cache entries satisfying criteria defined by this resource
@@ -212,14 +209,12 @@ public class NamedQueryResource
                 @MatrixParam("start") @DefaultValue("0") int nStart,
                 @MatrixParam("count") @DefaultValue("-1") int cResults,
                 @MatrixParam("sort") String sSort,
-                @MatrixParam("p") PropertySet propertySet)
+                @MatrixParam("p") String sProjection)
         {
-        ValueExtractor<Map.Entry, ?> extractor = propertySet == null
-                ? ValueExtractor.identity()
-                : (entry) -> new SimpleMapEntry<>(entry.getKey(), propertySet.extract(entry.getValue()));
-
         try
             {
+            PropertySet propertySet = RestExpressionPolicy.resolveProjection(m_expressionAliases, sProjection);
+            ValueExtractor<Map.Entry, ?> extractor = RestValueExtractors.entryExtractor(propertySet);
             return Response.ok(executeQuery(uriInfo, extractor, nStart, cResults, sSort)).build();
             }
         catch (FilterBuildingException | QueryException | IllegalArgumentException e)
@@ -264,7 +259,7 @@ public class NamedQueryResource
             Map<String, Object> mapParams = RestHelper.getQueryParameters(uriInfo);
 
             MapEventOutput eventOutput = new MapEventOutput(m_cache, fLite);
-            eventOutput.setFilter(QueryHelper.createFilter(m_query.getExpression(), mapParams));
+            eventOutput.setFilter(RestQueryPolicy.createNamedQueryFilter(m_query.getExpression(), mapParams));
             eventOutput.register();
 
             return eventOutput;
@@ -296,7 +291,28 @@ public class NamedQueryResource
         int                 cMaxResults  = RestHelper.resolveMaxResults(cResults, namedQuery.getMaxResults(), m_cMaxResults);
 
         Query query = queryEngine.prepareQuery(namedQuery.getExpression(), mapParams);
-        return query.execute(m_cache, extractor, sSort, nStart, cMaxResults);
+        return query.execute(m_cache, extractor,
+                RestExpressionPolicy.resolveSort(m_expressionAliases, sSort), nStart, cMaxResults);
+        }
+
+    /**
+     * Set expression aliases for this resource.
+     *
+     * @param aliases  expression aliases
+     */
+    public void setExpressionAliases(ExpressionAliasConfig aliases)
+        {
+        m_expressionAliases = aliases == null ? ExpressionAliasConfig.EMPTY : aliases;
+        }
+
+    /**
+     * Return expression aliases for this resource.
+     *
+     * @return expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_expressionAliases;
         }
 
     /**
@@ -333,6 +349,11 @@ public class NamedQueryResource
      * Maximum size of the result set this resource is allowed to return.
      */
     protected int m_cMaxResults;
+
+    /**
+     * Expression aliases configured for this resource.
+     */
+    protected ExpressionAliasConfig m_expressionAliases = ExpressionAliasConfig.EMPTY;
 
     /**
      * Query engine registry.

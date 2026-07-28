@@ -10,6 +10,8 @@ import com.tangosol.coherence.dslquery.CoherenceQueryLanguage;
 import com.tangosol.coherence.dslquery.ExtractorBuilder;
 import com.tangosol.coherence.dslquery.UniversalExtractorBuilder;
 
+import com.tangosol.coherence.rest.RestQueryPolicy;
+
 import com.tangosol.coherence.rest.util.ComparatorHelper;
 
 import com.tangosol.internal.util.security.RemoteInstallGate;
@@ -79,12 +81,9 @@ public class CoherenceQueryLanguageEngine
         Map<String, Object> mapBindings = createBindings(mapParams,
                 parsedQuery.getParameterTypes());
 
-        Filter filter = QueryHelper.createFilter(
-                parsedQuery.getQuery(),
-                new Object[0],
-                mapBindings,
-                f_language
-                );
+        Filter filter = RestQueryPolicy.isDirectQueryTypePolicyActive()
+                ? RestQueryPolicy.createDirectQueryFilter(parsedQuery.getQuery(), new Object[0], mapBindings, f_language)
+                : QueryHelper.createFilter(parsedQuery.getQuery(), new Object[0], mapBindings, f_language);
         RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.REST, null);
 
         return new CoherenceQueryLanguageQuery(filter);

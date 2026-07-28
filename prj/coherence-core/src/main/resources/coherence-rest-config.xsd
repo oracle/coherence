@@ -1,22 +1,22 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
-  http://oss.oracle.com/licenses/upl.
+  https://oss.oracle.com/licenses/upl.
 -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://xmlns.oracle.com/coherence/coherence-rest-config"
             xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
             elementFormDefault="qualified" attributeFormDefault="unqualified"
-            version="1.2">
+            version="1.3">
 
     <xsd:annotation>
         <xsd:documentation>
-            Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+            Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
             Licensed under the Universal Permissive License v 1.0 as shown at
-            http://oss.oracle.com/licenses/upl.
+            https://oss.oracle.com/licenses/upl.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -39,6 +39,7 @@
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:element ref="defaults" minOccurs="0" />
+                <xsd:element ref="expression-aliases" minOccurs="0" />
                 <xsd:element ref="resources" minOccurs="0" />
                 <xsd:element ref="aggregators" minOccurs="0" />
                 <xsd:element ref="processors" minOccurs="0" />
@@ -116,9 +117,106 @@
                 <xsd:element ref="marshaller" minOccurs="0" maxOccurs="unbounded"/>
                 <xsd:element ref="query" minOccurs="0" maxOccurs="unbounded"/>
                 <xsd:element ref="direct-query" minOccurs="0"/>
+                <xsd:element ref="expression-aliases" minOccurs="0" />
             </xsd:sequence>
             <xsd:attribute name="name" type="xsd:string" />
             <xsd:attribute name="max-results" type="xsd:unsignedInt" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="expression-aliases">
+        <xsd:annotation>
+            <xsd:documentation>
+                The expression-aliases element contains aliases for REST
+                URL-controlled sort, projection, aggregator argument, and
+                processor argument expressions.
+                Prompt design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md
+                makes these aliases the hardened-mode contract so URL callers
+                select operator-configured expressions instead of supplying raw
+                extractor/manipulator expressions.
+
+                Used in: rest, resource
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="sort-alias" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="projection-alias" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="aggregator-argument-alias" minOccurs="0" maxOccurs="unbounded" />
+                <xsd:element ref="processor-argument-alias" minOccurs="0" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="sort-alias">
+        <xsd:annotation>
+            <xsd:documentation>
+                The sort-alias element binds a URL sort alias to a configured
+                sort expression.
+
+                Used in: expression-aliases
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="expression" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="projection-alias">
+        <xsd:annotation>
+            <xsd:documentation>
+                The projection-alias element binds a URL projection alias to a
+                configured property set.
+
+                Used in: expression-aliases
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="properties" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="aggregator-argument-alias">
+        <xsd:annotation>
+            <xsd:documentation>
+                The aggregator-argument-alias element binds a URL aggregator
+                argument alias to a configured expression for the specified
+                aggregator name.
+
+                Used in: expression-aliases
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="aggregator" type="xsd:string" />
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="expression" type="xsd:string" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="processor-argument-alias">
+        <xsd:annotation>
+            <xsd:documentation>
+                The processor-argument-alias element binds a URL processor
+                argument alias to a configured expression for the specified
+                processor name.
+
+                Used in: expression-aliases
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="processor" type="xsd:string" />
+                <xsd:element name="name" type="xsd:string" />
+                <xsd:element name="expression" type="xsd:string" />
+            </xsd:sequence>
         </xsd:complexType>
     </xsd:element>
 

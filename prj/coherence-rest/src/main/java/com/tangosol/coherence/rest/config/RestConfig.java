@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,11 +121,14 @@ public class RestConfig
         XmlElement xmlMarshallers = xmlDefaults.getSafeElement("marshallers");
         marshallerRegistry.setDefaultMarshallers(createMarshallerMap(xmlMarshallers));
 
+        ExpressionAliasConfig expressionAliases = m_expressionAliases =
+                createExpressionAliasConfig(xmlConfig.getSafeElement("expression-aliases"));
+
         // <resources>
         XmlElement xmlResources = xmlConfig.getSafeElement("resources");
 
         // <resource>
-        Map<String, ResourceConfig> mapResources = createResourceMap(xmlResources);
+        Map<String, ResourceConfig> mapResources = createResourceMap(xmlResources, expressionAliases);
         m_mapResources.putAll(mapResources);
 
         // register key converters as marshallers
@@ -172,7 +175,7 @@ public class RestConfig
      *
      * @return a map of ResourceConfig keyed by cache name or alias
      */
-    protected Map<String, ResourceConfig> createResourceMap(XmlElement xml)
+    protected Map<String, ResourceConfig> createResourceMap(XmlElement xml, ExpressionAliasConfig globalAliases)
         {
         Map<String, ResourceConfig> mapResources = new HashMap<String, ResourceConfig>();
         for (Iterator iter = xml.getElements("resource"); iter.hasNext(); )
@@ -189,6 +192,8 @@ public class RestConfig
 
             Map<String, Class> mapMarshaller = createMarshallerMap(xmlResource);
             QueryConfig        queryConfig   = createQueryConfig(xmlResource);
+            ExpressionAliasConfig expressionAliases = ExpressionAliasConfig.merge(globalAliases,
+                    createExpressionAliasConfig(xmlResource.getSafeElement("expression-aliases")));
             try
                 {
                 // inherit key and value types from the cache mapping, if available
@@ -230,6 +235,7 @@ public class RestConfig
                 cfgResource.setKeyConverterClass(clzKeyConverter);
                 cfgResource.setMarshallerMap(mapMarshaller);
                 cfgResource.setQueryConfig(queryConfig);
+                cfgResource.setExpressionAliases(expressionAliases);
                 cfgResource.setMaxResults(cMaxResults);
 
                 // we are introducing name attribute to replace alias configuration element
@@ -247,6 +253,49 @@ public class RestConfig
                 }
             }
         return mapResources;
+        }
+
+    /**
+     * Create expression aliases from the given XML configuration.
+     *
+     * @param xml  the XML configuration
+     *
+     * @return expression aliases
+     */
+    protected ExpressionAliasConfig createExpressionAliasConfig(XmlElement xml)
+        {
+        ExpressionAliasConfig.Builder builder = ExpressionAliasConfig.builder();
+        for (Iterator iter = xml.getElements("sort-alias"); iter.hasNext(); )
+            {
+            XmlElement xmlAlias = (XmlElement) iter.next();
+            builder.addSortAlias(
+                    xmlAlias.getSafeElement("name").getString(),
+                    xmlAlias.getSafeElement("expression").getString());
+            }
+        for (Iterator iter = xml.getElements("projection-alias"); iter.hasNext(); )
+            {
+            XmlElement xmlAlias = (XmlElement) iter.next();
+            builder.addProjectionAlias(
+                    xmlAlias.getSafeElement("name").getString(),
+                    xmlAlias.getSafeElement("properties").getString());
+            }
+        for (Iterator iter = xml.getElements("aggregator-argument-alias"); iter.hasNext(); )
+            {
+            XmlElement xmlAlias = (XmlElement) iter.next();
+            builder.addAggregatorArgumentAlias(
+                    xmlAlias.getSafeElement("aggregator").getString(),
+                    xmlAlias.getSafeElement("name").getString(),
+                    xmlAlias.getSafeElement("expression").getString());
+            }
+        for (Iterator iter = xml.getElements("processor-argument-alias"); iter.hasNext(); )
+            {
+            XmlElement xmlAlias = (XmlElement) iter.next();
+            builder.addProcessorArgumentAlias(
+                    xmlAlias.getSafeElement("processor").getString(),
+                    xmlAlias.getSafeElement("name").getString(),
+                    xmlAlias.getSafeElement("expression").getString());
+            }
+        return builder.build();
         }
 
     /**
@@ -497,6 +546,16 @@ public class RestConfig
         return m_queryEngineRegistry;
         }
 
+    /**
+     * Return global expression aliases.
+     *
+     * @return expression aliases
+     */
+    public ExpressionAliasConfig getExpressionAliases()
+        {
+        return m_expressionAliases;
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -517,6 +576,11 @@ public class RestConfig
      */
     private Map<String, ResourceConfig> m_mapResources
             = new HashMap<>();
+
+    /**
+     * Global expression aliases.
+     */
+    private ExpressionAliasConfig m_expressionAliases = ExpressionAliasConfig.EMPTY;
 
     /**
      * The Coherence service this REST application is deployed to.

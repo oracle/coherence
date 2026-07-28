@@ -14,6 +14,33 @@
       <cache-name>dist-test1</cache-name>
       <key-class>java.lang.Integer</key-class>
       <value-class>data.pof.PortablePerson</value-class>
+      <expression-aliases>
+        <aggregator-argument-alias>
+          <aggregator>long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>custom-long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>plain-long-sum</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>constructor-side-effect-aggregator</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+        <aggregator-argument-alias>
+          <aggregator>allowed-constructor-side-effect-aggregator</aggregator>
+          <name>age</name>
+          <expression>age</expression>
+        </aggregator-argument-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test2</cache-name>
@@ -34,6 +61,28 @@
       <cache-name>dist-test-proc</cache-name>
       <key-class>java.lang.Integer</key-class>
       <value-class>rest.data.Persona</value-class>
+      <expression-aliases>
+        <processor-argument-alias>
+          <processor>custom-number-doubler</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>plain-number-doubler</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>constructor-side-effect-processor</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+        <processor-argument-alias>
+          <processor>allowed-constructor-side-effect-processor</processor>
+          <name>age</name>
+          <expression>Age</expression>
+        </processor-argument-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test-basic</cache-name>
@@ -53,6 +102,12 @@
         <expression>age = 37</expression>
       </query>
       <direct-query enabled="true" engine="DEFAULT"/>
+      <expression-aliases>
+        <sort-alias>
+          <name>by-age</name>
+          <expression>age</expression>
+        </sort-alias>
+      </expression-aliases>
     </resource>
     <resource>
       <cache-name>dist-test-max-results</cache-name>
