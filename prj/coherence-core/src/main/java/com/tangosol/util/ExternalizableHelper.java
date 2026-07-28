@@ -84,6 +84,7 @@ import java.io.InputStream;
 import java.io.IOException;
 import java.io.InvalidClassException;
 import java.io.ObjectInput;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
@@ -6028,9 +6029,28 @@ public abstract class ExternalizableHelper
     public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader)
             throws IOException
         {
+        return newFilteredObjectInputStream(stream, loader, null);
+        }
+
+    /**
+     * Construct an ObjectInputStream with Coherence's default filter and a
+     * caller-supplied bridge filter attached.
+     *
+     * @param stream        the stream to read from
+     * @param loader        the class loader to use
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return a filtered ObjectInputStream
+     *
+     * @throws IOException if an I/O exception occurs
+     */
+    public static ObjectInputStream newFilteredObjectInputStream(InputStream stream, ClassLoader loader,
+                                                                 ObjectInputFilter filterBridge)
+            throws IOException
+        {
         ObjectInputStream ois = new ResolvingObjectInputStream(stream,
                 RemotableSupport.get(ensureClassLoader(loader)));
-        ois.setObjectInputFilter(DefaultObjectInputFilter.create());
+        ois.setObjectInputFilter(DefaultObjectInputFilter.create(filterBridge));
         return ois;
         }
 

@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.coherence.jcache.common;
 
 import com.tangosol.coherence.jcache.serialization.SerializationHelper;
 
 import com.tangosol.io.ExternalizableLite;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
@@ -163,7 +164,8 @@ public class CoherenceEntryProcessorResult<T>
 
         if (fUseJavaSerialization)
             {
-            m_exception = SerializationHelper.fromByteArray(reader.readByteArray(2), Exception.class);
+            m_exception = SerializationHelper.fromByteArray(
+                    reader.readByteArray(2), Exception.class, BridgeObjectInputFilter.exception());
             }
         else
             {

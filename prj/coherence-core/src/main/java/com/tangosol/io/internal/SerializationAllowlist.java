@@ -389,6 +389,7 @@ public final class SerializationAllowlist
             "java.net.InetAddress",
             "java.net.Inet4Address",
             "java.net.Inet6Address",
+            "com.tangosol.coherence.transaction.internal.xa.ExternalizableXid",
             // legitimate management and JNDI value types used by Coherence
             // internals; gadget classes in these namespaces remain exact denies
             "javax.management.Attribute",
