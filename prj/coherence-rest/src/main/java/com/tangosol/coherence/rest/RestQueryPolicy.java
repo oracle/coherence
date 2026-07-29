@@ -39,7 +39,7 @@ import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.core.Response;
 
 /**
- * Central mode-aware policy for REST direct query input.
+ * Central hardening-aware policy for REST direct query input.
  * <p>
  * Keeps HTTP direct query behind one gate and one strict parse/validate/build
  * path so SSE and non-SSE resources cannot diverge.
@@ -67,9 +67,9 @@ public final class RestQueryPolicy
             {
             return null;
             }
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
-            logLegacy();
+            logCompatibility();
             }
         if (queryConfig == null || !queryConfig.isDirectQueryEnabled())
             {
@@ -99,9 +99,9 @@ public final class RestQueryPolicy
             {
             return;
             }
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
-            logLegacy();
+            logCompatibility();
             return;
             }
         if (queryConfig == null || !queryConfig.isDirectQueryEnabled())
@@ -251,7 +251,7 @@ public final class RestQueryPolicy
      */
     public static boolean isDirectQuerySubsetRequired()
         {
-        return !CoherenceMode.isLegacy();
+        return CoherenceMode.isSecurityHardeningEnabled();
         }
 
     /**
@@ -522,13 +522,14 @@ public final class RestQueryPolicy
         }
 
     /**
-     * Log the LEGACY direct-query compatibility warning once.
+     * Log the direct-query compatibility warning once.
      */
-    private static void logLegacy()
+    private static void logCompatibility()
         {
-        if (LEGACY_WARNING_LOGGED.compareAndSet(false, true))
+        if (COMPATIBILITY_WARNING_LOGGED.compareAndSet(false, true))
             {
-            Logger.warn("Using legacy Coherence REST direct-query behavior. Configure explicit resources and enable DEV or PROD mode to require the REST-safe query subset.");
+            Logger.warn("Using compatibility Coherence REST direct-query behavior. Configure explicit resources before enabling "
+                    + "coherence.security.mode=hardened to require the REST-safe query subset.");
             }
         }
 
@@ -682,7 +683,7 @@ public final class RestQueryPolicy
     private static final ThreadLocal<Boolean> DIRECT_QUERY_TYPE_POLICY = new ThreadLocal<>();
 
     /**
-     * LEGACY warning guard.
+     * Compatibility warning guard.
      */
-    private static final AtomicBoolean LEGACY_WARNING_LOGGED = new AtomicBoolean();
+    private static final AtomicBoolean COMPATIBILITY_WARNING_LOGGED = new AtomicBoolean();
     }

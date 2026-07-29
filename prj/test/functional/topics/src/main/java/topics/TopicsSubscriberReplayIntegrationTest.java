@@ -77,6 +77,7 @@ public class TopicsSubscriberReplayIntegrationTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sPolicyDriftOld   = System.getProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT);
         m_sClusterOld       = System.getProperty(PROP_COHERENCE_CLUSTER);
         m_sLocalStorageOld  = System.getProperty(PROP_LOCAL_STORAGE);
@@ -98,8 +99,9 @@ public class TopicsSubscriberReplayIntegrationTest
             {
             FileHelper.deleteDirSilent(m_fileBase);
             m_fileBase = null;
-            }
+        }
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, m_sPolicyDriftOld);
         restoreProperty(PROP_COHERENCE_CLUSTER, m_sClusterOld);
         restoreProperty(PROP_LOCAL_STORAGE, m_sLocalStorageOld);
@@ -135,27 +137,46 @@ public class TopicsSubscriberReplayIntegrationTest
         }
 
     @Test
-    public void warnAllowPolicyDriftRecovers() throws Exception
+    public void warnAllowPolicyDriftShadowsRecovery() throws Exception
         {
         ReplayResult result = runReplay("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, false, false);
-
-        assertCounterAtLeast(result.m_mapTelemetry, OperationReason.EVALUATE_FILTER, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounterAtLeast(result.m_mapTelemetry, OperationReason.EVALUATE_FILTER, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
-        }
-
-    @Test
-    public void legacyPolicyDriftShadowsRecovery() throws Exception
-        {
-        ReplayResult result = runReplay("legacy", TopicsPersistedPolicyDrift.VALUE_REJECT, false, false);
 
         assertWouldRejectCounterAtLeast(result.m_mapTelemetry, DriftFilter.class, OperationReason.EVALUATE_FILTER, 1L);
         assertNoReplayDriftCounter(result.m_mapTelemetry);
         }
 
+    @Test
+    public void compatibilityWarnAllowPolicyDriftShadowsRecovery() throws Exception
+        {
+        ReplayResult result = runReplay("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, false, false);
+
+        assertWouldRejectCounterAtLeast(result.m_mapTelemetry, DriftFilter.class, OperationReason.EVALUATE_FILTER, 1L);
+        assertNoReplayDriftCounter(result.m_mapTelemetry);
+        }
+
+    @Test
+    public void compatibilityWithExplicitRejectPolicyDriftRefusesRecovery() throws Exception
+        {
+        ReplayResult result = runReplay("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                TopicsPersistedPolicyDrift.VALUE_REJECT, false, true);
+
+        assertTrue(String.valueOf(result.m_error), containsMessage(result.m_error,
+                "topic-subscriber-replay-drift-rejected"));
+        assertCounterAtLeast(result.m_mapTelemetry, OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounterAtLeast(result.m_mapTelemetry, OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
+        }
+
     private ReplayResult runReplay(String sMode, String sPolicyDrift, boolean fExecutableOnReplay,
                                    boolean fExpectFailure) throws Exception
+        {
+        return runReplay(sMode, null, sPolicyDrift, fExecutableOnReplay, fExpectFailure);
+        }
+
+    private ReplayResult runReplay(String sMode, String sSecurityMode, String sPolicyDrift,
+                                   boolean fExecutableOnReplay, boolean fExpectFailure) throws Exception
         {
         String sCluster  = "TSR-" + Integer.toUnsignedString(m_testName.getMethodName().hashCode(), 36)
                 + '-' + Long.toString(System.nanoTime(), 36);
@@ -163,11 +184,11 @@ public class TopicsSubscriberReplayIntegrationTest
         String sGroup    = "group-" + sCluster;
         String sSnapshot = "snapshot-" + sCluster;
 
-        configureClient(sCluster, sMode, sPolicyDrift);
+        configureClient(sCluster, sMode, sSecurityMode, sPolicyDrift);
         createDirectories();
 
         String sExecutableClassPath = executableConfigClassPath();
-        startServer(sCluster + "-initial", sMode, sPolicyDrift, sExecutableClassPath);
+        startServer(sCluster + "-initial", sMode, sSecurityMode, sPolicyDrift, sExecutableClassPath);
 
         String sServiceName = m_member.invoke(new EnsureSubscriberGroup(sTopic, sGroup));
         // subscriber group metadata must be flushed before the snapshot is created
@@ -181,7 +202,7 @@ public class TopicsSubscriberReplayIntegrationTest
         m_fileActive = new File(m_fileBase, "active-replay");
         m_fileActive.mkdirs();
 
-        startServer(sCluster + "-replay", sMode, sPolicyDrift,
+        startServer(sCluster + "-replay", sMode, sSecurityMode, sPolicyDrift,
                 fExecutableOnReplay ? sExecutableClassPath : null);
         m_member.invoke(new WaitForPersistenceIdle(sServiceName));
 
@@ -199,7 +220,7 @@ public class TopicsSubscriberReplayIntegrationTest
                 }
             }
 
-        Map<String, Long> mapTelemetry = awaitReplayOutcome(sMode, sPolicyDrift, fExecutableOnReplay);
+        Map<String, Long> mapTelemetry = awaitReplayOutcome(sMode, sSecurityMode, sPolicyDrift, fExecutableOnReplay);
         if (fExpectFailure && error == null
                 && mapTelemetry.getOrDefault(key(OperationReason.EVALUATE_FILTER, sMode, "rejected",
                         SerializationTelemetry.SUB_REASON_REPLAY_DRIFT), 0L) > 0L)
@@ -215,7 +236,8 @@ public class TopicsSubscriberReplayIntegrationTest
         return new ReplayResult(mapTelemetry, error);
         }
 
-    private Map<String, Long> awaitReplayOutcome(String sMode, String sPolicyDrift, boolean fExecutableOnReplay)
+    private Map<String, Long> awaitReplayOutcome(String sMode, String sSecurityMode, String sPolicyDrift,
+                                                 boolean fExecutableOnReplay)
         {
         Eventually.assertThat(invoking(m_member).isServiceRunning("DistributedTopicPersistence"), is(true),
                 within(2, TimeUnit.MINUTES));
@@ -226,14 +248,14 @@ public class TopicsSubscriberReplayIntegrationTest
             }
 
         String sKey;
-        if ("legacy".equals(sMode))
-            {
-            sKey = wouldRejectKey(DriftFilter.class, OperationReason.EVALUATE_FILTER);
-            }
-        else if (TopicsPersistedPolicyDrift.VALUE_REJECT.equals(sPolicyDrift))
+        if (TopicsPersistedPolicyDrift.VALUE_REJECT.equals(sPolicyDrift))
             {
             sKey = key(OperationReason.EVALUATE_FILTER, sMode, "rejected",
                     SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            }
+        else if (sSecurityMode == null || CoherenceMode.SECURITY_MODE_COMPATIBILITY.equals(sSecurityMode))
+            {
+            sKey = wouldRejectKey(DriftFilter.class, OperationReason.EVALUATE_FILTER);
             }
         else
             {
@@ -247,7 +269,7 @@ public class TopicsSubscriberReplayIntegrationTest
         return m_member.invoke(new GetTelemetrySnapshot());
         }
 
-    private void configureClient(String sCluster, String sMode, String sPolicyDrift)
+    private void configureClient(String sCluster, String sMode, String sSecurityMode, String sPolicyDrift)
         {
         CacheFactory.shutdown();
         setFactory(null);
@@ -260,8 +282,10 @@ public class TopicsSubscriberReplayIntegrationTest
         restoreProperty(PROP_PARTITION_COUNT, "1");
         restoreProperty(PROP_CHANNEL_COUNT, "1");
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, sPolicyDrift);
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         TopicsPersistedPolicyDrift.resetForTesting();
         }
 
@@ -302,7 +326,7 @@ public class TopicsSubscriberReplayIntegrationTest
                 + "</security-config>\n";
         }
 
-    private void startServer(String sName, String sMode, String sPolicyDrift, String sClassPath)
+    private void startServer(String sName, String sMode, String sSecurityMode, String sPolicyDrift, String sClassPath)
         {
         Properties props = new Properties();
         props.setProperty(PROP_COHERENCE_CLUSTER, System.getProperty(PROP_COHERENCE_CLUSTER));
@@ -313,6 +337,10 @@ public class TopicsSubscriberReplayIntegrationTest
         props.setProperty(PROP_CHANNEL_COUNT, "1");
         props.setProperty("coherence.proxy.enabled", "true");
         props.setProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        if (sSecurityMode != null)
+            {
+            props.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            }
         props.setProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, sPolicyDrift);
         props.setProperty("test.persistence.active.dir", m_fileActive.getAbsolutePath());
         props.setProperty("test.persistence.snapshot.dir", m_fileSnapshot.getAbsolutePath());
@@ -569,6 +597,7 @@ public class TopicsSubscriberReplayIntegrationTest
     private File                   m_fileSnapshot;
     private File                   m_fileTrash;
     private String                 m_sModeOld;
+    private String                 m_sSecurityModeOld;
     private String                 m_sPolicyDriftOld;
     private String                 m_sClusterOld;
     private String                 m_sLocalStorageOld;

@@ -21,18 +21,18 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 /**
- * LEGACY shadow coverage for processor operation reasons.
+ * Compatibility-mode shadow coverage for processor operation reasons.
  * <p>
  * This synthetic test stands in for the slice-plan tests
- * {@code legacyMipShadowsClassEnforce} and
- * {@code legacySpShadowsClassEnforce}; after MIP and SP became
+ * {@code compatibilityMipShadowsClassEnforce} and
+ * {@code compatibilitySpShadowsClassEnforce}; after MIP and SP became
  * {@code final} and {@code @Remote.Executable}, those per-class names are no
  * longer attainable through the built-in processors themselves.
  *
  * @author Aleks Seovic  2026.05.08
  * @since 26.04
  */
-public class LegacyShadowExecutablePolicyTest
+public class CompatibilityShadowExecutablePolicyTest
     {
     @Before
     public void reset()
@@ -50,20 +50,20 @@ public class LegacyShadowExecutablePolicyTest
         }
 
     @Test
-    public void legacyShadowsProcessEntryClassEnforce()
+    public void compatibilityShadowsProcessEntryClassEnforce()
         {
-        assertLegacyWouldReject(OperationReason.PROCESS_ENTRY);
+        assertCompatibilityWouldReject(OperationReason.PROCESS_ENTRY);
         }
 
     @Test
-    public void legacyShadowsScriptEvalClassEnforce()
+    public void compatibilityShadowsScriptEvalClassEnforce()
         {
-        assertLegacyWouldReject(OperationReason.SCRIPT_EVAL);
+        assertCompatibilityWouldReject(OperationReason.SCRIPT_EVAL);
         }
 
-    private static void assertLegacyWouldReject(OperationReason reason)
+    private static void assertCompatibilityWouldReject(OperationReason reason)
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             RemoteExecutablePolicy.current().enforce(NonAllowlisted.class, reason,
                     SerializationRole.UNCLASSIFIED, null);

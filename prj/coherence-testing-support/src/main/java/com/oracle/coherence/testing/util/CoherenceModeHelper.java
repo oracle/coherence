@@ -9,8 +9,9 @@ package com.oracle.coherence.testing.util;
 import java.lang.reflect.Method;
 
 /**
- * Test helper for changing the {@code coherence.mode} system property and the
- * memoized Coherence mode value together.
+ * Test helper for changing the {@code coherence.mode} and
+ * {@code coherence.security.mode} system properties together with their
+ * memoized values.
  *
  * @author Aleks Seovic  2026.05.05
  * @since 26.04
@@ -42,16 +43,6 @@ public final class CoherenceModeHelper
         }
 
     /**
-     * Set Coherence to legacy mode for the current scope.
-     *
-     * @return a scope that restores the previous mode when closed
-     */
-    public static ModeScope legacy()
-        {
-        return mode("legacy");
-        }
-
-    /**
      * Set the Coherence mode for the current scope.
      *
      * @param sMode  the mode to set, or {@code null} to clear it
@@ -60,9 +51,45 @@ public final class CoherenceModeHelper
      */
     public static ModeScope mode(String sMode)
         {
-        String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
+        String sPreviousMode         = System.getProperty(PROP_COHERENCE_MODE);
+        String sPreviousSecurityMode = System.getProperty(PROP_SECURITY_MODE);
         restore(sMode);
-        return new ModeScope(sPrevious);
+        return new ModeScope(sPreviousMode, sPreviousSecurityMode);
+        }
+
+    /**
+     * Set compatibility security mode for the current scope.
+     *
+     * @return a scope that restores the previous property values when closed
+     */
+    public static ModeScope securityCompatibility()
+        {
+        return securityMode(SECURITY_MODE_COMPATIBILITY);
+        }
+
+    /**
+     * Set hardened security mode for the current scope.
+     *
+     * @return a scope that restores the previous property values when closed
+     */
+    public static ModeScope securityHardened()
+        {
+        return securityMode(SECURITY_MODE_HARDENED);
+        }
+
+    /**
+     * Set the security mode for the current scope.
+     *
+     * @param sSecurityMode  the security mode to set, or {@code null} to clear it
+     *
+     * @return a scope that restores the previous property values when closed
+     */
+    public static ModeScope securityMode(String sSecurityMode)
+        {
+        String sPreviousMode         = System.getProperty(PROP_COHERENCE_MODE);
+        String sPreviousSecurityMode = System.getProperty(PROP_SECURITY_MODE);
+        restoreSecurityMode(sSecurityMode);
+        return new ModeScope(sPreviousMode, sPreviousSecurityMode);
         }
 
     /**
@@ -70,7 +97,7 @@ public final class CoherenceModeHelper
      */
     public static void clear()
         {
-        restore(null);
+        restore(null, null);
         }
 
     /**
@@ -108,6 +135,47 @@ public final class CoherenceModeHelper
         reset();
         }
 
+    /**
+     * Restore the security mode property and reset the memoized resolver.
+     *
+     * @param sValue  the value to restore, or {@code null} to clear it
+     */
+    public static void restoreSecurityMode(String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(PROP_SECURITY_MODE);
+            }
+        else
+            {
+            System.setProperty(PROP_SECURITY_MODE, sValue);
+            }
+        reset();
+        }
+
+    private static void restore(String sMode, String sSecurityMode)
+        {
+        if (sMode == null)
+            {
+            System.clearProperty(PROP_COHERENCE_MODE);
+            }
+        else
+            {
+            System.setProperty(PROP_COHERENCE_MODE, sMode);
+            }
+
+        if (sSecurityMode == null)
+            {
+            System.clearProperty(PROP_SECURITY_MODE);
+            }
+        else
+            {
+            System.setProperty(PROP_SECURITY_MODE, sSecurityMode);
+            }
+
+        reset();
+        }
+
     // ---- inner class: ModeScope ------------------------------------------
 
     /**
@@ -116,9 +184,10 @@ public final class CoherenceModeHelper
     public static final class ModeScope
             implements AutoCloseable
         {
-        private ModeScope(String sPrevious)
+        private ModeScope(String sPreviousMode, String sPreviousSecurityMode)
             {
-            f_sPrevious = sPrevious;
+            f_sPreviousMode         = sPreviousMode;
+            f_sPreviousSecurityMode = sPreviousSecurityMode;
             }
 
         @Override
@@ -126,12 +195,14 @@ public final class CoherenceModeHelper
             {
             if (!m_fClosed)
                 {
-                restore(f_sPrevious);
+                restore(f_sPreviousMode, f_sPreviousSecurityMode);
                 m_fClosed = true;
                 }
             }
 
-        private final String f_sPrevious;
+        private final String f_sPreviousMode;
+
+        private final String f_sPreviousSecurityMode;
 
         private boolean m_fClosed;
         }
@@ -139,6 +210,12 @@ public final class CoherenceModeHelper
     // ---- constants -------------------------------------------------------
 
     private static final String PROP_COHERENCE_MODE = "coherence.mode";
+
+    private static final String PROP_SECURITY_MODE = "coherence.security.mode";
+
+    private static final String SECURITY_MODE_COMPATIBILITY = "compatibility";
+
+    private static final String SECURITY_MODE_HARDENED = "hardened";
 
     private static final String COHERENCE_MODE_CLASS = "com.tangosol.internal.util.CoherenceMode";
     }

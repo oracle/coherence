@@ -28,6 +28,7 @@ public class TopicsPersistedPolicyDriftConfigTest
     public void capturePropertyDefaults()
         {
         m_sModeOld        = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sPolicyDriftOld = System.getProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT);
         }
 
@@ -35,20 +36,21 @@ public class TopicsPersistedPolicyDriftConfigTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, m_sPolicyDriftOld);
         resetMode();
         }
 
     @Test
-    public void defaultsByMode()
+    public void defaultsBySecurityMode()
         {
-        setMode("prod", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
         assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
 
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
         assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
 
-        setMode("legacy", null);
+        setMode("prod", null, null);
         assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
         }
 
@@ -58,33 +60,39 @@ public class TopicsPersistedPolicyDriftConfigTest
         setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
         assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
 
-        setMode("dev", TopicsPersistedPolicyDrift.VALUE_REJECT);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, TopicsPersistedPolicyDrift.VALUE_REJECT);
         assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
         }
 
     @Test
     public void blankValueTreatedAsUnset()
         {
-        setMode("prod", " ");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, " ");
         assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
 
-        setMode("dev", " ");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, " ");
         assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
         }
 
     @Test
-    public void invalidValueFallsBackToModeDefault()
+    public void invalidValueFallsBackToSecurityModeDefault()
         {
-        setMode("prod", "maybe");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "maybe");
         assertEquals(TopicsPersistedPolicyDrift.VALUE_REJECT, TopicsPersistedPolicyDrift.current());
 
-        setMode("dev", "maybe");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "maybe");
         assertEquals(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW, TopicsPersistedPolicyDrift.current());
         }
 
     private static void setMode(String sMode, String sPolicyDrift)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sPolicyDrift);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sPolicyDrift)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT, sPolicyDrift);
         resetMode();
         }
@@ -108,5 +116,6 @@ public class TopicsPersistedPolicyDriftConfigTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sPolicyDriftOld;
     }

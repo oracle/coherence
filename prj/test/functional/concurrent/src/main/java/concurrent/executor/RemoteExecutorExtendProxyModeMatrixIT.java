@@ -9,6 +9,7 @@ package concurrent.executor;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.coherence.config.xml.preprocessor.ConcurrentProxyPreprocessor;
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -29,14 +30,16 @@ public class RemoteExecutorExtendProxyModeMatrixIT
     @BeforeEach
     public void setUp()
         {
-        m_sModeOld    = System.getProperty("coherence.mode");
-        m_sEnabledOld = System.getProperty(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED);
+        m_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+        m_sEnabledOld      = System.getProperty(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED);
         }
 
     @AfterEach
     public void tearDown()
         {
-        restore("coherence.mode", m_sModeOld);
+        restore(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restore(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, m_sEnabledOld);
         CoherenceModeHelper.reset();
         }
@@ -44,17 +47,19 @@ public class RemoteExecutorExtendProxyModeMatrixIT
     @Test
     public void shouldApplyModeDefaultAndOverrides()
         {
-        assertResolved("prod", null, shipped(), false);
-        assertResolved("dev", null, shipped(), true);
-        assertResolved("legacy", null, shipped(), true);
-        assertResolved("prod", "true", shipped(), true);
-        assertResolved("dev", "false", shipped(), false);
-        assertResolved("prod", null, explicit("true"), true);
+        assertResolved("prod", CoherenceMode.SECURITY_MODE_HARDENED, null, shipped(), false);
+        assertResolved("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null, shipped(), true);
+        assertResolved("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null, shipped(), true);
+        assertResolved("prod", CoherenceMode.SECURITY_MODE_HARDENED, "true", shipped(), true);
+        assertResolved("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "false", shipped(), false);
+        assertResolved("prod", CoherenceMode.SECURITY_MODE_HARDENED, null, explicit("true"), true);
         }
 
-    private static void assertResolved(String sMode, String sProperty, XmlElement xml, boolean fExpected)
+    private static void assertResolved(String sMode, String sSecurityMode, String sProperty, XmlElement xml,
+                                       boolean fExpected)
         {
-        restore("coherence.mode", sMode);
+        restore(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restore(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, sProperty);
         CoherenceModeHelper.reset();
 
@@ -94,6 +99,8 @@ public class RemoteExecutorExtendProxyModeMatrixIT
         }
 
     private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
 
     private String m_sEnabledOld;
     }

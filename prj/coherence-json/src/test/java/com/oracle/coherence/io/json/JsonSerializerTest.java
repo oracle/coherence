@@ -558,7 +558,7 @@ class JsonSerializerTest
         {
         JsonSerializer serializer = new JsonSerializer();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertClassMetadataRejected(serializer, "processor.MethodInvocationProcessor");
             assertClassMetadataRejected(serializer, "processor.ScriptProcessor");
@@ -575,7 +575,7 @@ class JsonSerializerTest
                                                        builder -> builder.setEnforceTypeAliases(false),
                                                        false);
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertClassMetadataRejected(serializer, "com.tangosol.util.processor.MethodInvocationProcessor");
             assertClassMetadataRejected(serializer, "com.tangosol.util.filter.ScriptFilter");
@@ -610,7 +610,7 @@ class JsonSerializerTest
 
         try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
             {
-            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod())
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.securityHardened())
                 {
                 assertThrows(JsonBindingException.class, () -> serializer.underlying().deserialize(json, Object.class));
                 }
@@ -651,7 +651,7 @@ class JsonSerializerTest
         InitProbeState.s_fInitialized = false;
         String sClassName = JsonSerializerTest.class.getName() + "$InitProbe";
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             JsonSerializer serializer = new JsonSerializer(Base.getContextClassLoader(),
                                                            builder -> builder.setEnforceTypeAliases(false),

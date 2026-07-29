@@ -9,15 +9,19 @@ package rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.RuntimeHalt;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.HttpAcceptor;
 import com.tangosol.coherence.component.util.safeService.SafeProxyService;
+
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -42,6 +46,11 @@ import org.glassfish.jersey.client.ClientProperties;
 import org.junit.Test;
 
 import rest.data.Persona;
+
+import java.io.IOException;
+
+import java.net.InetSocketAddress;
+import java.net.Socket;
 
 import java.nio.charset.StandardCharsets;
 
@@ -88,13 +97,15 @@ public class RestSecurityModeFunctionalTests
     public void shouldApplyAuthModeMatrixWhenContainerAuthContextIsEngaged()
             throws Exception
         {
-        assertAuthMode("legacy-authenticated", "legacy", Response.Status.OK.getStatusCode(), true);
+        assertAuthMode("compatibility-authenticated", "prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                Response.Status.OK.getStatusCode(), true);
         assertAuthMode("dev-authenticated", "dev", Response.Status.OK.getStatusCode(), true);
         assertAuthMode("prod-authenticated", "prod", Response.Status.OK.getStatusCode(), true);
 
-        assertAuthMode("legacy-unauthenticated", "legacy", Response.Status.OK.getStatusCode(), false);
-        assertAuthMode("dev-unauthenticated", "dev", Response.Status.UNAUTHORIZED.getStatusCode(), false);
-        assertAuthMode("prod-unauthenticated", "prod", Response.Status.UNAUTHORIZED.getStatusCode(), false);
+        assertAuthMode("compatibility-unauthenticated", "prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                Response.Status.OK.getStatusCode(), false);
+        assertAuthMode("dev-unauthenticated", "dev", Response.Status.OK.getStatusCode(), false);
+        assertAuthMode("prod-unauthenticated", "prod", Response.Status.OK.getStatusCode(), false);
         }
 
     /**
@@ -106,7 +117,7 @@ public class RestSecurityModeFunctionalTests
     public void shouldPreserveAnonymousRestWhenAuthIsNotEngaged()
             throws Exception
         {
-        assertAnonymousNoAuthMode("legacy");
+        assertAnonymousNoAuthMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         assertAnonymousNoAuthMode("dev");
         assertAnonymousNoAuthMode("prod");
         }
@@ -121,9 +132,10 @@ public class RestSecurityModeFunctionalTests
     public void shouldApplyPassThroughAllowlistModeMatrix()
             throws Exception
         {
-        assertPassThroughMode("legacy", Response.Status.OK.getStatusCode());
-        assertPassThroughMode("dev", Response.Status.NOT_FOUND.getStatusCode());
-        assertPassThroughMode("prod", Response.Status.NOT_FOUND.getStatusCode());
+        assertPassThroughMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                Response.Status.OK.getStatusCode());
+        assertPassThroughMode("dev", Response.Status.OK.getStatusCode());
+        assertPassThroughMode("prod", Response.Status.OK.getStatusCode());
         }
 
     /**
@@ -135,12 +147,13 @@ public class RestSecurityModeFunctionalTests
     public void shouldApplyDirectQuerySseModeMatrix()
             throws Exception
         {
-        assertDirectQuerySseWithoutConfigMode("legacy", Response.Status.OK.getStatusCode());
-        assertDirectQuerySseWithoutConfigMode("dev", Response.Status.FORBIDDEN.getStatusCode());
-        assertDirectQuerySseWithoutConfigMode("prod", Response.Status.FORBIDDEN.getStatusCode());
+        assertDirectQuerySseWithoutConfigMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY,
+                Response.Status.OK.getStatusCode());
+        assertDirectQuerySseWithoutConfigMode("dev", Response.Status.OK.getStatusCode());
+        assertDirectQuerySseWithoutConfigMode("prod", Response.Status.OK.getStatusCode());
 
-        assertDirectQuerySseUnsafeEnabledMode("dev");
-        assertDirectQuerySseUnsafeEnabledMode("prod");
+        assertDirectQuerySseCompatibilityEnabledMode("dev");
+        assertDirectQuerySseCompatibilityEnabledMode("prod");
         }
 
     /**
@@ -153,29 +166,37 @@ public class RestSecurityModeFunctionalTests
     public void shouldApplyAliasModeMatrix()
             throws Exception
         {
-        assertAliasMode("legacy", "age:asc", Response.Status.OK.getStatusCode());
-        assertAliasMode("dev", "by-age:asc", Response.Status.BAD_REQUEST.getStatusCode());
-        assertAliasMode("prod", "by-age:asc", Response.Status.BAD_REQUEST.getStatusCode());
+        assertAliasMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "age:asc",
+                Response.Status.OK.getStatusCode());
+        assertAliasMode("dev", "age:asc", Response.Status.OK.getStatusCode());
+        assertAliasMode("prod", "age:asc", Response.Status.OK.getStatusCode());
         }
 
     /**
-     * Should allow configured projection aliases on direct queries in hardened
-     * modes.
+     * Should allow raw projection expressions on direct queries in
+     * compatibility modes.
      *
      * @throws Exception if the member or HTTP request fails unexpectedly
      */
     @Test
-    public void shouldAllowProjectionAliasOnDirectQueryInHardenedModes()
+    public void shouldAllowRawProjectionOnDirectQueryInCompatibilityModes()
             throws Exception
         {
-        assertProjectionAliasDirectQueryMode("dev");
-        assertProjectionAliasDirectQueryMode("prod");
+        assertRawProjectionDirectQueryMode("dev");
+        assertRawProjectionDirectQueryMode("prod");
         }
 
     private void assertAuthMode(String sServerName, String sMode, int nStatus, boolean fCredentials)
             throws Exception
         {
-        try (Server server = startServer("auth-" + sServerName, sMode, FILE_SERVER_CFG_ENGAGED_AUTH))
+        assertAuthMode(sServerName, sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, nStatus, fCredentials);
+        }
+
+    private void assertAuthMode(String sServerName, String sMode, String sSecurityMode, int nStatus,
+                                boolean fCredentials)
+            throws Exception
+        {
+        try (Server server = startServer("auth-" + sServerName, sMode, sSecurityMode, FILE_SERVER_CFG_ENGAGED_AUTH))
             {
             server.member().invoke(new PutString("dist-test", "test", "secret"));
 
@@ -195,7 +216,13 @@ public class RestSecurityModeFunctionalTests
     private void assertAnonymousNoAuthMode(String sMode)
             throws Exception
         {
-        try (Server server = startServer("noauth-" + sMode, sMode, FILE_SERVER_CFG_DEFAULT))
+        assertAnonymousNoAuthMode(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        }
+
+    private void assertAnonymousNoAuthMode(String sMode, String sSecurityMode)
+            throws Exception
+        {
+        try (Server server = startServer("noauth-" + sMode, sMode, sSecurityMode, FILE_SERVER_CFG_DEFAULT))
             {
             server.member().invoke(new PutString("dist-test", "test", "secret"));
 
@@ -209,7 +236,13 @@ public class RestSecurityModeFunctionalTests
     private void assertPassThroughMode(String sMode, int nStatus)
             throws Exception
         {
-        try (Server server = startServer("passthrough-" + sMode, sMode, FILE_SERVER_CFG_PASSTHROUGH))
+        assertPassThroughMode(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, nStatus);
+        }
+
+    private void assertPassThroughMode(String sMode, String sSecurityMode, int nStatus)
+            throws Exception
+        {
+        try (Server server = startServer("passthrough-" + sMode, sMode, sSecurityMode, FILE_SERVER_CFG_PASSTHROUGH))
             {
             try (Response response = server.requestRoot("dist-rest01-unlisted/test")
                     .request(MediaType.WILDCARD_TYPE)
@@ -230,7 +263,13 @@ public class RestSecurityModeFunctionalTests
     private void assertDirectQuerySseWithoutConfigMode(String sMode, int nStatus)
             throws Exception
         {
-        try (Server server = startServer("query-" + sMode, sMode, FILE_SERVER_CFG_DEFAULT))
+        assertDirectQuerySseWithoutConfigMode(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, nStatus);
+        }
+
+    private void assertDirectQuerySseWithoutConfigMode(String sMode, String sSecurityMode, int nStatus)
+            throws Exception
+        {
+        try (Server server = startServer("query-" + sMode, sMode, sSecurityMode, FILE_SERVER_CFG_DEFAULT))
             {
             server.member().invoke(new PutString("dist-test", "test", "secret"));
 
@@ -244,7 +283,7 @@ public class RestSecurityModeFunctionalTests
             }
         }
 
-    private void assertDirectQuerySseUnsafeEnabledMode(String sMode)
+    private void assertDirectQuerySseCompatibilityEnabledMode(String sMode)
             throws Exception
         {
         try (Server server = startServer("query-enabled-" + sMode, sMode, FILE_SERVER_CFG_DEFAULT))
@@ -256,7 +295,7 @@ public class RestSecurityModeFunctionalTests
                     .request(MediaType.SERVER_SENT_EVENTS_TYPE)
                     .get())
                 {
-                assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
+                assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
                 }
             }
         }
@@ -264,7 +303,13 @@ public class RestSecurityModeFunctionalTests
     private void assertAliasMode(String sMode, String sAcceptedSort, int nRawStatus)
             throws Exception
         {
-        try (Server server = startServer("alias-" + sMode, sMode, FILE_SERVER_CFG_DEFAULT))
+        assertAliasMode(sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, sAcceptedSort, nRawStatus);
+        }
+
+    private void assertAliasMode(String sMode, String sSecurityMode, String sAcceptedSort, int nRawStatus)
+            throws Exception
+        {
+        try (Server server = startServer("alias-" + sMode, sMode, sSecurityMode, FILE_SERVER_CFG_DEFAULT))
             {
             server.member().invoke(PutPeople.INSTANCE);
 
@@ -284,14 +329,14 @@ public class RestSecurityModeFunctionalTests
             }
         }
 
-    private void assertProjectionAliasDirectQueryMode(String sMode)
+    private void assertRawProjectionDirectQueryMode(String sMode)
             throws Exception
         {
         try (Server server = startServer("projection-" + sMode, sMode, FILE_SERVER_CFG_DEFAULT))
             {
             server.member().invoke(PutHttpExamplePeople.INSTANCE);
 
-            try (Response response = server.requestApi("dist-http-example;p=person-summary")
+            try (Response response = server.requestApi("dist-http-example;p=name,age")
                     .queryParam("q", "age >= 26")
                     .request(MediaType.APPLICATION_JSON_TYPE)
                     .get())
@@ -300,7 +345,7 @@ public class RestSecurityModeFunctionalTests
                 assertProjectedJsonBody(response.readEntity(String.class));
                 }
 
-            try (Response response = server.requestApi("dist-http-example;p=person-summary")
+            try (Response response = server.requestApi("dist-http-example;p=name,age")
                     .queryParam("q", "age >= 26")
                     .request(MediaType.APPLICATION_XML_TYPE)
                     .get())
@@ -309,21 +354,6 @@ public class RestSecurityModeFunctionalTests
                 assertProjectedXmlBody(response.readEntity(String.class));
                 }
 
-            try (Response response = server.requestApi("dist-http-example;p=name,age")
-                    .queryParam("q", "age >= 26")
-                    .request(MediaType.APPLICATION_JSON_TYPE)
-                    .get())
-                {
-                assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-                }
-
-            try (Response response = server.requestApi("dist-http-example;p=missing-summary")
-                    .queryParam("q", "age >= 26")
-                    .request(MediaType.APPLICATION_JSON_TYPE)
-                    .get())
-                {
-                assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus());
-                }
             }
         }
 
@@ -416,15 +446,25 @@ public class RestSecurityModeFunctionalTests
 
     private Server startServer(String sServerName, String sMode, String sCacheConfig)
         {
+        return startServer(sServerName, sMode, CoherenceMode.SECURITY_MODE_COMPATIBILITY, sCacheConfig);
+        }
+
+    private Server startServer(String sServerName, String sMode, String sSecurityMode, String sCacheConfig)
+        {
         String     sName        = "Rest01-" + sServerName + '-' + Long.toString(System.nanoTime(), 36);
-        String     sClusterName = "rest01-functional-" + sServerName + '-' + System.nanoTime();
+        String     sClusterName = "rest01-" + Long.toString(System.nanoTime(), 36);
         Properties properties   = new Properties();
 
         properties.setProperty("coherence.cluster", sClusterName);
         properties.setProperty("coherence.mode", sMode);
+        properties.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         properties.setProperty("coherence.override", "rest-tests-coherence-override.xml");
+        properties.setProperty("coherence.wka", "127.0.0.1");
         properties.setProperty("coherence.rest.config", FILE_REST_CFG);
         properties.setProperty("test.extend.port", "0");
+        properties.setProperty("test.unicast.port", "0");
+        properties.setProperty("test.multicast.address", generateUniqueAddress(true));
+        properties.setProperty("test.multicast.port", String.valueOf(LocalPlatform.get().getAvailablePorts().next()));
         properties.setProperty("com.tangosol.coherence.rest.server.DefaultResourceConfig.logging.enabled", "true");
 
         CoherenceClusterMember member = startCacheServer(sName, "rest", sCacheConfig, properties);
@@ -432,7 +472,21 @@ public class RestSecurityModeFunctionalTests
 
         int nPort = member.invoke(GetRestPort.INSTANCE);
         assertTrue("REST port should be assigned", nPort > 0);
+        Eventually.assertDeferred(() -> isPortOpen(nPort), is(true));
         return new Server(member, nPort);
+        }
+
+    private static boolean isPortOpen(int nPort)
+        {
+        try (Socket socket = new Socket())
+            {
+            socket.connect(new InetSocketAddress("127.0.0.1", nPort), 1000);
+            return true;
+            }
+        catch (IOException e)
+            {
+            return false;
+            }
         }
 
     /**
@@ -472,12 +526,34 @@ public class RestSecurityModeFunctionalTests
         public void close()
             {
             f_client.close();
-            f_member.close();
+            stopMember(f_member);
             }
 
         private final CoherenceClusterMember f_member;
         private final int                    f_nPort;
         private final Client                 f_client;
+        }
+
+    private static void stopMember(CoherenceClusterMember member)
+        {
+        if (member == null)
+            {
+            return;
+            }
+
+        try
+            {
+            member.submit(new RuntimeHalt());
+            member.waitFor();
+            }
+        catch (Throwable ignored)
+            {
+            // the member may already have exited
+            }
+        finally
+            {
+            member.close();
+            }
         }
 
     /**

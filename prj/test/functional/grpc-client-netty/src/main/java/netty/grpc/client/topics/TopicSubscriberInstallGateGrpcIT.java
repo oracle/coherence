@@ -29,6 +29,7 @@ import com.oracle.coherence.grpc.GrpcService;
 
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.ConfigurableCacheFactorySession;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.io.SerializationRole;
@@ -259,6 +260,7 @@ public class TopicSubscriberInstallGateGrpcIT
                             JMXManagementMode.ALL,
                             IPv4Preferred.yes(),
                             SystemProperty.of("coherence.mode", "prod"),
+                            SystemProperty.of(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED),
                             SystemProperty.of("coherence.proxy.enabled", "true"),
                             SystemProperty.of(GrpcDiagnosticsPolicy.PROP_ERROR_DISCLOSURE,
                                     GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC),

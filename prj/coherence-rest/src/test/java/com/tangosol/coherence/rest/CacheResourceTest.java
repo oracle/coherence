@@ -350,7 +350,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectDirectQueryWhenDisabledInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
 
@@ -361,9 +361,9 @@ public class CacheResourceTest
         }
 
     @Test
-    public void shouldRejectDirectQueryWhenDisabledInLegacy()
+    public void shouldRejectDirectQueryWhenDisabledInCompatibilityMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             CacheResource resource = createCacheResource(m_cache);
 
@@ -376,7 +376,7 @@ public class CacheResourceTest
     @Test
     public void shouldAllowSafeDirectQueryWhenEnabledInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -394,7 +394,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectUnsafeDirectQueryWhenEnabledInProd()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -411,7 +411,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectDirectQueryMethodCallWhenEnabledInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -428,7 +428,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectDirectQueryUnsupportedUnaryWhenEnabledInProd()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -454,7 +454,7 @@ public class CacheResourceTest
     @Test
     public void shouldApplyDirectQueryGateToSse()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             try
@@ -468,7 +468,7 @@ public class CacheResourceTest
                 assertEquals("Direct query is not allowed", e.getResponse().getEntity());
                 }
             }
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             try
@@ -485,10 +485,10 @@ public class CacheResourceTest
         }
 
     @Test
-    public void shouldAllowLegacySseDirectQueryWithoutDirectQueryConfig()
+    public void shouldAllowCompatibilitySseDirectQueryWithoutDirectQueryConfig()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             CacheResource resource = createCacheResource(m_cache);
 
@@ -501,7 +501,7 @@ public class CacheResourceTest
     @Test
     public void shouldApplyDirectQueryValidationToSse()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -520,7 +520,7 @@ public class CacheResourceTest
                 assertEquals(CacheResource.BAD_REQUEST_MSG, e.getResponse().getEntity());
                 }
             }
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             QueryConfig queryConfig = new QueryConfig();
             queryConfig.setDirectQuery(new DirectQuery(null, -1));
@@ -544,7 +544,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasedSortInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             resource.setExpressionAliases(createExpressionAliases());
@@ -564,7 +564,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasedProjectionInProd()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             resource.setExpressionAliases(createExpressionAliases());
@@ -581,7 +581,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasedAggregatorArgumentInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             resource.setExpressionAliases(createExpressionAliases());
@@ -598,7 +598,7 @@ public class CacheResourceTest
     @Test
     public void shouldRejectRawAndAllowAliasedProcessorArgumentInProd()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CacheResource resource = createCacheResource(m_cache);
             resource.setExpressionAliases(createExpressionAliases());
@@ -618,7 +618,7 @@ public class CacheResourceTest
     @Test
     public void shouldPreserveScalarProcessorArgumentInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             NamedCache cache = new WrapperNamedCache(new HashMap<Integer, Integer>(), "comparables");
             cache.put(1, 1);
@@ -633,9 +633,9 @@ public class CacheResourceTest
         }
 
     @Test
-    public void shouldPreserveRawExpressionCompatibilityInLegacy()
+    public void shouldPreserveRawExpressionCompatibilityInCompatibilityMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             CacheResource resource = createCacheResource(m_cache);
 

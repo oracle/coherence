@@ -145,14 +145,14 @@ public class SSLTests
     public void testGuestServerConfigDevRejectsDefaultHostnameMismatch()
             throws IOException
         {
-        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.dev());
+        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void testGuestServerConfigProdRejectsDefaultHostnameMismatch()
             throws IOException
         {
-        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.prod());
+        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test

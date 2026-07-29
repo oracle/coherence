@@ -154,7 +154,7 @@ public class SerializationGate
      */
     private static boolean shouldRejectDeniedMetadata(Class<?> clzTarget, int nDepth)
         {
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return false;
             }

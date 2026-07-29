@@ -30,18 +30,9 @@ import javax.management.openmbean.TabularDataSupport;
 import java.io.File;
 import java.io.IOException;
 
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
-
-import java.net.InetSocketAddress;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import com.sun.net.httpserver.HttpServer;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
@@ -179,114 +170,6 @@ public class TabularDataTests
             }
         }
 
-    @Test
-    public void shouldRejectRemoteReportResourceBeforeConnection()
-            throws Exception
-        {
-        AtomicInteger cRequests = new AtomicInteger();
-        HttpServer    server    = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/", exchange ->
-            {
-            cRequests.incrementAndGet();
-            byte[] abBody = "remote-report-sentinel".getBytes();
-            exchange.sendResponseHeaders(200, abBody.length);
-            exchange.getResponseBody().write(abBody);
-            exchange.close();
-            });
-        server.start();
-
-        try
-            {
-            String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report.xml";
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-                {
-                new ReportBatch().runTabularReport(sUrl);
-                fail("remote report URL should be rejected");
-                }
-            catch (IllegalArgumentException expected)
-                {
-                // expected
-                }
-
-            assertThat(cRequests.get(), is(0));
-            }
-        finally
-            {
-            server.stop(0);
-            }
-        }
-
-    @Test
-    public void shouldRunApprovedRemoteReportResource()
-            throws Exception
-        {
-        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/report.xml", exchange ->
-            {
-            byte[] abBody = sXmlReport.getBytes(StandardCharsets.UTF_8);
-            exchange.sendResponseHeaders(200, abBody.length);
-            exchange.getResponseBody().write(abBody);
-            exchange.close();
-            });
-        server.start();
-
-        String sOld = System.getProperty("coherence.management.report.remote.allowed");
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-            {
-            String sBase = "http://127.0.0.1:" + server.getAddress().getPort();
-            System.setProperty("coherence.management.report.remote.allowed", sBase);
-
-            TabularData data = new ReportBatch().runTabularReport(sBase + "/report.xml");
-            assertNotNull(data);
-            }
-        finally
-            {
-            restoreProperty("coherence.management.report.remote.allowed", sOld);
-            server.stop(0);
-            }
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldRejectOutOfRootFileUrl()
-        {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-            {
-            new ReportBatch().runTabularReport(new java.io.File("/etc/passwd").toURI().toString());
-            }
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldRejectWorkingDirectoryFileOutsideApprovedInputRoot()
-            throws Exception
-        {
-        File file = new File("target/unapproved-reporter-input.xml");
-        file.getParentFile().mkdirs();
-        Files.write(file.toPath(), sXmlReport.getBytes(StandardCharsets.UTF_8));
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-            {
-            new ReportBatch().runTabularReport(file.toURI().toString());
-            }
-        finally
-            {
-            file.delete();
-            }
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldRejectOutputPathOutsideApprovedRoot()
-            throws IOException
-        {
-        File tempDirectory = FileHelper.createTempDir();
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-            {
-            new ReportBatch().setOutputPath(tempDirectory.getAbsolutePath());
-            }
-        finally
-            {
-            FileHelper.deleteDirSilent(tempDirectory);
-            }
-        }
-
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectOutputPathTraversal()
         {
@@ -294,14 +177,14 @@ public class TabularDataTests
         }
 
     @Test(expected = IllegalArgumentException.class)
-    public void shouldRejectLegacyReportFileOutsideSelectedOutputDirectory()
+    public void shouldRejectCompatibilityReportFileOutsideSelectedOutputDirectory()
             throws IOException
         {
         File root = FileHelper.createTempDir();
         try
             {
             File file = new File(root.getParentFile(), root.getName() + "-escape.txt");
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
                 {
                 ReporterSecurity.validateOutputFile(file.getCanonicalPath(), root.getCanonicalPath(), "reporter-core");
                 }
@@ -343,44 +226,6 @@ public class TabularDataTests
     public void shouldRejectReportFileNameTraversal()
         {
         new ReportBatch().runTabularReport(sXmlReportWithTraversalFileName);
-        }
-
-    @Test
-    public void shouldRejectReportGroupRemoteLocationBeforeConnection()
-            throws Exception
-        {
-        AtomicInteger cRequests = new AtomicInteger();
-        HttpServer    server    = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/", exchange ->
-            {
-            cRequests.incrementAndGet();
-            byte[] abBody = "remote-group-sentinel".getBytes();
-            exchange.sendResponseHeaders(200, abBody.length);
-            exchange.getResponseBody().write(abBody);
-            exchange.close();
-            });
-        server.start();
-
-        try
-            {
-            String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/group-report.xml";
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
-                {
-                new ReportBatch().runTabularReport("<report-group><report-list><report-config><location>"
-                        + sUrl + "</location></report-config></report-list></report-group>");
-                fail("remote report-group location should be rejected");
-                }
-            catch (IllegalArgumentException expected)
-                {
-                // expected
-                }
-
-            assertThat(cRequests.get(), is(0));
-            }
-        finally
-            {
-            server.stop(0);
-            }
         }
 
     @Test

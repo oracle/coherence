@@ -6,6 +6,8 @@
  */
 package com.tangosol.internal.net.management;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.run.xml.XmlElement;
@@ -33,29 +35,31 @@ public class HttpAuthDefaultsTest
         {
         System.clearProperty(HttpAuthDefaults.PROP_MANAGEMENT_AUTH);
         System.clearProperty(HttpAuthDefaults.PROP_METRICS_AUTH);
+        System.clearProperty(CoherenceMode.PROP_SECURITY_MODE);
         HttpAuthDefaults.setLoggersForTesting(null, null);
+        CoherenceModeHelper.reset();
         }
 
     @Test
     public void shouldResolveManagementModeDefaults()
         {
         assertDefault(HttpAuthDefaults.SERVICE_MANAGEMENT, HttpAuthDefaults.PROP_MANAGEMENT_AUTH,
-                CoherenceMode.PROD, "basic");
+                CoherenceMode.PROD, false, "none");
         assertDefault(HttpAuthDefaults.SERVICE_MANAGEMENT, HttpAuthDefaults.PROP_MANAGEMENT_AUTH,
-                CoherenceMode.DEV, "basic");
+                CoherenceMode.DEV, false, "none");
         assertDefault(HttpAuthDefaults.SERVICE_MANAGEMENT, HttpAuthDefaults.PROP_MANAGEMENT_AUTH,
-                CoherenceMode.LEGACY, "none");
+                CoherenceMode.PROD, true, "basic");
         }
 
     @Test
     public void shouldResolveMetricsModeDefaults()
         {
         assertDefault(HttpAuthDefaults.SERVICE_METRICS, HttpAuthDefaults.PROP_METRICS_AUTH,
-                CoherenceMode.PROD, "basic");
+                CoherenceMode.PROD, false, "none");
         assertDefault(HttpAuthDefaults.SERVICE_METRICS, HttpAuthDefaults.PROP_METRICS_AUTH,
-                CoherenceMode.DEV, "basic");
+                CoherenceMode.DEV, false, "none");
         assertDefault(HttpAuthDefaults.SERVICE_METRICS, HttpAuthDefaults.PROP_METRICS_AUTH,
-                CoherenceMode.LEGACY, "none");
+                CoherenceMode.PROD, true, "basic");
         }
 
     @Test
@@ -94,8 +98,11 @@ public class HttpAuthDefaultsTest
         assertExplicitXml("cert+basic");
         }
 
-    private void assertDefault(String sService, String sProperty, CoherenceMode mode, String sExpected)
+    private void assertDefault(String sService, String sProperty, CoherenceMode mode, boolean fHardened,
+                               String sExpected)
         {
+        System.setProperty(CoherenceMode.PROP_SECURITY_MODE, securityMode(fHardened));
+        CoherenceModeHelper.reset();
         XmlElement xml = xmlWithMarker(sProperty);
         HttpAuthDefaults.Resolution resolution = HttpAuthDefaults.resolve(xml, sService, sProperty, mode);
 
@@ -103,6 +110,11 @@ public class HttpAuthDefaultsTest
         assertThat(auth(xml), is(sExpected));
         assertThat(authElement(xml).getAttribute("system-property") == null,
                 is(true));
+        }
+
+    private static String securityMode(boolean fHardened)
+        {
+        return fHardened ? CoherenceMode.SECURITY_MODE_HARDENED : CoherenceMode.SECURITY_MODE_COMPATIBILITY;
         }
 
     private void assertExplicitXml(String sAuth)

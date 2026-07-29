@@ -20,6 +20,8 @@ import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheRequestType;
 import com.oracle.coherence.grpc.messages.cache.v1.NamedCacheResponse;
 import com.oracle.coherence.grpc.messages.cache.v1.QueryRequest;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Filter;
@@ -125,6 +127,7 @@ class GrpcV1EnforcementIntegrationTest
             .setProperty("coherence.cluster", "GrpcV1EnforcementIntegrationTest-" + System.nanoTime())
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.mode", "prod")
+            .setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED)
             .setProperty("coherence.grpc.error-disclosure", "diagnostic")
             .setProperty("coherence.grpc.serializer.allowlist", "java")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");

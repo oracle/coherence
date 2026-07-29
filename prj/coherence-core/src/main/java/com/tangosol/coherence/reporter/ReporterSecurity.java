@@ -157,7 +157,7 @@ public final class ReporterSecurity
             File file = Paths.get(uri).toFile().getCanonicalFile();
             if (!isUnderAny(file, getApprovedReportFileRoots()))
                 {
-                if (CoherenceMode.isLegacy())
+                if (!CoherenceMode.isSecurityHardeningEnabled())
                     {
                     shadow(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
                     return file.toURI().toURL();
@@ -261,7 +261,7 @@ public final class ReporterSecurity
                     : root.toPath().resolve(path).toFile().getCanonicalFile();
             if (!isUnder(file, root))
                 {
-                if (CoherenceMode.isLegacy())
+                if (!CoherenceMode.isSecurityHardeningEnabled())
                     {
                     shadow(sScope, "setOutputPath", "reporter-output-allowlist", "output-outside-root", sPath);
                     return file.getCanonicalPath();
@@ -475,7 +475,7 @@ public final class ReporterSecurity
                 {
                 return file.toURI().toURL();
                 }
-            if (file.exists() && CoherenceMode.isLegacy())
+            if (file.exists() && !CoherenceMode.isSecurityHardeningEnabled())
                 {
                 shadow(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
                 return file.toURI().toURL();
@@ -495,7 +495,7 @@ public final class ReporterSecurity
         String sScheme = uri.getScheme();
         if (!"http".equalsIgnoreCase(sScheme) && !"https".equalsIgnoreCase(sScheme))
             {
-            if (CoherenceMode.isLegacy())
+            if (!CoherenceMode.isSecurityHardeningEnabled())
                 {
                 shadow(sScope, sOperation, "reporter-resource-allowlist", "unsupported-uri-scheme", sName);
                 return toUrl(uri, sName, sOperation, sScope);
@@ -508,7 +508,7 @@ public final class ReporterSecurity
             return toUrl(uri, sName, sOperation, sScope);
             }
 
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             shadow(sScope, sOperation, "reporter-resource-allowlist", "remote-source-not-approved", sName);
             return toUrl(uri, sName, sOperation, sScope);
@@ -610,7 +610,7 @@ public final class ReporterSecurity
         {
         if (name == null || name.isDomainPattern())
             {
-            if (CoherenceMode.isLegacy())
+            if (!CoherenceMode.isSecurityHardeningEnabled())
                 {
                 shadow(sScope, "query", "reporter-objectname-allowlist", "object-name-pattern-too-broad",
                         name == null ? null : name.getDomain());
@@ -624,7 +624,7 @@ public final class ReporterSecurity
         String sType   = name.getKeyProperty("type");
         if (!ALLOWED_DOMAINS.contains(sDomain) || !ALLOWED_TYPES.contains(sType))
             {
-            if (CoherenceMode.isLegacy())
+            if (!CoherenceMode.isSecurityHardeningEnabled())
                 {
                 shadow(sScope, "query", "reporter-objectname-allowlist", "object-name-not-allowed", sDomain);
                 return;
@@ -725,7 +725,7 @@ public final class ReporterSecurity
 
     private static void reject(String sScope, String sOperation, String sGate, String sReason, String sValue)
         {
-        if (CoherenceMode.isLegacy() && isLegacyShadowReason(sReason))
+        if (!CoherenceMode.isSecurityHardeningEnabled() && isCompatibilityShadowReason(sReason))
             {
             shadow(sScope, sOperation, sGate, sReason, sValue);
             return;
@@ -744,19 +744,19 @@ public final class ReporterSecurity
 
     private static void shadow(String sScope, String sOperation, String sGate, String sReason, String sValue)
         {
-        Logger.warn("Allowed LEGACY Reporter request that hardening mode would reject:"
+        Logger.warn("Allowed compatibility Reporter request that security hardening would reject:"
                 + " route=reporter"
                 + ", scope=" + sanitize(sScope)
                 + ", operation=" + sanitize(sOperation)
                 + ", gate=" + sanitize(sGate)
                 + ", reason=" + sanitize(sReason)
-                + ", mode=legacy"
+                + ", security-mode=compatibility"
                 + ", result=would_reject"
                 + ", resource-name=" + sanitize(sValue)
                 + ", principal=unknown");
         }
 
-    private static boolean isLegacyShadowReason(String sReason)
+    private static boolean isCompatibilityShadowReason(String sReason)
         {
         return "file-outside-root".equals(sReason)
                 || "object-name-not-allowed".equals(sReason)

@@ -30,8 +30,8 @@ import static org.junit.Assert.fail;
  * <p>
  * Prompt 02 at
  * design/features/security-bugs/plans/rest-01/prompts/02-slice-b-auth-passthrough-implementation.md
- * requires DEV/PROD allowlist enforcement and LEGACY auto-publish compatibility
- * for pass-through resources.
+ * requires hardened allowlist enforcement and compatibility auto-publish
+ * behavior for pass-through resources.
  *
  * @author Vaso Putica  2026.05.07
  * @since 26.04
@@ -71,7 +71,7 @@ public class PassThroughRootResourceTest
     @Test
     public void shouldRejectUnknownPassThroughResourceInDev()
         {
-        shouldRejectUnknownPassThroughResource(CoherenceModeHelper.dev());
+        shouldRejectUnknownPassThroughResource(CoherenceModeHelper.securityHardened());
         }
 
     /**
@@ -80,26 +80,26 @@ public class PassThroughRootResourceTest
     @Test
     public void shouldRejectUnknownPassThroughResourceInProd()
         {
-        shouldRejectUnknownPassThroughResource(CoherenceModeHelper.prod());
+        shouldRejectUnknownPassThroughResource(CoherenceModeHelper.securityHardened());
         }
 
     /**
-     * Should preserve pass-through auto-publish compatibility in LEGACY mode.
+     * Should preserve pass-through auto-publish compatibility mode.
      */
     @Test
-    public void shouldAutoPublishUnknownPassThroughResourceInLegacy()
+    public void shouldAutoPublishUnknownPassThroughResourceInCompatibility()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             RestConfig config = RestConfig.create();
             TestPassThroughRootResource resource = new TestPassThroughRootResource(config);
 
-            resource.getCacheResource("legacy-cache");
+            resource.getCacheResource("compatibility-cache");
 
-            ResourceConfig configResource = config.getResources().get("legacy-cache");
+            ResourceConfig configResource = config.getResources().get("compatibility-cache");
             assertNotNull(configResource);
             assertSame(configResource, resource.getCapturedConfig());
-            assertEquals("legacy-cache", configResource.getCacheName());
+            assertEquals("compatibility-cache", configResource.getCacheName());
             assertEquals(Integer.MAX_VALUE, configResource.getMaxResults());
 
             DirectQuery directQuery = configResource.getQueryConfig().getDirectQuery();
@@ -115,7 +115,7 @@ public class PassThroughRootResourceTest
     @Test
     public void shouldUseExplicitResourceConfigInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             RestConfig config = RestConfig.create();
             TestPassThroughRootResource resource = new TestPassThroughRootResource(config);
@@ -138,7 +138,7 @@ public class PassThroughRootResourceTest
     @Test
     public void shouldNotAutoEnableDirectQueryForExplicitResourceInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             RestConfig config = RestConfig.create();
             TestPassThroughRootResource resource = new TestPassThroughRootResource(config);

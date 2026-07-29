@@ -47,8 +47,10 @@ public class ClusteredTaskManagerInstallGateTest
     @BeforeEach
     public void setUp()
         {
-        m_sModeOld = System.getProperty("coherence.mode");
+        m_sModeOld         = System.getProperty("coherence.mode");
+        m_sSecurityModeOld = System.getProperty("coherence.security.mode");
         CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode("hardened");
         RemoteExecutionMode.resetForTesting();
         }
 
@@ -62,6 +64,14 @@ public class ClusteredTaskManagerInstallGateTest
         else
             {
             System.setProperty("coherence.mode", m_sModeOld);
+            }
+        if (m_sSecurityModeOld == null)
+            {
+            System.clearProperty("coherence.security.mode");
+            }
+        else
+            {
+            System.setProperty("coherence.security.mode", m_sSecurityModeOld);
             }
         CoherenceModeHelper.reset();
         RemoteExecutionMode.resetForTesting();
@@ -695,4 +705,6 @@ public class ClusteredTaskManagerInstallGateTest
         }
 
     private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
     }

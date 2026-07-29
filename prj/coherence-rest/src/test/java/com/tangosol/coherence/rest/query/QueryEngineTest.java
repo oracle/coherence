@@ -74,7 +74,7 @@ public class QueryEngineTest extends AbstractQueryEngine
     @Test
     public void testQueryParsingCacheIncludesTypeHints()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ParsedQuery queryInt  = parseQueryString("value = :v;i");
             ParsedQuery queryLong = parseQueryString("value = :v;long");
@@ -90,9 +90,9 @@ public class QueryEngineTest extends AbstractQueryEngine
         }
 
     @Test
-    public void testLegacyQueryParsingCacheUsesStrippedQueryText()
+    public void testCompatibilityQueryParsingCacheUsesStrippedQueryText()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             ParsedQuery queryInt  = parseQueryString("value = :v;i");
             ParsedQuery queryLong = parseQueryString("value = :v;long");
@@ -105,9 +105,9 @@ public class QueryEngineTest extends AbstractQueryEngine
         }
 
     @Test
-    public void testLegacyQueryParsingCacheSharedAcrossDirectQueryTypePolicy()
+    public void testCompatibilityQueryParsingCacheSharedAcrossDirectQueryTypePolicy()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             String sQuery = "person = :person;data.pof.Person";
 
@@ -130,7 +130,7 @@ public class QueryEngineTest extends AbstractQueryEngine
         assertSame(operatorQuery, parseQueryString(sQuery));
         assertEquals(Person.class, operatorQuery.getParameterTypes().get("person"));
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             try
                 {
@@ -151,7 +151,7 @@ public class QueryEngineTest extends AbstractQueryEngine
     @Test
     public void testQueryParsingCacheConcurrentMixedPolicies() throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ExecutorService executor = Executors.newFixedThreadPool(8);
             CountDownLatch  latch    = new CountDownLatch(1);
@@ -191,7 +191,7 @@ public class QueryEngineTest extends AbstractQueryEngine
     @Test
     public void testStrictDirectQueryExecutionUsesStrippedTypeHints()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             CoherenceQueryLanguageEngine engine = new CoherenceQueryLanguageEngine();
             NamedCache<Integer, AgeRecord> cache = createAgeCache();
