@@ -9,7 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
     id 'java'
-    id 'com.oracle.coherence' version "${coherenceVersion}"
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 java {

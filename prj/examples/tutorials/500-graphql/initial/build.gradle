@@ -11,7 +11,7 @@ plugins {
     id "application"
     id "java"
     id "org.kordamp.gradle.jandex" version "1.1.0"
-    id 'com.oracle.coherence' version "${coherenceVersion}"
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.tutorials'
