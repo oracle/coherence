@@ -10,8 +10,13 @@ import com.tangosol.coherence.component.net.management.Connector;
 import com.tangosol.coherence.component.net.management.gateway.Local;
 import com.tangosol.coherence.component.net.management.model.localModel.WrapperModel;
 
+import com.tangosol.internal.util.CoherenceMode;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.lang.reflect.Method;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -37,8 +42,16 @@ public class RemoteModelTest
     @Before
     public void setUp()
         {
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+        restoreSecurityMode(CoherenceMode.SECURITY_MODE_HARDENED);
         m_model     = new TestLocalModel();
         m_connector = new TestConnector(m_model, m_info);
+        }
+
+    @After
+    public void tearDown()
+        {
+        restoreSecurityMode(m_sSecurityModeOld);
         }
 
     @Test
@@ -322,6 +335,33 @@ public class RemoteModelTest
         return model;
         }
 
+    private static void restoreSecurityMode(String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(CoherenceMode.PROP_SECURITY_MODE);
+            }
+        else
+            {
+            System.setProperty(CoherenceMode.PROP_SECURITY_MODE, sValue);
+            }
+        resetMode();
+        }
+
+    private static void resetMode()
+        {
+        try
+            {
+            Method method = CoherenceMode.class.getDeclaredMethod("resetForTesting");
+            method.setAccessible(true);
+            method.invoke(null);
+            }
+        catch (ReflectiveOperationException | RuntimeException e)
+            {
+            throw new IllegalStateException("Unable to reset memoized Coherence mode", e);
+            }
+        }
+
     public static class TestLocalModel
             extends LocalModel
         {
@@ -584,4 +624,6 @@ public class RemoteModelTest
     private TestLocalModel m_model;
 
     private TestConnector m_connector;
+
+    private String m_sSecurityModeOld;
     }
