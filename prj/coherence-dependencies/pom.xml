@@ -134,10 +134,10 @@
          When changing asm.version, also change the value of the constant
          defined in com.tangosol.util.asm.BaseClassReaderInternal#MAX_MAJOR_VERSION
          to have the same value as the latest class opcode defined in
-         org.objectweb.asm.Opcodes.  As of ASM 9.8, this is Opcodes.V25 whose
-         value is 69.
+         org.objectweb.asm.Opcodes.  As of ASM 9.10.1, this is Opcodes.V27
+         whose value is 71.
     -->
-    <asm.version>9.8</asm.version>
+    <asm.version>9.10.1</asm.version>
 
     <bdb.version>6.2.31</bdb.version>
     <bnd.version>7.1.0</bnd.version>
