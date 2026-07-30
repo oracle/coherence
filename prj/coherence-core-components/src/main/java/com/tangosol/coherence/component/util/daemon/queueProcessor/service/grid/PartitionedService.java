@@ -8093,20 +8093,41 @@ public abstract class PartitionedService
     protected boolean pinOwnedPartition(int nPartition, int nVersion)
         {
         boolean fEntered = false;
-        if ((!isConcurrent() || (fEntered = enterPartition(nPartition))) &&
-            isPrimaryOwner(nPartition) &&
-            (nVersion == -1 || nVersion == getOwnershipVersion(nPartition)))
+        boolean fPinned  = false;
+        try
             {
-            return true;
+            if ((!isConcurrent() || (fEntered = enterPartition(nPartition))) &&
+                isPrimaryOwner(nPartition) &&
+                (nVersion == -1 || nVersion == getOwnershipVersion(nPartition)))
+                {
+                fPinned = true;
+                return true;
+                }
+
+            return false;
             }
-        else
+        catch (RuntimeException | Error e)
             {
             if (fEntered)
                 {
+                fEntered = false;
+                try
+                    {
+                    exitPartition(nPartition);
+                    }
+                catch (RuntimeException | Error eCleanup)
+                    {
+                    e.addSuppressed(eCleanup);
+                    }
+                }
+            throw e;
+            }
+        finally
+            {
+            if (fEntered && !fPinned)
+                {
                 exitPartition(nPartition);
                 }
-        
-            return false;
             }
         }
     
@@ -8146,26 +8167,60 @@ public abstract class PartitionedService
         {
         // import com.tangosol.net.partition.PartitionSet;
         
-        boolean      fConcurrent = isConcurrent();
         PartitionSet partsOther  = null; // lazy instantiation to optimize the most common case
+        PartitionSet partsPinned = new PartitionSet(getPartitionCount());
+        int          nPinned     = -1;   // pin returned but not yet registered in partsPinned
         
-        for (int nPartition = partitions.next(0); nPartition >= 0;
-                 nPartition = partitions.next(nPartition + 1))
+        try
             {
-            int nVersion = versions == null ? -1 : versions.getVersion(nPartition);
-        
-            if (!pinOwnedPartition(nPartition, nVersion))
+            for (int nPartition = partitions.next(0); nPartition >= 0;
+                     nPartition = partitions.next(nPartition + 1))
                 {
-                if (partsOther == null)
-                    {
-                    partsOther = new PartitionSet(getPartitionCount());
-                    }
-                partsOther.add(nPartition);
-                partitions.remove(nPartition);
-                }
-            }
+                int nVersion = versions == null ? -1 : versions.getVersion(nPartition);
         
-        return partsOther;
+                if (pinOwnedPartition(nPartition, nVersion))
+                    {
+                    nPinned = nPartition;
+                    partsPinned.add(nPartition);
+                    nPinned = -1;
+                    }
+                else
+                    {
+                    if (partsOther == null)
+                        {
+                        partsOther = new PartitionSet(getPartitionCount());
+                        }
+                    partsOther.add(nPartition);
+                    partitions.remove(nPartition);
+                    }
+                }
+
+            return partsOther;
+            }
+        catch (RuntimeException | Error e)
+            {
+            if (nPinned >= 0 && isConcurrent())
+                {
+                try
+                    {
+                    exitPartition(nPinned);
+                    }
+                catch (RuntimeException | Error eCleanup)
+                    {
+                    e.addSuppressed(eCleanup);
+                    }
+                }
+
+            try
+                {
+                unpinPartitions(partsPinned);
+                }
+            catch (RuntimeException | Error eCleanup)
+                {
+                e.addSuppressed(eCleanup);
+                }
+            throw e;
+            }
         }
     
     /**
@@ -10484,11 +10539,35 @@ public abstract class PartitionedService
         if (isConcurrent())
             {
             PartitionedService.PartitionControl[] aControl = getPartitionControl();
+            Throwable                             eFailure = null;
         
             for (int nPartition = partitions.next(0); nPartition >= 0;
                      nPartition = partitions.next(nPartition + 1))
                 {
-                aControl[nPartition].exit();
+                try
+                    {
+                    aControl[nPartition].exit();
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    if (eFailure == null)
+                        {
+                        eFailure = e;
+                        }
+                    else
+                        {
+                        eFailure.addSuppressed(e);
+                        }
+                    }
+                }
+
+            if (eFailure instanceof RuntimeException)
+                {
+                throw (RuntimeException) eFailure;
+                }
+            if (eFailure instanceof Error)
+                {
+                throw (Error) eFailure;
                 }
             }
         }
@@ -30221,28 +30300,60 @@ public abstract class PartitionedService
             
                 boolean fEntered = false;
                 int     nVersion = getVersion(iPartition);
-                if ((!isConcurrent() || (fEntered = enterPartition(iPartition))) &&
-                    service.isPrimaryOwner(iPartition) &&
-                    (nVersion == -1 || nVersion == service.getOwnershipVersion(iPartition)))
+                try
                     {
-                    partAccept.add(iPartition);
-                    // leave the gate entered
-                    return true;
+                    if ((!isConcurrent() || (fEntered = enterPartition(iPartition))) &&
+                        service.isPrimaryOwner(iPartition) &&
+                        (nVersion == -1 || nVersion == service.getOwnershipVersion(iPartition)))
+                        {
+                        partAccept.add(iPartition);
+                        // leave the gate entered
+                        return true;
+                        }
+
+                    if (partReject == null)
+                        {
+                        setRejectedPartitions(
+                            partReject = new PartitionSet(service.getPartitionCount()));
+                        }
+                    partReject.add(iPartition);
+                    ensureRejectedKeys().add(binKey);
+
+                    if (fEntered)
+                        {
+                        fEntered = false;
+                        service.exitPartition(iPartition);
+                        }
+                    return false;
                     }
-            
-                if (partReject == null)
+                catch (RuntimeException | Error e)
                     {
-                    setRejectedPartitions(
-                        partReject = new PartitionSet(service.getPartitionCount()));
+                    if (fEntered && !partAccept.contains(iPartition))
+                        {
+                        try
+                            {
+                            service.exitPartition(iPartition);
+                            }
+                        catch (RuntimeException | Error eCleanup)
+                            {
+                            e.addSuppressed(eCleanup);
+                            }
+                        }
+
+                    try
+                        {
+                        service.unpinPartitions(partAccept);
+                        }
+                    catch (RuntimeException | Error eCleanup)
+                        {
+                        e.addSuppressed(eCleanup);
+                        }
+                    finally
+                        {
+                        partAccept.clear();
+                        }
+                    throw e;
                     }
-                partReject.add(iPartition);
-                ensureRejectedKeys().add(binKey);
-            
-                if (fEntered)
-                    {
-                    service.exitPartition(iPartition);
-                    }
-                return false;
                 }
             else
                 {
