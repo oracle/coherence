@@ -21,6 +21,7 @@ import com.oracle.bedrock.util.Capture;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 
+import com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus;
 import com.oracle.coherence.common.net.exabus.util.MessageBusTest;
 
 import org.junit.Before;
@@ -30,13 +31,17 @@ import org.junit.Test;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.delayedBy;
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
+import static com.oracle.bedrock.deferred.DeferredHelper.within;
 import static org.hamcrest.CoreMatchers.everyItem;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertTrue;
 
@@ -356,6 +361,685 @@ public class MessageBusTestTests
         }
 
     /**
+     * Test that producer write progression cannot cross a connection migration handshake.
+     */
+    @Test
+    public void testMigrationHandshakeIsolation()
+            throws Exception
+        {
+        int      port1         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      portMigration = Math.min(port1, port2);
+        int      portPeer      = Math.max(port1, port2);
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-txThreads",      "4",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-txThreads",      "4",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "2000"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "10"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.producerBackpressureThresholdBytes", "64KB"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".concurrentReadMigrations", "3"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1 = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2 = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getConcurrentReadMigrationsRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(3L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting),
+                    greaterThanOrEqualTo(3L), within(30, TimeUnit.SECONDS));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that a superseded outbound handshake cannot disconnect the active replacement transport.
+     */
+    @Test
+    public void testStaleOutboundHandshakeCannotDisconnectReplacement()
+            throws Exception
+        {
+        int      port1         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      portMigration = Math.min(port1, port2);
+        int      portPeer      = Math.max(port1, port2);
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".staleOutboundIntroductions", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getStaleOutboundIntroductionReplayCountForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(2L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that completing a TCP connect does not reset the migration retry count before the MessageBus handshake.
+     */
+    @Test
+    public void testMigrationHandshakeRetryLimit()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",   "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",   "tmb://" + m_hostAddress + ":" + port2,
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind", "tmb://" + m_hostAddress + ":" + port2,
+                "-peer", "tmb://" + m_hostAddress + ":" + port1
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.dropRatio", "1"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "10"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "2"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".duplicateMigrationNotifications", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        CapturingApplicationConsole console1 = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2 = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(OptionsByType.of(), asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertThat(invoking(console2).getCapturedErrorLines(),
+                    hasItem(containsString("DISCONNECT event")), delayedBy(20, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    is(2L), within(20, TimeUnit.SECONDS));
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that a replacement socket open failure consumes one reconnect attempt and recovery continues.
+     */
+    @Test
+    public void testMigrationSocketOpenFailureRetry()
+            throws Exception
+        {
+        int      port1         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      portMigration = Math.min(port1, port2);
+        int      portPeer      = Math.max(port1, port2);
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".duplicateMigrationNotifications", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectOpenFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1 = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2 = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectOpenFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(2L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that exhausting the retry budget after an initial socket-open failure disconnects cleanly.
+     */
+    @Test
+    public void testInitialSocketOpenFailureDisconnect()
+            throws Exception
+        {
+        int      port1 = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2 = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg =
+                {
+                "-bind", "tmb://" + m_hostAddress + ":" + port1,
+                "-peer", "tmb://" + m_hostAddress + ":" + port2
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "0"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".initialOpenFailures", "1"));
+
+        CapturingApplicationConsole console     = new CapturingApplicationConsole();
+        JavaApplication             application = startMessageBusTest(options, asArg, console);
+
+        try
+            {
+            Eventually.assertDeferred(
+                    () -> application.invoke(AbstractSocketBus::getInitialOpenFailuresRemainingForTesting),
+                    is(0), within(20, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(console).getCapturedErrorLines(),
+                    hasItem(containsString("DISCONNECT event")), within(20, TimeUnit.SECONDS));
+            assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("NullPointerException"))));
+            }
+        finally
+            {
+            application.close();
+            }
+        }
+
+    /**
+     * Test that the fatal timeout bounds a replacement socket which does not complete its handshake.
+     */
+    @Test
+    public void testMigrationHandshakeFatalTimeout()
+            throws Exception
+        {
+        int      port1         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      portMigration = Math.min(port1, port2);
+        int      portPeer      = Math.max(port1, port2);
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portMigration,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.fatalTimeoutMillis", "200"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectHandshakeDelayMillis", "1000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "2000"));
+
+        CapturingApplicationConsole console1 = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2 = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectHandshakeDelaysRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(console2).getCapturedErrorLines(),
+                    hasItem(containsString("replacement handshake timeout")), within(30, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(console2).getCapturedErrorLines(),
+                    hasItem(containsString("DISCONNECT event")), within(30, TimeUnit.SECONDS));
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that the fatal timeout bounds an initial retry which does not complete its handshake.
+     */
+    @Test
+    public void testInitialRetryHandshakeFatalTimeout()
+            throws Exception
+        {
+        int      port1 = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2 = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind", "tmb://" + m_hostAddress + ":" + port1,
+                "-peer", "tmb://" + m_hostAddress + ":" + port2,
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind", "tmb://" + m_hostAddress + ":" + port2,
+                "-peer", "tmb://" + m_hostAddress + ":" + port1
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.fatalTimeoutMillis", "200"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".initialOpenFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectHandshakeDelayMillis", "1000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(OptionsByType.of(), asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationRetry = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationRetry.invoke(AbstractSocketBus::getInitialOpenFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationRetry.invoke(AbstractSocketBus::getReconnectHandshakeDelaysRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationRetry.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(console2).getCapturedErrorLines(),
+                    hasItem(containsString("replacement handshake timeout")), within(30, TimeUnit.SECONDS));
+            Eventually.assertThat(invoking(console2).getCapturedErrorLines(),
+                    hasItem(containsString("DISCONNECT event")), within(30, TimeUnit.SECONDS));
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that a blocking collector can reenter the bus without holding up the connection critical section.
+     */
+    @Test
+    public void testBlockingReentrantCollectorOutsideConnectionLock()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 = createMigrationArguments(port1, port2, true);
+        String[] asArg2 = createMigrationArguments(port2, port1, false);
+
+        OptionsByType options1 = OptionsByType.of(
+                SystemProperty.of(MessageBusTest.class.getName() + ".collectorBlockMillis", "500"));
+        OptionsByType options2 = OptionsByType.of(
+                SystemProperty.of(MessageBusTest.class.getName() + ".collectorBlockMillis", "500"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(options1, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options2, asArg2, console2);
+            JavaApplication applicationPeer = application2;
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(MessageBusTest::getBlockingCollectorInvocationCountForTesting),
+                    is(1), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(MessageBusTest::getBlockingCollectorInvocationCountForTesting),
+                    is(1), within(30, TimeUnit.SECONDS));
+
+            assertThat(application1.invoke(MessageBusTest::getCollectorReentryTimeoutCountForTesting), is(0));
+            assertThat(applicationPeer.invoke(MessageBusTest::getCollectorReentryTimeoutCountForTesting), is(0));
+            assertThat(application1.invoke(AbstractSocketBus::getCollectorCallsUnderLockForTesting), is(0L));
+            assertThat(applicationPeer.invoke(AbstractSocketBus::getCollectorCallsUnderLockForTesting), is(0L));
+
+            assertHealthyTrafficAfter(console1, 0);
+            assertHealthyTrafficAfter(console2, 0);
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test simultaneous outbound failures and inbound replacement handshakes on both peers.
+     */
+    @Test
+    public void testSimultaneousInboundOutboundMigration()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 = createMigrationArguments(port1, port2, true);
+        String[] asArg2 = createMigrationArguments(port2, port1, false);
+
+        OptionsByType options1 = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackTransportMetrics", "true"));
+        OptionsByType options2 = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackTransportMetrics", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(options1, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options2, asArg2, console2);
+            JavaApplication applicationPeer = application2;
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getCompletedMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(AbstractSocketBus::getCompletedMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            long cMigrationNanos1 = application1.invoke(AbstractSocketBus::getMigrationCompletionMaxNanosForTesting);
+            long cMigrationNanos2 = applicationPeer.invoke(AbstractSocketBus::getMigrationCompletionMaxNanosForTesting);
+            System.out.println("simultaneous migration completion nanos: peer1=" + cMigrationNanos1 +
+                    ", peer2=" + cMigrationNanos2);
+            assertThat(cMigrationNanos1, greaterThanOrEqualTo(1L));
+            assertThat(cMigrationNanos2, greaterThanOrEqualTo(1L));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that replacement handler registration failure consumes an attempt and recovery continues.
+     */
+    @Test
+    public void testMigrationRegistrationFailureRetry()
+            throws Exception
+        {
+        int      port1         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2         = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      portMigration = Math.min(port1, port2);
+        int      portPeer      = Math.max(port1, port2);
+        String[] asArg1        = createMigrationArguments(portPeer, portMigration, true);
+        String[] asArg2        = createMigrationArguments(portMigration, portPeer, false);
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectRegistrationFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(options, asArg2, console2);
+            JavaApplication applicationMigration = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectRegistrationFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(2L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationMigration.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
      * Test OOM error case.
      *
      * This test depends on the machine on which the test is run.
@@ -419,6 +1103,31 @@ public class MessageBusTestTests
 
     // ----- MessageBusTest test helper methods -----------------------------
 
+    protected String[] createMigrationArguments(int portBind, int portPeer, boolean fPolite)
+        {
+        String[] asArg =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + portBind,
+                "-peer",           "tmb://" + m_hostAddress + ":" + portPeer,
+                "-txThreads",      "2",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+
+        if (!fPolite)
+            {
+            return asArg;
+            }
+
+        String[] asPolite = new String[asArg.length + 1];
+        System.arraycopy(asArg, 0, asPolite, 0, asArg.length);
+        asPolite[asArg.length] = "-polite";
+        return asPolite;
+        }
+
     /**
      * Start a MessageBusTest Java process with the specified {@link OptionsByType}
      * and arguments.
@@ -427,9 +1136,9 @@ public class MessageBusTestTests
      * @param asArg    the arguments to use
      * @param console  the console to receive the output
      *
-     * @return the Java process Application
+     * @return the Java process application
      */
-    protected Application startMessageBusTest(OptionsByType options, String[] asArg, CapturingApplicationConsole console)
+    protected JavaApplication startMessageBusTest(OptionsByType options, String[] asArg, CapturingApplicationConsole console)
             throws Exception
         {
         options.add(Console.of(console));
@@ -442,7 +1151,7 @@ public class MessageBusTestTests
             }
         options.add(arguments);
 
-        Application application = m_platform.launch(JavaApplication.class, options.asArray());
+        JavaApplication application = m_platform.launch(JavaApplication.class, options.asArray());
 
         return application;
         }
@@ -533,6 +1242,31 @@ public class MessageBusTestTests
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("Exception"))));
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("DISCONNECT"))));
         }
+
+    protected void assertMigrationHandshakeHealthy(CapturingApplicationConsole console)
+        {
+        assertTrue(console.getCapturedOutputLines().stream().noneMatch(PATTERN_NONZERO_ERRORS.asPredicate()));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("IllegalBlockingModeException"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("incompatible protocol"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("protocol error"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("corrupt"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("DISCONNECT event"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("RELEASE event"))));
+        }
+
+    protected void assertHealthyTrafficAfter(CapturingApplicationConsole console, int cLines)
+        {
+        Eventually.assertDeferred(
+                () -> console.getCapturedOutputLines().stream()
+                        .skip(cLines)
+                        .anyMatch(PATTERN_HEALTHY_TRAFFIC.asPredicate()),
+                is(true), within(30, TimeUnit.SECONDS));
+        }
+
+    private static final Pattern PATTERN_HEALTHY_TRAFFIC = Pattern.compile(
+            ".*throughput\\(out [1-9][0-9]*msg/s .*, in [1-9][0-9]*msg/s .*connections 1, errors 0.*");
+
+    private static final Pattern PATTERN_NONZERO_ERRORS = Pattern.compile(".*errors [1-9][0-9]*.*");
 
     private LocalPlatform m_platform;
     private String        m_hostAddress;

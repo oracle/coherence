@@ -40,6 +40,7 @@ import java.util.*;
 import com.oracle.coherence.common.util.SafeClock;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,6 +69,12 @@ import java.util.zip.CRC32;
 public abstract class AbstractSocketBus
         implements Bus
     {
+    /**
+     * Thread-local depth marker for transport-owned callbacks.
+     */
+    private static final ThreadLocal<TransportCallbackState> TL_TRANSPORT_CALLBACK_STATE =
+            ThreadLocal.withInitial(TransportCallbackState::new);
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -107,6 +114,215 @@ public abstract class AbstractSocketBus
         m_pointLocal = driver.resolveBindPoint(pointLocal, chan.socket());
         }
 
+    /**
+     * Return {@code true} if the current thread is inside transport-owned progression.
+     *
+     * @return {@code true} iff the current thread is executing transport-owned progression
+     */
+    protected static boolean isTransportCallbackThread()
+        {
+        return TL_TRANSPORT_CALLBACK_STATE.get().m_cDepth > 0;
+        }
+
+    /**
+     * Mark entry into transport-owned progression.
+     */
+    protected static void enterTransportCallback()
+        {
+        ++TL_TRANSPORT_CALLBACK_STATE.get().m_cDepth;
+        }
+
+    /**
+     * Mark exit from transport-owned progression.
+     */
+    protected static void exitTransportCallback()
+        {
+        --TL_TRANSPORT_CALLBACK_STATE.get().m_cDepth;
+        }
+
+    /**
+     * Return the number of replacement socket attempts made when test tracking is enabled.
+     *
+     * @return the number of replacement socket attempts
+     */
+    public static long getReconnectAttemptCountForTesting()
+        {
+        return TEST_RECONNECT_ATTEMPTS.get();
+        }
+
+    /**
+     * Return the number of replacement handshakes completed when test tracking is enabled.
+     *
+     * @return the number of completed replacement handshakes
+     */
+    public static long getCompletedMigrationCountForTesting()
+        {
+        return TEST_COMPLETED_MIGRATIONS.get();
+        }
+
+    /**
+     * Return the number of locally initiated replacement handshakes completed when test tracking is enabled.
+     *
+     * @return the number of completed outbound replacement handshakes
+     */
+    public static long getCompletedOutboundMigrationCountForTesting()
+        {
+        return TEST_COMPLETED_OUTBOUND_MIGRATIONS.get();
+        }
+
+    /**
+     * Return the number of active-read failures remaining in the functional test hook.
+     *
+     * @return the number of active-read failures remaining
+     */
+    public static int getActiveReadFailuresRemainingForTesting()
+        {
+        return TEST_ACTIVE_READ_FAILURES.get();
+        }
+
+    /**
+     * Return the number of replacement-socket open failures remaining in the functional test hook.
+     *
+     * @return the number of replacement-socket open failures remaining
+     */
+    public static int getReconnectOpenFailuresRemainingForTesting()
+        {
+        return TEST_RECONNECT_OPEN_FAILURES.get();
+        }
+
+    /**
+     * Return the number of initial socket-open failures remaining in the functional test hook.
+     *
+     * @return the number of initial socket-open failures remaining
+     */
+    public static int getInitialOpenFailuresRemainingForTesting()
+        {
+        return TEST_INITIAL_OPEN_FAILURES.get();
+        }
+
+    /**
+     * Return the number of stale outbound introductions replayed by the functional test hook.
+     *
+     * @return the number of stale outbound introductions replayed
+     */
+    public static long getStaleOutboundIntroductionReplayCountForTesting()
+        {
+        return TEST_STALE_OUTBOUND_INTRODUCTION_REPLAYS.get();
+        }
+
+    /**
+     * Return the number of concurrent-read migrations remaining in the functional test hook.
+     *
+     * @return the number of concurrent-read migrations remaining
+     */
+    public static int getConcurrentReadMigrationsRemainingForTesting()
+        {
+        return TEST_CONCURRENT_READ_MIGRATIONS.get();
+        }
+
+    /**
+     * Return the number of replacement handshakes still delayed by the functional test hook.
+     *
+     * @return the number of replacement handshake delays remaining
+     */
+    public static int getReconnectHandshakeDelaysRemainingForTesting()
+        {
+        return TEST_RECONNECT_HANDSHAKE_DELAYS.get();
+        }
+
+    /**
+     * Return the number of replacement registrations remaining in the functional test hook.
+     *
+     * @return the number of replacement registrations that will fail
+     */
+    public static int getReconnectRegistrationFailuresRemainingForTesting()
+        {
+        return TEST_RECONNECT_REGISTRATION_FAILURES.get();
+        }
+
+    /**
+     * Return the number of collector calls attempted while a connection lock was held.
+     *
+     * @return the number of invalid collector calls
+     */
+    public static long getCollectorCallsUnderLockForTesting()
+        {
+        return TEST_COLLECTOR_CALLS_UNDER_LOCK.get();
+        }
+
+    /**
+     * Return whether transport timing metrics are enabled.
+     *
+     * @return true if transport timing metrics are enabled
+     */
+    public static boolean isTransportMetricsTrackedForTesting()
+        {
+        return TEST_TRACK_TRANSPORT_METRICS;
+        }
+
+    /**
+     * Return the number of outermost connection critical sections measured.
+     *
+     * @return the number of measured connection critical sections
+     */
+    public static long getConnectionLockHoldCountForTesting()
+        {
+        return TEST_CONNECTION_LOCK_HOLD_COUNT.get();
+        }
+
+    /**
+     * Return the total connection-lock hold time in nanoseconds.
+     *
+     * @return the total measured connection-lock hold time
+     */
+    public static long getConnectionLockHoldNanosForTesting()
+        {
+        return TEST_CONNECTION_LOCK_HOLD_NANOS.get();
+        }
+
+    /**
+     * Return the maximum connection-lock hold time in nanoseconds.
+     *
+     * @return the maximum measured connection-lock hold time
+     */
+    public static long getConnectionLockHoldMaxNanosForTesting()
+        {
+        return TEST_CONNECTION_LOCK_HOLD_MAX_NANOS.get();
+        }
+
+    /**
+     * Return the maximum delay before a queued write-progression task ran on its selector thread.
+     *
+     * @return the maximum selector task delay in nanoseconds
+     */
+    public static long getSelectorTaskDelayMaxNanosForTesting()
+        {
+        return TEST_SELECTOR_TASK_DELAY_MAX_NANOS.get();
+        }
+
+    /**
+     * Return the maximum measured transport migration completion time in nanoseconds.
+     *
+     * @return the maximum migration completion time
+     */
+    public static long getMigrationCompletionMaxNanosForTesting()
+        {
+        return TEST_MIGRATION_COMPLETION_MAX_NANOS.get();
+        }
+
+    /**
+     * Record the delay before a queued transport-progression task ran.
+     *
+     * @param ldtScheduled  the task scheduling time from {@link System#nanoTime()}
+     */
+    protected static void recordSelectorTaskDelayForTesting(long ldtScheduled)
+        {
+        if (TEST_TRACK_TRANSPORT_METRICS)
+            {
+            TEST_SELECTOR_TASK_DELAY_MAX_NANOS.accumulateAndGet(
+                    System.nanoTime() - ldtScheduled, Math::max);
+            }
+        }
 
     // ----- Bus interface --------------------------------------------------
 
@@ -529,6 +745,208 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Determine if an active transport read should be failed for functional testing.
+     *
+     * @param connection            the connection being read
+     * @param channel               the channel being read
+     * @param lTransportGeneration  the transport generation being read
+     *
+     * @return true if the connection has been dropped
+     */
+    private boolean checkDataDrop(Connection connection, SocketChannel channel, long lTransportGeneration)
+        {
+        if (TEST_ACTIVE_READ_FAILURES_ENABLED && consumeTestFailure(TEST_ACTIVE_READ_FAILURES))
+            {
+            connection.migrate(lTransportGeneration, new IOException("test active transport failure"));
+            return true;
+            }
+
+        return checkDrop(channel);
+        }
+
+    /**
+     * Delay a replacement handshake when the functional test hook is enabled.
+     *
+     * @param handler     the replacement handshake handler
+     * @param connection  the connection performing the handshake
+     *
+     * @return true if handshake processing was deferred
+     */
+    private boolean delayReconnectHandshake(HandshakeHandler handler, Connection connection)
+        {
+        if (!TEST_RECONNECT_HANDSHAKE_DELAYS_ENABLED ||
+            connection == null || !connection.isMigrationHandshakeInProgress() ||
+            !consumeTestFailure(TEST_RECONNECT_HANDSHAKE_DELAYS))
+            {
+            return false;
+            }
+
+        SocketChannel channel              = handler.getChannel();
+        long          lTransportGeneration = handler.m_lTransportGeneration;
+        scheduleUnsafeTask(channel, () ->
+            {
+            connection.lock();
+            try
+                {
+                if (connection.isMigrationHandshakeInProgress() &&
+                    connection.m_channel == channel &&
+                    connection.m_lTransportGeneration == lTransportGeneration &&
+                    connection.m_handler == handler)
+                    {
+                    try
+                        {
+                        getSelectionService().register(channel, handler);
+                        }
+                    catch (IOException e)
+                        {
+                        handler.onException(e);
+                        }
+                    }
+                }
+            finally
+                {
+                connection.unlock();
+                }
+            }, TEST_RECONNECT_HANDSHAKE_DELAY_MILLIS);
+
+        return true;
+        }
+
+    /**
+     * Start a functional-test migration while the active read still owns the connection lock.
+     *
+     * @param connection            the connection being read
+     * @param lTransportGeneration  the transport generation being read
+     */
+    private void triggerConcurrentReadMigration(Connection connection, long lTransportGeneration)
+        {
+        if (!TEST_CONCURRENT_READ_MIGRATIONS_ENABLED ||
+            TEST_LAST_CONCURRENT_READ_MIGRATION_GENERATION.get() == lTransportGeneration ||
+            !consumeTestFailure(TEST_CONCURRENT_READ_MIGRATIONS))
+            {
+            return;
+            }
+
+        TEST_LAST_CONCURRENT_READ_MIGRATION_GENERATION.set(lTransportGeneration);
+
+        CountDownLatch latchStarted = new CountDownLatch(1);
+        Thread thread = new Thread(() ->
+            {
+            latchStarted.countDown();
+            connection.migrate(lTransportGeneration, new IOException("test concurrent active transport failure"));
+            }, "SocketBusTestConcurrentMigration");
+        thread.setDaemon(true);
+        thread.start();
+
+        try
+            {
+            latchStarted.await();
+
+            long ldtTimeout = SafeClock.INSTANCE.getSafeTimeMillis() + 5000L;
+            while (!connection.f_lock.hasQueuedThread(thread))
+                {
+                if (!thread.isAlive() || SafeClock.INSTANCE.getSafeTimeMillis() >= ldtTimeout)
+                    {
+                    throw new IllegalStateException("test migration did not block behind the active transport callback");
+                    }
+                Thread.yield();
+                }
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            }
+        }
+
+    /**
+     * Supersede and later replay an outbound introduction for functional testing.
+     *
+     * @param handler     the outbound handshake handler
+     * @param connection  the connection performing the handshake
+     *
+     * @return true if the introduction was deferred
+     */
+    private boolean deferStaleOutboundIntroduction(HandshakeHandler handler, Connection connection)
+        {
+        if (!TEST_STALE_OUTBOUND_INTRODUCTIONS_ENABLED ||
+            connection == null || connection.m_state != ConnectionState.ACTIVE ||
+            !consumeTestFailure(TEST_STALE_OUTBOUND_INTRODUCTIONS))
+            {
+            return false;
+            }
+
+        long lTransportGeneration = handler.m_lTransportGeneration;
+        handler.m_fForceIdentityMismatchForTesting = true;
+        connection.migrate(lTransportGeneration, new IOException("test superseded outbound handshake"));
+
+        long ldtTimeout = SafeClock.INSTANCE.getSafeTimeMillis() + 30000L;
+        scheduleUnsafeTask(new Runnable()
+            {
+            @Override
+            public void run()
+                {
+                boolean fReplacementReady;
+                connection.lock();
+                try
+                    {
+                    fReplacementReady = connection.m_lTransportGeneration != lTransportGeneration &&
+                                        connection.isTransportReady();
+                    }
+                finally
+                    {
+                    connection.unlock();
+                    }
+
+                if (fReplacementReady)
+                    {
+                    TEST_STALE_OUTBOUND_INTRODUCTION_REPLAYS.incrementAndGet();
+                    try
+                        {
+                        handler.onIntroduce();
+                        }
+                    catch (IOException e)
+                        {
+                        throw new IllegalStateException(e);
+                        }
+                    }
+                else if (SafeClock.INSTANCE.getSafeTimeMillis() >= ldtTimeout)
+                    {
+                    throw new IllegalStateException("test replacement transport did not become ready");
+                    }
+                else
+                    {
+                    scheduleUnsafeTask(this, 10L);
+                    }
+                }
+            }, 10L);
+
+        return true;
+        }
+
+    /**
+     * Atomically consume one enabled test failure.
+     *
+     * @param counter  the remaining failure counter
+     *
+     * @return true if a failure was consumed
+     */
+    private static boolean consumeTestFailure(AtomicInteger counter)
+        {
+        int cFailures;
+        do
+            {
+            cFailures = counter.get();
+            if (cFailures <= 0)
+                {
+                return false;
+                }
+            }
+        while (!counter.compareAndSet(cFailures, cFailures - 1));
+
+        return true;
+        }
+
+    /**
      * Determine if a data corruption should be simulated, if so force it.
      */
     private void checkForceCorruption(ByteBuffer buffer, int cb)
@@ -884,18 +1302,14 @@ public abstract class AbstractSocketBus
      */
     protected void emitEvent(Event event)
         {
-        Collector<Event> coll = m_collectorEvent;
-        if (coll != null)
+        EventDispatch dispatch = f_tloEventDispatch.get();
+        if (dispatch.m_cConnectionLocks > 0)
             {
-            try
-                {
-                coll.add(event);
-                coll.flush();
-                }
-            catch (Throwable t)
-                {
-                // TODO: disconnect?, log?
-                }
+            dispatch.add(event, true);
+            }
+        else
+            {
+            dispatchEventOperation(event, true);
             }
         }
 
@@ -908,17 +1322,14 @@ public abstract class AbstractSocketBus
      */
     protected void addEvent(Event event)
         {
-        Collector<Event> coll = m_collectorEvent;
-        if (coll != null)
+        EventDispatch dispatch = f_tloEventDispatch.get();
+        if (dispatch.m_cConnectionLocks > 0)
             {
-            try
-                {
-                coll.add(event);
-                }
-            catch (Throwable t)
-                {
-                // TODO: disconnect?, log?
-                }
+            dispatch.add(event, false);
+            }
+        else
+            {
+            dispatchEventOperation(event, false);
             }
         }
 
@@ -927,12 +1338,74 @@ public abstract class AbstractSocketBus
      */
     protected void flushEvents()
         {
-        Collector<Event> coll = m_collectorEvent;
-        if (coll != null)
+        EventDispatch dispatch = f_tloEventDispatch.get();
+        if (dispatch.m_cConnectionLocks > 0)
+            {
+            dispatch.add(null, true);
+            }
+        else
+            {
+            dispatchEventOperation(null, true);
+            }
+        }
+
+    /**
+     * Deliver the event operations deferred by a connection critical section.
+     *
+     * @param dispatch  the current thread's dispatch state
+     */
+    private void dispatchDeferredEvents(EventDispatch dispatch)
+        {
+        if (dispatch.m_fDelivering)
+            {
+            return;
+            }
+
+        dispatch.m_fDelivering = true;
+        try
+            {
+            for (int i = 0; i < dispatch.m_cOperations; ++i)
+                {
+                Event event = dispatch.m_aEvent[i];
+                boolean fFlush = dispatch.m_afFlush[i];
+                dispatch.m_aEvent[i] = null;
+                dispatchEventOperation(event, fFlush);
+                }
+            }
+        finally
+            {
+            dispatch.m_cOperations = 0;
+            dispatch.m_fDelivering = false;
+            }
+        }
+
+    /**
+     * Deliver an event collector operation without holding a connection lock.
+     *
+     * @param event   the event to add, or {@code null} for a flush-only operation
+     * @param fFlush  whether to flush after adding the event
+     */
+    private void dispatchEventOperation(Event event, boolean fFlush)
+        {
+        Collector<Event> collector = m_collectorEvent;
+        if (collector != null)
             {
             try
                 {
-                coll.flush();
+                if (f_tloEventDispatch.get().m_cConnectionLocks != 0)
+                    {
+                    TEST_COLLECTOR_CALLS_UNDER_LOCK.incrementAndGet();
+                    throw new IllegalStateException("event collector called while holding a connection lock");
+                    }
+
+                if (event != null)
+                    {
+                    collector.add(event);
+                    }
+                if (fFlush)
+                    {
+                    collector.flush();
+                    }
                 }
             catch (Throwable t)
                 {
@@ -1253,9 +1726,10 @@ public abstract class AbstractSocketBus
 
             m_state = ConnectionState.OPEN;
 
-            EndPoint peer = f_peer;
+            EndPoint      peer    = f_peer;
+            SocketChannel channel = m_channel;
             getLogger().log(makeRecord(Level.FINER, "{0} opening connection with {1} using {2}", getLocalEndPoint(), peer,
-                    m_channel.socket()));
+                    channel == null ? null : channel.socket()));
             emitEvent(new SimpleEvent(Event.Type.CONNECT, peer));
             }
 
@@ -1313,70 +1787,200 @@ public abstract class AbstractSocketBus
         /**
          * Perform the actual connect to the peer
          *
-         * @throws IOException on an I/O error
          */
         private void connect()
             {
-            ConnectionState state = m_state;
-            if (state != null && state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
-                {
-                throw new IllegalStateException("state = " + m_state);
-                }
-            else if (m_channel != null && m_channel.isOpen())
-                {
-                // reconnect of open channel
-                throw new IllegalStateException();
-                }
+            ConnectionState state;
+            long            lTransportGeneration;
 
-            SocketChannel channel;
+            lock();
             try
                 {
-                m_channel = channel = getSocketDriver().getDependencies()
-                        .getSocketProvider().openSocketChannel();
+                state = m_state;
+                if (state != null && state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
+                    {
+                    throw new IllegalStateException("state = " + m_state);
+                    }
+                else if (m_channel != null && m_channel.isOpen())
+                    {
+                    // reconnect of open channel
+                    throw new IllegalStateException();
+                    }
+
+                lTransportGeneration = ++m_lTransportGeneration;
+                if (state != null && TEST_TRACK_RECONNECT_ATTEMPTS)
+                    {
+                    TEST_RECONNECT_ATTEMPTS.incrementAndGet();
+                    }
                 }
-            catch (IOException e)
+            finally
                 {
-                throw new RuntimeException(e);
+                unlock();
                 }
 
-            // configure and connect
+            SocketChannel channel = null;
             try
                 {
+                if (state == null && TEST_INITIAL_OPEN_FAILURES_ENABLED &&
+                        consumeTestFailure(TEST_INITIAL_OPEN_FAILURES))
+                    {
+                    throw new IOException("test initial socket open failure");
+                    }
+                if (state != null && consumeTestFailure(TEST_RECONNECT_OPEN_FAILURES))
+                    {
+                    throw new IOException("test replacement socket open failure");
+                    }
+
+                channel = getSocketDriver().getDependencies().getSocketProvider().openSocketChannel();
+
+                if (state != null && TEST_RECONNECT_SETUP_DELAY_MILLIS > 0L)
+                    {
+                    delayReconnectSetup(TEST_RECONNECT_SETUP_DELAY_MILLIS);
+                    }
+
                 Sockets.configureBlocking(channel, false);
                 configureSocket(channel.socket());
                 channel.connect(f_peer.getAddress());
+
+                if (state != null && TEST_RECONNECT_SETUP_DELAY_MILLIS > 0L)
+                    {
+                    while (channel.isConnectionPending() && !channel.finishConnect())
+                        {
+                        delayReconnectSetup(1L);
+                        }
+                    delayReconnectSetup(TEST_RECONNECT_SETUP_DELAY_MILLIS);
+                    }
                 }
             catch (IOException e)
                 {
-                onException(e);
+                if (channel != null)
+                    {
+                    closeChannel(channel);
+                    }
+                handleConnectFailure(state, lTransportGeneration, e);
+                return;
                 }
 
+            boolean fPublished = false;
+            lock();
             try
                 {
-                // emit connect event; allowing operations to be scheduled against the endpoint
-                if (state == null)
+                if (m_lTransportGeneration != lTransportGeneration ||
+                    m_state != state ||
+                    m_state != null && m_state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
                     {
-                    open();
+                    return;
                     }
-                // else this is a re-connect and open has already been issued
 
-                // register initial I/O handler
+                // publish the replacement only after all provider/configuration/connect work completes; registration
+                // remains inside this critical section so transport progression sees either the old epoch or the fully
+                // registered handshake epoch
+                m_channel = channel;
                 SelectionService.Handler handler = new HandshakeHandler(channel, this);
-                getSelectionService().register(channel, handler);
                 m_handler = handler;
+                fPublished = true;
+
+                try
+                    {
+                    // emit connect event; allowing operations to be scheduled against the endpoint
+                    if (state == null)
+                        {
+                        open();
+                        }
+                    // else this is a re-connect and open has already been issued
+
+                    if (state != null && consumeTestFailure(TEST_RECONNECT_REGISTRATION_FAILURES))
+                        {
+                        throw new IOException("test replacement handler registration failure");
+                        }
+                    getSelectionService().register(channel, handler);
+                    }
+                catch (IOException e)
+                    {
+                    onException(lTransportGeneration, e);
+                    }
                 }
-            catch (IOException e)
+            finally
                 {
-                scheduleDisconnect(e);
+                unlock();
+                if (!fPublished)
+                    {
+                    closeChannel(channel);
+                    }
                 }
             }
 
         /**
-         * Lock this connection in order to mutate its state.
+         * Handle a socket creation, configuration, or connect failure.
+         *
+         * @param state                 the connection state when the attempt started
+         * @param lTransportGeneration  the reserved transport generation
+         * @param e                     the failure
+         */
+        private void handleConnectFailure(ConnectionState state, long lTransportGeneration, IOException e)
+            {
+            lock();
+            try
+                {
+                if (m_lTransportGeneration != lTransportGeneration || m_state != state)
+                    {
+                    return;
+                    }
+
+                if (state == null)
+                    {
+                    try
+                        {
+                        // preserve the asynchronous connect contract before retrying the initial failed attempt
+                        open();
+                        }
+                    catch (IOException eOpen)
+                        {
+                        e.addSuppressed(eOpen);
+                        scheduleDisconnect(e);
+                        return;
+                        }
+                    }
+
+                onException(lTransportGeneration, e);
+                }
+            finally
+                {
+                unlock();
+                }
+            }
+
+        /**
+         * Pause reconnect setup when the functional test hook is enabled.
+         */
+        private void delayReconnectSetup(long cMillis)
+            {
+            try
+                {
+                Blocking.sleep(cMillis);
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                }
+            }
+
+        /**
+         * Lock this connection in order to progress the active transport or migrate it.
+         * <p>
+         * This is the single synchronization boundary between active socket I/O, consumer-owned write state,
+         * and transport replacement. Low-level {@link #read} and {@link #write} methods require this lock and do
+         * not acquire it again. Event collector operations produced inside the boundary are deferred until the
+         * outermost connection lock for this bus is released.
          */
         public void lock()
             {
             f_lock.lock();
+            if (TEST_TRACK_TRANSPORT_METRICS && f_lock.getHoldCount() == 1)
+                {
+                m_ldtConnectionLockAcquiredNanos = System.nanoTime();
+                }
+            ++f_tloEventDispatch.get().m_cConnectionLocks;
             }
 
         /**
@@ -1384,7 +1988,48 @@ public abstract class AbstractSocketBus
          */
         public void unlock()
             {
+            EventDispatch dispatch = f_tloEventDispatch.get();
+            boolean       fDispatch = --dispatch.m_cConnectionLocks == 0;
+            if (TEST_TRACK_TRANSPORT_METRICS && f_lock.getHoldCount() == 1)
+                {
+                long cNanos = System.nanoTime() - m_ldtConnectionLockAcquiredNanos;
+                TEST_CONNECTION_LOCK_HOLD_COUNT.incrementAndGet();
+                TEST_CONNECTION_LOCK_HOLD_NANOS.addAndGet(cNanos);
+                TEST_CONNECTION_LOCK_HOLD_MAX_NANOS.accumulateAndGet(cNanos, Math::max);
+                }
             f_lock.unlock();
+            if (fDispatch)
+                {
+                dispatchDeferredEvents(dispatch);
+                }
+            }
+
+        /**
+         * Return true iff application transport I/O may use the current socket channel.
+         *
+         * @return true iff the connection is active and its socket handshake is complete
+         */
+        protected boolean isTransportReady()
+            {
+            return m_state == ConnectionState.ACTIVE && m_handler == this;
+            }
+
+        /**
+         * Return the generation of the current application transport.
+         *
+         * @return the current transport generation, or {@code -1} if a replacement handshake is in progress
+         */
+        protected long getReadyTransportGeneration()
+            {
+            lock();
+            try
+                {
+                return isTransportReady() ? m_lTransportGeneration : -1L;
+                }
+            finally
+                {
+                unlock();
+                }
             }
 
         /**
@@ -1394,7 +2039,29 @@ public abstract class AbstractSocketBus
          */
         public void scheduleDisconnect(Throwable eReason)
             {
-            scheduleShutdown(eReason, false, /*continuation*/ null);
+            scheduleShutdown(eReason, false, /*continuation*/ null, -1L, -1L);
+            }
+
+        /**
+         * Schedule a disconnect if the specified transport is still current.
+         *
+         * @param lTransportGeneration  the transport generation that failed
+         * @param eReason               the reason for the disconnect
+         */
+        protected void scheduleDisconnect(long lTransportGeneration, Throwable eReason)
+            {
+            scheduleShutdown(eReason, false, /*continuation*/ null, lTransportGeneration, -1L);
+            }
+
+        /**
+         * Schedule a disconnect if the specified replacement handshake is still current.
+         *
+         * @param lMigrationSequence  the replacement handshake sequence that timed out
+         * @param eReason             the reason for the disconnect
+         */
+        protected void scheduleHandshakeTimeoutDisconnect(long lMigrationSequence, Throwable eReason)
+            {
+            scheduleShutdown(eReason, false, /*continuation*/ null, -1L, lMigrationSequence);
             }
 
         /**
@@ -1410,6 +2077,22 @@ public abstract class AbstractSocketBus
         public void scheduleShutdown(final Throwable eReason,
                  final boolean fRelease, Continuation<Void> continuation)
             {
+            scheduleShutdown(eReason, fRelease, continuation, -1L, -1L);
+            }
+
+        /**
+         * Schedule connection shutdown, optionally only for a specific transport generation or stalled handshake.
+         *
+         * @param eReason               the reason for the disconnect or null
+         * @param fRelease              true iff the connection should also be released
+         * @param continuation          continuation once the operation has completed
+         * @param lTransportGeneration  the required transport generation, or {@code -1} for any generation
+         * @param lMigrationSequence    the required stalled-handshake sequence, or {@code -1} for any sequence
+         */
+        private void scheduleShutdown(final Throwable eReason, final boolean fRelease,
+                                      Continuation<Void> continuation, final long lTransportGeneration,
+                                      final long lMigrationSequence)
+            {
             invoke(new AbstractContinuationFrame<Void>(continuation)
                 {
                 @Override
@@ -1421,6 +2104,15 @@ public abstract class AbstractSocketBus
                     Connection.this.lock();
                     try
                         {
+                        if (lTransportGeneration >= 0 && m_lTransportGeneration != lTransportGeneration)
+                            {
+                            return null;
+                            }
+                        if (lMigrationSequence >= 0 && !isMigrationHandshakeTimeoutCurrent(lMigrationSequence))
+                            {
+                            return null;
+                            }
+
                         handlerNext = m_next;
                         switch (m_state)
                             {
@@ -1493,6 +2185,30 @@ public abstract class AbstractSocketBus
             }
 
         /**
+         * Return true if the specified replacement-handshake timeout is still current.
+         *
+         * @param lMigrationSequence  the replacement handshake sequence
+         *
+         * @return true if the replacement handshake is still stalled
+         */
+        protected boolean isMigrationHandshakeTimeoutCurrent(long lMigrationSequence)
+            {
+            return false;
+            }
+
+        /**
+         * Return true if an initial retry or active replacement is waiting for its socket handshake.
+         *
+         * @return true if a migration handshake is in progress
+         */
+        protected boolean isMigrationHandshakeInProgress()
+            {
+            ConnectionState state = m_state;
+            return !isTransportReady() &&
+                   (state == ConnectionState.ACTIVE || state == ConnectionState.OPEN && m_cReconnectAttempts > 0);
+            }
+
+        /**
          * Emit any and all receipts
          */
         protected abstract void drainReceipts();
@@ -1517,7 +2233,11 @@ public abstract class AbstractSocketBus
 
                 try
                     {
-                    m_channel.close(); // may already be closed
+                    SocketChannel channel = m_channel;
+                    if (channel != null)
+                        {
+                        channel.close(); // may already be closed
+                        }
                     }
                 catch (IOException e) {}
 
@@ -1652,6 +2372,25 @@ public abstract class AbstractSocketBus
             {
             removeFlushable(this);
             dispose();
+            }
+
+        /**
+         * Attempt to acquire exclusive ownership of consumer-owned transport progression for migration.
+         * The caller holds the connection lock, so a failed acquisition represents a scheduled consumer that must
+         * observe the transport gate and relinquish ownership before migration mutates its write state.
+         *
+         * @return true iff migration owns consumer transport progression
+         */
+        protected boolean tryAcquireMigrationOwnership()
+            {
+            return true;
+            }
+
+        /**
+         * Release consumer transport progression ownership acquired for migration.
+         */
+        protected void releaseMigrationOwnership()
+            {
             }
 
         /**
@@ -1793,7 +2532,20 @@ public abstract class AbstractSocketBus
                     Connection.this.lock();
                     try
                         {
-                        getSelectionService().register(m_channel, m_handler);
+                        if (!isTransportReady())
+                            {
+                            // do not replace the handshake handler while the replacement channel is negotiating
+                            return false;
+                            }
+                        try
+                            {
+                            getSelectionService().register(m_channel, this);
+                            }
+                        catch (IOException e)
+                            {
+                            onException(m_lTransportGeneration, e);
+                            return false;
+                            }
                         }
                     finally
                         {
@@ -1903,7 +2655,8 @@ public abstract class AbstractSocketBus
                     {
                     try
                         {
-                        getSelectionService().invoke(m_channel, runnable, /*cMillisDelay*/ 0);
+                        SelectableChannel channel = m_channel == null ? f_channelServer : m_channel;
+                        getSelectionService().invoke(channel, runnable, /*cMillisDelay*/ 0);
                         }
                     catch (IOException e)
                         {
@@ -1967,6 +2720,11 @@ public abstract class AbstractSocketBus
 
                 case ACTIVE:
                     {
+                    if (!isTransportReady())
+                        {
+                        return 0;
+                        }
+
                     SocketChannel chan    = m_channel;
                     long          cbWrite = 0;
                     long          cb;
@@ -2074,6 +2832,10 @@ public abstract class AbstractSocketBus
                     return 0; // not ready yet
 
                 case ACTIVE:
+                    if (!isTransportReady())
+                        {
+                        return 0;
+                        }
                     int cb = m_channel.write(src);
                     m_cbWrite += cb;
                     return cb;
@@ -2095,6 +2857,16 @@ public abstract class AbstractSocketBus
                     return 0; // not ready yet
 
                 case ACTIVE:
+                    if (!isTransportReady())
+                        {
+                        return 0;
+                        }
+
+                    SocketChannel channel              = m_channel;
+                    long          lTransportGeneration = m_lTransportGeneration;
+
+                    triggerConcurrentReadMigration(this, lTransportGeneration);
+
                     // TODO: consider insulating against scatter/gather issue
                     // see write above
 
@@ -2107,7 +2879,7 @@ public abstract class AbstractSocketBus
                         cbFirst         = bufFirstCorrupt.remaining();
                         }
 
-                    long cb = m_channel.read(dsts, offset, length);
+                    long cb = channel.read(dsts, offset, length);
 
                     if (cb >= 0)
                         {
@@ -2116,7 +2888,7 @@ public abstract class AbstractSocketBus
                             checkForceCorruption(bufFirstCorrupt, (int) Math.min(cb, cbFirst));
                             }
 
-                        if (f_nDropRatio == 0 || !checkDrop(m_channel))
+                        if (!checkDataDrop(this, channel, lTransportGeneration))
                             {
                             m_cbRead += cb;
                             return cb;
@@ -2148,7 +2920,15 @@ public abstract class AbstractSocketBus
                     return 0; // not ready yet
 
                 case ACTIVE:
-                    int cb = m_channel.read(dst);
+                    if (!isTransportReady())
+                        {
+                        return 0;
+                        }
+
+                    SocketChannel channel              = m_channel;
+                    long          lTransportGeneration = m_lTransportGeneration;
+                    triggerConcurrentReadMigration(this, lTransportGeneration);
+                    int           cb                   = channel.read(dst);
                     if (cb >= 0)
                         {
                         if (f_fCrc && f_nCorruptionRatio != 0)
@@ -2156,7 +2936,7 @@ public abstract class AbstractSocketBus
                             checkForceCorruption(dst, cb);
                             }
 
-                        if (f_nDropRatio == 0 || !checkDrop(m_channel))
+                        if (!checkDataDrop(this, channel, lTransportGeneration))
                             {
                             m_cbRead += cb;
                             return cb;
@@ -2170,46 +2950,65 @@ public abstract class AbstractSocketBus
             }
 
         /**
-         * Migrate this bus connection to a new socket connection.
+         * Migrate this bus connection to a new socket connection if the failed transport is still current.
          *
-         * @param eReason  optional exception describing why current connection needs to be replaced
+         * @param lTransportGeneration  the transport generation that failed
+         * @param eReason               optional exception describing why the connection needs to be replaced
          */
-        public void migrate(Throwable eReason)
+        public void migrate(long lTransportGeneration, Throwable eReason)
             {
             lock();
             try
                 {
+                if (m_lTransportGeneration != lTransportGeneration ||
+                    m_lFailedTransportGeneration == lTransportGeneration)
+                    {
+                    return;
+                    }
+
+                // claim this transport failure and gate application I/O before closing or scheduling replacement work
+                m_lFailedTransportGeneration = lTransportGeneration;
+                m_handler                    = null;
+
                 SocketBusDriver.Dependencies depsDriver = f_driver.getDependencies();
                 int cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
 
                 // COH-24389 - a reconnect limit of < 0 indicates that migrations are disabled
                 if (getProtocolVersion() == 0 || cSocketReconnectLimit < 0)
                     {
-                    scheduleDisconnect(eReason);
+                    scheduleDisconnect(lTransportGeneration, eReason);
                     }
                 else // protocol not yet negotiated or >= 1, in either case we can attempt a migration
                     {
-                    if (eReason instanceof ConnectException && ++m_cReconnectAttempts > cSocketReconnectLimit)
+                    int cReconnectAttempts = ++m_cReconnectAttempts;
+                    if (cReconnectAttempts > cSocketReconnectLimit)
                         {
                         // we've exhausted our reconnect attempts, disconnect
-                        scheduleDisconnect(eReason);
+                        scheduleDisconnect(lTransportGeneration, eReason);
                         return;
                         }
 
-                    // delay reconnect on initial connect and to also help avoid an endless conflict
+                    onMigrationStarted(lTransportGeneration);
+
+                    // back off all retries after the first attempt, and delay an initial failed connect to also help
+                    // avoid an endless conflict
                     // if both sides were to keep trying to simultaneously reconnect and in doing so invalidate the other
-                    // side's reconnect attempt.
-                    long cMillisDelay = eReason instanceof ConnectException ||
+                    // side's reconnect attempt
+                    long cMillisDelay = cReconnectAttempts > 1 || eReason instanceof ConnectException ||
                                         getLocalEndPoint().getCanonicalName().compareTo(getPeer().getCanonicalName()) > 0
                                         ? depsDriver.getSocketReconnectDelayMillis()
                                         : 0;
 
-                    SocketChannel chan = m_channel;
-                    String sChan = chan.toString(); // to preserve port info for subsequent logging
+                    SocketChannel     chan     = m_channel;
+                    SelectableChannel chanTask = chan == null ? f_channelServer : chan;
+                    String            sChan    = String.valueOf(chan); // to preserve port info for subsequent logging
 
-                    closeChannel(chan);
+                    if (chan != null)
+                        {
+                        closeChannel(chan);
+                        }
 
-                    scheduleUnsafeTask(chan, new Runnable()
+                    scheduleUnsafeTask(chanTask, new Runnable()
                         {
                         @Override
                         public void run()
@@ -2219,27 +3018,42 @@ public abstract class AbstractSocketBus
                                 {
                                 if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
                                     {
-                                    // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
-                                    getLogger().log(makeRecord(Level.FINER,
-                                                               "{0} migrating connection with {1} off of {2} on {3}: {4}",
-                                                               getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
+                                    if (!tryAcquireMigrationOwnership())
+                                        {
+                                        scheduleUnsafeTask(chanTask, this, 0L);
+                                        return;
+                                        }
 
-                                    m_eMigrationCause = eReason;
-                                    onMigration();
-
-                                    // we're sync'd on the connection so nothing new can be scheduled
                                     try
                                         {
-                                        getSelectionService().register(chan, null);
-                                        m_handler = null;
-                                        }
-                                    catch (IOException ignore)
-                                        {
-                                        }
+                                        // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
+                                        getLogger().log(makeRecord(Level.FINER,
+                                                                        "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
 
-                                    // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
-                                    // schedule task to ensure register and connect are processed sequentially
-                                    scheduleUnsafeTask(chan, () -> connect(), cMillisDelay);
+                                        m_eMigrationCause = eReason;
+                                        onMigration();
+
+                                        // we're sync'd on the connection so nothing new can be scheduled
+                                        if (chan != null)
+                                            {
+                                            try
+                                                {
+                                                getSelectionService().register(chan, null);
+                                                }
+                                            catch (IOException ignore)
+                                                {
+                                                }
+                                            }
+
+                                        // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
+                                        // schedule task to ensure register and connect are processed sequentially
+                                        scheduleUnsafeTask(chanTask, () -> connect(), cMillisDelay);
+                                        }
+                                    finally
+                                        {
+                                        releaseMigrationOwnership();
+                                        }
                                     }
                                 }
                             finally
@@ -2262,13 +3076,14 @@ public abstract class AbstractSocketBus
          * If this method throws an exception it will be handled by {@link
          * #onException}
          *
-         * @param nOps  the selected ops
+         * @param nOps                  the selected ops
+         * @param lTransportGeneration  the transport generation selected for this callback
          *
          * @return the new interest set
          *
          * @throws IOException on an I/O error
          */
-        protected abstract int onReadySafe(int nOps)
+        protected abstract int onReadySafe(int nOps, long lTransportGeneration)
             throws IOException;
 
         /**
@@ -2277,21 +3092,26 @@ public abstract class AbstractSocketBus
          * <p>
          * The default implementation simply disconnects the connection.
          *
-         * @param t  the exception
+         * @param lTransportGeneration  the transport generation that failed
+         * @param t                     the exception
          *
          * @return  the new interest set, the default implementation returns 0
          */
-        protected int onException(Throwable t)
+        protected int onException(long lTransportGeneration, Throwable t)
             {
             ConnectionState state = m_state;
             if (t instanceof IOException && !(t instanceof SSLException) && // don't migrate if the failure was due to security
                 (state == null || state.ordinal() < ConnectionState.DEFUNCT.ordinal()))
                 {
-                migrate(t);
+                migrate(lTransportGeneration, t);
+                for (int i = 0; i < TEST_DUPLICATE_MIGRATION_NOTIFICATIONS; ++i)
+                    {
+                    migrate(lTransportGeneration, t);
+                    }
                 }
             else
                 {
-                scheduleDisconnect(t);
+                scheduleDisconnect(lTransportGeneration, t);
                 }
 
             return 0;
@@ -2304,13 +3124,67 @@ public abstract class AbstractSocketBus
          */
         public final int onReady(int nOps)
             {
+            // Active transport callbacks and queued consumer progression use this same lock boundary. Migration
+            // gates the transport before waiting for the boundary, then revalidates the generation while holding it.
+            enterTransportCallback();
             try
                 {
-                return onReadySafe(nOps);
+                lock();
+                try
+                    {
+                    long lTransportGeneration = m_lTransportGeneration;
+                    if (!isTransportReady())
+                        {
+                        return 0;
+                        }
+
+                    try
+                        {
+                        return onReadySafe(nOps, lTransportGeneration);
+                        }
+                    catch (Throwable t)
+                        {
+                        return onException(lTransportGeneration, t);
+                        }
+                    }
+                finally
+                    {
+                    // unlock also drains collector events deferred by this critical section; retain the
+                    // transport marker so a reentrant collector send cannot park the selector thread.
+                    unlock();
+                    }
                 }
-            catch (Throwable t)
+            finally
                 {
-                return onException(t);
+                exitTransportCallback();
+                }
+            }
+
+        /**
+         * Called after a transport generation is gated for replacement.
+         *
+         * @param lTransportGeneration  the transport generation being replaced
+         */
+        protected void onMigrationStarted(long lTransportGeneration)
+            {
+            if (TEST_TRACK_TRANSPORT_METRICS && m_ldtMigrationStartedNanos == 0L)
+                {
+                m_ldtMigrationStartedNanos = System.nanoTime();
+                }
+            }
+
+        /**
+         * Called after a socket handshake completes.
+         *
+         * @param lTransportGeneration  the accepted transport generation
+         */
+        protected void onMigrationCompleted(long lTransportGeneration)
+            {
+            if (TEST_TRACK_TRANSPORT_METRICS && m_ldtMigrationStartedNanos != 0L)
+                {
+                TEST_MIGRATION_COMPLETION_MAX_NANOS.accumulateAndGet(
+                        System.nanoTime() - m_ldtMigrationStartedNanos, Math::max);
+                m_ldtMigrationStartedNanos = 0L;
                 }
             }
 
@@ -2366,7 +3240,17 @@ public abstract class AbstractSocketBus
         /**
          * Lock that is used to synchronize access to this connection.
          */
-        private final Lock f_lock = new ReentrantLock();
+        private final ReentrantLock f_lock = new ReentrantLock();
+
+        /**
+         * The start of the current outermost measured connection critical section.
+         */
+        private long m_ldtConnectionLockAcquiredNanos;
+
+        /**
+         * The start of the current measured migration attempt.
+         */
+        private long m_ldtMigrationStartedNanos;
 
         /**
          * Atomic indicating if the connection is being flushed.
@@ -2451,6 +3335,16 @@ public abstract class AbstractSocketBus
         protected int m_cReconnectAttempts;
 
         /**
+         * The generation assigned to the current transport attempt.
+         */
+        protected long m_lTransportGeneration;
+
+        /**
+         * The transport generation whose failure has already initiated migration.
+         */
+        protected long m_lFailedTransportGeneration = -1L;
+
+        /**
          * CRC32 for read thread.
          */
         protected CRC32 f_crcRx;
@@ -2485,7 +3379,9 @@ public abstract class AbstractSocketBus
         public HandshakeHandler(SocketChannel channel, Connection connection)
             {
             super(channel);
-            this.m_connection = connection;
+            this.m_connection           = connection;
+            this.m_lTransportGeneration = connection == null ? -1L : connection.m_lTransportGeneration;
+            this.f_fOutbound            = connection != null;
 
             int cbNegotiate = 4 + // (int) protocol id
                            2 + // (short) min ver
@@ -2508,6 +3404,11 @@ public abstract class AbstractSocketBus
         public int onReadySafe(int nOps)
                 throws IOException
             {
+            if (delayReconnectHandshake(this, m_connection))
+                {
+                return 0;
+                }
+
             SocketChannel  channel    = getChannel();
             Connection     connection = m_connection;
             ByteBuffer     headerOut  = m_headerOut;
@@ -2525,8 +3426,6 @@ public abstract class AbstractSocketBus
                             channel.socket()));
                     return OP_CONNECT;
                     }
-
-                connection.m_cReconnectAttempts = 0;
 
                 getLogger().log(makeRecord(Level.FINEST, "{0} socket connected for {1} on {2}",
                         AbstractSocketBus.this.getLocalEndPoint(),
@@ -2611,11 +3510,20 @@ public abstract class AbstractSocketBus
                 }
             else
                 {
-                ConnectionState state = connection.m_state;
-                if (connection.m_channel == getChannel() &&
-                    state != null && state.ordinal() < ConnectionState.DEFUNCT.ordinal())
+                connection.lock();
+                try
                     {
-                    connection.onException(eReason);
+                    ConnectionState state = connection.m_state;
+                    if (connection.m_channel == getChannel() &&
+                        connection.m_lTransportGeneration == m_lTransportGeneration &&
+                        state != null && state.ordinal() < ConnectionState.DEFUNCT.ordinal())
+                        {
+                        connection.onException(m_lTransportGeneration, eReason);
+                        }
+                    }
+                finally
+                    {
+                    connection.unlock();
                     }
                 }
 
@@ -2834,6 +3742,16 @@ public abstract class AbstractSocketBus
                 lIdThatRx = lIdThisRx = 0;
                 }
 
+            if (!fInbound && deferStaleOutboundIntroduction(this, connection))
+                {
+                return 0;
+                }
+
+            if (m_fForceIdentityMismatchForTesting && nConnect == CONNECT_MIGRATE && nProt > 1)
+                {
+                ++lIdThisRx;
+                }
+
             if (fInbound)
                 {
                 // in-bound connection
@@ -2938,21 +3856,40 @@ public abstract class AbstractSocketBus
                                             m_headerOut.put((byte) 0).flip(); // accept indicator
 
                                             m_connection = connOld;
-                                            closeChannel(chanOld);
 
-                                            connOld.onMigration();
+                                            if (connOld.m_handler != HandshakeHandler.this)
+                                                {
+                                                // gate the old transport before waiting for an already-scheduled consumer
+                                                m_lTransportGeneration = ++connOld.m_lTransportGeneration;
+                                                connOld.m_handler      = HandshakeHandler.this;
+                                                connOld.onMigrationStarted(m_lTransportGeneration);
+                                                closeChannel(chanOld);
+                                                }
 
-                                            connOld.m_channel = chanNew;
+                                            if (!connOld.tryAcquireMigrationOwnership())
+                                                {
+                                                scheduleUnsafeTask(chanOld, this, 0L);
+                                                return;
+                                                }
 
-                                            // re-register this channel on the original handler to resume processing
                                             try
                                                 {
-                                                getSelectionService().register(getChannel(), HandshakeHandler.this);
-                                                connOld.m_handler = HandshakeHandler.this;
+                                                connOld.onMigration();
+                                                connOld.m_channel = chanNew;
+
+                                                // re-register this channel on the original handler to resume processing
+                                                try
+                                                    {
+                                                    getSelectionService().register(getChannel(), HandshakeHandler.this);
+                                                    }
+                                                catch (IOException e)
+                                                    {
+                                                    onException(e);
+                                                    }
                                                 }
-                                            catch (IOException e)
+                                            finally
                                                 {
-                                                closeChannel(chanNew);
+                                                connOld.releaseMigrationOwnership();
                                                 }
                                             }
                                         else
@@ -3028,6 +3965,7 @@ public abstract class AbstractSocketBus
                                 {
                                 // common case, simply open the new connection
                                 m_connection = connection = connNew;
+                                m_lTransportGeneration = connNew.m_lTransportGeneration;
                                 connection.open();
                                 }
                             }
@@ -3117,8 +4055,11 @@ public abstract class AbstractSocketBus
 
                                                         if (connOld.m_state.ordinal() < ConnectionState.DEFUNCT.ordinal())
                                                             {
-                                                            connOld.m_channel       = channelNew;
-                                                            connOld.m_lIdentityPeer = lIdThatRx;
+                                                            // publish the handshake gate before replacing the pending channel
+                                                            m_lTransportGeneration  = ++connOld.m_lTransportGeneration;
+                                                            connOld.m_handler        = handlerNew;
+                                                            connOld.m_channel        = channelNew;
+                                                            connOld.m_lIdentityPeer  = lIdThatRx;
                                                             fContinue = true;
                                                             }
                                                         else
@@ -3160,7 +4101,6 @@ public abstract class AbstractSocketBus
                                                             {
                                                             // Enable read/write interest for the new channel
                                                             getSelectionService().register(channelNew, handlerNew);
-                                                            connOld.m_handler = handlerNew;
                                                             }
                                                         catch (IOException ioe)
                                                             {
@@ -3216,6 +4156,7 @@ public abstract class AbstractSocketBus
                                             connOld.m_next.close(null);
                                             }
                                         m_connection = connection = connNew;
+                                        m_lTransportGeneration = connNew.m_lTransportGeneration;
                                         connOld.m_next = this;
                                         nInterest = 0; // deffer accept until release
                                         break;
@@ -3276,98 +4217,125 @@ public abstract class AbstractSocketBus
                 }
             else // outbound connection
                 {
-                if (!connection.getPeer().equals(peer))
+                connection.lock();
+                try
                     {
-                    // out-bound connection, but the peer replied with
-                    // a different name then we used.  While this is ok from an
-                    // inet perspective, it is not ok from a bus perspective since
-                    // in order to disallow multiple connections between peers
-                    // each peer can only be known via one name.
+                    if (connection.m_channel != getChannel() ||
+                        connection.m_lTransportGeneration != m_lTransportGeneration ||
+                        connection.m_handler != this ||
+                        connection.m_state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
+                        {
+                        closeChannel(getChannel());
+                        return 0;
+                        }
 
-                    getLogger().log(makeRecord(Level.FINER, "{0} Out-bound connection to" +
-                            " {1}, found {2}, single connection pair cannot be ensured",
-                            getLocalEndPoint(),
-                            connection.getPeer(), peer));
+                    if (!connection.getPeer().equals(peer))
+                        {
+                        // out-bound connection, but the peer replied with
+                        // a different name then we used.  While this is ok from an
+                        // inet perspective, it is not ok from a bus perspective since
+                        // in order to disallow multiple connections between peers
+                        // each peer can only be known via one name.
 
-                    // Should this be threaded as an error?
-                    // the reason we don't treat it as an error is that the other side could be listening
-                    // on the wildcard address, and we're connecting to it via a specific IP.  So here
-                    // we choose to be practical and allow the possibility of multiple connections between
-                    // peers rather then to not allow connections at all.
+                        getLogger().log(makeRecord(Level.FINER, "{0} Out-bound connection to" +
+                                " {1}, found {2}, single connection pair cannot be ensured",
+                                getLocalEndPoint(),
+                                connection.getPeer(), peer));
 
-                    // TODO improve the protocol so that can be both practical and accurate
-                    /*
-                    close(new IOException("peer mismatch, expected " +
-                            connection.getPeer() + " found " + peer));
-                    return 0;*/
-                    }
+                        // Should this be threaded as an error?
+                        // the reason we don't treat it as an error is that the other side could be listening
+                        // on the wildcard address, and we're connecting to it via a specific IP.  So here
+                        // we choose to be practical and allow the possibility of multiple connections between
+                        // peers rather then to not allow connections at all.
 
-                switch (nConnect) // from peer's perspective
-                    {
-                    case CONNECT_NEW:
-                        long lIdPeerCurr = connection.m_lIdentityPeer;
-                        if (lIdPeerCurr == 0)
-                            {
-                            // common case; initial connection, we learn the peer's identity
-                            connection.m_lIdentityPeer = lIdThatRx;
-                            }
-                        else
-                            {
-                            // since we'd previously known our peer's id we  must have initiated a migration
-                            // and the peer responded with CONNECT_NEW indicating that they didn't have a
-                            // matching connection.  lId should be 0 if its not that is some form of protocol error
-                            connection.scheduleDisconnect(new IOException(
-                                    "connection migration rejected by peer; no existing connection"));
-                            return OP_READ;
-                            }
-                        // else; we're migrating to the same peer
-                        break;
+                        // TODO improve the protocol so that can be both practical and accurate
+                        /*
+                        close(new IOException("peer mismatch, expected " +
+                                connection.getPeer() + " found " + peer));
+                        return 0;*/
+                        }
 
-                    case CONNECT_MIGRATE:
-                        // the accepting peer indicated it is a migration, apparently we must have also sent a migration
-                        // or the peer had more info then us (prior half connect) and had a connection with our connection
-                        // ID, thus allowing a migration
-                        if (nProt > 1)
-                            {
-                            if (connection.f_lIdentity != lIdThisRx)
+                    switch (nConnect) // from peer's perspective
+                        {
+                        case CONNECT_NEW:
+                            long lIdPeerCurr = connection.m_lIdentityPeer;
+                            if (lIdPeerCurr == 0)
                                 {
-                                // but we've been recycled, i.e. not the same logical connection
-                                connection.scheduleDisconnect(new IOException(
-                                        "connection migration failed; mismatch on local identity " +
-                                        connection.f_lIdentity + "/" + lIdThisRx));
-                                return OP_READ;
-                                }
-                            else if (connection.m_lIdentityPeer == 0)
-                                {
-                                // this can only happen because of a prior half connect, where we hadn't learned our peer's
-                                // connection ID, but it had learned ours.  Our peer then decided that this could be
-                                // a migration, and thus we learn their ID now
+                                // common case; initial connection, we learn the peer's identity
                                 connection.m_lIdentityPeer = lIdThatRx;
-                                // fall through
                                 }
-                            else if (nProt > 3 && connection.m_lIdentityPeer != lIdThatRx)
+                            else
                                 {
-                                // should not be possible; this is basically an assertion
-                                connection.scheduleDisconnect(new IOException(
-                                        "connection migration failed (protocol error); mismatch on remote identity " +
-                                        connection.m_lIdentityPeer + "/" + lIdThatRx));
+                                // since we'd previously known our peer's id we  must have initiated a migration
+                                // and the peer responded with CONNECT_NEW indicating that they didn't have a
+                                // matching connection.  lId should be 0 if its not that is some form of protocol error
+                                connection.scheduleDisconnect(m_lTransportGeneration, new IOException(
+                                        "connection migration rejected by peer; no existing connection"));
                                 return OP_READ;
                                 }
-                            // else; identity match, accept the migration
-                            }
+                            // else; we're migrating to the same peer
+                            break;
 
-                        getLogger().log(
-                                makeExceptionRecord(Level.WARNING, connection.m_eMigrationCause,
-                                        "{0} accepted connection migration with {1} on {2}: {3}",
-                                        getLocalEndPoint(), peer, getChannel(), connection));
+                        case CONNECT_MIGRATE:
+                            // the accepting peer indicated it is a migration, apparently we must have also sent a migration
+                            // or the peer had more info then us (prior half connect) and had a connection with our connection
+                            // ID, thus allowing a migration
+                            if (nProt > 1)
+                                {
+                                if (connection.f_lIdentity != lIdThisRx)
+                                    {
+                                    // but we've been recycled, i.e. not the same logical connection
+                                    connection.scheduleDisconnect(m_lTransportGeneration, new IOException(
+                                            "connection migration failed; mismatch on local identity " +
+                                            connection.f_lIdentity + "/" + lIdThisRx));
+                                    return OP_READ;
+                                    }
+                                else if (connection.m_lIdentityPeer == 0)
+                                    {
+                                    // this can only happen because of a prior half connect, where we hadn't learned our peer's
+                                    // connection ID, but it had learned ours.  Our peer then decided that this could be
+                                    // a migration, and thus we learn their ID now
+                                    connection.m_lIdentityPeer = lIdThatRx;
+                                    // fall through
+                                    }
+                                else if (nProt > 3 && connection.m_lIdentityPeer != lIdThatRx)
+                                    {
+                                    // should not be possible; this is basically an assertion
+                                    connection.scheduleDisconnect(m_lTransportGeneration, new IOException(
+                                            "connection migration failed (protocol error); mismatch on remote identity " +
+                                            connection.m_lIdentityPeer + "/" + lIdThatRx));
+                                    return OP_READ;
+                                    }
+                                // else; identity match, accept the migration
+                                }
 
-                        connection.m_eMigrationCause = null;
-                        break;
+                            getLogger().log(
+                                    makeExceptionRecord(Level.WARNING, connection.m_eMigrationCause,
+                                            "{0} accepted connection migration with {1} on {2}: {3}",
+                                            getLocalEndPoint(), peer, getChannel(), connection));
+
+                            connection.m_eMigrationCause = null;
+                            break;
+                        }
+
+                    m_headerOut.clear();
+                    connection.setProtocolVersion(nProt);
+
+                    // move onto the accept phase
+                    m_phase = HandshakePhase.ACCEPT;
+                    m_headerIn.clear().limit(1);
+                    m_headerOut.put((byte) 0) // accept byte
+                            .flip();
+
+                    return nInterest;
                     }
-
-                m_headerOut.clear();
+                finally
+                    {
+                    connection.unlock();
+                    }
                 }
 
+            // inbound connection
             connection.setProtocolVersion(nProt);
 
             // move onto the accept phase
@@ -3398,6 +4366,14 @@ public abstract class AbstractSocketBus
             connection.lock();
             try
                 {
+                if (connection.m_channel != getChannel() ||
+                    connection.m_lTransportGeneration != m_lTransportGeneration)
+                    {
+                    closeChannel(getChannel());
+                    return 0;
+                    }
+
+                boolean fMigration = connection.m_state == ConnectionState.ACTIVE;
                 switch (connection.m_state)
                     {
                     case OPEN:
@@ -3408,6 +4384,22 @@ public abstract class AbstractSocketBus
                         // switch out the handlers
                         getSelectionService().register(getChannel(), connection);
                         connection.m_handler = connection;
+
+                        // a TCP connect alone is not a successful reconnect; only reset after the bus handshake completes
+                        connection.m_cReconnectAttempts = 0;
+                        connection.onMigrationCompleted(m_lTransportGeneration);
+                        if (fMigration)
+                            {
+                            // inbound and outbound completion both establish a healthy replacement transport
+                            if (TEST_TRACK_RECONNECT_ATTEMPTS)
+                                {
+                                TEST_COMPLETED_MIGRATIONS.incrementAndGet();
+                                if (f_fOutbound)
+                                    {
+                                    TEST_COMPLETED_OUTBOUND_MIGRATIONS.incrementAndGet();
+                                    }
+                                }
+                            }
                         break;
 
                     default:
@@ -3464,7 +4456,7 @@ public abstract class AbstractSocketBus
                 }
             else
                 {
-                connection.scheduleDisconnect(eReason);
+                connection.scheduleDisconnect(m_lTransportGeneration, eReason);
                 }
 
             closeChannel(channel);
@@ -3482,6 +4474,21 @@ public abstract class AbstractSocketBus
          *
          */
         protected Connection m_connection;
+
+        /**
+         * The transport generation associated with this handshake.
+         */
+        protected long m_lTransportGeneration = -1L;
+
+        /**
+         * True if this side initiated the socket connection.
+         */
+        protected final boolean f_fOutbound;
+
+        /**
+         * Whether the functional test hook should force this stale introduction to fail identity validation.
+         */
+        protected boolean m_fForceIdentityMismatchForTesting;
 
         /**
          * The handshake state.
@@ -3625,6 +4632,73 @@ public abstract class AbstractSocketBus
         CLOSED
         }
 
+    /**
+     * Per-thread event operations accumulated while a connection critical section is active.
+     */
+    private static class EventDispatch
+        {
+        /**
+         * Add an operation, growing the reusable storage if necessary.
+         *
+         * @param event   the event to add, or {@code null} for a flush-only operation
+         * @param fFlush  whether to flush after adding the event
+         */
+        private void add(Event event, boolean fFlush)
+            {
+            int cOperations = m_cOperations;
+            if (cOperations == m_aEvent.length)
+                {
+                int       cCapacity = cOperations << 1;
+                Event[]   aEvent    = new Event[cCapacity];
+                boolean[] afFlush   = new boolean[cCapacity];
+                System.arraycopy(m_aEvent, 0, aEvent, 0, cOperations);
+                System.arraycopy(m_afFlush, 0, afFlush, 0, cOperations);
+                m_aEvent  = aEvent;
+                m_afFlush = afFlush;
+                }
+
+            m_aEvent[cOperations]  = event;
+            m_afFlush[cOperations] = fFlush;
+            m_cOperations          = cOperations + 1;
+            }
+
+        /**
+         * The number of connection locks held by the current thread for this bus.
+         */
+        private int m_cConnectionLocks;
+
+        /**
+         * The number of pending collector operations.
+         */
+        private int m_cOperations;
+
+        /**
+         * Whether this state is currently delivering deferred operations.
+         */
+        private boolean m_fDelivering;
+
+        /**
+         * Pending events in transport-commit order.
+         */
+        private Event[] m_aEvent = new Event[16];
+
+        /**
+         * Pending flush flags corresponding to {@link #m_aEvent}.
+         */
+        private boolean[] m_afFlush = new boolean[16];
+        }
+
+    /**
+     * Per-thread transport callback state retained across callbacks.
+     */
+    private static class TransportCallbackState
+        {
+        /**
+         * The current transport callback depth.
+         */
+        private int m_cDepth;
+        }
+
 
     // ----- data members ---------------------------------------------------
 
@@ -3681,6 +4755,11 @@ public abstract class AbstractSocketBus
     private Collector<Event> m_collectorEvent;
 
     /**
+     * Event operations deferred until the current thread releases all connection locks for this bus.
+     */
+    private final ThreadLocal<EventDispatch> f_tloEventDispatch = ThreadLocal.withInitial(EventDispatch::new);
+
+    /**
      * Map of current connections.
      * <p>
      * Changes to this map must be made while holding the read lock on
@@ -3702,6 +4781,158 @@ public abstract class AbstractSocketBus
      * The connection ID generator.
      */
     protected static final AtomicLong f_atomicIdGenerator = new AtomicLong(SafeClock.INSTANCE.getSafeTimeMillis());
+
+    /**
+     * Widen reconnect channel-publication and handshake windows for functional testing.
+     */
+    private static final long TEST_RECONNECT_SETUP_DELAY_MILLIS = Long.getLong(
+            AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", 0L);
+
+    /**
+     * Track replacement socket attempts for functional testing.
+     */
+    private static final boolean TEST_TRACK_RECONNECT_ATTEMPTS = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".trackReconnectAttempts");
+
+    /**
+     * The number of replacement socket attempts made while test tracking is enabled.
+     */
+    private static final AtomicLong TEST_RECONNECT_ATTEMPTS = new AtomicLong();
+
+    /**
+     * The number of replacement handshakes completed while test tracking is enabled.
+     */
+    private static final AtomicLong TEST_COMPLETED_MIGRATIONS = new AtomicLong();
+
+    /**
+     * The number of locally initiated replacement handshakes completed while test tracking is enabled.
+     */
+    private static final AtomicLong TEST_COMPLETED_OUTBOUND_MIGRATIONS = new AtomicLong();
+
+    /**
+     * The number of active transport reads to fail for functional testing.
+     */
+    private static final AtomicInteger TEST_ACTIVE_READ_FAILURES = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".activeReadFailures", 0));
+
+    /**
+     * Whether the active-read failure hook is enabled.
+     */
+    private static final boolean TEST_ACTIVE_READ_FAILURES_ENABLED = TEST_ACTIVE_READ_FAILURES.get() > 0;
+
+    /**
+     * The number of migrations to start concurrently with an active read for functional testing.
+     */
+    private static final AtomicInteger TEST_CONCURRENT_READ_MIGRATIONS = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".concurrentReadMigrations", 0));
+
+    /**
+     * Whether the concurrent-read migration hook is enabled.
+     */
+    private static final boolean TEST_CONCURRENT_READ_MIGRATIONS_ENABLED = TEST_CONCURRENT_READ_MIGRATIONS.get() > 0;
+
+    /**
+     * The last transport generation targeted by the concurrent-read migration hook.
+     */
+    private static final AtomicLong TEST_LAST_CONCURRENT_READ_MIGRATION_GENERATION = new AtomicLong(Long.MIN_VALUE);
+
+    /**
+     * The duration of a replacement handshake delay for functional testing.
+     */
+    private static final long TEST_RECONNECT_HANDSHAKE_DELAY_MILLIS = Long.getLong(
+            AbstractSocketBus.class.getName() + ".reconnectHandshakeDelayMillis", 0L);
+
+    /**
+     * The number of replacement handshakes to delay for functional testing.
+     */
+    private static final AtomicInteger TEST_RECONNECT_HANDSHAKE_DELAYS = new AtomicInteger(
+            TEST_RECONNECT_HANDSHAKE_DELAY_MILLIS > 0L ? 1 : 0);
+
+    /**
+     * Whether the replacement-handshake delay hook is enabled.
+     */
+    private static final boolean TEST_RECONNECT_HANDSHAKE_DELAYS_ENABLED = TEST_RECONNECT_HANDSHAKE_DELAYS.get() > 0;
+
+    /**
+     * The number of replacement socket opens to fail for functional testing.
+     */
+    private static final AtomicInteger TEST_RECONNECT_OPEN_FAILURES = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".reconnectOpenFailures", 0));
+
+    /**
+     * The number of replacement handler registrations to fail for functional testing.
+     */
+    private static final AtomicInteger TEST_RECONNECT_REGISTRATION_FAILURES = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".reconnectRegistrationFailures", 0));
+
+    /**
+     * The number of collector calls attempted while a connection lock was held.
+     */
+    private static final AtomicLong TEST_COLLECTOR_CALLS_UNDER_LOCK = new AtomicLong();
+
+    /**
+     * Whether low-overhead transport timing metrics are enabled for benchmarking.
+     */
+    private static final boolean TEST_TRACK_TRANSPORT_METRICS = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".trackTransportMetrics");
+
+    /**
+     * The number of measured outermost connection critical sections.
+     */
+    private static final AtomicLong TEST_CONNECTION_LOCK_HOLD_COUNT = new AtomicLong();
+
+    /**
+     * The cumulative duration of measured connection critical sections.
+     */
+    private static final AtomicLong TEST_CONNECTION_LOCK_HOLD_NANOS = new AtomicLong();
+
+    /**
+     * The maximum duration of a measured connection critical section.
+     */
+    private static final AtomicLong TEST_CONNECTION_LOCK_HOLD_MAX_NANOS = new AtomicLong();
+
+    /**
+     * The maximum delay before a queued write-progression task ran on its selector thread.
+     */
+    private static final AtomicLong TEST_SELECTOR_TASK_DELAY_MAX_NANOS = new AtomicLong();
+
+    /**
+     * The maximum measured transport migration completion time.
+     */
+    private static final AtomicLong TEST_MIGRATION_COMPLETION_MAX_NANOS = new AtomicLong();
+
+    /**
+     * The number of initial socket opens to fail for functional testing.
+     */
+    private static final AtomicInteger TEST_INITIAL_OPEN_FAILURES = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".initialOpenFailures", 0));
+
+    /**
+     * Whether the initial socket-open failure hook is enabled.
+     */
+    private static final boolean TEST_INITIAL_OPEN_FAILURES_ENABLED = TEST_INITIAL_OPEN_FAILURES.get() > 0;
+
+    /**
+     * The number of outbound introductions to supersede and replay for functional testing.
+     */
+    private static final AtomicInteger TEST_STALE_OUTBOUND_INTRODUCTIONS = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".staleOutboundIntroductions", 0));
+
+    /**
+     * Whether the stale outbound-introduction hook is enabled.
+     */
+    private static final boolean TEST_STALE_OUTBOUND_INTRODUCTIONS_ENABLED = TEST_STALE_OUTBOUND_INTRODUCTIONS.get() > 0;
+
+    /**
+     * The number of stale outbound introductions replayed by the functional test hook.
+     */
+    private static final AtomicLong TEST_STALE_OUTBOUND_INTRODUCTION_REPLAYS = new AtomicLong();
+
+    /**
+     * The number of duplicate migration notifications to inject for functional testing.
+     */
+    private static final int TEST_DUPLICATE_MIGRATION_NOTIFICATIONS = Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".duplicateMigrationNotifications", 0);
 
     /**
      * used to indicate that a new connection is desired.
