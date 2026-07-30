@@ -23,6 +23,8 @@
   <description>Maven Shade transformer that merges Coherence security-config.xml resources</description>
 
   <properties>
+    <!-- this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
     <!-- use a distinct provider realm when this standalone module builds beside the CE root -->
     <maven.gmaven.providerSelection.version>1.6</maven.gmaven.providerSelection.version>
     <!-- this module uses JUnit only, so avoid Mockito javaagent startup failures -->
