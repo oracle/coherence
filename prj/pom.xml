@@ -660,6 +660,8 @@
         <module>coherence-concurrent</module>
         <module>coherence-bom</module>
         <module>plugins</module>
+        <!-- standalone build-time transformer published with the release modules -->
+        <module>plugins/maven/security-config-shade-transformer</module>
       </modules>
 
       <build>
