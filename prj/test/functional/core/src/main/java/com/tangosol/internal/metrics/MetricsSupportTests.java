@@ -85,7 +85,8 @@ public class MetricsSupportTests
         System.setProperty("coherence.member", "TestClientServer");
         System.setProperty(SiteName.PROPERTY, "TestSite");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
-        System.setProperty(ClusterName.PROPERTY, "MetricsSupportTestsCluster");
+        System.setProperty(ClusterName.PROPERTY,
+                System.getProperty(ClusterName.PROPERTY, "MetricsSupportTestsCluster"));
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
 
         // ensure that all the local services are running before the tests start
