@@ -1850,7 +1850,7 @@
           "Journal"
         ],
         "summary": "View Flash Journal",
-        "description": "Use this endpoint to view flash journal information. The information is aggregated across all flash journal members in a Coherence cluster. This includes physical write and force statistics, error and retry statistics, journal-wide congestion statistics, and collector compaction statistics described by the journalRM definition. Numeric values use the collector-dependent response shape selected by the collector query parameter. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
+        "description": "Use this endpoint to view flash journal information. The information is aggregated across all flash journal members in a Coherence cluster. This includes file lifecycle state and activity, physical write and force statistics, error and retry statistics, journal-wide congestion statistics, and collector compaction statistics described by the journalRM definition. Numeric values use the collector-dependent response shape selected by the collector query parameter. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
         "operationId": "/management/coherence/cluster/journal/flash GET",
         "produces": [
           "application/json"
@@ -1865,7 +1865,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A successful request that returns aggregated flash journal capacity, physical write and force, error and retry, congestion, and compaction information"
+            "description": "A successful request that returns aggregated flash journal capacity, file lifecycle, physical write and force, error and retry, congestion, and compaction information"
           }
         }
       }
@@ -7037,6 +7037,66 @@
           "type": "integer",
           "format": "int32",
           "description": "The total size, in bytes, of all available buffers in the pool.",
+          "readOnly": true
+        },
+        "oldestActiveFileCreationTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The creation time of the oldest active FlashJournal file, in epoch milliseconds. Active files are appending, congested, full, or evacuating; garbage and discarded files are excluded. This value is not reset by resetStatistics. Returns zero if there is no active file. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "oldestActiveFileCreationSequenceNumber": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The non-resetting creation sequence number assigned to the oldest active FlashJournal file. Active files are appending, congested, full, or evacuating; garbage and discarded files are excluded. Returns zero if there is no active file. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "mostRecentFileCreationTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The creation time of the most recent successfully created FlashJournal file, in epoch milliseconds. This value is not reset by resetStatistics. Returns zero if no file has been created. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "mostRecentFileCreationSequenceNumber": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The most recently assigned, non-resetting FlashJournal file creation sequence number. Returns zero if no file has been created. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalFileCreationCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of FlashJournal files successfully created since statistics were reset. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalFileCreationErrors": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of failed FlashJournal file or channel creation attempts since statistics were reset. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "mostRecentFileDeletionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The deletion time of the most recent successfully deleted managed FlashJournal file, in epoch milliseconds. This value is not reset by resetStatistics. Returns zero if no file has been deleted. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalFileDeletionCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of managed FlashJournal files successfully deleted since statistics were reset. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalFileDeletionErrors": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The number of failed managed FlashJournal file deletion attempts since statistics were reset, including File.delete returning false. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "mostRecentCollectorScanCompletionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The time when the FlashJournal collector most recently completed a scan and successfully finalized its results, in epoch milliseconds. This value is not reset by resetStatistics. Returns zero if no scan has completed. This FlashJournal-specific attribute returns -1 when unsupported.",
           "readOnly": true
         },
         "totalWriteOperationCount": {
