@@ -23,6 +23,11 @@
   <name>Coherence Security Config Maven Plugin</name>
   <description>Maven plugin that scans @Remote.Allowed and @PortableType classes into security-config.xml</description>
 
+  <properties>
+    <!-- this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>${coherence.group.id}</groupId>

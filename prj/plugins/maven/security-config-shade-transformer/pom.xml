@@ -23,6 +23,8 @@
   <description>Maven Shade transformer that merges Coherence security-config.xml resources</description>
 
   <properties>
+    <!-- this module should be published -->
+    <maven.deploy.skip>false</maven.deploy.skip>
     <!-- this module uses JUnit only, so avoid Mockito javaagent startup failures -->
     <default.surefire.argLine>-Xshare:off -Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8</default.surefire.argLine>
     <surefire.argLine>${default.surefire.argLine}</surefire.argLine>
