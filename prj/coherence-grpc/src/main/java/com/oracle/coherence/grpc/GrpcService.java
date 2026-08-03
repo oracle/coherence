@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -40,6 +40,20 @@ public interface GrpcService
      * @return  the named serializer
      */
     Serializer getSerializer(String sFormat, ClassLoader loader);
+
+    /**
+     * Return a {@link Serializer} for a format selected by a remote gRPC client.
+     *
+     * @param sFormat  the client-selected format (name) of the serializer
+     * @param loader   the {@link ClassLoader} for the serializer
+     *
+     * @return the named serializer
+     */
+    default Serializer getClientSerializer(String sFormat, ClassLoader loader)
+        {
+        GrpcSerializerPolicy.validateClientFormat(sFormat);
+        return getSerializer(sFormat, loader);
+        }
 
     /**
      * Return the service dependencies.

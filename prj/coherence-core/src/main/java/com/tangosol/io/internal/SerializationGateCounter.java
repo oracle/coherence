@@ -16,7 +16,8 @@ import java.util.concurrent.atomic.LongAdder;
  */
 public class SerializationGateCounter
         implements SerializationFilterCheckMBean, SerializationFmtCheckMBean,
-                   SerializationPofCheckMBean, SerializationLambdaBytecodeCheckMBean,
+                   SerializationPofCheckMBean, SerializationSerializerCheckMBean,
+                   SerializationLambdaBytecodeCheckMBean,
                    SerializationExecutablePolicyCheckMBean
     {
     /**

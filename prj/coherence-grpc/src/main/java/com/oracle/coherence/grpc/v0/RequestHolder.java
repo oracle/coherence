@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -108,7 +108,7 @@ public abstract class RequestHolder<Req, Res>
      */
     public <T> T getDeserializedResult()
         {
-        return ExternalizableHelper.fromBinary((Binary) m_result, getServiceSerializer());
+        return BinaryHelper.fromBinary((Binary) m_result, getServiceSerializer());
         }
 
     /**
@@ -121,7 +121,7 @@ public abstract class RequestHolder<Req, Res>
      */
     public <T> T fromBinary(Binary binary)
         {
-        return ExternalizableHelper.fromBinary(binary, getServiceSerializer());
+        return BinaryHelper.fromBinary(binary, getServiceSerializer());
         }
 
     /**
@@ -134,7 +134,7 @@ public abstract class RequestHolder<Req, Res>
      */
     public <T> T deserialize(Binary binary)
         {
-        return ExternalizableHelper.fromBinary(binary, getServiceSerializer());
+        return BinaryHelper.fromBinary(binary, getServiceSerializer());
         }
 
     /**
@@ -147,7 +147,7 @@ public abstract class RequestHolder<Req, Res>
      */
     public <T> T deserializeRequest(ByteString bytes)
         {
-        return ExternalizableHelper.fromBinary(BinaryHelper.toBinary(bytes), f_serializer);
+        return BinaryHelper.fromByteString(bytes, f_serializer);
         }
 
     /**
@@ -453,7 +453,7 @@ public abstract class RequestHolder<Req, Res>
                 {
                 return null;
                 }
-            Object o = ExternalizableHelper.fromBinary(binary, f_serializerFrom);
+            Object o = BinaryHelper.fromBinary(binary, f_serializerFrom);
             return ExternalizableHelper.toBinary(o, f_serializerTo);
             }
 
@@ -503,7 +503,7 @@ public abstract class RequestHolder<Req, Res>
                 {
                 return null;
                 }
-            Object o = ExternalizableHelper.fromBinary(binary, f_serializer);
+            Object o = BinaryHelper.fromBinary(binary, f_serializer);
             return f_converter.convert(o);
             }
 

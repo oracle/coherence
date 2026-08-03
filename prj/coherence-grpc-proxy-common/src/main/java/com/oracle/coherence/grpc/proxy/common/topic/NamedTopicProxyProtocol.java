@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -70,9 +70,8 @@ public class NamedTopicProxyProtocol
             UUID clientUUID)
         {
         String                             sScope     = request.getScope();
-        String                             sFormat    = request.getFormat();
         ExtensibleConfigurableCacheFactory eccf       = (ExtensibleConfigurableCacheFactory) service.getCCF(sScope);
-        Serializer                         serializer = service.getSerializer(sFormat, eccf.getConfigClassLoader());
+        Serializer                         serializer = getSerializer();
         GrpcTopicServiceProxy              proxy      = new GrpcTopicServiceProxy();
         proxy.setCacheFactory(eccf);
         proxy.setSerializer(serializer);

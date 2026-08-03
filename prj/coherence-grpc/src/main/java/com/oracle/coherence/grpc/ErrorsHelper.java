@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,9 @@ import java.nio.charset.StandardCharsets;
 
 import java.util.Base64;
 import java.util.Optional;
+
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import java.util.function.BiFunction;
 
@@ -62,14 +65,16 @@ public final class ErrorsHelper
      */
     public static StatusRuntimeException ensureStatusRuntimeException(Throwable t)
         {
-        if (t instanceof StatusRuntimeException)
+        Throwable cause = unwrapStatusException(t);
+
+        if (cause instanceof StatusRuntimeException)
             {
-            return enrich((StatusRuntimeException) t);
+            return enrich((StatusRuntimeException) cause);
             }
-        else if (t instanceof StatusException)
+        else if (cause instanceof StatusException)
             {
-            return ((StatusException) t).getStatus()
-                    .asRuntimeException(getErrorMetadata(t));
+            return ((StatusException) cause).getStatus()
+                    .asRuntimeException(getErrorMetadata(cause));
             }
         else
             {
@@ -90,13 +95,15 @@ public final class ErrorsHelper
     public static StatusRuntimeException ensureStatusRuntimeException(Throwable t, String description)
         {
         Status status;
-        if (t instanceof StatusRuntimeException)
+        Throwable cause = unwrapStatusException(t);
+
+        if (cause instanceof StatusRuntimeException)
             {
-            status = ((StatusRuntimeException) t).getStatus().getCode().toStatus();
+            status = ((StatusRuntimeException) cause).getStatus().getCode().toStatus();
             }
-        else if (t instanceof StatusException)
+        else if (cause instanceof StatusException)
             {
-            status = ((StatusException) t).getStatus().getCode().toStatus();
+            status = ((StatusException) cause).getStatus().getCode().toStatus();
             }
         else
             {
@@ -236,6 +243,31 @@ public final class ErrorsHelper
             }
         metadata.put(KEY_ERROR, getStackTrace(e));
         return e;
+        }
+
+    private static Throwable unwrapStatusException(Throwable t)
+        {
+        Throwable result = t;
+        Throwable cause  = result.getCause();
+        while (cause != null && isStatusException(cause) && isStatusWrapper(result))
+            {
+            result = cause;
+            cause  = result.getCause();
+            }
+        return result;
+        }
+
+    private static boolean isStatusWrapper(Throwable t)
+        {
+        return t instanceof CompletionException
+                || t instanceof ExecutionException
+                || (t instanceof StatusRuntimeException sre && sre.getStatus().getCode() == Status.Code.INTERNAL)
+                || (t instanceof StatusException se && se.getStatus().getCode() == Status.Code.INTERNAL);
+        }
+
+    private static boolean isStatusException(Throwable t)
+        {
+        return t instanceof StatusRuntimeException || t instanceof StatusException;
         }
 
     private static Metadata getErrorMetadata(Throwable t)

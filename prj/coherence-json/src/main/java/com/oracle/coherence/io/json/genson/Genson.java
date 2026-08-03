@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Copyright 2011-2014 Genson - Cepoi Eugen
  *
@@ -627,15 +627,20 @@ public final class Genson {
           }
         }
 
-      if (loader != null) {
-        clazz = Class.forName(alias, true, loader);
-      } else {
-        clazz = Class.forName(alias);
-      }
+      clazz = Class.forName(alias, false, effectiveLoader());
 
       aliasClassMap.put(alias, clazz);
     }
     return clazz;
+  }
+
+  private ClassLoader effectiveLoader() {
+    if (loader != null) {
+      return loader;
+    }
+
+    ClassLoader contextLoader = Thread.currentThread().getContextClassLoader();
+    return contextLoader == null ? Genson.class.getClassLoader() : contextLoader;
   }
 
   /**

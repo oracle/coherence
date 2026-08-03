@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -78,7 +78,7 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
             m_service       = service;
             m_context       = service.getDependencies().getContext().orElse(null);
             m_ccf           = eccf;
-            m_serializer    = service.getSerializer(sFormat, m_ccf.getConfigClassLoader());
+            m_serializer    = service.getClientSerializer(sFormat, m_ccf.getConfigClassLoader());
             m_eventObserver = observer;
 
             m_serviceProxy = initInternal(service, request, nVersion, clientUUID);
