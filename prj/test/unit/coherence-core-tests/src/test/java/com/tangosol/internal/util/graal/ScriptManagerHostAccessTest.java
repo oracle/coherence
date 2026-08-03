@@ -31,7 +31,7 @@ import static org.junit.Assert.assertThrows;
  * Unit tests for {@link ScriptManager} host-access hardening.
  *
  * @author Aleks Seovic  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public class ScriptManagerHostAccessTest
     {

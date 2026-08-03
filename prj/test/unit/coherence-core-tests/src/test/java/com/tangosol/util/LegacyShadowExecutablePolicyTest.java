@@ -30,7 +30,7 @@ import static org.junit.Assert.assertFalse;
  * longer attainable through the built-in processors themselves.
  *
  * @author Aleks Seovic  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public class LegacyShadowExecutablePolicyTest
     {
