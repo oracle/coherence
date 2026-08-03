@@ -26,7 +26,7 @@ import java.io.ObjectInputFilter;
  * Narrow codec for product-owned persistence metadata values.
  *
  * @author Aleks Seovic  2026.05.15
- * @since 26.04
+ * @since 26.07
  */
 final class PersistenceMetadataCodec
     {
