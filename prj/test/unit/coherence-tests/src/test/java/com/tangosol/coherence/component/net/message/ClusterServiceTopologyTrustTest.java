@@ -29,7 +29,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author OpenAI  2026.05.17
  *
- * @since 15.1.2.0
+ * @since 26.07
  */
 public class ClusterServiceTopologyTrustTest
     {
