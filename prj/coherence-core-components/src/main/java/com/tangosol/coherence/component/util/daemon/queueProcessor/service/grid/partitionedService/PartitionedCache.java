@@ -60,6 +60,8 @@ import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SizeEstimatingBufferOutput;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
 import com.tangosol.net.ActionPolicy;
 import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.CacheService;
@@ -8402,6 +8404,17 @@ public class PartitionedCache
         // import com.tangosol.util.LongArray;
         // import com.tangosol.util.LongArray$Iterator as com.tangosol.util.LongArray.Iterator;
         // import java.util.Map;
+
+        if (!isTransferRequestTopologyValid(msgRequest))
+            {
+            rejectTransferRequest(msgRequest);
+            return;
+            }
+
+        if (msgRequest instanceof PartitionedCache.TransferRequest)
+            {
+            ((PartitionedCache.TransferRequest) msgRequest).materializeAddendums(this);
+            }
         
         LongArray laResultInfo = msgRequest.getPendingResults();
         if (laResultInfo != null)
@@ -43232,6 +43245,8 @@ public class PartitionedCache
             // import Component.Net.MemberSet;
             // import Component.Net.Message.MapEventMessage;
             // import com.tangosol.io.ReadBuffer;
+            // import com.tangosol.io.internal.BridgeObjectInputFilter;
+            // import com.tangosol.io.internal.DefaultObjectInputFilter;
             // import com.tangosol.util.ExternalizableHelper as com.tangosol.util.ExternalizableHelper;
             // import com.tangosol.util.LongArray;
             // import com.tangosol.util.SafeHashMap;
@@ -43242,6 +43257,10 @@ public class PartitionedCache
             // import java.util.Map;
             // import java.util.Map$Entry as java.util.Map.Entry;
             // import java.util.HashMap;
+
+            try (DefaultObjectInputFilter.Scope ignored =
+                    DefaultObjectInputFilter.bridge(BridgeObjectInputFilter.transferMetadata()))
+                {
             
             super.read(input);
             
@@ -43262,8 +43281,8 @@ public class PartitionedCache
                 java.util.Map.Entry[] aResource  = new java.util.Map.Entry[cResources];
                 for (int i = 0; i < cResources; i++)
                     {
-                    Object binKey   = com.tangosol.util.ExternalizableHelper.readObject(input);
-                    Object binValue = com.tangosol.util.ExternalizableHelper.readObject(input);
+                    Object binKey   = readBinary(input, "resource key", false);
+                    Object binValue = readReadBuffer(input, "resource value", false);
                   
                     aResource[i] = new SimpleMapEntry(binKey, binValue);
                     }
@@ -43276,7 +43295,7 @@ public class PartitionedCache
                 Lease[] aLease   = new Lease[cLeases];
                 for (int i = 0; i < cLeases; i++)
                     {
-                    Object binKey = readObject(input);
+                    Object binKey = readBinary(input, "lease key", false);
             
                     Lease  lease  = Lease.instantiate(0, binKey, service);
                     lease.read(input);
@@ -43293,7 +43312,7 @@ public class PartitionedCache
             
                 for (int iL = 0; iL < cListens; iL++)
                     {
-                    Object binKey = readObject(input);
+                    Object binKey = readBinary(input, "listener key", false);
             
                     Map mapMembers = new SafeHashMap();
                     int cMembers   = com.tangosol.util.ExternalizableHelper.readInt(input);
@@ -43330,8 +43349,8 @@ public class PartitionedCache
             
                         for (int iResult = 0; iResult < cResults; iResult++)
                             {
-                            Object binKey    = com.tangosol.util.ExternalizableHelper.readObject(input);  // Binary key
-                            Object binResult = com.tangosol.util.ExternalizableHelper.readObject(input);  // Binary result (may be null)
+                            Object binKey    = readBinary(input, "pending result key", false);
+                            Object binResult = readBinary(input, "pending result", true);
             
                             mapResult.put(binKey, binResult);
                             }
@@ -43351,17 +43370,7 @@ public class PartitionedCache
                     List listAddendum = new ArrayList();
                     for (int i = 0; i < cAddendum; i++)
                         {
-                        lCacheId = input.readLong(); // cache-id for this addendum
-            
-                        Storage storage = service.ensureStorage(lCacheId, /*fCheckGraveyard*/ true);
-                        if (storage != null)
-                            {
-                            Storage.DeferredEvent deferred = new Storage.DeferredEvent();
-            
-                            storage._linkChild(deferred);
-                            deferred.read(input);
-                            listAddendum.add(deferred);
-                            }
+                        listAddendum.add(readAddendum(input));
                         }
                     setAddendums(listAddendum);
                     }
@@ -43369,7 +43378,7 @@ public class PartitionedCache
                 // event history
                 if (service.isVersionCompatible(getFromMember(), 21, 6, 0))
                     {
-                    setEventsStoreBinary((ReadBuffer) readObject(input));
+                    setEventsStoreBinary((ReadBuffer) readReadBuffer(input, "events store", true));
                     }
                 }
             
@@ -43378,6 +43387,228 @@ public class PartitionedCache
                 {
                 setMapEventVersion(com.tangosol.util.ExternalizableHelper.readLong(input));
                 }
+                }
+            }
+
+        /**
+         * Read an exact Binary transfer field under the active transfer bridge
+         * filter.
+         *
+         * @param input      the input stream
+         * @param sField     the field name
+         * @param fNullable  true if null is allowed
+         *
+         * @return the binary value
+         */
+        protected com.tangosol.util.Binary readBinary(com.tangosol.io.ReadBuffer.BufferInput input, String sField, boolean fNullable)
+                throws java.io.IOException
+            {
+            Object o = com.tangosol.util.ExternalizableHelper.readObject(input);
+            if (o == null && fNullable)
+                {
+                return null;
+                }
+            if (!(o instanceof com.tangosol.util.Binary))
+                {
+                throw new java.io.IOException("unsupported transfer " + sField + " type: "
+                        + (o == null ? "null" : o.getClass().getName()));
+                }
+            return (com.tangosol.util.Binary) o;
+            }
+
+        /**
+         * Read an exact ReadBuffer transfer field under the active transfer
+         * bridge filter.
+         *
+         * @param input      the input stream
+         * @param sField     the field name
+         * @param fNullable  true if null is allowed
+         *
+         * @return the read buffer value
+         */
+        protected com.tangosol.io.ReadBuffer readReadBuffer(com.tangosol.io.ReadBuffer.BufferInput input, String sField, boolean fNullable)
+                throws java.io.IOException
+            {
+            Object o = com.tangosol.util.ExternalizableHelper.readObject(input);
+            if (o == null && fNullable)
+                {
+                return null;
+                }
+            if (!(o instanceof com.tangosol.io.ReadBuffer))
+                {
+                throw new java.io.IOException("unsupported transfer " + sField + " type: "
+                        + (o == null ? "null" : o.getClass().getName()));
+                }
+            return (com.tangosol.io.ReadBuffer) o;
+            }
+
+        /**
+         * Read a passive transfer addendum.
+         *
+         * @param input  the transfer input
+         *
+         * @return the passive addendum
+         *
+         * @throws java.io.IOException on read failure
+         */
+        protected Object readAddendum(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            return TransferAddendum.read(input);
+            }
+
+        /**
+         * Materialize passively decoded addenda after transfer topology has
+         * been validated.
+         *
+         * @param service  the partitioned cache service
+         */
+        protected void materializeAddendums(PartitionedCache service)
+            {
+            // import java.util.ArrayList;
+            // import java.util.Iterator;
+            // import java.util.List;
+
+            List listAddendum = getAddendums();
+            if (listAddendum == null || listAddendum.isEmpty()
+                    || listAddendum.get(0) instanceof Storage.DeferredEvent)
+                {
+                return;
+                }
+
+            List listDeferred = new ArrayList(listAddendum.size());
+            for (Iterator iter = listAddendum.iterator(); iter.hasNext(); )
+                {
+                Object oAddendum = iter.next();
+                if (!(oAddendum instanceof TransferAddendum))
+                    {
+                    throw new IllegalStateException("unsupported transfer addendum type: "
+                            + (oAddendum == null ? "null" : oAddendum.getClass().getName()));
+                    }
+
+                Storage.DeferredEvent deferred = ((TransferAddendum) oAddendum).materialize(service);
+                if (deferred != null)
+                    {
+                    listDeferred.add(deferred);
+                    }
+                }
+            setAddendums(listDeferred);
+            }
+
+        /**
+         * Passive transfer addendum data decoded before transfer topology is
+         * trusted.
+         */
+        protected static class TransferAddendum
+            {
+            /**
+             * Read a passive addendum from the transfer stream.
+             *
+             * @param input  the transfer input
+             *
+             * @return the passive addendum
+             *
+             * @throws java.io.IOException on read failure
+             */
+            protected static TransferAddendum read(com.tangosol.io.ReadBuffer.BufferInput input)
+                    throws java.io.IOException
+                {
+                TransferAddendum addendum = new TransferAddendum();
+                addendum.m_lCacheId       = input.readLong();
+                addendum.m_fReapply       = input.readBoolean();
+                addendum.m_nEventId       = com.tangosol.util.ExternalizableHelper.readInt(input);
+                addendum.m_binKey         = readBinary(input, "addendum key", true);
+                addendum.m_binValueOld    = readBinary(input, "addendum old value", true);
+                addendum.m_binValueNew    = readBinary(input, "addendum new value", true);
+                return addendum;
+                }
+
+            /**
+             * Materialize this passive addendum as a linked deferred event.
+             *
+             * @param service  the partitioned cache service
+             *
+             * @return the linked deferred event, or null if the storage is gone
+             */
+            protected Storage.DeferredEvent materialize(PartitionedCache service)
+                {
+                Storage storage = service.ensureStorage(m_lCacheId, /*fCheckGraveyard*/ true);
+                if (storage == null)
+                    {
+                    return null;
+                    }
+
+                Storage.DeferredEvent deferred = new Storage.DeferredEvent();
+                storage._linkChild(deferred);
+                deferred.setReapply(m_fReapply);
+
+                com.tangosol.util.ObservableMap mapResource = storage.getBackingMap();
+                if (mapResource != null)
+                    {
+                    deferred.setEvent(new com.tangosol.util.MapEvent(
+                            mapResource, m_nEventId, m_binKey, m_binValueOld, m_binValueNew));
+                    }
+                return deferred;
+                }
+
+            /**
+             * Read an exact Binary transfer addendum field under the active
+             * transfer bridge filter.
+             *
+             * @param input      the input stream
+             * @param sField     the field name
+             * @param fNullable  true if null is allowed
+             *
+             * @return the binary value
+             *
+             * @throws java.io.IOException on read failure
+             */
+            protected static com.tangosol.util.Binary readBinary(com.tangosol.io.ReadBuffer.BufferInput input,
+                    String sField, boolean fNullable)
+                    throws java.io.IOException
+                {
+                Object o = com.tangosol.util.ExternalizableHelper.readObject(input);
+                if (o == null && fNullable)
+                    {
+                    return null;
+                    }
+                if (!(o instanceof com.tangosol.util.Binary))
+                    {
+                    throw new java.io.IOException("unsupported transfer " + sField + " type: "
+                            + (o == null ? "null" : o.getClass().getName()));
+                    }
+                return (com.tangosol.util.Binary) o;
+                }
+
+            /**
+             * The addendum cache id.
+             */
+            private long m_lCacheId;
+
+            /**
+             * The deferred-event reapply flag.
+             */
+            private boolean m_fReapply;
+
+            /**
+             * The map event id.
+             */
+            private int m_nEventId;
+
+            /**
+             * The map event key.
+             */
+            private com.tangosol.util.Binary m_binKey;
+
+            /**
+             * The old map event value.
+             */
+            private com.tangosol.util.Binary m_binValueOld;
+
+            /**
+             * The new map event value.
+             */
+            private com.tangosol.util.Binary m_binValueNew;
             }
         
         // Accessor for the property "Addendums"

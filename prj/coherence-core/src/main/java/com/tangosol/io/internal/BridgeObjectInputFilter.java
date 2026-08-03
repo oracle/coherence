@@ -45,6 +45,36 @@ public final class BridgeObjectInputFilter
         return EXCEPTION_FILTER;
         }
 
+    /**
+     * Return a filter for management connector publish values.
+     *
+     * @return a management publish bridge filter
+     */
+    public static ObjectInputFilter managementPublish()
+        {
+        return MANAGEMENT_PUBLISH_FILTER;
+        }
+
+    /**
+     * Return a filter for persistent store info metadata.
+     *
+     * @return a persistent store info bridge filter
+     */
+    public static ObjectInputFilter persistentStoreInfo()
+        {
+        return PERSISTENT_STORE_INFO_FILTER;
+        }
+
+    /**
+     * Return a filter for passive partition-transfer metadata.
+     *
+     * @return a transfer metadata bridge filter
+     */
+    public static ObjectInputFilter transferMetadata()
+        {
+        return TRANSFER_METADATA_FILTER;
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -169,6 +199,31 @@ public final class BridgeObjectInputFilter
             InvalidClassException.class.getName());
 
     /**
+     * Exact passive classes accepted by management connector publish bridges.
+     */
+    private static final Set<String> MANAGEMENT_PUBLISH_TYPES = Set.of(
+            "javax.management.remote.JMXServiceURL",
+            "java.lang.String",
+            "java.net.InetAddress",
+            "java.net.Inet4Address",
+            "java.net.Inet4Address$Inet4AddressHolder",
+            "java.net.Inet6Address",
+            "java.net.Inet6Address$Inet6AddressHolder");
+
+    /**
+     * Exact classes accepted by persistent store info bridges.
+     */
+    private static final Set<String> PERSISTENT_STORE_INFO_TYPES = Set.of(
+            "com.oracle.coherence.persistence.PersistentStoreInfo",
+            "java.lang.String");
+
+    /**
+     * Exact classes accepted by partition transfer metadata bridges.
+     */
+    private static final Set<String> TRANSFER_METADATA_TYPES = Set.of(
+            "com.tangosol.util.Binary");
+
+    /**
      * Runtime exception bridge filter singleton.
      */
     private static final BridgeObjectInputFilter RUNTIME_EXCEPTION_FILTER =
@@ -181,6 +236,24 @@ public final class BridgeObjectInputFilter
     private static final BridgeObjectInputFilter EXCEPTION_FILTER =
             new BridgeObjectInputFilter("bridge-exception-type-rejected",
                     allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
+
+    /**
+     * Management publish bridge filter singleton.
+     */
+    private static final BridgeObjectInputFilter MANAGEMENT_PUBLISH_FILTER =
+            new BridgeObjectInputFilter("bridge-management-publish-type-rejected", MANAGEMENT_PUBLISH_TYPES);
+
+    /**
+     * PersistentStoreInfo bridge filter singleton.
+     */
+    private static final BridgeObjectInputFilter PERSISTENT_STORE_INFO_FILTER =
+            new BridgeObjectInputFilter("bridge-persistent-store-info-type-rejected", PERSISTENT_STORE_INFO_TYPES);
+
+    /**
+     * Transfer metadata bridge filter singleton.
+     */
+    private static final BridgeObjectInputFilter TRANSFER_METADATA_FILTER =
+            new BridgeObjectInputFilter("bridge-transfer-metadata-type-rejected", TRANSFER_METADATA_TYPES);
 
     // ----- data members ---------------------------------------------------
 

@@ -27,6 +27,8 @@ import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.net.InetAddresses;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.discovery.NSLookup;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.internal.health.HealthHttpHandler;
 import com.tangosol.internal.net.management.ConnectorDependencies;
@@ -36,6 +38,7 @@ import com.tangosol.internal.net.metrics.MetricsHttpHelper;
 import com.tangosol.net.InetAddressHelper;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.Member;
+import com.tangosol.net.internal.NameServiceValuePolicy;
 import com.tangosol.net.management.MBeanConnector;
 import com.tangosol.net.management.MBeanHelper;
 import com.tangosol.net.management.ManagementInvocationPolicy;
@@ -1542,6 +1545,17 @@ public class Connector
      */
     public void onPublish(Connector.Publish taskPublish)
         {
+        // import com.tangosol.net.Member;
+
+        Member memberSender = taskPublish.getInvocationSender();
+        Member memberSenior = getDynamicSenior();
+        if (memberSender == null || memberSenior == null || memberSender.getId() != memberSenior.getId())
+            {
+            _trace("Ignoring JMX connector publish from non-senior member " + memberSender
+                 + "; dynamic management senior is " + memberSenior, 2);
+            return;
+            }
+
         synchronized (this)
             {
             setJmxServiceUrl(taskPublish.getJMXServiceURL());
@@ -4487,7 +4501,8 @@ public class Connector
     public static class Publish
             extends    com.tangosol.coherence.component.Net
             implements com.tangosol.io.ExternalizableLite,
-                       com.tangosol.net.Invocable
+                       com.tangosol.net.Invocable,
+                       com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.InvocationService.SenderAwareInvocable
         {
         // ---- Fields declarations ----
         
@@ -4505,6 +4520,13 @@ public class Connector
          * the expanded set of addresses which that wildcard address maps to.
          */
         private java.util.Collection __m_ListenAddresses;
+
+        /**
+         * Property InvocationSender
+         *
+         * The member that sent this publish task.
+         */
+        private transient com.tangosol.net.Member __m_InvocationSender;
         
         /**
          * Property Service
@@ -4600,6 +4622,16 @@ public class Connector
             {
             return __m_JMXServiceURL;
             }
+
+        // Accessor for the property "InvocationSender"
+        /**
+         * Getter for property InvocationSender.<p>
+         * The member that sent this publish task.
+         */
+        public com.tangosol.net.Member getInvocationSender()
+            {
+            return __m_InvocationSender;
+            }
         
         // Accessor for the property "ListenAddresses"
         /**
@@ -4638,15 +4670,33 @@ public class Connector
         public void readExternal(java.io.DataInput in)
                 throws java.io.IOException
             {
+            // import com.tangosol.io.internal.BridgeObjectInputFilter;
+            // import com.tangosol.io.internal.DefaultObjectInputFilter;
+            // import com.tangosol.net.internal.NameServiceValuePolicy;
             // import com.tangosol.util.ExternalizableHelper;
             // import java.util.HashSet;
+            // import java.util.Iterator;
             // import javax.management.remote.JMXServiceURL;
             
-            setJMXServiceURL((JMXServiceURL) ExternalizableHelper.readObject(in));
+            try (DefaultObjectInputFilter.Scope ignored =
+                    DefaultObjectInputFilter.bridge(BridgeObjectInputFilter.managementPublish()))
+                {
+                setJMXServiceURL(NameServiceValuePolicy.validateJmxServiceURL(
+                        (JMXServiceURL) ExternalizableHelper.readObject(in)));
             
-            HashSet setInet = new HashSet();
-            ExternalizableHelper.readCollection(in, setInet, null);
-            setListenAddresses(setInet);
+                HashSet setInet = new HashSet();
+                ExternalizableHelper.readCollection(in, setInet, null);
+                for (Iterator iter = setInet.iterator(); iter.hasNext();)
+                    {
+                    Object oAddress = iter.next();
+                    if (!(oAddress instanceof java.net.InetAddress))
+                        {
+                        throw new java.io.IOException("unsupported JMX listen address type: "
+                                + (oAddress == null ? "null" : oAddress.getClass().getName()));
+                        }
+                    }
+                setListenAddresses(setInet);
+                }
             }
         
         // From interface: com.tangosol.net.Invocable
@@ -4664,6 +4714,16 @@ public class Connector
         public void setJMXServiceURL(javax.management.remote.JMXServiceURL url)
             {
             __m_JMXServiceURL = url;
+            }
+
+        // Accessor for the property "InvocationSender"
+        /**
+         * Setter for property InvocationSender.<p>
+         * The member that sent this publish task.
+         */
+        public void setInvocationSender(com.tangosol.net.Member member)
+            {
+            __m_InvocationSender = member;
             }
         
         // Accessor for the property "ListenAddresses"
