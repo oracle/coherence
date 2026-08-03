@@ -26,7 +26,6 @@ import javax.security.auth.Subject;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -55,7 +54,7 @@ public class PeerIdentityTokenFilterTest
 
         assertTrue(oToken instanceof Subject);
         assertTrue(((Subject) oToken).getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
-        assertSame(oToken, DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
+        assertThrows(SecurityException.class, () -> DefaultIdentityAsserter.INSTANCE.assertIdentity(oToken, null));
         }
 
     @Test
