@@ -128,6 +128,13 @@ public final class SerializationTelemetry
 
     /**
      * Record a remote executable policy check.
+     * <p>
+     * LEGACY shadow checks ({@code result=would_reject}) are keyed by
+     * {@code result}, {@code class}, {@code reason}, and {@code role}; the mode
+     * is implicit and the class is retained for per-class dry-run diagnostics.
+     * Live DEV and PROD checks ({@code result=allowed|rejected}) are keyed by
+     * {@code reason}, {@code role}, {@code result}, and {@code mode}; the class
+     * is omitted to bound MBean cardinality, and the MBean counter is updated.
      *
      * @param sResult  the check result
      * @param clz      the denied class
@@ -140,13 +147,29 @@ public final class SerializationTelemetry
         {
         String sClass  = clz == null ? "null" : clz.getName();
         String sReason = reason == null ? "-" : reason.name();
-        String sRole   = role == null ? SerializationRole.current().name() : role.name();
-        COUNTERS.computeIfAbsent(metricKey(METRIC_EXECUTABLE_POLICY_CHECK,
-                        "result", sResult,
-                        "class", sClass,
-                        "reason", sReason,
-                        "role", sRole),
-                s -> new LongAdder()).increment();
+        SerializationRole roleResolved = role == null ? SerializationRole.current() : role;
+        String sRole = roleResolved.name();
+        if ("would_reject".equals(sResult))
+            {
+            COUNTERS.computeIfAbsent(metricKey(METRIC_EXECUTABLE_POLICY_CHECK_NAME,
+                            "result", sResult,
+                            "class", sClass,
+                            "reason", sReason,
+                            "role", sRole),
+                    s -> new LongAdder()).increment();
+            }
+        else
+            {
+            String sMode = modeTag();
+            COUNTERS.computeIfAbsent(metricKey(METRIC_EXECUTABLE_POLICY_CHECK_NAME,
+                            "reason", sReason,
+                            "role", sRole,
+                            "result", sResult,
+                            "mode", sMode),
+                    s -> new LongAdder()).increment();
+            incrementMBeanCounter(new CounterKey(METRIC_EXECUTABLE_POLICY_CHECK, sResult, sReason,
+                    roleResolved, sMode, null, null));
+            }
 
         if ("rejected".equals(sResult) || "would_reject".equals(sResult))
             {
@@ -345,6 +368,9 @@ public final class SerializationTelemetry
                 case METRIC_LAMBDA_BYTECODE_CHECK:
                     return new AnnotatedStandardMBean((SerializationLambdaBytecodeCheckMBean) counter,
                             SerializationLambdaBytecodeCheckMBean.class);
+                case METRIC_EXECUTABLE_POLICY_CHECK:
+                    return new AnnotatedStandardMBean((SerializationExecutablePolicyCheckMBean) counter,
+                            SerializationExecutablePolicyCheckMBean.class);
                 default:
                     throw new IllegalArgumentException("Unknown serialization metric " + key.metric());
                 }
@@ -507,7 +533,9 @@ public final class SerializationTelemetry
 
     private static final String METRIC_PREFIX = "coh.serialization.";
 
-    private static final String METRIC_EXECUTABLE_POLICY_CHECK = "coh.executable.policy_check";
+    private static final String METRIC_EXECUTABLE_POLICY_CHECK = "executable_policy_check";
+
+    private static final String METRIC_EXECUTABLE_POLICY_CHECK_NAME = "coh.executable.policy_check";
 
     private static final String TAG_FMT = "fmt";
 

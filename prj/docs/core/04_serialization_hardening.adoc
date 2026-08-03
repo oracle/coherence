@@ -366,6 +366,27 @@ Runtime merge semantics are the same as generated allowlist entries: Coherence
 unions every visible classpath source into one view. See
 <<Generated `security-config.xml`>> for the full merge story.
 
+=== InvocationService
+
+In `PROD` mode, the Coherence*Extend `InvocationService` proxy is disabled by
+default. Operators who intentionally expose remote invocation can set
+`coherence.invocation.enabled=true` or configure
+`<proxy-config><invocation-service-proxy><enabled>true</enabled></invocation-service-proxy></proxy-config>`.
+The system property overrides operational configuration when both are present.
+
+When the proxy is enabled, every remote `Invocable` submitted through Extend is
+checked by `RemoteExecutablePolicy` before `InvocationService.query(...)`
+executes it. The invocable class must carry `@Remote.Executable` or appear with
+`executable="true"` in merged `security-config.xml`. Cluster-internal
+`Invocable` dispatch is not gated by the Extend proxy flag.
+
+If the proxy is disabled, the server log records
+`InvocationService proxy is DISABLED in <mode> mode by policy` once at proxy
+startup, while the client receives the same generic service-unavailable shape
+used for an unbound Extend receiver. The wire response intentionally does not
+name the policy decision. See the Coherence security guide section "Securing
+Extend Client Connections" for Extend authentication setup.
+
 === Functional-Interface Lambda Targets
 
 A lambda target is the functional interface named by a serialized lambda. For
@@ -485,6 +506,17 @@ remote-execution gate is wired in a future Coherence release. Does not
 bypass functional-interface target allowlisting; unlisted targets reject
 with `lambda-target-not-allowed`.
 |<<Lambda Serialization>>
+
+|`coherence.invocation.enabled`
+|boolean
+|`LEGACY`: `true`; `DEV`: `true`; `PROD`: `false`
+|26.04
+|Overrides whether the Coherence*Extend `InvocationService` proxy is exposed.
+When unset, operational config `<invocation-service-proxy><enabled>` is used if
+present; otherwise the mode-aware default is used (`LEGACY=true`, `DEV=true`,
+`PROD=false`). This property does not bypass `@Remote.Executable`
+enforcement when the proxy is enabled.
+|<<InvocationService>>
 
 |`coherence.serialization.allowed`
 |class-fqn-list
@@ -670,6 +702,16 @@ coh.lambda.bytecode_check{result=rejected,reason=dynamic-remote-denied-by-mode,s
 Use these counters to identify which boundary is rejecting traffic before
 loosening any runtime property.
 
+Live remote executable enforcement checks in `DEV` and `PROD` maintain:
+
+[source,text]
+----
+coh.executable.policy_check{reason=<OperationReason>, role=<SerializationRole>, result=allowed|rejected, mode=<dev|prod>}
+----
+
+For Extend `InvocationService`, the tuple uses `reason=INVOKE` and
+`role=EXTEND_PROXY`.
+
 Remote executable policy shadow checks in `LEGACY` mode maintain:
 
 [source,text]
@@ -679,7 +721,9 @@ coh.executable.policy_check{result=would_reject, class=<FQN>, reason=<OperationR
 
 This counter is emitted only by `DefaultRemoteExecutablePolicy.enforce(...)`.
 It tells you which remote executable classes would be rejected after migration
-to `DEV` or `PROD`. It does not measure serialization allowlist or lambda
+to `DEV` or `PROD`. The `mode` tag is intentionally absent because these are
+LEGACY-only shadow tuples, while `class` is included to make per-class dry-run
+diagnostics possible. It does not measure serialization allowlist or lambda
 bytecode readiness; validate those gates by running the workload under
 `-Dcoherence.mode=dev` or `-Dcoherence.mode=prod` in a non-production
 environment.

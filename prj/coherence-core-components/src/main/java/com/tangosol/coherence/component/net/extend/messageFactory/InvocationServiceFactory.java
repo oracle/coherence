@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,11 +11,14 @@
 package com.tangosol.coherence.component.net.extend.messageFactory;
 
 import com.tangosol.coherence.component.net.extend.Channel;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.net.messaging.ConnectionException;
+import com.tangosol.util.OperationReason;
+import com.tangosol.util.RemoteExecutablePolicy;
 
 /**
  * MessageFactory for version 1 of the InvocationService Protocol.
@@ -351,6 +354,9 @@ public class InvocationServiceFactory
             
             InvocationService service = getInvocationService();
             _assert(service != null);
+
+            RemoteExecutablePolicy.current().enforce(task.getClass(), OperationReason.INVOKE,
+                    SerializationRole.EXTEND_PROXY, channel.getSubject());
             
             response.setResult(service.query(task, null).values().iterator().next());
             }

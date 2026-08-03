@@ -25,14 +25,18 @@ final class DefaultRemoteExecutablePolicy
     @Override
     public void enforce(Class<?> clz, OperationReason reason, SerializationRole role, Subject subject)
         {
-        if (!isExecutable(clz))
+        boolean fExecutable = isExecutable(clz);
+        if (!CoherenceMode.isRemoteExecutableEnforced())
             {
-            if (!CoherenceMode.isRemoteExecutableEnforced())
+            if (!fExecutable)
                 {
                 SerializationTelemetry.recordExecutablePolicyCheck("would_reject", clz, reason, role, subject);
-                return;
                 }
+            return;
+            }
 
+        if (!fExecutable)
+            {
             SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject);
             String sName = clz == null ? "null" : clz.getName();
             throw new SecurityException("Remote execution denied for class " + sName
@@ -41,5 +45,7 @@ final class DefaultRemoteExecutablePolicy
                     + "); class is not annotated with @Remote.Executable and is not listed as "
                     + "executable=\"true\" in any merged security-config.xml");
             }
+
+        SerializationTelemetry.recordExecutablePolicyCheck("allowed", clz, reason, role, subject);
         }
     }

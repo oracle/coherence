@@ -21,6 +21,7 @@
     <class name="extend.DistExtendDeferKeyCheckTests$OrderId" source="manual"/>
     <class name="extend.InvocationExtendTests$TestInvocable" source="manual" executable="true"/>
     <class name="extend.InvocationExtendTests$TestInvocableTimeout" source="manual" executable="true"/>
+    <class name="extend.InvocationServiceEnforcementTest$PlainInvocable" source="manual"/>
     <class name="extend.JmxMBeanTests$MBeanHostIPInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MBeanInvocable" source="manual" executable="true"/>
     <class name="extend.JmxMBeanTests$MessagingDebugInvocable" source="manual" executable="true"/>

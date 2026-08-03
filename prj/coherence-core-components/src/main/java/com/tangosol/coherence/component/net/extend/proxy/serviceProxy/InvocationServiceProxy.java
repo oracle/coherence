@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@
 // ---- class: com.tangosol.coherence.component.net.extend.proxy.serviceProxy.InvocationServiceProxy
 
 package com.tangosol.coherence.component.net.extend.proxy.serviceProxy;
+
+import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.component.net.extend.message.request.InvocationServiceRequest;
 import com.tangosol.coherence.component.net.extend.protocol.InvocationServiceProtocol;
@@ -19,6 +21,7 @@ import com.tangosol.config.expression.NullParameterResolver;
 import com.tangosol.config.expression.Parameter;
 import com.tangosol.internal.net.service.extend.proxy.DefaultInvocationServiceProxyDependencies;
 import com.tangosol.internal.net.service.extend.proxy.InvocationServiceProxyDependencies;
+import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.net.InvocationService;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -30,7 +33,7 @@ import java.util.Iterator;
  * The ServiceProxy is the base component of cluster-side handlers (Proxy) for
  * Services. It enables non-clustered clients to invoke Service methods within
  * the cluster.
- * 
+ *
  * @see Component.Net.Extend.RemoteService
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
@@ -39,7 +42,7 @@ public class InvocationServiceProxy
         implements com.tangosol.net.InvocationService
     {
     // ---- Fields declarations ----
-    
+
     /**
      * Property InvocationService
      *
@@ -47,30 +50,35 @@ public class InvocationServiceProxy
      * proxy has not been configured, this method returns this.
      */
     private com.tangosol.net.InvocationService __m_InvocationService;
-    
+
+    /**
+     * True once the resolved enabled state has been logged.
+     */
+    private volatile boolean m_fEnabledLogged;
+
     // Default constructor
     public InvocationServiceProxy()
         {
         this(null, null, true);
         }
-    
+
     // Initializing constructor
     public InvocationServiceProxy(String sName, com.tangosol.coherence.Component compParent, boolean fInit)
         {
         super(sName, compParent, false);
-        
+
         if (fInit)
             {
             __init();
             }
         }
-    
+
     // Main initializer
     public void __init()
         {
         // private initialization
         __initPrivate();
-        
+
         // state initialization: public and protected properties
         try
             {
@@ -82,18 +90,18 @@ public class InvocationServiceProxy
             // re-throw as a runtime exception
             throw new com.tangosol.util.WrapperException(e);
             }
-        
+
         // signal the end of the initialization
         set_Constructed(true);
         }
-    
+
     // Private initializer
     protected void __initPrivate()
         {
-        
+
         super.__initPrivate();
         }
-    
+
     //++ getter for static property _Instance
     /**
      * Getter for property _Instance.<p>
@@ -103,7 +111,7 @@ public class InvocationServiceProxy
         {
         return new com.tangosol.coherence.component.net.extend.proxy.serviceProxy.InvocationServiceProxy();
         }
-    
+
     //++ getter for static property _CLASS
     /**
      * Getter for property _CLASS.<p>
@@ -123,12 +131,12 @@ public class InvocationServiceProxy
             }
         return clz;
         }
-    
+
     //++ getter for autogen property _Module
     /**
      * This is an auto-generated method that returns the global [design time]
     * parent component.
-    * 
+    *
     * Note: the class generator will ignore any custom implementation for this
     * behavior.
      */
@@ -136,31 +144,31 @@ public class InvocationServiceProxy
         {
         return this;
         }
-    
+
     // Declared at the super level
     /**
      * Create a new Default dependencies object by cloning the input
     * dependencies.  Each class or component that uses dependencies implements
-    * a Default dependencies class which provides the clone functionality.  
+    * a Default dependencies class which provides the clone functionality.
     * The dependency injection design pattern requires every component in the
     * component hierarchy to implement clone.
-    * 
+    *
     * @return DefaultProxyDependencies  the cloned dependencies
      */
     protected com.tangosol.internal.net.service.extend.proxy.DefaultProxyDependencies cloneDependencies(com.tangosol.internal.net.service.extend.proxy.ProxyDependencies deps)
         {
         // import com.tangosol.internal.net.service.extend.proxy.DefaultInvocationServiceProxyDependencies;
         // import com.tangosol.internal.net.service.extend.proxy.InvocationServiceProxyDependencies;
-        
+
         return new DefaultInvocationServiceProxyDependencies((InvocationServiceProxyDependencies) deps);
         }
-    
+
     // From interface: com.tangosol.net.InvocationService
     public void execute(com.tangosol.net.Invocable task, java.util.Set set, com.tangosol.net.InvocationObserver observer)
         {
         throw new UnsupportedOperationException();
         }
-    
+
     // Accessor for the property "InvocationService"
     /**
      * Getter for property InvocationService.<p>
@@ -171,45 +179,45 @@ public class InvocationServiceProxy
         {
         return __m_InvocationService;
         }
-    
+
     // Declared at the super level
     public String getName()
         {
         return "InvocationServiceProxy";
         }
-    
+
     // Declared at the super level
     public com.tangosol.net.messaging.Protocol getProtocol()
         {
         // import Component.Net.Extend.Protocol.InvocationServiceProtocol;
-        
+
         return InvocationServiceProtocol.getInstance();
         }
-    
+
     // Declared at the super level
     public String getServiceType()
         {
         // import com.tangosol.net.InvocationService;
-        
+
         return InvocationService.TYPE_REMOTE;
         }
-    
+
     // Declared at the super level
     /**
-     * This event occurs when dependencies are injected into the component. 
+     * This event occurs when dependencies are injected into the component.
     * First, call super.onDependencies to allow all super components to process
     * the Dependencies.  Each component is free to chose how it consumes
     * dependencies.  Typically, the  dependencies are copied into the
     * component's properties.  This technique isolates Dependency Injection
     * from the rest of the component code since components continue to access
-    * properties just as they did before. 
-    * 
+    * properties just as they did before.
+    *
     * However, for read-only dependency properties, the component can access
     * the dependencies directly as shown in the example below for
     * CacheServiceProxy dependencies.  The advantage to this technique is that
     * the property only exists in the dependencies object, it is not duplicated
     * in the component properties.
-    * 
+    *
     * CacheServiceProxyDependencies deps = (CacheServiceProxyDependencies)
     * getDependencies();
     * deps.getFoo();
@@ -227,13 +235,14 @@ public class InvocationServiceProxy
         // import com.tangosol.run.xml.XmlHelper;
         // import com.tangosol.util.Base;
         // import java.util.Iterator;
-        
+
         super.onDependencies(deps);
-        
+
         InvocationServiceProxyDependencies proxyDeps = (InvocationServiceProxyDependencies) deps;
-        
+        logEnabledResolution((DefaultInvocationServiceProxyDependencies) proxyDeps);
+
         // For ECCF based config, a custom service builder may be injected by CODI.
-        // For DCCF, we are still using the XML for custom services.  
+        // For DCCF, we are still using the XML for custom services.
         ParameterizedBuilder bldrService  = proxyDeps.getServiceBuilder();
         if (bldrService == null)
             {
@@ -257,7 +266,7 @@ public class InvocationServiceProxy
             // ECCF style - only an InstanceBuilder is supported
             ResolvableParameterList listParams = new ResolvableParameterList();
             listParams.add(new Parameter("cache-service", this));
-        
+
             if (bldrService instanceof InstanceBuilder)
                 {
                 // Add any remaining params, skip the first param which is the service
@@ -265,23 +274,23 @@ public class InvocationServiceProxy
                 if (iterParams.hasNext())
                     {
                     iterParams.next();
-                    }     
+                    }
                 while (iterParams.hasNext())
                     {
                     listParams.add((Parameter) iterParams.next());
                     }
                 }
             setInvocationService((InvocationService) bldrService.realize(new NullParameterResolver(),
-                    Base.getContextClassLoader(), listParams));    
+                    Base.getContextClassLoader(), listParams));
             }
         }
-    
+
     // Declared at the super level
     /**
      * The "component has been initialized" method-notification called out of
     * setConstructed() for the topmost component and that in turn notifies all
     * the children.
-    * 
+    *
     * This notification gets called before the control returns back to this
     * component instantiator (using <code>new Component.X()</code> or
     * <code>_newInstance(sName)</code>) and on the same thread. In addition,
@@ -292,29 +301,29 @@ public class InvocationServiceProxy
     public void onInit()
         {
         setInvocationService(this);
-        
+
         super.onInit();
         }
-    
+
     // Declared at the super level
     public void onMessage(com.tangosol.net.messaging.Message message)
         {
         // import Component.Net.Extend.Message.Request.InvocationServiceRequest;
-        
+
         if (message instanceof InvocationServiceRequest)
             {
             InvocationServiceRequest request = (InvocationServiceRequest) message;
             request.setInvocationService(getInvocationService());
             }
-        
+
         message.run();
         }
-    
+
     // From interface: com.tangosol.net.InvocationService
     public java.util.Map query(com.tangosol.net.Invocable task, java.util.Set set)
         {
         // import java.util.Collections;
-        
+
         if (set == null)
             {
             task.init(this);
@@ -327,20 +336,62 @@ public class InvocationServiceProxy
                     + "the specified Member set must be null");
             }
         }
-    
+
     // Declared at the super level
     public Object resolveParameter(String sType, String sValue)
         {
         // import com.tangosol.net.InvocationService;
-        
+
         if (InvocationService.class.getName().equals(sType) && "{service}".equals(sValue))
             {
             return this;
             }
-        
+
         return super.resolveParameter(sType, sValue);
         }
-    
+
+    /**
+     * Log the resolved invocation-service proxy enabled state.
+     *
+     * @param deps  the resolved proxy dependencies
+     */
+    protected void logEnabledResolution(DefaultInvocationServiceProxyDependencies deps)
+        {
+        if (m_fEnabledLogged)
+            {
+            return;
+            }
+
+        String sMode = CoherenceMode.current().name().toLowerCase();
+        Logger.info("InvocationService: enabled=" + isEnabled()
+                + " (mode=" + sMode
+                + ", coherence.invocation.enabled=" + valueOrUnset(deps.getSystemPropertyValue())
+                + ", operational config=" + valueOrUnset(deps.getOperationalConfigEnabled()) + ")");
+
+        if (!isEnabled() && !CoherenceMode.isLegacy())
+            {
+            Logger.warn("InvocationService proxy is DISABLED in " + sMode + " mode by policy. "
+                    + "Remote Invocable execution will be refused with a generic "
+                    + "service-unavailable fault. Set coherence.invocation.enabled=true "
+                    + "or <invocation-service-proxy><enabled>true</enabled> to expose "
+                    + "the proxy.");
+            }
+
+        m_fEnabledLogged = true;
+        }
+
+    /**
+     * Return a display value for optional configuration.
+     *
+     * @param oValue  the value to display
+     *
+     * @return the value, or {@code unset}
+     */
+    protected static String valueOrUnset(Object oValue)
+        {
+        return oValue == null ? "unset" : String.valueOf(oValue);
+        }
+
     // Declared at the super level
     /**
      * Setter for property Config.<p>
@@ -350,10 +401,10 @@ public class InvocationServiceProxy
         {
         // import com.tangosol.internal.net.service.extend.proxy.DefaultInvocationServiceProxyDependencies;
         // import com.tangosol.internal.net.service.extend.proxy.LegacyXmlInvocationServiceProxyHelper as com.tangosol.internal.net.service.extend.proxy.LegacyXmlInvocationServiceProxyHelper;
-        
+
         setDependencies(com.tangosol.internal.net.service.extend.proxy.LegacyXmlInvocationServiceProxyHelper.fromXml(xml, new DefaultInvocationServiceProxyDependencies()));
         }
-    
+
     // Accessor for the property "InvocationService"
     /**
      * Setter for property InvocationService.<p>
