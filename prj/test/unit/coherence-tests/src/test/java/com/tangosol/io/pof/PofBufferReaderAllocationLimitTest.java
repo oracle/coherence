@@ -7,8 +7,13 @@
 package com.tangosol.io.pof;
 
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
+
+import com.tangosol.util.Binary;
+import com.tangosol.util.LongArray;
+import com.tangosol.util.SparseArray;
 
 import org.junit.Test;
 
@@ -17,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -94,6 +100,20 @@ public class PofBufferReaderAllocationLimitTest
         }
 
     @Test
+    public void shouldReadBinaryFromSuppliedInput()
+            throws IOException
+        {
+        TestReader reader = reader(limits(64, 8, 8), out -> out.writeByte(0));
+        ReadBuffer  input  = buffer(out ->
+            {
+            out.writePackedInt(3);
+            out.write(new byte[] {1, 2, 3});
+            });
+
+        assertEquals(new Binary(new byte[] {1, 2, 3}), reader.readBinaryForTest(input.getBufferInput()));
+        }
+
+    @Test
     public void shouldRejectDerivedByteCountOverflowBeforeAllocation()
             throws IOException
         {
@@ -126,6 +146,24 @@ public class PofBufferReaderAllocationLimitTest
         }
 
     @Test
+    public void shouldAllowSparseLongArrayIndexBeyondDeclaredLogicalLength()
+            throws IOException
+        {
+        PofBufferReader reader = reader(limits(64, 8, 8), out ->
+            {
+            out.writePackedInt(T_UNIFORM_SPARSE_ARRAY);
+            out.writePackedInt(T_CHAR_STRING);
+            out.writePackedInt(5);
+            out.writePackedInt(5);
+            out.writeSafeUTF("pet");
+            out.writePackedInt(-1);
+            });
+
+        LongArray array = reader.readLongArray(-1, new SparseArray());
+        assertEquals("pet", array.get(5));
+        }
+
+    @Test
     public void shouldRejectSparseEntriesPastDeclaredLogicalLength()
             throws IOException
         {
@@ -148,17 +186,22 @@ public class PofBufferReaderAllocationLimitTest
         return new SerializationLimitPolicy(cbMax, cElements, cMapEntries);
         }
 
-    private static PofBufferReader reader(SerializationLimitPolicy policy, Writer writer)
+    private static TestReader reader(SerializationLimitPolicy policy, Writer writer)
+            throws IOException
+        {
+        SimplePofContext context = new SimplePofContext();
+        context.setLimitPolicy(policy);
+        return new TestReader(buffer(writer).getBufferInput(), context);
+        }
+
+    private static ReadBuffer buffer(Writer writer)
             throws IOException
         {
         ByteArrayWriteBuffer     buffer = new ByteArrayWriteBuffer(64);
         WriteBuffer.BufferOutput out    = buffer.getBufferOutput();
 
         writer.write(out);
-
-        SimplePofContext context = new SimplePofContext();
-        context.setLimitPolicy(policy);
-        return new PofBufferReader(buffer.getReadBuffer().getBufferInput(), context);
+        return buffer.getReadBuffer();
         }
 
     @FunctionalInterface
@@ -166,5 +209,20 @@ public class PofBufferReaderAllocationLimitTest
         {
         void write(WriteBuffer.BufferOutput out)
                 throws IOException;
+        }
+
+    private static class TestReader
+            extends PofBufferReader
+        {
+        private TestReader(ReadBuffer.BufferInput in, PofContext context)
+            {
+            super(in, context);
+            }
+
+        private Binary readBinaryForTest(ReadBuffer.BufferInput in)
+                throws IOException
+            {
+            return readBinary(in);
+            }
         }
     }

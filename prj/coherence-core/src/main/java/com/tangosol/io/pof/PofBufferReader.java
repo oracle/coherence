@@ -1604,7 +1604,7 @@ public class PofBufferReader
                     break;
 
                 case T_OCTET_STRING:
-                    bin = readBinary(in);
+                    bin = readBinary(in, true);
                     break;
 
                 case T_COLLECTION:
@@ -2727,7 +2727,7 @@ public class PofBufferReader
                             {
                             break;
                             }
-                        validateSparseIndex("sparse", iElement, co, cRemaining);
+                        validateSparseEntryCount("sparse", cRemaining);
                         array.set(iElement, readAsObject(in.readPackedInt()));
                         }
                     while (--cRemaining >= 0);
@@ -2751,7 +2751,7 @@ public class PofBufferReader
                             {
                             break;
                             }
-                        validateSparseIndex("sparse", iElement, co, cRemaining);
+                        validateSparseEntryCount("sparse", cRemaining);
                         array.set(iElement, readAsUniformObject(nElementType));
                         }
                     while (--cRemaining >= 0);
@@ -4151,8 +4151,25 @@ public class PofBufferReader
     protected int validateByteCount(String sKind, int cb)
             throws IOException
         {
+        return validateByteCount(sKind, cb, m_in);
+        }
+
+    /**
+     * Validate a POF byte count before reading or allocating bytes.
+     *
+     * @param sKind  the POF structure kind
+     * @param cb     the byte count
+     * @param in     the buffer input to read from
+     *
+     * @return the validated byte count
+     *
+     * @throws IOException if the count is invalid
+     */
+    protected int validateByteCount(String sKind, int cb, ReadBuffer.BufferInput in)
+            throws IOException
+        {
         getLimitPolicy().validateContainerBytes(sKind, cb);
-        int cbRemaining = m_in.available();
+        int cbRemaining = remainingBytes(in);
         if (cb > cbRemaining)
             {
             throw new IOException("POF " + sKind + " byte count exceeds remaining input: " + cb + " > " + cbRemaining);
@@ -4183,6 +4200,24 @@ public class PofBufferReader
         }
 
     /**
+     * Return the remaining readable bytes for the specified input.
+     *
+     * @param in  the buffer input to inspect
+     *
+     * @return the remaining readable bytes
+     *
+     * @throws IOException if the input cannot report its offset
+     */
+    protected int remainingBytes(ReadBuffer.BufferInput in)
+            throws IOException
+        {
+        ReadBuffer buffer = in.getBuffer();
+        return buffer == null
+                ? in.available()
+                : buffer.length() - in.getOffset();
+        }
+
+    /**
      * Validate a sparse-array index.
      *
      * @param sKind       the POF structure kind
@@ -4195,14 +4230,28 @@ public class PofBufferReader
     protected void validateSparseIndex(String sKind, int iElement, int cElements, int cRemaining)
             throws IOException
         {
-        if (cRemaining <= 0)
-            {
-            throw new IOException("POF " + sKind + " sparse array has too many entries");
-            }
+        validateSparseEntryCount(sKind, cRemaining);
         if (iElement >= cElements)
             {
             throw new IOException("POF " + sKind + " sparse array index out of range: "
                     + iElement + " >= " + cElements);
+            }
+        }
+
+    /**
+     * Validate that a sparse array has not exceeded its declared entry budget.
+     *
+     * @param sKind       the POF structure kind
+     * @param cRemaining  the remaining non-sentinel entry budget
+     *
+     * @throws IOException if the entry budget is exhausted
+     */
+    protected void validateSparseEntryCount(String sKind, int cRemaining)
+            throws IOException
+        {
+        if (cRemaining <= 0)
+            {
+            throw new IOException("POF " + sKind + " sparse array has too many entries");
             }
         }
 
@@ -4261,7 +4310,33 @@ public class PofBufferReader
     protected Binary readBinary(ReadBuffer.BufferInput in)
             throws IOException
         {
-        int cb = validateByteCount("octet string", in.readPackedInt());
+        return readBinary(in, false);
+        }
+
+    /**
+    * Read a Binary object from the specified BufferInput in an optimal way,
+    * depending on the existence of an enclosing ReadBuffer.
+    *
+    * @param in                  a BufferInput to read from
+    * @param fValidateRemaining  true to validate the byte count against the
+    *                            input before reading
+    *
+    * @return a Binary object
+    *
+    * @throws IOException  if an I/O error occurs
+    */
+    protected Binary readBinary(ReadBuffer.BufferInput in, boolean fValidateRemaining)
+            throws IOException
+        {
+        int cb = in.readPackedInt();
+        if (fValidateRemaining)
+            {
+            validateByteCount("octet string", cb, in);
+            }
+        else
+            {
+            getLimitPolicy().validateContainerBytes("octet string", cb);
+            }
 
         ReadBuffer buf = in.getBuffer();
         if (buf == null)
