@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
  * Hostname verifier for SSL functional tests that communicate over loopback.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 public class LoopbackHostnameVerifier
         implements HostnameVerifier
