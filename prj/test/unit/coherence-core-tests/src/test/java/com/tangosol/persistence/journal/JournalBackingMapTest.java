@@ -322,6 +322,7 @@ public class JournalBackingMapTest
 
         when(service.getPersistentStore(7)).thenReturn(store);
         when(service.ensureOpenPersistentStore(7)).thenReturn(store);
+        when(service.getPartitionCount()).thenReturn(257);
         when(store.isOpen()).thenReturn(true);
         when(store.containsExtent(1L)).thenReturn(false);
 
@@ -350,6 +351,7 @@ public class JournalBackingMapTest
 
         when(service.getBackupPersistentStore(9)).thenReturn(store);
         when(service.ensureOpenBackupPersistentStore(9)).thenReturn(store);
+        when(service.getPartitionCount()).thenReturn(257);
         when(store.isOpen()).thenReturn(true);
         when(store.containsExtent(1L)).thenReturn(false);
 
