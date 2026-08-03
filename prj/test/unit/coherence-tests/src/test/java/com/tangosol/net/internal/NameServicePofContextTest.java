@@ -12,6 +12,11 @@ import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.pof.PofPrincipal;
 import com.tangosol.io.pof.SimplePofContext;
 
+import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameService;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator;
+
+import com.tangosol.net.security.PermissionInfo;
+
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.UUID;
 
@@ -25,6 +30,7 @@ import java.net.InetSocketAddress;
 import javax.security.auth.Subject;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -76,6 +82,20 @@ public class NameServicePofContextTest
         Subject subjectResult = (Subject) roundTrip(subject);
         assertEquals(1, subjectResult.getPrincipals().size());
         assertEquals("CN=Manager,OU=MyUnit", subjectResult.getPrincipals().iterator().next().getName());
+        }
+
+    @Test
+    public void shouldIgnoreRemoteNameServiceIdentityTokens()
+        {
+        RemoteNameService service = new RemoteNameService();
+        TcpInitiator      initiator = new TcpInitiator();
+        PermissionInfo    info      = new PermissionInfo(null, "RemoteNameService", null, null);
+
+        initiator.setParentService(service);
+
+        assertNull(initiator.serializeIdentityToken(info));
+        assertNull(service.serializeIdentityToken(info));
+        assertNull(service.deserializeIdentityToken(new byte[] {1}));
         }
 
     @Test

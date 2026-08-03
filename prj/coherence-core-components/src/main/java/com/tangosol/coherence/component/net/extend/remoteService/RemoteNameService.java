@@ -221,6 +221,34 @@ public class RemoteNameService
         
         return NameServicePofContext.INSTANCE;
         }
+
+    // Declared at the super level
+    /**
+     * NameService does not check security context, so the remote lookup
+     * channel does not deserialize identity tokens.
+     *
+     * @param abToken  the identity token
+     *
+     * @return null
+     */
+    public Object deserializeIdentityToken(byte[] abToken)
+        {
+        return null;
+        }
+
+    // Declared at the super level
+    /**
+     * NameService does not check security context, so the remote lookup
+     * channel does not send identity tokens.
+     *
+     * @param oToken  the identity token object to serialize
+     *
+     * @return null
+     */
+    public byte[] serializeIdentityToken(Object oToken)
+        {
+        return null;
+        }
     
     // Declared at the super level
     /**
