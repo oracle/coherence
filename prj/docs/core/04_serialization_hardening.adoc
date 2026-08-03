@@ -124,8 +124,7 @@ A member that starts in `DEV` mode logs the warning:
 
 [source,text]
 ----
-Coherence is running in DEV mode. DO NOT use dev mode in production.
-Set -Dcoherence.mode=prod to restore production-safe defaults.
+Coherence is running in DEV mode. DO NOT use dev mode in production. Set -Dcoherence.mode=prod to restore production-safe defaults.
 ----
 
 A member that starts in `LEGACY` mode logs the exact `LEGACY_WARNING` banner:
@@ -262,6 +261,21 @@ single curated file - each module that sends wire payload classes ships its
 own generated resource. A class that is not listed in any generated file and
 is not added via `coherence.serialization.allowed` is rejected at the gate.
 
+[NOTE]
+====
+"Wire payload classes" means more than the obvious entry processors,
+filters, aggregators, and POF data types. Any class whose state crosses a
+Coherence wire boundary is subject to the allowlist gate, including classes
+captured by the closure of a serialized lambda. If your code writes
+`cache.invokeAll(filter, entry -> doSomething(entry, helper))` and `helper`
+is an instance of `com.acme.PricingHelper`, then `PricingHelper` is part of
+the lambda's serialized state and must be allowlisted on the receiver. The
+typical fix is to annotate the helper class with `@Remote.Allowed` or apply
+a package-level annotation. After upgrade, the most common
+`security-config-missing` rejections come from such capturer classes rather
+than from obvious payload types.
+====
+
 == Lambda Serialization
 
 Coherence serializes Java lambdas in one of two representations. STATIC
@@ -281,9 +295,9 @@ applications have two supported migration paths:
 * Set `-Dcoherence.remote.dynamic.unauthenticated=allow` (the recommended
   path). This preserves DYNAMIC lambda serialization and the rolling-upgrade
   ergonomics that make it Coherence's default. It is a long-term option, not
-  deprecated; AUTH-01 will later layer subject-aware permission checks on
-  top of this path. Monitor rejection telemetry on the `site=lambda` counter
-  to confirm traffic shape after enabling.
+  deprecated; a future Coherence release will layer subject-aware permission
+  checks on top of this path. Monitor rejection telemetry on the
+  `site=lambda` counter to confirm traffic shape after enabling.
 * Switch to STATIC by setting `-Dcoherence.lambdas=static`. This avoids
   wire-supplied bytecode entirely but couples every sender and receiver to
   the same compiled lambda class: every producer and consumer must redeploy
@@ -410,13 +424,31 @@ receivers before sending lambdas that target the new interface.
 
 === Migration
 
-* Rebuild: add the annotation (or XML entry) to every class in the Executable
-  set. The `security-config-maven-plugin` / Gradle task picks them up
-  automatically.
-* Expect no runtime change in 26.04: the classification exists but no gate
-  refuses execution yet. CACHE-01 wires enforcement.
+`@Remote.Executable` covers two distinct cases that have different
+runtime-enforcement timelines in 26.04:
 
-Slice G ships the classification plumbing only. Runtime enforcement at every executable construction site ships under CACHE-01 Slices A–F. Until then, `@Remote.Executable` is advisory: a class may be annotated or XML-listed, but no gate refuses execution of an unlisted class yet.
+* *Functional interfaces* annotated with `@Remote.Executable` are enforced
+  today. In `DEV` and `PROD`, lambdas that target an unannotated functional
+  interface are rejected with `lambda-target-not-allowed` before bytecode
+  is materialized. Migrate by annotating every custom serializable
+  functional interface used as a remote lambda target and rebuilding the
+  artifact that owns it. See <<Functional-Interface Lambda Targets>>.
+* *Concrete executable classes* (entry processors, aggregators, invocables,
+  filters, value extractors, comparators, triggers, server-side event
+  interceptors, `coherence-concurrent` tasks) are classified by the build
+  in 26.04 but no runtime gate refuses execution of an unannotated class
+  yet. The classification surface exists so applications can complete the
+  annotation and regeneration work ahead of a future Coherence release
+  that wires execution enforcement at every construction site. Until then,
+  treat `@Remote.Executable` on concrete classes as advisory: classify
+  now, regenerate `security-config.xml`, and use the
+  `coh.executable.policy_check{result=would_reject}` shadow telemetry to
+  drive the migration; see <<Telemetry>>.
+
+In both cases the build pipeline is the same. Rebuild every artifact that
+owns an executable class or functional interface; the
+`security-config-maven-plugin` and the Gradle `securityConfig` task pick up
+the annotations automatically.
 
 === Why `@Remote.Executable` And Not Just `@Remote.Allowed`?
 
@@ -446,11 +478,12 @@ production target. `DEV` and `LEGACY` log prominent warnings.
 |`LEGACY`: `allow`; `DEV`: `allow`; `PROD`: `deny`
 |26.04
 |Controls whether unauthenticated wire-arriving DYNAMIC lambda bytecode is
-accepted before AUTH-01 subject permissions are available. Scope: dynamic
-lambda bytecode today; `MethodInvocationProcessor` and `ScriptProcessor` once
-CACHE-01 Slice B lands. Does not bypass functional-interface target
-allowlisting; unlisted targets reject with
-`REASON_LAMBDA_TARGET_NOT_ALLOWED`.
+accepted before subject-aware authorization is available. Scope in 26.04 is
+dynamic lambda bytecode; the same property will govern
+`MethodInvocationProcessor` and `ScriptProcessor` once their
+remote-execution gate is wired in a future Coherence release. Does not
+bypass functional-interface target allowlisting; unlisted targets reject
+with `lambda-target-not-allowed`.
 |<<Lambda Serialization>>
 
 |`coherence.serialization.allowed`
@@ -482,9 +515,10 @@ current build.
 |`coherence.lambdas`
 |enum: `dynamic`, `static`
 |`dynamic`
-|existing
-|Existing lambda serialization mode. Set to `static` when migrating production
-applications away from DYNAMIC lambda bytecode.
+|pre-26.04
+|Lambda serialization mode that has shipped in prior Coherence releases. Set
+to `static` when migrating production applications away from DYNAMIC lambda
+bytecode at the cost of lockstep client/server code-version coordination.
 |<<Lambda Serialization>>
 |===
 
@@ -511,24 +545,24 @@ table below.
 
 [cols="2,1,3,3", options="header"]
 |===
-|Reason or message shape |Slice |Typical cause |Fix
+|Reason or message shape |Subsystem |Typical cause |Fix
 
 |`Lambda bytecode rejected: site=%s, reason=security-config-missing, denied=%s`
-|A/E
+|Allowlist
 |An application class arrived as a class-name payload but is not in generated
 security config or the manual allowlist.
 |Annotate the producing class with `@Remote.Allowed` or `@PortableType`, run
 the Maven or Gradle generator, and package the generated config.
 
 |`Lambda bytecode rejected: site=LAMBDA, reason=dynamic-remote-denied-by-mode`
-|E.4
+|Lambda mode gate
 |A DYNAMIC lambda arrived while `coherence.mode=prod` and
 `coherence.remote.dynamic.unauthenticated` resolved to `deny`.
 |Switch to STATIC lambda serialization or explicitly set
 `-Dcoherence.remote.dynamic.unauthenticated=allow`.
 
 |`Lambda bytecode rejected: site=%s, reason=lambda-target-not-allowed, denied=%s`
-|G.3
+|Lambda target
 |A serialized lambda targets a functional interface that is not marked as a
 lambda target in merged security config. The denied value is the functional
 interface FQN, not the lambda capture class.
@@ -537,77 +571,77 @@ security config, or add a manual `<class name="..." lambda-target="true"/>`
 entry for that interface.
 
 |`reason=bytecode-references-gadget`
-|A
+|Bytecode scan
 |Generated or supplied lambda bytecode references a deny-listed gadget class or
 method.
 |Remove the reference or use a safe server-side class. Use
 `coherence.lambda.bytecode.allow` only for emergency class-reference overrides.
 
 |`reason=class-name-on-denylist`
-|A
+|Bytecode scan
 |A static lambda or class-name payload names a deny-listed class.
 |Remove the deny-listed class from the payload path.
 
 |`reason=native-method-declared`
-|A
+|Bytecode scan
 |Wire-supplied bytecode declares a native method.
 |Do not send dynamic bytecode that declares native methods.
 
 |`reason=dynamic-class-forname`
-|A
+|Bytecode scan
 |Wire-supplied bytecode calls `Class.forName` with a non-constant value.
 |Resolve the class server-side or remove dynamic class loading from the lambda.
 
 |`reason=invalid-bytecode`
-|A/D
+|Bytecode scan / Class definition
 |The supplied class bytes are empty, malformed, or cannot be parsed.
 |Regenerate the payload with a supported Coherence version and check for
 transport corruption.
 
 |`Invalid class definition: missing-magic`
-|D
+|Class definition
 |A class-definition payload does not start with the Java class-file magic
 number.
 |Reject the payload source; resend only valid class files.
 
 |`Invalid class definition: invalid-version`
-|D
+|Class definition
 |A class-definition payload uses an unsupported class-file version.
 |Build the producing artifact for a Java version supported by the receiving
 member.
 
 |`Invalid class definition: invalid-shape`
-|D
+|Class definition
 |A class-definition payload has an unexpected constant-pool, method, or class
 shape.
 |Regenerate the payload and verify client/server version compatibility.
 
 |`Invalid class definition: trailing-bytes`
-|D
+|Class definition
 |A class-definition payload contains bytes after the parsed class file.
 |Reject the payload source; resend a clean class definition.
 
 |`ClassIdentity package is not allowed: %s`
-|D/E
+|Class identity / Allowlist
 |A dynamic class identity names a package not present in generated security
 config or the runtime allowlist.
 |Annotate the producing type or package and regenerate security config.
 
 |`unknown user type: %s. Unregistered POF type ... strict mode`
-|C/E
+|POF strict / Allowlist
 |A POF payload names a user type that is not registered in the receiver's POF
 configuration.
 |Register the class in `<pof-config>`, annotate it with `@PortableType`, or add
 `@Remote.Allowed` and regenerate security config.
 
 |`Deserialization of class %s was rejected`
-|B
+|JEP-290 filter
 |The JEP-290 filter rejected a Java-serialization class in a fail-closed path.
 |Use a registered safe type or add the application type to generated security
 config or `coherence.serialization.allowed`.
 
 |`coh.executable.policy_check{result=would_reject, class=<FQN>, reason=<OperationReason>, role=<SerializationRole>}`
-|H
+|Executable policy (shadow)
 |`LEGACY` mode classified a remote executable object that would be rejected by
 `DefaultRemoteExecutablePolicy.enforce(...)` in `DEV` or `PROD`.
 |Treat each tuple as migration work: annotate the class with
