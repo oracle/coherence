@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="rwbm.ReadWriteBackingMapTests" source="manual"/>
     <class name="rwbm.ReadWriteBackingMapTests$CacheEventInterceptor" source="manual" executable="true"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomAggregator" source="manual" executable="true"/>
     <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor1" source="manual" executable="true"/>

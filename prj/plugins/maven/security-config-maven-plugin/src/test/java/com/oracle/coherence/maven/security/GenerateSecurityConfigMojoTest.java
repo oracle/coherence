@@ -54,6 +54,35 @@ public class GenerateSecurityConfigMojoTest
         }
 
     @Test
+    public void shouldMergeExistingSecurityConfig()
+            throws Exception
+        {
+        Path dir = m_folder.newFolder().toPath();
+        copyClass(dir, MojoAllowedFixture.class);
+
+        Path path = dir.resolve("META-INF/coherence/security-config.xml");
+        Files.createDirectories(path.getParent());
+        Files.write(path, ("<?xml version=\"1.0\"?>\n"
+                + "<security-config xmlns=\"http://xmlns.oracle.com/coherence/coherence-security-config\"\n"
+                + "                 version=\"1.0\">\n"
+                + "  <allowed-classes>\n"
+                + "    <class name=\"example.ManualOwner\" source=\"manual\" lambda-target=\"true\"/>\n"
+                + "  </allowed-classes>\n"
+                + "</security-config>\n").getBytes(StandardCharsets.UTF_8));
+
+        GenerateSecurityConfigMojo mojo = new GenerateSecurityConfigMojo();
+        mojo.setClassesDirectory(dir.toFile());
+
+        mojo.execute();
+
+        String sXml = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+        assertThat(sXml, containsString("example.ManualOwner"));
+        assertThat(sXml, containsString("lambda-target=\"true\""));
+        assertThat(sXml, containsString(MojoAllowedFixture.class.getName()));
+        assertThat(sXml, containsString("source=\"@Remote.Allowed\""));
+        }
+
+    @Test
     public void shouldSkipWhenClassesDirectoryIsMissing()
             throws Exception
         {

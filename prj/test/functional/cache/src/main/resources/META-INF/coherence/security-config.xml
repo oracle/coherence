@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="cache.BaseAsyncNamedCacheTests" source="manual"/>
     <class name="cache.BackingMapTests$CustomMap" source="manual"/>
     <class name="cache.BinaryEntryExpiryTest$TestProcessor" source="manual" executable="true"/>
     <class name="cache.Bug38748319RegressionTests$ClearCache" source="manual"/>

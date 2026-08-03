@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="com.oracle.coherence.io.json.JsonSerializerTest" source="manual"/>
     <class name="com.oracle.coherence.io.json.genson.bean.Image" source="manual"/>
     <class name="com.oracle.coherence.io.json.genson.bean.Media" source="manual"/>
     <class name="com.oracle.coherence.io.json.genson.bean.MediaContent" source="manual"/>

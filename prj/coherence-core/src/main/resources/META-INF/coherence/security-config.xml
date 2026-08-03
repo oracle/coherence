@@ -70,6 +70,7 @@
     <class name="com.oracle.coherence.persistence.FatalAccessException" source="manual"/>
     <class name="com.oracle.coherence.persistence.PersistenceException" source="manual"/>
     <class name="com.oracle.coherence.persistence.PersistentStoreInfo" source="manual"/>
+    <class name="com.oracle.coherence.repository.AbstractRepositoryBase" source="manual"/>
     <class name="com.tangosol.coherence.config.ParameterMacroExpression" source="manual"/>
     <class name="com.tangosol.coherence.config.ResolvableParameterList" source="manual"/>
     <class name="com.tangosol.coherence.config.SimpleParameterList" source="manual"/>
@@ -239,6 +240,7 @@
     <class name="com.tangosol.internal.federation.protocol.ReplicateAckMessage$Action" source="manual"/>
     <class name="com.tangosol.internal.federation.protocol.ReplicateMessage" source="manual"/>
     <class name="com.tangosol.internal.federation.service.DistributionFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.federation.service.FederatedCacheControl" source="manual"/>
     <class name="com.tangosol.internal.federation.service.FederatedCacheControl$ContinuationProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.federation.service.bus.DisconnectedException" source="manual"/>
     <class name="com.tangosol.internal.federation.service.destination.ControllerStatus" source="manual"/>
@@ -307,6 +309,7 @@
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$Names$Storage" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicCaches$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicChannelPublisherConnector$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor" source="manual" executable="true"/>
@@ -398,7 +401,7 @@
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor" source="manual" executable="true"/>
-    <class name="com.tangosol.internal.util.processor.CacheProcessors" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors" source="manual"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$BinaryGet" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Get" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$GetOrDefault" source="manual" executable="true"/>
@@ -417,27 +420,27 @@
     <class name="com.tangosol.internal.util.security.SecurityConfigGenerator$ReadFailure" source="manual"/>
     <class name="com.tangosol.internal.util.stream.CollectorAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoubleCollectorAggregator" source="manual" executable="true"/>
-    <class name="com.tangosol.internal.util.stream.DoublePipeline" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline" source="manual"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$StatelessOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntCollectorAggregator" source="manual" executable="true"/>
-    <class name="com.tangosol.internal.util.stream.IntPipeline" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$StatelessOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongCollectorAggregator" source="manual" executable="true"/>
-    <class name="com.tangosol.internal.util.stream.LongPipeline" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$StatelessOp" source="manual"/>
-    <class name="com.tangosol.internal.util.stream.ReferencePipeline" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline" source="manual"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$Head" source="manual"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$MatcherAggregator" source="manual" executable="true"/>
@@ -555,6 +558,7 @@
     <class name="com.tangosol.net.security.PermissionException" source="manual"/>
     <class name="com.tangosol.net.security.PermissionInfo" source="manual"/>
     <class name="com.tangosol.net.security.SecurityProvider" source="manual"/>
+    <class name="com.tangosol.net.topic.NamedTopic" source="manual"/>
     <class name="com.tangosol.net.topic.NamedTopicEvent" source="manual"/>
     <class name="com.tangosol.net.topic.NamedTopicEvent$Type" source="manual"/>
     <class name="com.tangosol.net.topic.Publisher$FailOnFull" source="manual"/>
@@ -568,6 +572,7 @@
     <class name="com.tangosol.net.topic.Subscriber$CommitResultStatus" source="manual"/>
     <class name="com.tangosol.net.topic.Subscriber$CompleteOnEmpty" source="manual"/>
     <class name="com.tangosol.net.topic.Subscriber$Convert" source="manual"/>
+    <class name="com.tangosol.net.topic.Subscriber$Element" source="manual"/>
     <class name="com.tangosol.net.topic.Subscriber$Filtered" source="manual"/>
     <class name="com.tangosol.net.topic.Subscriber$Name" source="manual"/>
     <class name="com.tangosol.net.topic.TopicException" source="manual"/>
@@ -621,7 +626,7 @@
     <class name="com.tangosol.run.xml.XmlSerializableAdapter" source="manual"/>
     <class name="com.tangosol.util.AbstractKeyBasedMap$EntrySet$Entry" source="manual"/>
     <class name="com.tangosol.util.AbstractScript" source="manual"/>
-    <class name="com.tangosol.util.Aggregators" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.Aggregators" source="manual"/>
     <class name="com.tangosol.util.AnyEvent" source="manual"/>
     <class name="com.tangosol.util.AssertionException" source="manual"/>
     <class name="com.tangosol.util.Binary" source="manual"/>
@@ -659,11 +664,11 @@
     <class name="com.tangosol.util.DeltaSet" source="manual"/>
     <class name="com.tangosol.util.Dequeue" source="manual"/>
     <class name="com.tangosol.util.ErrorList$OverflowException" source="manual"/>
-    <class name="com.tangosol.util.Extractors" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.Extractors" source="manual"/>
     <class name="com.tangosol.util.ExternalizableHelper$IntDecoratedObject" source="manual"/>
     <class name="com.tangosol.util.Filter" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.FilterBuildingException" source="manual"/>
-    <class name="com.tangosol.util.Filters" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.Filters" source="manual"/>
     <class name="com.tangosol.util.Fragment" source="manual"/>
     <class name="com.tangosol.util.IllegalStringException" source="manual"/>
     <class name="com.tangosol.util.ImmutableArrayList" source="manual"/>
@@ -674,8 +679,8 @@
     <class name="com.tangosol.util.ImmutableMultiList$SetView" source="manual"/>
     <class name="com.tangosol.util.InflatableList$InflatedList" source="manual"/>
     <class name="com.tangosol.util.InflatableSet$InflatedSet" source="manual"/>
-    <class name="com.tangosol.util.InvocableMap" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.InvocableMap$Entry" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.InvocableMap" source="manual"/>
+    <class name="com.tangosol.util.InvocableMap$Entry" source="manual"/>
     <class name="com.tangosol.util.InvocableMapHelper$SimpleEntry" source="manual"/>
     <class name="com.tangosol.util.ListMap" source="manual"/>
     <class name="com.tangosol.util.Listeners" source="manual"/>
@@ -698,7 +703,7 @@
     <class name="com.tangosol.util.OperationReason" source="manual"/>
     <class name="com.tangosol.util.PrimitiveSparseArray" source="manual"/>
     <class name="com.tangosol.util.PrimitiveSparseArray$PrimitiveNode" source="manual"/>
-    <class name="com.tangosol.util.Processors" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.Processors" source="manual"/>
     <class name="com.tangosol.util.ReadHeavyLongArray" source="manual"/>
     <class name="com.tangosol.util.RecyclingLinkedList" source="manual"/>
     <class name="com.tangosol.util.RecyclingLinkedList$Node" source="manual"/>
@@ -842,7 +847,7 @@
     <class name="com.tangosol.util.filter.ValueChangeEventFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.WrapperQueryRecorderFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.XorFilter" source="manual" executable="true"/>
-    <class name="com.tangosol.util.function.Remote" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote" source="manual"/>
     <class name="com.tangosol.util.function.Remote$BiConsumer" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.function.Remote$BiFunction" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.function.Remote$BiPredicate" source="manual" lambda-target="true"/>
@@ -914,11 +919,11 @@
     <class name="com.tangosol.util.processor.UpdaterProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.VersionedPut" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.VersionedPutAll" source="manual" executable="true"/>
-    <class name="com.tangosol.util.stream.RemoteCollectors" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.stream.RemoteDoubleStream" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.stream.RemoteIntStream" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.stream.RemoteLongStream" source="manual" lambda-target="true"/>
-    <class name="com.tangosol.util.stream.RemoteStream" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.stream.RemoteCollectors" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteDoubleStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteIntStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteLongStream" source="manual"/>
+    <class name="com.tangosol.util.stream.RemoteStream" source="manual"/>
     <class name="com.tangosol.util.transformer.ExtractorEventTransformer" source="manual"/>
     <class name="com.tangosol.util.transformer.SamplingEventTransformer" source="manual"/>
     <class name="com.tangosol.util.transformer.SemiLiteEventTransformer" source="manual"/>

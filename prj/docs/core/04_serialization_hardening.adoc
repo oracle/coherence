@@ -25,6 +25,22 @@ Coherence starts in `LEGACY` mode when `coherence.mode` is unset, which keeps
 existing deployments running while emitting remote-executable shadow telemetry.
 Set `-Dcoherence.mode=prod` to enable the hardening-on production posture.
 
+=== Why not JEP-290 alone?
+
+`java.io.ObjectInputFilter` (JEP-290) is a transport-level filter wired to
+`ObjectInputStream`. Coherence's dominant wire formats (POF, `ExternalizableLite`,
+`PortableObject`) bypass `ObjectInputStream` entirely, so a JEP-290 filter alone
+would silently miss the majority of deserialization traffic. SER-01 also needs
+the same allowlist to drive three distinct gates -- class allowlist on
+deserialization, lambda-bytecode acceptance, and remote-execution policy -- and
+to compose across many modules at build time with annotation-driven generation.
+JEP-290's single allow/reject bit and flat filter string cannot express that.
+Coherence therefore uses `security-config.xml` as the source of truth, has every
+wire-format reader consult it, and registers a JEP-290 filter that delegates
+back to the same allowlist for the paths that do run through `ObjectInputStream`.
+JEP-290 is a hook, not a substitute, and customer-supplied `jdk.serialFilter`
+settings still compose normally for non-Coherence streams.
+
 == Compatibility
 
 `coherence.mode` controls how SER-01 gates are applied while applications

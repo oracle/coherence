@@ -12,5 +12,6 @@
     <class name="com.oracle.coherence.lucene.LuceneIndex$Config" source="manual"/>
     <class name="com.oracle.coherence.lucene.LuceneSearch" source="manual" executable="true"/>
     <class name="com.oracle.coherence.lucene.LuceneSearch$PartialResult" source="manual"/>
+    <class name="org.apache.lucene.analysis.standard.StandardAnalyzer" source="manual"/>
   </allowed-classes>
 </security-config>

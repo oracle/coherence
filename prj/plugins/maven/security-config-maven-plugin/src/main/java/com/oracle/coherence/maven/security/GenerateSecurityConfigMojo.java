@@ -39,7 +39,7 @@ public class GenerateSecurityConfigMojo
     public void execute()
             throws MojoExecutionException
         {
-        if (m_fSkip)
+        if (skip)
             {
             getLog().info("security-config generation skipped");
             return;
@@ -55,14 +55,8 @@ public class GenerateSecurityConfigMojo
                 return;
                 }
 
-            SecurityConfigGenerator.GeneratedConfig config = SecurityConfigGenerator.generate(pathClasses);
-            byte[]                                  abXml  = SecurityConfigGenerator.toXml(config);
-
-            Path path = pathClasses.resolve(SecurityConfigGenerator.OUTPUT_RESOURCE);
-            Files.createDirectories(path.getParent());
-            Files.write(path, abXml);
-
-            getLog().info("wrote " + config.size() + " allowed-classes entries to " + path);
+            Path path = SecurityConfigGenerator.generateAndWrite(pathClasses);
+            getLog().info("wrote " + SecurityConfigGenerator.OUTPUT_RESOURCE + " to " + path);
             }
         catch (IOException | IllegalStateException e)
             {
@@ -87,7 +81,7 @@ public class GenerateSecurityConfigMojo
      */
     public void setSkip(boolean fSkip)
         {
-        m_fSkip = fSkip;
+        skip = fSkip;
         }
 
     private static boolean containsClassFile(Path path)
@@ -116,5 +110,5 @@ public class GenerateSecurityConfigMojo
      * Whether generation is skipped.
      */
     @Parameter(property = "coherence.security-config.skip", defaultValue = "false")
-    private boolean m_fSkip;
+    private boolean skip;
     }

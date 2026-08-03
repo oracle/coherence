@@ -8,7 +8,10 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="com.oracle.coherence.lucene.LuceneIndexIT" source="manual"/>
+    <class name="com.oracle.coherence.lucene.LuceneIndexTest" source="manual"/>
     <class name="com.oracle.coherence.lucene.LuceneIndexTest$TestDocument" source="manual"/>
     <class name="com.oracle.coherence.lucene.LuceneSearchTest$TestDocument" source="manual"/>
+    <class name="org.apache.lucene.analysis.fr.FrenchAnalyzer" source="manual"/>
   </allowed-classes>
 </security-config>

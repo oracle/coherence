@@ -16,6 +16,7 @@
     <class name="extractor.ConditionalExtractorTests$Fish" source="manual"/>
     <class name="extractor.ConditionalExtractorTests$MyAddress" source="manual"/>
     <class name="extractor.ConditionalExtractorTests$ReporterIsNotNullFilter" source="manual" executable="true"/>
+    <class name="extractor.ExtractorTests" source="manual"/>
     <class name="extractor.ExtractorTests$CountingExtractor" source="manual" executable="true"/>
     <class name="extractor.ExtractorTests$Value" source="manual"/>
     <class name="extractor.PofExtractorTests$BigDecimalObject" source="manual"/>

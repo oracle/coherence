@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SuppressWarnings("resource")
+@Remote.Allowed
 public class ExecutorBasicTests {
 
     // # tag::bootstrap[]

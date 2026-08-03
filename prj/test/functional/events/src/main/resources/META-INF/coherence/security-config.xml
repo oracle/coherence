@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="events.EntryEventsTests" source="manual"/>
     <class name="events.EntryEventsTests$CountingExtractor" source="manual" executable="true"/>
     <class name="events.EventTestHelper$EnsureServiceInvocable" source="manual" executable="true"/>
     <class name="events.ExtendClientMemberEventTests$AddMemberEventMapEntryProcessor" source="manual" executable="true"/>

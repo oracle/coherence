@@ -8,6 +8,7 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="topics.AbstractNamedTopicTests" source="manual"/>
     <class name="topics.AbstractNamedTopicTests$CallableInvocable" source="manual" executable="true"/>
     <class name="topics.AbstractTopicsStorageRecoveryTests$Message" source="manual"/>
     <class name="topics.AddInvocable" source="manual" executable="true"/>
