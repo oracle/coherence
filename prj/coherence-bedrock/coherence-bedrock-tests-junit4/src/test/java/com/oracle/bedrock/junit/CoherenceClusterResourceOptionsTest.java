@@ -86,21 +86,25 @@ public class CoherenceClusterResourceOptionsTest
         {
         String sMode        = System.getProperty(COHERENCE_MODE_PROPERTY);
         String sClusterName = System.getProperty(ClusterName.PROPERTY);
+        String sTrace       = System.getProperty(COHERENCE_TRACE_SHIM_PROPERTY);
         try
             {
             System.setProperty(COHERENCE_MODE_PROPERTY, "dev");
             System.setProperty(ClusterName.PROPERTY, "command-line-cluster");
+            System.setProperty(COHERENCE_TRACE_SHIM_PROPERTY, "true");
 
             CoherenceClusterResource resource = new CoherenceClusterResource();
             resource.inheritInvocationProperties(null);
 
             assertThat(systemProperty(resource, COHERENCE_MODE_PROPERTY), is("dev"));
+            assertThat(systemProperty(resource, COHERENCE_TRACE_SHIM_PROPERTY), is("true"));
             assertThat(clusterName(resource), is("command-line-cluster"));
             }
         finally
             {
             restoreProperty(COHERENCE_MODE_PROPERTY, sMode);
             restoreProperty(ClusterName.PROPERTY, sClusterName);
+            restoreProperty(COHERENCE_TRACE_SHIM_PROPERTY, sTrace);
             }
         }
 
@@ -161,4 +165,6 @@ public class CoherenceClusterResourceOptionsTest
         }
 
     private static final String COHERENCE_MODE_PROPERTY = "coherence.mode";
+
+    private static final String COHERENCE_TRACE_SHIM_PROPERTY = "coherence.internal.invoke.trace.shim";
     }

@@ -6,8 +6,9 @@
  */
 package com.tangosol.io.internal;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
-import com.tangosol.internal.util.CoherenceModeTestSupport;
 import com.tangosol.io.SerializationRole;
 
 import java.util.Locale;
@@ -31,7 +32,7 @@ public class SerializationRoleBoundarySyntheticTest
     public void resetTelemetry()
         {
         SerializationTelemetry.resetForTesting();
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         }
 
     @Test
@@ -66,7 +67,7 @@ public class SerializationRoleBoundarySyntheticTest
     private static void assertFilterRoute(SerializationRole role)
         {
         SerializationTelemetry.resetForTesting();
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         assertMetricRoute(role, () -> SerializationTelemetry.recordFilterCheck("rejected", "synthetic",
                         Runtime.class, null),
                 "coh.serialization.filter_check{result=rejected,reason=synthetic,mode="

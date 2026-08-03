@@ -6,8 +6,9 @@
  */
 package com.tangosol.internal.util.security;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
-import com.tangosol.internal.util.CoherenceModeTestSupport;
 import com.tangosol.internal.util.invoke.AbstractRemotable;
 import com.tangosol.internal.util.invoke.RemotableSupport;
 
@@ -110,7 +111,7 @@ public class DynamicLambdaModeTest
 
     private static void resetMode()
         {
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         RemoteExecutionMode.resetForTesting();
         }
 

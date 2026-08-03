@@ -6,6 +6,8 @@
  */
 package com.tangosol.util;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
 
@@ -179,16 +181,7 @@ public class RemoteExecutablePolicyTest
 
     private static void resetMode()
         {
-        try
-            {
-            var method = CoherenceMode.class.getDeclaredMethod("resetForTesting");
-            method.setAccessible(true);
-            method.invoke(null);
-            }
-        catch (ReflectiveOperationException e)
-            {
-            throw new AssertionError(e);
-            }
+        CoherenceModeHelper.reset();
         }
 
     private static String entry(String sName, String sSource, boolean fExecutable)

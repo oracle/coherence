@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,8 +18,6 @@ import com.oracle.bedrock.runtime.java.options.SystemProperty;
 
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.internal.util.invoke.Lambdas;
-
 /**
  * Common cluster ExternalResource used by all Lambda tests
  *
@@ -30,7 +28,7 @@ public class LambdaTestCluster extends CoherenceClusterResource
     public LambdaTestCluster()
         {
         super();
-        this.with(ClusterName.of(this.getClass().getSimpleName()),
+        this.with(ClusterName.of(Config.getProperty("coherence.cluster", this.getClass().getSimpleName())),
                   ClassPath.automatic(),
                   SystemProperty.of("coherence.nameservice.address", LocalPlatform.get().getLoopbackAddress().getHostAddress()),
                   LocalHost.only(),

@@ -75,6 +75,7 @@ public class CoherenceClusterExtension
         inheritSystemProperty(COHERENCE_CLUSTER_PROPERTY);
         inheritSystemProperty(COHERENCE_WKA_PROPERTY);
         inheritSystemProperty(COHERENCE_LOCALHOST_PROPERTY);
+        inheritSystemProperty(COHERENCE_TRACE_SHIM_PROPERTY);
 
         // take a snapshot of the current system properties so we can restore them when cleaning up the resource
         m_systemProperties = com.oracle.bedrock.util.SystemProperties.createSnapshot();
@@ -273,4 +274,9 @@ public class CoherenceClusterExtension
      * The Coherence localhost property.
      */
     private static final String COHERENCE_LOCALHOST_PROPERTY = "coherence.localhost";
+
+    /**
+     * The dynamic shim trace property.
+     */
+    private static final String COHERENCE_TRACE_SHIM_PROPERTY = "coherence.internal.invoke.trace.shim";
     }

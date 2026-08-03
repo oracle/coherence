@@ -6,7 +6,7 @@
  */
 package com.tangosol.io.internal;
 
-import com.tangosol.internal.util.CoherenceModeTestSupport;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.internal.util.security.SecurityConfig;
 
 import java.io.IOException;
@@ -377,14 +377,14 @@ public class SerializationAllowlistTest
         try
             {
             restoreProperty("coherence.mode", sMode);
-            CoherenceModeTestSupport.reset();
+            CoherenceModeHelper.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowed);
             runnable.run();
             }
         finally
             {
             restoreProperty("coherence.mode", sModeOld);
-            CoherenceModeTestSupport.reset();
+            CoherenceModeHelper.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowedOld);
             }
         }

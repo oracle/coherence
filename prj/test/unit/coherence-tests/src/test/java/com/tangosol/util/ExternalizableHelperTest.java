@@ -6,7 +6,7 @@
  */
 package com.tangosol.util;
 
-import com.tangosol.internal.util.CoherenceModeTestSupport;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
@@ -1429,7 +1429,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         if ("coherence.mode".equals(sName))
             {
-            CoherenceModeTestSupport.reset();
+            CoherenceModeHelper.reset();
             }
         }
 

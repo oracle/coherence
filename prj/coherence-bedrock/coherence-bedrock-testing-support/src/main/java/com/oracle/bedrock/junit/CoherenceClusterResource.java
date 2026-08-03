@@ -147,6 +147,7 @@ public class CoherenceClusterResource
         inheritSystemProperty(COHERENCE_MODE_PROPERTY);
         inheritSystemProperty(COHERENCE_WKA_PROPERTY);
         inheritSystemProperty(COHERENCE_LOCALHOST_PROPERTY);
+        inheritSystemProperty(COHERENCE_TRACE_SHIM_PROPERTY);
 
         // automatically set the cluster name if it isn't configured
         String sClusterName = System.getProperty(ClusterName.PROPERTY);
@@ -316,6 +317,11 @@ public class CoherenceClusterResource
      * The Coherence localhost property.
      */
     private static final String COHERENCE_LOCALHOST_PROPERTY = "coherence.localhost";
+
+    /**
+     * The dynamic shim trace property.
+     */
+    private static final String COHERENCE_TRACE_SHIM_PROPERTY = "coherence.internal.invoke.trace.shim";
 
     /**
      * The {@link ConfigurableCacheFactory} sessions that have been locally created against the

@@ -6,7 +6,7 @@
  */
 package com.tangosol.io.internal;
 
-import com.tangosol.internal.util.CoherenceModeTestSupport;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import org.junit.After;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class ClassIdentityAllowlistTest
     public void cleanup()
         {
         restoreProperty("coherence.mode", m_sModeOld);
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         ClassIdentityAllowlist.reset();
         }
 
@@ -64,7 +64,7 @@ public class ClassIdentityAllowlistTest
     private void withMode(String sMode)
         {
         restoreProperty("coherence.mode", sMode);
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         }
 
     private static void restoreProperty(String sName, String sValue)

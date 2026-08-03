@@ -6,8 +6,9 @@
  */
 package com.tangosol.internal.util.security;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
-import com.tangosol.internal.util.CoherenceModeTestSupport;
 import com.tangosol.io.internal.ClassIdentityAllowlist;
 import com.tangosol.io.internal.SerializationAllowlist;
 import com.tangosol.io.internal.SerializationTelemetry;
@@ -50,7 +51,7 @@ public class SecurityConfigIntegrationTest
         Thread.currentThread().setContextClassLoader(m_loaderOld);
         SecurityConfig.resetForTesting();
         SerializationTelemetry.resetForTesting();
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         }
 
     @Test
@@ -127,7 +128,7 @@ public class SecurityConfigIntegrationTest
 
         Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[] {dir.toUri().toURL()}, null));
         SecurityConfig.resetForTesting();
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         }
 
     private static String xml(String... asNames)

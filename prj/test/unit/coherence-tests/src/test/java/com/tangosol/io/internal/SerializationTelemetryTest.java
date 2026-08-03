@@ -6,8 +6,9 @@
  */
 package com.tangosol.io.internal;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.internal.util.CoherenceMode;
-import com.tangosol.internal.util.CoherenceModeTestSupport;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.net.Member;
 import com.tangosol.net.management.MBeanServerProxy;
@@ -47,7 +48,7 @@ public class SerializationTelemetryTest
     public void resetTelemetry()
         {
         SerializationTelemetry.resetForTesting();
-        CoherenceModeTestSupport.reset();
+        CoherenceModeHelper.reset();
         }
 
     @Test

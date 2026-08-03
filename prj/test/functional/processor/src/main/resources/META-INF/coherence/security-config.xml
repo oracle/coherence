@@ -15,6 +15,7 @@
     <class name="processor.AbstractDistEntryProcessorTests$UpdateProcessorForBacklog" source="manual" executable="true"/>
     <class name="processor.AbstractEntryProcessorTests$CustomProcessor" source="manual" executable="true"/>
     <class name="processor.AbstractEntryProcessorTests$TestValue" source="manual"/>
+    <class name="processor.AsyncProcessorTests" source="manual" lambda-target="true"/>
     <class name="processor.AsyncProcessorTests$ContinuationAsyncProcessor" source="manual" executable="true"/>
     <class name="processor.AsyncProcessorTests$IncrementProcessor" source="manual" executable="true"/>
     <class name="processor.Coh10098Tests$ContinuationAsyncProcessor" source="manual" executable="true"/>
