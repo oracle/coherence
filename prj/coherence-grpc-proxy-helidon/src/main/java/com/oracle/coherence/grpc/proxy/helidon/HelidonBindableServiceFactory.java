@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -33,7 +33,7 @@ public class HelidonBindableServiceFactory
             NamedCacheService.DefaultDependencies depsCache = new NamedCacheService.DefaultDependencies(depsService);
             depsCache.setExecutor(Runnable::run);
 
-            return List.of(new NamedCacheServiceGrpcImpl(HelidonNamedCacheService.newInstance(depsCache)),
+            return List.of(new NamedCacheServiceGrpcImpl(HelidonNamedCacheService.newInstance(depsCache), depsCache),
                     new ProxyServiceGrpcImpl(depsProxy));
             }
         return List.of();

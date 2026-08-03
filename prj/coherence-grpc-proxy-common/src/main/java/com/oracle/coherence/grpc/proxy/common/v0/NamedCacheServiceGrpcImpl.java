@@ -12,6 +12,7 @@ import com.google.protobuf.BytesValue;
 import com.google.protobuf.Empty;
 import com.google.protobuf.Int32Value;
 
+import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.SafeStreamObserver;
 
 import com.oracle.coherence.grpc.messages.cache.v0.AddIndexRequest;
@@ -71,7 +72,19 @@ public class NamedCacheServiceGrpcImpl
      */
     public NamedCacheServiceGrpcImpl(NamedCacheService service)
         {
+        this(service, null);
+        }
+
+    /**
+     * Create a {@link NamedCacheServiceGrpcImpl}.
+     *
+     * @param service       the {@link NamedCacheService} to use
+     * @param dependencies  the optional service dependencies
+     */
+    public NamedCacheServiceGrpcImpl(NamedCacheService service, GrpcService.Dependencies dependencies)
+        {
         m_service = service;
+        m_sErrorDisclosure = dependencies == null ? null : dependencies.getErrorDisclosure();
         }
 
     // ----- BindableGrpcProxyService methods -------------------------------
@@ -268,7 +281,9 @@ public class NamedCacheServiceGrpcImpl
 
     private <T> StreamObserver<T> safe(StreamObserver<T> observer)
         {
-        return SafeStreamObserver.ensureSafeObserver(observer, m_service.getDependencies().getErrorDisclosure());
+        return m_sErrorDisclosure == null
+                ? SafeStreamObserver.ensureSafeObserver(observer)
+                : SafeStreamObserver.ensureSafeObserver(observer, m_sErrorDisclosure);
         }
 
     // ----- data members ---------------------------------------------------
@@ -277,4 +292,9 @@ public class NamedCacheServiceGrpcImpl
      * The {@link NamedCacheService} to call.
      */
     private final NamedCacheService m_service;
+
+    /**
+     * The gRPC error-disclosure policy, or {@code null} for the default.
+     */
+    private final String m_sErrorDisclosure;
     }

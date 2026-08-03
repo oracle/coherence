@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,7 +32,7 @@ public class NettyBindableServiceFactory
             NamedCacheService.DefaultDependencies depsCache = new NamedCacheService.DefaultDependencies(depsService);
             ProxyServiceGrpcImpl.Dependencies     depsProxy = new ProxyServiceGrpcImpl.DefaultDependencies(depsService);
 
-            return List.of(new NamedCacheServiceGrpcImpl(NettyNamedCacheService.newInstance(depsCache)),
+            return List.of(new NamedCacheServiceGrpcImpl(NettyNamedCacheService.newInstance(depsCache), depsCache),
                     new ProxyServiceGrpcImpl(depsProxy));
             }
         return List.of();
