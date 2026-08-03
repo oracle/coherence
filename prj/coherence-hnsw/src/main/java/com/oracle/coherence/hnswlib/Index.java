@@ -369,6 +369,7 @@ public class Index implements Closeable
         Objects.requireNonNull(path, "path");
         validateMaxElements(maxNumberOfElements);
         checkResultCode(hnswlib.loadIndexFromPath(reference, maxNumberOfElements, path.toAbsolutePath().toString()));
+        initialized = true;
         }
 
     /**

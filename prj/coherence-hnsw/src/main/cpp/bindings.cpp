@@ -33,6 +33,7 @@
 #include <cstdint>
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <stdexcept>
 #include "hnswlib/hnswlib.h"
 
@@ -166,13 +167,25 @@ public:
     }
 
     int load_index(const std::string &path_to_index, size_t max_elements) {
-        TRY_CATCH_NO_INITIALIZE_CHECK_AND_RETURN_INT_BLOCK({
-            if (appr_alg) {
-                std::cerr << "Warning: Calling load_index for an already initialized index. Old index is being deallocated.";
-                delete appr_alg;
+        if (index_cleared)
+            return RESULT_ONCE_INDEX_IS_CLEARED_IT_CANNOT_BE_REUSED;
+        int result_code = RESULT_SUCCESSFUL;
+        try {
+            std::unique_ptr<hnswlib::HierarchicalNSW<dist_t>> loaded(
+                    new hnswlib::HierarchicalNSW<dist_t>(l2space, path_to_index, false, max_elements));
+            hnswlib::HierarchicalNSW<dist_t> *previous = appr_alg;
+            appr_alg = loaded.release();
+            delete previous;
+            index_initialized = true;
+            index_cleared = false;
+        } catch (...) {
+            if (!appr_alg) {
+                index_initialized = false;
+                index_cleared = false;
             }
-            appr_alg = new hnswlib::HierarchicalNSW<dist_t>(l2space, path_to_index, false, max_elements);
-        });
+            result_code = RESULT_EXCEPTION_THROWN;
+        }
+        return result_code;
     }
 
     int add_item(float* item, int id, bool replaceDeleted = false) {
