@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Shared cache data-plane executable policy coverage for gRPC v0 and v1.
  *
  * @author Aleks Seovic  2026.05.12
- * @since 26.04
+ * @since 26.07
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 abstract class AbstractGrpcEnforcementIntegrationTest

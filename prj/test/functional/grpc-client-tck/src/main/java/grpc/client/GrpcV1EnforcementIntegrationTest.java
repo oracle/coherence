@@ -44,7 +44,7 @@ import java.util.concurrent.TimeoutException;
  * gRPC v1 cache data-plane executable policy integration coverage.
  *
  * @author Aleks Seovic  2026.05.12
- * @since 26.04
+ * @since 26.07
  */
 class GrpcV1EnforcementIntegrationTest
         extends AbstractGrpcEnforcementIntegrationTest

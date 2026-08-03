@@ -20,7 +20,7 @@ import javax.security.auth.Subject;
  * Shared dynamic-remote mode gate for built-in script-backed cache executables.
  *
  * @author Aleks Seovic  2026.05.13
- * @since 26.04
+ * @since 26.07
  */
 public final class RemoteScriptGate
     {

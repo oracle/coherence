@@ -67,7 +67,7 @@ import static org.hamcrest.CoreMatchers.is;
  * REST cache data-plane executable policy integration coverage.
  *
  * @author Aleks Seovic  2026.05.12
- * @since 26.04
+ * @since 26.07
  */
 public class RestEnforcementIntegrationTest
         extends AbstractFunctionalTest

@@ -30,7 +30,7 @@ import static org.junit.Assert.assertFalse;
  * Unit tests for per-class telemetry emitted by cache install cascades.
  *
  * @author Aleks Seovic  2026.05.12
- * @since 26.04
+ * @since 26.07
  */
 public class CacheCascadeTelemetryTest
     {

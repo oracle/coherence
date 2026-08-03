@@ -58,7 +58,7 @@ import static org.junit.Assert.fail;
  * Extend roundtrip coverage for remote NamedCache data-plane install gates.
  *
  * @author Aleks Seovic  2026.05.12
- * @since 26.04
+ * @since 26.07
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ExtendNamedCacheInstallModeMatrixIntegrationTest
