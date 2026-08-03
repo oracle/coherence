@@ -14,7 +14,7 @@ import java.util.Locale;
  * Helper methods for gRPC diagnostics configuration.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 public final class GrpcDiagnosticsPolicy
     {

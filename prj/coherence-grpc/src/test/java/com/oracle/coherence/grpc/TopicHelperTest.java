@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
  * Unit tests for {@link TopicHelper}.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 class TopicHelperTest
     {
