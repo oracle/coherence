@@ -27,7 +27,7 @@ import java.util.Locale;
  * the shipped default from an explicit XML override.
  *
  * @author Aleks Seovic  2026.05.13
- * @since 26.04
+ * @since 26.07
  */
 public class ConcurrentProxyPreprocessor
         implements ElementPreprocessor
