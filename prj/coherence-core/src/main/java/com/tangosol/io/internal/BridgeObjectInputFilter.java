@@ -18,7 +18,7 @@ import java.util.Set;
  * Expected-type filters for product-owned Java serialization bridge fields.
  *
  * @author Aleks Seovic  2026.05.15
- * @since 26.04
+ * @since 26.07
  */
 public final class BridgeObjectInputFilter
         implements ObjectInputFilter
