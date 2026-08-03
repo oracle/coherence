@@ -13,6 +13,7 @@ import com.tangosol.io.pof.PofPrincipal;
 import com.tangosol.io.pof.SimplePofContext;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameService;
+import com.tangosol.coherence.component.util.NameService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator;
 
 import com.tangosol.net.security.PermissionInfo;
@@ -87,8 +88,8 @@ public class NameServicePofContextTest
     @Test
     public void shouldIgnoreRemoteNameServiceIdentityTokens()
         {
-        RemoteNameService service = new RemoteNameService();
-        TcpInitiator      initiator = new TcpInitiator();
+        RemoteNameService service   = new RemoteNameService("RemoteNameService", null, false);
+        TcpInitiator      initiator = new TcpInitiator("TcpInitiator", null, false);
         PermissionInfo    info      = new PermissionInfo(null, "RemoteNameService", null, null);
 
         initiator.setParentService(service);
@@ -96,6 +97,17 @@ public class NameServicePofContextTest
         assertNull(initiator.serializeIdentityToken(info));
         assertNull(service.serializeIdentityToken(info));
         assertNull(service.deserializeIdentityToken(new byte[] {1}));
+        }
+
+    @Test
+    public void shouldIgnoreServerSideNameServiceIdentityTokenBytes()
+        {
+        NameService.TcpAcceptor acceptor = new NameService.TcpAcceptor("TcpAcceptor", null, false);
+        PermissionInfo          info     = new PermissionInfo(null, "RemoteNameService", null, null);
+        byte[]                  abToken  = ExternalizableHelper.toBinary(info).toByteArray();
+
+        assertNull(acceptor.deserializeIdentityToken(abToken));
+        assertNull(acceptor.assertIdentityToken(info));
         }
 
     @Test
