@@ -18,6 +18,11 @@ import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameServi
 import com.tangosol.coherence.component.util.NameService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator;
 
+import com.tangosol.license.LicenseException;
+
+import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.RequestTimeoutException;
+
 import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.net.security.PermissionInfo;
@@ -65,6 +70,17 @@ public class NameServicePofContextTest
         }
 
     @Test
+    public void shouldPreferExactRegisteredExceptionTypeIds()
+        {
+        assertEquals(0, NameServicePofContext.INSTANCE.getUserTypeIdentifier(Throwable.class));
+        assertEquals(1, NameServicePofContext.INSTANCE.getUserTypeIdentifier(LicenseException.class));
+        assertEquals(2, NameServicePofContext.INSTANCE.getUserTypeIdentifier(RequestTimeoutException.class));
+        assertEquals(3, NameServicePofContext.INSTANCE.getUserTypeIdentifier(ConnectionException.class));
+        assertEquals(4, NameServicePofContext.INSTANCE.getUserTypeIdentifier(RequestIncompleteException.class));
+        assertEquals(0, NameServicePofContext.INSTANCE.getUserTypeIdentifier(IllegalStateException.class));
+        }
+
+    @Test
     public void shouldRoundTripNameServiceValues()
             throws IOException
         {
@@ -86,8 +102,18 @@ public class NameServicePofContextTest
 
         Object oResult = roundTrip(exception);
 
+        assertTrue(oResult instanceof ConnectionException);
+        assertEquals("connection rejected", ((ConnectionException) oResult).getMessage());
+        }
+
+    @Test
+    public void shouldRoundTripGenericThrowable()
+            throws IOException
+        {
+        Object oResult = roundTrip(new IllegalStateException("connection rejected"));
+
         assertTrue(oResult instanceof PortableException);
-        assertEquals(ConnectionException.class.getName(), ((PortableException) oResult).getName());
+        assertEquals("Portable(" + IllegalStateException.class.getName() + ")", ((PortableException) oResult).getName());
         assertEquals("connection rejected", ((PortableException) oResult).getMessage());
         }
 

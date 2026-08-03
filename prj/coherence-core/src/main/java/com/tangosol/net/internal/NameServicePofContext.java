@@ -30,6 +30,8 @@ import java.net.InetSocketAddress;
 
 import java.security.Principal;
 
+import java.util.Map;
+
 import javax.security.auth.Subject;
 
 /**
@@ -78,19 +80,31 @@ public final class NameServicePofContext
     @Override
     public int getUserTypeIdentifier(Class clz)
         {
-        if (clz != null && Throwable.class.isAssignableFrom(clz))
+        if (clz == null)
+            {
+            throw new IllegalArgumentException("Class cannot be null");
+            }
+
+        Map     mapTypeId = m_mapTypeId;
+        Integer ITypeId   = mapTypeId == null ? null : (Integer) mapTypeId.get(clz);
+
+        if (ITypeId != null)
+            {
+            return ITypeId.intValue();
+            }
+        if (Throwable.class.isAssignableFrom(clz))
             {
             return THROWABLE_TYPE_ID;
             }
-        if (clz != null && Principal.class.isAssignableFrom(clz))
+        if (Principal.class.isAssignableFrom(clz))
             {
             return 900;
             }
-        if (clz != null && InetAddress.class.isAssignableFrom(clz))
+        if (InetAddress.class.isAssignableFrom(clz))
             {
             return 907;
             }
-        return super.getUserTypeIdentifier(clz);
+        throw new IllegalArgumentException("unknown user type: " + clz);
         }
 
     @Override
