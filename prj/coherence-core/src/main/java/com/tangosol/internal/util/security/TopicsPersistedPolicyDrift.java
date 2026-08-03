@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Resolver for persisted topic subscriber policy-drift behavior.
  *
  * @author Aleks Seovic  2026.05.11
- * @since 26.04
+ * @since 26.07
  */
 public final class TopicsPersistedPolicyDrift
     {

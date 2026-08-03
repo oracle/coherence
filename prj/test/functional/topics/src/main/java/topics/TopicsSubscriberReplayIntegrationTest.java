@@ -64,7 +64,7 @@ import static org.junit.Assert.fail;
  * Persistence-recovery coverage for persisted topic subscriber replay drift.
  *
  * @author Aleks Seovic  2026.05.11
- * @since 26.04
+ * @since 26.07
  */
 public class TopicsSubscriberReplayIntegrationTest
         extends AbstractFunctionalTest
