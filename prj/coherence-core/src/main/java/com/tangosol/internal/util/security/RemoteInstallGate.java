@@ -28,7 +28,7 @@ import javax.security.auth.Subject;
  * Shared install-time gates for remote cache data-plane executable hooks.
  *
  * @author Aleks Seovic  2026.05.11
- * @since 26.04
+ * @since 26.07
  */
 public final class RemoteInstallGate
     {
