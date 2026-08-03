@@ -6,6 +6,10 @@
  */
 package com.tangosol.net.internal;
 
+import com.oracle.coherence.common.base.Logger;
+
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.net.NameService;
 
 import java.lang.reflect.Array;
@@ -17,6 +21,7 @@ import java.net.URISyntaxException;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.management.remote.JMXServiceURL;
@@ -124,6 +129,39 @@ public final class NameServiceValuePolicy
         }
 
     /**
+     * Validate a management JMX service URL received from the cluster
+     * management connector publish path.
+     *
+     * @param url  the URL
+     *
+     * @return the validated URL
+     */
+    public static JMXServiceURL validateManagementPublishJmxServiceURL(JMXServiceURL url)
+        {
+        try
+            {
+            return validateJmxServiceURL(url);
+            }
+        catch (IllegalArgumentException e)
+            {
+            if (!CoherenceMode.isProd() && isRmiStubJmxServiceURL(url))
+                {
+                String sMode = CoherenceMode.current().name().toLowerCase(Locale.ROOT);
+                Logger.warn("Allowed " + sMode.toUpperCase(Locale.ROOT)
+                        + " management publish JMX service URL that hardening mode would reject:"
+                        + " route=management-publish"
+                        + ", gate=jmx-service-url"
+                        + ", reason=rmi-stub-url"
+                        + ", mode=" + sMode
+                        + ", result=would_reject"
+                        + ", value=" + summarizeJmxUrl(url));
+                return url;
+                }
+            throw e;
+            }
+        }
+
+    /**
      * Convert an exception to a passive NameService failure result.
      *
      * @param e  the exception
@@ -216,6 +254,50 @@ public final class NameServiceValuePolicy
             }
 
         throw new IllegalArgumentException("unsupported NameService value type at " + sPath + ": " + clz.getName());
+        }
+
+    /**
+     * Return true if the URL is an RMI stub URL.
+     *
+     * @param url  the URL
+     *
+     * @return true if the URL is an RMI stub URL
+     */
+    private static boolean isRmiStubJmxServiceURL(JMXServiceURL url)
+        {
+        if (url == null || !"rmi".equalsIgnoreCase(url.getProtocol()))
+            {
+            return false;
+            }
+
+        String sPath = url.getURLPath();
+        return sPath != null && sPath.startsWith("/stub/");
+        }
+
+    /**
+     * Return a bounded URL summary suitable for warnings.
+     *
+     * @param url  the URL
+     *
+     * @return a bounded URL summary
+     */
+    private static String summarizeJmxUrl(JMXServiceURL url)
+        {
+        if (url == null)
+            {
+            return "null";
+            }
+
+        String sPath = url.getURLPath();
+        if (sPath != null && sPath.startsWith("/stub/"))
+            {
+            sPath = "/stub/...(" + sPath.length() + " chars)";
+            }
+
+        return "service:jmx:" + url.getProtocol() + "://"
+                + (url.getHost() == null ? "" : url.getHost())
+                + (url.getPort() < 0 ? "" : ":" + url.getPort())
+                + (sPath == null ? "" : sPath);
         }
 
     /**

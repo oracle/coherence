@@ -6,6 +6,8 @@
  */
 package com.tangosol.coherence.component.net.management;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
@@ -96,12 +98,35 @@ public class ConnectorPublishTrustTest
         }
 
     @Test
-    public void shouldRejectUnsafeJmxStubUrl()
+    public void shouldReadLegacyDynamicJmxStubPublish()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            assertReadsDynamicJmxStubPublish();
+            }
+        }
+
+    @Test
+    public void shouldReadDevDynamicJmxStubPublish()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            assertReadsDynamicJmxStubPublish();
+            }
+        }
+
+    @Test
+    public void shouldRejectUnsafeJmxStubPublishInProd()
             throws Exception
         {
         JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://127.0.0.1:9000/stub/abcd");
 
-        assertRejected(() -> readPublish(writePublish(url, Collections.emptySet())));
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertRejected(() -> readPublish(writePublish(url, Collections.emptySet())));
+            }
         }
 
     @Test
@@ -151,6 +176,17 @@ public class ConnectorPublishTrustTest
         Connector.Publish publish = new Connector.Publish();
         publish.readExternal(input);
         return publish;
+        }
+
+    private static void assertReadsDynamicJmxStubPublish()
+            throws Exception
+        {
+        JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://127.0.0.1:9000/stub/abcd");
+
+        Connector.Publish publish = readPublish(writePublish(url, Collections.emptySet()));
+
+        assertEquals(url, publish.getJMXServiceURL());
+        assertEquals(Collections.emptySet(), publish.getListenAddresses());
         }
 
     private static com.tangosol.coherence.component.net.Member member(int nId)

@@ -127,12 +127,15 @@ public class PartitionedServiceTopologyTrustTest
         {
         Binary              binary  = new Binary(new byte[] {1, 2, 3});
         TestTransferRequest request = new TestTransferRequest();
+        request.setService(service(member(1)));
 
         try (DefaultObjectInputFilter.Scope ignored =
                 DefaultObjectInputFilter.bridge(BridgeObjectInputFilter.transferMetadata()))
             {
             assertEquals(binary, request.readBinaryForTest(writeObject(binary)));
             assertEquals(binary, request.readReadBufferForTest(writeObject(binary)));
+            assertEquals(binary, request.readServiceBinaryForTest(request.writeServiceObjectForTest(binary)));
+            assertEquals(binary, request.readServiceReadBufferForTest(request.writeServiceObjectForTest(binary)));
             }
         }
 
@@ -141,11 +144,14 @@ public class PartitionedServiceTopologyTrustTest
             throws Exception
         {
         Exploit.reset();
+        TestTransferRequest request = new TestTransferRequest();
+        request.setService(service(member(1)));
 
         try (DefaultObjectInputFilter.Scope ignored =
                 DefaultObjectInputFilter.bridge(BridgeObjectInputFilter.transferMetadata()))
             {
             assertRejected(() -> new TestTransferRequest().readReadBufferForTest(writeObject(new Exploit())));
+            assertRejected(() -> request.readServiceReadBufferForTest(request.writeServiceObjectForTest(new Exploit())));
             }
         assertFalse(Exploit.wasRead());
         }
@@ -434,6 +440,26 @@ public class PartitionedServiceTopologyTrustTest
                 throws IOException
             {
             return readReadBuffer(input, "test", false);
+            }
+
+        Binary readServiceBinaryForTest(ReadBuffer.BufferInput input)
+                throws IOException
+            {
+            return readServiceBinary(input, "test", false);
+            }
+
+        ReadBuffer readServiceReadBufferForTest(ReadBuffer.BufferInput input)
+                throws IOException
+            {
+            return readServiceReadBuffer(input, "test", false);
+            }
+
+        ReadBuffer.BufferInput writeServiceObjectForTest(Object value)
+                throws IOException
+            {
+            ByteArrayWriteBuffer buffer = new ByteArrayWriteBuffer(1024);
+            writeObject(buffer.getBufferOutput(), value);
+            return buffer.toBinary().getBufferInput();
             }
         }
 

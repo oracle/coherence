@@ -4681,7 +4681,7 @@ public class Connector
             try (DefaultObjectInputFilter.Scope ignored =
                     DefaultObjectInputFilter.bridge(BridgeObjectInputFilter.managementPublish()))
                 {
-                setJMXServiceURL(NameServiceValuePolicy.validateJmxServiceURL(
+                setJMXServiceURL(NameServiceValuePolicy.validateManagementPublishJmxServiceURL(
                         (JMXServiceURL) ExternalizableHelper.readObject(in)));
             
                 HashSet setInet = new HashSet();

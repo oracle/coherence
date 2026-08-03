@@ -43295,7 +43295,7 @@ public class PartitionedCache
                 Lease[] aLease   = new Lease[cLeases];
                 for (int i = 0; i < cLeases; i++)
                     {
-                    Object binKey = readBinary(input, "lease key", false);
+                    Object binKey = readServiceBinary(input, "lease key", false);
             
                     Lease  lease  = Lease.instantiate(0, binKey, service);
                     lease.read(input);
@@ -43312,7 +43312,7 @@ public class PartitionedCache
             
                 for (int iL = 0; iL < cListens; iL++)
                     {
-                    Object binKey = readBinary(input, "listener key", false);
+                    Object binKey = readServiceBinary(input, "listener key", false);
             
                     Map mapMembers = new SafeHashMap();
                     int cMembers   = com.tangosol.util.ExternalizableHelper.readInt(input);
@@ -43378,7 +43378,7 @@ public class PartitionedCache
                 // event history
                 if (service.isVersionCompatible(getFromMember(), 21, 6, 0))
                     {
-                    setEventsStoreBinary((ReadBuffer) readReadBuffer(input, "events store", true));
+                    setEventsStoreBinary((ReadBuffer) readServiceReadBuffer(input, "events store", true));
                     }
                 }
             
@@ -43430,6 +43430,58 @@ public class PartitionedCache
                 throws java.io.IOException
             {
             Object o = com.tangosol.util.ExternalizableHelper.readObject(input);
+            if (o == null && fNullable)
+                {
+                return null;
+                }
+            if (!(o instanceof com.tangosol.io.ReadBuffer))
+                {
+                throw new java.io.IOException("unsupported transfer " + sField + " type: "
+                        + (o == null ? "null" : o.getClass().getName()));
+                }
+            return (com.tangosol.io.ReadBuffer) o;
+            }
+
+        /**
+         * Read an exact Binary transfer field written with the service
+         * serializer object format.
+         *
+         * @param input      the input stream
+         * @param sField     the field name
+         * @param fNullable  true if null is allowed
+         *
+         * @return the binary value
+         */
+        protected com.tangosol.util.Binary readServiceBinary(com.tangosol.io.ReadBuffer.BufferInput input, String sField, boolean fNullable)
+                throws java.io.IOException
+            {
+            Object o = readObject(input);
+            if (o == null && fNullable)
+                {
+                return null;
+                }
+            if (!(o instanceof com.tangosol.util.Binary))
+                {
+                throw new java.io.IOException("unsupported transfer " + sField + " type: "
+                        + (o == null ? "null" : o.getClass().getName()));
+                }
+            return (com.tangosol.util.Binary) o;
+            }
+
+        /**
+         * Read an exact ReadBuffer transfer field written with the service
+         * serializer object format.
+         *
+         * @param input      the input stream
+         * @param sField     the field name
+         * @param fNullable  true if null is allowed
+         *
+         * @return the read buffer value
+         */
+        protected com.tangosol.io.ReadBuffer readServiceReadBuffer(com.tangosol.io.ReadBuffer.BufferInput input, String sField, boolean fNullable)
+                throws java.io.IOException
+            {
+            Object o = readObject(input);
             if (o == null && fNullable)
                 {
                 return null;
