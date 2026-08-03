@@ -53,7 +53,7 @@ import static org.junit.Assert.assertThrows;
  * Unit tests for {@link DefaultController}.
  *
  * @author Aleks Seovic  2026.05.19
- * @since 26.04
+ * @since 26.07
  */
 public class DefaultControllerTest
     {
