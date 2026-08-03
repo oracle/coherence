@@ -350,7 +350,7 @@ public class SerializationAllowlistTest
 
     private static void assertGeneratedLambdaAllowed(String sCapturingClass)
         {
-        assertTrue(sCapturingClass, SecurityConfig.current().isLambdaTarget(sCapturingClass));
+        assertTrue(sCapturingClass, SecurityConfig.current().contains(sCapturingClass));
         assertTrue(SerializationAllowlist.isAllowlistedName(
                 sCapturingClass + "$lambda$unordered$4c7fec84$1$0:393B44F020A1FBFA84C97EDF36061AC0",
                 true));

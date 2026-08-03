@@ -11,11 +11,11 @@
     <class name="com.tangosol.coherence.config.xml.processor.AuthorizedHostsProcessorTest$AuthorizedHostsFilter" source="manual" executable="true"/>
     <class name="com.tangosol.coherence.dslquery.TermMockitoMatcher" source="manual"/>
     <class name="com.tangosol.internal.util.invoke.RemotableSupportTest" source="manual"/>
-    <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$NumberPredicate" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$NumberPredicate" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$Thing" source="manual"/>
     <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest" source="manual"/>
     <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest$AlwaysTruePredicate" source="manual"/>
-    <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest$StringPredicate" source="manual"/>
+    <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest$StringPredicate" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.security.fixtures.dual.DualFixture" source="manual"/>
     <class name="com.tangosol.internal.util.security.fixtures.portable.PortableFixture" source="manual"/>
     <class name="com.tangosol.io.pof.ConfigurablePofContextTest$PofChild" source="manual"/>
@@ -68,6 +68,6 @@
     <class name="com.tangosol.util.extractor.UniversalUpdaterTest$UniversalUpdaterWithStatistics" source="manual"/>
     <class name="com.tangosol.util.filter.AllFilterTest$CountingFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.AnyFilterTest$CountingFilter" source="manual" executable="true"/>
-    <class name="java.util.function.Function" source="manual"/>
+    <class name="java.util.function.Function" source="manual" lambda-target="true"/>
   </allowed-classes>
 </security-config>
