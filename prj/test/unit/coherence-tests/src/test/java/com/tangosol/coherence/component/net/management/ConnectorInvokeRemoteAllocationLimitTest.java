@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link Connector.InvokeRemote} parameter allocation limits.
  *
  * @author OpenAI  2026.05.21
- * @since 26.04
+ * @since 26.07
  */
 public class ConnectorInvokeRemoteAllocationLimitTest
     {
