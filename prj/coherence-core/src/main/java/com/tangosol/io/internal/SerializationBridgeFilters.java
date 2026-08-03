@@ -207,7 +207,8 @@ public final class SerializationBridgeFilters
                 {
                 return clz.isArray()
                         ? isArrayAllowed(clz, this)
-                        : clz.getName().equals("javax.security.auth.Subject")
+                        : clz == SignedObject.class
+                          || clz.getName().equals("javax.security.auth.Subject")
                           || isSubjectComponent(clz);
                 }
             },
@@ -303,6 +304,8 @@ public final class SerializationBridgeFilters
             "com.tangosol.io.pof.PofPrincipal",
             "java.security.KeyRep",
             "java.security.KeyRep$Type",
+            "java.security.cert.CertPath$CertPathRep",
+            "java.security.cert.Certificate$CertificateRep",
             "java.util.ArrayList",
             "java.util.CollSer",
             "java.util.Collections$EmptySet",
@@ -318,5 +321,7 @@ public final class SerializationBridgeFilters
             "java.util.LinkedList",
             "javax.security.auth.Subject",
             "javax.security.auth.Subject$SecureSet",
-            "javax.security.auth.x500.X500Principal");
+            "javax.security.auth.x500.X500Principal",
+            "sun.security.provider.certpath.X509CertPath",
+            "sun.security.x509.X509CertImpl");
     }

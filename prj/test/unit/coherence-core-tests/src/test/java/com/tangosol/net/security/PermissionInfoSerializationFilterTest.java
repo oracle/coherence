@@ -7,6 +7,7 @@
 package com.tangosol.net.security;
 
 import com.tangosol.io.DefaultSerializer;
+import com.tangosol.io.internal.SerializationBridgeFilters;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PortableObjectSerializer;
 import com.tangosol.io.pof.SimplePofContext;
@@ -32,7 +33,11 @@ import java.security.Principal;
 import java.security.Signature;
 import java.security.SignedObject;
 
+import java.security.cert.CertificateFactory;
+import java.security.cert.CertPath;
+
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -82,6 +87,17 @@ public class PermissionInfoSerializationFilterTest
         PermissionInfo   result = (PermissionInfo) ExternalizableHelper.fromBinary(bin, ctx);
 
         assertValidRoundTrip(result);
+        }
+
+    @Test
+    public void shouldRoundTripPermissionInfoAsIdentityToken() throws Exception
+        {
+        Binary         bin    = ExternalizableHelper.toBinary(permissionInfoWithCertificateCredentials(),
+                new DefaultSerializer());
+        PermissionInfo result = (PermissionInfo) SerializationBridgeFilters.deserialize(bin,
+                new DefaultSerializer(), SerializationBridgeFilters.identityToken());
+
+        assertValidCertificateCredentialRoundTrip(result);
         }
 
     @Test
@@ -283,6 +299,16 @@ public class PermissionInfoSerializationFilterTest
         return new PermissionInfo(permission(), "DistributedCache", signedPermission(), subject);
         }
 
+    private PermissionInfo permissionInfoWithCertificateCredentials() throws Exception
+        {
+        Subject subject = new Subject();
+
+        subject.getPrincipals().add(new PofPrincipal("CN=Manager, OU=MyUnit"));
+        subject.getPublicCredentials().add(CertificateFactory.getInstance("X.509")
+                .generateCertPath(List.of()));
+        return new PermissionInfo(permission(), "DistributedCache", signedPermission(), subject);
+        }
+
     private SignedObject signedPermission() throws Exception
         {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
@@ -310,6 +336,15 @@ public class PermissionInfoSerializationFilterTest
         assertNotNull(info.getSignedPermission());
         assertNotNull(info.getSubject());
         assertTrue(info.getSubject().getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
+        assertTrue(info.getSubject().getPublicCredentials().isEmpty());
+        }
+
+    private void assertValidCertificateCredentialRoundTrip(PermissionInfo info)
+        {
+        assertNotNull(info.getSignedPermission());
+        assertNotNull(info.getSubject());
+        assertTrue(info.getSubject().getPrincipals().contains(new PofPrincipal("CN=Manager, OU=MyUnit")));
+        assertTrue(info.getSubject().getPublicCredentials().stream().anyMatch(CertPath.class::isInstance));
         }
 
     /**
