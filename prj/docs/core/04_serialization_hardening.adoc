@@ -420,13 +420,14 @@ deny-listed classes, and loadable deny-listed classes are also blocked through
 Graal `HostAccess.denyAccess(...)`. These HostAccess checks are hard floors in
 every mode.
 
-=== MapTrigger Remote Install
+=== MapTrigger Remote Install and Removal
 
-Remote `MapTrigger` installation through Coherence*Extend is checked before the
-listener is registered on the storage tier. The trigger class must carry
-`@Remote.Executable` or appear with `executable="true"` in merged
-`META-INF/coherence/security-config.xml`; unannotated trigger classes are
-rejected in `DEV` and `PROD` and shadowed in `LEGACY`.
+Remote `MapTrigger` installation and removal through Coherence*Extend are
+checked before the listener is registered with or removed from the storage
+tier. The trigger class must carry `@Remote.Executable` or appear with
+`executable="true"` in merged `META-INF/coherence/security-config.xml`;
+unannotated trigger classes are rejected in `DEV` and `PROD` and shadowed in
+`LEGACY`.
 
 After the class policy check, dynamic trigger classes use the same mode gate as
 DYNAMIC lambdas, `MethodInvocationProcessor`, and `ScriptProcessor`. `PROD`

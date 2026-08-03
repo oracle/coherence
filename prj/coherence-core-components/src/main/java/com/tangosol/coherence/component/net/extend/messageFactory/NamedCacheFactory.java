@@ -4690,10 +4690,10 @@ public class NamedCacheFactory
             else
                 {
                 MapListener listener = new MapTriggerListener(trigger);
+                RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
+                        channel.getSubject());
                 if (isAdd())
                     {
-                    RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
-                            channel.getSubject());
                     cache.addMapListener(listener, getFilter(), isLite());
                     }
                 else
@@ -5206,10 +5206,10 @@ public class NamedCacheFactory
             else
                 {
                 MapListener listener = new MapTriggerListener(trigger);
+                RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
+                        channel.getSubject());
                 if (isAdd())
                     {
-                    RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
-                            channel.getSubject());
                     cache.addMapListener(listener, getKey(), isLite());
                     }
                 else

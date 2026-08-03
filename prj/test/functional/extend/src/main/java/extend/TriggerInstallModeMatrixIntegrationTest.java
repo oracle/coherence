@@ -43,6 +43,7 @@ import java.nio.file.Paths;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -52,7 +53,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Extend roundtrip coverage for remote MapTrigger install mode gates.
+ * Extend roundtrip coverage for remote MapTrigger install and removal gates.
  * This trigger-only suite reflects the round-1 Outcome B interceptor audit.
  * Generated$$LambdaTrigger exercises the allowlisted-and-mode-gated axis,
  * Synthetic$$LambdaShapedTrigger exercises the unallowlisted-and-mode-gated
@@ -106,7 +107,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("prod", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
@@ -115,7 +116,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertTriggerInstalled(new AnnotatedTrigger());
-        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         }
 
     @Test
@@ -162,7 +163,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertTriggerInstalled(new Generated$$LambdaTrigger());
-        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounter("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_MODE_GATE);
         assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
@@ -173,7 +174,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("legacy", null);
 
         assertTriggerInstalled(new PlainTrigger());
-        assertWouldRejectCounter(PlainTrigger.class, 1L);
+        assertWouldRejectCounter(PlainTrigger.class, 2L);
         }
 
     @Test
@@ -182,7 +183,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("legacy", null);
 
         assertTriggerInstalled(new Generated$$LambdaTrigger());
-        assertWouldRejectCounter(Generated$$LambdaTrigger.class, 1L);
+        assertWouldRejectCounter(Generated$$LambdaTrigger.class, 2L);
         }
 
     @Test
@@ -202,7 +203,7 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("dev", null);
 
         assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
-        assertCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 2L);
         assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_MODE_GATE);
         assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
@@ -214,8 +215,89 @@ public class TriggerInstallModeMatrixIntegrationTest
         startProxy("legacy", null);
 
         assertTriggerInstalled(new Synthetic$$LambdaShapedTrigger());
-        assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 2L);
+        assertWouldRejectCounter(Synthetic$$LambdaShapedTrigger.class, 4L);
         assertCounterAbsent("legacy", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void annotatedTriggerRemovalAllowedInProd()
+        {
+        startProxy("prod", null);
+
+        NamedCache<String, String> cache    = getCache();
+        MapTriggerListener        listener = new MapTriggerListener(new AnnotatedTrigger());
+
+        cache.clear();
+        cache.addMapListener(listener);
+        cache.put("key", "value");
+        assertEquals("triggered", cache.get("key"));
+
+        cache.removeMapListener(listener);
+        cache.put("key", "after");
+
+        assertEquals("after", cache.get("key"));
+        assertCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 2L);
+        }
+
+    @Test
+    public void unannotatedTriggerRemovalRejectedBeforeCallbacksInProd()
+        {
+        startProxy("prod", null);
+
+        NamedCache<String, String> cache    = getCache();
+        MapTriggerListener        listener = new MapTriggerListener(new AnnotatedTrigger());
+
+        cache.clear();
+        cache.addMapListener(listener);
+        try
+            {
+            resetRemovalSideEffects();
+            assertRemoveRejected(cache, new ObservableRemovalTrigger(), "Remote execution denied");
+            assertEquals(0, removalSideEffects());
+            assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+            }
+        finally
+            {
+            cache.removeMapListener(listener);
+            }
+        }
+
+    @Test
+    public void unannotatedKeyTriggerRemovalRejectedBeforeCallbacksInProd()
+        {
+        startProxy("prod", null);
+
+        NamedCache<String, String> cache    = getCache();
+        MapTriggerListener        listener = new MapTriggerListener(new AnnotatedTrigger());
+
+        cache.clear();
+        cache.addMapListener(listener);
+        try
+            {
+            resetRemovalSideEffects();
+            assertKeyRemoveRejected(cache, new ObservableRemovalTrigger(), "key", "Remote execution denied");
+            assertEquals(0, removalSideEffects());
+            assertCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+            }
+        finally
+            {
+            cache.removeMapListener(listener);
+            }
+        }
+
+    @Test
+    public void legacyShadowsUnannotatedTriggerRemoval()
+        {
+        startProxy("legacy", null);
+
+        NamedCache<String, String> cache    = getCache();
+        MapTriggerListener        listener = new MapTriggerListener(new PlainTrigger());
+
+        cache.clear();
+        cache.addMapListener(listener);
+        cache.removeMapListener(listener);
+
+        assertWouldRejectCounter(PlainTrigger.class, 2L);
         }
 
     @Test
@@ -258,6 +340,34 @@ public class TriggerInstallModeMatrixIntegrationTest
             {
             cache.addMapListener(new MapTriggerListener(trigger));
             fail("Expected trigger install to fail");
+            }
+        catch (RuntimeException e)
+            {
+            assertTrue(String.valueOf(e), containsMessage(e, sMessage));
+            }
+        }
+
+    private void assertRemoveRejected(NamedCache<String, String> cache, MapTrigger<String, String> trigger,
+                                      String sMessage)
+        {
+        try
+            {
+            cache.removeMapListener(new MapTriggerListener(trigger));
+            fail("Expected trigger removal to fail");
+            }
+        catch (RuntimeException e)
+            {
+            assertTrue(String.valueOf(e), containsMessage(e, sMessage));
+            }
+        }
+
+    private void assertKeyRemoveRejected(NamedCache<String, String> cache, MapTrigger<String, String> trigger,
+                                         String sKey, String sMessage)
+        {
+        try
+            {
+            cache.removeMapListener(new MapTriggerListener(trigger), sKey);
+            fail("Expected trigger removal to fail");
             }
         catch (RuntimeException e)
             {
@@ -350,6 +460,16 @@ public class TriggerInstallModeMatrixIntegrationTest
     private Map<String, Long> telemetry()
         {
         return m_memberProxy.invoke(new GetTelemetrySnapshot());
+        }
+
+    private void resetRemovalSideEffects()
+        {
+        m_memberProxy.invoke(new ResetRemovalSideEffects());
+        }
+
+    private int removalSideEffects()
+        {
+        return m_memberProxy.invoke(new GetRemovalSideEffects());
         }
 
     private static int countLogOccurrences(String sServerName, String sText)
@@ -475,6 +595,45 @@ public class TriggerInstallModeMatrixIntegrationTest
             }
         }
 
+    public static class ObservableRemovalTrigger
+            implements MapTrigger<String, String>, PortableObject, Serializable
+        {
+        @Override
+        public void process(Entry<String, String> entry)
+            {
+            entry.setValue("triggered");
+            }
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            SIDE_EFFECTS.incrementAndGet();
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            SIDE_EFFECTS.incrementAndGet();
+            return o != null && o.getClass() == getClass();
+            }
+
+        @Override
+        public int hashCode()
+            {
+            SIDE_EFFECTS.incrementAndGet();
+            return getClass().getName().hashCode();
+            }
+
+        private static final AtomicInteger SIDE_EFFECTS = new AtomicInteger();
+        }
+
     public static class Generated$$LambdaTrigger
             implements MapTrigger<String, String>, PortableObject, Serializable
         {
@@ -586,6 +745,31 @@ public class TriggerInstallModeMatrixIntegrationTest
         public Map<String, Long> call()
             {
             return SerializationTelemetry.snapshot();
+            }
+        }
+
+    // ----- inner class: ResetRemovalSideEffects --------------------------
+
+    public static class ResetRemovalSideEffects
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            ObservableRemovalTrigger.SIDE_EFFECTS.set(0);
+            return null;
+            }
+        }
+
+    // ----- inner class: GetRemovalSideEffects ----------------------------
+
+    public static class GetRemovalSideEffects
+            implements RemoteCallable<Integer>
+        {
+        @Override
+        public Integer call()
+            {
+            return ObservableRemovalTrigger.SIDE_EFFECTS.get();
             }
         }
 

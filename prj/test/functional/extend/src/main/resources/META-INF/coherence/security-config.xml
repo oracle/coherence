@@ -50,6 +50,7 @@
     <class name="extend.TriggerInstallModeMatrixIntegrationTest$AnnotatedTrigger" source="manual" executable="true"/>
     <class name="extend.TriggerInstallModeMatrixIntegrationTest$Generated$$LambdaTrigger" source="manual" executable="true"/>
     <!-- Synthetic$$LambdaShapedTrigger is intentionally absent; it pins the unallowlisted dynamic-trigger path. -->
+    <class name="extend.TriggerInstallModeMatrixIntegrationTest$ObservableRemovalTrigger" source="manual"/>
     <class name="extend.TriggerInstallModeMatrixIntegrationTest$PlainTrigger" source="manual"/>
   </allowed-classes>
 </security-config>
