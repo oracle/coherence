@@ -13,6 +13,14 @@ import com.tangosol.io.pof.PortableObjectSerializer;
 import com.tangosol.io.pof.PrincipalPofSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 import com.tangosol.io.pof.SubjectPofSerializer;
+import com.tangosol.io.pof.ThrowablePofSerializer;
+
+import com.tangosol.license.LicenseException;
+
+import com.tangosol.net.RequestIncompleteException;
+import com.tangosol.net.RequestTimeoutException;
+
+import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.UUID;
@@ -52,6 +60,12 @@ public final class NameServicePofContext
      */
     private void registerTypes()
         {
+        registerUserType(THROWABLE_TYPE_ID, Throwable.class, new ThrowablePofSerializer());
+        registerPortable(1, LicenseException.class);
+        registerPortable(2, RequestTimeoutException.class);
+        registerPortable(3, ConnectionException.class);
+        registerPortable(4, RequestIncompleteException.class);
+
         registerUserType(14, UUID.class, new PortableObjectSerializer(14));
         registerUserType(160, loadClass("com.tangosol.coherence.component.net.Member"),
                 new PortableObjectSerializer(160));
@@ -64,6 +78,10 @@ public final class NameServicePofContext
     @Override
     public int getUserTypeIdentifier(Class clz)
         {
+        if (clz != null && Throwable.class.isAssignableFrom(clz))
+            {
+            return THROWABLE_TYPE_ID;
+            }
         if (clz != null && Principal.class.isAssignableFrom(clz))
             {
             return 900;
@@ -78,9 +96,21 @@ public final class NameServicePofContext
     @Override
     public boolean isUserType(Class clz)
         {
-        return clz != null && (Principal.class.isAssignableFrom(clz)
+        return clz != null && (Throwable.class.isAssignableFrom(clz)
+                || Principal.class.isAssignableFrom(clz)
                 || InetAddress.class.isAssignableFrom(clz))
                 || super.isUserType(clz);
+        }
+
+    /**
+     * Register a PortableObject type using the given type id.
+     *
+     * @param nTypeId  the type id
+     * @param clz      the class
+     */
+    private void registerPortable(int nTypeId, Class clz)
+        {
+        registerUserType(nTypeId, clz, new PortableObjectSerializer(nTypeId));
         }
 
     /**
@@ -108,4 +138,9 @@ public final class NameServicePofContext
      * The NameServicePofContext singleton.
      */
     public static final NameServicePofContext INSTANCE = new NameServicePofContext();
+
+    /**
+     * The POF type id for Throwable and Throwable subtypes.
+     */
+    private static final int THROWABLE_TYPE_ID = 0;
     }

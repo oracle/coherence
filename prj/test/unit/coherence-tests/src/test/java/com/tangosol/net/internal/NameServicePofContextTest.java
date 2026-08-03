@@ -10,11 +10,15 @@ import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.PofPrincipal;
+import com.tangosol.io.pof.PortableException;
+import com.tangosol.io.pof.PortableObjectSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
 import com.tangosol.coherence.component.net.extend.remoteService.RemoteNameService;
 import com.tangosol.coherence.component.util.NameService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.initiator.TcpInitiator;
+
+import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.net.security.PermissionInfo;
 
@@ -48,6 +52,8 @@ public class NameServicePofContextTest
     public void shouldUseExactSimplePofContext()
         {
         assertTrue(NameServicePofContext.INSTANCE instanceof SimplePofContext);
+        assertEquals("java.lang.Throwable", NameServicePofContext.INSTANCE.getClassName(0));
+        assertEquals("com.tangosol.net.messaging.ConnectionException", NameServicePofContext.INSTANCE.getClassName(3));
         assertEquals("com.tangosol.util.UUID", NameServicePofContext.INSTANCE.getClassName(14));
         assertEquals("com.tangosol.coherence.component.net.Member", NameServicePofContext.INSTANCE.getClassName(160));
         assertEquals("java.security.Principal", NameServicePofContext.INSTANCE.getClassName(900));
@@ -55,7 +61,6 @@ public class NameServicePofContextTest
         assertEquals("java.net.InetSocketAddress", NameServicePofContext.INSTANCE.getClassName(908));
         assertEquals("javax.security.auth.Subject", NameServicePofContext.INSTANCE.getClassName(950));
 
-        assertThrowsIllegalArgument(() -> NameServicePofContext.INSTANCE.getClass(0));
         assertThrowsIllegalArgument(() -> NameServicePofContext.INSTANCE.getClass(909));
         }
 
@@ -71,6 +76,34 @@ public class NameServicePofContextTest
         assertEquals(socketAddress, roundTrip(socketAddress));
         assertEquals(uuid, roundTrip(uuid));
         assertEquals("NameService/string", roundTrip("NameService/string"));
+        }
+
+    @Test
+    public void shouldRoundTripNameServiceConnectionException()
+            throws IOException
+        {
+        ConnectionException exception = new ConnectionException("connection rejected");
+
+        Object oResult = roundTrip(exception);
+
+        assertTrue(oResult instanceof PortableException);
+        assertEquals(ConnectionException.class.getName(), ((PortableException) oResult).getName());
+        assertEquals("connection rejected", ((PortableException) oResult).getMessage());
+        }
+
+    @Test
+    public void shouldReadLegacyConnectionExceptionType()
+            throws IOException
+        {
+        SimplePofContext context = new SimplePofContext();
+        context.registerUserType(3, ConnectionException.class, new PortableObjectSerializer(3));
+
+        Object oResult = ExternalizableHelper.fromBinary(
+                ExternalizableHelper.toBinary(new ConnectionException("connection rejected"), context),
+                NameServicePofContext.INSTANCE);
+
+        assertTrue(oResult instanceof ConnectionException);
+        assertEquals("connection rejected", ((ConnectionException) oResult).getMessage());
         }
 
     @Test
