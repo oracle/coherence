@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -230,9 +230,10 @@ public abstract class BaseGrpcAcceptorController
 
     protected ServerServiceDefinition applyInterceptors(BindableGrpcProxyService service)
         {
-        GrpcMetricsInterceptor  metricsInterceptor = new GrpcMetricsInterceptor(service.getMetrics());
-        ProxyServiceInterceptor proxyInterceptor   = new ProxyServiceInterceptor();
-        return ServerInterceptors.intercept(service, metricsInterceptor, proxyInterceptor);
+        GrpcMetricsInterceptor        metricsInterceptor = new GrpcMetricsInterceptor(service.getMetrics());
+        GrpcAuthenticationInterceptor authInterceptor    = new GrpcAuthenticationInterceptor(getDependencies(), m_acceptor);
+        ProxyServiceInterceptor       proxyInterceptor   = new ProxyServiceInterceptor();
+        return ServerInterceptors.intercept(service, metricsInterceptor, authInterceptor, proxyInterceptor);
         }
 
     // ----- data members ---------------------------------------------------

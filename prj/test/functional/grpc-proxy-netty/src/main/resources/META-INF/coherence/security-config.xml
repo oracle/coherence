@@ -9,5 +9,8 @@
                  version="1.0">
   <allowed-classes>
     <class name="netty.grpc.proxy.MapListenerProxyTest$MapTriggerStub" source="manual" executable="true"/>
+    <class name="netty.grpc.proxy.GrpcAuthenticationIT$CapturingAuthorizer" source="manual" executable="true"/>
+    <class name="netty.grpc.proxy.GrpcAuthenticationIT$TestIdentityAsserter" source="manual" executable="true"/>
+    <class name="netty.grpc.proxy.GrpcAuthenticationIT$TestPrincipal" source="manual" executable="true"/>
   </allowed-classes>
 </security-config>

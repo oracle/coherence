@@ -18,6 +18,7 @@ import com.google.protobuf.Message;
 import com.oracle.coherence.common.base.Exceptions;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.GrpcSecurityContext;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.GrpcServiceProtocol;
 import com.oracle.coherence.grpc.messages.common.v1.BinaryKeyAndValue;
@@ -52,6 +53,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import java.util.function.Supplier;
 
+import javax.security.auth.Subject;
+
 /**
  * A base class for server side gRPC protocol implementations.
  */
@@ -80,12 +83,13 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
             m_ccf           = eccf;
             m_serializer    = service.getClientSerializer(sFormat, m_ccf.getConfigClassLoader());
             m_eventObserver = observer;
+            m_subject       = GrpcSecurityContext.getCurrentSubject();
 
             m_serviceProxy = initInternal(service, request, nVersion, clientUUID);
             if (m_serviceProxy != null)
                 {
                 URI uri = connection.createChannel(m_serviceProxy.getProtocol(), null, m_serviceProxy);
-                connection.acceptChannel(uri, null, m_serviceProxy, null);
+                connection.acceptChannel(uri, null, m_serviceProxy, m_subject);
                 }
             }
         finally
@@ -96,7 +100,7 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
 
     protected abstract GrpcExtendProxy<Resp> initInternal(GrpcService service, InitRequest request,
             int nVersion, UUID clientUUID);
-    
+
     @Override
     public void onRequest(Req request, StreamObserver<Resp> observer)
         {
@@ -105,15 +109,26 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
         ContainerContext containerContext = m_context == null ? null : m_context.getContainerContext();
         if (containerContext != null)
             {
-            containerContext.runInDomainPartitionContext(() -> onRequestInternal(request, observer));
+            containerContext.runInDomainPartitionContext(() ->
+                    GrpcSecurityContext.runAs(m_subject, () -> onRequestInternal(request, observer)));
             }
         else
             {
-            onRequestInternal(request, observer);
+            GrpcSecurityContext.runAs(m_subject, () -> onRequestInternal(request, observer));
             }
         }
 
     protected abstract void onRequestInternal(Req request, StreamObserver<Resp> observer);
+
+    /**
+     * Return the authenticated subject for this protocol.
+     *
+     * @return the authenticated subject, or {@code null}
+     */
+    protected Subject getSubject()
+        {
+        return m_subject;
+        }
 
     @Override
     public void close()
@@ -384,7 +399,7 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
         }
 
     protected abstract Any getMessage(Req request);
-    
+
     /**
      * Deserialize a {@link Binary} value using this proxy's serializer.
      *
@@ -461,6 +476,11 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
      * The client's serializer.
      */
     protected Serializer m_serializer;
+
+    /**
+     * The authenticated gRPC subject.
+     */
+    protected Subject m_subject;
 
     /**
      * A bit-set containing destroyed cache identifiers.

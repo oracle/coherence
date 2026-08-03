@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -217,9 +217,9 @@ public class CacheRequestHolder<Req, Res>
             if (err == null)
                 {
                 return (CacheRequestHolder<Req, T>) setResult(r);
-                }
-            throw Status.INTERNAL.withCause(err).withDescription(err.getMessage()).asRuntimeException();
-            }, f_executor);
+            }
+        throw Status.INTERNAL.withCause(err).withDescription(err.getMessage()).asRuntimeException();
+            }, getRequestContextExecutor());
         }
 
     /**

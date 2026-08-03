@@ -11,6 +11,7 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.BytesValue;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.GrpcSecurityContext;
 import com.oracle.coherence.grpc.messages.cache.v0.Entry;
 import com.oracle.coherence.grpc.messages.cache.v0.EntryResult;
 import com.oracle.coherence.grpc.messages.cache.v0.OptionalValue;
@@ -26,6 +27,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
 import com.tangosol.util.ExternalizableHelper;
 
+import io.grpc.Context;
 import io.grpc.Status;
 
 import java.util.Map;
@@ -62,6 +64,7 @@ public abstract class RequestHolder<Req, Res>
         f_serializer = serializer;
         f_service    = service;
         f_executor   = executor;
+        f_context    = Context.current();
         }
 
     // ----- public methods -------------------------------------------------
@@ -367,6 +370,17 @@ public abstract class RequestHolder<Req, Res>
     protected abstract Converter<Object, Binary> createConverterDown();
 
     /**
+     * Return an executor that restores this holder's request context before
+     * running the supplied command.
+     *
+     * @return a request-context-aware executor
+     */
+    protected Executor getRequestContextExecutor()
+        {
+        return GrpcSecurityContext.contextAware(f_context, f_executor);
+        }
+
+    /**
      * Returns the serializer format name for the specified {@link Service}'s serializer.
      *
      * @param service  the {@link Service} to obtain the serializer format from
@@ -410,7 +424,7 @@ public abstract class RequestHolder<Req, Res>
                 // pass-thru
                 converter = b -> b;
                 }
-            else                                                                                       
+            else
                 {
                 converter = new UpConverter(serializer, f_serializer);
                 }
@@ -571,6 +585,11 @@ public abstract class RequestHolder<Req, Res>
      * The {@link Executor} to use to hand off asynchronous tasks.
      */
     protected final Executor f_executor;
+
+    /**
+     * The gRPC context active when this holder was created.
+     */
+    protected final Context f_context;
 
     /**
      * The {@link Service} managing the resource.

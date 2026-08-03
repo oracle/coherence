@@ -2769,6 +2769,7 @@
                 <xsd:element minOccurs="0" ref="socket-provider"/>
                 <xsd:element minOccurs="0" name="in-process-name" type="coherence-string-type"/>
                 <xsd:element minOccurs="0" ref="grpc-controller"/>
+                <xsd:element minOccurs="0" ref="auth-method"/>
                 <xsd:element minOccurs="0" ref="channelz-max-page-size"/>
                 <xsd:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
             </xsd:sequence>

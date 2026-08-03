@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.GrpcServiceProtocol;
+import com.oracle.coherence.grpc.GrpcSecurityContext;
 import com.oracle.coherence.grpc.LockingStreamObserver;
 import com.oracle.coherence.grpc.LoggingStreamObserver;
 import com.oracle.coherence.grpc.SafeStreamObserver;
@@ -40,6 +41,7 @@ import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.SafeClock;
 import com.tangosol.util.UUID;
 
+import io.grpc.Context;
 import io.grpc.Status;
 
 import io.grpc.stub.StreamObserver;
@@ -62,6 +64,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+
+import javax.security.auth.Subject;
 
 /**
  * A bidirectional gRPC channel that handles requests for a gRPC proxy
@@ -92,6 +96,8 @@ public class ProxyServiceChannel
     protected ProxyServiceChannel(GrpcService service, StreamObserver<ProxyResponse> observer, Supplier<Member> memberSupplier)
         {
         f_remoteAddress = ProxyServiceInterceptor.getRemoteAddress();
+        f_context       = Context.current();
+        f_subject       = GrpcSecurityContext.getCurrentSubject();
         f_memberSupplier = Objects.requireNonNullElse(memberSupplier, () -> CacheFactory.getCluster().getLocalMember());
         f_service        = service;
 
@@ -211,7 +217,7 @@ public class ProxyServiceChannel
 
         if (m_protocol != null)
             {
-            m_protocol.close();
+            GrpcSecurityContext.runAs(f_subject, m_protocol::close);
             }
         f_service.removeCloseable(this);
         if (m_connection != null)
@@ -483,7 +489,18 @@ public class ProxyServiceChannel
         @Override
         public void onNext(ProxyRequest request)
             {
-            f_executor.execute(() -> f_wrapped.onNext(request));
+            f_executor.execute(() ->
+                {
+                Context previous = f_wrapped.f_context.attach();
+                try
+                    {
+                    GrpcSecurityContext.runAs(f_wrapped.f_subject, () -> f_wrapped.onNext(request));
+                    }
+                finally
+                    {
+                    f_wrapped.f_context.detach(previous);
+                    }
+                });
             }
 
         @Override
@@ -591,6 +608,16 @@ public class ProxyServiceChannel
      * The remote address of the client.
      */
     private final SocketAddress f_remoteAddress;
+
+    /**
+     * The gRPC context captured when the channel was created.
+     */
+    private final Context f_context;
+
+    /**
+     * The authenticated gRPC subject.
+     */
+    private final Subject f_subject;
 
     /**
      * The {@link UUID} of the client.

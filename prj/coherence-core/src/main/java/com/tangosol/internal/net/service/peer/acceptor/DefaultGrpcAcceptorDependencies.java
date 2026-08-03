@@ -7,11 +7,14 @@
 package com.tangosol.internal.net.service.peer.acceptor;
 
 import com.oracle.coherence.common.net.TcpSocketProvider;
+
 import com.tangosol.application.Context;
 import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.grpc.GrpcAcceptorController;
+
+import java.util.Locale;
 
 /**
  * The default implementation of {@link GrpcAcceptorDependencies}.
@@ -55,6 +58,7 @@ public class DefaultGrpcAcceptorDependencies
             setInProcessName(deps.getInProcessName());
             setLocalAddress(deps.getLocalAddress());
             setLocalPort(deps.getLocalPort());
+            setAuthMethod(deps.getAuthMethod());
             setSocketProviderBuilder(deps.getSocketProviderBuilder());
             }
         }
@@ -162,6 +166,25 @@ public class DefaultGrpcAcceptorDependencies
         m_nChannelzPageSize = nPageSize;
         }
 
+    @Override
+    public String getAuthMethod()
+        {
+        return m_sAuthMethod;
+        }
+
+    /**
+     * Set the gRPC authentication method.
+     *
+     * @param sMethod  the gRPC authentication method
+     */
+    @Injectable("auth-method")
+    public void setAuthMethod(String sMethod)
+        {
+        m_sAuthMethod = sMethod == null || sMethod.isBlank()
+                ? AUTH_METHOD_NONE
+                : sMethod.trim().toLowerCase(Locale.ROOT);
+        }
+
     /**
      * Set the application Context.
      *
@@ -177,6 +200,18 @@ public class DefaultGrpcAcceptorDependencies
     public Context getContext()
         {
         return m_context;
+        }
+
+    @Override
+    public DefaultGrpcAcceptorDependencies validate()
+        {
+        super.validate();
+        String sMethod = getAuthMethod();
+        if (!AUTH_METHOD_NONE.equals(sMethod) && !AUTH_METHOD_BASIC.equals(sMethod))
+            {
+            throw new IllegalArgumentException("unsupported GrpcAuthMethod: " + sMethod);
+            }
+        return this;
         }
 
     // ----- data members ---------------------------------------------------
@@ -210,6 +245,15 @@ public class DefaultGrpcAcceptorDependencies
      * The max page size for the Channelz service.
      */
     private int m_nChannelzPageSize;
+
+    /**
+     * The gRPC authentication method.
+     */
+    private String m_sAuthMethod = AUTH_METHOD_NONE;
+
+    private static final String AUTH_METHOD_NONE = "none";
+
+    private static final String AUTH_METHOD_BASIC = "basic";
 
     /**
      * An optional application {@link Context}.
