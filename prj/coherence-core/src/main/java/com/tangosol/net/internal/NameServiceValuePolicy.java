@@ -27,7 +27,7 @@ import javax.management.remote.JMXServiceURL;
  *
  * @author Aleks Seovic  2026.05.17
  *
- * @since 15.1.2.0
+ * @since 26.07
  */
 public final class NameServiceValuePolicy
     {
