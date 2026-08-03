@@ -29,6 +29,7 @@ import javax.management.remote.JMXServiceURL;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -52,6 +53,18 @@ public class ConnectorPublishTrustTest
         assertEquals(url, publish.getJMXServiceURL());
         assertEquals(Collections.singleton(address), publish.getListenAddresses());
         assertNull(publish.getInvocationSender());
+        }
+
+    @Test
+    public void shouldReadDirectRmiPublish()
+            throws Exception
+        {
+        JMXServiceURL url = new JMXServiceURL("service:jmx:rmi://127.0.0.1:9000");
+
+        Connector.Publish publish = readPublish(writePublish(url, Collections.emptySet()));
+
+        assertEquals(url, publish.getJMXServiceURL());
+        assertEquals(Collections.emptySet(), publish.getListenAddresses());
         }
 
     @Test
@@ -125,7 +138,10 @@ public class ConnectorPublishTrustTest
 
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
             {
-            assertRejected(() -> readPublish(writePublish(url, Collections.emptySet())));
+            Exception e = assertRejected(() -> readPublish(writePublish(url, Collections.emptySet())));
+
+            assertTrue(e.getMessage(), e.getMessage().contains("PROD"));
+            assertTrue(e.getMessage(), e.getMessage().contains("coherence.management.remote.registryport"));
             }
         }
 
@@ -199,7 +215,7 @@ public class ConnectorPublishTrustTest
         return member;
         }
 
-    private static void assertRejected(ThrowingRunnable runnable)
+    private static Exception assertRejected(ThrowingRunnable runnable)
         {
         try
             {
@@ -208,8 +224,9 @@ public class ConnectorPublishTrustTest
             }
         catch (IOException | RuntimeException e)
             {
-            // expected
+            return e;
             }
+        throw new AssertionError("expected rejection");
         }
 
     private interface ThrowingRunnable

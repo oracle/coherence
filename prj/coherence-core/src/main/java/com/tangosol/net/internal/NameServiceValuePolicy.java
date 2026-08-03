@@ -144,17 +144,22 @@ public final class NameServiceValuePolicy
             }
         catch (IllegalArgumentException e)
             {
-            if (!CoherenceMode.isProd() && isRmiStubJmxServiceURL(url))
+            if (isRmiStubJmxServiceURL(url))
                 {
-                String sMode = CoherenceMode.current().name().toLowerCase(Locale.ROOT);
-                Logger.warn("Allowed " + sMode.toUpperCase(Locale.ROOT)
-                        + " management publish JMX service URL that hardening mode would reject:"
-                        + " route=management-publish"
-                        + ", gate=jmx-service-url"
-                        + ", reason=rmi-stub-url"
-                        + ", mode=" + sMode
-                        + ", result=would_reject"
-                        + ", value=" + summarizeJmxUrl(url));
+                CoherenceMode mode = CoherenceMode.current();
+                String        sLog = dynamicRmiStubManagementPublishMessage(url, mode);
+                if (mode == CoherenceMode.PROD)
+                    {
+                    throw new IllegalArgumentException(sLog, e);
+                    }
+                if (CoherenceMode.isLegacy())
+                    {
+                    Logger.warn(sLog);
+                    }
+                else
+                    {
+                    Logger.fine(sLog);
+                    }
                 return url;
                 }
             throw e;
@@ -275,6 +280,34 @@ public final class NameServiceValuePolicy
         }
 
     /**
+     * Return the dynamic RMI stub management publish message.
+     *
+     * @param url   the URL
+     * @param mode  the current mode
+     *
+     * @return the message
+     */
+    private static String dynamicRmiStubManagementPublishMessage(JMXServiceURL url, CoherenceMode mode)
+        {
+        String sMode   = mode.name().toLowerCase(Locale.ROOT);
+        String sResult = mode == CoherenceMode.PROD ? "reject" : "would_reject";
+        String sIntro  = mode == CoherenceMode.PROD
+                ? "Dynamic RMI stub JMX service URLs are not allowed for management publish in PROD"
+                : "Allowed " + mode.name()
+                    + " management publish JMX service URL that hardening mode would reject";
+
+        return sIntro
+                + ": route=management-publish"
+                + ", gate=jmx-service-url"
+                + ", reason=rmi-stub-url"
+                + ", mode=" + sMode
+                + ", result=" + sResult
+                + ", value=" + summarizeJmxUrl(url)
+                + ". Configure " + PROP_MANAGEMENT_REMOTE_REGISTRYPORT
+                + " to publish a static /jndi/rmi://.../server JMX URL instead.";
+        }
+
+    /**
      * Return a bounded URL summary suitable for warnings.
      *
      * @param url  the URL
@@ -349,4 +382,9 @@ public final class NameServiceValuePolicy
      * Maximum array, collection, or map size.
      */
     private static final int MAX_ELEMENTS = 1024;
+
+    /**
+     * Management remote registry port property.
+     */
+    private static final String PROP_MANAGEMENT_REMOTE_REGISTRYPORT = "coherence.management.remote.registryport";
     }
