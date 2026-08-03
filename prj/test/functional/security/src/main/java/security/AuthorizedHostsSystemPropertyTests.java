@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import org.hamcrest.Matchers;
 import org.junit.BeforeClass;
@@ -82,7 +83,8 @@ public class AuthorizedHostsSystemPropertyTests
             optionsByType.add(JavaHome.at(sJavaHome));
             }
 
-        CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class, optionsByType.asArray());
+        CoherenceClusterMember member = LocalPlatform.get().launch(CoherenceClusterMember.class,
+                                                                    BedrockInvocationProperties.inherit(optionsByType).asArray());
         try
             {
             Eventually.assertThat(invoking(console).getCapturedOutputLines(), Matchers.hasItem(containsString("This member is not authorized to join the cluster.")));

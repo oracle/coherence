@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,6 @@ package netty.grpc.client.topics;
 
 import com.oracle.bedrock.junit.CoherenceClusterResource;
 import com.oracle.bedrock.junit.SessionBuilders;
-import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.coherence.JMXManagementMode;
 import com.oracle.bedrock.runtime.coherence.options.CacheConfig;
@@ -77,6 +76,12 @@ public class GrpcTopicTests
         super(sSerializer);
         }
 
+    static
+        {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        }
+
     @BeforeClass
     public static void setupClass()
         {
@@ -130,8 +135,8 @@ public class GrpcTopicTests
         System.setProperty("coherence.topic.publisher.close.timeout", "2s");
         System.setProperty("com.oracle.coherence.common.internal.util.HeapDump.Bug-27585336-tmb-migration", "true");
 
-        String sHost = LocalPlatform.get().getLoopbackAddress().getHostAddress();
-        System.setProperty("coherence.localhost", sHost);
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("coherence.cluster", CLUSTER_NAME);
         System.setProperty("coherence.cacheconfig", "grpc-topics-client-cache-config.xml");
         }

@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package topics;
+
+import com.oracle.bedrock.OptionsByType;
 
 import com.oracle.bedrock.runtime.LocalPlatform;
 
@@ -15,6 +17,8 @@ import com.oracle.bedrock.runtime.options.DisplayName;
 
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.testsupport.junit.TestLogs;
+
+import com.oracle.coherence.testing.BedrockInvocationProperties;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.base.Timeout;
@@ -48,6 +52,8 @@ public class TopicsRestartTests
     public static void setup()
         {
         System.setProperty(LocalStorage.PROPERTY, "true");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
 
         s_coherence = Coherence.clusterMember();
         s_coherence.start().join();
@@ -71,9 +77,13 @@ public class TopicsRestartTests
         NamedTopic<String> topic      = s_session.getTopic(sTopicName);
         PagedTopicCaches   caches     = new PagedTopicCaches(topic.getName(), (PagedTopicService) topic.getService());
         LocalPlatform      platform   = LocalPlatform.get();
+        OptionsByType      options    = OptionsByType.of(
+                LocalStorage.disabled(),
+                DisplayName.of("client"));
 
         // start a storage disabled member
-        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class, LocalStorage.disabled(), DisplayName.of("client")))
+        try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
+                BedrockInvocationProperties.inherit(options).asArray()))
             {
             Eventually.assertDeferred(() -> CacheFactory.getCluster().getMemberSet().size(), is(2));
             Eventually.assertDeferred(() -> member.isServiceRunning("PartitionedTopic"), is(true));

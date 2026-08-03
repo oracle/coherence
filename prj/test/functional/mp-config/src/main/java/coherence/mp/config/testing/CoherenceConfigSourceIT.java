@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -71,6 +71,8 @@ class CoherenceConfigSourceIT
     static void setup()
         {
         System.setProperty("coherence.member", "sysprop01");
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
         System.setProperty("config.value", "sysprop");
         }
 
@@ -127,7 +129,8 @@ class CoherenceConfigSourceIT
         {
         source.setValue("config.value", "cache");
 
-        MatcherAssert.assertThat(config.getValue("coherence.cluster", String.class), is("test"));
+        MatcherAssert.assertThat(config.getValue("coherence.cluster", String.class),
+                is(System.getProperty("coherence.cluster", "test")));
         MatcherAssert.assertThat(config.getValue("coherence.role", String.class), is("proxy"));
         MatcherAssert.assertThat(config.getValue("coherence.member", String.class), is("sysprop01"));
         MatcherAssert.assertThat(config.getValue("coherence.distributed.localstorage", String.class), is("true"));

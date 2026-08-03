@@ -47,6 +47,13 @@ dependency-reduced-pom.xml
 .ai/runs/**
 .ai/scratch/**
 .ai/rq-monitor/**
+.ai/rq-investigation/**
 prj/.ai/runs/**
 prj/.ai/scratch/**
 prj/.ai/rq-monitor/**
+prj/.ai/rq-investigation/**
+prj/.ai/branches/*/logs/
+prj/.ai/branches/*/*/logs/
+
+# ignore JDK Flight Recorder dumps from hung test JVMs
+*.jfr

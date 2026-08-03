@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -69,6 +69,12 @@ import static org.hamcrest.Matchers.isOneOf;
  */
 public abstract class AbstractRepositoryTests
     {
+    static
+        {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        }
+
     protected abstract NamedMap<String, Person> getMap();
     protected abstract AbstractRepository<String, Person> people();
 
