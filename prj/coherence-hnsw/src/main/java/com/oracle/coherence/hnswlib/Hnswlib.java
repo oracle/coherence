@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -100,7 +100,7 @@ public interface Hnswlib
      * @param index    JNA pointer reference of the index
      * @param maxSize  the new maximum size to resize the index to
      */
-    void resizeIndex(Pointer index, int maxSize);
+    int resizeIndex(Pointer index, int maxSize);
 
     /**
      * Save the content of an index into a file (using native implementation).

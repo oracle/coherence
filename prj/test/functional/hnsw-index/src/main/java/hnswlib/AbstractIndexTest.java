@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,11 +15,15 @@ import com.oracle.coherence.hnswlib.exception.IndexAlreadyInitializedException;
 import com.oracle.coherence.hnswlib.exception.IndexNotInitializedException;
 import com.oracle.coherence.hnswlib.exception.OnceIndexIsClearedItCannotBeReusedException;
 import com.oracle.coherence.hnswlib.exception.UnexpectedNativeException;
+import com.sun.jna.Pointer;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -39,6 +43,8 @@ public abstract class AbstractIndexTest
     {
 
     protected abstract Index createIndexInstance(SpaceName spaceName, int dimensions);
+
+    private static final int RESULT_QUERY_CANNOT_RETURN = 3;
 
     @BeforeAll
     static void setup()
@@ -85,6 +91,94 @@ public abstract class AbstractIndexTest
         i1.initialize();
         assertEquals(0, i1.getLength());
         i1.clear();
+        }
+
+    @Test
+    public void testRejectInvalidDimensions()
+        {
+        assertThrows(NullPointerException.class, () -> createIndexInstance(null, 3));
+        assertThrows(IllegalArgumentException.class, () -> createIndexInstance(SpaceName.COSINE, -1));
+        assertThrows(IllegalArgumentException.class, () -> createIndexInstance(SpaceName.COSINE, 0));
+        assertThrows(IllegalArgumentException.class, () -> createIndexInstance(SpaceName.COSINE, Index.MAX_DIMENSION + 1));
+        }
+
+    @Test
+    public void testRejectInvalidInitializationParameters()
+        {
+        Index index = createIndexInstance(SpaceName.COSINE, 3);
+        try
+            {
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(0, 16, 200, 100, false));
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(Index.MAX_ELEMENTS + 1, 16, 200, 100, false));
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(10, 1, 200, 100, false));
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(10, Index.MAX_M + 1, 200, 100, false));
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(10, 16, 0, 100, false));
+            assertThrows(IllegalArgumentException.class, () -> index.initialize(10, 16, Index.MAX_EF_CONSTRUCTION + 1, 100, false));
+            }
+        finally
+            {
+            index.clear();
+            }
+        }
+
+    @Test
+    public void testRejectInvalidLoadParameters() throws IOException
+        {
+        File tempFile = File.createTempFile("index", "sm");
+        try
+            {
+            Index index = createIndexInstance(SpaceName.COSINE, 3);
+            try
+                {
+                Path path = Paths.get(tempFile.getAbsolutePath());
+                assertThrows(NullPointerException.class, () -> index.load(null, 1));
+                assertThrows(IllegalArgumentException.class, () -> index.load(path, 0));
+                assertThrows(IllegalArgumentException.class, () -> index.load(path, Index.MAX_ELEMENTS + 1));
+                }
+            finally
+                {
+                index.clear();
+                }
+            }
+        finally
+            {
+            assertTrue(tempFile.delete());
+            }
+        }
+
+    @Test
+    public void testRejectInvalidResizeParameters()
+        {
+        Index index = createIndexInstance(SpaceName.COSINE, 3);
+        try
+            {
+            index.initialize(2);
+            index.addItem(new float[] {1.0f, 2.0f, 3.0f}, 1);
+            index.addItem(new float[] {1.1f, 2.1f, 3.1f}, 2);
+            assertThrows(IllegalArgumentException.class, () -> resize(index, 0));
+            assertThrows(IllegalArgumentException.class, () -> resize(index, Index.MAX_ELEMENTS + 1));
+            assertThrows(IllegalArgumentException.class, () -> resize(index, 1));
+            }
+        finally
+            {
+            index.clear();
+            }
+        }
+
+    @Test
+    public void testRejectInvalidEf()
+        {
+        Index index = createIndexInstance(SpaceName.COSINE, 3);
+        try
+            {
+            index.initialize(2);
+            assertThrows(IllegalArgumentException.class, () -> index.setEf(0));
+            assertThrows(IllegalArgumentException.class, () -> index.setEf(Index.MAX_EF_SEARCH + 1));
+            }
+        finally
+            {
+            index.clear();
+            }
         }
 
     @Test
@@ -200,6 +294,54 @@ public abstract class AbstractIndexTest
         idx.initialize(300);
         QueryTuple queryTuple = idx.knnQuery(new float[] {1.3f, 1.4f, 1.5f}, 3);
         assertTrue(queryTuple.empty());
+        }
+
+    @Test
+    public void testRejectInvalidVectorsAndQueryCount()
+        {
+        Index index = createIndexInstance(SpaceName.COSINE, 3);
+        try
+            {
+            index.initialize(3);
+            assertThrows(NullPointerException.class, () -> index.addItem(null));
+            assertThrows(IllegalArgumentException.class, () -> index.addItem(new float[] {1.0f, 2.0f}));
+            assertThrows(NullPointerException.class, () -> index.knnQuery(null, 1));
+            assertThrows(IllegalArgumentException.class, () -> index.knnQuery(new float[] {1.0f, 2.0f}, 1));
+            assertThrows(IllegalArgumentException.class, () -> index.knnQuery(new float[] {1.0f, 2.0f, 3.0f}, 0));
+            assertThrows(IllegalArgumentException.class, () -> index.knnQuery(new float[] {1.0f, 2.0f, 3.0f}, -1));
+            assertThrows(NullPointerException.class, () -> index.computeSimilarity(null, new float[] {1.0f, 2.0f, 3.0f}));
+            assertThrows(IllegalArgumentException.class,
+                    () -> index.computeSimilarity(new float[] {1.0f, 2.0f}, new float[] {1.0f, 2.0f, 3.0f}));
+            }
+        finally
+            {
+            index.clear();
+            }
+        }
+
+    @Test
+    public void testNativeFilteredQueryRejectsNullCallback()
+        {
+        Index index = createIndexInstance(SpaceName.COSINE, 3);
+        try
+            {
+            index.initialize(1);
+            index.addItem(new float[] {1.0f, 2.0f, 3.0f}, 1);
+
+            int result = nativeLibrary().knnFilterQuery(
+                    nativeReference(index),
+                    new float[] {1.0f, 2.0f, 3.0f},
+                    1,
+                    null,
+                    new int[1],
+                    new float[1]);
+
+            assertEquals(RESULT_QUERY_CANNOT_RETURN, result);
+            }
+        finally
+            {
+            index.clear();
+            }
         }
 
     @Test
@@ -503,7 +645,7 @@ public abstract class AbstractIndexTest
         {
         assertThrows(OnceIndexIsClearedItCannotBeReusedException.class, () ->
             {
-            Index index = createIndexInstance(SpaceName.IP, 30);
+            Index index = createIndexInstance(SpaceName.IP, 7);
             index.initialize(30);
             index.addItem(new float[] {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.9f}, 48);
             index.clear();
@@ -516,6 +658,57 @@ public abstract class AbstractIndexTest
                 }
             index.knnQuery(input, 4);
             });
+        }
+
+    private static void resize(Index index, int maxSize)
+        {
+        try
+            {
+            Method method = Index.class.getDeclaredMethod("resize", int.class);
+            method.setAccessible(true);
+            method.invoke(index, maxSize);
+            }
+        catch (NoSuchMethodException | IllegalAccessException e)
+            {
+            throw new RuntimeException(e);
+            }
+        catch (InvocationTargetException e)
+            {
+            Throwable cause = e.getCause();
+            if (cause instanceof RuntimeException runtimeException)
+                {
+                throw runtimeException;
+                }
+            throw new RuntimeException(cause);
+            }
+        }
+
+    private static Hnswlib nativeLibrary()
+        {
+        try
+            {
+            Field field = Index.class.getDeclaredField("hnswlib");
+            field.setAccessible(true);
+            return (Hnswlib) field.get(null);
+            }
+        catch (NoSuchFieldException | IllegalAccessException e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    private static Pointer nativeReference(Index index)
+        {
+        try
+            {
+            Field field = Index.class.getDeclaredField("reference");
+            field.setAccessible(true);
+            return (Pointer) field.get(index);
+            }
+        catch (NoSuchFieldException | IllegalAccessException e)
+            {
+            throw new RuntimeException(e);
+            }
         }
 
     @Test

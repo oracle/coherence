@@ -119,7 +119,7 @@ public class HnswIndex<K, V>
     public HnswIndex(ValueExtractor<V, Vector<float[]>> extractor, int nDimension)
         {
         m_extractor  = ValueExtractor.of(Objects.requireNonNull(extractor));
-        m_nDimension = nDimension;
+        m_nDimension = Index.validateDimension(nDimension);
         }
 
     /**
@@ -134,7 +134,7 @@ public class HnswIndex<K, V>
         {
         this(extractor, nDimension);
 
-        m_sSpaceName = sSpaceName == null || sSpaceName.isBlank() ? "" : sSpaceName;
+        m_sSpaceName = Index.validateSpaceName(sSpaceName);
         }
 
     // ---- accessors -------------------------------------------------------
@@ -158,7 +158,7 @@ public class HnswIndex<K, V>
      */
     public HnswIndex<K, V> setSpaceName(String sSpaceName)
         {
-        m_sSpaceName = sSpaceName;
+        m_sSpaceName = Index.validateSpaceName(sSpaceName);
         return this;
         }
 
@@ -203,7 +203,7 @@ public class HnswIndex<K, V>
      */
     public HnswIndex<K, V> setMaxElements(int cMaxElements)
         {
-        m_cMaxElements = cMaxElements;
+        m_cMaxElements = Index.validateMaxElements(cMaxElements);
         return this;
         }
 
@@ -226,7 +226,7 @@ public class HnswIndex<K, V>
      */
     public HnswIndex<K, V> setM(int nM)
         {
-        m_nM = nM;
+        m_nM = Index.validateM(nM);
         return this;
         }
 
@@ -251,7 +251,7 @@ public class HnswIndex<K, V>
      */
     public HnswIndex<K, V> setEfConstruction(int nEfConstr)
         {
-        m_nEfConstr = nEfConstr;
+        m_nEfConstr = Index.validateEfConstruction(nEfConstr);
         return this;
         }
 
@@ -276,7 +276,7 @@ public class HnswIndex<K, V>
      */
     public HnswIndex<K, V> setEfSearch(int nEfSearch)
         {
-        m_nEfSearch = nEfSearch;
+        m_nEfSearch = Index.validateEfSearch(nEfSearch);
         return this;
         }
 
@@ -308,6 +308,7 @@ public class HnswIndex<K, V>
     @Override
     public MapIndex<K, V, Vector<float[]>> createIndex(boolean fSorted, Comparator comparator, Map<ValueExtractor<V, Vector<float[]>>, MapIndex> map, BackingMapContext backingMapContext)
         {
+        validateState();
         HnswMapIndex hnswMapIndex = new HnswMapIndex(backingMapContext);
         map.put(m_extractor, hnswMapIndex);
         return hnswMapIndex;
@@ -388,6 +389,7 @@ public class HnswIndex<K, V>
         m_nEfConstr    = in.readInt(5);
         m_nEfSearch    = in.readInt(6);
         m_nRandomSeed  = in.readInt(7);
+        validateState();
         }
 
     @Override
@@ -416,6 +418,7 @@ public class HnswIndex<K, V>
         m_nEfConstr    = ExternalizableHelper.readInt(in);
         m_nEfSearch    = ExternalizableHelper.readInt(in);
         m_nRandomSeed  = ExternalizableHelper.readInt(in);
+        validateState();
         }
 
     @Override
@@ -449,6 +452,7 @@ public class HnswIndex<K, V>
          */
         public HnswMapIndex(BackingMapContext backingMapContext)
             {
+            validateState();
             f_backingMapContext = backingMapContext;
             f_mapLabelsToKeys   = new Int2ObjectOpenHashMap<>(m_cMaxElements);
             f_mapKeysToLabels   = new Object2IntOpenHashMap<>(m_cMaxElements);
@@ -521,6 +525,7 @@ public class HnswIndex<K, V>
             Vector<float[]> v = InvocableMapHelper.extractFromEntry(m_extractor, entry);
             if (v != null)
                 {
+                float[] afVector = vectorArray(v, "entry vector");
                 Binary binKey = ((BinaryEntry) entry).getBinaryKey();
                 int    nId    = f_idGenerator.incrementAndGet();
 
@@ -529,7 +534,7 @@ public class HnswIndex<K, V>
                     {
                     f_mapLabelsToKeys.put(nId, binKey);
                     f_mapKeysToLabels.put(binKey, nId);
-                    f_index.addItem(v.get(), nId, true);
+                    f_index.addItem(afVector, nId, true);
                     }
                 finally
                     {
@@ -547,12 +552,13 @@ public class HnswIndex<K, V>
 
             if (v != null)
                 {
+                float[] afVector = vectorArray(v, "entry vector");
                 if (nId > 0 && f_index.hasId(nId))
                     {
                     f_lock.writeLock().lock();
                     try
                         {
-                        f_index.addItem(v.get(), nId, true);
+                        f_index.addItem(afVector, nId, true);
                         }
                     finally
                         {
@@ -610,13 +616,15 @@ public class HnswIndex<K, V>
         @SuppressWarnings("unchecked")
         public BinaryQueryResult[] query(Vector<float[]> vector, int k, Filter<?> filter)
             {
+            Index.validateK(k);
+            float[] afVector = vectorArray(vector, "query vector");
             f_lock.readLock().lock();
             try
                 {
                 QueryTuple tuple;
                 if (filter == null || filter instanceof AlwaysFilter<?>)
                     {
-                    tuple = f_index.knnQuery(vector.get(), k);
+                    tuple = f_index.knnQuery(afVector, k);
                     }
                 else
                     {
@@ -626,7 +634,7 @@ public class HnswIndex<K, V>
                         InvocableMap.Entry entry  = f_backingMapContext.getReadOnlyEntry(binKey);
                         return InvocableMapHelper.evaluateEntry(filter, entry);
                         };
-                    tuple = f_index.knnQuery(vector.get(), k, queryFilter);
+                    tuple = f_index.knnQuery(afVector, k, queryFilter);
                     }
 
                 if (tuple.empty())
@@ -687,6 +695,36 @@ public class HnswIndex<K, V>
         private final Int2ObjectMap<Binary> f_mapLabelsToKeys;
         private final Object2IntMap<Binary> f_mapKeysToLabels;
         private final ReadWriteLock f_lock = new ReentrantReadWriteLock();
+        }
+
+    // ----- helpers --------------------------------------------------------
+
+    /**
+     * Validate the configured HNSW index state.
+     */
+    protected void validateState()
+        {
+        Objects.requireNonNull(m_extractor, "extractor");
+        Index.validateDimension(m_nDimension);
+        m_sSpaceName = Index.validateSpaceName(m_sSpaceName);
+        Index.validateMaxElements(m_cMaxElements);
+        Index.validateM(m_nM);
+        Index.validateEfConstruction(m_nEfConstr);
+        Index.validateEfSearch(m_nEfSearch);
+        }
+
+    /**
+     * Return the validated vector array.
+     *
+     * @param vector  the vector wrapper
+     * @param name    the argument name
+     *
+     * @return the validated vector array
+     */
+    protected float[] vectorArray(Vector<float[]> vector, String name)
+        {
+        Objects.requireNonNull(vector, name);
+        return Index.validateVector(vector.get(), m_nDimension, name);
         }
 
     // ----- constants ------------------------------------------------------
