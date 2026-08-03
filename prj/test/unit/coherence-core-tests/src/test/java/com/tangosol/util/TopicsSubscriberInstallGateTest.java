@@ -16,6 +16,11 @@ import com.tangosol.internal.util.security.SecurityConfig;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
+import com.tangosol.util.comparator.ExtractorComparator;
+import com.tangosol.util.extractor.KeyExtractor;
+import com.tangosol.util.filter.AllFilter;
+import com.tangosol.util.filter.EqualsFilter;
+import com.tangosol.util.filter.LimitFilter;
 import com.tangosol.util.function.Remote;
 
 import org.junit.After;
@@ -236,6 +241,81 @@ public class TopicsSubscriberInstallGateTest
         RemoteInstallGate.enforceTopicSubscriberInstall(null, extractor, SerializationRole.TOPICS, null);
 
         assertWouldRejectCounter(extractor.getClass(), OperationReason.EXTRACT, 2L);
+        }
+
+    @Test
+    public void rejectsNestedExtractorInFilterInstall()
+        {
+        setMode("prod", null);
+
+        assertThrows(SecurityException.class, () -> RemoteInstallGate.enforceTopicSubscriberInstall(
+                new EqualsFilter<>(new PlainExtractor(), "value"), null, SerializationRole.TOPICS, null));
+
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void allowsNestedExtractorInFilterInstall()
+        {
+        setMode("prod", null);
+
+        RemoteInstallGate.enforceTopicSubscriberInstall(
+                new EqualsFilter<>(new AnnotatedExtractor(), "value"), null, SerializationRole.TOPICS, null);
+
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void rejectsNestedExtractorInConverterInstall()
+        {
+        setMode("prod", null);
+
+        assertThrows(SecurityException.class, () -> RemoteInstallGate.enforceTopicSubscriberInstall(
+                null, new KeyExtractor<>(new PlainExtractor()), SerializationRole.TOPICS, null));
+
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void rejectsNestedFilterInArrayFilterInstall()
+        {
+        setMode("prod", null);
+
+        assertThrows(SecurityException.class, () -> RemoteInstallGate.enforceTopicSubscriberInstall(
+                new AllFilter(new Filter<?>[] {new PlainFilter()}), null, SerializationRole.TOPICS, null));
+
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void rejectsNestedExtractorInComparatorBackedFilterInstall()
+        {
+        setMode("prod", null);
+
+        LimitFilter<String> filter = new LimitFilter<>(new AnnotatedFilter(), 10);
+        filter.setComparator(new ExtractorComparator<>(new PlainExtractor()));
+
+        assertThrows(SecurityException.class, () -> RemoteInstallGate.enforceTopicSubscriberInstall(
+                filter, null, SerializationRole.TOPICS, null));
+
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 2L);
+        assertPolicyCounter(OperationReason.COMPARE, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertPolicyCounter(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
     private static void assertPolicyCounter(OperationReason reason, String sMode, String sResult,

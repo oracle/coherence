@@ -26,6 +26,7 @@ import com.tangosol.net.topic.NamedTopic;
 import com.tangosol.util.Filter;
 import com.tangosol.util.OperationReason;
 import com.tangosol.util.ValueExtractor;
+import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.function.Remote;
 
 import org.junit.After;
@@ -129,6 +130,18 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
 
         assertFilterRejected(new PlainFilter(), "Remote execution denied");
         assertCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        }
+
+    @Test
+    public void wrappedUnannotatedExtractorFilterRejectedInProd()
+        {
+        startProxy("prod");
+
+        assertFilterRejected(new EqualsFilter<>(new PlainExtractor(), "value"), "Remote execution denied");
+        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounter(OperationReason.EXTRACT, "prod", "rejected",
                 SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
 
