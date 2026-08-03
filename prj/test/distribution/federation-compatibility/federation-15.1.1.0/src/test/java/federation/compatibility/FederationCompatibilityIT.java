@@ -54,7 +54,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Federation mixed-version compatibility tests.
  *
  * @author Aleks Seovic  2026.05.17
- * @since 15.1.2.0
+ * @since 26.07
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class FederationCompatibilityIT

@@ -25,7 +25,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Coherence versions used by the federation compatibility tests.
  *
  * @author Aleks Seovic  2026.05.17
- * @since 15.1.2.0
+ * @since 26.07
  */
 public enum Version
     {
