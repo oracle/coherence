@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -264,7 +264,7 @@ public class TabularDataTests
         Files.write(file.toPath(), sXmlReport.getBytes(StandardCharsets.UTF_8));
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
             {
-            new ReportBatch().runTabularReport(file.getPath());
+            new ReportBatch().runTabularReport(file.toURI().toString());
             }
         finally
             {
