@@ -27,7 +27,7 @@ import javax.security.auth.Subject;
  * A gRPC interceptor that authenticates configured Coherence gRPC services.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 public class GrpcAuthenticationInterceptor
         implements ServerInterceptor
