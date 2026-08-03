@@ -176,7 +176,8 @@ public class TopicsSubscriberReplayIntegrationTest
         stopServer();
         CacheFactory.shutdown();
         setFactory(null);
-        FileHelper.deleteDirSilent(m_fileActive);
+        // use a fresh active directory so Windows file-handle lag cannot leave initial data behind
+        m_fileActive = new File(m_fileBase, "active-replay");
         m_fileActive.mkdirs();
 
         startServer(sCluster + "-replay", sMode, sPolicyDrift,
