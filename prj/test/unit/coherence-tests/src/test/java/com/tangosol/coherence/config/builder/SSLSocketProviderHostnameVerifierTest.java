@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for mode-aware SSL hostname verifier defaults.
  *
  * @author Aleks Seovic  2026.05.19
- * @since 26.04
+ * @since 26.07
  */
 public class SSLSocketProviderHostnameVerifierTest
     {
