@@ -36,7 +36,7 @@ import javax.management.ObjectName;
  * Central Reporter input policy for management/JMX reachable report paths.
  *
  * @author as 2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public final class ReporterSecurity
     {
