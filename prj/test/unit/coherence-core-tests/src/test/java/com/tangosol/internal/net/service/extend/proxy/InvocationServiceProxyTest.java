@@ -20,7 +20,9 @@ import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
+import com.tangosol.net.PriorityTask;
 import com.tangosol.net.ServiceInfo;
+import com.tangosol.net.messaging.Message;
 
 import com.tangosol.run.xml.XmlHelper;
 
@@ -223,6 +225,102 @@ public class InvocationServiceProxyTest
         assertTrue(SerializationTelemetry.snapshot().isEmpty());
         }
 
+    @Test
+    public void rejectsUnannotatedPriorityTaskBeforeSchedulingCallback()
+        {
+        setMode("dev");
+        PriorityInvocable task = new PriorityInvocable();
+        ExposedInvocationRequest request = request(task);
+
+        SecurityException e = assertThrows(SecurityException.class, request::getSchedulingPriority);
+
+        assertTrue(e.getMessage().contains(PriorityInvocable.class.getName()));
+        assertFalse(task.wasSchedulingPriorityCalled());
+        assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
+                + ",role=" + SerializationRole.EXTEND_PROXY.name()
+                + ",result=rejected,mode=dev,sub_reason=policy}");
+        }
+
+    @Test
+    public void rejectsUnannotatedPriorityTaskBeforeRunCanceledCallback()
+        {
+        setMode("dev");
+        PriorityInvocable task = new PriorityInvocable();
+        ExposedInvocationRequest request = request(task);
+
+        request.runCanceled(true);
+
+        assertFalse(task.wasRunCanceledCalled());
+        assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
+                + ",role=" + SerializationRole.EXTEND_PROXY.name()
+                + ",result=rejected,mode=dev,sub_reason=policy}");
+        }
+
+    @Test
+    public void priorityTaskPolicyFailureIsCachedWithoutDuplicateTelemetry()
+        {
+        setMode("dev");
+        PriorityInvocable task = new PriorityInvocable();
+        ExposedInvocationRequest request = request(task);
+
+        assertThrows(SecurityException.class, request::getSchedulingPriority);
+        assertThrows(SecurityException.class, request::getRequestTimeoutMillis);
+        request.runCanceled(false);
+
+        assertFalse(task.wasSchedulingPriorityCalled());
+        assertFalse(task.wasRequestTimeoutCalled());
+        assertFalse(task.wasRunCanceledCalled());
+        assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
+                + ",role=" + SerializationRole.EXTEND_PROXY.name()
+                + ",result=rejected,mode=dev,sub_reason=policy}", 1L);
+        }
+
+    @Test
+    public void allowsAnnotatedPriorityTaskCallbacksAndNormalRunWithOneTelemetryTuple()
+        {
+        setMode("prod");
+        AnnotatedPriorityInvocable task = new AnnotatedPriorityInvocable();
+        ExposedInvocationRequest request = request(task);
+        AtomicBoolean fQueried = new AtomicBoolean();
+        request.setInvocationService(service(fQueried));
+
+        assertEquals(PriorityTask.SCHEDULE_IMMEDIATE, request.getSchedulingPriority());
+        assertEquals(123L, request.getExecutionTimeoutMillis());
+        assertEquals(456L, request.getRequestTimeoutMillis());
+        request.runCanceled(false);
+        request.runWith(new SimpleResponse());
+
+        assertTrue(task.wasSchedulingPriorityCalled());
+        assertTrue(task.wasExecutionTimeoutCalled());
+        assertTrue(task.wasRequestTimeoutCalled());
+        assertTrue(task.wasRunCanceledCalled());
+        assertTrue(fQueried.get());
+        assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
+                + ",role=" + SerializationRole.EXTEND_PROXY.name()
+                + ",result=allowed,mode=prod,sub_reason=policy}", 1L);
+        }
+
+    @Test
+    public void legacyPriorityTaskCallbackDoesNotBecomeLiveRejection()
+        {
+        setMode("legacy");
+        PriorityInvocable task = new PriorityInvocable();
+        ExposedInvocationRequest request = request(task);
+        AtomicBoolean fQueried = new AtomicBoolean();
+        request.setInvocationService(service(fQueried));
+
+        assertEquals(PriorityTask.SCHEDULE_IMMEDIATE, request.getSchedulingPriority());
+        request.runWith(new SimpleResponse());
+
+        assertTrue(task.wasSchedulingPriorityCalled());
+        assertTrue(fQueried.get());
+        assertCounter("coh.executable.policy_check{result=would_reject,class="
+                + PriorityInvocable.class.getName() + ",reason=" + OperationReason.INVOKE.name()
+                + ",role=" + SerializationRole.EXTEND_PROXY.name() + "}", 1L);
+        assertTrue(SerializationTelemetry.snapshot().keySet().stream()
+                .noneMatch(s -> s.contains("result=rejected") || s.contains("result=allowed")));
+        }
+
     private static DefaultInvocationServiceProxyDependencies fromXml(String sXml)
         {
         return LegacyXmlInvocationServiceProxyHelper.fromXml(XmlHelper.loadXml(sXml),
@@ -231,17 +329,10 @@ public class InvocationServiceProxyTest
 
     private static ExposedInvocationRequest request(Invocable task)
         {
-        Channel channel = new Channel()
-            {
-            @Override
-            public Subject getSubject()
-                {
-                return null;
-                }
-            };
         ExposedInvocationRequest request = new ExposedInvocationRequest();
-        request.setChannel(channel);
+        request.setChannel(new TestChannel());
         request.setTask(task);
+        request.prepareResponse();
         return request;
         }
 
@@ -324,8 +415,13 @@ public class InvocationServiceProxyTest
 
     private static void assertCounter(String sKey)
         {
+        assertCounter(sKey, 1L);
+        }
+
+    private static void assertCounter(String sKey, long cExpected)
+        {
         Map<String, Long> map = SerializationTelemetry.snapshot();
-        assertEquals("missing " + sKey + " in " + map, Long.valueOf(1L), map.get(sKey));
+        assertEquals("missing " + sKey + " in " + map, Long.valueOf(cExpected), map.get(sKey));
         }
 
     public static class ExposedInvocationRequest
@@ -334,6 +430,11 @@ public class InvocationServiceProxyTest
         public void runWith(Response response)
             {
             onRun(response);
+            }
+
+        public void prepareResponse()
+            {
+            setResponse(new SimpleResponse());
             }
         }
 
@@ -346,9 +447,43 @@ public class InvocationServiceProxyTest
             }
         }
 
+    public static class TestChannel
+            extends Channel
+        {
+        @Override
+        public Subject getSubject()
+            {
+            return null;
+            }
+
+        @Override
+        public void gateEnter()
+            {
+            }
+
+        @Override
+        public void gateExit()
+            {
+            }
+
+        @Override
+        public void send(Message message)
+            {
+            m_message = message;
+            }
+
+        private Message m_message;
+        }
+
     @Remote.Executable
     public static class AnnotatedInvocable
             extends PlainInvocable
+        {
+        }
+
+    @Remote.Executable
+    public static class AnnotatedPriorityInvocable
+            extends PriorityInvocable
         {
         }
 
@@ -370,6 +505,66 @@ public class InvocationServiceProxyTest
             {
             return null;
             }
+        }
+
+    public static class PriorityInvocable
+            extends PlainInvocable
+            implements PriorityTask
+        {
+        @Override
+        public long getExecutionTimeoutMillis()
+            {
+            m_fExecutionTimeoutCalled.set(true);
+            return 123L;
+            }
+
+        @Override
+        public long getRequestTimeoutMillis()
+            {
+            m_fRequestTimeoutCalled.set(true);
+            return 456L;
+            }
+
+        @Override
+        public int getSchedulingPriority()
+            {
+            m_fSchedulingPriorityCalled.set(true);
+            return SCHEDULE_IMMEDIATE;
+            }
+
+        @Override
+        public void runCanceled(boolean fAbandoned)
+            {
+            m_fRunCanceledCalled.set(true);
+            }
+
+        public boolean wasExecutionTimeoutCalled()
+            {
+            return m_fExecutionTimeoutCalled.get();
+            }
+
+        public boolean wasRequestTimeoutCalled()
+            {
+            return m_fRequestTimeoutCalled.get();
+            }
+
+        public boolean wasSchedulingPriorityCalled()
+            {
+            return m_fSchedulingPriorityCalled.get();
+            }
+
+        public boolean wasRunCanceledCalled()
+            {
+            return m_fRunCanceledCalled.get();
+            }
+
+        private final AtomicBoolean m_fExecutionTimeoutCalled = new AtomicBoolean();
+
+        private final AtomicBoolean m_fRequestTimeoutCalled = new AtomicBoolean();
+
+        private final AtomicBoolean m_fSchedulingPriorityCalled = new AtomicBoolean();
+
+        private final AtomicBoolean m_fRunCanceledCalled = new AtomicBoolean();
         }
 
     private final String m_sModeOld = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);

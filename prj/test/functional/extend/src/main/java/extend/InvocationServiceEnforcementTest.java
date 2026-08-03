@@ -22,8 +22,11 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Invocable;
 import com.tangosol.net.InvocationService;
+import com.tangosol.net.PriorityTask;
+import com.tangosol.net.messaging.ConnectionException;
 
 import com.tangosol.util.OperationReason;
+import com.tangosol.util.function.Remote;
 
 import org.junit.After;
 import org.junit.Test;
@@ -36,6 +39,7 @@ import java.nio.file.Files;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
@@ -120,6 +124,30 @@ public class InvocationServiceEnforcementTest
 
         assertRemoteSecurityException(new PlainInvocable(6));
         assertCounter("prod", "rejected", 1L);
+        }
+
+    @Test
+    public void rejectsUnannotatedPriorityTaskBeforeSchedulingCallback()
+        {
+        startProxy("dev", null);
+        resetPriorityTaskCallbacks();
+
+        assertRemoteRejected(new PlainPriorityInvocable(6));
+
+        assertPriorityTaskCallbacks(0, 0);
+        assertCounter("dev", "rejected", 1L);
+        }
+
+    @Test
+    public void allowsAnnotatedPriorityTaskCallback()
+        {
+        startProxy("dev", null);
+        resetPriorityTaskCallbacks();
+
+        assertEquals(7, query(new ExecutablePriorityInvocable(6)).intValue());
+
+        assertPriorityTaskCallbacksAtLeast(1, 1);
+        assertCounter("dev", "allowed", 1L);
         }
 
     @Test
@@ -244,6 +272,19 @@ public class InvocationServiceEnforcementTest
             }
         }
 
+    private void assertRemoteRejected(Invocable task)
+        {
+        try
+            {
+            query(task);
+            fail("Expected unannotated Invocable to be rejected");
+            }
+        catch (RuntimeException e)
+            {
+            assertTrue(String.valueOf(e), containsSecurityException(e) || containsConnectionException(e));
+            }
+        }
+
     private void assertCounter(String sMode, String sResult, long cExpected)
         {
         assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
@@ -261,6 +302,25 @@ public class InvocationServiceEnforcementTest
         {
         Map<String, Long> map = m_memberProxy.invoke(new GetTelemetrySnapshot());
         assertFalse("counter " + sKey + " in " + map, map.containsKey(sKey));
+        }
+
+    private void resetPriorityTaskCallbacks()
+        {
+        m_memberProxy.invoke(new ResetPriorityTaskCallbacks());
+        }
+
+    private void assertPriorityTaskCallbacks(int cScheduling, int cRun)
+        {
+        int[] anCounts = m_memberProxy.invoke(new GetPriorityTaskCallbackCounts());
+        assertEquals("scheduling callbacks", cScheduling, anCounts[0]);
+        assertEquals("run callbacks", cRun, anCounts[1]);
+        }
+
+    private void assertPriorityTaskCallbacksAtLeast(int cScheduling, int cRun)
+        {
+        int[] anCounts = m_memberProxy.invoke(new GetPriorityTaskCallbackCounts());
+        assertTrue("scheduling callbacks " + anCounts[0], anCounts[0] >= cScheduling);
+        assertEquals("run callbacks", cRun, anCounts[1]);
         }
 
     private int serverLogDisabledWarningCount()
@@ -335,6 +395,19 @@ public class InvocationServiceEnforcementTest
                 }
             if (String.valueOf(t).contains("SecurityException")
                     || String.valueOf(t.getMessage()).contains("Remote execution denied"))
+                {
+                return true;
+                }
+            t = t.getCause();
+            }
+        return false;
+        }
+
+    private static boolean containsConnectionException(Throwable t)
+        {
+        while (t != null)
+            {
+            if (t instanceof ConnectionException)
                 {
                 return true;
                 }
@@ -426,6 +499,90 @@ public class InvocationServiceEnforcementTest
         private transient InvocationService m_service;
         }
 
+    // ----- inner class: PlainPriorityInvocable ---------------------------
+
+    /**
+     * PriorityTask invocable allowed to deserialize but not execute.
+     */
+    public static class PlainPriorityInvocable
+            extends PlainInvocable
+            implements PriorityTask
+        {
+        public PlainPriorityInvocable()
+            {
+            }
+
+        public PlainPriorityInvocable(int nValue)
+            {
+            super(nValue);
+            }
+
+        @Override
+        public int getSchedulingPriority()
+            {
+            SCHEDULING_CALLBACKS.incrementAndGet();
+            return SCHEDULE_IMMEDIATE;
+            }
+
+        @Override
+        public void run()
+            {
+            RUN_CALLBACKS.incrementAndGet();
+            super.run();
+            }
+
+        @Override
+        public long getExecutionTimeoutMillis()
+            {
+            return TIMEOUT_NONE;
+            }
+
+        @Override
+        public long getRequestTimeoutMillis()
+            {
+            return TIMEOUT_NONE;
+            }
+
+        @Override
+        public void runCanceled(boolean fAbandoned)
+            {
+            }
+
+        static void resetCallbacks()
+            {
+            SCHEDULING_CALLBACKS.set(0);
+            RUN_CALLBACKS.set(0);
+            }
+
+        static int[] callbackCounts()
+            {
+            return new int[] {SCHEDULING_CALLBACKS.get(), RUN_CALLBACKS.get()};
+            }
+
+        private static final AtomicInteger SCHEDULING_CALLBACKS = new AtomicInteger();
+
+        private static final AtomicInteger RUN_CALLBACKS = new AtomicInteger();
+        }
+
+    // ----- inner class: ExecutablePriorityInvocable ----------------------
+
+    /**
+     * PriorityTask invocable allowed to execute.
+     */
+    @Remote.Executable
+    public static class ExecutablePriorityInvocable
+            extends PlainPriorityInvocable
+        {
+        public ExecutablePriorityInvocable()
+            {
+            }
+
+        public ExecutablePriorityInvocable(int nValue)
+            {
+            super(nValue);
+            }
+        }
+
     // ----- inner class: InternalInvocationQuery ---------------------------
 
     /**
@@ -456,6 +613,37 @@ public class InvocationServiceEnforcementTest
             {
             SerializationTelemetry.resetForTesting();
             return null;
+            }
+        }
+
+    // ----- inner class: ResetPriorityTaskCallbacks -----------------------
+
+    /**
+     * Clears PriorityTask callback counters on a remote member.
+     */
+    public static class ResetPriorityTaskCallbacks
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            PlainPriorityInvocable.resetCallbacks();
+            return null;
+            }
+        }
+
+    // ----- inner class: GetPriorityTaskCallbackCounts --------------------
+
+    /**
+     * Returns PriorityTask callback counters from a remote member.
+     */
+    public static class GetPriorityTaskCallbackCounts
+            implements RemoteCallable<int[]>
+        {
+        @Override
+        public int[] call()
+            {
+            return PlainPriorityInvocable.callbackCounts();
             }
         }
 

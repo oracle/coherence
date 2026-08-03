@@ -33,6 +33,16 @@
     </user-type>
 
     <user-type>
+      <type-id>1008</type-id>
+      <class-name>extend.InvocationServiceEnforcementTest$PlainPriorityInvocable</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>1009</type-id>
+      <class-name>extend.InvocationServiceEnforcementTest$ExecutablePriorityInvocable</class-name>
+    </user-type>
+
+    <user-type>
       <type-id>1034</type-id>
       <class-name>data.pof.PortablePerson</class-name>
     </user-type>

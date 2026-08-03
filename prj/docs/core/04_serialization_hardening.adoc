@@ -376,9 +376,11 @@ The system property overrides operational configuration when both are present.
 
 When the proxy is enabled, every remote `Invocable` submitted through Extend is
 checked by `RemoteExecutablePolicy` before `InvocationService.query(...)`
-executes it. The invocable class must carry `@Remote.Executable` or appear with
-`executable="true"` in merged `security-config.xml`. Cluster-internal
-`Invocable` dispatch is not gated by the Extend proxy flag.
+executes it and before any delegated `PriorityTask` scheduling, timeout, or
+cancellation callback can run. The invocable class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`security-config.xml`. Cluster-internal `Invocable` dispatch is not gated by
+the Extend proxy flag.
 
 If the proxy is disabled, the server log records
 `InvocationService proxy is DISABLED in <mode> mode by policy` once at proxy
