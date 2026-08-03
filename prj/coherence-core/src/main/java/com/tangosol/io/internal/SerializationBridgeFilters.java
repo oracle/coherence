@@ -25,7 +25,7 @@ import java.util.Set;
  * trusted protocol handshakes.
  *
  * @author OpenAI  2026.05.16
- * @since 26.05
+ * @since 26.07
  */
 public final class SerializationBridgeFilters
     {
