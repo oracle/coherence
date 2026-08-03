@@ -117,6 +117,32 @@ public class LambdaBytecodeGateTest
         }
 
     @Test
+    public void testRejectsMethodNameWithMethodReason()
+        {
+        long cBefore = LambdaBytecodeGate.counter("rejected",
+                LambdaBytecodeGate.REASON_METHOD_ON_DENYLIST, LambdaBytecodeGate.Site.MIP_REFLECTION);
+
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkClassName("java.lang.System#exit",
+                LambdaBytecodeGate.Site.MIP_REFLECTION);
+
+        assertTrue(result instanceof LambdaBytecodeGate.Result.Rejected);
+        LambdaBytecodeGate.Result.Rejected rejected = (LambdaBytecodeGate.Result.Rejected) result;
+        assertEquals(LambdaBytecodeGate.REASON_METHOD_ON_DENYLIST, rejected.reason());
+        assertEquals("java.lang.System#exit", rejected.deniedRef());
+        assertEquals(cBefore + 1, LambdaBytecodeGate.counter("rejected",
+                LambdaBytecodeGate.REASON_METHOD_ON_DENYLIST, LambdaBytecodeGate.Site.MIP_REFLECTION));
+        }
+
+    @Test
+    public void testDenyListOnlyAllowsNonAllowlistedClass()
+        {
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkDenyListOnly("example.NotAllowlisted",
+                LambdaBytecodeGate.Site.MIP_REFLECTION);
+
+        assertAllowed(result);
+        }
+
+    @Test
     public void testAllowPropertyAllowsClassEntryButNotStructuralRules()
         {
         assertAllowed(LambdaBytecodeGate.checkBytecode(runtimeExecClass(), LambdaBytecodeGate.Site.LAMBDA,

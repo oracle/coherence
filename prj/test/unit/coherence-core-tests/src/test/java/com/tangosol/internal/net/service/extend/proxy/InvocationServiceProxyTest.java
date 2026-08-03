@@ -172,7 +172,7 @@ public class InvocationServiceProxyTest
         assertTrue(fQueried.get());
         assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=allowed,mode=prod}");
+                + ",result=allowed,mode=prod,sub_reason=policy}");
         }
 
     @Test
@@ -189,7 +189,7 @@ public class InvocationServiceProxyTest
         assertFalse(fQueried.get());
         assertCounter("coh.executable.policy_check{reason=" + OperationReason.INVOKE.name()
                 + ",role=" + SerializationRole.EXTEND_PROXY.name()
-                + ",result=rejected,mode=dev}");
+                + ",result=rejected,mode=dev,sub_reason=policy}");
         }
 
     @Test

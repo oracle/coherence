@@ -70,7 +70,7 @@ public class SecurityConfigIntegrationTest
 
         Map<String, Long> map = SerializationTelemetry.snapshot();
         assertTrue(map.containsKey("coh.serialization.lambda_bytecode_check{result=rejected,"
-                + "reason=security-config-missing,mode=" + mode() + ",route=UNCLASSIFIED}"));
+                + "reason=security-config-missing,mode=" + mode() + ",route=UNCLASSIFIED,site=static_lambda}"));
         }
 
     @Test

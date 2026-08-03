@@ -5,18 +5,6 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
-export class Echo {
-  apply(arg) {
-    return arg
-  }
-}
-
-export class Ping {
-  call() {
-    return "pong"
-  }
-}
-
 export class EntryEcho {
   process(entry) {
     return entry.getValue()
