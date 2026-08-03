@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -91,7 +91,7 @@ public class DirectorySnapshotArchiver
     @Override
     protected void archiveInternal(Snapshot snapshot, PersistenceManager<ReadBuffer> mgr)
         {
-        String       sSnapshotName = snapshot.getName();
+        String       sSnapshotName = CachePersistenceHelper.validateSnapshotName(snapshot.getName());
         OutputStream os            = null;
 
         for (String sStore : snapshot.listStores())
@@ -158,7 +158,7 @@ public class DirectorySnapshotArchiver
     @Override
     protected void retrieveInternal(Snapshot snapshot, PersistenceManager<ReadBuffer> mgr)
         {
-        String      sSnapshotName = snapshot.getName();
+        String      sSnapshotName = CachePersistenceHelper.validateSnapshotName(snapshot.getName());
         InputStream is            = null;
 
         for (String sStore : snapshot.listStores())
@@ -231,7 +231,8 @@ public class DirectorySnapshotArchiver
 
         try
             {
-            fileSnapshot = new File(f_fileSharedDirectoryPath, FileHelper.toFilename(sSnapshot));
+            sSnapshot    = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+            fileSnapshot = new File(f_fileSharedDirectoryPath, sSnapshot);
 
             if (!fileSnapshot.exists() || !fileSnapshot.isDirectory())
                 {
@@ -254,6 +255,8 @@ public class DirectorySnapshotArchiver
     @Override
     protected String[] listStoresInternal(String sSnapshot)
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         File fileSnapshot = new File(f_fileSharedDirectoryPath, sSnapshot);
 
         if (!fileSnapshot.exists() || !fileSnapshot.canRead() || !fileSnapshot.canExecute())
@@ -293,6 +296,8 @@ public class DirectorySnapshotArchiver
     @Override
     protected Properties getMetadata(String sSnapshot) throws IOException
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         File fileSnapshot = new File(f_fileSharedDirectoryPath, sSnapshot);
 
         if (!fileSnapshot.exists() || !fileSnapshot.canRead() || !fileSnapshot.canExecute())
@@ -306,6 +311,8 @@ public class DirectorySnapshotArchiver
     @Override
     protected boolean isEmpty(String sSnapshot, String sStore)
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         File fileStore = new File(f_fileSharedDirectoryPath, sSnapshot);
         fileStore      = new File(fileStore, sStore);
 

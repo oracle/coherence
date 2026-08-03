@@ -903,6 +903,10 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
             {
             throw new IllegalArgumentException("empty identifier");
             }
+        if (!sId.equals(FileHelper.toFilename(sId)))
+            {
+            throw new IllegalArgumentException("invalid identifier: " + sId);
+            }
 
         return sId;
         }

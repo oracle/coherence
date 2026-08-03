@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -243,6 +243,8 @@ public abstract class AbstractPersistenceEnvironment
     @Override
     public synchronized PersistenceManager<ReadBuffer> openSnapshot(String sSnapshot)
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         File fileSnapshot = new File(f_fileSnapshot, FileHelper.toFilename(sSnapshot));
         if (!fileSnapshot.isDirectory())
             {
@@ -268,6 +270,8 @@ public abstract class AbstractPersistenceEnvironment
     public synchronized PersistenceManager<ReadBuffer> createSnapshot(String sSnapshot,
             PersistenceManager<ReadBuffer> manager)
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         if (f_mapSnapshots.containsKey(sSnapshot))
             {
             throw new IllegalArgumentException("duplicate snapshot: " + sSnapshot);
@@ -312,6 +316,8 @@ public abstract class AbstractPersistenceEnvironment
     @Override
     public synchronized boolean removeSnapshot(String sSnapshot)
         {
+        sSnapshot = CachePersistenceHelper.validateSnapshotName(sSnapshot);
+
         AbstractPersistenceManager manager = f_mapSnapshots.get(sSnapshot);
         if (manager != null)
             {
