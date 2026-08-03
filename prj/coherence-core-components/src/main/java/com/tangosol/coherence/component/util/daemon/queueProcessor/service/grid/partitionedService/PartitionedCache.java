@@ -5957,7 +5957,8 @@ public class PartitionedCache
                     try
                         {
                         ctxInvoke.prepareAccess(context,
-                            storage, 0, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
+                            storage, Storage.BinaryEntry.ACCESS_WRITE_ANY,
+                            com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
         
                         storage.invoke(ctxInvoke, status, agent);
         
@@ -6665,6 +6666,15 @@ public class PartitionedCache
         Binary binKey = msgRequest.getKey();
         try
             {
+            com.tangosol.net.security.StorageAccessAuthorizer authorizer = storage.getAccessAuthorizer();
+            if (authorizer != null)
+                {
+                com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
+                authorizer.checkWrite(storage.instantiateBinaryEntry(binKey, null, true),
+                    context == null ? null : context.getSubject(),
+                    com.tangosol.net.security.StorageAccessAuthorizer.REASON_LOCK);
+                }
+
             boolean fEnter = isConcurrent();
             if (lockKey(storage, binKey, fEnter))
                 {
@@ -8434,6 +8444,15 @@ public class PartitionedCache
         Binary binKey = msgRequest.getKey();
         try
             {
+            com.tangosol.net.security.StorageAccessAuthorizer authorizer = storage.getAccessAuthorizer();
+            if (authorizer != null)
+                {
+                com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
+                authorizer.checkWrite(storage.instantiateBinaryEntry(binKey, null, true),
+                    context == null ? null : context.getSubject(),
+                    com.tangosol.net.security.StorageAccessAuthorizer.REASON_UNLOCK);
+                }
+
             boolean fEnter = isConcurrent();
             if (lockKey(storage, binKey, fEnter))
                 {

@@ -8868,10 +8868,7 @@ public class Storage
 
         if (checkIndexExists(extractor, comparator, false))
             {
-            if (context != null)
-                {
-                checkAccess(context, BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INDEX_REMOVE);
-                }
+            checkAccess(context, BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INDEX_REMOVE);
 
             // remove from each partition index
             for (int iPart = partsMask.next(0); iPart >= 0; iPart = partsMask.next(iPart + 1))
