@@ -1,11 +1,13 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.grpc;
+
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import io.grpc.stub.StreamObserver;
 
@@ -28,7 +30,18 @@ public class LockingStreamObserver<V>
      */
     public LockingStreamObserver(StreamObserver<? super V> delegate)
         {
-        f_delegate = (SafeStreamObserver<? super V>) SafeStreamObserver.ensureSafeObserver(delegate);
+        this(delegate, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create a {@link LockingStreamObserver}.
+     *
+     * @param delegate           the {@link StreamObserver} to delegate to
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     */
+    public LockingStreamObserver(StreamObserver<? super V> delegate, String sErrorDisclosure)
+        {
+        f_delegate = (SafeStreamObserver<? super V>) SafeStreamObserver.ensureSafeObserver(delegate, sErrorDisclosure);
         }
 
     @Override
@@ -97,11 +110,28 @@ public class LockingStreamObserver<V>
      */
     public static <T> LockingStreamObserver<T> ensureLockingObserver(StreamObserver<T> observer)
         {
+        return ensureLockingObserver(observer, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Ensure that the specified {@link StreamObserver} is a safe observer.
+     * <p>
+     * If the specified observer is not an instance of {@link LockingStreamObserver} then wrap it in a
+     * {@link LockingStreamObserver}.
+     *
+     * @param observer           the {@link StreamObserver} to test
+     * @param sErrorDisclosure   the gRPC error-disclosure policy
+     * @param <T>                the response type expected by the observer
+     * @return a safe {@link StreamObserver}
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> LockingStreamObserver<T> ensureLockingObserver(StreamObserver<T> observer, String sErrorDisclosure)
+        {
         if (observer instanceof LockingStreamObserver)
             {
             return (LockingStreamObserver<T>) observer;
             }
-        return new LockingStreamObserver<>(observer);
+        return new LockingStreamObserver<>(observer, sErrorDisclosure);
         }
 
     // ----- data members ---------------------------------------------------

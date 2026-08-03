@@ -298,7 +298,8 @@ public abstract class BaseNamedCacheServiceImpl
                 {
                 throw Status.UNAVAILABLE.asRuntimeException();
                 }
-            MapListenerProxy proxy = new MapListenerProxy(this, SafeStreamObserver.ensureSafeObserver(observer), m_nEventsHeartbeat);
+            MapListenerProxy proxy = new MapListenerProxy(this, observer, m_nEventsHeartbeat,
+                    getDependencies().getErrorDisclosure());
             addCloseable(proxy);
             return proxy;
             }

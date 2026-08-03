@@ -13,6 +13,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.
 import com.tangosol.coherence.config.Config;
 import com.tangosol.io.Serializer;
 import com.tangosol.net.ConfigurableCacheFactory;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import java.io.Closeable;
 import java.util.Optional;
@@ -97,6 +98,16 @@ public interface GrpcService
          * @return the optional application {@link Context}
          */
         Optional<Context> getContext();
+
+        /**
+         * Return the gRPC error-disclosure policy.
+         *
+         * @return the gRPC error-disclosure policy
+         */
+        default String getErrorDisclosure()
+            {
+            return GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC;
+            }
         }
 
     /**

@@ -37,6 +37,8 @@
           <socket-provider system-property="coherence.grpc.server.socketprovider"/>
           <in-process-name system-property="coherence.grpc.inprocess.name"/>
           <auth-method system-property="coherence.grpc.auth"/>
+          <channelz system-property="coherence.grpc.channelz"/>
+          <error-disclosure system-property="coherence.grpc.error-disclosure"/>
           <secure-transport system-property="coherence.grpc.server.secure-transport"/>
         </grpc-acceptor>
       </acceptor-config>

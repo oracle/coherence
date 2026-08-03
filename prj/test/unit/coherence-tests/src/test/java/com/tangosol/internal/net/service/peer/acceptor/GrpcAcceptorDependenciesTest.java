@@ -12,6 +12,7 @@ import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.SocketProviderFactory;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 import com.tangosol.net.grpc.GrpcTransportSecurity;
 
 import com.tangosol.run.xml.SimpleParser;
@@ -43,6 +44,8 @@ public class GrpcAcceptorDependenciesTest
         DefaultGrpcAcceptorDependencies deps = new DefaultGrpcAcceptorDependencies();
 
         assertEquals("none", deps.getAuthMethod());
+        assertEquals(GrpcDiagnosticsPolicy.CHANNELZ_AUTO, deps.getChannelz());
+        assertEquals(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO, deps.getErrorDisclosure());
         assertEquals(GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL, deps.getSecureTransport());
         deps.validate();
         }
@@ -77,6 +80,34 @@ public class GrpcAcceptorDependenciesTest
         }
 
     @Test
+    public void shouldAcceptExplicitDiagnosticsPolicies()
+        {
+        DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
+        deps.setChannelz(" Disabled ");
+        deps.setErrorDisclosure(" Safe ");
+
+        assertEquals(GrpcDiagnosticsPolicy.CHANNELZ_DISABLED, deps.getChannelz());
+        assertEquals(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE, deps.getErrorDisclosure());
+        deps.validate();
+        }
+
+    @Test
+    public void shouldRejectUnsupportedChannelz()
+        {
+        DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
+
+        assertThrows(IllegalArgumentException.class, () -> deps.setChannelz("on"));
+        }
+
+    @Test
+    public void shouldRejectUnsupportedErrorDisclosure()
+        {
+        DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
+
+        assertThrows(IllegalArgumentException.class, () -> deps.setErrorDisclosure("verbose"));
+        }
+
+    @Test
     public void shouldRejectUnsupportedSecureTransport()
         {
         DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
@@ -92,11 +123,15 @@ public class GrpcAcceptorDependenciesTest
                 "<acceptor-config>"
               + "  <grpc-acceptor>"
               + "    <auth-method>basic</auth-method>"
+              + "    <channelz>disabled</channelz>"
+              + "    <error-disclosure>safe</error-disclosure>"
               + "    <secure-transport>required</secure-transport>"
               + "  </grpc-acceptor>"
               + "</acceptor-config>");
 
         assertEquals("basic", deps.getAuthMethod());
+        assertEquals(GrpcDiagnosticsPolicy.CHANNELZ_DISABLED, deps.getChannelz());
+        assertEquals(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE, deps.getErrorDisclosure());
         assertEquals(GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED, deps.getSecureTransport());
         }
 
@@ -252,7 +287,7 @@ public class GrpcAcceptorDependenciesTest
         Path root = findProjectRoot();
         assertVersionedWebSchemas(root.resolve("coherence-xsd/web/coherence-config-base"),
                 "coherence-config-base.xsd",
-                GrpcAcceptorDependenciesTest::assertVersionedWebConfigBaseSchemaDeclaresGrpcSecureTransport,
+                GrpcAcceptorDependenciesTest::assertVersionedWebConfigBaseSchemaDeclaresGrpcDiagnostics,
                 false);
         }
 
@@ -277,6 +312,8 @@ public class GrpcAcceptorDependenciesTest
                 + "      <acceptor-config>"
                 + "        <grpc-acceptor>"
                 + "          <auth-method>basic</auth-method>"
+                + "          <channelz>disabled</channelz>"
+                + "          <error-disclosure>safe</error-disclosure>"
                 + "          <secure-transport>required</secure-transport>"
                 + "        </grpc-acceptor>"
                 + "      </acceptor-config>"
@@ -338,9 +375,19 @@ public class GrpcAcceptorDependenciesTest
             {
             throw new AssertionError("Versioned web schema does not declare grpc secure-transport in " + path);
             }
+        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"channelz\"/>")
+                && !sGrpcAcceptor.contains("<xsd:element ref=\"channelz\" minOccurs=\"0\" />"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc channelz in " + path);
+            }
+        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"error-disclosure\"/>")
+                && !sGrpcAcceptor.contains("<xsd:element ref=\"error-disclosure\" minOccurs=\"0\" />"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc error-disclosure in " + path);
+            }
         }
 
-    private static void assertVersionedWebConfigBaseSchemaDeclaresGrpcSecureTransport(Path path)
+    private static void assertVersionedWebConfigBaseSchemaDeclaresGrpcDiagnostics(Path path)
             throws Exception
         {
         String sSchema = Files.readString(path);
@@ -358,6 +405,14 @@ public class GrpcAcceptorDependenciesTest
                 && !sGrpcChannel.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\" />"))
             {
             throw new AssertionError("Versioned web schema does not declare grpc-channel secure-transport in " + path);
+            }
+        if (!sSchema.contains("<xsd:element name=\"channelz\" type=\"coherence-string-type\">"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc channelz element in " + path);
+            }
+        if (!sSchema.contains("<xsd:element name=\"error-disclosure\" type=\"coherence-string-type\">"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc error-disclosure element in " + path);
             }
         }
 

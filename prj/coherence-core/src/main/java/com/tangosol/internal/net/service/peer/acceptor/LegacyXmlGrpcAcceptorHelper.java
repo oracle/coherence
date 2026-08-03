@@ -71,6 +71,12 @@ public class LegacyXmlGrpcAcceptorHelper
         // <auth-method>
         deps.setAuthMethod(xmlAcceptor.getSafeElement("auth-method").getString(deps.getAuthMethod()));
 
+        // <channelz>
+        deps.setChannelz(xmlAcceptor.getSafeElement("channelz").getString(deps.getChannelz()));
+
+        // <error-disclosure>
+        deps.setErrorDisclosure(xmlAcceptor.getSafeElement("error-disclosure").getString(deps.getErrorDisclosure()));
+
         // <secure-transport>
         deps.setSecureTransport(xmlAcceptor.getSafeElement("secure-transport").getString(deps.getSecureTransport()));
 

@@ -62,6 +62,20 @@ public interface GrpcAcceptorDependencies
     int getChannelzPageSize();
 
     /**
+     * Return the gRPC Channelz registration policy.
+     *
+     * @return the gRPC Channelz registration policy
+     */
+    String getChannelz();
+
+    /**
+     * Return the gRPC error-disclosure policy.
+     *
+     * @return the gRPC error-disclosure policy
+     */
+    String getErrorDisclosure();
+
+    /**
      * Return the gRPC authentication method.
      *
      * @return the gRPC authentication method

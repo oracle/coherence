@@ -34,6 +34,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.
 import com.tangosol.io.Serializer;
 
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.net.messaging.Protocol;
 import com.tangosol.net.messaging.Response;
@@ -84,6 +85,7 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
             m_serializer    = service.getClientSerializer(sFormat, m_ccf.getConfigClassLoader());
             m_eventObserver = observer;
             m_subject       = GrpcSecurityContext.getCurrentSubject();
+            m_sErrorDisclosure = service.getDependencies().getErrorDisclosure();
 
             m_serviceProxy = initInternal(service, request, nVersion, clientUUID);
             if (m_serviceProxy != null)
@@ -128,6 +130,16 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
     protected Subject getSubject()
         {
         return m_subject;
+        }
+
+    /**
+     * Return the gRPC error-disclosure policy.
+     *
+     * @return the gRPC error-disclosure policy
+     */
+    protected String getErrorDisclosure()
+        {
+        return m_sErrorDisclosure;
         }
 
     @Override
@@ -481,6 +493,11 @@ public abstract class BaseProxyProtocol<Req extends Message, Resp extends Messag
      * The authenticated gRPC subject.
      */
     protected Subject m_subject;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    protected String m_sErrorDisclosure = GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC;
 
     /**
      * A bit-set containing destroyed cache identifiers.

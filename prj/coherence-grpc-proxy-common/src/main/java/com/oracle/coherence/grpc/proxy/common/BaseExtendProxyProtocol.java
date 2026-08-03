@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -86,6 +86,7 @@ public abstract class BaseExtendProxyProtocol<Req extends Message, Resp extends 
             response.setProxyId(proxyId);
             response.setStreamObserver(observer);
             response.setSerializer(serializer);
+            response.setErrorDisclosure(getErrorDisclosure());
             channel.receive(message);
             }
         catch (Throwable t)
@@ -112,5 +113,5 @@ public abstract class BaseExtendProxyProtocol<Req extends Message, Resp extends 
     /**
      * A flag indicating whether this proxy protocol is closed.
      */
-    protected boolean m_fClosed;    
+    protected boolean m_fClosed;
     }

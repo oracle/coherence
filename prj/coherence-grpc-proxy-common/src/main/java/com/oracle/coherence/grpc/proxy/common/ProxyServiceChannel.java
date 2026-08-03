@@ -36,6 +36,7 @@ import com.tangosol.io.Serializer;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Member;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.net.messaging.Protocol;
 import com.tangosol.util.SafeClock;
@@ -100,12 +101,14 @@ public class ProxyServiceChannel
         f_subject       = GrpcSecurityContext.getCurrentSubject();
         f_memberSupplier = Objects.requireNonNullElse(memberSupplier, () -> CacheFactory.getCluster().getLocalMember());
         f_service        = service;
+        f_sErrorDisclosure = service.getDependencies().getErrorDisclosure();
 
         if (GrpcService.LOG_MESSAGES)
             {
             observer = new LoggingStreamObserver<>(observer, "ProxyServiceChannel");
             }
-        f_observer = SafeStreamObserver.ensureSafeObserver(LockingStreamObserver.ensureLockingObserver(observer));
+        f_observer = SafeStreamObserver.ensureSafeObserver(
+                LockingStreamObserver.ensureLockingObserver(observer, f_sErrorDisclosure), f_sErrorDisclosure);
         service.addCloseable(this);
         }
 
@@ -155,7 +158,7 @@ public class ProxyServiceChannel
                             throw new IllegalArgumentException(sMsg, e);
                             }
                         StreamObserver<Message> observer = new ForwardingStreamObserver<>(nId);
-                        m_protocol.onRequest(message, SafeStreamObserver.ensureSafeObserver(observer));
+                        m_protocol.onRequest(message, SafeStreamObserver.ensureSafeObserver(observer, f_sErrorDisclosure));
                         }
                     catch (Throwable e)
                         {
@@ -431,7 +434,7 @@ public class ProxyServiceChannel
     protected void sendError(long nId, Throwable thrown)
         {
         Serializer   serializer = m_protocol.getSerializer();
-        ErrorMessage message    = ErrorsHelper.createErrorMessage(thrown, serializer);
+        ErrorMessage message    = ErrorsHelper.createErrorMessage(thrown, serializer, f_sErrorDisclosure);
         f_observer.onNext(ProxyResponse.newBuilder()
                 .setId(nId)
                 .setError(message)
@@ -618,6 +621,11 @@ public class ProxyServiceChannel
      * The authenticated gRPC subject.
      */
     private final Subject f_subject;
+
+    /**
+     * The gRPC error-disclosure policy.
+     */
+    private final String f_sErrorDisclosure;
 
     /**
      * The {@link UUID} of the client.
