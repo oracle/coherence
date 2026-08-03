@@ -104,6 +104,21 @@ public class ManagementInvocationPolicyTest
         }
 
     @Test
+    public void shouldAllowCoherenceDomainQueryPattern()
+            throws Exception
+        {
+        assertEquals("Coherence*", ManagementInvocationPolicy.validateQueryPattern(
+                "Coherence*:type=Cache,*", "Coherence", "test").getDomain());
+        assertEquals("Coherence*", ManagementInvocationPolicy.validateQueryPattern(
+                new ObjectName("Coherence*:type=Cache,*"), "test").getDomain());
+
+        expectSecurity(() -> ManagementInvocationPolicy.validateQueryPattern(
+                "java.*:type=Runtime,*", "Coherence", "test"));
+        expectSecurity(() -> ManagementInvocationPolicy.validateObjectName(
+                "Coherence*:type=Cache,*", "Coherence", "test"));
+        }
+
+    @Test
     public void shouldRejectExecutableShapedArguments()
             throws Exception
         {

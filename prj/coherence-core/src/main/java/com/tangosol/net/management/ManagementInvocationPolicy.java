@@ -108,7 +108,20 @@ public final class ManagementInvocationPolicy
      */
     public static ObjectName validateQueryPattern(String sPattern, String sDomain, String sScope)
         {
-        return validateObjectName(toObjectName(sPattern, sDomain, sScope), sScope);
+        return validateQueryObjectName(toObjectName(sPattern, sDomain, sScope), sScope);
+        }
+
+    /**
+     * Validate a management query pattern.
+     *
+     * @param name    the management query pattern
+     * @param sScope  the caller scope
+     *
+     * @return the normalized query pattern
+     */
+    public static ObjectName validateQueryPattern(ObjectName name, String sScope)
+        {
+        return validateQueryObjectName(name, sScope);
         }
 
     /**
@@ -502,6 +515,12 @@ public final class ManagementInvocationPolicy
         return DEFAULT_DOMAIN.equals(sDomain) || sDomain != null && sDomain.startsWith(DEFAULT_DOMAIN + '@');
         }
 
+    private static boolean isCoherenceDomainQueryPattern(ObjectName name)
+        {
+        return name != null && (isCoherenceDomain(name.getDomain())
+                || name.isDomainPattern() && (DEFAULT_DOMAIN + '*').equals(name.getDomain()));
+        }
+
     private static boolean isPlatformReadDomain(String sDomain)
         {
         return "java.lang".equals(sDomain)
@@ -526,6 +545,17 @@ public final class ManagementInvocationPolicy
         if (name.isDomainPattern() || !isCoherenceDomain(sDomain) && !isPlatformReadDomain(sDomain))
             {
             reject(sScope, "object-name", "foreign-domain", sDomain, null);
+            }
+
+        return name;
+        }
+
+    private static ObjectName validateQueryObjectName(ObjectName name, String sScope)
+        {
+        if (!isCoherenceDomainQueryPattern(name))
+            {
+            reject(sScope, "object-name", "foreign-domain",
+                    name == null ? null : name.getDomain(), null);
             }
 
         return name;

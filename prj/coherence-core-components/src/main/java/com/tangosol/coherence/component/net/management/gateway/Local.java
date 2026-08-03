@@ -627,7 +627,7 @@ public class Local
         try
             {
             ObjectName oname = sPattern == null ? null : getObjectName(sPattern);
-            ManagementInvocationPolicy.validateObjectName(oname, "invoke-remote");
+            ManagementInvocationPolicy.validateQueryPattern(oname, "invoke-remote");
             ManagementInvocationPolicy.validateQueryFilter(filter, "invoke-remote");
             return queryNames(oname, filter);
             }
@@ -645,7 +645,7 @@ public class Local
         // import java.util.Set;
         // import java.util.HashSet;
 
-        ManagementInvocationPolicy.validateObjectName(oname, "invoke-remote");
+        ManagementInvocationPolicy.validateQueryPattern(oname, "invoke-remote");
         ManagementInvocationPolicy.validateQueryFilter(filter, "invoke-remote");
         Set setONames = getServer().queryNames(oname, new com.tangosol.net.management.MBeanHelper.QueryExpFilter(filter));
         ManagementInvocationPolicy.validateQueryResult(setONames, "invoke-remote");
