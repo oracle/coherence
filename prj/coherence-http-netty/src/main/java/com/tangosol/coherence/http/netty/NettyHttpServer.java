@@ -80,7 +80,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -152,6 +154,11 @@ public class NettyHttpServer
     protected void startInternal()
             throws IOException
         {
+        if (!isSecure())
+            {
+            ensureCertAuthUsesSsl();
+            }
+
         createAndStartNettyServer(initUri(getLocalAddress(), getLocalPort()), initApplicationContainer());
 
         resetStats();
@@ -327,8 +334,9 @@ public class NettyHttpServer
                     .channel(getServerChannelClass())
                     .childHandler(new JerseyServerInitializer(container));
 
-            int     port = getPort(baseUri);
-            Channel ch   = bootStrap.bind(port).sync().channel();
+            int               port = getPort(baseUri);
+            InetSocketAddress addr = new InetSocketAddress(baseUri.getHost(), port);
+            Channel           ch   = bootStrap.bind(addr).sync().channel();
 
             m_cf = ch.closeFuture().addListener(future ->
                                                 {
@@ -401,6 +409,17 @@ public class NettyHttpServer
             }
 
         return nPort;
+        }
+
+    /**
+     * Ensure certificate authentication is only used with SSL.
+     */
+    protected void ensureCertAuthUsesSsl()
+        {
+        if (isAuthMethodCert())
+            {
+            throw new IllegalStateException("Certificate authentication requires an SSL socket provider");
+            }
         }
 
     // ---- inner class: JerseyServerInitializer -------------------------------
@@ -635,9 +654,16 @@ public class NettyHttpServer
                 // bookkeeping
                 incrementRequestCount();
                 long ldtStart = Base.getLastSafeTimeMillis();
-                clearInputStreamList(); // clearing the content - possible leftover from previous request processing.
 
                 final HttpRequest req = (HttpRequest) msg;
+
+                if (m_bodyCurrent != null && !m_bodyCurrent.isComplete())
+                    {
+                    m_bodyCurrent.fail();
+                    m_bodyCurrent = null;
+                    sendBadRequestAndClose(ctx, req);
+                    return;
+                    }
 
                 if (HttpUtil.is100ContinueExpected(req))
                     {
@@ -646,6 +672,10 @@ public class NettyHttpServer
 
                 // get security context
                 SecurityInfo securityInfo = getSecurityInfo(ctx, req);
+                if (securityInfo.isRejected())
+                    {
+                    return;
+                    }
                 String       sAuth        = securityInfo.getAuth();
                 Principal    principal    = securityInfo.getPrincipal();
                 Subject      subject      = securityInfo.getSubject();
@@ -667,12 +697,21 @@ public class NettyHttpServer
                 if (container == null)
                     {
                     send404(ctx, req);
+                    if (hasEntity(req))
+                        {
+                        ctx.close();
+                        }
                     return;
                     }
 
+                RequestBody body = hasEntity(req)
+                                   ? createRequestBody(ctx)
+                                   : null;
+
                 final ContainerRequest requestContext =
                         createContainerRequest(ctx, req, sContext,
-                                               new NettySecurityContext(sAuth, principal, isSecure()));
+                                               new NettySecurityContext(sAuth, principal, isSecure()),
+                                               body);
 
                 requestContext.setWriter(new NettyResponseWriter(ctx, req, container));
                 requestContext.setRequestScopedInitializer(injectionManager -> {
@@ -701,15 +740,26 @@ public class NettyHttpServer
                 {
                 HttpContent httpContent = (HttpContent) msg;
                 ByteBuf         content = httpContent.content();
+                RequestBody        body = m_bodyCurrent;
+
+                if (body == null)
+                    {
+                    if (!(msg instanceof LastHttpContent) || content.isReadable())
+                        {
+                        sendBadRequestAndClose(ctx, null);
+                        }
+                    return;
+                    }
 
                 if (content.isReadable())
                     {
-                    m_listInputStreams.add(new ByteBufInputStream(content, true));
+                    body.add(content);
                     }
 
                 if (msg instanceof LastHttpContent)
                     {
-                    m_listInputStreams.add(NettyInputStream.END_OF_INPUT);
+                    body.complete();
+                    m_bodyCurrent = null;
                     }
                 }
             }
@@ -723,6 +773,13 @@ public class NettyHttpServer
                 Logger.err(String.format("Unexpected exception processing request: %s", cause.toString()), cause);
                 }
             ctx.close();
+            }
+
+        @Override
+        public void channelInactive(ChannelHandlerContext ctx) throws Exception
+            {
+            failIncompleteRequestBodies();
+            super.channelInactive(ctx);
             }
 
         // ---- helper methods ----------------------------------------------
@@ -741,23 +798,40 @@ public class NettyHttpServer
             }
 
         /**
-         * Close all contained {@link InputStream}s and clear the list.
+         * Determine whether a request carries an entity body.
+         *
+         * @param req  the request
+         *
+         * @return {@code true} if an entity body is expected
          */
-        protected void clearInputStreamList()
+        protected boolean hasEntity(HttpRequest req)
             {
-            m_listInputStreams.forEach(in ->
-                           {
-                           try
-                               {
-                               in.close();
-                               }
-                           catch (IOException e)
-                               {
-                               e.printStackTrace();
-                               }
-                           });
+            return (req.headers().contains(HttpHeaderNames.CONTENT_LENGTH) && HttpUtil.getContentLength(req) > 0)
+                   || HttpUtil.isTransferEncodingChunked(req);
+            }
 
-            m_listInputStreams.clear();
+        /**
+         * Create an isolated body holder for the current request.
+         *
+         * @param ctx  the channel context
+         *
+         * @return the request body holder
+         */
+        protected RequestBody createRequestBody(ChannelHandlerContext ctx)
+            {
+            RequestBody body = new RequestBody();
+            m_setBodies.add(body);
+            m_bodyCurrent = body;
+            ctx.channel().closeFuture().addListener(future -> body.fail());
+            return body;
+            }
+
+        /**
+         * Fail all request bodies that have not received their end marker.
+         */
+        protected void failIncompleteRequestBodies()
+            {
+            m_setBodies.forEach(RequestBody::fail);
             }
 
         /**
@@ -771,7 +845,8 @@ public class NettyHttpServer
          * @return created Jersey Container Request.
          */
         protected ContainerRequest createContainerRequest(ChannelHandlerContext ctx, final HttpRequest req,
-                                                          String sContext, SecurityContext securityContext)
+                                                          String sContext, SecurityContext securityContext,
+                                                          RequestBody body)
             {
             URI    uriBase = m_uriBase;
             String sReqUri = req.uri();
@@ -822,14 +897,7 @@ public class NettyHttpServer
                         });
 
             // request entity handling.
-            if ((req.headers().contains(HttpHeaderNames.CONTENT_LENGTH) && HttpUtil.getContentLength(req) > 0)
-                || HttpUtil.isTransferEncodingChunked(req))
-                {
-                ctx.channel().closeFuture().addListener(future -> m_listInputStreams.add(NettyInputStream.END_OF_INPUT_ERROR));
-
-                requestContext.setEntityStream(new NettyInputStream(m_listInputStreams));
-                }
-            else
+            if (body == null)
                 {
                 requestContext.setEntityStream(new InputStream()
                     {
@@ -839,6 +907,10 @@ public class NettyHttpServer
                         return -1;
                         }
                     });
+                }
+            else
+                {
+                requestContext.setEntityStream(body.createInputStream());
                 }
 
             // copying headers from netty request to jersey f_container request context.
@@ -868,6 +940,17 @@ public class NettyHttpServer
             response.content().writeBytes(sMessage.getBytes(CharsetUtil.UTF_8));
 
             ctx.writeAndFlush(response);
+            }
+
+        protected void sendBadRequestAndClose(ChannelHandlerContext ctx, HttpRequest req)
+            {
+            HttpVersion version = req == null ? HttpVersion.HTTP_1_1 : req.protocolVersion();
+            DefaultFullHttpResponse response =
+                    new DefaultFullHttpResponse(version, HttpResponseStatus.BAD_REQUEST);
+
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
+            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
             }
 
         // ---- inner class: SecurityInfo -----------------------------------
@@ -929,6 +1012,16 @@ public class NettyHttpServer
                 }
 
             /**
+             * Return whether authentication rejected the request and already wrote a response.
+             *
+             * @return {@code true} if request dispatch must stop
+             */
+            public boolean isRejected()
+                {
+                return m_fRejected;
+                }
+
+            /**
              * Interrogates the associated {@link HttpRequest} to obtain values for auth method, principal,
              * and subject.
              *
@@ -942,9 +1035,7 @@ public class NettyHttpServer
                     m_subject = authenticate(m_req.headers().get(HEADER_AUTHORIZATION));
                     if (m_subject == null)
                         {
-                        DefaultFullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.UNAUTHORIZED);
-                        response.headers().add(HEADER_WWW_AUTHENTICATE, DEFAULT_BASIC_AUTH_HEADER_VALUE);
-                        m_ctx.writeAndFlush(response);
+                        rejectUnauthorized();
                         return this;
                         }
                     }
@@ -959,7 +1050,14 @@ public class NettyHttpServer
                     catch (Exception e)
                         {
                         Logger.err("Caught an exception obtaining request security details: " + e.getMessage());
+                        rejectUnauthorized();
+                        return this;
                         }
+                    }
+                else if (isAuthMethodCert())
+                    {
+                    rejectUnauthorized();
+                    return this;
                     }
 
                 if (m_subject == null)
@@ -971,6 +1069,21 @@ public class NettyHttpServer
                     m_principal = m_subject.getPrincipals().iterator().next();
                     }
                 return this;
+                }
+
+            /**
+             * Reject the request and close the channel to avoid reusing an unread body.
+             */
+            protected void rejectUnauthorized()
+                {
+                DefaultFullHttpResponse response =
+                        new DefaultFullHttpResponse(m_req.protocolVersion(), HttpResponseStatus.UNAUTHORIZED);
+
+                response.headers().add(HEADER_WWW_AUTHENTICATE, DEFAULT_BASIC_AUTH_HEADER_VALUE);
+                response.headers().set(HttpHeaderNames.CONTENT_LENGTH, 0);
+                response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.CLOSE);
+                m_ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+                m_fRejected = true;
                 }
 
             // ---- data members --------------------------------------------
@@ -999,6 +1112,87 @@ public class NettyHttpServer
              * The request {@link Principal} if any.
              */
             protected Principal m_principal;
+
+            /**
+             * Whether this request was rejected.
+             */
+            protected boolean m_fRejected;
+            }
+
+        // ---- inner class: RequestBody ------------------------------------
+
+        /**
+         * Isolated queue of request body chunks for a single Jersey request.
+         */
+        protected class RequestBody
+            {
+            /**
+             * Add a readable Netty buffer to this body.
+             *
+             * @param content  the content buffer
+             */
+            protected void add(ByteBuf content)
+                {
+                f_listInputStreams.add(new ByteBufInputStream(content, true));
+                }
+
+            /**
+             * Complete this body normally.
+             */
+            protected void complete()
+                {
+                if (!m_fComplete)
+                    {
+                    m_fComplete = true;
+                    m_setBodies.remove(this);
+                    f_listInputStreams.add(NettyInputStream.END_OF_INPUT);
+                    }
+                }
+
+            /**
+             * Complete this body with an error marker.
+             */
+            protected void fail()
+                {
+                if (!m_fComplete)
+                    {
+                    m_fComplete = true;
+                    m_setBodies.remove(this);
+                    f_listInputStreams.add(NettyInputStream.END_OF_INPUT_ERROR);
+                    }
+                }
+
+            /**
+             * Return whether this body has completed.
+             *
+             * @return {@code true} if the body has completed
+             */
+            protected boolean isComplete()
+                {
+                return m_fComplete;
+                }
+
+            /**
+             * Create the entity stream for this request.
+             *
+             * @return the entity stream
+             */
+            protected InputStream createInputStream()
+                {
+                return new NettyInputStream(f_listInputStreams);
+                }
+
+            // ---- data members --------------------------------------------
+
+            /**
+             * Queue of this request's body chunks.
+             */
+            private final LinkedBlockingDeque<InputStream> f_listInputStreams = new LinkedBlockingDeque<>();
+
+            /**
+             * Whether this body has completed.
+             */
+            private volatile boolean m_fComplete;
             }
 
         // ---- data members ------------------------------------------------
@@ -1009,9 +1203,14 @@ public class NettyHttpServer
         private final URI m_uriBase;
 
         /**
-         * A queue of {@link InputStream}s wrapping Netty buffers containing request data.
+         * The incomplete request body currently being decoded on this channel.
          */
-        private final LinkedBlockingDeque<InputStream> m_listInputStreams = new LinkedBlockingDeque<>();
+        private RequestBody m_bodyCurrent;
+
+        /**
+         * Incomplete request bodies that must be woken if the channel closes.
+         */
+        private final Set<RequestBody> m_setBodies = ConcurrentHashMap.newKeySet();
 
         /**
          * The {@link ApplicationContainer} associated with this server.
@@ -1085,6 +1284,7 @@ public class NettyHttpServer
          */
         public boolean isUserInRole(String sRole)
             {
+            // the Netty backend has no supported role metadata mapping; deny role checks
             return false;
             }
 
@@ -1594,10 +1794,10 @@ public class NettyHttpServer
                         {
                         throw new NullPointerException();
                         }
-                    else if ((cbOff > abSrc.length) ||
-                             (cbOff < 0) ||
-                             ((cbOff + cbOff) > abSrc.length) ||
-                             ((cbOff + cbOff) < 0))
+                    else if (cbOff < 0 ||
+                             cbLen < 0 ||
+                             cbOff > abSrc.length ||
+                             cbLen > abSrc.length - cbOff)
                         {
                         throw new IndexOutOfBoundsException();
                         }
