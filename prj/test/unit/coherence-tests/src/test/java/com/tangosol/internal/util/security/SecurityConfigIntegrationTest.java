@@ -48,6 +48,7 @@ public class SecurityConfigIntegrationTest
     @After
     public void cleanup()
         {
+        restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
         Thread.currentThread().setContextClassLoader(m_loaderOld);
         SecurityConfig.resetForTesting();
         SerializationTelemetry.resetForTesting();
@@ -58,6 +59,7 @@ public class SecurityConfigIntegrationTest
     public void shouldRejectApplicationClassNameMissingFromSecurityConfig()
             throws Exception
         {
+        setMode("prod");
         withConfig();
         SerializationTelemetry.resetForTesting();
 
@@ -71,6 +73,45 @@ public class SecurityConfigIntegrationTest
         Map<String, Long> map = SerializationTelemetry.snapshot();
         assertTrue(map.containsKey("coh.serialization.lambda_bytecode_check{result=rejected,"
                 + "reason=security-config-missing,mode=" + mode() + ",route=UNCLASSIFIED,site=static_lambda}"));
+        }
+
+    @Test
+    public void shouldShadowApplicationClassNameMissingFromSecurityConfigInLegacyMode()
+            throws Exception
+        {
+        setMode("legacy");
+        withConfig();
+        SerializationTelemetry.resetForTesting();
+
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkClassName("com.example.Missing",
+                LambdaBytecodeGate.Site.STATIC_LAMBDA);
+
+        assertTrue(result instanceof LambdaBytecodeGate.Result.Rejected);
+        LambdaBytecodeGate.ensureAllowed(result, LambdaBytecodeGate.Site.STATIC_LAMBDA);
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertTrue(map.containsKey("coh.serialization.lambda_bytecode_check{result=would_reject,"
+                + "reason=security-config-missing,mode=legacy,route=UNCLASSIFIED,site=static_lambda}"));
+        }
+
+    @Test
+    public void shouldRejectApplicationClassNameMissingFromSecurityConfigInDevMode()
+            throws Exception
+        {
+        setMode("dev");
+        withConfig();
+        SerializationTelemetry.resetForTesting();
+
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkClassName("com.example.Missing",
+                LambdaBytecodeGate.Site.STATIC_LAMBDA);
+
+        assertTrue(result instanceof LambdaBytecodeGate.Result.Rejected);
+        assertThrows(SecurityException.class,
+                () -> LambdaBytecodeGate.ensureAllowed(result, LambdaBytecodeGate.Site.STATIC_LAMBDA));
+
+        Map<String, Long> map = SerializationTelemetry.snapshot();
+        assertTrue(map.containsKey("coh.serialization.lambda_bytecode_check{result=rejected,"
+                + "reason=security-config-missing,mode=dev,route=UNCLASSIFIED,site=static_lambda}"));
         }
 
     @Test
@@ -147,10 +188,29 @@ public class SecurityConfigIntegrationTest
                 .toString();
         }
 
+    private static void setMode(String sMode)
+        {
+        restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        CoherenceModeHelper.reset();
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
     private static String mode()
         {
         return CoherenceMode.current().name().toLowerCase(Locale.ROOT);
         }
 
     private final ClassLoader m_loaderOld = Thread.currentThread().getContextClassLoader();
+    private final String      m_sModeOld  = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
     }
