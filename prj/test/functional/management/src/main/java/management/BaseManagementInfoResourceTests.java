@@ -79,6 +79,8 @@ import com.tangosol.util.filter.AlwaysFilter;
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 import com.oracle.coherence.testing.BedrockInvocationProperties;
 
+import com.sun.net.httpserver.HttpServer;
+
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -150,6 +152,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -261,6 +264,7 @@ public abstract class BaseManagementInfoResourceTests
         FileHelper.deleteDirSilent(m_dirArchive);
         FileHelper.deleteDirSilent(m_dirSnapshot);
         FileHelper.deleteDirSilent(m_dirSnapshot2);
+        FileHelper.deleteDirSilent(m_dirReporterOutput);
         }
 
     @Before
@@ -1847,6 +1851,81 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testReporterConfigFileRejectsRemoteUrl()
+            throws IOException
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        AtomicInteger cRequests = new AtomicInteger();
+        HttpServer    server    = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/", exchange ->
+            {
+            cRequests.incrementAndGet();
+            byte[] abBody = "reporter-remote-sentinel".getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, abBody.length);
+            exchange.getResponseBody().write(abBody);
+            exchange.close();
+            });
+        server.start();
+
+        try
+            {
+            String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report-group.xml";
+
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                    "configFile", sUrl, "reporter-remote-sentinel");
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                    "configFile", sUrl, "reporter-remote-sentinel");
+            assertThat(cRequests.get(), is(0));
+            }
+        finally
+            {
+            server.stop(0);
+            }
+        }
+
+    @Test
+    public void testReporterConfigFileRejectsFileUrlOutsideAllowedRoot()
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                "configFile", new File("/etc/passwd").toURI().toString(), "root:");
+        }
+
+    @Test
+    public void testReporterOutputPathRejectsOutsideApprovedRoot()
+            throws IOException
+        {
+        Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
+
+        File tempDirectory = FileHelper.createTempDir();
+        try
+            {
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
+                    "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+            assertReporterUpdateRejected(getBaseTarget().path(REPORTERS),
+                    "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
+            }
+        finally
+            {
+            FileHelper.deleteDirSilent(tempDirectory);
+            }
+        }
+
+    @Test
+    public void testReporterRunReportRejectsUnsafeReportName()
+        {
+        WebTarget target   = getBaseTarget().path(REPORTERS).path("1").path("runReport").path("report.node");
+        Response  response = target.request(MediaType.APPLICATION_JSON_TYPE).get();
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        String sBody = response.readEntity(String.class);
+        assertThat(sBody, not(containsString("java.version")));
+        assertThat(sBody, not(containsString("coherence.cluster")));
+        }
+
+    @Test
     public void testClusterMemberUpdateFailure()
         {
         Map map = new LinkedHashMap();
@@ -1941,13 +2020,14 @@ public abstract class BaseManagementInfoResourceTests
 
         String sMember = SERVER_PREFIX + "-1";
 
-        // create a temp directory so we don't pollute any directories
-        File tempDirectory = FileHelper.createTempDir();
+        File tempDirectory = new File(m_dirReporterOutput, "member-report-output");
+        tempDirectory.mkdirs();
+        String sOutputPath = tempDirectory.getCanonicalPath();
 
         try
             {
             setReporterAttribute(sMember, "outputPath", tempDirectory.getAbsolutePath());
-            Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", tempDirectory.getAbsolutePath()), is(true));
+            Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", sOutputPath), is(true));
 
             // set the intervalSeconds shorter so we don't want as long
             setReporterAttribute(sMember, "intervalSeconds", 15);
@@ -1973,14 +2053,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         finally
             {
-            try
-                {
-                FileHelper.deleteDir(tempDirectory);
-                }
-            catch (IOException ioe)
-                {
-                // ignore
-                }
+            FileHelper.deleteDirSilent(tempDirectory);
             }
         }
 
@@ -1990,8 +2063,9 @@ public abstract class BaseManagementInfoResourceTests
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
-        // create a temp directory so we don't pollute any directories
-        File tempDirectory = FileHelper.createTempDir();
+        File tempDirectory = new File(m_dirReporterOutput, "cluster-report-output");
+        tempDirectory.mkdirs();
+        String sOutputPath = tempDirectory.getCanonicalPath();
 
         try
             {
@@ -2003,7 +2077,7 @@ public abstract class BaseManagementInfoResourceTests
             for (Map mapMember : listMembers)
                 {
                 String sMember = (String) mapMember.get("memberName");
-                Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", tempDirectory.getAbsolutePath()), is(true));
+                Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "outputPath", sOutputPath), is(true));
                 Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "intervalSeconds", 15), is(true));
                 Eventually.assertDeferred(() -> assertAttribute(sMember, REPORTERS, "state", "Stopped"), is(true));
                 }
@@ -2033,14 +2107,7 @@ public abstract class BaseManagementInfoResourceTests
             }
         finally
             {
-            try
-                {
-                FileHelper.deleteDir(tempDirectory);
-                }
-            catch (IOException ioe)
-                {
-                // ignore
-                }
+            FileHelper.deleteDirSilent(tempDirectory);
             }
         }
 
@@ -4407,6 +4474,18 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
         }
 
+    private void assertReporterUpdateRejected(WebTarget target, String sAttribute, Object value, String sForbidden)
+        {
+        Map mapEntity = new LinkedHashMap();
+        mapEntity.put(sAttribute, value);
+
+        Response response = target.request().post(Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE));
+        assertThat(response.getStatus(), is(Response.Status.BAD_REQUEST.getStatusCode()));
+
+        String sBody = response.readEntity(String.class);
+        assertThat(sBody, not(containsString(sForbidden)));
+        }
+
     public boolean assertAttribute(String sMember, String sPath, String sAttribute, Object value)
         {
         Map    mapResults = getMBeanInfoResponse(sMember, sPath);
@@ -5056,6 +5135,7 @@ public abstract class BaseManagementInfoResourceTests
             m_dirSnapshot  = FileHelper.createTempDir();
             m_dirSnapshot2 = FileHelper.createTempDir();
             m_dirArchive   = FileHelper.createTempDir();
+            m_dirReporterOutput = FileHelper.createTempDir();
             s_dirJFR       = FileHelper.createTempDir();
             }
         catch (IOException ioe)
@@ -5105,6 +5185,7 @@ public abstract class BaseManagementInfoResourceTests
         propsServer1.add(SystemProperty.of("test.persistence.active.dir", m_dirActive.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.snapshot.dir", m_dirSnapshot.getAbsolutePath()));
         propsServer1.add(SystemProperty.of("test.persistence.archive.dir", m_dirArchive.getAbsolutePath()));
+        propsServer1.add(SystemProperty.of("coherence.reporter.output.directory", m_dirReporterOutput.getAbsolutePath()));
         propsServer1.add(LocalStorage.enabled());
         propsServer1.add(CacheConfig.of(CACHE_CONFIG));
         propsServer1.add(LocalHost.only());
@@ -5338,6 +5419,11 @@ public abstract class BaseManagementInfoResourceTests
      * Archive directory.
      */
     protected static File m_dirArchive;
+
+    /**
+     * Reporter output directory.
+     */
+    protected static File m_dirReporterOutput;
 
     /**
      * Temporary directory to store JFR files.

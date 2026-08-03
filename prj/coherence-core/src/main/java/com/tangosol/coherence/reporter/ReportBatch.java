@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -342,7 +342,7 @@ public class ReportBatch
     */
     public void setOutputPath(String sPath)
         {
-        m_sOutputDir = sPath;
+        m_sOutputDir = ReporterSecurity.validateOutputPath(sPath, "jmx-direct");
         }
 
     /**
@@ -467,15 +467,16 @@ public class ReportBatch
     */
     public void setConfigFile(String sInputFilename)
         {
+        ReporterSecurity.validateReportResourceName(sInputFilename, "setConfigFile", "jmx-direct");
         try
             {
             synchronized (this)
                 {
                 m_mapReporters = new HashMap();
                 m_sConfigFile  = sInputFilename;
-                XmlDocument xml = XmlHelper.loadFileOrResource(
+                XmlDocument xml = ReporterSecurity.loadTrustedReportXml(
                     sInputFilename, "Reporter configuration",
-                    ReportBatch.class.getClassLoader());
+                    ReportBatch.class.getClassLoader(), "setConfigFile", "jmx-direct");
                 XmlHelper.replaceSystemProperties(xml, "system-property");
 
                 setXml(xml);
@@ -885,8 +886,8 @@ public class ReportBatch
             {
             f_fURI                  = fURI;
             XmlDocument xmlDocument = fURI
-                    ? XmlHelper.loadFileOrResource(sReportOrGroup, "Reporter configuration",
-                           ReportBatch.class.getClassLoader())
+                    ? ReporterSecurity.loadTrustedReportXml(sReportOrGroup, "Reporter configuration",
+                           ReportBatch.class.getClassLoader(), "runTabularReport", "jmx-direct")
                     : XmlHelper.loadXml(sReportOrGroup);
 
             // could be a report group or a single report
