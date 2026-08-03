@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -23,6 +23,7 @@ import com.tangosol.net.NameService;
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.SocketAddressProvider;
 import com.tangosol.net.internal.NameServicePofContext;
+import com.tangosol.net.internal.NameServiceValuePolicy;
 import com.tangosol.net.internal.WrapperSocketAddressProvider;
 import com.tangosol.net.messaging.Channel;
 import com.tangosol.net.messaging.ConnectionException;
@@ -190,8 +191,11 @@ public class RemoteNameService
             throws javax.naming.NamingException
         {
         // import Component.Net.Extend.MessageFactory.NameServiceFactory$BindRequest as com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory.BindRequest;
+        // import com.tangosol.net.internal.NameServiceValuePolicy;
         // import com.tangosol.net.messaging.Channel;
         
+        NameServiceValuePolicy.validateBindResource(sName, o, true);
+
         Channel     channel = ensureChannel();
         com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory.BindRequest request = (com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory.BindRequest) channel.getMessageFactory().createMessage(com.tangosol.coherence.component.net.extend.messageFactory.NameServiceFactory.BindRequest.TYPE_ID);
         
@@ -312,6 +316,7 @@ public class RemoteNameService
         // import com.tangosol.net.messaging.Channel;
         // import com.tangosol.net.messaging.ConnectionException;
         // import com.tangosol.net.OperationalContext;
+        // import com.tangosol.net.internal.NameServiceValuePolicy;
         // import com.tangosol.util.Binary;
         // import com.tangosol.util.ExternalizableHelper;
         // import com.oracle.coherence.common.base.Timeout;
@@ -328,7 +333,9 @@ public class RemoteNameService
         
             request.setLookupName(sName);
         
-            return channel.request(request);
+            Object oResult = channel.request(request);
+            NameServiceValuePolicy.validateLookupResult(sName, oResult);
+            return oResult;
             }
         // else; MC based lookup
         
@@ -368,9 +375,11 @@ public class RemoteNameService
                 addrLocalInet, (int) cMillisTimeout, ctx.getDiscoveryTimeToLive(), binMember.toByteArray());
         
             Binary binResult = new Binary(in);
-            return binResult.length() == 0
+            Object oResult = binResult.length() == 0
                 ? null
                 : ExternalizableHelper.fromBinary(binResult, initiator.getSerializer());
+            NameServiceValuePolicy.validateLookupResult(sName, oResult);
+            return oResult;
             }
         catch (Exception e)
             {

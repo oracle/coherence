@@ -1313,8 +1313,10 @@ public class Connector
             {
             try
                 {
-                // Start Jmx Connector with dynamic service url
-                JMXConnectorServer connector = MBeanHelper.startRmiConnector(sAddr, 0, nPort, getLocalGateway().getServer(), mapEnv);
+                // start JMX connector with dynamic service url unless a registry port is explicitly configured
+                JMXConnectorServer connector = MBeanHelper.startRmiConnector(sAddr,
+                    Config.getProperty(MBeanConnector.RMI_REGISTRY_PORT_PROPERTY) == null ? 0 : MBeanConnector.getRegistryPort(),
+                    nPort, getLocalGateway().getServer(), mapEnv);
                 _trace("JMXConnectorServer now listening for connections on " +
                     (InetAddresses.isAnyLocalAddress(sAddr) ? InetAddress.getLocalHost().getHostName() : sAddr) +
                     ":" + connector.getAddress().getPort(), 3);
@@ -4150,11 +4152,11 @@ public class Connector
                         String[] asSockAddr = ((String) iter.next()).split(":");
                         if (asSockAddr.length > 2)
                             {
-                            colUrls.add(HttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1]), asSockAddr[2]));
+                            colUrls.add(HttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1]), asSockAddr[2]).toString());
                             }
                         else
                             {
-                            colUrls.add(HttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1])));
+                            colUrls.add(HttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1])).toString());
                             }
                         }
                     return colUrls;
@@ -4184,11 +4186,11 @@ public class Connector
                         String[] asSockAddr = ((String) iter.next()).split(":");
                         if (asSockAddr.length > 2)
                             {
-                            colUrls.add(MetricsHttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1]), asSockAddr[2]));
+                            colUrls.add(MetricsHttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1]), asSockAddr[2]).toString());
                             }
                         else
                             {
-                            colUrls.add(MetricsHttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1])));
+                            colUrls.add(MetricsHttpHelper.composeURL(asSockAddr[0], Integer.parseInt(asSockAddr[1])).toString());
                             }
                         }
                     return colUrls;
@@ -4218,11 +4220,11 @@ public class Connector
                         String[] asSockAddr = ((String) iter.next()).split(":");
                         if (asSockAddr.length > 2)
                             {
-                            colUrls.add(new URL(asSockAddr[2], asSockAddr[0], Integer.parseInt(asSockAddr[1]), "/"));
+                            colUrls.add(new URL(asSockAddr[2], asSockAddr[0], Integer.parseInt(asSockAddr[1]), "/").toString());
                             }
                         else
                             {
-                            colUrls.add(new URL("http", asSockAddr[0], Integer.parseInt(asSockAddr[1]), "/"));
+                            colUrls.add(new URL("http", asSockAddr[0], Integer.parseInt(asSockAddr[1]), "/").toString());
                             }
                         }
                     return colUrls;
