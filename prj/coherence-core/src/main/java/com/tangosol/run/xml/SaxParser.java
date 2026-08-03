@@ -535,6 +535,20 @@ public class SaxParser
                 ClassHelper.invoke(factory,
                     "setValidating", new Object[] {Boolean.FALSE});
 
+                // prevent XXE (XML External Entity) attacks
+                // factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+                ClassHelper.invoke(factory,
+                    "setFeature", new Object[] {
+                        "http://xml.org/sax/features/external-general-entities", Boolean.FALSE});
+                // factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+                ClassHelper.invoke(factory,
+                    "setFeature", new Object[] {
+                        "http://xml.org/sax/features/external-parameter-entities", Boolean.FALSE});
+                // factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+                ClassHelper.invoke(factory,
+                    "setFeature", new Object[] {
+                        "http://apache.org/xml/features/nonvalidating/load-external-dtd", Boolean.FALSE});
+
                 // parser = factory.newSAXParser().getParser();
                 Object SAXParser = ClassHelper.invoke(factory,
                     "newSAXParser", ClassHelper.VOID);
