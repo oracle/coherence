@@ -203,7 +203,14 @@ public final class SerializationTelemetry
         Registry registry = s_registry;
         if (registry != null)
             {
-            MBEANS.values().forEach(registration -> registry.unregister(registration.getName()));
+            MBEANS.values().forEach(registration ->
+                {
+                String sName = registration.getName();
+                if (sName != null)
+                    {
+                    registry.unregister(sName);
+                    }
+                });
             }
 
         COUNTERS.clear();
@@ -262,12 +269,14 @@ public final class SerializationTelemetry
         CounterRegistration registration = MBEANS.get(key);
         if (registration == null)
             {
+            CounterKey keyRegister;
+            boolean    fRegister;
             synchronized (MBEANS)
                 {
                 registration = MBEANS.get(key);
                 if (registration == null)
                     {
-                    CounterKey keyRegister = key;
+                    keyRegister = key;
                     CounterKey keyOverflow = overflowKey(key.mode());
                     if (!keyOverflow.equals(keyRegister) && MBEANS.size() >= MAX_REGISTERED_TUPLES - 1)
                         {
@@ -278,9 +287,32 @@ public final class SerializationTelemetry
                     registration = MBEANS.get(keyRegister);
                     if (registration == null)
                         {
-                        registration = registerCounter(registry, keyRegister);
+                        registration = new CounterRegistration(new SerializationGateCounter());
                         MBEANS.put(keyRegister, registration);
+                        fRegister = true;
                         }
+                    else
+                        {
+                        fRegister = false;
+                        }
+                    }
+                else
+                    {
+                    keyRegister = key;
+                    fRegister   = false;
+                    }
+                }
+
+            if (fRegister)
+                {
+                try
+                    {
+                    registerCounter(registry, keyRegister, registration);
+                    }
+                catch (RuntimeException e)
+                    {
+                    MBEANS.remove(keyRegister, registration);
+                    throw e;
                     }
                 }
             }
@@ -288,12 +320,11 @@ public final class SerializationTelemetry
         registration.increment();
         }
 
-    private static CounterRegistration registerCounter(Registry registry, CounterKey key)
+    private static void registerCounter(Registry registry, CounterKey key, CounterRegistration registration)
         {
-        SerializationGateCounter counter = new SerializationGateCounter();
         String sName = registry.ensureGlobalName(key.toMBeanName());
-        registry.register(sName, createMBean(counter, key));
-        return new CounterRegistration(sName, counter);
+        registry.register(sName, createMBean(registration.getCounter(), key));
+        registration.setName(sName);
         }
 
     private static Object createMBean(SerializationGateCounter counter, CounterKey key)
@@ -394,15 +425,24 @@ public final class SerializationTelemetry
 
     private static class CounterRegistration
         {
-        private CounterRegistration(String sName, SerializationGateCounter counter)
+        private CounterRegistration(SerializationGateCounter counter)
             {
-            f_sName   = sName;
             f_counter = counter;
             }
 
         private String getName()
             {
-            return f_sName;
+            return m_sName;
+            }
+
+        private void setName(String sName)
+            {
+            m_sName = sName;
+            }
+
+        private SerializationGateCounter getCounter()
+            {
+            return f_counter;
             }
 
         private void increment()
@@ -410,7 +450,7 @@ public final class SerializationTelemetry
             f_counter.increment();
             }
 
-        private final String f_sName;
+        private volatile String m_sName;
 
         private final SerializationGateCounter f_counter;
         }

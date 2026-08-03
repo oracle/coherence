@@ -24,6 +24,12 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import javax.management.DynamicMBean;
@@ -34,6 +40,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -123,6 +130,31 @@ public class SerializationTelemetryTest
         Object oOverflow = findMBean(mapBeans, "metric=filter_check", "route=UNCLASSIFIED", "mode=" + mode(),
                 "result=rejected", "reason=tag-ceiling-reached");
         assertEquals(6L, ((DynamicMBean) oOverflow).getAttribute("Count"));
+        }
+
+    @Test
+    public void testConcurrentRegistrationDoesNotBlockBehindFirstRegister() throws Exception
+        {
+        BlockingFirstRegisterRegistry registry = new BlockingFirstRegisterRegistry();
+        SerializationTelemetry.register(registry);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        Future<?> futureFirst = executor.submit(() -> SerializationTelemetry.recordPofCheck("allowed", "first", 1));
+
+        try
+            {
+            assertTrue("first telemetry registration did not start", registry.awaitFirstRegister());
+
+            Future<?> futureSecond = executor.submit(() -> SerializationTelemetry.recordPofCheck("allowed", "second", 2));
+            futureSecond.get(5, TimeUnit.SECONDS);
+            assertFalse("first registration should still be waiting", futureFirst.isDone());
+            }
+        finally
+            {
+            registry.releaseFirstRegister();
+            futureFirst.get(5, TimeUnit.SECONDS);
+            executor.shutdownNow();
+            }
         }
 
     @Test
@@ -278,5 +310,47 @@ public class SerializationTelemetryTest
             }
 
         private final Map<String, Object> f_mapBeans = new LinkedHashMap<>();
+        }
+
+    // ----- inner class: BlockingFirstRegisterRegistry ----------------------
+
+    private static class BlockingFirstRegisterRegistry
+            extends RecordingRegistry
+        {
+        @Override
+        public void register(String sName, Object oBean)
+            {
+            if (f_blockFirst.compareAndSet(true, false))
+                {
+                f_firstRegisterStarted.countDown();
+                try
+                    {
+                    f_releaseFirstRegister.await(10, TimeUnit.SECONDS);
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    throw new AssertionError(e);
+                    }
+                }
+
+            super.register(sName, oBean);
+            }
+
+        private boolean awaitFirstRegister() throws InterruptedException
+            {
+            return f_firstRegisterStarted.await(5, TimeUnit.SECONDS);
+            }
+
+        private void releaseFirstRegister()
+            {
+            f_releaseFirstRegister.countDown();
+            }
+
+        private final AtomicBoolean f_blockFirst = new AtomicBoolean(true);
+
+        private final CountDownLatch f_firstRegisterStarted = new CountDownLatch(1);
+
+        private final CountDownLatch f_releaseFirstRegister = new CountDownLatch(1);
         }
     }
