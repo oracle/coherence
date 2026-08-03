@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,24 +11,37 @@
 package com.tangosol.coherence.component.net.security;
 
 import com.tangosol.coherence.component.net.Cluster;
+
 import com.tangosol.coherence.component.util.SafeCluster;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
+
 import com.tangosol.internal.net.security.DefaultStandardDependencies;
 import com.tangosol.internal.net.security.StandardDependencies;
+
 import com.tangosol.net.ClusterPermission;
+
 import com.tangosol.net.cache.LocalCache;
+
 import com.tangosol.net.security.PermissionInfo;
 import com.tangosol.net.security.SecurityHelper;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
+
 import java.security.GeneralSecurityException;
 import java.security.Principal;
 import java.security.PrivilegedAction;
 import java.security.PrivilegedExceptionAction;
+import java.security.SecureRandom;
+
 import java.util.Iterator;
 import java.util.Map;
+
 import javax.security.auth.Subject;
+
 import javax.security.auth.callback.CallbackHandler;
+
 import javax.security.auth.login.LoginContext;
 
 /**
@@ -102,6 +115,14 @@ public class Standard
      * forever to allow policy changes take effect relatively quickly.
      */
     private java.util.Map __m_ValidSubjects;
+
+    /**
+     * Property SecureRandom
+     *
+     * Secure random source used to generate subject validation challenges.
+     */
+    private static final SecureRandom __s_SecureRandom = new SecureRandom();
+
     private static com.tangosol.util.ListMap __mapChildren;
     
     // Static initializer
@@ -697,7 +718,7 @@ public class Standard
         if (!mapValid.containsKey(subject))
             {
             com.tangosol.net.security.AccessController controller = getDependencies().getAccessController();
-            Object     oTest      = Double.valueOf(Math.random());
+            Object     oTest      = Long.valueOf(__s_SecureRandom.nextLong());
             try
                 {
                 Object o = controller.decrypt(

@@ -22,6 +22,8 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.SignedObject;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.ArgumentMatchers.same;
@@ -54,6 +56,24 @@ public class StandardTest
 
         controller = new AccessControllerStubRSA();
         testValidate(controller);
+        }
+
+    @Test
+    public void shouldUseSecureValidationToken() throws Exception
+        {
+        CapturingAccessController   controller   = new CapturingAccessController();
+        DefaultStandardDependencies dependencies = new DefaultStandardDependencies();
+        Subject                     subject      = new Subject();
+
+        dependencies.setAccessController(controller);
+
+        Standard standard = new Standard();
+
+        standard.setDependencies(dependencies);
+        standard.validateSubject("DistributedService", subject);
+
+        assertTrue(controller.getPayload() instanceof Long);
+        assertFalse(controller.getPayload() instanceof Double);
         }
 
 
@@ -140,6 +160,29 @@ public class StandardTest
             }
         }
 
+    public static class CapturingAccessController
+            extends AccessControllerStub
+        {
+        public CapturingAccessController() throws Exception
+            {
+            }
+
+        @Override
+        public SignedObject encrypt(Object o, Subject subjEncryptor)
+                throws IOException, GeneralSecurityException
+            {
+            m_oPayload = o;
+            return super.encrypt(o, subjEncryptor);
+            }
+
+        public Object getPayload()
+            {
+            return m_oPayload;
+            }
+
+        private Object m_oPayload;
+        }
+
     public static class AccessControllerStubRSA implements AccessController
         {
         private KeyPairGenerator keyPairGenerator;
@@ -179,5 +222,4 @@ public class StandardTest
             {
             }
         }
-
     }
