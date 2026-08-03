@@ -26,7 +26,7 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for opt-in shim generation tracing.
  *
  * @author Aleks Seovic  2026.05.04
- * @since 26.04
+ * @since 26.07
  */
 public class RemotableLambdaGeneratorTraceTest
     {
