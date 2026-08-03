@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Shared serialization class policy used by Coherence deserialization gates.
  *
  * @author Aleks Seovic  2026.04.29
- * @since 26.04
+ * @since 26.07
  */
 public final class SerializationAllowlist
     {

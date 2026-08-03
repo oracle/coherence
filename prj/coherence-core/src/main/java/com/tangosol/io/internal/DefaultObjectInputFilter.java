@@ -12,7 +12,7 @@ import java.io.ObjectInputFilter;
  * Coherence default {@link ObjectInputFilter}.
  *
  * @author Aleks Seovic  2026.04.29
- * @since 26.04
+ * @since 26.07
  */
 public final class DefaultObjectInputFilter
         implements ObjectInputFilter

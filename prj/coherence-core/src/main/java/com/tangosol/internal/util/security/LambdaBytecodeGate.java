@@ -63,7 +63,7 @@ import java.util.stream.Stream;
  * {@link Site#CLASS_IDENTITY}: reserved for a future direct {@code ClassIdentity.loadClass(...)} site.
  *
  * @author Aleks Seovic  2026.04.30
- * @since 26.04
+ * @since 26.07
  */
 public final class LambdaBytecodeGate
     {

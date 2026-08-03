@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
  * deny-list cross-check.
  *
  * @author Aleks Seovic  2026.04.30
- * @since 26.04
+ * @since 26.07
  */
 public class LambdaBytecodeDenylistResourceTest
     {

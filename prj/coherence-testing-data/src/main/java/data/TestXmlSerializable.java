@@ -14,7 +14,7 @@ import com.tangosol.run.xml.XmlSerializable;
  * Test {@link XmlSerializable} implementation.
  *
  * @author Aleks Seovic  2026.04.29
- * @since 26.04
+ * @since 26.07
  */
 public class TestXmlSerializable
         implements XmlSerializable
