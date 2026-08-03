@@ -2139,11 +2139,31 @@
     <xsd:complexType name="serializer-type" mixed="true">
         <xsd:sequence>
             <xsd:element ref="instance" minOccurs="0" maxOccurs="1" />
+            <xsd:element ref="limits" minOccurs="0" maxOccurs="1" />
             <xsd:any namespace="##other" processContents="lax"
                 minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
         <xsd:attribute name="system-property" type="xsd:normalizedString" use="optional" />
+        <xsd:attribute name="id" type="xsd:NMTOKEN" use="optional" />
         <xsd:anyAttribute namespace="##other" processContents="lax"/>
+    </xsd:complexType>
+
+    <xsd:element name="limits" type="serializer-limits-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures serializer-local container bounds.
+
+                Used in: serializer
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="serializer-limits-type">
+        <xsd:sequence>
+            <xsd:element name="max-container-bytes" type="coherence-string-type" minOccurs="0" />
+            <xsd:element name="max-elements" type="coherence-string-type" minOccurs="0" />
+            <xsd:element name="max-map-entries" type="coherence-string-type" minOccurs="0" />
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:element name="member-health-check" type="coherence-boolean-type">

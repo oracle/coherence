@@ -993,6 +993,7 @@
         <xsd:complexType>
             <xsd:sequence>
                 <xsd:group ref="instance" />
+                <xsd:element ref="limits" minOccurs="0" />
             </xsd:sequence>
             <xsd:attribute name="xml-override" use="optional" />
             <xsd:attribute name="id" type="xsd:NMTOKEN" use="required" />

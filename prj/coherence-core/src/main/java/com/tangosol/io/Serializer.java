@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -131,6 +131,18 @@ public interface Serializer
                 }
             }
         return named == null ? null : named.value();
+        }
+
+    /**
+     * Return the serialization container limit policy for this serializer.
+     *
+     * @return the serialization container limit policy
+     *
+     * @since 26.04
+     */
+    default SerializationLimitPolicy getLimitPolicy()
+        {
+        return SerializationLimitPolicy.getDefault();
         }
 
     /**
