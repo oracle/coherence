@@ -11,7 +11,7 @@ package com.tangosol.io;
  * container limit policy.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 public interface SerializationLimitAware
     {
