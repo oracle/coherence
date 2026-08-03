@@ -2174,6 +2174,7 @@
                     </xsd:choice>
                 </xsd:choice>
                 <xsd:element name="socket-provider" type="grpc-socket-provider-type" minOccurs="0"/>
+                <xsd:element ref="secure-transport" minOccurs="0"/>
                 <xsd:element name="override-authority" type="coherence-string-type" minOccurs="0"/>
                 <xsd:element ref="load-balancer-policy" minOccurs="0"/>
                 <xsd:element ref="load-balancer-timeout" minOccurs="0"/>
@@ -2189,6 +2190,18 @@
                 The default is round_robin.
 
                 Used in: grpc-channel
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="secure-transport" type="coherence-string-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures whether gRPC network transport security is optional
+                or required. Valid values are optional and required. The default
+                is optional.
+
+                Used in: grpc-acceptor, grpc-channel
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>

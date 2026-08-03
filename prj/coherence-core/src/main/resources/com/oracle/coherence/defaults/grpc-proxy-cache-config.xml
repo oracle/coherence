@@ -37,6 +37,7 @@
           <socket-provider system-property="coherence.grpc.server.socketprovider"/>
           <in-process-name system-property="coherence.grpc.inprocess.name"/>
           <auth-method system-property="coherence.grpc.auth"/>
+          <secure-transport system-property="coherence.grpc.server.secure-transport"/>
         </grpc-acceptor>
       </acceptor-config>
       <health>

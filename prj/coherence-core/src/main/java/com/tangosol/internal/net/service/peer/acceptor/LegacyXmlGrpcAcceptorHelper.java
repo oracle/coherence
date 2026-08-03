@@ -6,7 +6,12 @@
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
+import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
+import com.tangosol.internal.net.LegacyXmlSocketProviderFactoryDependencies;
+
 import com.tangosol.net.OperationalContext;
+import com.tangosol.net.SocketProviderFactory;
 
 import com.tangosol.net.grpc.GrpcAcceptorController;
 
@@ -56,8 +61,8 @@ public class LegacyXmlGrpcAcceptorHelper
         deps.setController(controller);
 
         // <socket-provider/>
-        deps.setSocketProviderBuilder(ctx.getSocketProviderFactory().getSocketProviderBuilder(
-            xmlAcceptor.getSafeElement("socket-provider")));
+        deps.setSocketProviderBuilder(createSocketProviderBuilder(ctx,
+            xmlAcceptor.getElement("socket-provider")));
 
         // <in-process-namek>
         String sName = xmlAcceptor.getSafeElement("in-process-name").getString(deps.getInProcessName());
@@ -65,6 +70,9 @@ public class LegacyXmlGrpcAcceptorHelper
 
         // <auth-method>
         deps.setAuthMethod(xmlAcceptor.getSafeElement("auth-method").getString(deps.getAuthMethod()));
+
+        // <secure-transport>
+        deps.setSecureTransport(xmlAcceptor.getSafeElement("secure-transport").getString(deps.getSecureTransport()));
 
         // <local-address>
         XmlElement xmlLocal = xmlAcceptor.getSafeElement("local-address");
@@ -78,5 +86,34 @@ public class LegacyXmlGrpcAcceptorHelper
         deps.setLocalPort(nPort);
 
         return deps;
+        }
+
+    /**
+     * Create a dependency-backed socket provider builder from legacy XML.
+     *
+     * @param ctx                the operational context
+     * @param xmlSocketProvider  the socket-provider XML element
+     *
+     * @return a dependency-backed socket provider builder
+     */
+    private static SocketProviderBuilder createSocketProviderBuilder(OperationalContext ctx, XmlElement xmlSocketProvider)
+        {
+        SocketProviderFactory factory = ctx.getSocketProviderFactory();
+        String                sId     = LegacyXmlSocketProviderFactoryDependencies.getProviderId(xmlSocketProvider);
+
+        if (sId == null)
+            {
+            return factory.getDefaultSocketProviderBuilder();
+            }
+
+        if (SocketProviderFactory.UNNAMED_PROVIDER_ID.equals(sId))
+            {
+            LegacyXmlSocketProviderFactoryDependencies deps =
+                    new LegacyXmlSocketProviderFactoryDependencies(sId, xmlSocketProvider);
+            deps.setSocketProviderFactory(factory);
+            return new SocketProviderBuilder(sId, deps, false);
+            }
+
+        return new SocketProviderBuilder(sId, factory.getDependencies(), false);
         }
     }

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -50,7 +50,7 @@ class path, or module path, of the JVM.
     <scope-name>${coherence.scope}</scope-name>
     <serializer>${coherence.serializer}</serializer>
   </defaults>
-  
+
   <caching-scheme-mapping>
     <cache-mapping>
       <cache-name>*</cache-name>
@@ -161,6 +161,7 @@ class path, or module path, of the JVM.
           </socket-address>
         </name-service-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
       <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
@@ -197,6 +198,7 @@ class path, or module path, of the JVM.
           </socket-address>
         </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
       <request-timeout system-property="coherence.grpc.request.timeout"/>
       <defer-key-association-check system-property="coherence.grpc.defer.key.association"/>
@@ -269,6 +271,7 @@ class path, or module path, of the JVM.
           </socket-address>
         </name-service-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
     </remote-grpc-topic-scheme>
 
@@ -290,6 +293,7 @@ class path, or module path, of the JVM.
           </socket-address>
         </remote-addresses>
         <socket-provider system-property="coherence.grpc.socketprovider"/>
+        <secure-transport system-property="coherence.grpc.channels.default.secure-transport"/>
       </grpc-channel>
     </remote-grpc-topic-scheme>
 

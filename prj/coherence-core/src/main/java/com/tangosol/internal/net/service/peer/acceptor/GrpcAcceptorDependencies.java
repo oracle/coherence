@@ -69,6 +69,13 @@ public interface GrpcAcceptorDependencies
     String getAuthMethod();
 
     /**
+     * Return the gRPC secure transport policy.
+     *
+     * @return the gRPC secure transport policy
+     */
+    String getSecureTransport();
+
+    /**
      * Return the optional application {@link Context}.
      *
      * @return the optional application {@link Context}

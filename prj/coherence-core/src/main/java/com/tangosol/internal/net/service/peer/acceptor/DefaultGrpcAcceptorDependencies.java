@@ -13,6 +13,7 @@ import com.tangosol.coherence.config.builder.SocketProviderBuilder;
 import com.tangosol.config.annotation.Injectable;
 import com.tangosol.net.grpc.GrpcDependencies;
 import com.tangosol.net.grpc.GrpcAcceptorController;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 
 import java.util.Locale;
 
@@ -59,6 +60,7 @@ public class DefaultGrpcAcceptorDependencies
             setLocalAddress(deps.getLocalAddress());
             setLocalPort(deps.getLocalPort());
             setAuthMethod(deps.getAuthMethod());
+            setSecureTransport(deps.getSecureTransport());
             setSocketProviderBuilder(deps.getSocketProviderBuilder());
             }
         }
@@ -185,6 +187,23 @@ public class DefaultGrpcAcceptorDependencies
                 : sMethod.trim().toLowerCase(Locale.ROOT);
         }
 
+    @Override
+    public String getSecureTransport()
+        {
+        return m_sSecureTransport;
+        }
+
+    /**
+     * Set the gRPC secure transport policy.
+     *
+     * @param sPolicy  the gRPC secure transport policy
+     */
+    @Injectable("secure-transport")
+    public void setSecureTransport(String sPolicy)
+        {
+        m_sSecureTransport = GrpcTransportSecurity.normalize(sPolicy);
+        }
+
     /**
      * Set the application Context.
      *
@@ -211,6 +230,7 @@ public class DefaultGrpcAcceptorDependencies
             {
             throw new IllegalArgumentException("unsupported GrpcAuthMethod: " + sMethod);
             }
+        GrpcTransportSecurity.normalize(getSecureTransport());
         return this;
         }
 
@@ -250,6 +270,11 @@ public class DefaultGrpcAcceptorDependencies
      * The gRPC authentication method.
      */
     private String m_sAuthMethod = AUTH_METHOD_NONE;
+
+    /**
+     * The gRPC secure transport policy.
+     */
+    private String m_sSecureTransport = GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL;
 
     private static final String AUTH_METHOD_NONE = "none";
 

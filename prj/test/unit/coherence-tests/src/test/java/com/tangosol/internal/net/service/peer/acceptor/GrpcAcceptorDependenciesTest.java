@@ -6,8 +6,13 @@
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
+import com.oracle.coherence.common.net.SSLSocketProvider;
+
+import com.tangosol.coherence.config.builder.SocketProviderBuilder;
+
 import com.tangosol.net.OperationalContext;
 import com.tangosol.net.SocketProviderFactory;
+import com.tangosol.net.grpc.GrpcTransportSecurity;
 
 import com.tangosol.run.xml.SimpleParser;
 import com.tangosol.run.xml.SaxParser;
@@ -38,6 +43,7 @@ public class GrpcAcceptorDependenciesTest
         DefaultGrpcAcceptorDependencies deps = new DefaultGrpcAcceptorDependencies();
 
         assertEquals("none", deps.getAuthMethod());
+        assertEquals(GrpcTransportSecurity.SECURE_TRANSPORT_OPTIONAL, deps.getSecureTransport());
         deps.validate();
         }
 
@@ -61,24 +67,164 @@ public class GrpcAcceptorDependenciesTest
         }
 
     @Test
+    public void shouldAcceptRequiredSecureTransport()
+        {
+        DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
+        deps.setSecureTransport(" Required ");
+
+        assertEquals(GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED, deps.getSecureTransport());
+        deps.validate();
+        }
+
+    @Test
+    public void shouldRejectUnsupportedSecureTransport()
+        {
+        DefaultGrpcAcceptorDependencies deps = populate(new DefaultGrpcAcceptorDependencies());
+
+        assertThrows(IllegalArgumentException.class, () -> deps.setSecureTransport("mandatory"));
+        }
+
+    @Test
     public void shouldParseGrpcAuthMethodFromXml()
             throws Exception
         {
-        DefaultGrpcAcceptorDependencies deps = new DefaultGrpcAcceptorDependencies();
-        XmlDocument xml = new SimpleParser().parseXml(
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
                 "<acceptor-config>"
               + "  <grpc-acceptor>"
               + "    <auth-method>basic</auth-method>"
+              + "    <secure-transport>required</secure-transport>"
               + "  </grpc-acceptor>"
               + "</acceptor-config>");
 
-        OperationalContext context = mock(OperationalContext.class);
-        when(context.getSocketProviderFactory()).thenReturn(new SocketProviderFactory());
-
-        LegacyXmlGrpcAcceptorHelper.fromXml(xml, deps, context,
-                getClass().getClassLoader());
-
         assertEquals("basic", deps.getAuthMethod());
+        assertEquals(GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED, deps.getSecureTransport());
+        }
+
+    @Test
+    public void shouldPreserveNamedSslProviderMetadataFromXml()
+            throws Exception
+        {
+        SocketProviderFactory.DefaultDependencies depsFactory = new SocketProviderFactory.DefaultDependencies();
+        depsFactory.addNamedSSLDependencies(SocketProviderFactory.Dependencies.ProviderType.SSL.getName(),
+                new SSLSocketProvider.DefaultDependencies());
+        SocketProviderFactory factory = new SocketProviderFactory(depsFactory);
+
+        DefaultGrpcAcceptorDependencies deps = fromXml(factory,
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider>ssl</socket-provider>"
+              + "    <secure-transport>required</secure-transport>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        assertEquals(GrpcTransportSecurity.Transport.TLS, GrpcTransportSecurity.enforce(
+                deps.getSocketProviderBuilder(), deps.getSecureTransport()));
+        }
+
+    @Test
+    public void shouldPreserveInlineSslProviderMetadataFromXml()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider><ssl/></socket-provider>"
+              + "    <secure-transport>required</secure-transport>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        assertEquals(GrpcTransportSecurity.Transport.TLS, GrpcTransportSecurity.enforce(
+                deps.getSocketProviderBuilder(), deps.getSecureTransport()));
+        }
+
+    @Test
+    public void shouldPreserveGrpcInsecureProviderMetadataFromXml()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider>grpc-insecure</socket-provider>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        assertEquals(GrpcTransportSecurity.Transport.INSECURE_EXPLICIT, GrpcTransportSecurity.enforce(
+                deps.getSocketProviderBuilder(), deps.getSecureTransport()));
+        }
+
+    @Test
+    public void shouldRejectRequiredGrpcInsecureProviderFromXml()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider>grpc-insecure</socket-provider>"
+              + "    <secure-transport>required</secure-transport>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> GrpcTransportSecurity.enforce(deps.getSocketProviderBuilder(), deps.getSecureTransport()));
+
+        assertEquals(GrpcTransportSecurity.SECURE_REQUIRED_MESSAGE, e.getMessage());
+        }
+
+    @Test
+    public void shouldTreatDefaultProviderFromXmlAsOptionalCleartext()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor/>"
+              + "</acceptor-config>");
+
+        SocketProviderBuilder builder = deps.getSocketProviderBuilder();
+        assertEquals(GrpcTransportSecurity.Transport.INSECURE_COMPAT, GrpcTransportSecurity.enforce(
+                builder, deps.getSecureTransport()));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> GrpcTransportSecurity.enforce(builder, GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED));
+
+        assertEquals(GrpcTransportSecurity.SECURE_REQUIRED_MESSAGE, e.getMessage());
+        }
+
+    @Test
+    public void shouldTreatTcpProviderFromXmlAsOptionalCleartext()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider>tcp</socket-provider>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        SocketProviderBuilder builder = deps.getSocketProviderBuilder();
+        assertEquals(GrpcTransportSecurity.Transport.INSECURE_COMPAT, GrpcTransportSecurity.enforce(
+                builder, deps.getSecureTransport()));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> GrpcTransportSecurity.enforce(builder, GrpcTransportSecurity.SECURE_TRANSPORT_REQUIRED));
+
+        assertEquals(GrpcTransportSecurity.SECURE_REQUIRED_MESSAGE, e.getMessage());
+        }
+
+    @Test
+    public void shouldRejectMissingSslDependenciesFromXmlWhenOptional()
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = fromXml(new SocketProviderFactory(),
+                "<acceptor-config>"
+              + "  <grpc-acceptor>"
+              + "    <socket-provider>ssl</socket-provider>"
+              + "  </grpc-acceptor>"
+              + "</acceptor-config>");
+
+        IllegalStateException e = assertThrows(IllegalStateException.class,
+                () -> GrpcTransportSecurity.enforce(deps.getSocketProviderBuilder(), deps.getSecureTransport()));
+
+        assertEquals(GrpcTransportSecurity.MISSING_TLS_CREDENTIALS_MESSAGE, e.getMessage());
         }
 
     @Test
@@ -94,7 +240,20 @@ public class GrpcAcceptorDependenciesTest
         {
         Path root = findProjectRoot();
         assertVersionedWebSchemas(root.resolve("coherence-xsd/web/coherence-cache-config"),
-                "coherence-cache-config.xsd", GrpcAcceptorDependenciesTest::assertVersionedWebSchemaDeclaresGrpcAuthMethod);
+                "coherence-cache-config.xsd",
+                GrpcAcceptorDependenciesTest::assertVersionedWebSchemaDeclaresGrpcAuthMethod,
+                true);
+        }
+
+    @Test
+    public void shouldDeclareGrpcSecureTransportInVersionedWebConfigBaseSchemas()
+            throws Exception
+        {
+        Path root = findProjectRoot();
+        assertVersionedWebSchemas(root.resolve("coherence-xsd/web/coherence-config-base"),
+                "coherence-config-base.xsd",
+                GrpcAcceptorDependenciesTest::assertVersionedWebConfigBaseSchemaDeclaresGrpcSecureTransport,
+                false);
         }
 
     private static void validateCacheConfigSchema(String sSchemaLocation)
@@ -118,6 +277,7 @@ public class GrpcAcceptorDependenciesTest
                 + "      <acceptor-config>"
                 + "        <grpc-acceptor>"
                 + "          <auth-method>basic</auth-method>"
+                + "          <secure-transport>required</secure-transport>"
                 + "        </grpc-acceptor>"
                 + "      </acceptor-config>"
                 + "    </proxy-scheme>"
@@ -128,29 +288,34 @@ public class GrpcAcceptorDependenciesTest
         new SaxParser().validateXsd(sXml, xml);
         }
 
-    private static void assertVersionedWebSchemas(Path dir, String sSchemaName, SchemaAssertion assertion)
+    private static void assertVersionedWebSchemas(Path dir, String sSchemaName, SchemaAssertion assertion,
+            boolean fRequired)
             throws Exception
         {
         boolean fFound = false;
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, Files::isDirectory))
+        if (Files.isDirectory(dir))
             {
-            for (Path pathVersion : stream)
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, Files::isDirectory))
                 {
-                Path pathSchema = pathVersion.resolve(sSchemaName);
-                if (Files.exists(pathSchema))
+                for (Path pathVersion : stream)
                     {
-                    fFound |= assertion.assertSchema(pathSchema);
+                    Path pathSchema = pathVersion.resolve(sSchemaName);
+                    if (Files.exists(pathSchema))
+                        {
+                        fFound = true;
+                        assertion.assertSchema(pathSchema);
+                        }
                     }
                 }
             }
 
-        if (!fFound)
+        if (fRequired && !fFound)
             {
             throw new AssertionError("Cannot locate versioned web schema " + sSchemaName + " under " + dir);
             }
         }
 
-    private static boolean assertVersionedWebSchemaDeclaresGrpcAuthMethod(Path path)
+    private static void assertVersionedWebSchemaDeclaresGrpcAuthMethod(Path path)
             throws Exception
         {
         String sSchema = Files.readString(path);
@@ -159,7 +324,7 @@ public class GrpcAcceptorDependenciesTest
 
         if (iStart < 0 || iEnd < 0)
             {
-            return false;
+            throw new AssertionError("Cannot locate grpc-acceptor declaration in " + path);
             }
 
         String sGrpcAcceptor = sSchema.substring(iStart, iEnd);
@@ -168,7 +333,44 @@ public class GrpcAcceptorDependenciesTest
             {
             throw new AssertionError("Versioned web schema does not declare grpc auth-method in " + path);
             }
-        return true;
+        if (!sGrpcAcceptor.contains("<xsd:element minOccurs=\"0\" ref=\"secure-transport\"/>")
+                && !sGrpcAcceptor.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\" />"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc secure-transport in " + path);
+            }
+        }
+
+    private static void assertVersionedWebConfigBaseSchemaDeclaresGrpcSecureTransport(Path path)
+            throws Exception
+        {
+        String sSchema = Files.readString(path);
+        int    iStart  = sSchema.indexOf("name=\"grpc-channel-type\"");
+        int    iEnd    = sSchema.indexOf("</xsd:complexType>", iStart);
+
+        if (iStart < 0 || iEnd < 0)
+            {
+            throw new AssertionError("Cannot locate grpc-channel-type declaration in " + path);
+            }
+
+        String sGrpcChannel = sSchema.substring(iStart, iEnd);
+        if (!sGrpcChannel.contains("<xsd:element minOccurs=\"0\" ref=\"secure-transport\"/>")
+                && !sGrpcChannel.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\"/>")
+                && !sGrpcChannel.contains("<xsd:element ref=\"secure-transport\" minOccurs=\"0\" />"))
+            {
+            throw new AssertionError("Versioned web schema does not declare grpc-channel secure-transport in " + path);
+            }
+        }
+
+    private static DefaultGrpcAcceptorDependencies fromXml(SocketProviderFactory factory, String sXml)
+            throws Exception
+        {
+        DefaultGrpcAcceptorDependencies deps = new DefaultGrpcAcceptorDependencies();
+        XmlDocument                     xml  = new SimpleParser().parseXml(sXml);
+        OperationalContext              ctx  = mock(OperationalContext.class);
+
+        when(ctx.getSocketProviderFactory()).thenReturn(factory);
+        LegacyXmlGrpcAcceptorHelper.fromXml(xml, deps, ctx, GrpcAcceptorDependenciesTest.class.getClassLoader());
+        return deps;
         }
 
     private static Path findProjectRoot()
@@ -195,7 +397,7 @@ public class GrpcAcceptorDependenciesTest
     @FunctionalInterface
     private interface SchemaAssertion
         {
-        boolean assertSchema(Path path)
+        void assertSchema(Path path)
                 throws Exception;
         }
     }

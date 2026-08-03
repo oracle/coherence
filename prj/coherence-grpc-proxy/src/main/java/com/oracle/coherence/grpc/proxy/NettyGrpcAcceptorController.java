@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -175,7 +175,8 @@ public class NettyGrpcAcceptorController
 
     protected ServerBuilder<?> createServerBuilder(GrpcAcceptorDependencies deps)
         {
-        ServerCredentials credentials = NettyCredentialsHelper.createServerCredentials(deps.getSocketProviderBuilder());
+        ServerCredentials credentials =
+                NettyCredentialsHelper.createServerCredentials(deps.getSocketProviderBuilder(), deps.getSecureTransport());
         return Grpc.newServerBuilderForPort(deps.getLocalPort(), credentials);
         }
 
