@@ -22,7 +22,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Tests default option inheritance for {@link CoherenceClusterResource}.
  *
  * @author as  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 public class CoherenceClusterResourceOptionsTest
     {
