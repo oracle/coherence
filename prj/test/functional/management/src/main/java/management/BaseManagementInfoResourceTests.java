@@ -65,7 +65,9 @@ import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.Session;
+import com.tangosol.net.management.MBeanAccessor;
 import com.tangosol.net.management.MapJsonBodyHandler;
+import com.tangosol.net.management.MBeanServerProxy;
 
 import com.tangosol.net.security.SecurityHelper;
 import com.tangosol.net.topic.NamedTopic;
@@ -74,7 +76,9 @@ import com.tangosol.net.topic.Subscriber;
 
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
+import com.tangosol.util.Filter;
 import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.function.Remote;
 
 import com.oracle.coherence.testing.AbstractTestInfrastructure;
 import com.oracle.coherence.testing.BedrockInvocationProperties;
@@ -108,6 +112,7 @@ import org.junit.rules.TestName;
 
 import com.oracle.coherence.testing.CheckJDK;
 
+import javax.management.MBeanServer;
 import javax.management.MBeanServerConnection;
 import javax.management.ObjectName;
 
@@ -124,6 +129,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 
 import java.lang.management.GarbageCollectorMXBean;
@@ -204,6 +210,7 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -1388,6 +1395,50 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     @Test
+    public void testManagementTcmpRejectsPlainExecuteFunction()
+        {
+        String sProperty = "coherence.management.slice.c.function." + System.nanoTime();
+        String sResult   = s_cluster.iterator().next().submit(new InvokePlainManagementFunction(sProperty)).join();
+
+        assertThat(sResult, not("invoked"));
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            }
+        }
+
+    @Test
+    public void testManagementTcmpRejectsNestedExecuteFilter()
+        {
+        String sProperty = "coherence.management.slice.c.filter." + System.nanoTime();
+        String sResult   = s_cluster.iterator().next().submit(new InvokeNestedManagementFilter(sProperty)).join();
+
+        assertThat(sResult, not("queried"));
+        for (CoherenceClusterMember member : s_cluster)
+            {
+            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            }
+        }
+
+    @Test
+    public void testManagementTcmpRejectsPlatformMBeanInvoke()
+        {
+        String sResult = s_cluster.iterator().next().submit(new InvokePlatformDiagnosticCommand()).join();
+
+        assertThat(sResult, not(containsString("java.class.path")));
+        assertThat(sResult, startsWith("rejected:"));
+        }
+
+    @Test
+    public void testManagementTcmpRejectsWrappedDiagnosticCommandSystemProperties()
+        {
+        String sResult = s_cluster.iterator().next().submit(new InvokeWrappedDiagnosticCommand()).join();
+
+        assertThat(sResult, not(containsString("java.class.path")));
+        assertThat(sResult, startsWith("rejected:"));
+        }
+
+    @Test
     public void testServiceInfo()
         {
         WebTarget target   = getBaseTarget().path(SERVICES);
@@ -1934,17 +1985,8 @@ public abstract class BaseManagementInfoResourceTests
         Entity    entity   = Entity.entity(map, MediaType.APPLICATION_JSON_TYPE);
         Response  response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = readEntity(target, response, entity);
-
-        List<Map> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        Map mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cpuCount"));
-        assertThat(mapMessages.get("severity"), is("FAILURE"));
         }
 
     @Test
@@ -1957,16 +1999,8 @@ public abstract class BaseManagementInfoResourceTests
         Entity   entity   = Entity.entity(mapEntity, MediaType.APPLICATION_JSON_TYPE);
         Response response = target.request().post(entity);
 
-        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        assertThat(response.getStatus(), is(Response.Status.UNAUTHORIZED.getStatusCode()));
         assertThat(response.getHeaderString("X-Content-Type-Options"), is("nosniff"));
-        Map mapResponse = readEntity(target, response, entity);
-
-        List<Map> listMessages = (List) mapResponse.get("messages");
-        assertThat(listMessages, notNullValue());
-        assertThat(listMessages.size(), is(1));
-
-        Map mapMessages = listMessages.get(0);
-        assertThat(mapMessages.get("field"), is("cacheHits"));
         }
 
     @Test
@@ -5331,6 +5365,161 @@ public abstract class BaseManagementInfoResourceTests
         }
 
     //--------------------- helper classes ----------------------------
+
+    public static class InvokePlainManagementFunction
+            implements RemoteCallable<String>
+        {
+        public InvokePlainManagementFunction(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            try
+                {
+                CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .execute(new PlainManagementFunction(m_sProperty));
+                return "invoked";
+                }
+            catch (Throwable t)
+                {
+                return t.getClass().getName();
+                }
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class InvokePlatformDiagnosticCommand
+            implements RemoteCallable<String>
+        {
+        @Override
+        public String call()
+            {
+            try
+                {
+                MBeanServerProxy proxy = CacheFactory.getCluster().getManagement().getMBeanServerProxy();
+                Object result = proxy.invoke("com.sun.management:type=DiagnosticCommand", "vmSystemProperties",
+                        null, null);
+                return String.valueOf(result);
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+        }
+
+    public static class InvokeNestedManagementFilter
+            implements RemoteCallable<String>
+        {
+        public InvokeNestedManagementFilter(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            try
+                {
+                MBeanAccessor.QueryBuilder.ParsedQuery query = new MBeanAccessor.QueryBuilder()
+                        .withMBeanDomainName("Coherence:")
+                        .withBaseQuery("type=Cluster")
+                        .withFilter("name", new NestedManagementFilter(m_sProperty))
+                        .build();
+
+                CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .execute(new MBeanAccessor.GetAttributes(query));
+                return "queried";
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class InvokeWrappedDiagnosticCommand
+            implements RemoteCallable<String>
+        {
+        @Override
+        public String call()
+            {
+            try
+                {
+                com.tangosol.net.Member member = CacheFactory.getCluster().getLocalMember();
+                String sName = "Coherence:type=DiagnosticCommand,Domain=com.sun.management,subType=DiagnosticCommand"
+                        + ",cluster=" + member.getClusterName()
+                        + ",member=" + member.getMemberName()
+                        + ",nodeId=" + member.getId();
+                Object result = CacheFactory.getCluster().getManagement().getMBeanServerProxy()
+                        .invoke(sName, "vmSystemProperties", null, null);
+                return String.valueOf(result);
+                }
+            catch (Throwable t)
+                {
+                return "rejected:" + t.getClass().getName();
+                }
+            }
+        }
+
+    public static class GetSystemProperty
+            implements RemoteCallable<String>
+        {
+        public GetSystemProperty(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String call()
+            {
+            return System.getProperty(m_sProperty);
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class NestedManagementFilter
+            implements Filter<String>, Serializable
+        {
+        public NestedManagementFilter(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public boolean evaluate(String sValue)
+            {
+            System.setProperty(m_sProperty, "evaluated");
+            return true;
+            }
+
+        private final String m_sProperty;
+        }
+
+    public static class PlainManagementFunction
+            implements Remote.Function<MBeanServer, String>, Serializable
+        {
+        public PlainManagementFunction(String sProperty)
+            {
+            m_sProperty = sProperty;
+            }
+
+        @Override
+        public String apply(MBeanServer server)
+            {
+            System.setProperty(m_sProperty, "invoked");
+            return "invoked";
+            }
+
+        private final String m_sProperty;
+        }
 
     public static class RemoteStartService implements RemoteRunnable
         {

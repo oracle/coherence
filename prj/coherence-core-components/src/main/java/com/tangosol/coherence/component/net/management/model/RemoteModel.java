@@ -12,12 +12,16 @@ package com.tangosol.coherence.component.net.management.model;
 
 import com.tangosol.coherence.component.net.management.Connector;
 import com.tangosol.coherence.component.net.management.Gateway;
+import com.tangosol.coherence.component.manageable.ModelAdapter;
+import com.tangosol.coherence.component.net.management.gateway.Local;
 import com.tangosol.coherence.component.net.management.listenerHolder.LocalHolder;
 import com.tangosol.coherence.component.net.management.model.LocalModel;
+import com.tangosol.coherence.component.net.management.model.localModel.WrapperModel;
 import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.base.Continuation;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.net.InvocationService;
+import com.tangosol.net.management.ManagementInvocationPolicy;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.util.Base;
 import com.tangosol.util.ClassHelper;
@@ -26,6 +30,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import javax.management.MBeanInfo;
 
 /**
  * Model components implement the JMX-managed functionality of the
@@ -1214,6 +1219,15 @@ public class RemoteModel
                         {
                         aoParam = ClassHelper.VOID;
                         }
+                    if (asSign == null && aoParam.length == 0)
+                        {
+                        asSign = new String[0];
+                        }
+                    ManagementInvocationPolicy.validateObjectName(sModel, null, "remote-model");
+                    ManagementInvocationPolicy.validateArguments(aoParam, asSign, "remote-model");
+                    MBeanInfo info = getRemoteModelMBeanInfo(model, sModel);
+                    ManagementInvocationPolicy.validateRemoteModelInvocation(info, getRemoteModelInvocationClass(model),
+                            nOp, sMethod, aoParam, asSign, "remote-model");
                     model.set_InvocationResult(model.invoke(nOp, sMethod, aoParam, asSign));
                     }
                 catch (Throwable e)
@@ -1222,6 +1236,57 @@ public class RemoteModel
                     }
                 }
             }
+        }
+
+    /**
+     * Return the exposed MBeanInfo for a local model without requiring this
+     * node to host a local MBeanServer gateway.
+     */
+    protected MBeanInfo getRemoteModelMBeanInfo(LocalModel model, String sModel)
+        {
+        Connector connector = getConnector();
+        Local     gateway   = connector == null ? null : connector.getLocalGateway();
+
+        if (gateway != null)
+            {
+            MBeanInfo info = gateway.getMBeanInfo(sModel);
+            if (info != null)
+                {
+                return info;
+                }
+            }
+
+        Gateway      gatewayModel = new com.tangosol.coherence.component.net.management.gateway.Remote();
+        ModelAdapter adapter      = gatewayModel.instantiateModelMBean(model);
+        if (adapter == null)
+            {
+            return null;
+            }
+
+        adapter.set_Model(model);
+        return adapter.getMBeanInfo();
+        }
+
+    /**
+     * Return the class whose public methods reflection can select for a
+     * RemoteModel invocation, or {@code null} when dispatch uses a DynamicMBean
+     * or MBeanServer path instead of local Java method reflection.
+     */
+    protected Class<?> getRemoteModelInvocationClass(LocalModel model)
+        {
+        if (model instanceof WrapperModel)
+            {
+            WrapperModel wrapper = (WrapperModel) model;
+            if (wrapper.isDynamic())
+                {
+                return null;
+                }
+
+            Object oBean = wrapper.getMBean();
+            return oBean == null ? null : oBean.getClass();
+            }
+
+        return model.getClass();
         }
     
     // From interface: com.tangosol.net.PriorityTask
