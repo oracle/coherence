@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="jmx.BaseMBeanServerProxyNotificationTests$ModFourPredicate" source="manual"/>
+    <class name="jmx.BaseMBeanServerProxyNotificationTests$ModThreePredicate" source="manual"/>
+    <class name="jmx.CacheMBeanTests" source="manual"/>
+    <class name="jmx.DiscoveryMBeanTests" source="manual"/>
+    <class name="jmx.JmxTests" source="manual"/>
+    <class name="jmx.JmxTests$ModifyEmitterInvocable" source="manual" executable="true"/>
+    <class name="jmx.JmxTests$RegisterEmitterInvocable" source="manual" executable="true"/>
+    <class name="jmx.JmxTests$TriggerInvocable" source="manual" executable="true"/>
+    <class name="jmx.MBeanServerProxyTests" source="manual"/>
+    <class name="jmx.SetDomainSuffixJmxTests" source="manual"/>
+    <class name="jmx.StorageManagerMBeanTests" source="manual"/>
+    <class name="jmx.StorageManagerMBeanTests$SleepFilter" source="manual" executable="true"/>
+    <class name="jmx.TestEmitter" source="manual"/>
+  </allowed-classes>
+</security-config>

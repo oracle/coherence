@@ -184,6 +184,16 @@ public class RemotableSupport
         String  sClassName    = sBinClassName.replace('/', '.');
         byte[]  abClass       = definition.getBytes();
 
+        if (Lambdas.isDynamicLambdaIdentity(definition.getId()))
+            {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(abClass, LambdaBytecodeGate.Site.LAMBDA),
+                    LambdaBytecodeGate.Site.LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkDynamicLambdaMode(),
+                    LambdaBytecodeGate.Site.LAMBDA);
+            }
+
         LambdaBytecodeGate.ensureAllowed(
                 LambdaBytecodeGate.checkBytecode(abClass, LambdaBytecodeGate.Site.CLASS_DEFINITION),
                 LambdaBytecodeGate.Site.CLASS_DEFINITION);

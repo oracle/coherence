@@ -17,9 +17,13 @@ repositories {
 dependencies {
     implementation '%s:coherence:%s'
 }
-coherencePof {
+portableTypes {
     instrumentTestClasses = true
     indexPofClasses = false
+}
+
+securityConfig {
+    skip = true
 }
 
 test {

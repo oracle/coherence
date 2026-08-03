@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="rwbm.ReadWriteBackingMapTests$CacheEventInterceptor" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomAggregator" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor1" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor10" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor11" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor12" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor13" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor14" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor15" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor2" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor3" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor4" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor5" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor6" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor7" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor8" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$CustomProcessor9" source="manual" executable="true"/>
+    <class name="rwbm.ReadWriteBackingMapTests$GetStoreSizeProcessor" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

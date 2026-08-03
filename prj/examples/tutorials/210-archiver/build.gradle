@@ -8,6 +8,7 @@
 plugins {
     id "application"
 	id 'java'
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 java {
@@ -60,4 +61,8 @@ task runArchiver(type: Exec) {
             "-Dtangosol.pof.config=pof-config.xml",
             "-Dtangosol.pof.enabled=true",
             "com.oracle.coherence.tutorials.archiver.ArchiverExample"
+}
+
+securityConfig {
+    processTestClasses = true
 }

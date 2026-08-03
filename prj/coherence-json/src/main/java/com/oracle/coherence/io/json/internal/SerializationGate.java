@@ -7,6 +7,7 @@
 package com.oracle.coherence.io.json.internal;
 
 import com.tangosol.io.internal.DefaultObjectInputFilter;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import java.io.ObjectInputFilter;
 
@@ -36,7 +37,12 @@ public class SerializationGate
     public static boolean isValid(Class<?> clz)
         {
         ObjectInputFilter filter = DefaultObjectInputFilter.create();
-        return filter.checkInput(new FilterInfo(clz)) != ObjectInputFilter.Status.REJECTED;
+        boolean fAllowed = filter.checkInput(new FilterInfo(clz)) != ObjectInputFilter.Status.REJECTED;
+        if (!fAllowed)
+            {
+            SerializationTelemetry.recordFilterCheck("rejected", "json-class-rejected", clz, null);
+            }
+        return fAllowed;
         }
 
     // ----- inner class: FilterInfo ----------------------------------------
@@ -93,4 +99,5 @@ public class SerializationGate
          */
         private final Class<?> f_clz;
         }
+
     }

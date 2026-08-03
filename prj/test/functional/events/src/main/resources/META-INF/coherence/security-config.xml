@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="events.EntryEventsTests$CountingExtractor" source="manual" executable="true"/>
+    <class name="events.EventTestHelper$EnsureServiceInvocable" source="manual" executable="true"/>
+    <class name="events.ExtendClientMemberEventTests$AddMemberEventMapEntryProcessor" source="manual" executable="true"/>
+    <class name="events.ExtendClientMemberEventTests$ClientMemberListener" source="manual"/>
+    <class name="events.ExtendClientMemberEventTests$ExtendClient" source="manual"/>
+    <class name="events.ExtendClientMemberEventTests$ExtendClientMemberListener" source="manual"/>
+    <class name="events.ExtendClientMemberEventTests$MemberClient" source="manual"/>
+    <class name="events.ExtendClientMemberEventTests$MemberEventResult" source="manual"/>
+    <class name="events.ExtendClientMemberEventTests$RunUntilExtendClient" source="manual"/>
+    <class name="events.ServerEventsTests$CustomProcessor" source="manual" executable="true"/>
+    <class name="events.TransactionEventTests$EvictingProcesser" source="manual" executable="true"/>
+    <class name="events.TransactionEventTests$RippleProcessor" source="manual" executable="true"/>
+    <class name="events.TransactionEventTests$UnsolicitedPutProcesser" source="manual" executable="true"/>
+    <class name="events.common.AbstractTestInterceptor$ErrorAccumulator" source="manual" executable="true"/>
+    <class name="events.common.AbstractTestInterceptor$Expectations" source="manual"/>
+    <class name="events.common.AbstractTestInterceptor$Expectations$CacheEntryExpectation" source="manual"/>
+    <class name="events.common.AbstractTestInterceptor$ExpectationsInformerInvocable" source="manual" executable="true"/>
+    <class name="events.common.AbstractTestInterceptor$ResetAccumulator" source="manual" executable="true"/>
+    <class name="events.common.CacheLifecycleInterceptor" source="manual" executable="true"/>
+    <class name="events.common.EntryProcessorInterceptor" source="manual" executable="true"/>
+    <class name="events.common.MutatingInterceptor" source="manual" executable="true"/>
+    <class name="events.common.MutatingInterceptor$SetThrowModInvocable" source="manual" executable="true"/>
+    <class name="events.common.NonMutatingInterceptor" source="manual" executable="true"/>
+    <class name="events.common.RegistrationCounterInterceptor" source="manual" executable="true"/>
+    <class name="events.common.TestTransferInterceptor" source="manual" executable="true"/>
+    <class name="events.common.TestTransferInterceptor$RecoverTransferExpectation" source="manual"/>
+    <class name="events.common.TestTransferInterceptor$TransferExpectation" source="manual"/>
+    <class name="events.common.UnnamedInterceptor" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

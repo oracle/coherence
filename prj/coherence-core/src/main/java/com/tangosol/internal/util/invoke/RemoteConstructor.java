@@ -250,6 +250,12 @@ public class RemoteConstructor<T>
             {
             throw new NotSerializableException(RemoteConstructor.class.getName());
             }
+        if (Lambdas.isDynamicLambdaIdentity(m_definition.getId()))
+            {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_definition.getBytes(), LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR),
+                    LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR);
+            }
         LambdaBytecodeGate.ensureAllowed(
                 LambdaBytecodeGate.checkBytecode(m_definition.getBytes(), LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR),
                 LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR);

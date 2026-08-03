@@ -6,12 +6,28 @@
  */
 package com.tangosol.io.internal;
 
+import com.tangosol.internal.util.CoherenceModeTestSupport;
+
+import java.io.IOException;
+import java.io.InvalidClassException;
 import java.io.ObjectInputFilter;
+import java.io.ObjectStreamException;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 
 import javax.management.Attribute;
 import javax.management.BadAttributeValueExpException;
+import javax.management.ImmutableDescriptor;
+import javax.management.MBeanAttributeInfo;
+import javax.management.MBeanConstructorInfo;
+import javax.management.MBeanFeatureInfo;
 import javax.management.MBeanInfo;
+import javax.management.MBeanNotificationInfo;
+import javax.management.MBeanOperationInfo;
+import javax.management.MBeanParameterInfo;
 import javax.management.ObjectName;
+import javax.management.modelmbean.DescriptorSupport;
 import javax.management.openmbean.CompositeDataSupport;
 import javax.management.remote.JMXServiceURL;
 
@@ -35,9 +51,16 @@ import static org.junit.Assert.assertTrue;
 public class SerializationAllowlistTest
     {
     @Test
-    public void testDevModeAllowsNonDenylistedClass()
+    public void testDevModeRejectsNonAllowlistedClass()
         {
-        withProperties(null, null, () -> assertEquals(ObjectInputFilter.Status.ALLOWED,
+        withProperties("dev", null, () -> assertEquals(ObjectInputFilter.Status.REJECTED,
+                check(java.io.File.class)));
+        }
+
+    @Test
+    public void testLegacyModeAllowsNonDenylistedClass()
+        {
+        withProperties("legacy", null, () -> assertEquals(ObjectInputFilter.Status.ALLOWED,
                 check(java.io.File.class)));
         }
 
@@ -51,8 +74,33 @@ public class SerializationAllowlistTest
     @Test
     public void testLegitimateManagementAndNamingClassesAllowed()
         {
+        assertAllowedInDevAndProd(Throwable.class);
+        assertAllowedInDevAndProd(Object.class);
+        assertAllowedInDevAndProd(Object[].class);
+        assertAllowedInDevAndProd(Exception.class);
+        assertAllowedInDevAndProd(RuntimeException.class);
+        assertAllowedInDevAndProd(IllegalStateException.class);
+        assertAllowedInDevAndProd(SecurityException.class);
+        assertAllowedInDevAndProd(Error.class);
+        assertAllowedInDevAndProd(AssertionError.class);
+        assertAllowedInDevAndProd(Enum.class);
+        assertAllowedInDevAndProd(StackTraceElement.class);
+        assertAllowedInDevAndProd(IOException.class);
+        assertAllowedInDevAndProd(ObjectStreamException.class);
+        assertAllowedInDevAndProd(InvalidClassException.class);
+        assertAllowedInDevAndProd(InetAddress.class);
+        assertAllowedInDevAndProd(Inet4Address.class);
+        assertAllowedInDevAndProd(Inet6Address.class);
         assertAllowedInDevAndProd(JMXServiceURL.class);
+        assertAllowedInDevAndProd(ImmutableDescriptor.class);
+        assertAllowedInDevAndProd(DescriptorSupport.class);
         assertAllowedInDevAndProd(MBeanInfo.class);
+        assertAllowedInDevAndProd(MBeanAttributeInfo[].class);
+        assertAllowedInDevAndProd(MBeanConstructorInfo[].class);
+        assertAllowedInDevAndProd(MBeanFeatureInfo.class);
+        assertAllowedInDevAndProd(MBeanNotificationInfo[].class);
+        assertAllowedInDevAndProd(MBeanOperationInfo[].class);
+        assertAllowedInDevAndProd(MBeanParameterInfo[].class);
         assertAllowedInDevAndProd(CompositeDataSupport.class);
         assertAllowedInDevAndProd(Attribute.class);
         assertAllowedInDevAndProd(ObjectName.class);
@@ -90,6 +138,22 @@ public class SerializationAllowlistTest
         }
 
     @Test
+    public void testProdModeAcceptsSyntheticLambdaProxyForAllowedCapturingClass()
+        {
+        withProperties("prod", "example.TopicTest", () ->
+            {
+            assertTrue(SerializationAllowlist.isAllowlistedName("example.TopicTest$$Lambda/0x00007800007faa38",
+                    true));
+            assertTrue(SerializationAllowlist.isAllowlistedName("example.TopicTest$$Lambda$1",
+                    true));
+            assertFalse(SerializationAllowlist.isAllowlistedName("example.TopicTest$$Lambda/0x00007800007faa38",
+                    false));
+            assertFalse(SerializationAllowlist.isAllowlistedName("example.OtherTest$$Lambda/0x00007800007faa38",
+                    true));
+            });
+        }
+
+    @Test
     public void testInvalidConfiguredEntryIsDropped()
         {
         withProperties("prod", "not a class name", () -> assertEquals(ObjectInputFilter.Status.REJECTED,
@@ -103,7 +167,7 @@ public class SerializationAllowlistTest
 
     private static void assertAllowedInDevAndProd(Class<?> clz)
         {
-        for (String sMode : new String[] {null, "prod"})
+        for (String sMode : new String[] {"dev", "prod"})
             {
             withProperties(sMode, null, () ->
                 {
@@ -116,7 +180,7 @@ public class SerializationAllowlistTest
 
     private static void assertDeniedInDevAndProd(Class<?> clz)
         {
-        for (String sMode : new String[] {null, "prod"})
+        for (String sMode : new String[] {"dev", "prod"})
             {
             withProperties(sMode, clz.getName(), () ->
                 {
@@ -134,12 +198,14 @@ public class SerializationAllowlistTest
         try
             {
             restoreProperty("coherence.mode", sMode);
+            CoherenceModeTestSupport.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowed);
             runnable.run();
             }
         finally
             {
             restoreProperty("coherence.mode", sModeOld);
+            CoherenceModeTestSupport.reset();
             restoreProperty(SerializationAllowlist.PROP_SERIALIZATION_ALLOWED, sAllowedOld);
             }
         }

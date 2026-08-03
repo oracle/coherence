@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -100,7 +100,7 @@ public class PerformanceOverConsistencyTest {
         // set the system properties to join the cluster
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.ttl", "0");
-        System.setProperty("coherence.cluster", CLUSTER_NAME);
+        System.setProperty("coherence.cluster", getClusterName());
         System.setProperty("coherence.clusterport", Integer.toString(clusterPort));
         System.setProperty("coherence.cacheconfig", CACHE_CONFIG);
         System.setProperty("coherence.log.level", "1");
@@ -247,6 +247,7 @@ public class PerformanceOverConsistencyTest {
     protected static OptionsByType createCacheServerOptions(int clusterPort, String testName, int member, String cacheConfig) {
         OptionsByType optionsByType = OptionsByType.empty();
         String        machine       = member % 2 == 0 ? "machine1" : "machine2";
+        String        mode          = System.getProperty("coherence.mode");
 
         optionsByType.addAll(JMXManagementMode.ALL,
                 JmxProfile.enabled(),
@@ -259,10 +260,18 @@ public class PerformanceOverConsistencyTest {
                 MachineName.of(machine),
                 SystemProperty.of("-Xmx1g"),
                 SystemProperty.of("-Xms1g"),
-                ClusterName.of(CLUSTER_NAME),
+                ClusterName.of(getClusterName()),
                 ClusterPort.of(clusterPort));
 
+        if (mode != null && !mode.isBlank()) {
+            optionsByType.add(SystemProperty.of("coherence.mode", mode));
+        }
+
         return optionsByType;
+    }
+
+    private static String getClusterName() {
+        return System.getProperty("coherence.cluster", CLUSTER_NAME);
     }
 
     private static void destroyMember(CoherenceClusterMember member) {

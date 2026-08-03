@@ -10,6 +10,7 @@ import groovy.xml.XmlSlurper
 plugins {
     id "application"
 	id 'java'
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 java {
@@ -77,4 +78,8 @@ task runClient(type: Exec) {
     commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(),
             "-Dcoherence.cacheconfig=topics-cache-config.xml", "-Xms128m", "-Xmx128m",
             "-Dcoherence.distributed.localstorage=false", "com.oracle.coherence.guides.topics.ChatApplication", userId
+}
+
+securityConfig {
+    processTestClasses = true
 }

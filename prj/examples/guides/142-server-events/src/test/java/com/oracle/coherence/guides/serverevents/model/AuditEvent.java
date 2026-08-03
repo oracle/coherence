@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,10 +7,10 @@
 
 package com.oracle.coherence.guides.serverevents.model;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.util.UUID;
 
 import java.io.Serializable;
-
 import java.util.Objects;
 
 /**
@@ -18,6 +18,7 @@ import java.util.Objects;
  *
  * @author Tim Middleton 2022.05.04
  */
+@Remote.Allowed
 public class AuditEvent
         implements Serializable {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2023, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,11 +28,20 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
@@ -66,6 +75,40 @@ public class TestUtils
         catch (IOException e)
             {
             throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
+    public static void copyTestProject(String testProjectFolder, File destinationDirectory)
+            throws IOException
+        {
+        final Path sourceDirectoryLocation = Paths.get("src", "test", "resources", "test-projects", testProjectFolder);
+        final File sourceDirectoryLocationAsFile = sourceDirectoryLocation.toFile();
+        if (!sourceDirectoryLocationAsFile.exists())
+            {
+            throw new IllegalStateException(String.format("The directory '%s' does not exist.",
+                    sourceDirectoryLocationAsFile.getAbsolutePath()));
+            }
+
+        try (Stream<Path> paths = Files.walk(sourceDirectoryLocation))
+            {
+            paths.forEach(source ->
+                {
+                if (source.getFileName().toString().equals(testProjectFolder))
+                    {
+                    return;
+                    }
+
+                final Path destination = destinationDirectory.toPath().resolve(sourceDirectoryLocation.relativize(source));
+                if (source.toFile().isDirectory())
+                    {
+                    destination.toFile().mkdirs();
+                    LOGGER.info("Created directory '{}'.", destination);
+                    return;
+                    }
+
+                LOGGER.info("'{}' -> '{}'.", source, destination);
+                copyUsingPaths(source, destination);
+                });
             }
         }
 
@@ -241,6 +284,46 @@ public class TestUtils
         return pofIndexProperties.keySet().stream().map(Object::toString).collect(Collectors.toSet());
         }
 
+    public static Set<String> getSecurityConfigFqns(File gradleProjectRootDirectory, String baseDirectory)
+        {
+        return getSecurityConfigEntries(gradleProjectRootDirectory, baseDirectory).stream()
+                .map(SecurityConfigEntry::getName)
+                .collect(Collectors.toSet());
+        }
+
+    public static Set<SecurityConfigEntry> getSecurityConfigEntries(File gradleProjectRootDirectory, String baseDirectory)
+        {
+        File fileConfig = new File(new File(gradleProjectRootDirectory, baseDirectory),
+                "META-INF/coherence/security-config.xml");
+
+        assertThat(String.format("security-config.xml %s does not exist.", fileConfig.getAbsolutePath()),
+                fileConfig.exists(), is(true));
+        assertThat(fileConfig.isFile(), is(true));
+
+        try
+            {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            factory.setNamespaceAware(true);
+
+            Document document = factory.newDocumentBuilder().parse(fileConfig);
+            NodeList listClass = document.getElementsByTagNameNS("*", "class");
+            Set<SecurityConfigEntry> setEntries = new HashSet<>();
+
+            for (int i = 0; i < listClass.getLength(); i++)
+                {
+                Element element = (Element) listClass.item(i);
+                setEntries.add(new SecurityConfigEntry(element.getAttribute("name"), element.getAttribute("source"),
+                        Boolean.parseBoolean(element.getAttribute("executable")),
+                        Boolean.parseBoolean(element.getAttribute("lambda-target"))));
+                }
+            return setEntries;
+            }
+        catch (Exception e)
+            {
+            throw Exceptions.ensureRuntimeException(e);
+            }
+        }
+
     public static void assertThatClassIsPofInstrumented(Class<?> pofClass)
         {
         assertThat(pofClass, is(notNullValue()));
@@ -250,6 +333,82 @@ public class TestUtils
         assertThat(String.format("Class '%s' should have 2 annotations,", pofClass.getName()), annotations.length, is(2));
         assertThat(pofClass.getAnnotation(Instrumented.class), is(notNullValue()));
         assertThat(pofClass.getInterfaces().length, is(1));
+        }
+
+    /**
+     * A generated security-config entry.
+     */
+    public static class SecurityConfigEntry
+        {
+        public SecurityConfigEntry(String sName, String sSource)
+            {
+            this(sName, sSource, false, false);
+            }
+
+        public SecurityConfigEntry(String sName, String sSource, boolean fExecutable)
+            {
+            this(sName, sSource, fExecutable, false);
+            }
+
+        public SecurityConfigEntry(String sName, String sSource, boolean fExecutable, boolean fLambdaTarget)
+            {
+            m_sName         = sName;
+            m_sSource       = sSource;
+            m_fExecutable   = fExecutable;
+            m_fLambdaTarget = fLambdaTarget;
+            }
+
+        public String getName()
+            {
+            return m_sName;
+            }
+
+        public String getSource()
+            {
+            return m_sSource;
+            }
+
+        public boolean isExecutable()
+            {
+            return m_fExecutable;
+            }
+
+        public boolean isLambdaTarget()
+            {
+            return m_fLambdaTarget;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+            if (!(o instanceof SecurityConfigEntry))
+                {
+                return false;
+                }
+            SecurityConfigEntry that = (SecurityConfigEntry) o;
+            return Objects.equals(m_sName, that.m_sName)
+                    && Objects.equals(m_sSource, that.m_sSource)
+                    && m_fExecutable == that.m_fExecutable
+                    && m_fLambdaTarget == that.m_fLambdaTarget;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(m_sName, m_sSource, m_fExecutable, m_fLambdaTarget);
+            }
+
+        private final String m_sName;
+
+        private final String m_sSource;
+
+        private final boolean m_fExecutable;
+
+        private final boolean m_fLambdaTarget;
         }
 
     // ----- constants ------------------------------------------------------

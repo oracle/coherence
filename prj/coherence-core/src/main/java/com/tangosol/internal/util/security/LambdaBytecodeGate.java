@@ -8,6 +8,9 @@ package com.tangosol.internal.util.security;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.io.SerializationRole;
+import com.tangosol.io.internal.SerializationTelemetry;
+
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.asm.ClassReaderInternal;
 import com.tangosol.net.security.SecurityHelper;
@@ -28,6 +31,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+
+import java.lang.invoke.SerializedLambda;
 
 import java.net.JarURLConnection;
 import java.net.URL;
@@ -135,9 +140,97 @@ public final class LambdaBytecodeGate
      */
     public static Result checkClassName(String sClassName, Site site)
         {
-        Result result = POLICY.isDeniedClass(normalizeClassName(sClassName))
-                ? new Result.Rejected(REASON_CLASS_NAME_ON_DENYLIST, normalizeClassName(sClassName))
-                : ALLOWED;
+        String sName  = normalizeClassName(sClassName);
+        Result result = POLICY.isDeniedClass(sName)
+                ? new Result.Rejected(REASON_CLASS_NAME_ON_DENYLIST, sName)
+                : isJdkClass(sName) || SecurityConfig.current().contains(sName)
+                    ? ALLOWED
+                    : new Result.Rejected(REASON_SECURITY_CONFIG_MISSING, sName);
+
+        record(site, result);
+        return result;
+        }
+
+    /**
+     * Check whether wire-arriving DYNAMIC lambda bytecode is permitted by the
+     * current mode and property policy.
+     * <p>
+     * When the resolved policy is {@code deny} (prod default), the lambda
+     * payload is refused before its bytecode is parsed.
+     *
+     * @return the gate result
+     */
+    public static Result checkDynamicLambdaMode()
+        {
+        Result result = RemoteExecutionMode.isDynamicRemoteAllowed()
+                ? ALLOWED
+                : new Result.Rejected(REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+
+        record(Site.LAMBDA, result);
+        return result;
+        }
+
+    /**
+     * Check whether a serialized lambda targets an allowed functional interface.
+     *
+     * @param lambda  the serialized lambda
+     * @param site    the materialization site
+     *
+     * @return the gate result
+     */
+    public static Result checkLambdaTarget(SerializedLambda lambda, Site site)
+        {
+        return checkLambdaTarget(lambda == null ? null : lambda.getFunctionalInterfaceClass(), site);
+        }
+
+    /**
+     * Check whether a serialized lambda targets an allowed functional interface.
+     *
+     * @param sInterface  the functional interface class name
+     * @param site        the materialization site
+     *
+     * @return the gate result
+     */
+    public static Result checkLambdaTarget(String sInterface, Site site)
+        {
+        String sName  = normalizeClassName(sInterface);
+        Result result = SecurityConfig.current().isLambdaTarget(sName)
+                ? ALLOWED
+                : new Result.Rejected(REASON_LAMBDA_TARGET_NOT_ALLOWED, sName);
+
+        record(site, result);
+        return result;
+        }
+
+    /**
+     * Check whether generated lambda bytecode implements an allowed functional interface.
+     *
+     * @param abClass  the generated lambda class bytes
+     * @param site     the materialization site
+     *
+     * @return the gate result
+     */
+    public static Result checkLambdaTarget(byte[] abClass, Site site)
+        {
+        Result result;
+        try
+            {
+            if (abClass == null || abClass.length == 0)
+                {
+                result = new Result.Rejected(REASON_INVALID_BYTECODE, "empty-bytecode");
+                }
+            else
+                {
+                LambdaTargetVisitor visitor = new LambdaTargetVisitor();
+                new ClassReaderInternal(abClass).accept(visitor,
+                        ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                result = visitor.result();
+                }
+            }
+        catch (RuntimeException e)
+            {
+            result = new Result.Rejected(REASON_INVALID_BYTECODE, "invalid-bytecode");
+            }
 
         record(site, result);
         return result;
@@ -153,8 +246,28 @@ public final class LambdaBytecodeGate
         {
         if (result instanceof Result.Rejected rejected)
             {
-            throw new SecurityException("Lambda bytecode rejected: site=%s, reason=%s, denied=%s"
-                    .formatted(site, rejected.reason(), rejected.deniedRef()));
+            String sRemediation;
+            if (REASON_SECURITY_CONFIG_MISSING.equals(rejected.reason()))
+                {
+                sRemediation = "; add @Remote.Allowed or run security-config-maven-plugin on the producing artifact";
+                }
+            else if (REASON_DYNAMIC_REMOTE_DENIED_BY_MODE.equals(rejected.reason()))
+                {
+                sRemediation = "; DYNAMIC lambdas from unauthenticated callers are refused in prod mode "
+                        + "(set coherence.remote.dynamic.unauthenticated=allow to opt in, or switch to STATIC "
+                        + "lambda serialisation)";
+                }
+            else if (REASON_LAMBDA_TARGET_NOT_ALLOWED.equals(rejected.reason()))
+                {
+                sRemediation = "; annotate the functional interface with @Remote.Executable and regenerate "
+                        + "security-config.xml";
+                }
+            else
+                {
+                sRemediation = "";
+                }
+            throw new SecurityException("Lambda bytecode rejected: site=%s, reason=%s, denied=%s%s"
+                    .formatted(site, rejected.reason(), rejected.deniedRef(), sRemediation));
             }
         }
 
@@ -195,12 +308,12 @@ public final class LambdaBytecodeGate
         String sResult = result instanceof Result.Rejected ? "rejected" : "allowed";
         String sReason = result instanceof Result.Rejected rejected ? rejected.reason() : "none";
         METRICS.computeIfAbsent(metricKey(sResult, sReason, site), key -> new LongAdder()).increment();
+        SerializationTelemetry.recordLambdaBytecodeCheck(sResult, sReason);
 
         if (result instanceof Result.Rejected rejected)
             {
-            Logger.warn("route=%s, gate=lambda-bytecode-deny, principal=%s, denied-class=%s, reason=%s"
-                    .formatted(site.name().toLowerCase(), boundedPrincipal(), boundedValue(rejected.deniedRef()),
-                            rejected.reason()));
+            SerializationTelemetry.logRejection("lambda-bytecode-deny", SerializationRole.current().name(),
+                    null, rejected.deniedRef(), rejected.reason());
             }
         }
 
@@ -208,6 +321,14 @@ public final class LambdaBytecodeGate
         {
         return "coh.lambda.bytecode_check{result=%s,reason=%s,site=%s}"
                 .formatted(sResult, sReason, site.name().toLowerCase());
+        }
+
+    private static boolean isJdkClass(String sClassName)
+        {
+        return sClassName == null
+                || sClassName.startsWith("java.")
+                || sClassName.startsWith("javax.")
+                || sClassName.startsWith("jdk.");
         }
 
     private static String boundedPrincipal()
@@ -510,6 +631,46 @@ public final class LambdaBytecodeGate
         return sName == null ? null : sName.replace('/', '.');
         }
 
+    // ----- inner class: LambdaTargetVisitor ------------------------------
+
+    private static class LambdaTargetVisitor
+            extends ClassVisitor
+        {
+        LambdaTargetVisitor()
+            {
+            super(Opcodes.ASM9);
+            }
+
+        @Override
+        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces)
+            {
+            if (interfaces == null || interfaces.length == 0)
+                {
+                f_result = new Result.Rejected(REASON_LAMBDA_TARGET_NOT_ALLOWED, name);
+                return;
+                }
+
+            for (String sInterface : interfaces)
+                {
+                String sName = normalizeClassName(sInterface);
+                if (SecurityConfig.current().isLambdaTarget(sName))
+                    {
+                    f_result = ALLOWED;
+                    return;
+                    }
+                }
+
+            f_result = new Result.Rejected(REASON_LAMBDA_TARGET_NOT_ALLOWED, normalizeClassName(interfaces[0]));
+            }
+
+        Result result()
+            {
+            return f_result;
+            }
+
+        private Result f_result = new Result.Rejected(REASON_LAMBDA_TARGET_NOT_ALLOWED, "missing-interface");
+        }
+
     // ----- inner class: GateClassVisitor ---------------------------------
 
     private static class GateClassVisitor
@@ -788,6 +949,9 @@ public final class LambdaBytecodeGate
     public static final String REASON_NATIVE_METHOD_DECLARED     = "native-method-declared";
     public static final String REASON_DYNAMIC_CLASS_FORNAME      = "dynamic-class-forname";
     public static final String REASON_INVALID_BYTECODE           = "invalid-bytecode";
+    public static final String REASON_SECURITY_CONFIG_MISSING    = "security-config-missing";
+    public static final String REASON_DYNAMIC_REMOTE_DENIED_BY_MODE = "dynamic-remote-denied-by-mode";
+    public static final String REASON_LAMBDA_TARGET_NOT_ALLOWED  = "lambda-target-not-allowed";
 
     private static final String RESOURCE_BASE          = "META-INF/coherence/lambda-bytecode-denylist.txt";
     private static final String RESOURCE_EXTENSION_DIR = "META-INF/coherence/lambda-bytecode-denylist.d/";

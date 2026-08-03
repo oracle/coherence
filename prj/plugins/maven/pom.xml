@@ -25,6 +25,8 @@
   <modules>
     <module>pof-maven-plugin</module>
     <module>pof-maven-plugin-tests</module>
+    <module>security-config-maven-plugin</module>
+    <module>security-config-maven-plugin-tests</module>
   </modules>
 
   <properties>

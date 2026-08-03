@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
     id 'java'
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 group = 'com.oracle.coherence.guides'
@@ -76,4 +77,8 @@ task buildImage(type: Exec) {
     workingDir "$buildDir/docker"
     executable "docker"
     args "build", "-t", "ghcr.io/coherence-community/$project.name:latest", "."
+}
+
+securityConfig {
+    processTestClasses = true
 }

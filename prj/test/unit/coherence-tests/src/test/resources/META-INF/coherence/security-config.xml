@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.tangosol.coherence.config.xml.processor.AuthorizedHostsProcessorTest$AuthorizedHostsFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.coherence.dslquery.TermMockitoMatcher" source="manual"/>
+    <class name="com.tangosol.internal.util.invoke.RemotableSupportTest$NumberPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest$AlwaysTruePredicate" source="manual"/>
+    <class name="com.tangosol.internal.util.security.DynamicLambdaModeTest$StringPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.internal.util.security.fixtures.dual.DualFixture" source="manual"/>
+    <class name="com.tangosol.internal.util.security.fixtures.portable.PortableFixture" source="manual"/>
+    <class name="com.tangosol.io.pof.ConfigurablePofContextTest$PofChild" source="manual"/>
+    <class name="com.tangosol.io.pof.ConfigurablePofContextTest$PofMaster" source="manual"/>
+    <class name="com.tangosol.io.pof.ConfigurablePofContextTest$PortableTypeTest1" source="manual"/>
+    <class name="com.tangosol.io.pof.ConfigurablePofContextTest$PortableTypeTestConflicting" source="manual"/>
+    <class name="com.tangosol.io.pof.ConfigurablePofContextTest$TestEnum" source="manual"/>
+    <class name="com.tangosol.io.pof.PofDeltaCompressorTest$Address" source="manual"/>
+    <class name="com.tangosol.io.pof.PofDeltaCompressorTest$Customer" source="manual"/>
+    <class name="com.tangosol.io.pof.PofDeltaCompressorTest$RandomValue" source="manual"/>
+    <class name="com.tangosol.io.pof.PofDeltaCompressorTest$Transfer" source="manual"/>
+    <class name="com.tangosol.io.pof.PofNestedBufferTest$NestedType" source="manual"/>
+    <class name="com.tangosol.io.pof.PofNestedBufferTest$SimpleType" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReaderTest$PofChild" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReaderTest$PofMaster" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReaderTest$PofObjectV1" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReaderTest$PofObjectV2" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReaderTest$StatelessObject" source="manual"/>
+    <class name="com.tangosol.io.pof.PofReferenceTest$NestedTypeWithReference" source="manual"/>
+    <class name="com.tangosol.io.pof.PofUniformCollectionTest$CollectionTestClass" source="manual"/>
+    <class name="com.tangosol.io.pof.PofUniformCollectionTest$MapTestClass" source="manual"/>
+    <class name="com.tangosol.io.pof.generator.PackagedType" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.PortableTypesInnerClass$PortableTypeTest1" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.PortableTypesInnerClass$PortableTypeTestConflicting" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.PortableTypesInnerClass$TestEnum" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.pkg.PortableTypeTest1" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.pkg.PortableTypeTestConflicting" source="manual"/>
+    <class name="com.tangosol.io.pof.testdata.pkg.TestEnum" source="manual"/>
+    <class name="com.tangosol.net.cache.ContinuousQueryCacheTest$TestValueUpdater" source="manual"/>
+    <class name="com.tangosol.net.cache.OldCache" source="manual"/>
+    <class name="com.tangosol.net.cache.OldCache$Entry" source="manual"/>
+    <class name="com.tangosol.net.cache.OldCache$EntrySet" source="manual"/>
+    <class name="com.tangosol.net.cache.OldCache$KeySet" source="manual"/>
+    <class name="com.tangosol.net.cache.OldCache$ValuesCollection" source="manual"/>
+    <class name="com.tangosol.net.cache.OldLocalCache" source="manual"/>
+    <class name="com.tangosol.net.cache.OldLocalCache$Entry" source="manual"/>
+    <class name="com.tangosol.net.cache.OldOldCache" source="manual"/>
+    <class name="com.tangosol.net.cache.OldOldCache$Entry" source="manual"/>
+    <class name="com.tangosol.net.cache.OldOldCache$EntrySet" source="manual"/>
+    <class name="com.tangosol.net.cache.OldOldCache$KeySet" source="manual"/>
+    <class name="com.tangosol.net.cache.OldOldCache$ValuesCollection" source="manual"/>
+    <class name="com.tangosol.run.xml.XmlBeanTest$NarrowBean" source="manual"/>
+    <class name="com.tangosol.util.ExternalizableHelperTest$Point" source="manual"/>
+    <class name="com.tangosol.util.LongArrayTest$ReferenceImpl" source="manual"/>
+    <class name="com.tangosol.util.extractor.ReflectionExtractorTest$MyReflectionExtractorHolder" source="manual"/>
+    <class name="com.tangosol.util.extractor.UniversalExtractorTest$ReflectionExtractorWithStatistics" source="manual" executable="true"/>
+    <class name="com.tangosol.util.extractor.UniversalUpdaterTest$UniversalUpdaterWithStatistics" source="manual"/>
+    <class name="com.tangosol.util.filter.AllFilterTest$CountingFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.filter.AnyFilterTest$CountingFilter" source="manual" executable="true"/>
+    <class name="java.util.function.Function" source="manual" lambda-target="true"/>
+  </allowed-classes>
+</security-config>

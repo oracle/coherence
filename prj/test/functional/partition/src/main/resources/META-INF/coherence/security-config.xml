@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="partition.Coh10453RegressionTests$FaultyExceptionProcessor" source="manual" executable="true"/>
+    <class name="partition.Coh10453RegressionTests$PutProcessor" source="manual" executable="true"/>
+    <class name="partition.Coh5029RegressionTests$Decrementor" source="manual" executable="true"/>
+    <class name="partition.Coh5029RegressionTests$Incrementor" source="manual" executable="true"/>
+    <class name="partition.DeltaTests$BackupCheckProcessor" source="manual" executable="true"/>
+    <class name="partition.DeltaTests$BackupGetInvocable" source="manual" executable="true"/>
+    <class name="partition.DeltaTests$TestValue" source="manual"/>
+    <class name="partition.ExpiryDelayTests$SleepProcessor" source="manual" executable="true"/>
+    <class name="partition.IndexTests$Result" source="manual"/>
+    <class name="partition.IndexTests$Type" source="manual"/>
+    <class name="partition.PartitionedCacheTests$KeyReferenceCheckProcessor" source="manual" executable="true"/>
+    <class name="partition.PartitionedCacheTests$TestPAProcessor" source="manual" executable="true"/>
+    <class name="partition.ReadLocatorTests$TrackingMap" source="manual"/>
+  </allowed-classes>
+</security-config>

@@ -116,6 +116,30 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>${coherence.group.id}</groupId>
+        <artifactId>security-config-maven-plugin</artifactId>
+        <version>${coherence.version}</version>
+        <executions>
+          <execution>
+            <id>generate-security-config</id>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>generate-test-security-config</id>
+            <phase>process-test-classes</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+            <configuration>
+              <classesDirectory>${project.build.testOutputDirectory}</classesDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
         <version>${maven.failsafe.plugin.version}</version>

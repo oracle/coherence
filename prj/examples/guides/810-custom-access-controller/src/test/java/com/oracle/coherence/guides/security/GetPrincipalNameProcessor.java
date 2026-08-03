@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.guides.security;
 
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.coherence.common.base.Logger;
+import com.tangosol.util.function.Remote;
 import com.tangosol.coherence.component.net.Security;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.Coherence;
@@ -20,6 +21,7 @@ import com.tangosol.util.InvocableMap;
 import com.tangosol.util.processor.AbstractProcessor;
 
 import javax.security.auth.Subject;
+
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
@@ -32,6 +34,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Remote.Executable
 public class GetPrincipalNameProcessor
         extends AbstractProcessor<SimplePartitionKey, String, Set<String>>
         implements ExternalizableLite, RemoteCallable<Set<String>>

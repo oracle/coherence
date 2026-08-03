@@ -53,7 +53,7 @@ configurations {
 }
 gradlePlugin {
     plugins {
-        coherencePof {
+        portableTypes {
             id = 'com.oracle.coherence.ce'
             implementationClass = 'com.oracle.coherence.gradle.CoherencePlugin'
         }

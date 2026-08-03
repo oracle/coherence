@@ -5,4 +5,12 @@
  * https://oss.oracle.com/licenses/upl.
  */
 
+
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
 rootProject.name = 'archiver'

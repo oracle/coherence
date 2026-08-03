@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="security.DenyClusterAccess" source="manual"/>
+    <class name="security.ExtendSecurityTests$TestInvocable" source="manual" executable="true"/>
+    <class name="security.GetPrincipalNameProcessor" source="manual" executable="true"/>
+    <class name="security.SysPropAuthorizedHostFilter" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>

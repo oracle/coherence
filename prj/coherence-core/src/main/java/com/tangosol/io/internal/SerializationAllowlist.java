@@ -9,6 +9,8 @@ package com.tangosol.io.internal;
 import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.SecurityConfig;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -67,10 +69,7 @@ public final class SerializationAllowlist
             return clzComponent.isPrimitive() || isAllowlisted(clzComponent);
             }
 
-        String sName = clz.getName();
-        return BASELINE_EXACT.contains(sName)
-               || matchesPrefix(sName, BASELINE_PREFIX)
-               || configuredAllowlist().matches(sName);
+        return isAllowlistedName(clz.getName(), clz.isSynthetic());
         }
 
     /**
@@ -97,14 +96,13 @@ public final class SerializationAllowlist
         }
 
     /**
-     * Return {@code true} if serialization is running in prod mode.
+     * Return {@code true} if serialization allowlist enforcement is active.
      *
-     * @return {@code true} if prod mode is active
+     * @return {@code true} if serialization allowlist enforcement is active
      */
     public static boolean isProdMode()
         {
-        return "prod".equalsIgnoreCase(
-                System.getProperty("coherence.mode", Config.getProperty("coherence.mode", "dev")).trim());
+        return CoherenceMode.isAllowlistEnforced();
         }
 
     // ----- helper methods -------------------------------------------------
@@ -191,6 +189,58 @@ public final class SerializationAllowlist
         }
 
     /**
+     * Return {@code true} if the specified class name is allowlisted.
+     *
+     * @param sName       the class name
+     * @param fSynthetic  {@code true} if the class is synthetic
+     *
+     * @return {@code true} if the class name is allowlisted
+     */
+    static boolean isAllowlistedName(String sName, boolean fSynthetic)
+        {
+        if (isDirectlyAllowlisted(sName))
+            {
+            return true;
+            }
+
+        String sCapturingClass = fSynthetic ? lambdaCapturingClassName(sName) : null;
+        return sCapturingClass != null && isDirectlyAllowlisted(sCapturingClass);
+        }
+
+    /**
+     * Return {@code true} if the specified class name is directly allowlisted.
+     *
+     * @param sName  the class name
+     *
+     * @return {@code true} if the class name is directly allowlisted
+     */
+    private static boolean isDirectlyAllowlisted(String sName)
+        {
+        return BASELINE_EXACT.contains(sName)
+               || matchesPrefix(sName, BASELINE_PREFIX)
+               || SecurityConfig.current().contains(sName)
+               || configuredAllowlist().matches(sName);
+        }
+
+    /**
+     * Return the capturing class for a JVM-generated lambda proxy class name.
+     *
+     * @param sName  the class name
+     *
+     * @return the capturing class name, or {@code null} if not a lambda proxy
+     */
+    private static String lambdaCapturingClassName(String sName)
+        {
+        if (sName == null)
+            {
+            return null;
+            }
+
+        int ofMarker = sName.indexOf(LAMBDA_PROXY_MARKER);
+        return ofMarker > 0 ? sName.substring(0, ofMarker) : null;
+        }
+
+    /**
      * Bound a configured value for logging.
      *
      * @param sValue  the configured value
@@ -243,6 +293,7 @@ public final class SerializationAllowlist
      */
     private static final Set<String> BASELINE_EXACT = Set.of(
             "java.lang.Number",
+            "java.lang.Object",
             "java.lang.String",
             "java.lang.Boolean",
             "java.lang.Character",
@@ -252,11 +303,34 @@ public final class SerializationAllowlist
             "java.lang.Long",
             "java.lang.Float",
             "java.lang.Double",
+            "java.lang.Throwable",
+            "java.lang.Exception",
+            "java.lang.RuntimeException",
+            "java.lang.IllegalStateException",
+            "java.lang.SecurityException",
+            "java.lang.Error",
+            "java.lang.AssertionError",
+            "java.lang.Enum",
+            "java.lang.StackTraceElement",
+            "java.io.IOException",
+            "java.io.ObjectStreamException",
+            "java.io.InvalidClassException",
+            "java.net.InetAddress",
+            "java.net.Inet4Address",
+            "java.net.Inet6Address",
             // legitimate management and JNDI value types used by Coherence
             // internals; gadget classes in these namespaces remain exact denies
             "javax.management.Attribute",
+            "javax.management.ImmutableDescriptor",
+            "javax.management.MBeanAttributeInfo",
+            "javax.management.MBeanConstructorInfo",
+            "javax.management.MBeanFeatureInfo",
             "javax.management.MBeanInfo",
+            "javax.management.MBeanNotificationInfo",
+            "javax.management.MBeanOperationInfo",
+            "javax.management.MBeanParameterInfo",
             "javax.management.ObjectName",
+            "javax.management.modelmbean.DescriptorSupport",
             "javax.management.remote.JMXServiceURL",
             "javax.naming.CompositeName",
             "javax.naming.CompoundName");
@@ -265,8 +339,6 @@ public final class SerializationAllowlist
      * Built-in package allowlist.
      */
     private static final Set<String> BASELINE_PREFIX = Set.of(
-            "com.tangosol.",
-            "com.oracle.coherence.",
             "java.util.",
             "java.time.",
             "java.math.",
@@ -319,6 +391,11 @@ public final class SerializationAllowlist
      */
     private static final Pattern PATTERN_PACKAGE_WILDCARD = Pattern.compile(
             "[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)+\\.\\*");
+
+    /**
+     * JVM-generated lambda proxy class name marker.
+     */
+    private static final String LAMBDA_PROXY_MARKER = "$$Lambda";
 
     // ----- data members ---------------------------------------------------
 

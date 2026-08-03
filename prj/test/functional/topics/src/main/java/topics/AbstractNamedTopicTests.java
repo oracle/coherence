@@ -191,8 +191,15 @@ import static org.junit.Assert.fail;
  * @author jk 2015.05.28
  */
 @SuppressWarnings({"unchecked", "rawtypes", "resource"})
+@Remote.Allowed(recursive = false)
 public abstract class AbstractNamedTopicTests
     {
+    static
+        {
+        System.setProperty("coherence.wka", "127.0.0.1");
+        System.setProperty("coherence.localhost", "127.0.0.1");
+        }
+
     // ----- constructors ---------------------------------------------------
 
     protected AbstractNamedTopicTests(String sSerializer)
@@ -5404,6 +5411,7 @@ public abstract class AbstractNamedTopicTests
 
     // ----- inner class: ChannelPosition -----------------------------------
 
+    @Remote.Allowed(recursive = false)
     public static class CallableInvocable<R>
             extends AbstractInvocable
             implements ExternalizableLite, PortableObject

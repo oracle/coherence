@@ -229,6 +229,9 @@ public class StaticLambdaInfo<T>
         try
             {
             LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
+            LambdaBytecodeGate.ensureAllowed(
                     LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
                     LambdaBytecodeGate.Site.STATIC_LAMBDA);
 
@@ -448,6 +451,9 @@ public class StaticLambdaInfo<T>
                     {
                     String sName = serializedLambda.getCapturingClass().replace('/', '.');
                     LambdaBytecodeGate.ensureAllowed(
+                            LambdaBytecodeGate.checkLambdaTarget(serializedLambda, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                            LambdaBytecodeGate.Site.STATIC_LAMBDA);
+                    LambdaBytecodeGate.ensureAllowed(
                             LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
                             LambdaBytecodeGate.Site.STATIC_LAMBDA);
                     Method m     = Base.getContextClassLoader(serializedLambda).loadClass(sName)
@@ -502,6 +508,9 @@ public class StaticLambdaInfo<T>
 
         try
             {
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkLambdaTarget(m_sFunctionalInterfaceClass, LambdaBytecodeGate.Site.STATIC_LAMBDA),
+                    LambdaBytecodeGate.Site.STATIC_LAMBDA);
             LambdaBytecodeGate.ensureAllowed(
                     LambdaBytecodeGate.checkClassName(sName, LambdaBytecodeGate.Site.STATIC_LAMBDA),
                     LambdaBytecodeGate.Site.STATIC_LAMBDA);

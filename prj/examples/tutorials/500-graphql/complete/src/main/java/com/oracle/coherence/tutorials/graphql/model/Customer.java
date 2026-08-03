@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2022 Oracle and/or its affiliates.
+ * Copyright (c) 2000-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,8 @@
 
 package com.oracle.coherence.tutorials.graphql.model;
 
-
 import com.oracle.coherence.inject.Injectable;
+import com.tangosol.util.function.Remote;
 import com.tangosol.net.NamedMap;
 import com.tangosol.util.Filters;
 
@@ -28,6 +28,7 @@ import org.eclipse.microprofile.graphql.NumberFormat;
  * @author Tim Middleton 2021-01-25
  */
 // tag::injectable[]
+@Remote.Allowed
 public class Customer
         implements Serializable, Injectable {
     // end::injectable[]

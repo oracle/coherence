@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="topics.AbstractNamedTopicTests$CallableInvocable" source="manual" executable="true"/>
+    <class name="topics.AbstractTopicsStorageRecoveryTests$Message" source="manual"/>
+    <class name="topics.AddInvocable" source="manual" executable="true"/>
+    <class name="topics.TopicAssertions$AssertPublishedOrderInvocable" source="manual" executable="true"/>
+    <class name="topics.TopicsRecoveryTests$Message" source="manual"/>
+    <class name="topics.data.Address" source="manual"/>
+    <class name="topics.data.AddressExternalizableLite" source="manual"/>
+    <class name="topics.data.AddressExternalizableLiteAndPof" source="manual"/>
+    <class name="topics.data.AddressPof" source="manual"/>
+    <class name="topics.data.Customer" source="manual"/>
+    <class name="topics.data.CustomerExternalizableLite" source="manual"/>
+    <class name="topics.data.CustomerExternalizableLiteAndPof" source="manual"/>
+    <class name="topics.data.CustomerPof" source="manual"/>
+    <class name="topics.data.OrderableMessage" source="manual"/>
+  </allowed-classes>
+</security-config>

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000-2021 Oracle and/or its affiliates.
+ * Copyright (c) 2000-2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.tutorials.graphql.model;
@@ -11,8 +11,9 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashSet;
-
 import java.util.Objects;
+
+import com.tangosol.util.function.Remote;
 
 
 /**
@@ -20,6 +21,7 @@ import java.util.Objects;
  *
  * @author Tim Middleton 2021-01-25
  */
+@Remote.Allowed
 public class Order
         implements Serializable {
     /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Oracle and/or its affiliates.
+ * Copyright (c) 2022, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,11 +8,13 @@ package com.oracle.coherence.guides.entryprocessors;
 
 // # tag::IncrementingEntryProcessor[]
 import com.oracle.coherence.guides.entryprocessors.model.Country;
+import com.tangosol.util.function.Remote;
 import com.tangosol.util.InvocableMap;
 
 /**
  *  @author Gunnar Hillert  2022.02.25
  */
+@Remote.Executable
 public class IncrementingEntryProcessor implements InvocableMap.EntryProcessor<String, Country, Double> { // <1>
 
 	@Override

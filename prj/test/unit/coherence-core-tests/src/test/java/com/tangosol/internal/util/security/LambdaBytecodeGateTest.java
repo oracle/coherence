@@ -6,7 +6,12 @@
  */
 package com.tangosol.internal.util.security;
 
+import com.tangosol.internal.util.CoherenceMode;
+
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -14,9 +19,17 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import java.net.URL;
+import java.net.URLClassLoader;
+
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -27,6 +40,19 @@ import static org.junit.Assert.assertTrue;
  */
 public class LambdaBytecodeGateTest
     {
+    @Rule
+    public TemporaryFolder m_folder = new TemporaryFolder();
+
+    @After
+    public void cleanup()
+        {
+        Thread.currentThread().setContextClassLoader(m_loaderOld);
+        SecurityConfig.resetForTesting();
+        restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
+        resetMode();
+        }
+
     @Test
     public void testRejectsRuntimeReference()
         {
@@ -97,6 +123,114 @@ public class LambdaBytecodeGateTest
                 "java.lang.Runtime"), LambdaBytecodeGate.REASON_NATIVE_METHOD_DECLARED, "nativeCall");
         }
 
+    @Test
+    public void shouldAllowDynamicLambdaInDevMode()
+        {
+        setMode("dev", null);
+
+        assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
+        }
+
+    @Test
+    public void shouldAllowDynamicLambdaInLegacyMode()
+        {
+        setMode("legacy", null);
+
+        assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
+        }
+
+    @Test
+    public void shouldDenyDynamicLambdaInProdModeByDefault()
+        {
+        setMode("prod", null);
+
+        assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
+                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+        }
+
+    @Test
+    public void shouldAllowDynamicLambdaInProdWhenPropertySetToAllow()
+        {
+        setMode("prod", "allow");
+
+        assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
+        }
+
+    @Test
+    public void shouldDenyDynamicLambdaInProdWhenPropertySetToDeny()
+        {
+        setMode("prod", "deny");
+
+        assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
+                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+        }
+
+    @Test
+    public void shouldDefaultToModeWhenPropertyValueInvalid()
+        {
+        setMode("dev", "maybe");
+        assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
+
+        setMode("prod", "maybe");
+        assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
+                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+        }
+
+    @Test
+    public void shouldReportDynamicLambdaDeniedByModeReason()
+        {
+        setMode("prod", null);
+
+        long cBefore = LambdaBytecodeGate.counter("rejected",
+                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, LambdaBytecodeGate.Site.LAMBDA);
+        LambdaBytecodeGate.Result result = LambdaBytecodeGate.checkDynamicLambdaMode();
+        long cAfter = LambdaBytecodeGate.counter("rejected",
+                LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, LambdaBytecodeGate.Site.LAMBDA);
+
+        assertRejected(result, LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
+        assertEquals(cBefore + 1, cAfter);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> LambdaBytecodeGate.ensureAllowed(result, LambdaBytecodeGate.Site.LAMBDA));
+        assertTrue(e.getMessage().contains(LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE));
+        assertTrue(e.getMessage().contains(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH + "=allow"));
+        }
+
+    @Test
+    public void shouldAllowLambdaTargetPresentInSecurityConfig()
+            throws Exception
+        {
+        withConfig(lambdaTargetEntry("com.example.RemoteFunction"));
+
+        assertAllowed(LambdaBytecodeGate.checkLambdaTarget("com/example/RemoteFunction", LambdaBytecodeGate.Site.LAMBDA));
+        assertAllowed(LambdaBytecodeGate.checkLambdaTarget(lambdaImplClass("com/example/RemoteFunction"),
+                LambdaBytecodeGate.Site.LAMBDA));
+        }
+
+    @Test
+    public void shouldRejectLambdaTargetMissingFromSecurityConfig()
+            throws Exception
+        {
+        withConfig(lambdaTargetEntry("com.example.RemoteFunction"));
+
+        assertRejected(LambdaBytecodeGate.checkLambdaTarget("com/example.OtherFunction", LambdaBytecodeGate.Site.LAMBDA),
+                LambdaBytecodeGate.REASON_LAMBDA_TARGET_NOT_ALLOWED, "com.example.OtherFunction");
+        assertRejected(LambdaBytecodeGate.checkLambdaTarget(lambdaImplClass("com/example/OtherFunction"),
+                LambdaBytecodeGate.Site.LAMBDA),
+                LambdaBytecodeGate.REASON_LAMBDA_TARGET_NOT_ALLOWED, "com.example.OtherFunction");
+        }
+
+    @Test
+    public void shouldRejectMissingLambdaTargetEvenWhenDynamicLambdaAllowed()
+            throws Exception
+        {
+        withConfig();
+        setMode("dev", "allow");
+
+        assertRejected(LambdaBytecodeGate.checkLambdaTarget("com/example/OtherFunction", LambdaBytecodeGate.Site.LAMBDA),
+                LambdaBytecodeGate.REASON_LAMBDA_TARGET_NOT_ALLOWED, "com.example.OtherFunction");
+        }
+
     private static void assertAllowed(byte[] abClass)
         {
         assertAllowed(LambdaBytecodeGate.checkBytecode(abClass, LambdaBytecodeGate.Site.LAMBDA));
@@ -118,6 +252,67 @@ public class LambdaBytecodeGateTest
         LambdaBytecodeGate.Result.Rejected rejected = (LambdaBytecodeGate.Result.Rejected) result;
         assertEquals(sReason, rejected.reason());
         assertEquals(sDenied, rejected.deniedRef());
+        }
+
+    private static void setMode(String sMode, String sDynamicLambda)
+        {
+        restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicLambda);
+        resetMode();
+        }
+
+    private void withConfig(String... asEntries)
+            throws Exception
+        {
+        Path dir  = m_folder.newFolder().toPath();
+        Path path = dir.resolve(SecurityConfig.RESOURCE_SECURITY_CONFIG);
+        Files.createDirectories(path.getParent());
+        Files.write(path, xml(asEntries).getBytes(StandardCharsets.UTF_8));
+        Thread.currentThread().setContextClassLoader(new URLClassLoader(new URL[] {dir.toUri().toURL()}, null));
+        SecurityConfig.resetForTesting();
+        }
+
+    private static String lambdaTargetEntry(String sName)
+        {
+        return "<class name=\"" + sName + "\" source=\"@Remote.Executable\" lambda-target=\"true\"/>";
+        }
+
+    private static String xml(String... asEntries)
+        {
+        return "<?xml version=\"1.0\"?>\n"
+                + "<security-config xmlns=\"http://xmlns.oracle.com/coherence/coherence-security-config\" "
+                + "version=\"1.0\">\n"
+                + "  <allowed-classes>\n"
+                + String.join("\n", asEntries)
+                + "\n  </allowed-classes>\n"
+                + "</security-config>\n";
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
+    private static void resetMode()
+        {
+        try
+            {
+            var method = CoherenceMode.class.getDeclaredMethod("resetForTesting");
+            method.setAccessible(true);
+            method.invoke(null);
+            RemoteExecutionMode.resetForTesting();
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw new AssertionError(e);
+            }
         }
 
     private static byte[] runtimeExecClass()
@@ -190,6 +385,15 @@ public class LambdaBytecodeGateTest
         return cw.toByteArray();
         }
 
+    private static byte[] lambdaImplClass(String sInterface)
+        {
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
+        cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, "test/LambdaImpl", null, "java/lang/Object",
+                new String[] {sInterface});
+        cw.visitEnd();
+        return cw.toByteArray();
+        }
+
     private static ClassWriter begin(String sName)
         {
         ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
@@ -219,4 +423,8 @@ public class LambdaBytecodeGateTest
         mv.visitEnd();
         cw.visitEnd();
         }
+
+    private final String m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
+    private final ClassLoader m_loaderOld = Thread.currentThread().getContextClassLoader();
     }

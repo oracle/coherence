@@ -6,9 +6,8 @@
  */
 package com.tangosol.internal.util.invoke;
 
-import com.oracle.coherence.common.base.Logger;
-
 import com.tangosol.io.internal.ClassIdentityAllowlist;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.ExternalizableLite;
 
@@ -315,8 +314,10 @@ public class ClassIdentity
         {
         if (!ClassIdentityAllowlist.isAllowed(m_sPackage, m_sBaseName))
             {
-            Logger.warn("route=class-identity, gate=class-validation, reason=package-not-allowed, package=%s, class=%s"
-                    .formatted(boundedValue(m_sPackage), boundedValue(m_sBaseName)));
+            SerializationTelemetry.recordFilterCheck("rejected", "class-identity-package-not-allowed",
+                    ClassIdentity.class, null);
+            SerializationTelemetry.logRejection("class-validation", null, null,
+                    boundedValue(m_sPackage) + "." + boundedValue(m_sBaseName), "package-not-allowed");
             throw new IOException("ClassIdentity package is not allowed: " + boundedValue(m_sPackage));
             }
         }

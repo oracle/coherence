@@ -46,7 +46,12 @@ public final class DefaultObjectInputFilter
     public Status checkInput(FilterInfo filterInfo)
         {
         Class<?> clz = filterInfo.serialClass();
-        return SerializationAllowlist.isAllowed(clz) ? Status.ALLOWED : Status.REJECTED;
+        boolean fAllowed = SerializationAllowlist.isAllowed(clz);
+        if (!fAllowed)
+            {
+            SerializationTelemetry.recordFilterCheck("rejected", "serialization-allowlist-rejected", clz, null);
+            }
+        return fAllowed ? Status.ALLOWED : Status.REJECTED;
         }
 
     // ----- inner class: IntersectingFilter --------------------------------

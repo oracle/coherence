@@ -46,6 +46,7 @@ import com.tangosol.io.WrapperOutputStream;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.WriteBuffer.BufferOutput;
 import com.tangosol.io.internal.DefaultObjectInputFilter;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.PofContext;
@@ -2666,6 +2667,7 @@ public abstract class ExternalizableHelper
         ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "class-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " was rejected");
             }
         }
@@ -2687,6 +2689,7 @@ public abstract class ExternalizableHelper
         ensureDefaultObjectInputFilter(in);
         if (!checkObjectInputFilter(clz, cLength, in))
             {
+            SerializationTelemetry.recordFilterCheck("rejected", "array-rejected", clz, null);
             throw new InvalidClassException("Deserialization of class " + clz.getName() + " with array length " + cLength + " was rejected");
             }
         }
@@ -3022,6 +3025,7 @@ public abstract class ExternalizableHelper
         switch (nType)
             {
             default:
+                SerializationTelemetry.recordFmtCheck("rejected", "invalid-format", nType);
                 throw new StreamCorruptedException("invalid type: " + nType);
 
             case FMT_UNKNOWN:

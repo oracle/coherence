@@ -6,6 +6,8 @@
  */
 package com.tangosol.util;
 
+import com.tangosol.internal.util.CoherenceModeTestSupport;
+
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.DefaultSerializer;
@@ -685,7 +687,16 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     @Test
     public void testExternalizableLiteObjectInputStreamWithoutFilter()
         {
-        testExternalizableLiteObjectInputFilter(false, false, 500000);
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        try
+            {
+            System.setProperty("coherence.serialization.allowed", Person.class.getName());
+            testExternalizableLiteObjectInputFilter(false, false, 500000);
+            }
+        finally
+            {
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
         }
 
     /**
@@ -727,7 +738,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         String sMode = System.getProperty("coherence.mode");
         try
             {
-            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.mode", "prod");
 
             DataInput in = new DataInputStream(new ByteArrayInputStream(new byte[0]));
             assertFalse(checkObjectInputFilter(String.class, in));
@@ -745,7 +756,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         String sAllowed = System.getProperty("coherence.serialization.allowed");
         try
             {
-            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.mode", "prod");
             restoreProperty("coherence.serialization.allowed", null);
 
             String[] as = {"message"};
@@ -778,7 +789,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         String sAllowed = System.getProperty("coherence.serialization.allowed");
         try
             {
-            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.mode", "prod");
             restoreProperty("coherence.serialization.allowed", null);
 
             SimpleElement element = new SimpleElement("test", "value");
@@ -833,7 +844,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         Binary bin      = fmtXmlSerializable(TestXmlSerializable.class.getName(), "<test/>");
         try
             {
-            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.mode", "prod");
             restoreProperty("coherence.serialization.allowed", null);
 
             assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
@@ -1415,6 +1426,10 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         else
             {
             System.setProperty(sName, sValue);
+            }
+        if ("coherence.mode".equals(sName))
+            {
+            CoherenceModeTestSupport.reset();
             }
         }
 

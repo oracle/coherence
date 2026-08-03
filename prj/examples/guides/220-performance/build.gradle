@@ -9,6 +9,7 @@ import groovy.xml.XmlSlurper
 
 plugins {
 	id 'java'
+    id 'com.oracle.coherence.ce' version "${coherenceVersion}"
 }
 
 java {
@@ -59,4 +60,8 @@ test {
         events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
     }
     useJUnitPlatform()
+}
+
+securityConfig {
+    processTestClasses = true
 }

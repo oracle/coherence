@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.google.protobuf.UnsafeByteOperations;
 import com.tangosol.io.MultiBufferReadBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.io.nio.ByteBufferReadBuffer;
 
@@ -131,7 +132,10 @@ public final class BinaryHelper
             {
             return null;
             }
-        return ExternalizableHelper.fromBinary(binary, serializer);
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
+            {
+            return ExternalizableHelper.fromBinary(binary, serializer);
+            }
         }
 
     /**

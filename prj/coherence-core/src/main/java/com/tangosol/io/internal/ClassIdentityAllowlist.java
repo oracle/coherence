@@ -8,7 +8,8 @@ package com.tangosol.io.internal;
 
 import com.oracle.coherence.common.base.Logger;
 
-import com.tangosol.coherence.config.Config;
+import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.SecurityConfig;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,7 +61,7 @@ public final class ClassIdentityAllowlist
      */
     static void reset()
         {
-        s_registeredProvider.set(Set::of);
+        s_registeredProvider.set(ClassIdentityAllowlist::securityConfigPackages);
         s_modeLogged.set(null);
         }
 
@@ -73,7 +74,7 @@ public final class ClassIdentityAllowlist
      */
     private static String mode()
         {
-        String sMode = Config.getProperty("coherence.mode", "prod").trim().toLowerCase();
+        String sMode = CoherenceMode.current().name().toLowerCase();
         if (s_modeLogged.compareAndSet(null, sMode))
             {
             Logger.info("route=class-identity, gate=class-validation, mode=%s".formatted(sMode));
@@ -98,6 +99,26 @@ public final class ClassIdentityAllowlist
                 .map(ClassIdentityAllowlist::normalizePackage)
                 .filter(s -> s != null && !s.isEmpty())
                 .collect(Collectors.toUnmodifiableSet());
+        }
+
+    private static Set<String> securityConfigPackages()
+        {
+        return SecurityConfig.current().allowedFqns()
+                .stream()
+                .map(ClassIdentityAllowlist::packageName)
+                .filter(s -> s != null && !s.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+        }
+
+    private static String packageName(String sName)
+        {
+        if (sName == null)
+            {
+            return null;
+            }
+
+        int of = sName.lastIndexOf('.');
+        return of < 0 ? "" : sName.substring(0, of);
         }
 
     /**
@@ -143,7 +164,7 @@ public final class ClassIdentityAllowlist
      * Registered package provider. Slice E will replace the empty default.
      */
     private static final AtomicReference<Supplier<Set<String>>> s_registeredProvider =
-            new AtomicReference<>(Set::of);
+            new AtomicReference<>(ClassIdentityAllowlist::securityConfigPackages);
 
     /**
      * Last logged mode.

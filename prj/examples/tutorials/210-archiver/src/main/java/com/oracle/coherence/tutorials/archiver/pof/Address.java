@@ -7,10 +7,10 @@
 
 package com.oracle.coherence.tutorials.archiver.pof;
 
+import com.tangosol.util.function.Remote;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
-
 import com.tangosol.util.Base;
 
 import java.io.IOException;
@@ -24,6 +24,7 @@ import java.io.IOException;
  * @author si, tm 2026.02.17
  * @since  15.1.2
  */
+@Remote.Allowed
 public class Address
         implements PortableObject
     {

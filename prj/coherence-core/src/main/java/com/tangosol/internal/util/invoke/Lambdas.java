@@ -142,6 +142,32 @@ public abstract class Lambdas
         }
 
     /**
+     * Return whether the supplied class-identity name refers to a DYNAMIC
+     * (wire-synthesised) lambda.
+     *
+     * @param sName  the identity name, typically {@link ClassIdentity#getName()}
+     *
+     * @return {@code true} if the name carries the JDK lambda marker
+     */
+    public static boolean isDynamicLambdaName(String sName)
+        {
+        return sName != null && sName.contains(LAMBDA_CLASS_MARKER);
+        }
+
+    /**
+     * Return whether the supplied class identity refers to a DYNAMIC
+     * (wire-synthesised) lambda.
+     *
+     * @param identity  the class identity
+     *
+     * @return {@code true} if the identity describes a DYNAMIC lambda
+     */
+    public static boolean isDynamicLambdaIdentity(ClassIdentity identity)
+        {
+        return identity instanceof LambdaIdentity || identity != null && isDynamicLambdaName(identity.getName());
+        }
+
+    /**
      * Return true if the provided {@link SerializedLambda} represents a method
      * reference.
      *
@@ -168,6 +194,10 @@ public abstract class Lambdas
     public static ClassDefinition createDefinition(ClassIdentity id, Serializable lambda, ClassLoader loader)
         {
         SerializedLambda lambdaMetadata = getSerializedLambda(lambda);
+
+        LambdaBytecodeGate.ensureAllowed(
+                LambdaBytecodeGate.checkLambdaTarget(lambdaMetadata, LambdaBytecodeGate.Site.LAMBDA),
+                LambdaBytecodeGate.Site.LAMBDA);
 
         if (lambdaMetadata.getImplMethodKind() == MethodHandleInfo.REF_invokeStatic ||
             isMethodReference(lambdaMetadata))
@@ -355,9 +385,7 @@ public abstract class Lambdas
      * <p>
      * If not explicitly configured in {@link ExternalizableHelper} configuration file
      * or set by system property {@link #LAMBDAS_SERIALIZATION_MODE_PROPERTY},
-     * the default is computed based on the {@link CacheFactory#getLicenseMode() coherence mode}.
-     * In production mode, the default is {@link SerializationMode#STATIC};
-     * otherwise, in dev/eval mode, the default is {@link SerializationMode#DYNAMIC}.
+     * the default is {@link SerializationMode#DYNAMIC}.
      *
      * @return the lambdas serialization mode
      *

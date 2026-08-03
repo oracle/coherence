@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -120,6 +120,7 @@ public class FederationExampleTest {
                                                             int federationPortPrimary, int federationPortSecondary) {
         String        hostName      = "127.0.0.1";
         OptionsByType optionsByType = OptionsByType.empty();
+        String        mode          = System.getProperty("coherence.mode");
 
         optionsByType.addAll(JMXManagementMode.ALL,
                 JmxProfile.enabled(),
@@ -132,6 +133,10 @@ public class FederationExampleTest {
                 ClusterPort.of(clusterPort),
                 SystemProperty.of("test.primary.cluster.port", Integer.toString(federationPortPrimary)),
                 SystemProperty.of("test.secondary.cluster.port", Integer.toString(federationPortSecondary)));
+
+        if (mode != null && !mode.isBlank()) {
+            optionsByType.add(SystemProperty.of("coherence.mode", mode));
+        }
 
         return optionsByType;
     }

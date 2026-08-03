@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021, 2024 Oracle and/or its affiliates.
+ * Copyright (c) 2021, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import java.util.Set;
 
 import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.guides.aggregations.model.Document;
+import com.tangosol.util.function.Remote;
 import com.tangosol.util.InvocableMap;
 
 /**
@@ -21,6 +22,7 @@ import com.tangosol.util.InvocableMap;
  * occurs in a {@link com.tangosol.net.NamedMap} containing {@link Document} objects.
  */
 // tag::class[]
+@Remote.Executable
 public class WordCount<K extends String, V extends Document>
         implements InvocableMap.StreamingAggregator<K, V, Map<String, Integer>, Map<String, Integer>>, // <1>
         Serializable { // <2>

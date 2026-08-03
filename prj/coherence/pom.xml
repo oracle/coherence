@@ -330,6 +330,13 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>${coherence.group.id}</groupId>
+            <artifactId>security-config-shade-transformer</artifactId>
+            <version>${project.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>shade</id>
@@ -433,6 +440,7 @@
                 </relocation>
               </relocations>
               <transformers>
+                <transformer implementation="com.oracle.coherence.maven.shade.SecurityConfigShadeTransformer"/>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
               </transformers>
             </configuration>
