@@ -30,6 +30,20 @@ public final class DefaultObjectInputFilter
         }
 
     /**
+     * Return a filter that intersects the Coherence default filter, any
+     * JVM-wide user-configured serial filter, and the specified bridge filter.
+     *
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return the effective serial filter
+     */
+    public static ObjectInputFilter create(ObjectInputFilter filterBridge)
+        {
+        ObjectInputFilter filterDefault = create();
+        return filterBridge == null ? filterDefault : new IntersectingFilter(filterDefault, filterBridge);
+        }
+
+    /**
      * Return a filter that intersects the Coherence default filter with the
      * specified user filter.
      *
