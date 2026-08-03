@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<pof-config>
+  <user-type-list>
+    <include>coherence-pof-config.xml</include>
+  </user-type-list>
+</pof-config>
