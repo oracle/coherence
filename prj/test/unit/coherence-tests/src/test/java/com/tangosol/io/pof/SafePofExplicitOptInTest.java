@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
  * Regression tests for the explicit {@code safe-pof} compatibility context.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public class SafePofExplicitOptInTest
     {
