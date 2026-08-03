@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -28,6 +28,8 @@ import com.tangosol.internal.net.topic.NamedTopicPublisher;
 import com.tangosol.internal.net.topic.PublisherConnector;
 import com.tangosol.internal.net.topic.SubscriberConnector.ConnectedSubscriber;
 
+import com.tangosol.internal.util.security.RemoteInstallGate;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 
@@ -602,6 +604,9 @@ public class TopicServiceFactory
                 }
 
             NamedTopic<?>               topic      = service.ensureTopic(sName, null);
+            Channel                     channel    = getChannel();
+            RemoteInstallGate.enforceTopicSubscriberInstall(m_filter, m_extractor, SerializationRole.TOPICS,
+                    channel == null ? null : channel.getSubject());
             TopicSubscriberProxy        proxy      = createTopicSubscriberProxy(topic);
             ConnectedSubscriber<Binary> subscriber = proxy.getSubscriber();
 

@@ -16,5 +16,8 @@
     <class name="grpc.client.TestPartitionKey" source="manual"/>
     <class name="grpc.client.UnusableAggregator" source="manual" executable="true"/>
     <class name="grpc.client.Uppercase" source="manual" executable="true"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$AnnotatedFilter" source="manual" executable="true"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$PlainExtractor" source="manual"/>
+    <class name="netty.grpc.client.topics.TopicSubscriberInstallGateGrpcIT$PlainFilter" source="manual"/>
   </allowed-classes>
 </security-config>

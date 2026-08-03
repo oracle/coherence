@@ -439,6 +439,47 @@ installs. The Slice C audit did not find a remote-supplied `EventInterceptor`
 install path; interceptor coverage is therefore limited to this startup
 advisory.
 
+=== Topic Subscriber Filter / Extractor Install
+
+Remote topic subscriber group and subscriber creation through Coherence*Extend
+and gRPC are checked before the subscriber metadata is installed on the storage
+tier. Subscriber filters use `OperationReason.EVALUATE_FILTER`; subscriber
+extractors and converters use `OperationReason.EXTRACT`; both publish
+`role=TOPICS` in telemetry. The filter or extractor class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
+`DEV` and `PROD` and shadowed in `LEGACY`.
+
+Dynamic or lambda-shaped subscriber filter and extractor classes use the same
+dynamic remote mode gate as DYNAMIC lambdas, `MethodInvocationProcessor`,
+`ScriptProcessor`, and remote `MapTrigger` installs. `PROD` denies dynamic
+subscriber metadata by default unless
+`coherence.remote.dynamic.unauthenticated=allow` is set. `DEV` permits dynamic
+subscriber metadata by default, and `LEGACY` installs while emitting
+`result=would_reject` shadow telemetry.
+
+Persisted subscriber metadata is rechecked when topic subscription metadata is
+activated from persistence. The
+`coherence.topics.persisted.policy-drift` property controls how Coherence
+handles metadata whose class was valid at install time but is no longer
+executable at replay time:
+
+* `reject` refuses the replayed subscription and emits
+  `sub_reason=replay_drift`.
+* `warn-allow` emits a deduped WARN for the drifted class and allows replay.
+
+The default is `reject` in `PROD` and `warn-allow` in `DEV`; `LEGACY` shadows
+the drift regardless of the property value. Operators should use
+`warn-allow` only as a migration bridge while annotating the affected
+filter/extractor classes, regenerating `security-config.xml`, and redeploying
+the owning artifacts.
+
+Cache-config-declared topic subscriber advisory logging is deferred. The topic
+scheme bootstrap paths currently do not materialize the declared filter or
+extractor instances early enough to emit a startup advisory without moving
+topic subscription realization. Remote topic subscriber installs and persisted
+replay rechecks are still enforced as described above.
+
 === Functional-Interface Lambda Targets
 
 A lambda target is the functional interface named by a serialized lambda. For
@@ -568,6 +609,18 @@ present; otherwise the mode-aware default is used (`LEGACY=true`, `DEV=true`,
 `PROD=false`). This property does not bypass `@Remote.Executable`
 enforcement when the proxy is enabled.
 |<<InvocationService>>
+
+|`coherence.topics.persisted.policy-drift`
+|enum: `reject`, `warn-allow`
+|`DEV`: `warn-allow`; `PROD`: `reject`; `LEGACY`: shadows independently
+|26.04
+|Controls persisted topic subscriber filter/extractor policy drift on replay.
+`reject` refuses persisted metadata whose class is no longer executable;
+`warn-allow` logs a deduped WARN and allows replay for migration. The property
+is resolved through Coherence `Config`, so the
+`COHERENCE_TOPICS_PERSISTED_POLICY_DRIFT` environment variable alias is also
+honoured.
+|<<Topic Subscriber Filter / Extractor Install>>
 
 |`coherence.serialization.allowed`
 |class-fqn-list
@@ -795,11 +848,14 @@ coh.executable.policy_check{reason=<OperationReason>, role=<SerializationRole>, 
 For Extend `InvocationService`, the tuple uses `reason=INVOKE` and
 `role=EXTEND_PROXY`. `MethodInvocationProcessor` and `ScriptProcessor` use
 `reason=PROCESS_ENTRY` and `reason=SCRIPT_EVAL`, respectively. Remote
-`MapTrigger` installation uses `reason=TRIGGER` and `role=EXTEND_PROXY`. Live
-tuples may also include `sub_reason=policy|mode_gate|denylist`; the tag is
-additive and callers must not assume a closed set. Successful checks use
-`sub_reason=policy`; mode and deny-list sub-reasons are emitted only for
-refusals.
+`MapTrigger` installation uses `reason=TRIGGER` and `role=EXTEND_PROXY`.
+Topic subscriber filter/extractor installation and persisted replay use
+`reason=EVALUATE_FILTER|EXTRACT` and `role=TOPICS`. Live tuples may also
+include `sub_reason=policy|mode_gate|denylist|replay_drift`; the tag is
+additive and callers must not assume a closed set. Successful policy checks
+use `sub_reason=policy`; mode and deny-list sub-reasons are emitted only for
+refusals. Topic replay under `warn-allow` records
+`result=allowed,sub_reason=replay_drift` to make migration drift visible.
 
 Remote executable policy shadow checks in `LEGACY` mode maintain:
 
@@ -815,4 +871,6 @@ LEGACY-only shadow tuples, while `class` is included to make per-class dry-run
 diagnostics possible. It does not measure serialization allowlist or lambda
 bytecode readiness; validate those gates by running the workload under
 `-Dcoherence.mode=dev` or `-Dcoherence.mode=prod` in a non-production
-environment.
+environment. Topic subscriber replay records one `would_reject` tuple per
+LEGACY shadow; install-time dynamic shadows can record policy and mode-gate
+tuples because replay has no dynamic mode-gate analog.
