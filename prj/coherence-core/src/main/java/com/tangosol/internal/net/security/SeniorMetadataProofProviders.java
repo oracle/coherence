@@ -27,7 +27,7 @@ import static com.tangosol.internal.net.security.SeniorMetadataProofVerification
  * Senior-metadata proof provider factories.
  *
  * @author Aleks Seovic  2026.05.19
- * @since 15.1.2.0
+ * @since 26.07
  */
 public final class SeniorMetadataProofProviders
     {

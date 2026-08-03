@@ -10,7 +10,7 @@ package com.tangosol.internal.net.security;
  * Provider abstraction for senior-metadata proof production and verification.
  *
  * @author Aleks Seovic  2026.05.19
- * @since 15.1.2.0
+ * @since 26.07
  */
 public interface SeniorMetadataProofProvider
     {
