@@ -1401,12 +1401,12 @@ public abstract class BaseManagementInfoResourceTests
         {
         String sProperty = "coherence.management.slice.c.function." + System.nanoTime();
         String sResult   = withClusterMode(MODE_PROD,
-                () -> s_cluster.iterator().next().submit(new InvokePlainManagementFunction(sProperty)).join());
+                () -> submitToMember(s_cluster.iterator().next(), new InvokePlainManagementFunction(sProperty)));
 
         assertThat(sResult, not("invoked"));
         for (CoherenceClusterMember member : s_cluster)
             {
-            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            assertThat(submitToMember(member, new GetSystemProperty(sProperty)), is(nullValue()));
             }
         }
 
@@ -1416,12 +1416,12 @@ public abstract class BaseManagementInfoResourceTests
         {
         String sProperty = "coherence.management.slice.c.filter." + System.nanoTime();
         String sResult   = withClusterMode(MODE_PROD,
-                () -> s_cluster.iterator().next().submit(new InvokeNestedManagementFilter(sProperty)).join());
+                () -> submitToMember(s_cluster.iterator().next(), new InvokeNestedManagementFilter(sProperty)));
 
         assertThat(sResult, not("queried"));
         for (CoherenceClusterMember member : s_cluster)
             {
-            assertThat(member.submit(new GetSystemProperty(sProperty)).join(), is(nullValue()));
+            assertThat(submitToMember(member, new GetSystemProperty(sProperty)), is(nullValue()));
             }
         }
 
@@ -1430,7 +1430,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         String sResult = withClusterMode(MODE_PROD,
-                () -> s_cluster.iterator().next().submit(new InvokePlatformDiagnosticCommand()).join());
+                () -> submitToMember(s_cluster.iterator().next(), new InvokePlatformDiagnosticCommand()));
 
         assertThat(sResult, not(containsString("java.class.path")));
         assertThat(sResult, startsWith("rejected:"));
@@ -1441,7 +1441,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         String sResult = withClusterMode(MODE_PROD,
-                () -> s_cluster.iterator().next().submit(new InvokeWrappedDiagnosticCommand()).join());
+                () -> submitToMember(s_cluster.iterator().next(), new InvokeWrappedDiagnosticCommand()));
 
         assertThat(sResult, not(containsString("java.class.path")));
         assertThat(sResult, startsWith("rejected:"));
@@ -4543,7 +4543,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             for (CoherenceClusterMember member : s_cluster)
                 {
-                mapPrevious.put(member, member.submit(new SetCoherenceMode(sMode)).join());
+                mapPrevious.put(member, submitToMember(member, new SetCoherenceMode(sMode)));
                 }
             return callable.call();
             }
@@ -4551,9 +4551,14 @@ public abstract class BaseManagementInfoResourceTests
             {
             for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
                 {
-                entry.getKey().submit(new SetCoherenceMode(entry.getValue())).join();
+                submitToMember(entry.getKey(), new SetCoherenceMode(entry.getValue()));
                 }
             }
+        }
+
+    protected <T> T submitToMember(CoherenceClusterMember member, RemoteCallable<T> callable)
+        {
+        return member.submit(callable).join();
         }
 
     private void assertReporterUpdateRejected(WebTarget target, String sAttribute, Object value, String sForbidden)
