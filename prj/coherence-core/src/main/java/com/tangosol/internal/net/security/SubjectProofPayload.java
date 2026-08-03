@@ -27,7 +27,7 @@ import javax.security.auth.Subject;
  * Passive canonical subject-proof payload.
  *
  * @author Aleks Seovic  2026.05.18
- * @since 15.1.2.0
+ * @since 26.07
  */
 public final class SubjectProofPayload
     {

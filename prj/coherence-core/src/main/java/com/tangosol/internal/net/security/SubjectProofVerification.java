@@ -10,7 +10,7 @@ package com.tangosol.internal.net.security;
  * Structured subject-proof verification result.
  *
  * @author Aleks Seovic  2026.05.18
- * @since 15.1.2.0
+ * @since 26.07
  */
 public final class SubjectProofVerification
     {

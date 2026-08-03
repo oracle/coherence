@@ -12,7 +12,7 @@ import java.util.function.Predicate;
  * Small helper for enforcing configured subject-proof policy.
  *
  * @author Aleks Seovic  2026.05.19
- * @since 15.1.2.0
+ * @since 26.07
  */
 public final class SubjectProofVerifier
     {

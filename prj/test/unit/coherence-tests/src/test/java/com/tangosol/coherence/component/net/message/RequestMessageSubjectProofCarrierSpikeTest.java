@@ -42,7 +42,7 @@ import static org.junit.Assert.fail;
  *
  * @author OpenAI  2026.05.19
  *
- * @since 15.1.2.0
+ * @since 26.07
  */
 public class RequestMessageSubjectProofCarrierSpikeTest
     {
