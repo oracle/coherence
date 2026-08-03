@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * Unit tests for {@link ErrorsHelper}.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 class ErrorsHelperTest
     {

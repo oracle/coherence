@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Unit tests for {@link GrpcSerializerPolicy}.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 class GrpcSerializerPolicyTest
     {

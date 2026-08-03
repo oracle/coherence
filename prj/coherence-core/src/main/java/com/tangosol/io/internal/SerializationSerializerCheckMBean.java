@@ -16,7 +16,7 @@ import com.tangosol.net.metrics.MBeanMetric;
  * Management view for serializer-name checks.
  *
  * @author Aleks Seovic  2026.05.20
- * @since 26.04
+ * @since 26.07
  */
 @MetricsScope(MBeanMetric.Scope.VENDOR)
 @Description("Provides serializer-name check counters.")
