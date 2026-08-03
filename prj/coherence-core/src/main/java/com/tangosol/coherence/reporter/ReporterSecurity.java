@@ -237,13 +237,12 @@ public final class ReporterSecurity
                 return root.getCanonicalPath();
                 }
 
-            if (sPath.indexOf('\\') >= 0 || sPath.indexOf('%') >= 0)
+            if (sPath.indexOf('%') >= 0)
                 {
                 reject(sScope, "setOutputPath", "reporter-output-allowlist", "unsafe-output-path", sPath);
                 }
 
-            URI uri = new URI(sPath);
-            if (uri.getScheme() != null)
+            if (hasOutputUriScheme(sPath))
                 {
                 reject(sScope, "setOutputPath", "reporter-output-allowlist", "unsupported-output-scheme", sPath);
                 }
@@ -286,6 +285,31 @@ public final class ReporterSecurity
             reject(sScope, "setOutputPath", "reporter-output-allowlist", "invalid-output-path", sPath);
             return null;
             }
+        }
+
+    private static boolean hasOutputUriScheme(String sPath)
+            throws URISyntaxException
+        {
+        if (isWindowsAbsolutePath(sPath))
+            {
+            return false;
+            }
+
+        if (sPath.indexOf('\\') >= 0)
+            {
+            return false;
+            }
+
+        URI uri = new URI(sPath);
+        return uri.getScheme() != null;
+        }
+
+    private static boolean isWindowsAbsolutePath(String sPath)
+        {
+        return sPath.length() >= 3
+                && Character.isLetter(sPath.charAt(0))
+                && sPath.charAt(1) == ':'
+                && (sPath.charAt(2) == '\\' || sPath.charAt(2) == '/');
         }
 
     /**
