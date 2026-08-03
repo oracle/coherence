@@ -56,7 +56,7 @@ import javax.security.auth.Subject;
  * local {@link MBeanServer}.
  *
  * @author as 2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public final class ManagementInvocationPolicy
     {

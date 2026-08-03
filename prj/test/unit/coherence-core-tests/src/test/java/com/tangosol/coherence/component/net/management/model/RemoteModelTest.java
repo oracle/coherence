@@ -30,7 +30,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Unit tests for RemoteModel management invocation validation.
  *
  * @author as 2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class RemoteModelTest
     {
