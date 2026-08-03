@@ -12,7 +12,7 @@ import com.tangosol.util.function.Remote;
  * Lambda-target fixture whose SAM is inherited from a JDK functional interface.
  *
  * @author Aleks Seovic  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 @Remote.Executable
 @FunctionalInterface

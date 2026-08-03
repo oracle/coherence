@@ -17,7 +17,7 @@ import javax.security.auth.Subject;
  * Default remote executable policy.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 final class DefaultRemoteExecutablePolicy
         extends RemoteExecutablePolicy

@@ -13,7 +13,7 @@ import com.tangosol.util.function.Remote;
  * {@code @FunctionalInterface} annotation.
  *
  * @author Aleks Seovic  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 @Remote.Executable
 public interface SamLambdaTargetFixture

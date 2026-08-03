@@ -51,7 +51,7 @@ import static org.junit.Assume.assumeTrue;
  * with a pre-existing module security config.
  *
  * @author Aleks Seovic  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 public class SecurityConfigGeneratorMergeTest
     {

@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Integration tests for the security-config Gradle task.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public class SecurityConfigPluginTests
     {

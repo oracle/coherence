@@ -10,7 +10,7 @@ package com.tangosol.io;
  * Serialization transport role for per-route gate telemetry.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public enum SerializationRole
     {

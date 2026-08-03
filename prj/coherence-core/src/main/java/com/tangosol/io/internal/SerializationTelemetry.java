@@ -31,7 +31,7 @@ import javax.security.auth.Subject;
  * Shared telemetry for serialization gate checks.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public final class SerializationTelemetry
     {

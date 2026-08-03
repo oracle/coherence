@@ -26,7 +26,7 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
  * Generate {@code META-INF/coherence/security-config.xml}.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 @Mojo(name = "generate",
       defaultPhase = LifecyclePhase.PROCESS_CLASSES,

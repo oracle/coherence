@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link Lambdas}.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public class LambdasTest
     {

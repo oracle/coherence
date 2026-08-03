@@ -16,7 +16,7 @@ import com.tangosol.net.metrics.MBeanMetric;
  * Management view for serialization format checks.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 @MetricsScope(MBeanMetric.Scope.VENDOR)
 @Description("Provides serialization format check counters.")

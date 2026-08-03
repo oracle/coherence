@@ -16,7 +16,7 @@ import static org.junit.Assert.assertEquals;
  * Unit tests for {@link SerializationRole}.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public class SerializationRoleHolderTest
     {

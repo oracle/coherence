@@ -14,7 +14,7 @@ import com.tangosol.util.function.Remote;
  * Dual annotation fixture.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 @Remote.Allowed
 @PortableType(id = 9902)

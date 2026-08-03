@@ -57,7 +57,7 @@ import javax.xml.validation.SchemaFactory;
  * {@code lambda-target}.
  *
  * @author Aleks Seovic  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 public class SecurityConfigShadeTransformer
         implements ReproducibleResourceTransformer

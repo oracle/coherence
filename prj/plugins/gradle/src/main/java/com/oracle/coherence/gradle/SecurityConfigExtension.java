@@ -12,7 +12,7 @@ import org.gradle.api.provider.Property;
  * A Gradle extension object for security-config generation.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public abstract class SecurityConfigExtension
     {

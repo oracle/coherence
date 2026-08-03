@@ -16,7 +16,7 @@ import java.util.function.Consumer;
  * Central resolver for the {@code coherence.mode} runtime mode.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public enum CoherenceMode
     {

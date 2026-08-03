@@ -12,7 +12,7 @@ import com.tangosol.util.function.Remote;
  * Inherited SAM lambda target fixture.
  *
  * @author Aleks Seovic  2026.05.02
- * @since 26.04
+ * @since 26.07
  */
 @Remote.Executable
 @FunctionalInterface

@@ -11,7 +11,7 @@ import com.tangosol.net.management.annotation.Description;
  * Base management view for serialization gate telemetry counters.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public interface SerializationTelemetryMBean
     {

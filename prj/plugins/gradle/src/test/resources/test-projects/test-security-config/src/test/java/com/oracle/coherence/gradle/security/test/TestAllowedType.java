@@ -12,7 +12,7 @@ import com.tangosol.util.function.Remote;
  * Test-source allowed type fixture.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 @Remote.Allowed
 public class TestAllowedType

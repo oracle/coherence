@@ -31,7 +31,7 @@ import java.nio.file.Path;
  * A Gradle task to generate {@code META-INF/coherence/security-config.xml}.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 @CacheableTask
 public abstract class SecurityConfigTask

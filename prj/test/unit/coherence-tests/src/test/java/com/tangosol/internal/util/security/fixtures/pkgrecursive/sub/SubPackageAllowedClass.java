@@ -10,7 +10,7 @@ package com.tangosol.internal.util.security.fixtures.pkgrecursive.sub;
  * Sub-package recursive fixture.
  *
  * @author Aleks Seovic  2026.05.01
- * @since 26.04
+ * @since 26.07
  */
 public class SubPackageAllowedClass
     {
