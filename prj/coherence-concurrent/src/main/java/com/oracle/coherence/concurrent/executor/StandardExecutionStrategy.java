@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -255,6 +255,18 @@ public class StandardExecutionStrategy
         out.writeInt(0,     m_cDesiredExecutors);
         out.writeObject(1,  m_predicate);
         out.writeBoolean(2, m_fPerformConcurrently);
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Return the executor-selection predicate.
+     *
+     * @return the executor-selection predicate
+     */
+    Predicate<? super TaskExecutorService.ExecutorInfo> getPredicate()
+        {
+        return m_predicate;
         }
 
     // ----- helper methods -------------------------------------------------

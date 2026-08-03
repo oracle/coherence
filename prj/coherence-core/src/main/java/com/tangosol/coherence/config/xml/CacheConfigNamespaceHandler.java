@@ -43,6 +43,7 @@ import com.tangosol.coherence.config.scheme.TransactionalScheme;
 import com.tangosol.coherence.config.scheme.ViewScheme;
 
 import com.tangosol.coherence.config.xml.preprocessor.DefaultsCreationPreprocessor;
+import com.tangosol.coherence.config.xml.preprocessor.ConcurrentProxyPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.ExtendPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.OperationalDefaultsPreprocessor;
 import com.tangosol.coherence.config.xml.preprocessor.PofSerializerPreprocessor;
@@ -213,6 +214,9 @@ public class CacheConfigNamespaceHandler
 
         // add the pre-processor for POF serializer
         dep.addElementPreprocessor(new PofSerializerPreprocessor());
+
+        // resolve ConcurrentProxy mode-aware default before system-property preprocessing
+        dep.addElementPreprocessor(ConcurrentProxyPreprocessor.INSTANCE);
 
         // add the system property pre-processor
         dep.addElementPreprocessor(SystemPropertyPreprocessor.INSTANCE);

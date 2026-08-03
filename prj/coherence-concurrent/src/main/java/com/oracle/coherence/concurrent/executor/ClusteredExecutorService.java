@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,8 @@ import com.tangosol.net.ConfigurableCacheFactory;
 import com.tangosol.net.DistributedCacheService;
 import com.tangosol.net.Session;
 
+import com.tangosol.net.security.SecurityHelper;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.DaemonThreadFactory;
 
@@ -69,6 +71,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+
+import javax.security.auth.Subject;
 
 /**
  * An Oracle Coherence based {@link TaskExecutorService}.
@@ -751,32 +755,36 @@ public class ClusteredExecutorService
             strategy = new ExecutionStrategyBuilder().build();
             }
 
-        // ensure there's a completion predicate
-        if (completionPredicate == null)
-            {
-            completionPredicate = Predicates.never();
-            }
-
-        Span.Builder builder       = TracingHelper.newSpan("Task.Submit")
-                                         .withMetadata(Span.Type.COMPONENT.key(), "ExecutorService");
-        Span         executionSpan = builder.startSpan();
-
-        try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
-            {
-            // create a task manager for the task
-            ClusteredTaskManager<T, A, R> manager = new ClusteredTaskManager<>(sTaskId, task, strategy, collector,
-                                                                               completionPredicate, completionRunnable,
-                                                                               retainDuration, optionsByType);
-
-            ClusteredProperties clusteredProperties = null;
-            if (properties != null)
+            // ensure there's a completion predicate
+            if (completionPredicate == null)
                 {
-                clusteredProperties = new ClusteredProperties(sTaskId, m_cacheService, (TaskProperties) properties);
+                completionPredicate = Predicates.never();
                 }
 
-            return new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService(),
-                                                  clusteredProperties, subscribers);
-            }
+            Subject subject = captureSubmitterSubject();
+
+            Span.Builder builder       = TracingHelper.newSpan("Task.Submit")
+                                         .withMetadata(Span.Type.COMPONENT.key(), "ExecutorService");
+            Span         executionSpan = builder.startSpan();
+
+            try (Scope ignored = TracingHelper.getTracer().withSpan(executionSpan))
+                {
+                // create a task manager for the task
+                ClusteredTaskManager<T, A, R> manager = new ClusteredTaskManager<>(sTaskId, task, strategy, collector,
+                                                                                   completionPredicate, completionRunnable,
+                                                                                   retainDuration, optionsByType,
+                                                                                   subject);
+                manager.enforceInstallGate();
+
+                ClusteredProperties clusteredProperties = null;
+                if (properties != null)
+                    {
+                    clusteredProperties = new ClusteredProperties(sTaskId, m_cacheService, (TaskProperties) properties);
+                    }
+
+                return new ClusteredTaskCoordinator<>(m_cacheService, manager, getScheduledExecutorService(),
+                                                      clusteredProperties, subscribers);
+                }
         catch (Exception e)
             {
             TracingHelper.augmentSpanWithErrorDetails(executionSpan, true, e);
@@ -786,6 +794,21 @@ public class ClusteredExecutorService
             {
             executionSpan.end();
             }
+        }
+
+    /**
+     * Capture the advisory submitter subject for local/member submissions.
+     * Remote cache-service submissions intentionally carry no subject.
+     *
+     * @return the advisory subject, or {@code null}
+     */
+    protected Subject captureSubmitterSubject()
+        {
+        CacheService service = getCacheService();
+        String       sType   = service == null || service.getInfo() == null ? null : service.getInfo().getServiceType();
+        return CacheService.TYPE_REMOTE.equals(sType) || CacheService.TYPE_REMOTE_GRPC.equals(sType)
+                ? null
+                : SecurityHelper.getCurrentSubject();
         }
 
     /**

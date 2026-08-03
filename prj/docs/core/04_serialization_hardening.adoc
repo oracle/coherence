@@ -561,6 +561,57 @@ classify the registry factory output. For CohQL queries and gRPC bytes-based
 requests, classify the concrete filter, comparator, extractor, aggregator, or
 processor class that is sent by the client.
 
+=== Coherence Concurrent Executor
+
+Coherence Concurrent executor submissions are checked before task execution,
+scheduling, executor selection, result collection, completion callbacks, and
+subscriber callbacks. Submitted `Task`, `Callable`, `Runnable`,
+`ExecutionStrategy`, `Task.Collector`, completion predicate, completion
+runnable, and `Task.Subscriber` classes must carry `@Remote.Executable` or
+appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Enforcement telemetry uses
+`OperationReason.CONCURRENT_TASK` and `role=CONCURRENT`.
+
+The concurrent gate also walks shipped executor wrappers that can carry nested
+callback state. `CallableTask`, `RunnableTask`, `RunnableWithResultTask`,
+scheduled task wrappers, and `CronTask` gate their nested callable, runnable,
+or task state after the task-manager subject is available. `CronTask` gates
+both the original and current task. `StandardExecutionStrategy` gates its
+candidate predicate, and `ConditionalCollector` gates its predicate and nested
+collector. Concurrent cache-processor wrappers such as `LocalOnlyProcessor`
+and `ClusteredTaskManager.ChainedProcessor` gate their nested processors before
+they can invoke them. Built-in predicate wrappers such as
+`Predicates.not(...)` and typed composites such as `Predicates.and(...)` are
+unwrapped and their nested predicates are checked before use. Value-style
+predicate wrappers gate nested payloads that could otherwise dispatch
+application code through `equals(...)` or `toString()`: unsafe
+`Predicates.equalTo(...)` values, non-built-in `Predicates.has(...)`
+registration options, and non-JDK `Predicates.onException(...)` throwables are
+checked before the predicate can run. Common scalar values, built-in
+registration options, exact product `Member` registration metadata, and
+bootstrap `java.*` throwables remain data-only. Crafted or non-product nested
+members inside `Predicates.has(Member.of(...))` are checked before comparison.
+`ValueTask` is gated as a task, but its value is result data and is not treated
+as an executable callback merely because it implements a callback interface.
+Task properties, task options, execution plans, retained results, and tracing
+context are data-only for this gate.
+
+Local member submissions capture the current caller `Subject` as advisory gate
+context and serialize it with `ClusteredTaskManager` at POF index `20` and as a
+final appended ExternalizableLite field. Remote-client submissions through
+remote cache services, including `RemoteExecutor` client paths, serialize a
+`null` subject; client JVM subjects are not authorization-bearing. The subject
+is not used with `Subject.doAs(...)` and does not grant per-subject execution
+permission.
+
+The `ConcurrentProxy` Extend service uses the existing
+`coherence.concurrent.extend.enabled` property with a mode-aware default:
+enabled in `LEGACY` and `DEV`, disabled in `PROD`. A disabled proxy logs the
+resolved mode, property/config source, and enabled state at startup, plus a
+startup WARN outside `LEGACY` naming the override property. Clients still see a
+generic service-unavailable shape rather than policy-specific wire text.
+Cluster-internal executor use is independent of this proxy switch.
+
 === Functional-Interface Lambda Targets
 
 A lambda target is the functional interface named by a serialized lambda. For
@@ -631,10 +682,8 @@ runtime-enforcement timelines in 26.04:
 * *Concrete executable classes* (entry processors, aggregators, invocables,
   filters, value extractors, comparators, triggers, server-side event
   interceptors, `coherence-concurrent` tasks) are classified by the build
-  in 26.04. Runtime enforcement is rolling out by sink. Extend
-  `InvocationService`, `MethodInvocationProcessor`, and `ScriptProcessor`
-  enforce the classification today; other execution sinks will be wired in
-  follow-on CACHE-01 slices. Classify executable classes now, regenerate
+  in 26.04. Runtime enforcement covers the CACHE-01 remote execution sinks
+  described above. Classify executable classes now, regenerate
   `security-config.xml`, and use
   `coh.executable.policy_check{result=would_reject}` shadow telemetry to
   drive the migration; see <<Telemetry>>.
@@ -690,6 +739,18 @@ present; otherwise the mode-aware default is used (`LEGACY=true`, `DEV=true`,
 `PROD=false`). This property does not bypass `@Remote.Executable`
 enforcement when the proxy is enabled.
 |<<InvocationService>>
+
+|`coherence.concurrent.extend.enabled`
+|boolean
+|`LEGACY`: `true`; `DEV`: `true`; `PROD`: `false`
+|26.04
+|Overrides whether the Coherence Concurrent `ConcurrentProxy` Extend service is
+exposed. When unset, the shipped `ConcurrentProxy` autostart marker resolves to
+the mode-aware default (`LEGACY=true`, `DEV=true`, `PROD=false`). An explicit
+cache-config autostart override without the shipped system-property marker wins
+when the property is absent. This property does not bypass
+`@Remote.Executable` enforcement when the proxy is enabled.
+|<<Coherence Concurrent Executor>>
 
 |`coherence.topics.persisted.policy-drift`
 |enum: `reject`, `warn-allow`
@@ -935,7 +996,8 @@ Topic subscriber filter/extractor installation and persisted replay use
 processor, aggregator, filter, extractor, and comparator installs through
 Extend, REST, and gRPC use
 `reason=PROCESS_ENTRY|AGGREGATE|EVALUATE_FILTER|EXTRACT|COMPARE` and
-`role=EXTEND_PROXY|REST|GRPC`. Live tuples may also include
+`role=EXTEND_PROXY|REST|GRPC`. Coherence Concurrent executor task and callback
+installs use `reason=CONCURRENT_TASK` and `role=CONCURRENT`. Live tuples may also include
 `sub_reason=policy|mode_gate|denylist|replay_drift`; the tag is additive and
 callers must not assume a closed set. Successful policy checks use
 `sub_reason=policy`; mode and deny-list sub-reasons are emitted only for

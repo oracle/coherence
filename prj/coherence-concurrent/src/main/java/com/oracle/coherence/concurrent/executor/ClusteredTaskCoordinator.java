@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -34,6 +34,8 @@ import java.util.Iterator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 
+import javax.security.auth.Subject;
+
 /**
  * An implementation of a {@link Task.Coordinator} for Coherence-based implementation.
  *
@@ -65,6 +67,7 @@ public class ClusteredTaskCoordinator<T>
         super(manager.getTaskId(), executorService, manager.getRetainDuration() != null);
 
         f_cacheService = service;
+        f_subject      = manager.getSubject();
 
         // TODO - only add map listener if there is at least one subscriber
         Caches.tasks(service).addMapListener(this, getTaskId(), false);
@@ -89,6 +92,7 @@ public class ClusteredTaskCoordinator<T>
 
         f_cacheService = service;
         m_properties   = properties;
+        f_subject      = manager.getSubject();
 
         if (subscribers != null)
             {
@@ -123,6 +127,13 @@ public class ClusteredTaskCoordinator<T>
         }
 
     // ----- AbstractTaskCoordinator methods --------------------------------
+
+    @Override
+    public void subscribe(Task.Subscriber<? super T> subscriber)
+        {
+        ConcurrentTaskInstallGate.enforceSubscriber(subscriber, f_subject);
+        super.subscribe(subscriber);
+        }
 
     @Override
     public boolean cancel(boolean fMayInterruptIfRunning)
@@ -429,4 +440,9 @@ public class ClusteredTaskCoordinator<T>
      * The {@link CacheService} used by the executor service.
      */
     protected final CacheService f_cacheService;
+
+    /**
+     * Advisory submitter subject for install-gate telemetry.
+     */
+    protected final Subject f_subject;
     }

@@ -8,6 +8,8 @@
 <security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
                  version="1.0">
   <allowed-classes>
+    <class name="com.tangosol.coherence.Component" source="manual"/>
+    <class name="com.tangosol.coherence.component.Net" source="manual"/>
     <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannel" source="manual"/>
     <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannelRequest" source="manual"/>
     <class name="com.tangosol.coherence.component.net.Cluster$NameService$TcpAcceptor$MessageFactory$AcceptChannelResponse" source="manual"/>

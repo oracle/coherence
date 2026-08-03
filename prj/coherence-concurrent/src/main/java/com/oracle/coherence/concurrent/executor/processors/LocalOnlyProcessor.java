@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,8 @@ package com.oracle.coherence.concurrent.executor.processors;
 import com.oracle.coherence.concurrent.executor.Result;
 
 import com.oracle.coherence.concurrent.executor.PortableAbstractProcessor;
+
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -20,6 +22,7 @@ import com.tangosol.util.InvocableMap;
 
 import java.io.IOException;
 
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -35,6 +38,7 @@ import java.util.Map;
  */
 public class LocalOnlyProcessor<K, V, R>
         extends PortableAbstractProcessor<K, V, R>
+        implements RemoteInstallGate.CacheProcessorCarrier
     {
     // ----- constructors ---------------------------------------------------
 
@@ -92,6 +96,24 @@ public class LocalOnlyProcessor<K, V, R>
     public static <K, V, R> LocalOnlyProcessor<K, V, R> of(InvocableMap.EntryProcessor<K, V, R> processor)
         {
         return new LocalOnlyProcessor<>(processor);
+        }
+
+    /**
+     * Return the nested processor.
+     *
+     * @return the nested processor
+     */
+    public InvocableMap.EntryProcessor<K, V, R> getProcessor()
+        {
+        return m_processor;
+        }
+
+    // ----- RemoteInstallGate.CacheProcessorCarrier interface -------------
+
+    @Override
+    public Iterable<? extends InvocableMap.EntryProcessor> getProcessorsForInstallGate()
+        {
+        return m_processor == null ? Collections.emptyList() : Collections.singletonList(m_processor);
         }
 
     // ----- PortableObject interface ---------------------------------------

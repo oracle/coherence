@@ -26,6 +26,7 @@ public enum SerializationRole
     PERSISTENCE,
     CACHE_STORE,
     TOPICS,
+    CONCURRENT,
     TOOLING,
     UNCLASSIFIED;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,6 +50,18 @@ public class RunnableWithResultTask<T>
         {
         m_runnable = runnable;
         m_result   = result;
+        }
+
+    // ----- accessors ------------------------------------------------------
+
+    /**
+     * Returns the {@link Runnable}.
+     *
+     * @return the {@link Runnable}
+     */
+    public Runnable getRunnable()
+        {
+        return m_runnable;
         }
 
     // ----- Task interface -------------------------------------------------

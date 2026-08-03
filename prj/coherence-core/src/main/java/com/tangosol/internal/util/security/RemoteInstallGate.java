@@ -101,6 +101,40 @@ public final class RemoteInstallGate
         }
 
     /**
+     * Enforce concurrent task/callback installation policy.
+     *
+     * @param executable  the concurrent task or callback being installed
+     * @param role        the serialization role
+     * @param subject     the current subject, or {@code null}
+     */
+    public static final void enforceConcurrentTaskInstall(Object executable, SerializationRole role, Subject subject)
+        {
+        enforceConcurrentTaskInstall(executable, role, subject, 0);
+        }
+
+    /**
+     * Enforce concurrent task/callback installation policy for nested state.
+     *
+     * @param executable  the concurrent task or callback being installed
+     * @param role        the serialization role
+     * @param subject     the current subject, or {@code null}
+     * @param cDepth      the cascade depth
+     */
+    public static final void enforceConcurrentTaskInstall(Object executable, SerializationRole role, Subject subject,
+                                                          int cDepth)
+        {
+        if (executable == null)
+            {
+            return;
+            }
+
+        enforceDepth(cDepth, executable.getClass(), OperationReason.CONCURRENT_TASK, role, subject,
+                CONCURRENT_TASK_INSTALL);
+        enforceInstall(executable.getClass(), OperationReason.CONCURRENT_TASK, role, subject,
+                CONCURRENT_TASK_INSTALL, REASON_CONCURRENT_TASK_DENIED_BY_MODE);
+        }
+
+    /**
      * Enforce remote topic subscriber filter/extractor installation policy.
      *
      * @param filter     the subscriber filter being installed
@@ -337,6 +371,7 @@ public final class RemoteInstallGate
         cascadeExtractorProcessor(processor, role, subject, cDepth + 1);
         cascadePropertyProcessor(processor, role, subject, cDepth + 1);
         cascadeUpdaterProcessor(processor, role, subject, cDepth + 1);
+        cascadeProcessorCarrier(processor, role, subject, cDepth + 1);
         }
 
     private static void enforceCacheAggregatorInstall(InvocableMap.EntryAggregator<?, ?, ?> aggregator,
@@ -542,6 +577,19 @@ public final class RemoteInstallGate
             {
             enforceCacheUpdaterInstall(((UpdaterProcessor<?, ?, ?>) processor).getValueUpdater(),
                     role, subject, cDepth);
+            }
+        }
+
+    private static void cascadeProcessorCarrier(InvocableMap.EntryProcessor<?, ?, ?> processor,
+                                                SerializationRole role, Subject subject, int cDepth)
+        {
+        if (processor instanceof CacheProcessorCarrier)
+            {
+            for (InvocableMap.EntryProcessor nested :
+                    ((CacheProcessorCarrier) processor).getProcessorsForInstallGate())
+                {
+                enforceCacheProcessorInstall(nested, role, subject, cDepth);
+                }
             }
         }
 
@@ -1290,6 +1338,23 @@ public final class RemoteInstallGate
         return (role == null ? SerializationRole.current() : role).name();
         }
 
+    // ----- inner interface: CacheProcessorCarrier ------------------------
+
+    /**
+     * Narrow extension point for product entry-processor wrappers whose
+     * nested processors must be walked by the cache processor install gate.
+     */
+    public interface CacheProcessorCarrier
+        {
+        /**
+         * Return nested processors that must be install-gated before this
+         * wrapper can invoke them.
+         *
+         * @return nested processors for install-gate cascade
+         */
+        Iterable<? extends InvocableMap.EntryProcessor> getProcessorsForInstallGate();
+        }
+
     // ----- constants -----------------------------------------------------
 
     private static final String TOPIC_TRIGGER_INSTALL = "cache.trigger.install";
@@ -1297,6 +1362,8 @@ public final class RemoteInstallGate
     private static final String TOPIC_SUBSCRIBER_INSTALL = "topic.subscriber.install";
 
     private static final String TOPIC_SUBSCRIBER_REPLAY = "topic.subscriber.replay";
+
+    private static final String CONCURRENT_TASK_INSTALL = "concurrent.task.install";
 
     private static final String CACHE_PROCESSOR_INSTALL = "cache.processor.install";
 
@@ -1312,6 +1379,9 @@ public final class RemoteInstallGate
 
     private static final String REASON_TOPIC_SUBSCRIBER_DENIED_BY_MODE =
             "topic-subscriber-install-denied-by-mode";
+
+    private static final String REASON_CONCURRENT_TASK_DENIED_BY_MODE =
+            "concurrent-task-install-denied-by-mode";
 
     private static final String REASON_CACHE_PROCESSOR_DENIED_BY_MODE =
             "cache-processor-install-denied-by-mode";
