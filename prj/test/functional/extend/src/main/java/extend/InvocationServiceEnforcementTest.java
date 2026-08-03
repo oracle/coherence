@@ -49,7 +49,7 @@ import static org.junit.Assert.fail;
  * Functional coverage for InvocationService executable policy enforcement.
  *
  * @author Aleks Seovic  2026.05.07
- * @since 26.04
+ * @since 26.07
  */
 public class InvocationServiceEnforcementTest
         extends AbstractFunctionalTest

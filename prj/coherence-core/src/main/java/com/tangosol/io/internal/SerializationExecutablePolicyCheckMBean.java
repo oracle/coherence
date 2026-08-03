@@ -16,7 +16,7 @@ import com.tangosol.net.metrics.MBeanMetric;
  * Management view for remote executable policy checks.
  *
  * @author Aleks Seovic  2026.05.07
- * @since 26.04
+ * @since 26.07
  */
 @MetricsScope(MBeanMetric.Scope.VENDOR)
 @Description("Provides remote executable policy check counters.")
