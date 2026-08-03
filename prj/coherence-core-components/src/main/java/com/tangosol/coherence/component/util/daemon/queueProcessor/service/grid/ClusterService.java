@@ -16303,6 +16303,11 @@ public class ClusterService
             // this Message brings information about senior Member and its cluster
             // validate the broadcast
             ClusterService service = (ClusterService) getService();
+            if (!service.verifySeniorMetadataProofBeforeMutation(this))
+                {
+                return;
+                }
+
             if (service.validateSeniorBroadcast(this, getMemberSet()))
                 {
                 Member memberThis = service.getThisMember();
@@ -16335,6 +16340,7 @@ public class ClusterService
             setWkaEnabled(input.readBoolean());
             setLastJoinTime(input.readLong());
             
+            ((Grid) getService()).readSeniorMetadataExtensions(this, input);
             ensureEOS(input);
             }
         
@@ -16397,6 +16403,7 @@ public class ClusterService
             getMemberSet().writeExternal(output);
             output.writeBoolean(isWkaEnabled());
             output.writeLong(getLastJoinTime());
+            ((Grid) getService()).writeSeniorMetadataDiscoveryExtensions(this, output);
             }
         }
 
@@ -16568,6 +16575,11 @@ public class ClusterService
             super.onReceived();
             
             ClusterService service = (ClusterService) getService();
+            if (!service.verifySeniorMetadataProofBeforeMutation(this))
+                {
+                return;
+                }
+
             if (!service.isRunning())
                 {
                 return;
@@ -16612,6 +16624,7 @@ public class ClusterService
                                 // request only if it considers this senior as part of its cluster.
                                 msg.setToMember(member);
                                 msg.setToMemberSet(SingleMemberSet.instantiate(member));
+                                msg.setSeniorMetadataProof(getSeniorMetadataProof());
                                 service.send(msg);
                                 }
             
@@ -16632,6 +16645,25 @@ public class ClusterService
                     // we're already shutting down; ignore it
                     break;
                 }
+            }
+
+        // Declared at the super level
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+
+            ((Grid) getService()).readSeniorMetadataExtensions(this, input);
+            ensureEOS(input);
+            }
+
+        // Declared at the super level
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+
+            ((Grid) getService()).writeSeniorMetadataDiscoveryExtensions(this, output);
             }
         }
 
@@ -16840,6 +16872,11 @@ public class ClusterService
             
             // this Message brings information about a "wrong" senior Member
             ClusterService  service = (ClusterService) getService();
+            if (!service.verifySeniorMetadataProofBeforeMutation(this))
+                {
+                return;
+                }
+
             if (!service.isRunning() || service.getState() != ClusterService.STATE_JOINED)
                 {
                 return;
@@ -16895,6 +16932,7 @@ public class ClusterService
                     ClusterService.SeniorMemberKill msg = (ClusterService.SeniorMemberKill)
                             service.instantiateMessage("SeniorMemberKill");
                     msg.setToMember(memberCulprit);
+                    msg.setSeniorMetadataProof(getSeniorMetadataProof());
                     service.send(msg);
                     }
                 }
