@@ -410,7 +410,9 @@ reflection. The supplier class, the runtime target class, and the
 `META-INF/coherence/lambda-bytecode-denylist.txt` and extension resources such
 as `META-INF/coherence/lambda-bytecode-denylist.d/*.txt`. Entries such as
 `java.lang.Runtime` and `java.lang.System#exit` are hard floors in every mode,
-including `LEGACY`.
+including `LEGACY`. When a processor targets an absent cache entry, the
+supplier class is checked first, but the supplier is not executed and the
+entry is not populated until the dynamic-remote mode gate allows MIP.
 
 `ScriptProcessor` runs scripts in the singleton Graal `Context` with explicit
 host access. `allowAllAccess(true)` is not enabled. Host class lookup rejects

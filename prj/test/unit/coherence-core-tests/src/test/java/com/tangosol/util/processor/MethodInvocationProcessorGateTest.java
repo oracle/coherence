@@ -30,6 +30,8 @@ import java.lang.reflect.Modifier;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
@@ -149,12 +151,14 @@ public class MethodInvocationProcessorGateTest
     public void rejectsMipTargetingDenyListedSupplierClass()
         {
         setMode("prod", "allow");
+        DeniedSupplier supplier = new DeniedSupplier();
 
         SecurityException e = assertThrows(SecurityException.class,
-                () -> new MethodInvocationProcessor<String, Value, Integer>(new DeniedSupplier(), "answer", false)
+                () -> new MethodInvocationProcessor<String, Value, Integer>(supplier, "answer", false)
                         .process(new SimpleEntry<>("key", new Value(), true)));
 
         assertEquals(LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, e.getMessage());
+        assertFalse(supplier.wasCalled());
         assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_DENYLIST, 1L);
         assertBytecodeCounter("prod", LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, 1L);
         }
@@ -178,6 +182,82 @@ public class MethodInvocationProcessorGateTest
 
         assertEquals(Integer.valueOf(44), new MethodInvocationProcessor<String, NonAllowlistedValue, Integer>(
                 new AllowedSupplier(), "answer", false).process(new SimpleEntry<>("key", null, false)));
+        }
+
+    @Test
+    public void absentEntrySupplierDoesNotRunBeforeModeGate()
+        {
+        setMode("prod", null);
+        ObservableSupplier<Value> supplier = new ObservableSupplier<>(new Value());
+        SimpleEntry<String, Value> entry = new SimpleEntry<>("key", null, false);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new MethodInvocationProcessor<String, Value, Integer>(supplier, "answer", false)
+                        .process(entry));
+
+        assertEquals("method-invocation-denied-by-mode", e.getMessage());
+        assertFalse(supplier.wasCalled());
+        assertFalse(entry.isPresent());
+        assertNull(entry.getValue());
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
+        }
+
+    @Test
+    public void absentEntryDenyListedSupplierRunsBeforeModeGate()
+        {
+        setMode("prod", null);
+        DeniedSupplier supplier = new DeniedSupplier();
+        SimpleEntry<String, Value> entry = new SimpleEntry<>("key", null, false);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new MethodInvocationProcessor<String, Value, Integer>(supplier, "answer", false)
+                        .process(entry));
+
+        assertEquals(LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, e.getMessage());
+        assertFalse(supplier.wasCalled());
+        assertFalse(entry.isPresent());
+        assertNull(entry.getValue());
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_DENYLIST, 1L);
+        assertPolicyCounterAbsent("prod", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertBytecodeCounter("prod", LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, 1L);
+        }
+
+    @Test
+    public void absentEntrySupplierRunsAfterModeAllows()
+        {
+        setMode("prod", "allow");
+        Value value = new Value();
+        ObservableSupplier<Value> supplier = new ObservableSupplier<>(value);
+        SimpleEntry<String, Value> entry = new SimpleEntry<>("key", null, false);
+
+        assertEquals(Integer.valueOf(42), new MethodInvocationProcessor<String, Value, Integer>(
+                supplier, "answer", false).process(entry));
+
+        assertTrue(supplier.wasCalled());
+        assertTrue(entry.isPresent());
+        assertSame(value, entry.getValue());
+        assertPolicyCounter("prod", "allowed", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertModeGateAbsent("prod");
+        }
+
+    @Test
+    public void absentEntrySupplierTargetDenyListRejectsBeforeMutation()
+        {
+        setMode("prod", "allow");
+        Runtime runtime = Runtime.getRuntime();
+        ObservableSupplier<Runtime> supplier = new ObservableSupplier<>(runtime);
+        SimpleEntry<String, Runtime> entry = new SimpleEntry<>("key", null, false);
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> new MethodInvocationProcessor<String, Runtime, Integer>(
+                        supplier, "availableProcessors", false).process(entry));
+
+        assertEquals(LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, e.getMessage());
+        assertTrue(supplier.wasCalled());
+        assertFalse(entry.isPresent());
+        assertNull(entry.getValue());
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_DENYLIST, 1L);
+        assertBytecodeCounter("prod", LambdaBytecodeGate.REASON_CLASS_NAME_ON_DENYLIST, 1L);
         }
 
     @Test
@@ -330,8 +410,16 @@ public class MethodInvocationProcessorGateTest
         @Override
         public Value get()
             {
+            m_fCalled = true;
             return new Value();
             }
+
+        public boolean wasCalled()
+            {
+            return m_fCalled;
+            }
+
+        private boolean m_fCalled;
         }
 
     public static class NonAllowlistedValue
@@ -357,6 +445,30 @@ public class MethodInvocationProcessorGateTest
             {
             return new NonAllowlistedValue(44);
             }
+        }
+
+    public static class ObservableSupplier<V>
+            implements Remote.Supplier<V>
+        {
+        public ObservableSupplier(V value)
+            {
+            m_value = value;
+            }
+
+        @Override
+        public V get()
+            {
+            m_fCalled = true;
+            return m_value;
+            }
+
+        public boolean wasCalled()
+            {
+            return m_fCalled;
+            }
+
+        private final V m_value;
+        private boolean m_fCalled;
         }
 
     private static class SimpleEntry<K, V>

@@ -265,6 +265,10 @@
       <type-id>3032</type-id>
       <class-name>extend.ExtendNamedCacheInstallModeMatrixIntegrationTest$Generated$$LambdaComparator</class-name>
     </user-type>
+    <user-type>
+      <type-id>3033</type-id>
+      <class-name>extend.DynamicRemoteModeIntegrationTest$ObservableSupplier</class-name>
+    </user-type>
 
   </user-type-list>
 </pof-config>

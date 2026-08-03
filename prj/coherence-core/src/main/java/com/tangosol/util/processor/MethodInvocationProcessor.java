@@ -107,21 +107,25 @@ public final class MethodInvocationProcessor<K, V, R>
             checkDenyList(m_supplier.getClass().getName(), role, subject);
             }
 
-        if (!entry.isPresent())
+        V       value;
+        boolean fPresent = entry.isPresent();
+        if (fPresent)
             {
-            if (m_supplier != null)
-                {
-                entry.setValue(m_supplier.get());
-                }
-            else
-                {
-                return null;
-                }
+            value = entry.getValue();
+            checkTargetDenyList(value, role, subject);
+            enforceMode(role, subject);
             }
-
-        V value = entry.getValue();
-        checkTargetDenyList(value, role, subject);
-        enforceMode(role, subject);
+        else if (m_supplier == null)
+            {
+            return null;
+            }
+        else
+            {
+            enforceMode(role, subject);
+            value = m_supplier.get();
+            checkTargetDenyList(value, role, subject);
+            entry.setValue(value);
+            }
 
         ReflectionExtractor extractor = new ReflectionExtractor(m_sMethodName, m_aoArgs);
         if (m_fMutator)

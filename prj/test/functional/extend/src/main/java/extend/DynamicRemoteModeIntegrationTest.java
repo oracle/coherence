@@ -7,6 +7,7 @@
 package extend;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
@@ -15,8 +16,14 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.RemoteExecutionMode;
 
+import com.tangosol.io.pof.PofReader;
+import com.tangosol.io.pof.PofWriter;
+import com.tangosol.io.pof.PortableObject;
+
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.util.function.Remote;
 
 import com.tangosol.util.processor.MethodInvocationProcessor;
 import com.tangosol.util.processor.ScriptProcessor;
@@ -25,12 +32,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
+
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -88,6 +99,25 @@ public class DynamicRemoteModeIntegrationTest
     public void mipProdDeniedByDefault()
         {
         assertMipRejected("prod", null, "method-invocation-denied-by-mode");
+        }
+
+    @Test
+    public void absentMipSupplierDeniedBeforeExecutionInProd()
+        {
+        startProxy("prod", null);
+        NamedCache<String, String> cache = getCache();
+        String sKey = "absent-mip-supplier";
+        m_memberProxy.invoke(new ResetObservableSupplierCalls());
+
+        assertFalse(cache.containsKey(sKey));
+
+        assertRemoteFailure(cache, sKey,
+                new MethodInvocationProcessor<String, String, Integer>(
+                        new ObservableSupplier(), "length", false),
+                "method-invocation-denied-by-mode");
+
+        assertEquals(Integer.valueOf(0), m_memberProxy.invoke(new GetObservableSupplierCalls()));
+        assertFalse(cache.containsKey(sKey));
         }
 
     @Test
@@ -194,9 +224,9 @@ public class DynamicRemoteModeIntegrationTest
             }
 
         m_sServerName = sCluster;
-        CoherenceClusterMember member = startCacheServer(m_sServerName, "extend",
+        m_memberProxy = startCacheServer(m_sServerName, "extend",
                 AbstractExtendTests.FILE_SERVER_CFG_CACHE, props);
-        Eventually.assertThat(invoking(member).isServiceRunning("ExtendTcpProxyService"), is(true));
+        Eventually.assertThat(invoking(m_memberProxy).isServiceRunning("ExtendTcpProxyService"), is(true));
         }
 
     private NamedCache<String, String> getCache()
@@ -209,9 +239,17 @@ public class DynamicRemoteModeIntegrationTest
                                             com.tangosol.util.InvocableMap.EntryProcessor<String, String, ?> processor,
                                             String sMessage)
         {
+        assertRemoteFailure(cache, "key", processor, sMessage);
+        }
+
+    private static void assertRemoteFailure(NamedCache<String, String> cache,
+                                            String sKey,
+                                            com.tangosol.util.InvocableMap.EntryProcessor<String, String, ?> processor,
+                                            String sMessage)
+        {
         try
             {
-            cache.invoke("key", processor);
+            cache.invoke(sKey, processor);
             fail("Expected remote processor to fail");
             }
         catch (RuntimeException e)
@@ -245,8 +283,65 @@ public class DynamicRemoteModeIntegrationTest
             }
         }
 
+    public static class ObservableSupplier
+            implements Remote.Supplier<String>, PortableObject
+        {
+        @Override
+        public String get()
+            {
+            CALLS.incrementAndGet();
+            return "value";
+            }
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            }
+
+        static void reset()
+            {
+            CALLS.set(0);
+            }
+
+        static int calls()
+            {
+            return CALLS.get();
+            }
+
+        private static final AtomicInteger CALLS = new AtomicInteger();
+        }
+
+    public static class ResetObservableSupplierCalls
+            implements RemoteCallable<Void>
+        {
+        @Override
+        public Void call()
+            {
+            ObservableSupplier.reset();
+            return null;
+            }
+        }
+
+    public static class GetObservableSupplierCalls
+            implements RemoteCallable<Integer>
+        {
+        @Override
+        public Integer call()
+            {
+            return ObservableSupplier.calls();
+            }
+        }
+
     private NamedCache<String, String> m_cache;
     private String                     m_sServerName;
+    private CoherenceClusterMember     m_memberProxy;
 
     private static final String SERVER_NAME = "DynamicRemoteModeIntegrationTest";
 
