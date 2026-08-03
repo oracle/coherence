@@ -13,11 +13,19 @@ package com.tangosol.coherence.component.net.message;
 import com.tangosol.coherence.component.net.Packet;
 import com.tangosol.coherence.component.net.Poll;
 import com.tangosol.coherence.component.net.RequestContext;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.net.RequestTimeoutException;
 import com.tangosol.util.Base;
 import java.util.Iterator;
 import java.util.Map;
+
+import static com.tangosol.internal.util.VersionHelper.VERSION_12_2_1_4_31;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_0_27;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_1_2206_18;
+import static com.tangosol.internal.util.VersionHelper.VERSION_14_1_2_0_8;
+import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_1_0_4;
+import static com.tangosol.internal.util.VersionHelper.VERSION_15_1_2_0_0;
 
 /**
  * The Message contains all of the information necessary to describe a message
@@ -409,6 +417,29 @@ public class RequestMessage
         return ctx;
         }
     
+    /**
+     * Return true iff the encoded sender or recipient version can carry the
+    * request-message extension record layer.
+     */
+    public static boolean isRequestExtensionCompatible(int nVersion)
+        {
+        return VersionHelper.isVersionCompatible(VERSION_15_1_2_0_0, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_15_1_1_0_4, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_2_0_8, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_1_2206_18, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_14_1_1_0_27, nVersion)
+            || VersionHelper.isPatchCompatible(VERSION_12_2_1_4_31, nVersion);
+        }
+
+    /**
+     * Return true iff the encoded sender or recipient version understands the
+    * first subject-proof extension record.
+     */
+    public static boolean isSubjectProofV1Compatible(int nVersion)
+        {
+        return isRequestExtensionCompatible(nVersion);
+        }
+
     // Declared at the super level
     /**
      * This is the event that occurs when a Message with NotifySent set to true

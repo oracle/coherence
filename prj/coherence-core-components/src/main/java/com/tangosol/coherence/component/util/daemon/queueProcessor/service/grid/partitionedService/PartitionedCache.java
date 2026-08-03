@@ -54,6 +54,10 @@ import com.tangosol.internal.util.BMEventFabric;
 import com.tangosol.internal.util.ConversionHelper;
 import com.tangosol.internal.util.HeuristicCommitException;
 import com.tangosol.internal.util.LockContentionException;
+import com.tangosol.internal.net.security.StorageAccessAuthorizerPolicyResolver;
+import com.tangosol.internal.net.security.SubjectProofPayload;
+import com.tangosol.internal.net.security.SubjectProofVerification;
+import com.tangosol.internal.net.security.SubjectProofVerifier;
 import com.tangosol.internal.util.QueryResult;
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ReadBuffer;
@@ -155,6 +159,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import javax.security.auth.Subject;
 
 /**
  * See PartitionedCacheService.doc in the main depot
@@ -3965,6 +3970,80 @@ public class PartitionedCache
                 }
             }
         }
+
+    /**
+     * Return the subject that may be passed to a configured storage access
+     * authorizer, verifying proof first when the storage policy requires it.
+     */
+    public Subject getStorageAccessSubject(RequestContext context, Storage storage)
+        {
+        verifySubjectProofRequired(context, storage);
+        return context == null ? null : context.getSubject();
+        }
+
+    /**
+     * Verify subject proof before a proof-required authorizer route consumes a
+     * non-null request-context subject.
+     */
+    public void verifySubjectProofRequired(RequestContext context, Storage storage)
+        {
+        if (context == null || context.getSubject() == null
+                || storage == null || !storage.isSubjectProofRequired()
+                || !isSubjectProofEnforced())
+            {
+            return;
+            }
+
+        SubjectProofVerifier.requireValid(verifySubjectProof(context, storage));
+        }
+
+    /**
+     * Verify subject proof for a configured storage route.
+     */
+    protected SubjectProofVerification verifySubjectProof(RequestContext context, Storage storage)
+        {
+        return SubjectProofVerifier.verify(getSubjectProofProvider(), context.getSubjectProof(),
+                createSubjectProofPayload(context, storage.getCacheName()),
+                payload -> isSubjectProofSenderValid(payload, context, storage), Base.getSafeTimeMillis());
+        }
+
+    /**
+     * Return true iff the current TCMP sender can carry the signed subject
+     * proof for this request context.
+     */
+    protected boolean isSubjectProofSenderValid(SubjectProofPayload payload, RequestContext context, Storage storage)
+        {
+        String sSenderId = context == null ? null : context.getSubjectProofSenderId();
+        return sSenderId != null
+                && !sSenderId.isEmpty()
+                && (sSenderId.equals(payload.getIssuerId())
+                    || isSubjectProofForwarderValid(payload, context, storage, sSenderId));
+        }
+
+    /**
+     * Return true iff the current sender is a topology-valid forwarder for the
+     * route carrying the original signed subject context.
+     */
+    protected boolean isSubjectProofForwarderValid(SubjectProofPayload payload, RequestContext context,
+            Storage storage, String sSenderId)
+        {
+        return false;
+        }
+
+    @Override
+    protected boolean isSubjectProofRequired(RequestMessage msg)
+        {
+        BackingMapManager manager = getBackingMapManager();
+        if (!(manager instanceof StorageAccessAuthorizerPolicyResolver))
+            {
+            return false;
+            }
+
+        String sCacheName = getSubjectProofCacheName(msg);
+        return sCacheName != null
+                && !sCacheName.isEmpty()
+                && ((StorageAccessAuthorizerPolicyResolver) manager).isSubjectProofRequired(sCacheName);
+        }
     
     /**
      * Called on the service or a daemon pool thread.
@@ -5135,7 +5214,7 @@ public class PartitionedCache
             if (authorizer != null)
                 {
                 authorizer.checkRead(storage.instantiateBinaryEntry(binKey, binValue, true),
-                    context == null ? null : context.getSubject(), com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
+                    getStorageAccessSubject(context, storage), com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
                 }
         
             msgRequest.setProcessedPartition(getKeyPartition(binKey));
@@ -6460,7 +6539,7 @@ public class PartitionedCache
                     if (authorizer != null)
                         {
                         authorizer.checkRead(storage.instantiateBinaryEntry(binKey, binValue, true),
-                            context == null ? null : context.getSubject(), com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
+                            getStorageAccessSubject(context, storage), com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
                         }
         
                     postEvents(msgRequest.isPriming() || lVersion == com.tangosol.net.partition.VersionAwareMapListener.PRIMING
@@ -6673,7 +6752,7 @@ public class PartitionedCache
                 {
                 com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
                 authorizer.checkWrite(storage.instantiateBinaryEntry(binKey, null, true),
-                    context == null ? null : context.getSubject(),
+                    getStorageAccessSubject(context, storage),
                     com.tangosol.net.security.StorageAccessAuthorizer.REASON_LOCK);
                 }
 
@@ -7369,7 +7448,7 @@ public class PartitionedCache
                     if (authorizer != null)
                         {
                         authorizer.checkWrite(status.getBinaryEntry(),
-                            context.getSubject(), com.tangosol.net.security.StorageAccessAuthorizer.REASON_PUT);
+                            getStorageAccessSubject(context, storage), com.tangosol.net.security.StorageAccessAuthorizer.REASON_PUT);
                         }
         
                     storage.put(ctxInvoke, status, binValue, msgRequest.getExpiryDelay(), !fReturn);
@@ -7900,7 +7979,7 @@ public class PartitionedCache
                     if (authorizer != null)
                         {
                         authorizer.checkWrite(status.getBinaryEntry(),
-                            context.getSubject(), com.tangosol.net.security.StorageAccessAuthorizer.REASON_REMOVE);
+                            getStorageAccessSubject(context, storage), com.tangosol.net.security.StorageAccessAuthorizer.REASON_REMOVE);
                         }
         
                     storage.remove(ctxInvoke, status, !msgRequest.isReturnRequired());
@@ -8462,7 +8541,7 @@ public class PartitionedCache
                 {
                 com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
                 authorizer.checkWrite(storage.instantiateBinaryEntry(binKey, null, true),
-                    context == null ? null : context.getSubject(),
+                    getStorageAccessSubject(context, storage),
                     com.tangosol.net.security.StorageAccessAuthorizer.REASON_UNLOCK);
                 }
 
@@ -24242,6 +24321,10 @@ public class PartitionedCache
                 if (nAccessRequired != 0)
                     {
                     storage.checkAccess(context, nAccessRequired, nReason);
+                    }
+                else
+                    {
+                    getService().verifySubjectProofRequired(context, storage);
                     }
             
                 setAccessSubject(context == null ? null : context.getSubject());

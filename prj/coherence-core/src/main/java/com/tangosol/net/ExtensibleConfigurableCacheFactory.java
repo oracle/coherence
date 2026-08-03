@@ -64,6 +64,9 @@ import com.tangosol.config.expression.SystemPropertyParameterResolver;
 
 import com.tangosol.config.xml.DocumentProcessor;
 
+import com.tangosol.internal.net.security.StorageAccessAuthorizerBuilder;
+import com.tangosol.internal.net.security.StorageAccessAuthorizerPolicyResolver;
+
 import com.tangosol.internal.net.topic.DefaultTopicBackingMapManager;
 
 import com.tangosol.io.BinaryStore;
@@ -1737,6 +1740,7 @@ public class ExtensibleConfigurableCacheFactory
      */
     public static class Manager
             extends AbstractBackingMapManager
+            implements StorageAccessAuthorizerPolicyResolver
         {
         // ----- constructors -----------------------------------------------
 
@@ -1926,6 +1930,67 @@ public class ExtensibleConfigurableCacheFactory
         @Override
         public StorageAccessAuthorizer getStorageAccessAuthorizer(String sName)
             {
+            return getStorageAccessAuthorizer(sName, false);
+            }
+
+        @Override
+        public boolean isSubjectProofRequired(String sName)
+            {
+            ParameterizedBuilder<StorageAccessAuthorizer> builder = getStorageAccessAuthorizerBuilder(sName,
+                    false);
+
+            return builder instanceof StorageAccessAuthorizerBuilder
+                    && ((StorageAccessAuthorizerBuilder) builder).isSubjectProofRequired();
+            }
+
+        /**
+         * Determine the configured storage access authorizer.
+         *
+         * @param sName  the cache name
+         * @param fAllowNull  true to return null when no authorizer is configured
+         *
+         * @return the configured storage access authorizer, or null
+         */
+        protected StorageAccessAuthorizer getStorageAccessAuthorizer(String sName, boolean fAllowNull)
+            {
+            ParameterResolver resolver = getResolver(sName);
+            ParameterizedBuilder<StorageAccessAuthorizer> builder = getStorageAccessAuthorizerBuilder(sName,
+                    fAllowNull);
+
+            if (builder == null)
+                {
+                return null;
+                }
+
+            try
+                {
+                return builder.realize(resolver, getContext().getClassLoader(), null);
+                }
+            catch (RuntimeException e)
+                {
+                DistributedScheme schemeDist = findDistributedScheme(sName);
+                Expression<String> exprAuthorizer = schemeDist == null || schemeDist.getBackingMapScheme() == null
+                        ? null : schemeDist.getBackingMapScheme().getStorageAccessAuthorizer();
+                String sAuthorizer = exprAuthorizer == null ? "" : exprAuthorizer.evaluate(resolver);
+
+                throw new IllegalArgumentException("Configuration error: received exception " +
+                        e.getClass().getSimpleName() + " during instantiation of storage-authorizer \"" +
+                        sAuthorizer + "\" configured within backing map of scheme \"" +
+                        schemeDist.getSchemeName() + "\"", e);
+                }
+            }
+
+        /**
+         * Return the storage access authorizer builder for the specified cache.
+         *
+         * @param sName       the cache name
+         * @param fAllowNull  true to return null when no authorizer is configured
+         *
+         * @return the storage access authorizer builder, or null
+         */
+        protected ParameterizedBuilder<StorageAccessAuthorizer> getStorageAccessAuthorizerBuilder(String sName,
+                boolean fAllowNull)
+            {
             DistributedScheme  schemeDist       = findDistributedScheme(sName);
             BackingMapScheme   schemeBackingMap = schemeDist == null
                     ? null : schemeDist.getBackingMapScheme();
@@ -1934,6 +1999,10 @@ public class ExtensibleConfigurableCacheFactory
 
             if (exprAuthorizer == null)
                 {
+                if (fAllowNull)
+                    {
+                    return null;
+                    }
                 return null;
                 }
 
@@ -1953,17 +2022,7 @@ public class ExtensibleConfigurableCacheFactory
                         sAuthorizer + "\"");
                 }
 
-            try
-                {
-                return builder.realize(resolver, getContext().getClassLoader(), null);
-                }
-            catch (RuntimeException e)
-                {
-                throw new IllegalArgumentException("Configuration error: received exception " +
-                        e.getClass().getSimpleName() + " during instantiation of storage-authorizer \"" +
-                        sAuthorizer + "\" configured within backing map of scheme \"" +
-                        schemeDist.getSchemeName() + "\"", e);
-                }
+            return builder;
             }
 
         @Override
