@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,10 +8,12 @@ package com.tangosol.util;
 
 import com.tangosol.io.ByteArrayReadBuffer;
 import com.tangosol.io.ByteArrayWriteBuffer;
+import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ExternalizableLiteSerializer;
 import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
 
 import com.tangosol.io.pof.PofBufferReader;
 import com.tangosol.io.pof.PofBufferWriter;
@@ -19,9 +21,14 @@ import com.tangosol.io.pof.PofContext;
 import com.tangosol.io.pof.PofInputStream;
 import com.tangosol.io.pof.PofOutputStream;
 import com.tangosol.io.pof.PortableObjectSerializer;
+import com.tangosol.io.pof.SafeConfigurablePofContext;
+import com.tangosol.io.pof.SerializableSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
+import com.tangosol.run.xml.SimpleElement;
+
 import data.Person;
+import data.TestXmlSerializable;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -33,6 +40,7 @@ import org.junit.Test;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInput;
+import java.io.DataInputStream;
 import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
@@ -54,6 +62,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import com.oracle.coherence.testing.CheckJDK;
+
+import javax.management.BadAttributeValueExpException;
 
 import static org.junit.Assert.*;
 
@@ -650,7 +660,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         stop(ldtStart, "ObjectInputStream: filter: " + sFilter + " count=" + nCount);
 
-        if (!fFilter || !fFail)
+        if (fFilter && !fFail)
             {
             assertEquals("expected deserialized collection to be equal to serialized collection for ObjectInputFilter=" + sFilter,
                          setPersons.size(), setRead.size());
@@ -658,7 +668,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         else
             {
             assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter,
-                       exception != null && exception.getCause() instanceof InvalidClassException);
+                       exception != null && hasCause(exception, InvalidClassException.class));
             }
         }
 
@@ -670,7 +680,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     /**
-     * Test ObjectInputStream without an ObjectInputFilter.
+     * Test BufferInput without a caller-supplied ObjectInputFilter.
      */
     @Test
     public void testExternalizableLiteObjectInputStreamWithoutFilter()
@@ -706,8 +716,167 @@ public class ExternalizableHelperTest extends ExternalizableHelper
 
         ByteArrayReadBuffer inRaw = new ByteArrayReadBuffer(wb.toByteArray());
         ReadBuffer.BufferInput in = inRaw.getBufferInput();
+        in.setObjectInputFilter(DefaultObjectInputFilter.create());
 
         assertEquals(point, ExternalizableHelper.readObject(in, null));
+        }
+
+    @Test
+    public void testCheckObjectInputFilterRejectsNullFilter()
+        {
+        String sMode = System.getProperty("coherence.mode");
+        try
+            {
+            System.setProperty("coherence.mode", "prod");
+
+            DataInput in = new DataInputStream(new ByteArrayInputStream(new byte[0]));
+            assertFalse(checkObjectInputFilter(String.class, in));
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            }
+        }
+
+    @Test
+    public void testReadStringArrayDirectBufferInputAllowsBaselineArray() throws IOException
+        {
+        String sMode    = System.getProperty("coherence.mode");
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        try
+            {
+            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.serialization.allowed", null);
+
+            String[] as = {"message"};
+            ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+            writeStringArray(wb.getBufferOutput(), as);
+
+            assertArrayEquals(as, readStringArray(wb.getReadBuffer().getBufferInput()));
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
+    public void testValidateLoadArrayDirectBufferInputRejectsDeniedArray()
+        {
+        ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+        assertRejectedByFilter(() -> validateLoadArray(ProcessBuilder[].class, 1,
+                wb.getReadBuffer().getBufferInput()));
+        }
+
+    @Test
+    public void testDefaultSerializerReadObjectAllowsBaselineExternalizableLite() throws IOException
+        {
+        String sMode    = System.getProperty("coherence.mode");
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        try
+            {
+            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.serialization.allowed", null);
+
+            SimpleElement element = new SimpleElement("test", "value");
+            ByteArrayWriteBuffer wb = new ByteArrayWriteBuffer(0);
+
+            ExternalizableHelper.writeObject(wb.getBufferOutput(), element);
+
+            Object o = new DefaultSerializer().deserialize(wb.getReadBuffer().getBufferInput());
+            assertEquals(element, o);
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
+    public void testReadObjectDirectBufferInputRejectsDeniedExternalizableLiteClass() throws IOException
+        {
+        ByteArrayWriteBuffer wb = fmtExternalizableLite(ProcessBuilder.class.getName());
+        assertRejectedByFilter(() -> ExternalizableHelper.readObject(wb.getReadBuffer().getBufferInput(),
+                getClass().getClassLoader()));
+        }
+
+    @Test
+    public void testFmtObjSerRejectsDeniedClass()
+        {
+        Binary bin = ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"));
+        assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+        }
+
+    @Test
+    public void testFmtObjSerAllowsLegitimateSerializable()
+        {
+        java.util.Date date = new java.util.Date(12345L);
+        assertEquals(date, ExternalizableHelper.fromBinary(ExternalizableHelper.toBinary(date)));
+        }
+
+    @Test
+    public void testFmtXmlSerValidateLoadClassRejectsDeniedClass() throws IOException
+        {
+        Binary bin = fmtXmlSerializable(BadAttributeValueExpException.class.getName(), "<test/>");
+        assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+        }
+
+    @Test
+    public void testFmtXmlSerAllowsConfiguredClassInProd() throws IOException
+        {
+        String sMode    = System.getProperty("coherence.mode");
+        String sAllowed = System.getProperty("coherence.serialization.allowed");
+        Binary bin      = fmtXmlSerializable(TestXmlSerializable.class.getName(), "<test/>");
+        try
+            {
+            System.setProperty("coherence.mode", "prod");
+            restoreProperty("coherence.serialization.allowed", null);
+
+            assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
+
+            System.setProperty("coherence.serialization.allowed", TestXmlSerializable.class.getName());
+
+            Object o = ExternalizableHelper.fromBinary(bin);
+            assertTrue(o instanceof TestXmlSerializable);
+            }
+        finally
+            {
+            restoreProperty("coherence.mode", sMode);
+            restoreProperty("coherence.serialization.allowed", sAllowed);
+            }
+        }
+
+    @Test
+    public void testSerializableSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
+        {
+        ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
+        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
+                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
+
+        writer.writeBinary(0, ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"),
+                new DefaultSerializer()));
+        writer.writeRemainder(null);
+
+        assertRejectedByFilter(() -> new SerializableSerializer().deserialize(createPofUserTypeReader(wb)));
+        }
+
+    @Test
+    public void testJavaPofSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
+        {
+        ByteArrayWriteBuffer       wb     = new ByteArrayWriteBuffer(0);
+        PofBufferWriter.UserTypeWriter writer = new PofBufferWriter.UserTypeWriter(
+                wb.getBufferOutput(), new SimplePofContext(), 0, -1);
+        SafeConfigurablePofContext ctx    = new SafeConfigurablePofContext();
+
+        writer.writeBinary(0, ExternalizableHelper.toBinary(new BadAttributeValueExpException("denied"),
+                new DefaultSerializer()));
+        writer.writeRemainder(null);
+
+        assertRejectedByFilter(() -> ctx.new JavaPofSerializer().deserialize(createPofUserTypeReader(wb)));
         }
 
     /**
@@ -752,7 +921,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             exception = e;
             }
         stop(ldtStart, "ExternalizableLite BufferInput: filter: " + sFilter + " count=" + nCount);
-        if (!fFilter || !fFail)
+        if (!fFail)
             {
             assertEquals("expected deserialized collection to be equal to serialized collection for ObjectInputFilter=" + sFilter,
                          setPersons.size(), setRead.size());
@@ -760,7 +929,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         else
             {
             assertTrue("expected an InvalidClassException for ObjectInputFilter " + sFilter + " Exception=" + exception,
-                       exception != null && exception.getCause() instanceof InvalidClassException);
+                       exception != null && hasCause(exception, InvalidClassException.class));
             }
         }
 
@@ -1166,6 +1335,92 @@ public class ExternalizableHelperTest extends ExternalizableHelper
                 }
             }
         return null;
+        }
+
+    private static Binary fmtXmlSerializable(String sClass, String sXml) throws IOException
+        {
+        ByteArrayWriteBuffer       wb  = new ByteArrayWriteBuffer(0);
+        WriteBuffer.BufferOutput   out = wb.getBufferOutput();
+        out.writeByte(FMT_XML_SER);
+        writeUTF(out, sClass);
+        writeUTF(out, sXml);
+        return wb.toBinary();
+        }
+
+    private static ByteArrayWriteBuffer fmtExternalizableLite(String sClass) throws IOException
+        {
+        ByteArrayWriteBuffer     wb  = new ByteArrayWriteBuffer(0);
+        WriteBuffer.BufferOutput out = wb.getBufferOutput();
+        out.writeByte(FMT_OBJ_EXT);
+        writeUTF(out, sClass);
+        return wb;
+        }
+
+    private static byte[] toJavaSerializationBytes(Object o) throws IOException
+        {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(out))
+            {
+            oos.writeObject(o);
+            }
+        return out.toByteArray();
+        }
+
+    private static PofBufferReader.UserTypeReader createPofUserTypeReader(ByteArrayWriteBuffer wb)
+            throws IOException
+        {
+        ReadBuffer.BufferInput in       = wb.getReadBuffer().getBufferInput();
+        int                    nType    = in.readPackedInt();
+        int                    nVersion = in.readPackedInt();
+        return new PofBufferReader.UserTypeReader(in, new SimplePofContext(), nType, nVersion);
+        }
+
+    private static void assertRejectedByFilter(ThrowingRunnable runnable)
+        {
+        try
+            {
+            runnable.run();
+            fail("expected deserialization to be rejected");
+            }
+        catch (Throwable t)
+            {
+            assertTrue("expected InvalidClassException in cause chain but got " + t,
+                    hasCause(t, InvalidClassException.class));
+            }
+        }
+
+    private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)
+        {
+        while (t != null)
+            {
+            if (clz.isInstance(t))
+                {
+                return true;
+                }
+            if (t.getMessage() != null && t.getMessage().contains(clz.getName()))
+                {
+                return true;
+                }
+            t = t.getCause();
+            }
+        return false;
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
+    private interface ThrowingRunnable
+        {
+        void run() throws Exception;
         }
 
     /**

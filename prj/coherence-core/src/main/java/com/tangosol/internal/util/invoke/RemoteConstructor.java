@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,8 @@ import com.tangosol.io.ResolvingObjectInputStream;
 import com.tangosol.io.SerializationSupport;
 import com.tangosol.io.Serializer;
 import com.tangosol.io.SerializerAware;
+
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -248,6 +250,9 @@ public class RemoteConstructor<T>
             {
             throw new NotSerializableException(RemoteConstructor.class.getName());
             }
+        LambdaBytecodeGate.ensureAllowed(
+                LambdaBytecodeGate.checkBytecode(m_definition.getBytes(), LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR),
+                LambdaBytecodeGate.Site.REMOTE_CONSTRUCTOR);
         return newInstance();
         }
 

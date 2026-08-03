@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.internal.util.invoke.lambda.RemotableLambdaGenerator;
 import com.tangosol.internal.util.invoke.lambda.MethodReferenceIdentity;
 import com.tangosol.internal.util.invoke.lambda.AnonymousLambdaIdentity;
 import com.tangosol.internal.util.invoke.lambda.StaticLambdaInfo;
+import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
 import com.tangosol.net.CacheFactory;
 
@@ -171,9 +172,15 @@ public abstract class Lambdas
         if (lambdaMetadata.getImplMethodKind() == MethodHandleInfo.REF_invokeStatic ||
             isMethodReference(lambdaMetadata))
             {
-            ClassDefinition definition = new ClassDefinition(
-                    id,
-                    RemotableLambdaGenerator.createRemoteLambdaClass(id.getName(), lambdaMetadata, loader));
+            byte[] abClass = RemotableLambdaGenerator.createRemoteLambdaClass(id.getName(), lambdaMetadata, loader);
+
+            // the other ensureRemotable branch lands in RemotableSupport.realize(...) -> defineClass(...)
+            // and is gated at Site.CLASS_DEFINITION, so both branches are covered
+            LambdaBytecodeGate.ensureAllowed(
+                    LambdaBytecodeGate.checkBytecode(abClass, LambdaBytecodeGate.Site.LAMBDA),
+                    LambdaBytecodeGate.Site.LAMBDA);
+
+            ClassDefinition definition = new ClassDefinition(id, abClass);
 
             definition.dumpClass(DUMP_LAMBDAS);
 
