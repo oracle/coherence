@@ -44,6 +44,34 @@ public final class DefaultObjectInputFilter
         }
 
     /**
+     * Apply a bridge-local filter to the current thread.
+     *
+     * @param filterBridge  the bridge-local filter
+     *
+     * @return a scope that restores the previous bridge filter when closed
+     */
+    public static Scope bridge(ObjectInputFilter filterBridge)
+        {
+        ObjectInputFilter filterPrevious = s_filterBridge.get();
+        ObjectInputFilter filterCurrent  = filterBridge == null || filterPrevious == null
+                ? filterBridge
+                : new IntersectingFilter(filterPrevious, filterBridge);
+
+        s_filterBridge.set(filterCurrent);
+        return () ->
+            {
+            if (filterPrevious == null)
+                {
+                s_filterBridge.remove();
+                }
+            else
+                {
+                s_filterBridge.set(filterPrevious);
+                }
+            };
+        }
+
+    /**
      * Return a filter that intersects the Coherence default filter with the
      * specified user filter.
      *
@@ -64,8 +92,29 @@ public final class DefaultObjectInputFilter
         if (!fAllowed)
             {
             SerializationTelemetry.recordFilterCheck("rejected", "serialization-allowlist-rejected", clz, null);
+            return Status.REJECTED;
             }
-        return fAllowed ? Status.ALLOWED : Status.REJECTED;
+
+        ObjectInputFilter filterBridge = s_filterBridge.get();
+        if (filterBridge == null)
+            {
+            return Status.ALLOWED;
+            }
+
+        Status statusBridge = filterBridge.checkInput(filterInfo);
+        return statusBridge == Status.REJECTED ? Status.REJECTED : Status.ALLOWED;
+        }
+
+    // ----- inner interface: Scope ----------------------------------------
+
+    /**
+     * A bridge-filter scope.
+     */
+    public interface Scope
+            extends AutoCloseable
+        {
+        @Override
+        void close();
         }
 
     // ----- inner class: IntersectingFilter --------------------------------
@@ -103,4 +152,9 @@ public final class DefaultObjectInputFilter
      * Singleton default filter.
      */
     private static final DefaultObjectInputFilter INSTANCE = new DefaultObjectInputFilter();
+
+    /**
+     * Bridge filter scoped to the current deserialization operation.
+     */
+    private static final ThreadLocal<ObjectInputFilter> s_filterBridge = new ThreadLocal<>();
     }
