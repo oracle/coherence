@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,7 +9,13 @@ package com.tangosol.internal.health;
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
+import com.tangosol.coherence.http.AbstractGenericHttpServer;
+import com.tangosol.coherence.http.BasicAuthentication;
+
 import com.tangosol.internal.http.BaseHttpHandler;
+import com.tangosol.internal.http.HttpException;
+import com.tangosol.internal.http.HttpMethod;
 import com.tangosol.internal.http.HttpRequest;
 import com.tangosol.internal.http.RequestRouter;
 import com.tangosol.internal.http.Response;
@@ -24,7 +30,12 @@ import com.tangosol.net.Service;
 import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.net.security.IdentityAsserter;
+import com.tangosol.net.security.UsernameAndPassword;
+
 import com.tangosol.util.HealthCheck;
+import com.tangosol.util.RegistrationBehavior;
+import com.tangosol.util.ResourceRegistry;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,9 +46,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.security.auth.Subject;
+
+import static com.tangosol.util.BuilderHelper.using;
 
 /**
  * A {@link com.sun.net.httpserver.HttpHandler} to provide the
@@ -73,19 +89,19 @@ public class HealthHttpHandler
         router.addGet(HealthCheck.PATH_SAFE, this::safe);
         router.addGet("/ha", this::safe);
 
-        router.addGet("/suspend", this::suspend);
         router.addPut("/suspend", this::suspend);
-        router.addGet("/suspend/{serviceName}", this::suspend);
         router.addPut("/suspend/{serviceName}", this::suspend);
-        router.addGet("/resume", this::resume);
         router.addPut("/resume", this::resume);
-        router.addGet("/resume/{serviceName}", this::resume);
         router.addPut("/resume/{serviceName}", this::resume);
         }
 
     @Override
     protected void beforeRouting(HttpRequest request)
         {
+        if (isMutatorRequest(request))
+            {
+            ensureMutatorAccess(request);
+            }
         }
 
     @Override
@@ -203,6 +219,8 @@ public class HealthHttpHandler
      */
     protected Response suspend(HttpRequest request)
         {
+        ensureMutatorAccess(request);
+
         Cluster cluster  = m_service.getCluster();
         Member  member   = cluster.getLocalMember();
         String  sRole    = member.getRoleName();
@@ -289,6 +307,8 @@ public class HealthHttpHandler
      */
     protected Response resume(HttpRequest request)
         {
+        ensureMutatorAccess(request);
+
         Cluster cluster   = m_service.getCluster();
         String  sService  = request.getFirstPathParameter("serviceName");
         String  sExcludes = request.getFirstQueryParameter("exclude");
@@ -328,6 +348,166 @@ public class HealthHttpHandler
             }
 
         return ok();
+        }
+
+    // ----- helpers -------------------------------------------------------
+
+    /**
+     * Ensure the health mutator request is explicitly enabled and authenticated.
+     *
+     * @param request  the request
+     *
+     * @throws HttpException if the request is not allowed
+     */
+    protected void ensureMutatorAccess(HttpRequest request)
+        {
+        ResourceRegistry registry = request.getResourceRegistry();
+        if (registry.getResource(MutatorAccess.class) != null)
+            {
+            return;
+            }
+
+        if (!Config.getBoolean(PROP_MUTATORS_ENABLED, false))
+            {
+            Logger.warn("Health: rejected disabled HTTP mutator request");
+            throw new HttpException(Response.Status.FORBIDDEN.getStatusCode());
+            }
+
+        String sAuthMethod = Config.getProperty(PROP_AUTH);
+        sAuthMethod = sAuthMethod == null || sAuthMethod.trim().isEmpty()
+                ? AbstractGenericHttpServer.AUTH_BASIC
+                : sAuthMethod.trim().toLowerCase(Locale.ROOT);
+
+        Subject subject = null;
+
+        switch (sAuthMethod)
+            {
+            case AbstractGenericHttpServer.AUTH_BASIC:
+                subject = authenticateBasic(request);
+                break;
+
+            case AbstractGenericHttpServer.AUTH_CERT:
+                subject = ensurePeerSubject(request);
+                break;
+
+            case AbstractGenericHttpServer.AUTH_CERT_BASIC:
+                ensurePeerSubject(request);
+                subject = authenticateBasic(request);
+                break;
+
+            default:
+                Logger.warn("Health: rejected HTTP mutator request due to unsupported auth method");
+                throw new HttpException(Response.Status.FORBIDDEN.getStatusCode());
+            }
+
+        registerSubject(registry, subject);
+        registry.registerResource(MutatorAccess.class, MutatorAccess.class.getName(),
+                                  using(MutatorAccess.INSTANCE), RegistrationBehavior.REPLACE, null);
+        }
+
+    /**
+     * Authenticate a Basic authorization header.
+     *
+     * @param request  the request
+     *
+     * @return the authenticated subject
+     */
+    protected Subject authenticateBasic(HttpRequest request)
+        {
+        try
+            {
+            BasicAuthentication.Credentials credentials =
+                    BasicAuthentication.parse(request.getHeaderString(AbstractGenericHttpServer.HEADER_AUTHORIZATION));
+
+            if (credentials != null)
+                {
+                return getIdentityAsserter().assertIdentity(
+                        new UsernameAndPassword(credentials.getUsername(), credentials.getPassword()),
+                        m_service);
+                }
+            }
+        catch (IllegalArgumentException | SecurityException e)
+            {
+            // fall through to unauthorized
+            }
+
+        throw new HttpException(Response.Status.UNAUTHORIZED.getStatusCode());
+        }
+
+    /**
+     * Return the subject asserted from the TLS peer.
+     *
+     * @param request  the request
+     *
+     * @return the TLS peer subject
+     */
+    protected Subject ensurePeerSubject(HttpRequest request)
+        {
+        Subject subject = request.getResourceRegistry().getResource(Subject.class);
+        if (subject == null)
+            {
+            throw new HttpException(Response.Status.FORBIDDEN.getStatusCode());
+            }
+        return subject;
+        }
+
+    /**
+     * Return the identity asserter for health mutator Basic authentication.
+     *
+     * @return the identity asserter
+     */
+    protected IdentityAsserter getIdentityAsserter()
+        {
+        return AbstractGenericHttpServer.DEFAULT_IDENTITY_ASSERTER;
+        }
+
+    /**
+     * Return {@code true} if the request targets a state-changing health route.
+     *
+     * @param request  the request
+     *
+     * @return {@code true} if the request is a health mutator request
+     */
+    private boolean isMutatorRequest(HttpRequest request)
+        {
+        if (request.getMethod() != HttpMethod.PUT)
+            {
+            return false;
+            }
+
+        String sPath = request.getRequestURI().getPath();
+        return isMutatorPath(sPath);
+        }
+
+    /**
+     * Return {@code true} if the path targets a health mutator route.
+     *
+     * @param sPath  the request path
+     *
+     * @return {@code true} if the path targets a health mutator route
+     */
+    private boolean isMutatorPath(String sPath)
+        {
+        return "/suspend".equals(sPath)
+                || sPath.startsWith("/suspend/")
+                || "/resume".equals(sPath)
+                || sPath.startsWith("/resume/");
+        }
+
+    /**
+     * Register the authenticated subject for route processing and auditing.
+     *
+     * @param registry  the request resource registry
+     * @param subject   the authenticated subject
+     */
+    private void registerSubject(ResourceRegistry registry, Subject subject)
+        {
+        if (subject == null)
+            {
+            throw new HttpException(Response.Status.UNAUTHORIZED.getStatusCode());
+            }
+        registry.registerResource(Subject.class, Subject.class.getName(),
+                                  using(subject), RegistrationBehavior.REPLACE, null);
         }
 
     private static BodyWriter<?> ensureBodyWriter()
@@ -407,6 +587,16 @@ public class HealthHttpHandler
             }
         }
 
+    // ----- inner class: MutatorAccess ------------------------------------
+
+    /**
+     * Request-local marker proving the health mutator gate has run.
+     */
+    private static class MutatorAccess
+        {
+        private static final MutatorAccess INSTANCE = new MutatorAccess();
+        }
+
     // ----- constants ------------------------------------------------------
 
     /**
@@ -423,6 +613,16 @@ public class HealthHttpHandler
      * The default service name running the health check http proxy.
      */
     public static final String DEFAULT_SERVICE_NAME = "$SYS:HealthHttpProxy";
+
+    /**
+     * Property used to explicitly enable health HTTP mutators.
+     */
+    public static final String PROP_MUTATORS_ENABLED = "coherence.health.http.mutators.enabled";
+
+    /**
+     * Property used to select health HTTP mutator authentication.
+     */
+    public static final String PROP_AUTH = "coherence.health.http.auth";
 
     /**
      * The actual service name running the health check http proxy.
