@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -133,6 +133,19 @@ public class MultiplexingSerializer
     public String getName()
         {
         return "multi";
+        }
+
+    /**
+     * Return the serializer registered under the specified name.
+     *
+     * @param sName  the serializer name
+     *
+     * @return the serializer, or null if no serializer is registered under
+     *         that name
+     */
+    public Serializer getSerializer(String sName)
+        {
+        return f_idToSerializer.get(sName);
         }
 
     // ----- ClassLoaderAware interface -------------------------------------

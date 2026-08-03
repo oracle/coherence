@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,12 +10,20 @@ package memcached;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.bedrock.runtime.LocalPlatform;
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+import com.tangosol.coherence.memcached.server.MemcachedHelper;
+import com.tangosol.internal.util.processor.BinaryProcessors;
+import com.tangosol.util.Binary;
+import com.tangosol.util.ExternalizableHelper;
 import net.spy.memcached.AddrUtil;
+import net.spy.memcached.CachedData;
 import net.spy.memcached.ConnectionFactoryBuilder;
 import net.spy.memcached.MemcachedClient;
 import net.spy.memcached.ConnectionFactoryBuilder.Protocol;
 import net.spy.memcached.auth.AuthDescriptor;
 import net.spy.memcached.auth.PlainCallbackHandler;
+import net.spy.memcached.compat.SpyObject;
+import net.spy.memcached.internal.OperationFuture;
+import net.spy.memcached.transcoders.Transcoder;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -23,7 +31,11 @@ import org.junit.Test;
 
 import com.tangosol.net.NamedCache;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
@@ -116,5 +128,113 @@ public class SpymemcachedPofClientTests extends AbstractFunctionalTest
             }
         }
 
+    @Test
+    public void shouldRejectDangerousPassThroughSet()
+            throws Exception
+        {
+        MemcachedClient client = s_client;
+        String          key    = "dangerousPofValue";
+
+        getNamedCache("memcache").remove(key);
+
+        OperationFuture<Boolean> future = client.set(key, 0,
+                new byte[] {(byte) ExternalizableHelper.FMT_OBJ_SER}, new RawTranscoder());
+        boolean fStored = false;
+        try
+            {
+            fStored = future.get(30, TimeUnit.SECONDS);
+            }
+        catch (Exception expected)
+            {
+            // failed server-side validation is acceptable; the value must not be stored
+            }
+
+        assertFalse(fStored);
+        assertFalse(getNamedCache("memcache").containsKey(key));
+        }
+
+    @Test
+    public void shouldRejectLegacyDangerousStoredValueOnCoherenceGet()
+        {
+        NamedCache cache = getNamedCache("memcache");
+        String     key   = "legacyDangerousPofValue";
+
+        MaterializationSentinel.reset();
+        Binary binValue  = ExternalizableHelper.toBinary(new MaterializationSentinel());
+        Binary binStored = MemcachedHelper.decorateBinary(binValue, 0, 1);
+
+        assertEquals(ExternalizableHelper.FMT_OBJ_SER, binValue.byteAt(0) & 0xFF);
+        putBinary(cache, key, binStored);
+        try
+            {
+            assertThrows(RuntimeException.class, () -> cache.get(key));
+            assertFalse(MaterializationSentinel.wasMaterialized());
+            }
+        finally
+            {
+            removeBinary(cache, key);
+            }
+        }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static void putBinary(NamedCache cache, Object key, Binary binValue)
+        {
+        cache.invoke(key, BinaryProcessors.blindPut(binValue, 0));
+        }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static void removeBinary(NamedCache cache, Object key)
+        {
+        cache.invoke(key, BinaryProcessors.remove());
+        }
+
     protected static MemcachedClient s_client;
+
+    public static class MaterializationSentinel
+            implements Serializable
+        {
+        public static void reset()
+            {
+            s_fMaterialized = false;
+            }
+
+        public static boolean wasMaterialized()
+            {
+            return s_fMaterialized;
+            }
+
+        private void readObject(ObjectInputStream in)
+                throws IOException, ClassNotFoundException
+            {
+            s_fMaterialized = true;
+            in.defaultReadObject();
+            }
+
+        private static boolean s_fMaterialized;
+        }
+
+    public static class RawTranscoder
+            extends SpyObject
+            implements Transcoder<byte[]>
+        {
+        public boolean asyncDecode(CachedData data)
+            {
+            return false;
+            }
+
+        public byte[] decode(CachedData data)
+            {
+            return data.getData();
+            }
+
+        public CachedData encode(byte[] abValue)
+            {
+            return new CachedData(0, abValue, CachedData.MAX_SIZE);
+            }
+
+        public int getMaxSize()
+            {
+            return CachedData.MAX_SIZE;
+            }
+        }
     }
