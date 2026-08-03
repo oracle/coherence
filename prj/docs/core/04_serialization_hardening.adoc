@@ -109,7 +109,7 @@ A member that starts in `DEV` mode logs the warning:
 [source,text]
 ----
 Coherence is running in DEV mode. DO NOT use dev mode in production.
-Set -Dcoherence.mode=prod or unset the property to restore production-safe defaults.
+Set -Dcoherence.mode=prod to restore production-safe defaults.
 ----
 
 A member that starts in `LEGACY` mode logs the exact `LEGACY_WARNING` banner:

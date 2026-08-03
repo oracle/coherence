@@ -398,6 +398,7 @@
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceMappingProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinaryReplaceProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$BinaryGet" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Get" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$GetOrDefault" source="manual" executable="true"/>
@@ -416,23 +417,27 @@
     <class name="com.tangosol.internal.util.security.SecurityConfigGenerator$ReadFailure" source="manual"/>
     <class name="com.tangosol.internal.util.stream.CollectorAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoubleCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.DoublePipeline" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.DoublePipeline$StatelessOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.IntPipeline" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.IntPipeline$StatelessOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongCollectorAggregator" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.stream.LongPipeline" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$MatcherAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$Optional" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$StatefulOp" source="manual"/>
     <class name="com.tangosol.internal.util.stream.LongPipeline$StatelessOp" source="manual"/>
+    <class name="com.tangosol.internal.util.stream.ReferencePipeline" source="manual" lambda-target="true"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$FinderAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$Head" source="manual"/>
     <class name="com.tangosol.internal.util.stream.ReferencePipeline$MatcherAggregator" source="manual" executable="true"/>
@@ -616,6 +621,7 @@
     <class name="com.tangosol.run.xml.XmlSerializableAdapter" source="manual"/>
     <class name="com.tangosol.util.AbstractKeyBasedMap$EntrySet$Entry" source="manual"/>
     <class name="com.tangosol.util.AbstractScript" source="manual"/>
+    <class name="com.tangosol.util.Aggregators" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.AnyEvent" source="manual"/>
     <class name="com.tangosol.util.AssertionException" source="manual"/>
     <class name="com.tangosol.util.Binary" source="manual"/>
@@ -653,8 +659,11 @@
     <class name="com.tangosol.util.DeltaSet" source="manual"/>
     <class name="com.tangosol.util.Dequeue" source="manual"/>
     <class name="com.tangosol.util.ErrorList$OverflowException" source="manual"/>
+    <class name="com.tangosol.util.Extractors" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.ExternalizableHelper$IntDecoratedObject" source="manual"/>
+    <class name="com.tangosol.util.Filter" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.FilterBuildingException" source="manual"/>
+    <class name="com.tangosol.util.Filters" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.Fragment" source="manual"/>
     <class name="com.tangosol.util.IllegalStringException" source="manual"/>
     <class name="com.tangosol.util.ImmutableArrayList" source="manual"/>
@@ -665,6 +674,8 @@
     <class name="com.tangosol.util.ImmutableMultiList$SetView" source="manual"/>
     <class name="com.tangosol.util.InflatableList$InflatedList" source="manual"/>
     <class name="com.tangosol.util.InflatableSet$InflatedSet" source="manual"/>
+    <class name="com.tangosol.util.InvocableMap" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.InvocableMap$Entry" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.InvocableMapHelper$SimpleEntry" source="manual"/>
     <class name="com.tangosol.util.ListMap" source="manual"/>
     <class name="com.tangosol.util.Listeners" source="manual"/>
@@ -687,6 +698,7 @@
     <class name="com.tangosol.util.OperationReason" source="manual"/>
     <class name="com.tangosol.util.PrimitiveSparseArray" source="manual"/>
     <class name="com.tangosol.util.PrimitiveSparseArray$PrimitiveNode" source="manual"/>
+    <class name="com.tangosol.util.Processors" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.ReadHeavyLongArray" source="manual"/>
     <class name="com.tangosol.util.RecyclingLinkedList" source="manual"/>
     <class name="com.tangosol.util.RecyclingLinkedList$Node" source="manual"/>
@@ -733,7 +745,13 @@
     <class name="com.tangosol.util.UID" source="manual"/>
     <class name="com.tangosol.util.UUID" source="manual"/>
     <class name="com.tangosol.util.UniversalManipulator" source="manual"/>
+    <class name="com.tangosol.util.ValueExtractor" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperCollection" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperList" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperMap" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSet" source="manual"/>
     <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedMap" source="manual"/>
+    <class name="com.tangosol.util.WrapperCollections$AbstractWrapperSortedSet" source="manual"/>
     <class name="com.tangosol.util.WrapperException" source="manual"/>
     <class name="com.tangosol.util.aggregator.AsynchronousAggregator" source="manual" executable="true"/>
     <class name="com.tangosol.util.aggregator.BigDecimalAverage" source="manual" executable="true"/>
@@ -824,8 +842,58 @@
     <class name="com.tangosol.util.filter.ValueChangeEventFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.WrapperQueryRecorderFilter" source="manual" executable="true"/>
     <class name="com.tangosol.util.filter.XorFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.util.function.Remote" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BiConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BiPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$BooleanSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Callable" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Comparator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Consumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoublePredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$DoubleUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Function" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$IntUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongBinaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongPredicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongSupplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$LongUnaryOperator" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjDoubleConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjIntConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ObjLongConsumer" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Predicate" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Runnable" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$Supplier" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToBigDecimalFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToComparableFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToDoubleBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToDoubleFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToIntBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToIntFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToLongBiFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$ToLongFunction" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.function.Remote$UnaryOperator" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.fsm.NonBlockingFiniteStateMachine$CoalescedEvent$Process" source="manual"/>
     <class name="com.tangosol.util.fsm.RollbackTransitionException" source="manual"/>
+    <class name="com.tangosol.util.processor.AbstractProcessor" source="manual"/>
     <class name="com.tangosol.util.processor.AsynchronousProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.CompositeProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.ConditionalProcessor" source="manual" executable="true"/>
@@ -846,6 +914,11 @@
     <class name="com.tangosol.util.processor.UpdaterProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.VersionedPut" source="manual" executable="true"/>
     <class name="com.tangosol.util.processor.VersionedPutAll" source="manual" executable="true"/>
+    <class name="com.tangosol.util.stream.RemoteCollectors" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.stream.RemoteDoubleStream" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.stream.RemoteIntStream" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.stream.RemoteLongStream" source="manual" lambda-target="true"/>
+    <class name="com.tangosol.util.stream.RemoteStream" source="manual" lambda-target="true"/>
     <class name="com.tangosol.util.transformer.ExtractorEventTransformer" source="manual"/>
     <class name="com.tangosol.util.transformer.SamplingEventTransformer" source="manual"/>
     <class name="com.tangosol.util.transformer.SemiLiteEventTransformer" source="manual"/>

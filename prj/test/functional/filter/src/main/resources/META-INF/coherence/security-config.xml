@@ -10,6 +10,7 @@
   <allowed-classes>
     <class name="data.Person" source="manual"/>
     <class name="data.Person$Key" source="manual"/>
+    <class name="data.repository.Person" source="manual"/>
     <class name="filter.DistMultiFilterTests$CustomFilter" source="manual" executable="true"/>
     <class name="filter.DomainObject" source="manual"/>
     <class name="filter.IndexTests$BadFilter" source="manual" executable="true"/>

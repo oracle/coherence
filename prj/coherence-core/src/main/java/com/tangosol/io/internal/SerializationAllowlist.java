@@ -203,7 +203,7 @@ public final class SerializationAllowlist
             return true;
             }
 
-        String sCapturingClass = fSynthetic ? lambdaCapturingClassName(sName) : null;
+        String sCapturingClass = fSynthetic ? generatedCapturingClassName(sName) : null;
         return sCapturingClass != null && isDirectlyAllowlisted(sCapturingClass);
         }
 
@@ -223,11 +223,26 @@ public final class SerializationAllowlist
         }
 
     /**
-     * Return the capturing class for a JVM-generated lambda proxy class name.
+     * Return the capturing class for a JVM-generated or Coherence-generated
+     * lambda class name.
      *
      * @param sName  the class name
      *
-     * @return the capturing class name, or {@code null} if not a lambda proxy
+     * @return the capturing class name, or {@code null} if not a lambda class
+     */
+    private static String generatedCapturingClassName(String sName)
+        {
+        String sCapturingClass = lambdaCapturingClassName(sName);
+        return sCapturingClass == null ? methodReferenceCapturingClassName(sName) : sCapturingClass;
+        }
+
+    /**
+     * Return the capturing class for a JVM-generated or Coherence-generated
+     * lambda class name.
+     *
+     * @param sName  the class name
+     *
+     * @return the capturing class name, or {@code null} if not a lambda class
      */
     private static String lambdaCapturingClassName(String sName)
         {
@@ -237,7 +252,55 @@ public final class SerializationAllowlist
             }
 
         int ofMarker = sName.indexOf(LAMBDA_PROXY_MARKER);
+        if (ofMarker > 0)
+            {
+            return sName.substring(0, ofMarker);
+            }
+
+        ofMarker = sName.indexOf(LAMBDA_GENERATED_MARKER);
         return ofMarker > 0 ? sName.substring(0, ofMarker) : null;
+        }
+
+    /**
+     * Return the capturing class for a Coherence-generated method-reference
+     * class name.
+     *
+     * @param sName  the class name
+     *
+     * @return the capturing class name, or {@code null} if not a method reference
+     */
+    private static String methodReferenceCapturingClassName(String sName)
+        {
+        if (sName == null)
+            {
+            return null;
+            }
+
+        int ofVersion = sName.lastIndexOf('$');
+        if (ofVersion <= 0 || !PATTERN_METHOD_REFERENCE_VERSION.matcher(sName.substring(ofVersion + 1)).matches())
+            {
+            return null;
+            }
+
+        int ofMethod = sName.lastIndexOf('$', ofVersion - 1);
+        if (ofMethod <= 0)
+            {
+            return null;
+            }
+
+        String sMethod = sName.substring(ofMethod + 1, ofVersion);
+        if (!PATTERN_METHOD_REFERENCE_METHOD.matcher(sMethod).matches())
+            {
+            return null;
+            }
+
+        String sOwner = sName.substring(0, ofMethod);
+        if (sOwner.startsWith(METHOD_REFERENCE_JAVA_PACKAGE_PREFIX))
+            {
+            sOwner = sOwner.substring(METHOD_REFERENCE_JAVA_PACKAGE_PREFIX.length());
+            }
+
+        return PATTERN_CLASS_NAME.matcher(sOwner).matches() ? sOwner : null;
         }
 
     /**
@@ -289,6 +352,11 @@ public final class SerializationAllowlist
     public static final String PROP_SERIALIZATION_ALLOWED = "coherence.serialization.allowed";
 
     /**
+     * Coherence-generated remotable lambda class marker.
+     */
+    private static final String LAMBDA_GENERATED_MARKER = "$lambda$";
+
+    /**
      * Built-in exact allowlist.
      */
     private static final Set<String> BASELINE_EXACT = Set.of(
@@ -297,10 +365,13 @@ public final class SerializationAllowlist
             "java.lang.String",
             "java.lang.Boolean",
             "java.lang.Character",
+            "java.lang.CharSequence",
+            "java.lang.Class",
             "java.lang.Byte",
             "java.lang.Short",
             "java.lang.Integer",
             "java.lang.Long",
+            "java.lang.Math",
             "java.lang.Float",
             "java.lang.Double",
             "java.lang.Throwable",
@@ -391,6 +462,23 @@ public final class SerializationAllowlist
      */
     private static final Pattern PATTERN_PACKAGE_WILDCARD = Pattern.compile(
             "[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)+\\.\\*");
+
+    /**
+     * Coherence-generated method-reference method-name pattern.
+     */
+    private static final Pattern PATTERN_METHOD_REFERENCE_METHOD = Pattern.compile(
+            "[A-Za-z_$][A-Za-z0-9_$]*|<init>");
+
+    /**
+     * Coherence-generated method-reference version pattern.
+     */
+    private static final Pattern PATTERN_METHOD_REFERENCE_VERSION = Pattern.compile("[0-9A-Fa-f]{32}");
+
+    /**
+     * Package prefix used for Coherence-generated method references to JDK
+     * classes.
+     */
+    private static final String METHOD_REFERENCE_JAVA_PACKAGE_PREFIX = "lambda.";
 
     /**
      * JVM-generated lambda proxy class name marker.

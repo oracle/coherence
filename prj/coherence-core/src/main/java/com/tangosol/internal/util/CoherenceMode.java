@@ -186,7 +186,7 @@ public enum CoherenceMode
      * Prominent dev-mode warning.
      */
     public static final String DEV_WARNING = "Coherence is running in DEV mode. DO NOT use dev mode in production. "
-            + "Set -Dcoherence.mode=prod or unset the property to restore production-safe defaults.";
+            + "Set -Dcoherence.mode=prod to restore production-safe defaults.";
 
     /**
      * Prominent legacy-mode warning.

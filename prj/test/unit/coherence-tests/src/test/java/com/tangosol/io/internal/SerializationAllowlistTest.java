@@ -7,6 +7,7 @@
 package com.tangosol.io.internal;
 
 import com.tangosol.internal.util.CoherenceModeTestSupport;
+import com.tangosol.internal.util.security.SecurityConfig;
 
 import java.io.IOException;
 import java.io.InvalidClassException;
@@ -154,6 +155,162 @@ public class SerializationAllowlistTest
         }
 
     @Test
+    public void testProdModeAcceptsCoherenceGeneratedLambdaForAllowedCapturingClass()
+        {
+        withProperties("prod", "com.tangosol.util.function.Remote$Function", () ->
+            {
+            assertTrue(SerializationAllowlist.isAllowlistedName(
+                    "com.tangosol.util.function.Remote$Function$lambda$identity$1cd84d30$1$0"
+                            + ":275DA13E2DD504E9E1E2763445483A96",
+                    true));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "com.tangosol.util.function.Remote$Function$lambda$identity$1cd84d30$1$0"
+                            + ":275DA13E2DD504E9E1E2763445483A96",
+                    false));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "example.Other$Function$lambda$identity$1cd84d30$1$0"
+                            + ":275DA13E2DD504E9E1E2763445483A96",
+                    true));
+            });
+        }
+
+    @Test
+    public void testProdModeAcceptsStreamPipelineGeneratedLambdaFromSecurityConfig()
+        {
+        withProperties("prod", null, () ->
+            {
+            assertGeneratedLambdaAllowed("com.tangosol.internal.util.stream.ReferencePipeline");
+            assertGeneratedLambdaAllowed("com.tangosol.internal.util.stream.IntPipeline");
+            assertGeneratedLambdaAllowed("com.tangosol.internal.util.stream.LongPipeline");
+            assertGeneratedLambdaAllowed("com.tangosol.internal.util.stream.DoublePipeline");
+            assertGeneratedLambdaAllowed("com.tangosol.internal.util.processor.CacheProcessors");
+            assertGeneratedLambdaAllowed("com.tangosol.util.InvocableMap");
+            assertGeneratedLambdaAllowed("com.tangosol.util.InvocableMap$Entry");
+            assertGeneratedLambdaAllowed("com.tangosol.util.stream.RemoteCollectors");
+            assertGeneratedLambdaAllowed("com.tangosol.util.stream.RemoteStream");
+            assertGeneratedLambdaAllowed("com.tangosol.util.stream.RemoteIntStream");
+            assertGeneratedLambdaAllowed("com.tangosol.util.stream.RemoteLongStream");
+            assertGeneratedLambdaAllowed("com.tangosol.util.stream.RemoteDoubleStream");
+            });
+        }
+
+    @Test
+    public void testProdModeAcceptsPublicApiGeneratedLambdaFromSecurityConfig()
+        {
+        withProperties("prod", null, () ->
+            {
+            for (String sCapturer : new String[]
+                    {
+                    "com.tangosol.util.Aggregators",
+                    "com.tangosol.util.Extractors",
+                    "com.tangosol.util.Filter",
+                    "com.tangosol.util.Filters",
+                    "com.tangosol.util.Processors",
+                    "com.tangosol.util.ValueExtractor",
+                    "com.tangosol.util.function.Remote",
+                    "com.tangosol.util.function.Remote$BiConsumer",
+                    "com.tangosol.util.function.Remote$BiFunction",
+                    "com.tangosol.util.function.Remote$BiPredicate",
+                    "com.tangosol.util.function.Remote$BinaryOperator",
+                    "com.tangosol.util.function.Remote$BooleanSupplier",
+                    "com.tangosol.util.function.Remote$Callable",
+                    "com.tangosol.util.function.Remote$Comparator",
+                    "com.tangosol.util.function.Remote$Consumer",
+                    "com.tangosol.util.function.Remote$DoubleBinaryOperator",
+                    "com.tangosol.util.function.Remote$DoubleConsumer",
+                    "com.tangosol.util.function.Remote$DoubleFunction",
+                    "com.tangosol.util.function.Remote$DoublePredicate",
+                    "com.tangosol.util.function.Remote$DoubleSupplier",
+                    "com.tangosol.util.function.Remote$DoubleToIntFunction",
+                    "com.tangosol.util.function.Remote$DoubleToLongFunction",
+                    "com.tangosol.util.function.Remote$DoubleUnaryOperator",
+                    "com.tangosol.util.function.Remote$Function",
+                    "com.tangosol.util.function.Remote$IntBinaryOperator",
+                    "com.tangosol.util.function.Remote$IntConsumer",
+                    "com.tangosol.util.function.Remote$IntFunction",
+                    "com.tangosol.util.function.Remote$IntPredicate",
+                    "com.tangosol.util.function.Remote$IntSupplier",
+                    "com.tangosol.util.function.Remote$IntToDoubleFunction",
+                    "com.tangosol.util.function.Remote$IntToLongFunction",
+                    "com.tangosol.util.function.Remote$IntUnaryOperator",
+                    "com.tangosol.util.function.Remote$LongBinaryOperator",
+                    "com.tangosol.util.function.Remote$LongConsumer",
+                    "com.tangosol.util.function.Remote$LongFunction",
+                    "com.tangosol.util.function.Remote$LongPredicate",
+                    "com.tangosol.util.function.Remote$LongSupplier",
+                    "com.tangosol.util.function.Remote$LongToDoubleFunction",
+                    "com.tangosol.util.function.Remote$LongToIntFunction",
+                    "com.tangosol.util.function.Remote$LongUnaryOperator",
+                    "com.tangosol.util.function.Remote$ObjDoubleConsumer",
+                    "com.tangosol.util.function.Remote$ObjIntConsumer",
+                    "com.tangosol.util.function.Remote$ObjLongConsumer",
+                    "com.tangosol.util.function.Remote$Predicate",
+                    "com.tangosol.util.function.Remote$Runnable",
+                    "com.tangosol.util.function.Remote$Supplier",
+                    "com.tangosol.util.function.Remote$ToBigDecimalFunction",
+                    "com.tangosol.util.function.Remote$ToComparableFunction",
+                    "com.tangosol.util.function.Remote$ToDoubleBiFunction",
+                    "com.tangosol.util.function.Remote$ToDoubleFunction",
+                    "com.tangosol.util.function.Remote$ToIntBiFunction",
+                    "com.tangosol.util.function.Remote$ToIntFunction",
+                    "com.tangosol.util.function.Remote$ToLongBiFunction",
+                    "com.tangosol.util.function.Remote$ToLongFunction",
+                    "com.tangosol.util.function.Remote$UnaryOperator"
+                    })
+                {
+                assertGeneratedLambdaAllowed(sCapturer);
+                }
+            });
+        }
+
+    @Test
+    public void testProdModeAcceptsCoherenceGeneratedMethodReferenceForAllowedOwner()
+        {
+        withProperties("prod", null, () ->
+            {
+            assertGeneratedMethodReferenceAllowed(
+                    "lambda.java.lang.CharSequence$length$1234567890ABCDEF1234567890ABCDEF");
+            assertGeneratedMethodReferenceAllowed("lambda.java.lang.Class$cast$1234567890ABCDEF1234567890ABCDEF");
+            assertGeneratedMethodReferenceAllowed(
+                    "com.tangosol.internal.util.collection.PortableList$<init>$9FCED6064C77BD9F799786EE35CC174C");
+            assertGeneratedMethodReferenceAllowed(
+                    "com.tangosol.internal.util.collection.PortableMap$<init>$EB2BC68444595CC9B86C2E950997BE8C");
+            assertGeneratedMethodReferenceAllowed("lambda.java.lang.Long$sum$EB695C23889E6AE7284515643B47FEAF");
+            assertGeneratedMethodReferenceAllowed("lambda.java.lang.Math$max$2C34D546195A7B83B74C368473DAFF71");
+            assertGeneratedMethodReferenceAllowed(
+                    "lambda.java.util.Optional$ofNullable$1E36B103F62709D17AFE67DC5B8B50FE");
+            assertGeneratedMethodReferenceAllowed(
+                    "com.tangosol.util.InvocableMap$Entry$getValue$3F46EE932750B15CCCCF9860A154C1BC");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperCollection");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperList");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperMap");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperSet");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperSortedMap");
+            assertDirectlyAllowed("com.tangosol.util.WrapperCollections$AbstractWrapperSortedSet");
+            });
+        }
+
+    @Test
+    public void testProdModeRejectsCoherenceGeneratedMethodReferenceWithoutAllowedOwner()
+        {
+        withProperties("prod", "example.Allowed", () ->
+            {
+            assertTrue(SerializationAllowlist.isAllowlistedName(
+                    "example.Allowed$create$1234567890ABCDEF1234567890ABCDEF",
+                    true));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "example.Allowed$create$1234567890ABCDEF1234567890ABCDEF",
+                    false));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "example.Other$create$1234567890ABCDEF1234567890ABCDEF",
+                    true));
+            assertFalse(SerializationAllowlist.isAllowlistedName(
+                    "example.Allowed$create$not-a-version",
+                    true));
+            });
+        }
+
+    @Test
     public void testInvalidConfiguredEntryIsDropped()
         {
         withProperties("prod", "not a class name", () -> assertEquals(ObjectInputFilter.Status.REJECTED,
@@ -189,6 +346,28 @@ public class SerializationAllowlistTest
                 assertEquals(clz.getName(), ObjectInputFilter.Status.REJECTED, check(clz));
                 });
             }
+        }
+
+    private static void assertGeneratedLambdaAllowed(String sCapturingClass)
+        {
+        assertTrue(sCapturingClass, SecurityConfig.current().isLambdaTarget(sCapturingClass));
+        assertTrue(SerializationAllowlist.isAllowlistedName(
+                sCapturingClass + "$lambda$unordered$4c7fec84$1$0:393B44F020A1FBFA84C97EDF36061AC0",
+                true));
+        assertFalse(SerializationAllowlist.isAllowlistedName(
+                sCapturingClass + "$lambda$unordered$4c7fec84$1$0:393B44F020A1FBFA84C97EDF36061AC0",
+                false));
+        }
+
+    private static void assertGeneratedMethodReferenceAllowed(String sName)
+        {
+        assertTrue(sName, SerializationAllowlist.isAllowlistedName(sName, true));
+        assertFalse(sName, SerializationAllowlist.isAllowlistedName(sName, false));
+        }
+
+    private static void assertDirectlyAllowed(String sName)
+        {
+        assertTrue(sName, SerializationAllowlist.isAllowlistedName(sName, false));
         }
 
     private static void withProperties(String sMode, String sAllowed, Runnable runnable)
