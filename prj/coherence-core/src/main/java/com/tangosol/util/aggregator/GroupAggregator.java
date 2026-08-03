@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -281,6 +281,16 @@ public class GroupAggregator<K, V, T, E, R>
     public InvocableMap.EntryAggregator<? super K, ? super V, R> getAggregator()
         {
         return m_aggregator;
+        }
+
+    /**
+     * Obtain the post-aggregation filter.
+     *
+     * @return the post-aggregation filter, or {@code null}
+     */
+    public Filter getFilter()
+        {
+        return m_filter;
         }
 
     // ----- helper methods -------------------------------------------------

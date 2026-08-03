@@ -1,12 +1,13 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.util.filter;
 
 import com.tangosol.internal.util.graal.ScriptManager;
+import com.tangosol.internal.util.security.RemoteScriptGate;
 
 import com.tangosol.util.AbstractScript;
 import com.tangosol.util.Filter;
@@ -53,6 +54,7 @@ public class ScriptFilter<V>
     @SuppressWarnings("unchecked")
     public boolean evaluate(V entry)
         {
+        RemoteScriptGate.enforceScriptEvaluation(this.getClass(), m_sLanguage, m_sName);
         return ScriptManager.getInstance()
                             .execute(m_sLanguage, m_sName, m_aoArgs)
                             .as(Filter.class).evaluate(entry);

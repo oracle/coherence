@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -175,6 +175,16 @@ public abstract class PropertyProcessor<K, V, R>
     * @return  this PropertyProcessor's description
     */
     abstract protected String getDescription();
+
+    /**
+    * Return the nested value manipulator used by this processor.
+    *
+    * @return the nested value manipulator
+    */
+    public ValueManipulator<V, R> getValueManipulator()
+        {
+        return m_manipulator;
+        }
 
 
     // ----- Object methods -------------------------------------------------

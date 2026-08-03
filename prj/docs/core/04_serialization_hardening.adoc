@@ -480,6 +480,69 @@ extractor instances early enough to emit a startup advisory without moving
 topic subscription realization. Remote topic subscriber installs and persisted
 replay rechecks are still enforced as described above.
 
+=== Cache Data-Plane Processor / Aggregator / Filter / Extractor / Comparator Install
+
+Remote `NamedCache` data-plane operations through Coherence*Extend, REST, and
+gRPC are checked after the wire payload or registry alias resolves to a
+concrete executable object and before dispatch to the storage tier. Entry
+processors use `OperationReason.PROCESS_ENTRY`; aggregators use
+`AGGREGATE`; filters use `EVALUATE_FILTER`; value extractors use `EXTRACT`;
+comparators use `COMPARE`. Telemetry publishes `role=EXTEND_PROXY`,
+`role=REST`, or `role=GRPC` depending on the transport.
+
+The processor, aggregator, filter, extractor, or comparator class must carry
+`@Remote.Executable` or appear with `executable="true"` in merged
+`META-INF/coherence/security-config.xml`. Unannotated classes are rejected in
+`DEV` and `PROD` and shadowed in `LEGACY`. Dynamic, lambda-shaped, or
+script-backed cache data-plane executables also pass through the dynamic remote
+mode gate: `PROD` denies them by default unless
+`coherence.remote.dynamic.unauthenticated=allow` is set; `DEV` permits them by
+default; `LEGACY` installs while emitting `result=would_reject` shadow
+telemetry. The shared script gate covers `ScriptProcessor`, `ScriptFilter`,
+`ScriptValueExtractor`, and `ScriptAggregator`; the check runs at remote
+install time where the transport exposes the script object and again directly
+before script execution or delegate creation.
+
+Coherence also walks the built-in composite containers that can hide nested
+executables. This includes processor wrappers such as `CompositeProcessor`,
+`ConditionalProcessor`, asynchronous / priority processor wrappers,
+`ExtractorProcessor`, `PropertyProcessor`, and `UpdaterProcessor`; aggregator
+wrappers such as `CompositeAggregator`, `GroupAggregator`, `ReducerAggregator`,
+asynchronous / priority aggregators, and `TopNAggregator`; filter wrappers such
+as `ArrayFilter`, `ExtractorFilter`, `LimitFilter`, `MapEventTransformerFilter`,
+`WrapperQueryRecorderFilter`; extractor
+wrappers such as `ConditionalExtractor`, `CollectionExtractor`,
+`DeserializationAccelerator`, and the fragment
+extractors; and comparator wrappers such as `ExtractorComparator`,
+`ChainedComparator`, and `SafeComparator`. Comparator payloads that are also
+`ValueExtractor` instances, such as `KeyExtractor`, `ChainedExtractor`,
+`ConditionalExtractor`, `CollectionExtractor`, and other `AbstractExtractor`
+subclasses, are routed through the extractor cascade as well as the comparator
+gate; this also applies when they are wrapped by `SafeComparator`,
+`InverseComparator`, or `EntryComparator`.
+`ValueManipulator` and `ValueUpdater` instances nested inside property and
+updater processors are treated as executable mutation state under the
+processor install check. Each cascaded class records its own policy telemetry
+event. Customer-defined composites with opaque fields are not inspected
+reflectively; annotate or allowlist the composite class and any nested classes
+that are exposed through the built-in containers above.
+
+REST default processor and aggregator factories preflight the configured class
+before invoking its constructor. REST resources still check the produced
+processor or aggregator instance before dispatch so nested cascade checks are
+not lost. Custom REST `ProcessorFactory` and `AggregatorFactory`
+implementations remain a trusted compatibility boundary: Coherence cannot
+preflight arbitrary factory side effects before the custom factory chooses to
+construct or return an executable object.
+
+To migrate an application, identify each rejected or would-reject class,
+annotate the supported remote executable type with `@Remote.Executable` or add
+an `executable="true"` entry to generated security config, redeploy the owning
+jar, and rerun the workload under `DEV` or `PROD`. For REST registry entries,
+classify the registry factory output. For CohQL queries and gRPC bytes-based
+requests, classify the concrete filter, comparator, extractor, aggregator, or
+processor class that is sent by the client.
+
 === Functional-Interface Lambda Targets
 
 A lambda target is the functional interface named by a serialized lambda. For
@@ -850,10 +913,14 @@ For Extend `InvocationService`, the tuple uses `reason=INVOKE` and
 `reason=PROCESS_ENTRY` and `reason=SCRIPT_EVAL`, respectively. Remote
 `MapTrigger` installation uses `reason=TRIGGER` and `role=EXTEND_PROXY`.
 Topic subscriber filter/extractor installation and persisted replay use
-`reason=EVALUATE_FILTER|EXTRACT` and `role=TOPICS`. Live tuples may also
-include `sub_reason=policy|mode_gate|denylist|replay_drift`; the tag is
-additive and callers must not assume a closed set. Successful policy checks
-use `sub_reason=policy`; mode and deny-list sub-reasons are emitted only for
+`reason=EVALUATE_FILTER|EXTRACT` and `role=TOPICS`. Cache data-plane
+processor, aggregator, filter, extractor, and comparator installs through
+Extend, REST, and gRPC use
+`reason=PROCESS_ENTRY|AGGREGATE|EVALUATE_FILTER|EXTRACT|COMPARE` and
+`role=EXTEND_PROXY|REST|GRPC`. Live tuples may also include
+`sub_reason=policy|mode_gate|denylist|replay_drift`; the tag is additive and
+callers must not assume a closed set. Successful policy checks use
+`sub_reason=policy`; mode and deny-list sub-reasons are emitted only for
 refusals. Topic replay under `warn-allow` records
 `result=allowed,sub_reason=replay_drift` to make migration drift visible.
 

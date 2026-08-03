@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -55,8 +55,10 @@ import com.tangosol.internal.net.NamedCacheDeactivationListener;
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
 import com.tangosol.internal.util.processor.CacheProcessors;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.Member;
 import com.tangosol.net.NamedCache;
@@ -300,12 +302,14 @@ public class NamedCacheProxyProtocol
             KeysOrFilter keysOrFilter = execute.getKeys();
             if (keysOrFilter.hasKey())
                 {
+                RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
                 Binary binKey    = BinaryHelper.toBinary(keysOrFilter.getKey());
                 Binary binResult = (Binary) proxy.aggregate(List.of(binKey), aggregator);
                 completeKeyValue(binKey, binResult, proxy.getCacheId(), observer);
                 }
             else if (keysOrFilter.hasKeys())
                 {
+                RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
                 CollectionOfBytesValues keys     = keysOrFilter.getKeys();
                 List<Binary>            listKeys = keys.getValuesList().stream()
                                                         .map(BinaryHelper::toBinary)
@@ -317,17 +321,21 @@ public class NamedCacheProxyProtocol
             else if (keysOrFilter.hasFilter())
                 {
                 Filter<?> filter    = fromByteString(keysOrFilter.getFilter());
+                RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+                RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
                 Binary    binResult = (Binary) proxy.aggregate(Objects.requireNonNullElse(filter, AlwaysFilter.INSTANCE()), aggregator);
                 complete(binResult, proxy.getCacheId(), observer);
                 }
             else
                 {
+                RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
                 Binary    binResult = (Binary) proxy.aggregate(aggregator);
                 complete(binResult, proxy.getCacheId(), observer);
                 }
             }
         else
             {
+            RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
             Binary    binResult = (Binary) proxy.aggregate(aggregator);
             complete(binResult, proxy.getCacheId(), observer);
             }
@@ -500,11 +508,13 @@ public class NamedCacheProxyProtocol
         IndexRequest         indexRequest = unpack(request, IndexRequest.class);
         ValueExtractor<?, ?> extractor    = fromByteString(indexRequest.getExtractor());
 
+        RemoteInstallGate.enforceCacheExtractorInstall(extractor, SerializationRole.GRPC, null);
         if (indexRequest.getAdd())
             {
             boolean       fSorted    = indexRequest.getSorted();
             Comparator<?> comparator = fromByteString(indexRequest.getComparator());
 
+            RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
             proxy.addIndex(extractor, fSorted, comparator);
             }
         else
@@ -524,12 +534,14 @@ public class NamedCacheProxyProtocol
 
         if (type == KeysOrFilter.KeyOrFilterCase.KEY)
             {
+            RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
             Binary binKey   = BinaryHelper.toBinary(keysOrFilter.getKey());
             Binary binValue = (Binary) proxy.invoke(binKey, processor);
             completeKeyValue(binKey, binValue, proxy.getCacheId(), observer);
             }
         else if (type == KeysOrFilter.KeyOrFilterCase.KEYS)
             {
+            RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
             CollectionOfBytesValues keys     = keysOrFilter.getKeys();
             List<Binary>            listKeys = keys.getValuesList().stream()
                                                     .map(BinaryHelper::toBinary)
@@ -543,6 +555,8 @@ public class NamedCacheProxyProtocol
                     ? BinaryHelper.fromByteString(keysOrFilter.getFilter(), m_serializer)
                     : AlwaysFilter.INSTANCE();
 
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+            RemoteInstallGate.enforceCacheProcessorInstall(processor, SerializationRole.GRPC, null);
             Map<Binary, Binary> map = proxy.invokeAll(filter, processor);
             completeMapStream(map, proxy.getCacheId(), observer);
             }
@@ -774,6 +788,8 @@ public class NamedCacheProxyProtocol
         Comparator<?> comparator = query.hasComparator() ? fromByteString(query.getComparator()) : null;
         int           cacheId    = proxy.getCacheId();
 
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
         Consumer<Map.Entry<? extends Binary, ? extends Binary>> callback = entry ->
             {
             BinaryKeyAndValue keyAndValue = BinaryKeyAndValue.newBuilder()
@@ -813,6 +829,7 @@ public class NamedCacheProxyProtocol
         Filter<?>    filter  = query.hasFilter() ? fromByteString(query.getFilter()) : AlwaysFilter.INSTANCE();
         int          cacheId = proxy.getCacheId();
 
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
         Consumer<Binary> callback = binary ->
             {
             observer.onNext(NamedCacheResponse.newBuilder()
@@ -835,6 +852,8 @@ public class NamedCacheProxyProtocol
         Comparator<?> comparator = query.hasComparator() ? fromByteString(query.getComparator()) : null;
         int           cacheId    = proxy.getCacheId();
 
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheComparatorInstall(comparator, SerializationRole.GRPC, null);
         Consumer<Binary> callback = binary ->
             {
             observer.onNext(NamedCacheResponse.newBuilder()
