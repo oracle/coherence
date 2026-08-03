@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Unit tests for {@link HttpAuthDefaults}.
  *
  * @author jk  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class HttpAuthDefaultsTest
     {

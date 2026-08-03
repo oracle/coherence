@@ -22,7 +22,7 @@ import java.util.Map;
  * Test login module that accepts a password containing colons.
  *
  * @author jk  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class ColonPasswordLoginModule
         implements LoginModule

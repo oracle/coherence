@@ -43,7 +43,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Functional tests for metrics HTTP authentication defaults.
  *
  * @author jk  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class MetricsAuthIT
         extends AbstractMetricsFunctionalTest

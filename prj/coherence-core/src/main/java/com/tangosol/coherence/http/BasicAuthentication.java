@@ -14,7 +14,7 @@ import java.util.Base64;
  * HTTP Basic authentication parsing helpers.
  *
  * @author jk  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public final class BasicAuthentication
     {

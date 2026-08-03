@@ -30,7 +30,7 @@ import static org.junit.Assert.fail;
  * Functional tests for {@link JavaHttpServer}.
  *
  * @author jk  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class JavaHttpServerTest
     {
