@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -27,11 +27,18 @@ import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 import com.tangosol.util.SimpleResourceRegistry;
 import com.oracle.coherence.testing.SystemPropertyResource;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import org.junit.Test;
 import org.junit.Before;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLPeerUnverifiedException;
+import javax.net.ssl.SSLSession;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 /**
@@ -289,7 +296,124 @@ public class SocketProviderProcessorTest
         assertTrue(delegate.getDelegate() instanceof TcpSocketProvider);
         }
 
+    @Test
+    public void testSystemPropertyDefaultAllowIsLegacyAllow()
+        {
+        String sValue = System.getProperty(HOSTNAME_VERIFICATION);
+        System.clearProperty(HOSTNAME_VERIFICATION);
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());
+
+            assertNotNull(verifier);
+            assertTrue(verifier.verify("not-a-cert-name.example.com", rejectingSession()));
+            }
+        finally
+            {
+            restoreProperty(HOSTNAME_VERIFICATION, sValue);
+            }
+        }
+
+    @Test
+    public void testSystemPropertyDefaultAllowIsDefaultInDev()
+        {
+        String sValue = System.getProperty(HOSTNAME_VERIFICATION);
+        System.clearProperty(HOSTNAME_VERIFICATION);
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());
+
+            assertNotNull(verifier);
+            assertFalse(verifier.verify("not-a-cert-name.example.com", rejectingSession()));
+            }
+        finally
+            {
+            restoreProperty(HOSTNAME_VERIFICATION, sValue);
+            }
+        }
+
+    @Test
+    public void testExplicitAllowSystemPropertyRejectedInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev();
+             SystemPropertyResource p1 = new SystemPropertyResource(HOSTNAME_VERIFICATION, "allow"))
+            {
+            try
+                {
+                realizeHostnameVerifier(builtInHostnameVerifierXml());
+                fail("Expected IllegalArgumentException");
+                }
+            catch (IllegalArgumentException expected)
+                {
+                // expected
+                }
+            }
+        }
+
+    @Test
+    public void testExplicitDefaultSystemPropertyAllowedInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev();
+             SystemPropertyResource p1 = new SystemPropertyResource(HOSTNAME_VERIFICATION, "default"))
+            {
+            HostnameVerifier verifier = realizeHostnameVerifier(builtInHostnameVerifierXml());
+
+            assertNotNull(verifier);
+            assertFalse(verifier.verify("not-a-cert-name.example.com", rejectingSession()));
+            }
+        }
+
+    private HostnameVerifier realizeHostnameVerifier(String sXml)
+        {
+        XmlElement xml = XmlHelper.loadXml(sXml);
+
+        DefaultProcessingContext ctxSocketProviders = new DefaultProcessingContext(m_ctxClusterConfig, xml);
+        SocketProviderBuilder    builder            = (SocketProviderBuilder) ctxSocketProviders.processDocument(xml);
+        SocketProvider           provider           = builder.realize(new NullParameterResolver(), null, null);
+
+        return ((SSLSocketProvider) provider).getDependencies().getHostnameVerifier();
+        }
+
+    private String builtInHostnameVerifierXml()
+        {
+        return "<socket-provider>" +
+                " <ssl>" +
+                "  <hostname-verifier>" +
+                "   <action system-property=\"" + HOSTNAME_VERIFICATION + "\">allow</action>" +
+                "  </hostname-verifier>" +
+                " </ssl>" +
+                "</socket-provider>";
+        }
+
+    private SSLSession rejectingSession()
+        {
+        try
+            {
+            SSLSession session = mock(SSLSession.class);
+            when(session.getPeerCertificates()).thenThrow(new SSLPeerUnverifiedException("peer not verified"));
+            return session;
+            }
+        catch (SSLPeerUnverifiedException e)
+            {
+            throw new IllegalStateException(e);
+            }
+        }
+
+    private void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
     public static final SocketProviderFactory FACTORY = new SocketProviderFactory();
+
+    private static final String HOSTNAME_VERIFICATION = "coherence.security.hostname.verification";
 
     private DefaultClusterDependencies m_deps;
     private DefaultProcessingContext   m_ctxClusterConfig;

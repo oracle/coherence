@@ -1480,7 +1480,8 @@
                     <xsd:documentation>
                         Allow all connections, even where the URL's host
                         name and the server's identification
-                        host name do not match.
+                        host name do not match. This action is only allowed
+                        in legacy mode.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -1528,7 +1529,9 @@
                 will call back to this instance to determine if the connection
                 should be allowed.
 
-                The default action is to allow connections.
+                The default action is mode-aware: legacy mode allows
+                connections for compatibility, while dev and prod mode use
+                the default hostname verifier.
 
                 Used in: ssl
             </xsd:documentation>

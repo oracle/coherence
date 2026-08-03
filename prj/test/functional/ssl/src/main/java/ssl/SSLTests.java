@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.coherence.testing.net.EchoClient;
 import com.oracle.coherence.testing.net.EchoNIOClient;
 import com.oracle.coherence.testing.net.EchoNIOServer;
 import com.oracle.coherence.testing.net.EchoServer;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import java.nio.channels.SocketChannel;
 import java.util.Set;
@@ -39,15 +40,15 @@ public class SSLTests
     public void setPort()
             throws IOException
         {
-		int port;
-		
-		do
-			{
-		    ServerSocket server = new ServerSocket(0);
+        int port;
+
+        do
+            {
+            ServerSocket server = new ServerSocket(0);
             port = server.getLocalPort();
             server.close();
-		    }
-		while (port == 65535); // doesn't support sub-ports	
+            }
+        while (port == 65535); // doesn't support sub-ports
 
         System.setProperty("test.extend.port", String.valueOf(port));
         }
@@ -138,6 +139,20 @@ public class SSLTests
             client.disconnect();
             server.stop();
             }
+        }
+
+    @Test
+    public void testGuestServerConfigDevRejectsDefaultHostnameMismatch()
+            throws IOException
+        {
+        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.dev());
+        }
+
+    @Test
+    public void testGuestServerConfigProdRejectsDefaultHostnameMismatch()
+            throws IOException
+        {
+        assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.prod());
         }
 
     @Test
@@ -653,6 +668,35 @@ public class SSLTests
         EchoServer server = createServer("provider-config-server-peer.xml");
 
         trustedServerConfigTest(client, server);
+        }
+
+    protected void assertGuestServerDefaultHostnameMismatchRejected(CoherenceModeHelper.ModeScope scope)
+            throws IOException
+        {
+        try (CoherenceModeHelper.ModeScope ignored = scope)
+            {
+            EchoClient client = createClient("provider-config-client.xml");
+            EchoServer server = createServer("provider-config-guest.xml");
+
+            final String sMsg = "HELLO!";
+
+            server.start();
+            try
+                {
+                assertEquals(server.getConnectionCount(), 0);
+                client.echo(sMsg);
+                fail("SSL exception expected");
+                }
+            catch (SSLException e)
+                {
+                // expected
+                }
+            finally
+                {
+                client.disconnect();
+                server.stop();
+                }
+            }
         }
 
     protected void untrustedServerConfigTest(EchoClient client, EchoServer server)
