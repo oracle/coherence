@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -92,8 +92,8 @@ public class PagedTopicSchemeProcessor
         deps.setMemberListenerBuilders(Collections.singletonList(new InstanceBuilder<>(SubscriberCleanupListener.class)));
         deps.setPartitionListenerBuilders(Collections.singletonList(new InstanceBuilder<>(SubscriberCleanupListener.class)));
 
-        // Ensure POF serializer since topic data model and processors are EvolvablePortableObject.
-        // Application payload published to topic is serialized using serializer specified in cache configuration.
+        // SER-01 Slice C: topics use safe-pof intentionally to wrap a configured non-POF payload serializer
+        // while keeping the topic data model and processors as EvolvablePortableObject.
         deps.setSerializerFactory(factoryPof);
         scheme.setServiceDependencies(deps);
 
