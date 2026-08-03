@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,8 @@ package com.tangosol.coherence.component.net.extend.messageFactory;
 import com.tangosol.coherence.component.net.extend.RemoteNamedCache;
 import com.tangosol.coherence.component.net.extend.proxy.MapListenerProxy;
 import com.tangosol.coherence.component.net.extend.proxy.NamedCacheProxy;
+import com.tangosol.internal.util.security.RemoteInstallGate;
+import com.tangosol.io.SerializationRole;
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.net.CacheService;
@@ -4653,6 +4655,8 @@ public class NamedCacheFactory
                 MapListener listener = new MapTriggerListener(trigger);
                 if (isAdd())
                     {
+                    RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
+                            channel.getSubject());
                     cache.addMapListener(listener, getFilter(), isLite());
                     }
                 else
@@ -5167,6 +5171,8 @@ public class NamedCacheFactory
                 MapListener listener = new MapTriggerListener(trigger);
                 if (isAdd())
                     {
+                    RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY,
+                            channel.getSubject());
                     cache.addMapListener(listener, getKey(), isLite());
                     }
                 else

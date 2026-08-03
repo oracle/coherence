@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -183,6 +183,26 @@
       <serializer>
         <class-name>extend.Coh20246Tests$ValueSerializer</class-name>
       </serializer>
+    </user-type>
+
+    <user-type>
+      <type-id>3014</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$AnnotatedTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3015</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$PlainTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3016</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$Generated$$LambdaTrigger</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>3017</type-id>
+      <class-name>extend.TriggerInstallModeMatrixIntegrationTest$Synthetic$$LambdaShapedTrigger</class-name>
     </user-type>
 
   </user-type-list>
