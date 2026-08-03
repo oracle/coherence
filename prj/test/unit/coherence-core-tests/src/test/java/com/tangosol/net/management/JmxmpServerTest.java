@@ -45,7 +45,7 @@ import static org.junit.Assert.fail;
  * Unit tests for {@link JmxmpServer}.
  *
  * @author Aleks Seovic  2026.05.14
- * @since 26.04
+ * @since 26.07
  */
 public class JmxmpServerTest
     {
