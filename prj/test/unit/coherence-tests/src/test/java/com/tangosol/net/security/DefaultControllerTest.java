@@ -104,6 +104,22 @@ public class DefaultControllerTest
         }
 
     @Test
+    public void shouldAllowLegacyCertificateSubjectWithUnboundExtraPrincipal()
+            throws Exception
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+            {
+            DefaultController controller = controller(jksKeystore(), permissions(), "password");
+            KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
+            Subject           subject    = subjectWithCertificates(store, "worker",
+                    new String[] {"worker", "manager"}, new String[] {"worker"});
+            ClusterPermission permission = new ClusterPermission("service=Management", "join");
+
+            controller.checkPermission(permission, subject);
+            }
+        }
+
+    @Test
     public void shouldDenyHonestWorkerHigherPrivilegePermission()
             throws Exception
         {
@@ -140,7 +156,7 @@ public class DefaultControllerTest
         }
 
     @Test
-    public void shouldDenyExtraManagerPrincipalAfterWorkerSignerVerified()
+    public void shouldAllowLegacyExtraManagerPrincipalAfterWorkerSignerVerified()
             throws Exception
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
@@ -155,13 +171,12 @@ public class DefaultControllerTest
             Object       decrypted = controller.decrypt(signed, subject, null);
 
             assertEquals(permission, decrypted);
-            assertThrows(PermissionException.class,
-                    () -> controller.checkPermission((ClusterPermission) decrypted, subject));
+            controller.checkPermission((ClusterPermission) decrypted, subject);
             }
         }
 
     @Test
-    public void shouldDenyExtraManagerPrincipalWithAdditionalCertificateAfterWorkerSignerVerified()
+    public void shouldAllowLegacyExtraManagerPrincipalWithAdditionalCertificateAfterWorkerSignerVerified()
             throws Exception
         {
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
@@ -176,26 +191,24 @@ public class DefaultControllerTest
             Object       decrypted = controller.decrypt(signed, subject, null);
 
             assertEquals(permission, decrypted);
-            assertThrows(PermissionException.class,
-                    () -> controller.checkPermission((ClusterPermission) decrypted, subject));
+            controller.checkPermission((ClusterPermission) decrypted, subject);
             }
         }
 
     @Test
-    public void shouldRejectCertificateSubjectWithUnboundExtraPrincipalWithoutSignerVerification()
+    public void shouldRejectExtraManagerPrincipalAfterWorkerSignerVerifiedInDev()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
-            {
-            DefaultController controller = controller(jksKeystore(), permissions(), "password");
-            KeyStore          store      = keyStore(jksKeystore(), "JKS", "password");
-            Subject           subject    = subjectWithCertificates(store, "worker",
-                    new String[] {"worker", "manager"}, new String[] {"worker"});
-            ClusterPermission permission = new ClusterPermission("service=Management", "join");
+        assertProbe(0, "dev", rsaConfig(), null, "expect-signed-extra-principal-rejected",
+                path(rsaKeystore()), path(permissions()), "PKCS12");
+        }
 
-            assertThrows(PermissionException.class,
-                    () -> controller.checkPermission(permission, subject));
-            }
+    @Test
+    public void shouldRejectCertificateSubjectWithUnboundExtraPrincipalWithoutSignerVerificationInDev()
+            throws Exception
+        {
+        assertProbe(0, "dev", rsaConfig(), null, "expect-extra-principal-rejected",
+                path(rsaKeystore()), path(permissions()), "PKCS12");
         }
 
     @Test
@@ -617,6 +630,12 @@ public class DefaultControllerTest
                 case "expect-mismatch-rejected":
                     expectMismatchRejected(asArg[1], asArg[2], asArg[3], asArg[4], asArg[5]);
                     return;
+                case "expect-extra-principal-rejected":
+                    expectExtraPrincipalRejected(asArg[1], asArg[2], asArg[3]);
+                    return;
+                case "expect-signed-extra-principal-rejected":
+                    expectSignedExtraPrincipalRejected(asArg[1], asArg[2], asArg[3]);
+                    return;
                 default:
                     throw new IllegalArgumentException("Unknown action " + sAction);
                 }
@@ -678,6 +697,46 @@ public class DefaultControllerTest
                 throw new AssertionError("Mismatched subject was accepted");
                 }
             catch (Exception expected)
+                {
+                }
+            }
+
+        private static void expectExtraPrincipalRejected(String sKeystore, String sPermissions, String sType)
+                throws Exception
+            {
+            DefaultController controller = controller(new File(sKeystore), new File(sPermissions), "password");
+            KeyStore          store      = keyStore(new File(sKeystore), sType, "password");
+            Subject           subject    = subjectWithCertificates(store, "worker",
+                    new String[] {"worker", "manager"}, new String[] {"worker"});
+            ClusterPermission permission = new ClusterPermission("service=Management", "join");
+
+            try
+                {
+                controller.checkPermission(permission, subject);
+                throw new AssertionError("Extra unbound principal was accepted");
+                }
+            catch (PermissionException expected)
+                {
+                }
+            }
+
+        private static void expectSignedExtraPrincipalRejected(String sKeystore, String sPermissions, String sType)
+                throws Exception
+            {
+            DefaultController controller = controller(new File(sKeystore), new File(sPermissions), "password");
+            KeyStore          store      = keyStore(new File(sKeystore), sType, "password");
+            Subject           subject    = subjectWithCertificates(store, "worker",
+                    new String[] {"worker", "manager"}, new String[] {"worker"});
+            ClusterPermission permission = new ClusterPermission("service=Management", "join");
+
+            Object decrypted = controller.decrypt(controller.encrypt(permission, subject), subject, null);
+
+            try
+                {
+                controller.checkPermission((ClusterPermission) decrypted, subject);
+                throw new AssertionError("Extra unbound principal was accepted");
+                }
+            catch (PermissionException expected)
                 {
                 }
             }
