@@ -112,7 +112,7 @@ public final class GrpcDiagnosticsPolicy
             {
             return false;
             }
-        return !CoherenceMode.isDev();
+        return CoherenceMode.isProd();
         }
 
     /**

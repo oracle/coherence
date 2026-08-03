@@ -66,5 +66,6 @@ class GrpcV0EnforcementIntegrationTest
             .setProperty("coherence.cluster", "GrpcV0EnforcementIntegrationTest-" + System.nanoTime())
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.mode", "prod")
+            .setProperty("coherence.grpc.error-disclosure", "diagnostic")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");
     }

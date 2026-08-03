@@ -10,6 +10,7 @@ import com.oracle.coherence.grpc.client.common.ChannelProvider;
 import com.oracle.coherence.grpc.client.common.config.GrpcChannelProcessor;
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 import com.tangosol.coherence.config.xml.CacheConfigNamespaceHandler;
+import com.tangosol.config.ConfigurationException;
 import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.DocumentProcessor;
 import com.tangosol.net.grpc.GrpcChannelDependencies;
@@ -152,7 +153,9 @@ public class GrpcChannelProcessorTest
         XmlElement xml = new SimpleElement("grpc-channel");
         xml.addElement("secure-transport").setString("mandatory");
 
-        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> processXML(xml));
+        ConfigurationException thrown = org.junit.jupiter.api.Assertions.assertThrows(ConfigurationException.class, () -> processXML(xml));
+        assertThat(thrown.getCause(), is(instanceOf(ReflectiveOperationException.class)));
+        assertThat(thrown.getCause().getCause(), is(instanceOf(IllegalArgumentException.class)));
         }
 
     @Test

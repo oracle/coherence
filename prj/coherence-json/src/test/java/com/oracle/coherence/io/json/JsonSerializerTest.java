@@ -558,11 +558,14 @@ class JsonSerializerTest
         {
         JsonSerializer serializer = new JsonSerializer();
 
-        assertClassMetadataRejected(serializer, "processor.MethodInvocationProcessor");
-        assertClassMetadataRejected(serializer, "processor.ScriptProcessor");
-        assertClassMetadataRejected(serializer, "filter.ScriptFilter");
-        assertClassMetadataRejected(serializer, "extractor.ReflectionExtractor");
-        assertClassMetadataRejected(serializer, "internal.util.invoke.RemoteConstructor");
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertClassMetadataRejected(serializer, "processor.MethodInvocationProcessor");
+            assertClassMetadataRejected(serializer, "processor.ScriptProcessor");
+            assertClassMetadataRejected(serializer, "filter.ScriptFilter");
+            assertClassMetadataRejected(serializer, "extractor.ReflectionExtractor");
+            assertClassMetadataRejected(serializer, "internal.util.invoke.RemoteConstructor");
+            }
         }
 
     @Test
@@ -572,11 +575,14 @@ class JsonSerializerTest
                                                        builder -> builder.setEnforceTypeAliases(false),
                                                        false);
 
-        assertClassMetadataRejected(serializer, "com.tangosol.util.processor.MethodInvocationProcessor");
-        assertClassMetadataRejected(serializer, "com.tangosol.util.filter.ScriptFilter");
-        assertClassMetadataRejected(serializer, "com.tangosol.util.extractor.ReflectionExtractor");
-        assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.RemoteConstructor");
-        assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.ClassDefinition");
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+            {
+            assertClassMetadataRejected(serializer, "com.tangosol.util.processor.MethodInvocationProcessor");
+            assertClassMetadataRejected(serializer, "com.tangosol.util.filter.ScriptFilter");
+            assertClassMetadataRejected(serializer, "com.tangosol.util.extractor.ReflectionExtractor");
+            assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.RemoteConstructor");
+            assertClassMetadataRejected(serializer, "com.tangosol.internal.util.invoke.ClassDefinition");
+            }
         }
 
     @Test
@@ -604,7 +610,10 @@ class JsonSerializerTest
 
         try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
             {
-            assertThrows(JsonBindingException.class, () -> serializer.underlying().deserialize(json, Object.class));
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.prod())
+                {
+                assertThrows(JsonBindingException.class, () -> serializer.underlying().deserialize(json, Object.class));
+                }
             }
         }
 

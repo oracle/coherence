@@ -9,6 +9,7 @@ package com.oracle.coherence.io.json.internal;
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.DefaultObjectInputFilter;
 import com.tangosol.io.internal.SerializationTelemetry;
+import com.tangosol.internal.util.CoherenceMode;
 
 import java.io.ObjectInputFilter;
 import java.util.Set;
@@ -153,6 +154,11 @@ public class SerializationGate
      */
     private static boolean shouldRejectDeniedMetadata(Class<?> clzTarget, int nDepth)
         {
+        if (CoherenceMode.isLegacy())
+            {
+            return false;
+            }
+
         return SerializationRole.current() == SerializationRole.GRPC
                || (nDepth == 0 && (clzTarget == null || clzTarget == Object.class));
         }

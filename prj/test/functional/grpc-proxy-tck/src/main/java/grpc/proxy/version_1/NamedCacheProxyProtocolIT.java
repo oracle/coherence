@@ -19,6 +19,7 @@ import com.google.protobuf.Message;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.common.base.Objects;
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.NamedCacheProtocol;
 
 import com.oracle.coherence.grpc.messages.cache.v1.EnsureCacheRequest;
@@ -2434,7 +2435,7 @@ public class NamedCacheProxyProtocolIT
                     .orElseThrow();
             assertThat(response.getResponseCase(), is(ProxyResponse.ResponseCase.ERROR));
             ErrorMessage error = response.getError();
-            assertThat(error.getMessage().contains("Failed to deserialize json for class java.lang.Object"), is(true));
+            assertThat(error.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
             }
         }
 

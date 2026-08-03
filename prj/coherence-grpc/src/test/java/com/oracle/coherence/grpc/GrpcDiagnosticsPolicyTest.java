@@ -70,7 +70,7 @@ class GrpcDiagnosticsPolicyTest
         {
         try (ModeScope ignored = mode("legacy"))
             {
-            assertTrue(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
+            assertFalse(GrpcDiagnosticsPolicy.isErrorDisclosureSafe(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_AUTO));
             }
         try (ModeScope ignored = mode("dev"))
             {
