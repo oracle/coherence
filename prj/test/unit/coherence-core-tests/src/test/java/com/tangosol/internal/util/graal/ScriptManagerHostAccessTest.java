@@ -39,6 +39,7 @@ public class ScriptManagerHostAccessTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         }
 
@@ -46,6 +47,7 @@ public class ScriptManagerHostAccessTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         CoherenceModeHelper.reset();
         RemoteExecutionMode.resetForTesting();
@@ -89,9 +91,9 @@ public class ScriptManagerHostAccessTest
         }
 
     @Test
-    public void legacySpHostAccessIsHardFloor()
+    public void compatibilitySpHostAccessIsHardFloor()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertThrows(PolyglotException.class,
                 () -> new ScriptProcessor<String, String, Object>("js", "RuntimeProbe")
@@ -105,7 +107,13 @@ public class ScriptManagerHostAccessTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, null, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         CoherenceModeHelper.reset();
         RemoteExecutionMode.resetForTesting();
@@ -197,5 +205,6 @@ public class ScriptManagerHostAccessTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

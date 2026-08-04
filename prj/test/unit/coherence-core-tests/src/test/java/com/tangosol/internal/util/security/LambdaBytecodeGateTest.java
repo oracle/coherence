@@ -51,6 +51,7 @@ public class LambdaBytecodeGateTest
         Thread.currentThread().setContextClassLoader(m_loaderOld);
         SecurityConfig.resetForTesting();
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         }
@@ -152,25 +153,25 @@ public class LambdaBytecodeGateTest
         }
 
     @Test
-    public void shouldAllowDynamicLambdaInDevMode()
+    public void shouldAllowDynamicLambdaInDevCompatibilityMode()
         {
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
         }
 
     @Test
-    public void shouldAllowDynamicLambdaInLegacyMode()
+    public void shouldAllowDynamicLambdaInCompatibilityMode()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
         }
 
     @Test
-    public void shouldDenyDynamicLambdaInProdModeByDefault()
+    public void shouldDenyDynamicLambdaInHardenedModeByDefault()
         {
-        setMode("prod", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
@@ -179,7 +180,7 @@ public class LambdaBytecodeGateTest
     @Test
     public void shouldAllowDynamicLambdaInProdWhenPropertySetToAllow()
         {
-        setMode("prod", "allow");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "allow");
 
         assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
         }
@@ -187,19 +188,19 @@ public class LambdaBytecodeGateTest
     @Test
     public void shouldDenyDynamicLambdaInProdWhenPropertySetToDeny()
         {
-        setMode("prod", "deny");
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
 
         assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
         }
 
     @Test
-    public void shouldDefaultToModeWhenPropertyValueInvalid()
+    public void shouldDefaultToSecurityModeWhenPropertyValueInvalid()
         {
-        setMode("dev", "maybe");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "maybe");
         assertAllowed(LambdaBytecodeGate.checkDynamicLambdaMode());
 
-        setMode("prod", "maybe");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "maybe");
         assertRejected(LambdaBytecodeGate.checkDynamicLambdaMode(),
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, "dynamic-lambda");
         }
@@ -207,7 +208,7 @@ public class LambdaBytecodeGateTest
     @Test
     public void shouldReportDynamicLambdaDeniedByModeReason()
         {
-        setMode("prod", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         long cBefore = LambdaBytecodeGate.counter("rejected",
                 LambdaBytecodeGate.REASON_DYNAMIC_REMOTE_DENIED_BY_MODE, LambdaBytecodeGate.Site.LAMBDA);
@@ -284,7 +285,13 @@ public class LambdaBytecodeGateTest
 
     private static void setMode(String sMode, String sDynamicLambda)
         {
+        setMode(sMode, null, sDynamicLambda);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicLambda)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicLambda);
         resetMode();
         }
@@ -444,6 +451,7 @@ public class LambdaBytecodeGateTest
         }
 
     private final String m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     private final String m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
     private final ClassLoader m_loaderOld = Thread.currentThread().getContextClassLoader();
     }

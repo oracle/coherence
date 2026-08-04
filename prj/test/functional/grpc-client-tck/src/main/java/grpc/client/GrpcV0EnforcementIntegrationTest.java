@@ -18,6 +18,8 @@ import com.oracle.coherence.grpc.v0.Requests;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.grpc.GrpcDependencies;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.util.Filter;
 
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -66,6 +68,7 @@ class GrpcV0EnforcementIntegrationTest
             .setProperty("coherence.cluster", "GrpcV0EnforcementIntegrationTest-" + System.nanoTime())
             .setProperty("coherence.override", "coherence-json-override.xml")
             .setProperty("coherence.mode", "prod")
+            .setProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED)
             .setProperty("coherence.grpc.error-disclosure", "diagnostic")
             .setProperty("coherence.cacheconfig", "coherence-config.xml");
     }

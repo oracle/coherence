@@ -41,7 +41,7 @@ public class SSLSocketProviderHostnameVerifierTest
     public void shouldAllowNullVerifierInLegacy()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             provider(null).ensureSessionValidity(rejectingSession(), peerSocket());
             }
@@ -51,20 +51,20 @@ public class SSLSocketProviderHostnameVerifierTest
     public void shouldRejectNullVerifierInDev()
             throws Exception
         {
-        assertNullVerifierRejected(CoherenceModeHelper.dev());
+        assertNullVerifierRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void shouldRejectNullVerifierInProd()
             throws Exception
         {
-        assertNullVerifierRejected(CoherenceModeHelper.prod());
+        assertNullVerifierRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void shouldPreserveCustomVerifier()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             HostnameVerifier verifier = (sHost, session) -> true;
 
@@ -80,7 +80,7 @@ public class SSLSocketProviderHostnameVerifierTest
     public void shouldAllowActionAllowInLegacy()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             HostnameVerifier verifier = allowActionBuilder(false).realize(null, null, null);
 
@@ -91,25 +91,25 @@ public class SSLSocketProviderHostnameVerifierTest
     @Test
     public void shouldRejectExplicitActionAllowInDev()
         {
-        assertExplicitAllowRejected(CoherenceModeHelper.dev());
+        assertExplicitAllowRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void shouldRejectExplicitActionAllowInProd()
         {
-        assertExplicitAllowRejected(CoherenceModeHelper.prod());
+        assertExplicitAllowRejected(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void shouldTreatSystemPropertyDefaultActionAllowAsDefaultInDev()
         {
-        assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.dev());
+        assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.securityHardened());
         }
 
     @Test
     public void shouldTreatSystemPropertyDefaultActionAllowAsDefaultInProd()
         {
-        assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.prod());
+        assertSystemPropertyDefaultIsDefaultVerifier(CoherenceModeHelper.securityHardened());
         }
 
     private void assertNullVerifierRejected(CoherenceModeHelper.ModeScope scope)

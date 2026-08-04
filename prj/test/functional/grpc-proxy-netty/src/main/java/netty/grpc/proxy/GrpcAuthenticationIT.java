@@ -102,7 +102,8 @@ class GrpcAuthenticationIT
         System.setProperty("coherence.pof.config", "test-pof-config.xml");
         System.setProperty("coherence.override", "grpc-auth-coherence-override.xml");
         System.setProperty("coherence.serializer", "pof");
-        CoherenceModeHelper.restore("legacy");
+        CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode("compatibility");
         System.setProperty(GrpcDependencies.PROP_ENABLED, "true");
         System.setProperty(GrpcAuthentication.PROP_GRPC_AUTH_METHOD, GrpcAuthentication.AUTH_METHOD_BASIC);
 

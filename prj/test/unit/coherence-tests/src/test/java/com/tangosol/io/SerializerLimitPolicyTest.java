@@ -37,7 +37,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldDefaultLegacyModeToUnlimited()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             SerializationLimitPolicy policy = SerializationLimitPolicy.getDefault();
 
@@ -50,7 +50,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldDefaultProdModeToFiniteCaps()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SerializationLimitPolicy policy = SerializationLimitPolicy.getDefault();
 
@@ -66,7 +66,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldRejectUnlimitedPropertyOutsideLegacyMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             System.setProperty(SerializationLimitPolicy.PROP_MAX_ELEMENTS, "unlimited");
             assertThrows(IllegalArgumentException.class, SerializationLimitPolicy::getDefault);
@@ -76,7 +76,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldMergeXmlFiniteValuesWithInheritedDefaults()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SerializationLimitPolicy override = SerializationLimitPolicy.fromXml(XmlHelper.loadXml(
                     "<limits><max-elements>7</max-elements></limits>"));
@@ -93,7 +93,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldAllowXmlUnlimitedOnlyInLegacyMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             SerializationLimitPolicy override = SerializationLimitPolicy.fromXml(XmlHelper.loadXml(
                     "<limits><max-elements>unlimited</max-elements></limits>"));
@@ -104,7 +104,7 @@ public class SerializerLimitPolicyTest
             assertEquals(Integer.valueOf(4), policy.getMaxMapEntries());
             }
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(IllegalArgumentException.class, () -> SerializationLimitPolicy.fromXml(XmlHelper.loadXml(
                     "<limits><max-elements>unlimited</max-elements></limits>")));
@@ -114,7 +114,7 @@ public class SerializerLimitPolicyTest
     @Test
     public void shouldParseResolvedLimitElementTextOnly()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             System.setProperty("test.serializer.max.elements", "9");
             SerializationLimitPolicy override = SerializationLimitPolicy.fromXml(XmlHelper.loadXml(

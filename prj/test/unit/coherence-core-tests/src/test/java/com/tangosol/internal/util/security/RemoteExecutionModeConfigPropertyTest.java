@@ -29,6 +29,7 @@ public class RemoteExecutionModeConfigPropertyTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         }
 
@@ -36,6 +37,7 @@ public class RemoteExecutionModeConfigPropertyTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         }
@@ -58,6 +60,9 @@ public class RemoteExecutionModeConfigPropertyTest
     public void blankValueTreatedAsUnset()
         {
         setMode("prod", " ");
+        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, " ");
         assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
 
         setMode("dev", " ");
@@ -66,7 +71,13 @@ public class RemoteExecutionModeConfigPropertyTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, null, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         }
@@ -90,5 +101,6 @@ public class RemoteExecutionModeConfigPropertyTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

@@ -28,49 +28,53 @@ public class ConcurrentProxyModeTest
     @BeforeEach
     public void setUp()
         {
-        m_sModeOld    = System.getProperty("coherence.mode");
-        m_sEnabledOld = System.getProperty(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED);
+        m_sModeOld         = System.getProperty("coherence.mode");
+        m_sSecurityModeOld = System.getProperty("coherence.security.mode");
+        m_sEnabledOld      = System.getProperty(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED);
         }
 
     @AfterEach
     public void tearDown()
         {
         restore("coherence.mode", m_sModeOld);
+        restore("coherence.security.mode", m_sSecurityModeOld);
         restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, m_sEnabledOld);
         CoherenceModeHelper.reset();
         }
 
     @Test
-    public void shouldDisableShippedDefaultInProd()
+    public void shouldEnableShippedDefaultWhenHardeningIsDisabled()
         {
-        assertResolved("prod", null, shipped(), false);
+        assertResolved("prod", null, null, shipped(), true);
+        assertResolved("dev", null, null, shipped(), true);
         }
 
     @Test
-    public void shouldEnableShippedDefaultInDevAndLegacy()
+    public void shouldDisableShippedDefaultWhenHardeningIsEnabled()
         {
-        assertResolved("dev", null, shipped(), true);
-        assertResolved("legacy", null, shipped(), true);
+        assertResolved("prod", "hardened", null, shipped(), false);
+        assertResolved("dev", "hardened", null, shipped(), false);
         }
 
     @Test
-    public void shouldLetPropertyOverrideModeAndXml()
+    public void shouldLetPropertyOverrideHardeningAndXml()
         {
-        assertResolved("prod", "true", shipped(), true);
-        assertResolved("dev", "false", shipped(), false);
-        assertResolved("legacy", "false", shipped(), false);
+        assertResolved("prod", "hardened", "true", shipped(), true);
+        assertResolved("dev", null, "false", shipped(), false);
         }
 
     @Test
-    public void shouldLetExplicitXmlWithoutMarkerOverrideMode()
+    public void shouldLetExplicitXmlWithoutMarkerOverrideHardening()
         {
-        assertResolved("prod", null, explicit("true"), true);
-        assertResolved("dev", null, explicit("false"), false);
+        assertResolved("prod", "hardened", null, explicit("true"), true);
+        assertResolved("dev", "hardened", null, explicit("false"), false);
         }
 
-    private static void assertResolved(String sMode, String sProperty, XmlElement xml, boolean fExpected)
+    private static void assertResolved(String sMode, String sSecurityMode, String sProperty, XmlElement xml,
+            boolean fExpected)
         {
         restore("coherence.mode", sMode);
+        restore("coherence.security.mode", sSecurityMode);
         restore(ConcurrentProxyPreprocessor.PROP_CONCURRENT_EXTEND_ENABLED, sProperty);
         CoherenceModeHelper.reset();
 
@@ -110,6 +114,8 @@ public class ConcurrentProxyModeTest
         }
 
     private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
 
     private String m_sEnabledOld;
     }

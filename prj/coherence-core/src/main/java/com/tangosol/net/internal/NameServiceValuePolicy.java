@@ -146,20 +146,14 @@ public final class NameServiceValuePolicy
             {
             if (isRmiStubJmxServiceURL(url))
                 {
-                CoherenceMode mode = CoherenceMode.current();
-                String        sLog = dynamicRmiStubManagementPublishMessage(url, mode);
-                if (mode == CoherenceMode.PROD)
+                CoherenceMode mode      = CoherenceMode.current();
+                boolean       fHardened = CoherenceMode.isSecurityHardeningEnabled();
+                String        sLog      = dynamicRmiStubManagementPublishMessage(url, mode, fHardened);
+                if (fHardened)
                     {
                     throw new IllegalArgumentException(sLog, e);
                     }
-                if (CoherenceMode.isLegacy())
-                    {
-                    Logger.warn(sLog);
-                    }
-                else
-                    {
-                    Logger.fine(sLog);
-                    }
+                Logger.warn(sLog);
                 return url;
                 }
             throw e;
@@ -282,25 +276,28 @@ public final class NameServiceValuePolicy
     /**
      * Return the dynamic RMI stub management publish message.
      *
-     * @param url   the URL
-     * @param mode  the current mode
+     * @param url        the URL
+     * @param mode       the current mode
+     * @param fHardened  {@code true} if security hardening is enabled
      *
      * @return the message
      */
-    private static String dynamicRmiStubManagementPublishMessage(JMXServiceURL url, CoherenceMode mode)
+    private static String dynamicRmiStubManagementPublishMessage(JMXServiceURL url, CoherenceMode mode,
+                                                                 boolean fHardened)
         {
         String sMode   = mode.name().toLowerCase(Locale.ROOT);
-        String sResult = mode == CoherenceMode.PROD ? "reject" : "would_reject";
-        String sIntro  = mode == CoherenceMode.PROD
-                ? "Dynamic RMI stub JMX service URLs are not allowed for management publish in PROD"
-                : "Allowed " + mode.name()
-                    + " management publish JMX service URL that hardening mode would reject";
+        String sResult = fHardened ? "reject" : "would_reject";
+        String sSecurityMode = fHardened ? "hardened" : "compatibility";
+        String sIntro  = fHardened
+                ? "Dynamic RMI stub JMX service URLs are not allowed for management publish when security hardening is enabled"
+                : "Allowed compatibility management publish JMX service URL that security hardening would reject";
 
         return sIntro
                 + ": route=management-publish"
                 + ", gate=jmx-service-url"
                 + ", reason=rmi-stub-url"
                 + ", mode=" + sMode
+                + ", security-mode=" + sSecurityMode
                 + ", result=" + sResult
                 + ", value=" + summarizeJmxUrl(url)
                 + ". Configure " + PROP_MANAGEMENT_REMOTE_REGISTRYPORT

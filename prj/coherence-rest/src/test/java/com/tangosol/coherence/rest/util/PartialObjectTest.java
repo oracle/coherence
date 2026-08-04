@@ -148,7 +148,8 @@ public class PartialObjectTest
 
         for (String sMode : new String[] {"dev", "prod"})
             {
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                 {
                 Class<?> clzPartial = oPartial.getClass();
 
@@ -163,7 +164,8 @@ public class PartialObjectTest
         {
         for (String sMode : new String[] {"dev", "prod"})
             {
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                 {
                 assertFalse(PartialObject.class.getName(),
                         SerializationAllowlist.isAllowlisted(PartialObject.class));
@@ -189,7 +191,8 @@ public class PartialObjectTest
 
         for (String sMode : new String[] {"dev", "prod"})
             {
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                 {
                 assertFalse(SerializationAllowlist.isAllowlisted(java.io.File.class));
                 assertFalse(SerializationAllowlist.isAllowed(java.io.File.class));
@@ -220,7 +223,8 @@ public class PartialObjectTest
 
         for (String sMode : new String[] {"dev", "prod"})
             {
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                 {
                 assertTrue(clzPartial.getName(), SerializationAllowlist.isAllowed(clzPartial));
                 }
@@ -256,7 +260,8 @@ public class PartialObjectTest
 
         for (String sMode : new String[] {"dev", "prod"})
             {
-            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                 {
                 assertFalse(fixture.generatedClass().getName(),
                         SerializationAllowlist.isAllowlisted(fixture.generatedClass()));
@@ -289,7 +294,8 @@ public class PartialObjectTest
                                 PropertySet.fromString(asPropertySets[(nTask + j) % asPropertySets.length]));
                         for (String sMode : new String[] {"dev", "prod"})
                             {
-                            try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.mode(sMode))
+                            try (CoherenceModeHelper.ModeScope ignoredMode = CoherenceModeHelper.mode(sMode);
+                                 CoherenceModeHelper.ModeScope ignoredSecurity = CoherenceModeHelper.securityHardened())
                                 {
                                 assertTrue(oPartial.getClass().getName(),
                                         SerializationAllowlist.isAllowed(oPartial.getClass()));

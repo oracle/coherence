@@ -100,7 +100,7 @@ public final class HttpAuthDefaults
             }
         else
             {
-            sValue = mode == CoherenceMode.LEGACY ? AUTH_NONE : AUTH_BASIC;
+            sValue = CoherenceMode.isSecurityHardeningEnabled() ? AUTH_BASIC : AUTH_NONE;
             source = Source.MODE_DEFAULT;
             }
 
@@ -237,7 +237,7 @@ public final class HttpAuthDefaults
         {
         PROPERTY("property"),
         XML("xml"),
-        MODE_DEFAULT("mode-default");
+        MODE_DEFAULT("hardening-default");
 
         Source(String sValue)
             {

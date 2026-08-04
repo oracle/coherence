@@ -124,7 +124,7 @@ public class ProxyServiceIT
     @MethodSource("clientSerializerProtocols")
     public void shouldRejectUnsafeClientSerializerInProd(String sProtocol, int nVersion) throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertInitRejected(sProtocol, nVersion, "java", Status.INVALID_ARGUMENT);
             }
@@ -135,7 +135,7 @@ public class ProxyServiceIT
         {
         String sAllowedOld = System.getProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS);
         System.setProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS, "java");
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertInitSucceeded(NamedCacheProtocol.PROTOCOL_NAME, NamedCacheProtocol.VERSION, "java");
             }

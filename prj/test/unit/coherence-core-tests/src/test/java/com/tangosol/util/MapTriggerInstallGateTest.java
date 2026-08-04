@@ -39,6 +39,7 @@ public class MapTriggerInstallGateTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         SerializationTelemetry.resetForTesting();
         resetSecurityConfig();
@@ -49,6 +50,7 @@ public class MapTriggerInstallGateTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         resetSecurityConfig();
@@ -93,9 +95,9 @@ public class MapTriggerInstallGateTest
         }
 
     @Test
-    public void legacyShadowsUnannotatedTriggerInstall()
+    public void compatibilityShadowsUnannotatedTriggerInstall()
         {
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceMapTriggerInstall(new PlainTrigger(),
                 SerializationRole.EXTEND_PROXY, null);
@@ -121,16 +123,16 @@ public class MapTriggerInstallGateTest
         }
 
     @Test
-    public void allowsDynamicTriggerInstall_dev()
+    public void allowsDynamicTriggerInstall_devCompatibility()
             throws Exception
         {
         MapTrigger<String, String> trigger = dynamicTrigger();
         assertTrue(trigger.getClass().isSynthetic());
-        setMode("dev", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY, null);
 
-        assertPolicyCounter("dev", "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertWouldRejectCounter(trigger.getClass(), 2L);
         assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_POLICY);
         assertCounterAbsent("dev", "allowed", SerializationTelemetry.SUB_REASON_MODE_GATE);
         assertCounterAbsent("dev", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
@@ -151,17 +153,33 @@ public class MapTriggerInstallGateTest
         }
 
     @Test
-    public void legacyShadowsDynamicTriggerInstall()
+    public void compatibilityShadowsDynamicTriggerInstall()
             throws Exception
         {
         MapTrigger<String, String> trigger = dynamicTrigger();
         assertTrue(trigger.getClass().isSynthetic());
-        setMode("legacy", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY, null);
 
         assertWouldRejectCounter(trigger.getClass(), 2L);
-        assertCounterAbsent("legacy", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        assertCounterAbsent("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void compatibilityWithExplicitDenyRejectsDynamicTriggerInstall()
+            throws Exception
+        {
+        MapTrigger<String, String> trigger = dynamicTrigger();
+        assertTrue(trigger.getClass().isSynthetic());
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
+
+        SecurityException e = assertThrows(SecurityException.class,
+                () -> RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.EXTEND_PROXY, null));
+
+        assertEquals("map-trigger-install-denied-by-mode", e.getMessage());
+        assertWouldRejectCounter(trigger.getClass(), 1L);
+        assertPolicyCounter("prod", "rejected", SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
     private static void assertPolicyCounter(String sMode, String sResult, String sSubReason, long cExpected)
@@ -198,7 +216,13 @@ public class MapTriggerInstallGateTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         SerializationTelemetry.resetForTesting();
@@ -270,5 +294,6 @@ public class MapTriggerInstallGateTest
         }
 
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     }

@@ -64,9 +64,11 @@ public class ConcurrentTaskInstallGateTest
     public void setUp()
         {
         m_sModeOld          = System.getProperty("coherence.mode");
+        m_sSecurityModeOld  = System.getProperty("coherence.security.mode");
         m_sClusterOld       = System.getProperty("coherence.cluster");
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         CoherenceModeHelper.restore("prod");
+        CoherenceModeHelper.restoreSecurityMode("hardened");
         System.setProperty("coherence.cluster", "cache01-f-finalfix-unit-" + System.nanoTime());
         System.clearProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         RemoteExecutionMode.resetForTesting();
@@ -76,6 +78,7 @@ public class ConcurrentTaskInstallGateTest
     public void tearDown()
         {
         restore("coherence.mode", m_sModeOld);
+        restore("coherence.security.mode", m_sSecurityModeOld);
         restore("coherence.cluster", m_sClusterOld);
         restore(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         CacheFactory.shutdown();
@@ -339,6 +342,8 @@ public class ConcurrentTaskInstallGateTest
         }
 
     private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
 
     private String m_sClusterOld;
 

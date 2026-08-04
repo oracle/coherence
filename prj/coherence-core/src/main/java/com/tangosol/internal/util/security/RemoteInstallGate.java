@@ -245,7 +245,7 @@ public final class RemoteInstallGate
 
     /**
      * Enforce persisted topic subscriber filter/extractor replay policy.
-     * LEGACY-mode shadow telemetry is owned by {@link RemoteExecutablePolicy#enforce(Class, OperationReason,
+     * Compatibility shadow telemetry is owned by {@link RemoteExecutablePolicy#enforce(Class, OperationReason,
      * SerializationRole, Subject)}; replay adds no additional shadow tuple.
      *
      * @param filter     the persisted subscriber filter
@@ -261,8 +261,8 @@ public final class RemoteInstallGate
 
     /**
      * Enforce persisted topic subscriber filter/extractor replay policy.
-     * LEGACY replay records one {@code would_reject} tuple per policy shadow,
-     * unlike install-time dynamic LEGACY shadows which record policy and mode-gate tuples.
+     * Compatibility replay records one {@code would_reject} tuple per policy shadow,
+     * unlike install-time dynamic compatibility shadows which record policy and mode-gate tuples.
      *
      * @param filter     the persisted subscriber filter
      * @param extractor  the persisted subscriber extractor
@@ -1228,14 +1228,6 @@ public final class RemoteInstallGate
     private static void enforceDynamicInstall(Class<?> clz, OperationReason reason, SerializationRole role,
                                               Subject subject, String sTopic, String sModeReason)
         {
-        if (CoherenceMode.isLegacy())
-            {
-            // policy owns class shadow telemetry; the install gate owns the dynamic-mode shadow.
-            SerializationTelemetry.recordExecutablePolicyCheck("would_reject", clz, reason, role, subject,
-                    SerializationTelemetry.SUB_REASON_MODE_GATE);
-            return;
-            }
-
         if (!RemoteExecutionMode.isDynamicRemoteAllowed())
             {
             SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
@@ -1243,6 +1235,13 @@ public final class RemoteInstallGate
             SerializationTelemetry.logRejection(sTopic, roleName(role), subject, className(clz),
                     SerializationTelemetry.SUB_REASON_MODE_GATE);
             throw new SecurityException(sModeReason);
+            }
+
+        if (!CoherenceMode.isSecurityHardeningEnabled())
+            {
+            // policy owns class shadow telemetry; the install gate owns the dynamic-mode shadow.
+            SerializationTelemetry.recordExecutablePolicyCheck("would_reject", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_MODE_GATE);
             }
         }
 
@@ -1255,7 +1254,19 @@ public final class RemoteInstallGate
             }
 
         RemoteExecutablePolicy policy = RemoteExecutablePolicy.current();
-        if ((CoherenceMode.isLegacy() || !TopicsPersistedPolicyDrift.isReject()) && !policy.isExecutable(clz)
+        boolean fExecutable = policy.isExecutable(clz);
+        if (TopicsPersistedPolicyDrift.isReject() && !fExecutable)
+            {
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_POLICY);
+            SerializationTelemetry.recordExecutablePolicyCheck("rejected", clz, reason, role, subject,
+                    SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            SerializationTelemetry.logRejection(TOPIC_SUBSCRIBER_REPLAY, roleName(role), subject,
+                    className(clz), SerializationTelemetry.SUB_REASON_REPLAY_DRIFT);
+            throw new SecurityException("topic-subscriber-replay-drift-rejected");
+            }
+
+        if (!fExecutable
                 && !recordReplayDedup(clz, reason, setDedup))
             {
             return;

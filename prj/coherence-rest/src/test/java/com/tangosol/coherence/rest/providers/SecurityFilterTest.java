@@ -51,7 +51,7 @@ public class SecurityFilterTest
     public void shouldRejectEngagedAuthWithoutPrincipalInDev()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, null));
 
@@ -71,7 +71,7 @@ public class SecurityFilterTest
     public void shouldRejectEngagedAuthWithoutPrincipalInProd()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, null));
 
@@ -90,7 +90,7 @@ public class SecurityFilterTest
     public void shouldRejectUnsupportedAuthSchemeWhenAuthIsEngaged()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, null));
             request.getHeaders().putSingle(HttpHeaders.AUTHORIZATION, "Bearer token");
@@ -111,7 +111,7 @@ public class SecurityFilterTest
     public void shouldRejectBasicHeaderWhenEngagedAuthHasNoPrincipal()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, null));
             request.getHeaders().putSingle(HttpHeaders.AUTHORIZATION, basic("client:password"));
@@ -131,7 +131,7 @@ public class SecurityFilterTest
     public void shouldReturnUnauthorizedWhenAuthenticationSchemeThrowsInProd()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(new ThrowingAuthenticationSchemeContext());
 
@@ -150,7 +150,7 @@ public class SecurityFilterTest
     public void shouldReturnUnauthorizedWhenPrincipalAccessorThrowsInProd()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(new ThrowingPrincipalContext());
 
@@ -169,7 +169,7 @@ public class SecurityFilterTest
     public void shouldReturnUnauthorizedWhenPrincipalNameThrowsInProd()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(new TestSecurityContext(SecurityContext.BASIC_AUTH,
                     new ThrowingPrincipal()));
@@ -181,40 +181,41 @@ public class SecurityFilterTest
         }
 
     /**
-     * Should preserve LEGACY behavior when the authentication scheme accessor
+     * Should preserve compatibility behavior when the authentication scheme
+     * accessor fails.
+     *
+     * @throws IOException if the filter fails unexpectedly
+     */
+    @Test
+    public void shouldNotAbortWhenAuthenticationSchemeThrowsInCompatibility()
+            throws IOException
+        {
+        assertCompatibilityDoesNotAbort(new ThrowingAuthenticationSchemeContext());
+        }
+
+    /**
+     * Should preserve compatibility behavior when the principal accessor fails.
+     *
+     * @throws IOException if the filter fails unexpectedly
+     */
+    @Test
+    public void shouldNotAbortWhenPrincipalAccessorThrowsInCompatibility()
+            throws IOException
+        {
+        assertCompatibilityDoesNotAbort(new ThrowingPrincipalContext());
+        }
+
+    /**
+     * Should preserve compatibility behavior when the principal name accessor
      * fails.
      *
      * @throws IOException if the filter fails unexpectedly
      */
     @Test
-    public void shouldNotAbortWhenAuthenticationSchemeThrowsInLegacy()
+    public void shouldNotAbortWhenPrincipalNameThrowsInCompatibility()
             throws IOException
         {
-        assertLegacyDoesNotAbort(new ThrowingAuthenticationSchemeContext());
-        }
-
-    /**
-     * Should preserve LEGACY behavior when the principal accessor fails.
-     *
-     * @throws IOException if the filter fails unexpectedly
-     */
-    @Test
-    public void shouldNotAbortWhenPrincipalAccessorThrowsInLegacy()
-            throws IOException
-        {
-        assertLegacyDoesNotAbort(new ThrowingPrincipalContext());
-        }
-
-    /**
-     * Should preserve LEGACY behavior when the principal name accessor fails.
-     *
-     * @throws IOException if the filter fails unexpectedly
-     */
-    @Test
-    public void shouldNotAbortWhenPrincipalNameThrowsInLegacy()
-            throws IOException
-        {
-        assertLegacyDoesNotAbort(new TestSecurityContext(SecurityContext.BASIC_AUTH, new ThrowingPrincipal()));
+        assertCompatibilityDoesNotAbort(new TestSecurityContext(SecurityContext.BASIC_AUTH, new ThrowingPrincipal()));
         }
 
     /**
@@ -226,7 +227,7 @@ public class SecurityFilterTest
     public void shouldAcceptUsablePrincipalWhenAuthIsEngaged()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, "client"));
 
@@ -239,15 +240,15 @@ public class SecurityFilterTest
         }
 
     /**
-     * Should preserve the historical fail-open behavior in LEGACY mode.
+     * Should preserve the historical fail-open behavior in compatibility mode.
      *
      * @throws IOException if the filter fails unexpectedly
      */
     @Test
-    public void shouldPreserveFailOpenBehaviorInLegacy()
+    public void shouldPreserveFailOpenBehaviorInCompatibility()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             ContainerRequest request = request(context(SecurityContext.BASIC_AUTH, null));
 
@@ -266,7 +267,7 @@ public class SecurityFilterTest
     public void shouldPreserveAnonymousBehaviorWhenAuthIsNotEngaged()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(null, null));
 
@@ -286,7 +287,7 @@ public class SecurityFilterTest
     public void shouldIgnoreBasicHeaderWhenAuthIsNotEngaged()
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ContainerRequest request = request(context(null, null));
             request.getHeaders().putSingle(HttpHeaders.AUTHORIZATION, basic("spoof:secret"));
@@ -339,16 +340,16 @@ public class SecurityFilterTest
         }
 
     /**
-     * Assert that LEGACY mode does not abort for the supplied security context.
+     * Assert that compatibility mode does not abort for the supplied security context.
      *
      * @param context  the request security context
      *
      * @throws IOException if the filter fails unexpectedly
      */
-    private static void assertLegacyDoesNotAbort(SecurityContext context)
+    private static void assertCompatibilityDoesNotAbort(SecurityContext context)
             throws IOException
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             ContainerRequest request = request(context);
 

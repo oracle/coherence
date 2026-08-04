@@ -47,7 +47,7 @@ public class DefaultInvocationServiceProxyDependencies
             }
         else if (deps == null)
             {
-            setEnabled(!CoherenceMode.isProd());
+            setEnabled(!CoherenceMode.isSecurityHardeningEnabled());
             applySystemPropertyOverride();
             }
         }

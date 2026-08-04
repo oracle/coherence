@@ -35,7 +35,7 @@ public class RestExpressionPolicyTest
     @Test
     public void shouldResolveSortAliasesInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ExpressionAliasConfig aliases = createAliases();
 
@@ -50,7 +50,7 @@ public class RestExpressionPolicyTest
     @Test
     public void shouldRejectBadSortAliasGrammarInDev()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             ExpressionAliasConfig aliases = createAliases();
 
@@ -70,9 +70,9 @@ public class RestExpressionPolicyTest
         }
 
     @Test
-    public void shouldPreserveLegacySortPassthrough()
+    public void shouldPreserveCompatibilitySortPassthrough()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             String sSort = "foo:bar:baz,";
 

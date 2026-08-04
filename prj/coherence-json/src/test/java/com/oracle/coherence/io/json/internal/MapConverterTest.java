@@ -33,8 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * <p>
  * Prompt 05 at
  * design/features/security-bugs/plans/rest-01/prompts/05-slice-d-json-class-metadata-implementation.md
- * keeps map metadata fallback in LEGACY but verifies DEV/PROD map {@code @class}
- * policy denials are not swallowed by the fallback converter path.
+ * keeps map metadata fallback in compatibility mode but verifies hardened map
+ * {@code @class} policy denials are not swallowed by the fallback converter
+ * path.
  *
  * @author Aleks Seovic  2018.05.30
 * @since 20.06
@@ -103,7 +104,7 @@ class MapConverterTest
     @Test
     void shouldRejectUnsafeMapClassMetadataInDevMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class,
                     () -> s_genson.deserialize(mapJson("java.util.LinkedHashMap"), MAP_GENERIC_TYPE));
@@ -113,7 +114,7 @@ class MapConverterTest
     @Test
     void shouldRejectUnsafeMapClassMetadataInProdMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class,
                     () -> s_genson.deserialize(mapJson("java.util.TreeMap"), MAP_GENERIC_TYPE));
@@ -121,9 +122,9 @@ class MapConverterTest
         }
 
     @Test
-    void shouldPreserveLegacyMapClassFallback()
+    void shouldPreserveCompatibilityMapClassFallback()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             Map<String, Integer> map = s_genson.deserialize(mapJson("missing.MapType"), MAP_GENERIC_TYPE);
 
@@ -135,7 +136,7 @@ class MapConverterTest
     @Test
     void shouldPreserveDevMapWithoutClassMetadata()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Map<String, Integer> map = s_genson.deserialize(mapJson(null), MAP_GENERIC_TYPE);
 

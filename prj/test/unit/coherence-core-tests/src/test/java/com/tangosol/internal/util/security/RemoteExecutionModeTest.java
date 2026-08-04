@@ -28,38 +28,39 @@ public class RemoteExecutionModeTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         }
 
     @Test
-    public void devDefault()
+    public void defaultSecurityModeAllowsDynamicRemote()
         {
-        setMode("dev", null);
+        setMode("prod", null);
 
         assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
 
     @Test
-    public void prodDefault()
+    public void compatibilitySecurityModeAllowsDynamicRemote()
         {
-        setMode("prod", null);
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
+        }
+
+    @Test
+    public void hardenedSecurityModeDeniesDynamicRemote()
+        {
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
 
     @Test
-    public void legacyDefault()
-        {
-        setMode("legacy", null);
-
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
-        }
-
-    @Test
     public void explicitAllow()
         {
-        setMode("prod", "allow");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "allow");
 
         assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
@@ -67,28 +68,25 @@ public class RemoteExecutionModeTest
     @Test
     public void explicitDeny()
         {
-        setMode("dev", "deny");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "deny");
 
         assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
 
     @Test
-    public void invalidValueFallsBackToModeDefault()
+    public void invalidValueFallsBackToSecurityModeDefault()
         {
-        setMode("dev", "maybe");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "maybe");
         assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
 
-        setMode("prod", "maybe");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "maybe");
         assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
-
-        setMode("legacy", "maybe");
-        assertTrue(RemoteExecutionMode.isDynamicRemoteAllowed());
         }
 
     @Test
     public void resetForTesting()
         {
-        setMode("prod", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         assertFalse(RemoteExecutionMode.isDynamicRemoteAllowed());
 
@@ -101,7 +99,13 @@ public class RemoteExecutionModeTest
 
     private static void setMode(String sMode, String sDynamicRemote)
         {
+        setMode(sMode, null, sDynamicRemote);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicRemote)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetMode();
         }
@@ -125,5 +129,6 @@ public class RemoteExecutionModeTest
         }
 
     private final String m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     private final String m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
     }

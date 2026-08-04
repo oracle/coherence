@@ -38,9 +38,10 @@ import jakarta.ws.rs.ext.Provider;
 /**
  * Simple authentication filter.
  *
- * In DEV and PROD mode, returns response with http status 401 when REST
- * authentication is engaged but proper authentication is not provided in the
- * incoming request. LEGACY mode preserves the historical fail-open behavior.
+ * When security hardening is enabled, returns response with http status 401
+ * when REST authentication is engaged but proper authentication is not provided
+ * in the incoming request. Compatibility mode preserves the historical
+ * fail-open behavior.
  *
  * @author lh
  * @see ContainerRequestFilter

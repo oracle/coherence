@@ -39,9 +39,9 @@ import static org.junit.Assert.assertTrue;
 public class CacheProcessorsTest
     {
     @Test
-    public void shouldUseLegacyCompatibleLambdaProcessorsInLegacyMode()
+    public void shouldUseCompatibleLambdaProcessorsInCompatibilityMode()
         {
-        withCoherenceMode("legacy", () ->
+        withCoherenceMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, () ->
             {
             assertNotSame(CacheProcessors.ReplaceFunction.class,
                     CacheProcessors.replace((BiFunction<String, String, String>) (key, value) -> key + value).getClass());
@@ -188,8 +188,15 @@ public class CacheProcessorsTest
 
     private static void withCoherenceMode(String sMode, Runnable runnable)
         {
-        String sPrevious = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        withCoherenceMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED, runnable);
+        }
+
+    private static void withCoherenceMode(String sMode, String sSecurityMode, Runnable runnable)
+        {
+        String sPreviousMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        String sPreviousSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         System.setProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        System.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         resetCoherenceMode();
         try
             {
@@ -197,13 +204,21 @@ public class CacheProcessorsTest
             }
         finally
             {
-            if (sPrevious == null)
+            if (sPreviousMode == null)
                 {
                 System.clearProperty(CoherenceMode.PROP_COHERENCE_MODE);
                 }
             else
                 {
-                System.setProperty(CoherenceMode.PROP_COHERENCE_MODE, sPrevious);
+                System.setProperty(CoherenceMode.PROP_COHERENCE_MODE, sPreviousMode);
+                }
+            if (sPreviousSecurityMode == null)
+                {
+                System.clearProperty(CoherenceMode.PROP_SECURITY_MODE);
+                }
+            else
+                {
+                System.setProperty(CoherenceMode.PROP_SECURITY_MODE, sPreviousSecurityMode);
                 }
             resetCoherenceMode();
             }

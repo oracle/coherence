@@ -158,7 +158,7 @@ public class SerializationTelemetryTest
     @Test
     public void testLegacyWouldRejectKeepsSliceAShape()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             SerializationTelemetry.recordExecutablePolicyCheck("would_reject", getClass(), OperationReason.SCRIPT_EVAL,
                     SerializationRole.GRPC, null, SerializationTelemetry.SUB_REASON_POLICY);

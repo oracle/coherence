@@ -363,14 +363,16 @@ public class InvocationServiceProxy
             }
 
         String sMode = CoherenceMode.current().name().toLowerCase();
+        String sSecurityMode = CoherenceMode.isSecurityHardeningEnabled() ? "hardened" : "compatibility";
         Logger.info("InvocationService: enabled=" + isEnabled()
                 + " (mode=" + sMode
+                + ", security-mode=" + sSecurityMode
                 + ", coherence.invocation.enabled=" + valueOrUnset(deps.getSystemPropertyValue())
                 + ", operational config=" + valueOrUnset(deps.getOperationalConfigEnabled()) + ")");
 
-        if (!isEnabled() && !CoherenceMode.isLegacy())
+        if (!isEnabled() && CoherenceMode.isSecurityHardeningEnabled())
             {
-            Logger.warn("InvocationService proxy is DISABLED in " + sMode + " mode by policy. "
+            Logger.warn("InvocationService proxy is DISABLED because security hardening is enabled. "
                     + "Remote Invocable execution will be refused with a generic "
                     + "service-unavailable fault. Set coherence.invocation.enabled=true "
                     + "or <invocation-service-proxy><enabled>true</enabled> to expose "

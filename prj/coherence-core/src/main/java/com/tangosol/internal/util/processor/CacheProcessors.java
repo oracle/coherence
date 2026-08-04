@@ -140,7 +140,7 @@ public class CacheProcessors
             BiFunction<? super K, ? super V, ? extends V> function)
         {
         Objects.requireNonNull(function);
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return (entry) ->
                 {
@@ -168,7 +168,7 @@ public class CacheProcessors
             Function<? super K, ? extends V> mappingFunction)
         {
         Objects.requireNonNull(mappingFunction);
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return (entry) ->
                 {
@@ -207,7 +207,7 @@ public class CacheProcessors
             BiFunction<? super K, ? super V, ? extends V> remappingFunction)
         {
         Objects.requireNonNull(remappingFunction);
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return (entry) ->
                 {
@@ -250,7 +250,7 @@ public class CacheProcessors
             BiFunction<? super K, ? super V, ? extends V> remappingFunction)
         {
         Objects.requireNonNull(remappingFunction);
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return (entry) ->
                 {
@@ -301,7 +301,7 @@ public class CacheProcessors
         {
         Objects.requireNonNull(value);
         Objects.requireNonNull(remappingFunction);
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
             return (entry) ->
                 {

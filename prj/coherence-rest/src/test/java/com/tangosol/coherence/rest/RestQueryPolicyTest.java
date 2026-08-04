@@ -38,7 +38,7 @@ public class RestQueryPolicyTest
     @Test
     public void shouldBuildAcceptedStrictDirectQueries()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertStrictQueryBuilds("age == 36");
             assertStrictQueryBuilds("age == 36 && name == \"Ivan\"");
@@ -56,7 +56,7 @@ public class RestQueryPolicyTest
     @Test
     public void shouldRejectUnsafeStrictDirectQueries()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertStrictQueryRejected("new Person() == \"Ivan\"");
             assertStrictQueryRejected("address.city == \"Tampa\"");

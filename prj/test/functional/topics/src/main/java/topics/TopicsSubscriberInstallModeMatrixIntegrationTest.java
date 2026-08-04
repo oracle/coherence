@@ -66,6 +66,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     public void capturePropertyDefaults()
         {
         m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
         m_sLambdasOld       = System.getProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY);
         m_sClusterOld       = System.getProperty(PROP_COHERENCE_CLUSTER);
@@ -82,8 +83,9 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
             {
             stopCacheServer(m_sServerName);
             m_sServerName = null;
-            }
+        }
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         restoreProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, m_sLambdasOld);
         restoreProperty(PROP_COHERENCE_CLUSTER, m_sClusterOld);
@@ -100,8 +102,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("prod");
 
         assertFilterInstalled(new AnnotatedFilter());
-        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -110,96 +112,100 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("dev");
 
         assertFilterInstalled(new AnnotatedFilter());
-        assertCounter(OperationReason.EVALUATE_FILTER, "dev", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "dev", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void annotatedFilterInstallsInLegacy()
+    public void annotatedFilterInstallsInCompatibility()
         {
-        startProxy("legacy");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertFilterInstalled(new AnnotatedFilter());
         assertWouldRejectCounterAbsent(AnnotatedFilter.class, OperationReason.EVALUATE_FILTER);
         }
 
     @Test
-    public void unannotatedFilterRejectedInProd()
+    public void unannotatedFilterShadowedInProd()
         {
         startProxy("prod");
-
-        assertFilterRejected(new PlainFilter(), "Remote execution denied");
-        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void wrappedUnannotatedExtractorFilterRejectedInProd()
-        {
-        startProxy("prod");
-
-        assertFilterRejected(new EqualsFilter<>(new PlainExtractor(), "value"), "Remote execution denied");
-        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        assertCounter(OperationReason.EXTRACT, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void unannotatedFilterRejectedInDev()
-        {
-        startProxy("dev");
-
-        assertFilterRejected(new PlainFilter(), "Remote execution denied");
-        assertCounter(OperationReason.EVALUATE_FILTER, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void unannotatedFilterShadowedInLegacy()
-        {
-        startProxy("legacy");
 
         assertFilterInstalled(new PlainFilter());
         assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
         }
 
     @Test
-    public void dynamicFilterRejectedInProd()
+    public void wrappedUnannotatedExtractorFilterShadowedInProd()
+        {
+        startProxy("prod");
+
+        assertFilterInstalled(new EqualsFilter<>(new PlainExtractor(), "value"));
+        assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
+        }
+
+    @Test
+    public void unannotatedFilterShadowedInDev()
+        {
+        startProxy("dev");
+
+        assertFilterInstalled(new PlainFilter());
+        assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
+        }
+
+    @Test
+    public void unannotatedFilterShadowedInCompatibility()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertFilterInstalled(new PlainFilter());
+        assertWouldRejectCounter(PlainFilter.class, OperationReason.EVALUATE_FILTER, 1L);
+        }
+
+    @Test
+    public void dynamicFilterShadowedInProd()
         {
         startProxy("prod", "static");
 
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
 
+        assertFilterInstalled(filter);
+        assertWouldRejectLambdaCounter(OperationReason.EVALUATE_FILTER, 2L);
+        assertCounterAbsent(OperationReason.EVALUATE_FILTER, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void dynamicFilterRejectedWithExplicitDenyInCompatibility()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static", "deny");
+
+        Filter<String> filter = dynamicFilter();
+        assertTrue(filter.getClass().isSynthetic());
+
         assertFilterRejected(filter, "topic-subscriber-install-denied-by-mode");
-        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 0L);
-        assertCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertCounter(OperationReason.EVALUATE_FILTER, "prod", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
     @Test
-    public void dynamicFilterInstallsInDev()
+    public void dynamicFilterInstallsInDevCompatibility()
         {
-        startProxy("dev", "static");
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
 
         assertFilterInstalled(filter);
-        assertCounter(OperationReason.EVALUATE_FILTER, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertWouldRejectLambdaCounter(OperationReason.EVALUATE_FILTER, 2L);
         assertCounterAbsent(OperationReason.EVALUATE_FILTER, "dev", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void dynamicFilterShadowedInLegacy()
+    public void dynamicFilterShadowedInCompatibility()
         {
-        startProxy("legacy", "static");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         Filter<String> filter = dynamicFilter();
         assertTrue(filter.getClass().isSynthetic());
@@ -214,8 +220,8 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("prod");
 
         assertExtractorInstalled(new AnnotatedExtractor());
-        assertCounter(OperationReason.EXTRACT, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounterAbsent(OperationReason.EXTRACT, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
@@ -224,84 +230,91 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         startProxy("dev");
 
         assertExtractorInstalled(new AnnotatedExtractor());
-        assertCounter(OperationReason.EXTRACT, "dev", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertCounterAbsent(OperationReason.EXTRACT, "dev", "allowed",
+                SerializationTelemetry.SUB_REASON_POLICY);
         }
 
     @Test
-    public void annotatedExtractorInstallsInLegacy()
+    public void annotatedExtractorInstallsInCompatibility()
         {
-        startProxy("legacy");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
 
         assertExtractorInstalled(new AnnotatedExtractor());
         assertWouldRejectCounterAbsent(AnnotatedExtractor.class, OperationReason.EXTRACT);
         }
 
     @Test
-    public void unannotatedExtractorRejectedInProd()
+    public void unannotatedExtractorShadowedInProd()
         {
         startProxy("prod");
-
-        assertExtractorRejected(new PlainExtractor(), "Remote execution denied");
-        assertCounter(OperationReason.EXTRACT, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void unannotatedExtractorRejectedInDev()
-        {
-        startProxy("dev");
-
-        assertExtractorRejected(new PlainExtractor(), "Remote execution denied");
-        assertCounter(OperationReason.EXTRACT, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
-        }
-
-    @Test
-    public void unannotatedExtractorShadowedInLegacy()
-        {
-        startProxy("legacy");
 
         assertExtractorInstalled(new PlainExtractor());
         assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
         }
 
     @Test
-    public void dynamicExtractorRejectedInProd()
+    public void unannotatedExtractorShadowedInDev()
+        {
+        startProxy("dev");
+
+        assertExtractorInstalled(new PlainExtractor());
+        assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
+        }
+
+    @Test
+    public void unannotatedExtractorShadowedInCompatibility()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, null);
+
+        assertExtractorInstalled(new PlainExtractor());
+        assertWouldRejectCounter(PlainExtractor.class, OperationReason.EXTRACT, 1L);
+        }
+
+    @Test
+    public void dynamicExtractorShadowedInProd()
         {
         startProxy("prod", "static");
 
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
 
+        assertExtractorInstalled(extractor);
+        assertWouldRejectLambdaCounter(OperationReason.EXTRACT, 2L);
+        assertCounterAbsent(OperationReason.EXTRACT, "prod", "rejected",
+                SerializationTelemetry.SUB_REASON_MODE_GATE);
+        }
+
+    @Test
+    public void dynamicExtractorRejectedWithExplicitDenyInCompatibility()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static", "deny");
+
+        ValueExtractor<String, String> extractor = dynamicExtractor();
+        assertTrue(extractor.getClass().isSynthetic());
+
         assertExtractorRejected(extractor, "topic-subscriber-install-denied-by-mode");
-        assertCounter(OperationReason.EXTRACT, "prod", "allowed",
-                SerializationTelemetry.SUB_REASON_POLICY, 0L);
-        assertCounter(OperationReason.EXTRACT, "prod", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
         assertCounter(OperationReason.EXTRACT, "prod", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE, 1L);
         }
 
     @Test
-    public void dynamicExtractorInstallsInDev()
+    public void dynamicExtractorInstallsInDevCompatibility()
         {
-        startProxy("dev", "static");
+        startProxy("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
 
         assertExtractorInstalled(extractor);
-        assertCounter(OperationReason.EXTRACT, "dev", "rejected",
-                SerializationTelemetry.SUB_REASON_POLICY, 1L);
+        assertWouldRejectLambdaCounter(OperationReason.EXTRACT, 2L);
         assertCounterAbsent(OperationReason.EXTRACT, "dev", "rejected",
                 SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
     @Test
-    public void dynamicExtractorShadowedInLegacy()
+    public void dynamicExtractorShadowedInCompatibility()
         {
-        startProxy("legacy", "static");
+        startProxy("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY, "static");
 
         ValueExtractor<String, String> extractor = dynamicExtractor();
         assertTrue(extractor.getClass().isSynthetic());
@@ -366,15 +379,27 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
 
     private void startProxy(String sMode, String sLambdas)
         {
+        startProxy(sMode, null, sLambdas);
+        }
+
+    private void startProxy(String sMode, String sSecurityMode, String sLambdas)
+        {
+        startProxy(sMode, sSecurityMode, sLambdas, null);
+        }
+
+    private void startProxy(String sMode, String sSecurityMode, String sLambdas, String sDynamicRemote)
+        {
         String sCluster = SERVER_NAME + '-' + sMode + '-' + System.nanoTime();
 
         CacheFactory.shutdown();
         setFactory(null);
         CoherenceModeHelper.restore(sMode);
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
         restoreProperty(PROP_COHERENCE_CLUSTER, sCluster);
         restoreProperty(PROP_LOCAL_STORAGE, "false");
         restoreProperty(PROP_CACHE_CONFIG, CLIENT_CACHE_CONFIG);
         restoreProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, sLambdas);
+        restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
         resetLambdasForTesting();
         RemoteExecutionMode.resetForTesting();
 
@@ -382,9 +407,17 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
         props.setProperty("coherence.mode", sMode);
         props.setProperty(PROP_COHERENCE_CLUSTER, sCluster);
         props.setProperty("coherence.proxy.enabled", "true");
+        if (sSecurityMode != null)
+            {
+            props.setProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
+            }
         if (sLambdas != null)
             {
             props.setProperty(Lambdas.LAMBDAS_SERIALIZATION_MODE_PROPERTY, sLambdas);
+            }
+        if (sDynamicRemote != null)
+            {
+            props.setProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicRemote);
             }
 
         m_sServerName = sCluster;
@@ -583,6 +616,7 @@ public class TopicsSubscriberInstallModeMatrixIntegrationTest
     private CoherenceClusterMember m_memberProxy;
     private String m_sServerName;
     private String m_sModeOld;
+    private String m_sSecurityModeOld;
     private String m_sDynamicRemoteOld;
     private String m_sLambdasOld;
     private String m_sClusterOld;

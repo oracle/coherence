@@ -50,7 +50,7 @@ public class ManagementInvocationPolicyTest
     public void registerMBean()
             throws Exception
         {
-        m_mode = CoherenceModeHelper.prod();
+        m_mode = CoherenceModeHelper.securityHardened();
         m_server = ManagementFactory.getPlatformMBeanServer();
         m_name   = new ObjectName("Coherence:type=PolicyTest,name=unit");
         if (m_server.isRegistered(m_name))

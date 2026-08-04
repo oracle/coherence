@@ -47,6 +47,7 @@ public class SeniorMetadataProofReceiveVerificationTest
             throws Exception
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sOriginalMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sOriginalSecurityMode);
         restoreProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED, m_sOriginalRequired);
         resetMode();
         }
@@ -259,26 +260,25 @@ public class SeniorMetadataProofReceiveVerificationTest
         }
 
     @Test
-    public void shouldAllowSelfIssuedNonSeniorDelegatedProofInLegacyDevAndDefaultFalse()
+    public void shouldRejectSelfIssuedNonSeniorDelegatedProofWhenRequiredAndAllowDefaultFalse()
             throws Exception
         {
         byte[] abProof = selfIssuedPanicToken(2, 2, 3);
 
         setProofRequired(true);
 
-        setMode("legacy");
-        ReceiveClusterService legacy = new ReceiveClusterService(true, 3, 1, false);
-        assertTrue(legacy.verify(delegatedKill(legacy, abProof, 2, 3)));
-        assertEquals(1, legacy.getWouldRejectCount());
-        assertTrue(legacy.getLastWouldRejectReason().contains("payload_mismatch"));
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService prodCompatibility = new ReceiveClusterService(true, 3, 1, false);
+        assertRejectsWith(prodCompatibility, delegatedKill(prodCompatibility, abProof, 2, 3), "payload_mismatch");
 
         setMode("dev");
-        ReceiveClusterService dev = new ReceiveClusterService(true, 3, 1, false);
-        assertTrue(dev.verify(delegatedKill(dev, abProof, 2, 3)));
-        assertEquals(1, dev.getDebugAllowCount());
-        assertTrue(dev.getLastDebugAllowReason().contains("payload_mismatch"));
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService devCompatibility = new ReceiveClusterService(true, 3, 1, false);
+        assertRejectsWith(devCompatibility, delegatedKill(devCompatibility, abProof, 2, 3), "payload_mismatch");
 
         setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         setProofRequired(false);
         ReceiveClusterService neutral = new ReceiveClusterService(true, 3, 1, false);
         assertTrue(neutral.verify(delegatedKill(neutral, abProof, 2, 3)));
@@ -287,45 +287,41 @@ public class SeniorMetadataProofReceiveVerificationTest
         }
 
     @Test
-    public void shouldAllowInvalidDelegatedKillProofsInLegacyAndDev()
+    public void shouldRejectInvalidDelegatedKillProofsWhenRequiredInCompatibilityModes()
             throws Exception
         {
         byte[] abProof = seniorPanicProof(1, 4, 3, false);
 
         setProofRequired(true);
 
-        setMode("legacy");
-        ReceiveClusterService legacy = new ReceiveClusterService(true, 3, 1, false);
-        assertTrue(legacy.verify(delegatedKill(legacy, abProof, 2, 3)));
-        assertEquals(1, legacy.getWouldRejectCount());
-        assertTrue(legacy.getLastWouldRejectReason().contains("payload_mismatch"));
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService prodCompatibility = new ReceiveClusterService(true, 3, 1, false);
+        assertRejectsWith(prodCompatibility, delegatedKill(prodCompatibility, abProof, 2, 3), "payload_mismatch");
 
         setMode("dev");
-        ReceiveClusterService dev = new ReceiveClusterService(true, 3, 1, false);
-        assertTrue(dev.verify(delegatedKill(dev, abProof, 2, 3)));
-        assertEquals(1, dev.getDebugAllowCount());
-        assertTrue(dev.getLastDebugAllowReason().contains("payload_mismatch"));
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService devCompatibility = new ReceiveClusterService(true, 3, 1, false);
+        assertRejectsWith(devCompatibility, delegatedKill(devCompatibility, abProof, 2, 3), "payload_mismatch");
         }
 
     @Test
-    public void shouldAllowInvalidForwardedDelegatedKillProofsInLegacyAndDev()
+    public void shouldRejectInvalidForwardedDelegatedKillProofsWhenRequiredInCompatibilityModes()
             throws Exception
         {
         byte[] abProof = seniorPanicProof(1, 2, 5, false);
 
         setProofRequired(true);
 
-        setMode("legacy");
-        ReceiveClusterService legacy = new ReceiveClusterService(true, 4, 3, false, 3, 4);
-        assertTrue(legacy.verify(delegatedKill(legacy, abProof, 3, 4)));
-        assertEquals(1, legacy.getWouldRejectCount());
-        assertTrue(legacy.getLastWouldRejectReason().contains("payload_mismatch"));
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService prodCompatibility = new ReceiveClusterService(true, 4, 3, false, 3, 4);
+        assertRejectsWith(prodCompatibility, delegatedKill(prodCompatibility, abProof, 3, 4), "payload_mismatch");
 
         setMode("dev");
-        ReceiveClusterService dev = new ReceiveClusterService(true, 4, 3, false, 3, 4);
-        assertTrue(dev.verify(delegatedKill(dev, abProof, 3, 4)));
-        assertEquals(1, dev.getDebugAllowCount());
-        assertTrue(dev.getLastDebugAllowReason().contains("payload_mismatch"));
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService devCompatibility = new ReceiveClusterService(true, 4, 3, false, 3, 4);
+        assertRejectsWith(devCompatibility, delegatedKill(devCompatibility, abProof, 3, 4), "payload_mismatch");
         }
 
     @Test
@@ -406,22 +402,20 @@ public class SeniorMetadataProofReceiveVerificationTest
         }
 
     @Test
-    public void shouldRecordLegacyAndDevFailuresAndAllowCompatibilityBehavior()
+    public void shouldRejectMissingProofWhenRequiredInCompatibilityModes()
             throws Exception
         {
         setProofRequired(true);
 
-        setMode("legacy");
-        ReceiveClusterService legacy = new ReceiveClusterService(true, false);
-        assertTrue(legacy.verify(heartbeat(legacy)));
-        assertEquals(1, legacy.getWouldRejectCount());
-        assertTrue(legacy.getLastWouldRejectReason().contains("missing"));
+        setMode("prod");
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService prodCompatibility = new ReceiveClusterService(true, false);
+        assertRejectsWith(prodCompatibility, heartbeat(prodCompatibility), "missing");
 
         setMode("dev");
-        ReceiveClusterService dev = new ReceiveClusterService(true, false);
-        assertTrue(dev.verify(heartbeat(dev)));
-        assertEquals(1, dev.getDebugAllowCount());
-        assertTrue(dev.getLastDebugAllowReason().contains("missing"));
+        setSecurityMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        ReceiveClusterService devCompatibility = new ReceiveClusterService(true, false);
+        assertRejectsWith(devCompatibility, heartbeat(devCompatibility), "missing");
         }
 
     @Test
@@ -651,6 +645,13 @@ public class SeniorMetadataProofReceiveVerificationTest
             throws Exception
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        resetMode();
+        }
+
+    private static void setSecurityMode(String sSecurityMode)
+            throws Exception
+        {
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
         }
 
@@ -905,6 +906,7 @@ public class SeniorMetadataProofReceiveVerificationTest
 
     private static final long TIMESTAMP = 123456789L;
 
-    private final String m_sOriginalMode     = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
-    private final String m_sOriginalRequired = System.getProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED);
+    private final String m_sOriginalMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sOriginalSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+    private final String m_sOriginalRequired     = System.getProperty(PROP_SENIOR_METADATA_PROOF_REQUIRED);
     }

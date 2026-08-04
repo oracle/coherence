@@ -47,7 +47,7 @@ public final class GrpcSerializerPolicy
 
         try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
             {
-            if (CoherenceMode.isLegacy())
+            if (!CoherenceMode.isSecurityHardeningEnabled())
                 {
                 SerializationTelemetry.recordSerializerCheck(fAllowed ? RESULT_ALLOWED : RESULT_WOULD_REJECT, sReason);
                 return;

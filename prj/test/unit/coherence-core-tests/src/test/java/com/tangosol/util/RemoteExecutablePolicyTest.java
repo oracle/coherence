@@ -54,6 +54,7 @@ public class RemoteExecutablePolicyTest
         {
         Thread.currentThread().setContextClassLoader(m_loaderOld);
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         resetMode();
         SerializationTelemetry.resetForTesting();
         resetSecurityConfig();
@@ -112,7 +113,7 @@ public class RemoteExecutablePolicyTest
     @Test
     public void enforce_throwsSecurityExceptionWithReasonAndRoleWhenNotExecutable()
         {
-        setMode("prod");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED);
 
         SecurityException e = assertThrows(SecurityException.class,
                 () -> RemoteExecutablePolicy.current().enforce(PlainClass.class, OperationReason.PROCESS_ENTRY,
@@ -124,9 +125,9 @@ public class RemoteExecutablePolicyTest
         }
 
     @Test
-    public void enforce_recordsWouldRejectInLegacyModeWhenNotExecutable()
+    public void enforce_recordsWouldRejectInCompatibilityModeWhenNotExecutable()
         {
-        setMode("legacy");
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         SerializationTelemetry.resetForTesting();
 
         RemoteExecutablePolicy.current().enforce(PlainClass.class, OperationReason.PROCESS_ENTRY,
@@ -144,7 +145,7 @@ public class RemoteExecutablePolicyTest
     @Test
     public void enforce_succeedsWhenExecutable()
         {
-        setMode("prod");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED);
 
         RemoteExecutablePolicy.current().enforce(AnnotatedExecutable.class, OperationReason.PROCESS_ENTRY,
                 SerializationRole.UNCLASSIFIED, null);
@@ -188,7 +189,13 @@ public class RemoteExecutablePolicyTest
 
     private static void setMode(String sMode)
         {
+        setMode(sMode, null);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
         }
 
@@ -246,5 +253,6 @@ public class RemoteExecutablePolicyTest
 
     private final ClassLoader m_loaderOld = Thread.currentThread().getContextClassLoader();
 
-    private final String m_sModeOld = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     }

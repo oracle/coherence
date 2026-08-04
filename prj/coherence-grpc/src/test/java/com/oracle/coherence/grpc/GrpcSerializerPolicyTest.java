@@ -35,9 +35,11 @@ class GrpcSerializerPolicyTest
     @BeforeEach
     void reset()
         {
-        m_sAllowedOld = System.getProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS);
+        m_sAllowedOld      = System.getProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS);
+        m_sSecurityModeOld = System.getProperty(PROP_SECURITY_MODE);
         SerializationTelemetry.resetForTesting();
         clearMode();
+        clearHardening();
         System.clearProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS);
         }
 
@@ -45,6 +47,7 @@ class GrpcSerializerPolicyTest
     void restore()
         {
         restoreProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS, m_sAllowedOld);
+        restoreProperty(PROP_SECURITY_MODE, m_sSecurityModeOld);
         clearMode();
         SerializationTelemetry.resetForTesting();
         }
@@ -93,9 +96,10 @@ class GrpcSerializerPolicyTest
         }
 
     @Test
-    void shouldAllowButRecordWouldRejectInLegacy()
+    void shouldAllowButRecordWouldRejectWhenHardeningDisabled()
         {
-        try (ModeScope ignored = mode("legacy"))
+        setSecurityMode("compatibility");
+        try (ModeScope ignored = mode("prod"))
             {
             assertDoesNotThrow(() -> GrpcSerializerPolicy.validateClientFormat("java"));
             assertDoesNotThrow(() -> GrpcSerializerPolicy.validateClientFormat("custom-format"));
@@ -103,13 +107,14 @@ class GrpcSerializerPolicyTest
 
         Map<String, Long> map = SerializationTelemetry.snapshot();
         assertCounter(map, "coh.serialization.serializer_check{result=would_reject,reason="
-                + GrpcSerializerPolicy.REASON_UNSAFE + ",mode=legacy,route=GRPC}");
+                + GrpcSerializerPolicy.REASON_UNSAFE + ",mode=prod,route=GRPC}");
         assertCounter(map, "coh.serialization.serializer_check{result=would_reject,reason="
-                + GrpcSerializerPolicy.REASON_NOT_ALLOWED + ",mode=legacy,route=GRPC}");
+                + GrpcSerializerPolicy.REASON_NOT_ALLOWED + ",mode=prod,route=GRPC}");
         }
 
     private static void assertRejected(String sMode, String sFormat)
         {
+        setSecurityMode("hardened");
         try (ModeScope ignored = mode(sMode))
             {
             StatusRuntimeException e = assertThrows(StatusRuntimeException.class,
@@ -131,6 +136,18 @@ class GrpcSerializerPolicyTest
     private static void clearMode()
         {
         System.clearProperty(PROP_COHERENCE_MODE);
+        resetMode();
+        }
+
+    private static void clearHardening()
+        {
+        System.clearProperty(PROP_SECURITY_MODE);
+        resetMode();
+        }
+
+    private static void setSecurityMode(String sSecurityMode)
+        {
+        System.setProperty(PROP_SECURITY_MODE, sSecurityMode);
         resetMode();
         }
 
@@ -168,9 +185,13 @@ class GrpcSerializerPolicyTest
 
     private static final String PROP_COHERENCE_MODE = "coherence.mode";
 
+    private static final String PROP_SECURITY_MODE = "coherence.security.mode";
+
     private static final String COHERENCE_MODE_CLASS = "com.tangosol.internal.util.CoherenceMode";
 
     private String m_sAllowedOld;
+
+    private String m_sSecurityModeOld;
 
     private record ModeScope(String previous)
             implements AutoCloseable

@@ -59,6 +59,7 @@ import com.tangosol.internal.management.resources.ClusterResource;
 
 import com.tangosol.internal.net.management.HttpHelper;
 
+import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.io.FileHelper;
 
@@ -1400,7 +1401,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         String sProperty = "coherence.management.slice.c.function." + System.nanoTime();
-        String sResult   = withClusterMode(MODE_PROD,
+        String sResult   = withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED,
                 () -> submitToMember(s_cluster.iterator().next(), new InvokePlainManagementFunction(sProperty)));
 
         assertThat(sResult, not("invoked"));
@@ -1415,7 +1416,7 @@ public abstract class BaseManagementInfoResourceTests
             throws Exception
         {
         String sProperty = "coherence.management.slice.c.filter." + System.nanoTime();
-        String sResult   = withClusterMode(MODE_PROD,
+        String sResult   = withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED,
                 () -> submitToMember(s_cluster.iterator().next(), new InvokeNestedManagementFilter(sProperty)));
 
         assertThat(sResult, not("queried"));
@@ -1429,7 +1430,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testManagementTcmpRejectsPlatformMBeanInvoke()
             throws Exception
         {
-        String sResult = withClusterMode(MODE_PROD,
+        String sResult = withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED,
                 () -> submitToMember(s_cluster.iterator().next(), new InvokePlatformDiagnosticCommand()));
 
         assertThat(sResult, not(containsString("java.class.path")));
@@ -1440,7 +1441,7 @@ public abstract class BaseManagementInfoResourceTests
     public void testManagementTcmpRejectsWrappedDiagnosticCommandSystemProperties()
             throws Exception
         {
-        String sResult = withClusterMode(MODE_PROD,
+        String sResult = withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED,
                 () -> submitToMember(s_cluster.iterator().next(), new InvokeWrappedDiagnosticCommand()));
 
         assertThat(sResult, not(containsString("java.class.path")));
@@ -1932,7 +1933,7 @@ public abstract class BaseManagementInfoResourceTests
             {
             String sUrl = "http://127.0.0.1:" + server.getAddress().getPort() + "/report-group.xml";
 
-            withClusterMode(MODE_PROD, () ->
+            withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
                 {
                 assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
                         "configFile", sUrl, "reporter-remote-sentinel");
@@ -1953,7 +1954,7 @@ public abstract class BaseManagementInfoResourceTests
         {
         Assume.assumeFalse("Skipping as management is read-only", isReadOnly());
 
-        withClusterMode(MODE_PROD, () ->
+        withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
             assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
                     "configFile", new File("/etc/passwd").toURI().toString(), "root:"));
         }
@@ -1967,7 +1968,7 @@ public abstract class BaseManagementInfoResourceTests
         File tempDirectory = FileHelper.createTempDir();
         try
             {
-            withClusterMode(MODE_PROD, () ->
+            withClusterMode(MODE_PROD, CoherenceMode.SECURITY_MODE_HARDENED, () ->
                 {
                 assertReporterUpdateRejected(getBaseTarget().path(REPORTERS).path(SERVER_PREFIX + "-1"),
                         "outputPath", tempDirectory.getAbsolutePath(), tempDirectory.getName());
@@ -4528,7 +4529,7 @@ public abstract class BaseManagementInfoResourceTests
     private void withClusterMode(String sMode, ThrowingRunnable runnable)
             throws Exception
         {
-        withClusterMode(sMode, () ->
+        withClusterMode(sMode, null, () ->
             {
             runnable.run();
             return null;
@@ -4538,18 +4539,44 @@ public abstract class BaseManagementInfoResourceTests
     private <T> T withClusterMode(String sMode, ThrowingCallable<T> callable)
             throws Exception
         {
-        Map<CoherenceClusterMember, String> mapPrevious = new LinkedHashMap<>();
+        return withClusterMode(sMode, null, callable);
+        }
+
+    private void withClusterMode(String sMode, String sSecurityMode, ThrowingRunnable runnable)
+            throws Exception
+        {
+        withClusterMode(sMode, sSecurityMode, () ->
+            {
+            runnable.run();
+            return null;
+            });
+        }
+
+    private <T> T withClusterMode(String sMode, String sSecurityMode, ThrowingCallable<T> callable)
+            throws Exception
+        {
+        Map<CoherenceClusterMember, String> mapPreviousMode = new LinkedHashMap<>();
+        Map<CoherenceClusterMember, String> mapPreviousSecurityMode = new LinkedHashMap<>();
         try
             {
             for (CoherenceClusterMember member : s_cluster)
                 {
-                mapPrevious.put(member, submitToMember(member, new SetCoherenceMode(sMode)));
+                mapPreviousMode.put(member, submitToMember(member, new SetCoherenceMode(sMode)));
+                if (sSecurityMode != null)
+                    {
+                    mapPreviousSecurityMode.put(member,
+                            submitToMember(member, new SetCoherenceSecurityMode(sSecurityMode)));
+                    }
                 }
             return callable.call();
             }
         finally
             {
-            for (Map.Entry<CoherenceClusterMember, String> entry : mapPrevious.entrySet())
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPreviousSecurityMode.entrySet())
+                {
+                submitToMember(entry.getKey(), new SetCoherenceSecurityMode(entry.getValue()));
+                }
+            for (Map.Entry<CoherenceClusterMember, String> entry : mapPreviousMode.entrySet())
                 {
                 submitToMember(entry.getKey(), new SetCoherenceMode(entry.getValue()));
                 }
@@ -5459,6 +5486,25 @@ public abstract class BaseManagementInfoResourceTests
             {
             String sPrevious = System.getProperty(PROP_COHERENCE_MODE);
             CoherenceModeHelper.restore(m_sMode);
+            return sPrevious;
+            }
+
+        private final String m_sMode;
+        }
+
+    public static class SetCoherenceSecurityMode
+            implements RemoteCallable<String>
+        {
+        public SetCoherenceSecurityMode(String sMode)
+            {
+            m_sMode = sMode;
+            }
+
+        @Override
+        public String call()
+            {
+            String sPrevious = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+            CoherenceModeHelper.restoreSecurityMode(m_sMode);
             return sPrevious;
             }
 

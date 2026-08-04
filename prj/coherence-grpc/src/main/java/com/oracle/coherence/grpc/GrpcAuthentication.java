@@ -150,21 +150,17 @@ public final class GrpcAuthentication
             return;
             }
 
-        if (CoherenceMode.isProd())
+        if (CoherenceMode.isSecurityHardeningEnabled())
             {
             throw unauthenticated();
             }
 
-        if (CoherenceMode.isLegacy())
+        if (!CoherenceMode.isSecurityHardeningEnabled())
             {
-            if (s_fLoggedLegacyCleartext.compareAndSet(false, true))
+            if (s_fLoggedCompatibilityCleartext.compareAndSet(false, true))
                 {
-                Logger.warn("gRPC Basic authentication would_reject; mode=legacy; reason=cleartext-basic");
+                Logger.warn("gRPC Basic authentication would_reject; security-mode=compatibility; reason=cleartext-basic");
                 }
-            }
-        else if (s_fLoggedDevCleartext.compareAndSet(false, true))
-            {
-            Logger.fine("gRPC Basic authentication allowed in DEV over cleartext; reason=cleartext-basic");
             }
         }
 
@@ -217,9 +213,7 @@ public final class GrpcAuthentication
      */
     public static final String PROP_GRPC_AUTH_METHOD = "coherence.grpc.auth";
 
-    private static final AtomicBoolean s_fLoggedLegacyCleartext = new AtomicBoolean();
-
-    private static final AtomicBoolean s_fLoggedDevCleartext = new AtomicBoolean();
+    private static final AtomicBoolean s_fLoggedCompatibilityCleartext = new AtomicBoolean();
 
     private GrpcAuthentication()
         {

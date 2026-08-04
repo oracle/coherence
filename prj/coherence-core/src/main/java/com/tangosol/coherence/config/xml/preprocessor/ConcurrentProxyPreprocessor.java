@@ -74,8 +74,8 @@ public class ConcurrentProxyPreprocessor
             }
         else
             {
-            fEnabled = !CoherenceMode.isProd();
-            sSource  = "mode-default";
+            fEnabled = !CoherenceMode.isSecurityHardeningEnabled();
+            sSource  = "hardening-default";
             }
 
         String sXmlValue = xmlAutostart.getString();
@@ -83,11 +83,14 @@ public class ConcurrentProxyPreprocessor
         xmlAutostart.setString(Boolean.toString(fEnabled));
 
         CoherenceMode mode = CoherenceMode.current();
+        boolean       fHardened = CoherenceMode.isSecurityHardeningEnabled();
+        String        sSecurityMode = fHardened ? "hardened" : "compatibility";
         Logger.info(String.format(Locale.ROOT,
-                "ConcurrentProxy autostart resolved: mode=%s, property=%s, xml=%s, source=%s, enabled=%s",
-                mode.name().toLowerCase(Locale.ROOT), sPropertyValue, sXmlValue, sSource, fEnabled));
+                "ConcurrentProxy autostart resolved: mode=%s, security-mode=%s, property=%s, xml=%s, source=%s, enabled=%s",
+                mode.name().toLowerCase(Locale.ROOT), sSecurityMode,
+                sPropertyValue, sXmlValue, sSource, fEnabled));
 
-        if (!fEnabled && !CoherenceMode.isLegacy())
+        if (!fEnabled && fHardened)
             {
             Logger.warn("ConcurrentProxy is disabled; set -D" + PROP_CONCURRENT_EXTEND_ENABLED
                     + "=true to enable Coherence Concurrent Extend access.");

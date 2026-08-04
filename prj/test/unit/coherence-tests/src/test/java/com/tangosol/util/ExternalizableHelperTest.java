@@ -27,6 +27,8 @@ import com.tangosol.io.pof.SafeConfigurablePofContext;
 import com.tangosol.io.pof.SerializableSerializer;
 import com.tangosol.io.pof.SimplePofContext;
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.run.xml.SimpleElement;
 
 import data.Person;
@@ -837,14 +839,16 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     @Test
-    public void testFmtXmlSerAllowsConfiguredClassInProd() throws IOException
+    public void testFmtXmlSerAllowsConfiguredClassInHardenedMode() throws IOException
         {
-        String sMode    = System.getProperty("coherence.mode");
-        String sAllowed = System.getProperty("coherence.serialization.allowed");
-        Binary bin      = fmtXmlSerializable(TestXmlSerializable.class.getName(), "<test/>");
+        String sMode         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        String sSecurityMode = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+        String sAllowed      = System.getProperty("coherence.serialization.allowed");
+        Binary bin           = fmtXmlSerializable(TestXmlSerializable.class.getName(), "<test/>");
         try
             {
-            restoreProperty("coherence.mode", "prod");
+            restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, "prod");
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, CoherenceMode.SECURITY_MODE_HARDENED);
             restoreProperty("coherence.serialization.allowed", null);
 
             assertRejectedByFilter(() -> ExternalizableHelper.fromBinary(bin));
@@ -856,7 +860,8 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         finally
             {
-            restoreProperty("coherence.mode", sMode);
+            restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+            restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
             restoreProperty("coherence.serialization.allowed", sAllowed);
             }
         }
@@ -1427,7 +1432,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             {
             System.setProperty(sName, sValue);
             }
-        if ("coherence.mode".equals(sName))
+        if (CoherenceMode.PROP_COHERENCE_MODE.equals(sName) || CoherenceMode.PROP_SECURITY_MODE.equals(sName))
             {
             CoherenceModeHelper.reset();
             }

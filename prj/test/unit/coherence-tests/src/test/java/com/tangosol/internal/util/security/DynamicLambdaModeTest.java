@@ -32,14 +32,25 @@ public class DynamicLambdaModeTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, m_sDynamicRemoteOld);
         resetMode();
         }
 
     @Test
-    public void shouldRejectDynamicLambdaInProdModeByDefault()
+    public void shouldAllowDynamicLambdaInProdCompatibilityModeByDefault()
         {
         setMode("prod", null);
+
+        Remote.Predicate<String> predicate = realizeDynamicLambda("Aleks");
+
+        assertTrue(predicate.test("Aleks"));
+        }
+
+    @Test
+    public void shouldRejectDynamicLambdaInHardenedModeByDefault()
+        {
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         SecurityException e = assertThrows(SecurityException.class, () -> realizeDynamicLambda("Aleks"));
 
@@ -47,9 +58,9 @@ public class DynamicLambdaModeTest
         }
 
     @Test
-    public void shouldAllowDynamicLambdaInProdModeWhenPropertyAllows()
+    public void shouldAllowDynamicLambdaInHardenedModeWhenPropertyAllows()
         {
-        setMode("prod", "allow");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, "allow");
 
         long cBefore = LambdaBytecodeGate.counter("allowed", "none",
                 LambdaBytecodeGate.Site.CLASS_DEFINITION);
@@ -72,9 +83,9 @@ public class DynamicLambdaModeTest
         }
 
     @Test
-    public void shouldAllowNonLambdaClassDefinitionInProdMode()
+    public void shouldAllowNonLambdaClassDefinitionInHardenedMode()
         {
-        setMode("prod", null);
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
 
         RemotableSupport support = new RemotableSupport(DynamicLambdaModeTest.class.getClassLoader());
         Remote.Predicate<String> predicate = support.realize(
@@ -92,7 +103,13 @@ public class DynamicLambdaModeTest
 
     private static void setMode(String sMode, String sDynamicLambda)
         {
+        setMode(sMode, null, sDynamicLambda);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode, String sDynamicLambda)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         restoreProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH, sDynamicLambda);
         resetMode();
         }
@@ -137,5 +154,6 @@ public class DynamicLambdaModeTest
         }
 
     private final String m_sModeOld          = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sSecurityModeOld  = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
     private final String m_sDynamicRemoteOld = System.getProperty(RemoteExecutionMode.PROP_DYNAMIC_REMOTE_UNAUTH);
     }

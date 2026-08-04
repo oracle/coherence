@@ -58,31 +58,32 @@ public class InvocationServiceProxyTest
     public void cleanup()
         {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, m_sModeOld);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, m_sSecurityModeOld);
         restoreProperty(DefaultInvocationServiceProxyDependencies.PROP_INVOCATION_ENABLED, m_sInvocationEnabledOld);
         CoherenceModeHelper.reset();
         SerializationTelemetry.resetForTesting();
         }
 
     @Test
-    public void defaultsToDisabledInProdMode()
+    public void defaultsToDisabledInHardenedMode()
         {
-        setMode("prod");
+        setMode("prod", CoherenceMode.SECURITY_MODE_HARDENED);
 
         assertFalse(new DefaultInvocationServiceProxyDependencies().isEnabled());
         }
 
     @Test
-    public void defaultsToEnabledInDevMode()
+    public void defaultsToEnabledInDevCompatibilityMode()
         {
-        setMode("dev");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
 
         assertTrue(new DefaultInvocationServiceProxyDependencies().isEnabled());
         }
 
     @Test
-    public void defaultsToEnabledInLegacyMode()
+    public void defaultsToEnabledInCompatibilityMode()
         {
-        setMode("legacy");
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
 
         assertTrue(new DefaultInvocationServiceProxyDependencies().isEnabled());
         }
@@ -152,7 +153,7 @@ public class InvocationServiceProxyTest
     @Test
     public void blankSystemPropertyIsUnset()
         {
-        setMode("dev");
+        setMode("dev", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         System.setProperty(DefaultInvocationServiceProxyDependencies.PROP_INVOCATION_ENABLED, " ");
 
         DefaultInvocationServiceProxyDependencies deps = new DefaultInvocationServiceProxyDependencies();
@@ -195,9 +196,9 @@ public class InvocationServiceProxyTest
         }
 
     @Test
-    public void allowsUnannotatedInvocableInLegacyAndRecordsWouldRejectTelemetry()
+    public void allowsUnannotatedInvocableInCompatibilityAndRecordsWouldRejectTelemetry()
         {
-        setMode("legacy");
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         ExposedInvocationRequest request = request(new PlainInvocable());
         AtomicBoolean fQueried = new AtomicBoolean();
         request.setInvocationService(service(fQueried));
@@ -301,9 +302,9 @@ public class InvocationServiceProxyTest
         }
 
     @Test
-    public void legacyPriorityTaskCallbackDoesNotBecomeLiveRejection()
+    public void compatibilityPriorityTaskCallbackDoesNotBecomeLiveRejection()
         {
-        setMode("legacy");
+        setMode("prod", CoherenceMode.SECURITY_MODE_COMPATIBILITY);
         PriorityInvocable task = new PriorityInvocable();
         ExposedInvocationRequest request = request(task);
         AtomicBoolean fQueried = new AtomicBoolean();
@@ -396,7 +397,13 @@ public class InvocationServiceProxyTest
 
     private static void setMode(String sMode)
         {
+        setMode(sMode, CoherenceMode.SECURITY_MODE_HARDENED);
+        }
+
+    private static void setMode(String sMode, String sSecurityMode)
+        {
         restoreProperty(CoherenceMode.PROP_COHERENCE_MODE, sMode);
+        restoreProperty(CoherenceMode.PROP_SECURITY_MODE, sSecurityMode);
         CoherenceModeHelper.reset();
         SerializationTelemetry.resetForTesting();
         }
@@ -567,7 +574,8 @@ public class InvocationServiceProxyTest
         private final AtomicBoolean m_fRunCanceledCalled = new AtomicBoolean();
         }
 
-    private final String m_sModeOld = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+    private final String m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
 
     private final String m_sInvocationEnabledOld =
             System.getProperty(DefaultInvocationServiceProxyDependencies.PROP_INVOCATION_ENABLED);

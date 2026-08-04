@@ -41,7 +41,7 @@ class JsonClassMetadataPolicyTest
     void shouldAllowConfiguredAliasInDevMode()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Object o = deserializeWithCoherenceAliases("{\"@class\":\"filter.AlwaysFilter\"}");
 
@@ -53,7 +53,7 @@ class JsonClassMetadataPolicyTest
     void shouldAllowCompatibilityAliasInProdMode()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Object o = deserializeWithCoherenceAliases("{\"@class\":\"util.filter.AlwaysFilter\"}");
 
@@ -64,7 +64,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldRejectFqcnMetadataInDevMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class, () ->
                     deserializeWithCoherenceAliases("{\"@class\":\"com.tangosol.util.filter.AlwaysFilter\"}"));
@@ -74,7 +74,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldRejectJavaAliasEnforcementBypassInDevMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class, () ->
                     deserializeWithCoherenceAliases("{\"@class\":\"java.math.BigDecimal\",\"value\":\"1\"}"));
@@ -84,7 +84,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldRejectJavaxAliasEnforcementBypassInProdMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.prod())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class, () ->
                     deserializeWithCoherenceAliases("{\"@class\":\"javax.naming.Name\"}"));
@@ -94,7 +94,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldRejectPackageAliasInDevMode()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Genson genson = new GensonBuilder()
                     .addPackageAlias("awt", "java.awt")
@@ -108,7 +108,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldPreserveLegacyFqcnMetadataCompatibility()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             Genson genson = new GensonBuilder().useClassMetadata(true).create();
 
@@ -121,7 +121,7 @@ class JsonClassMetadataPolicyTest
     @Test
     void shouldPreserveLegacyPackageAliasCompatibility()
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             Genson genson = new GensonBuilder()
                     .addPackageAlias("awt", "java.awt")
@@ -136,7 +136,7 @@ class JsonClassMetadataPolicyTest
     void shouldPreserveClassForDynamicAliasCompatibilityInDevMode()
             throws Exception
         {
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Genson genson = new GensonBuilder().useClassMetadata(true).create();
             String sAlias = genson.aliasFor(Sentinel.class);
@@ -151,7 +151,7 @@ class JsonClassMetadataPolicyTest
         String sProperty = Sentinel.class.getName() + ".initialized";
         System.clearProperty(sProperty);
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             Genson genson = new GensonBuilder().useClassMetadata(true).create();
             String sAlias = genson.aliasFor(Sentinel.class);
@@ -175,7 +175,7 @@ class JsonClassMetadataPolicyTest
                 .withClassLoader(loader)
                 .create();
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             assertThrows(JsonBindingException.class, () ->
                     genson.deserialize("{\"@class\":\"" + Sentinel.class.getName() + "\"}", Object.class));
@@ -192,7 +192,7 @@ class JsonClassMetadataPolicyTest
         String sProperty = Sentinel.class.getName() + ".initialized";
         System.clearProperty(sProperty);
 
-        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.legacy())
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
             {
             Class<?> clz = JsonClassMetadataPolicy.resolveClassMetadata(Sentinel.class.getName(),
                     Map.of(), new HashMap<>(), Map.of(), Map.of(), false,
