@@ -339,6 +339,57 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(mapResponse.get("paths"), is(notNullValue()));
         assertThat(mapResponse.get("definitions"), is(notNullValue()));
         assertThat(mapResponse.get("parameters"), is(notNullValue()));
+
+        Map mapPaths    = (Map) mapResponse.get("paths");
+        Map mapFlashGet = (Map) ((Map) mapPaths.get("/management/coherence/cluster/journal/flash")).get("get");
+        String sFlashDescription = mapFlashGet.get("description").toString();
+        String sFlashResponse = ((Map) ((Map) mapFlashGet.get("responses")).get("200"))
+                .get("description").toString();
+
+        assertThat(sFlashDescription, not(containsString("writer-batch")));
+        assertThat(sFlashResponse, not(containsString("writer-batch")));
+
+        Map mapJournalProperties = (Map) ((Map) ((Map) mapResponse.get("definitions"))
+                .get("journalRM")).get("properties");
+        assertSwaggerJournalAttributes(mapJournalProperties, FLASH_JOURNAL_WRITER_ATTRIBUTES, true);
+        assertSwaggerJournalAttributes(mapJournalProperties, FLASH_JOURNAL_CONGESTION_ATTRIBUTES, true);
+        assertSwaggerJournalAttributes(mapJournalProperties, JOURNAL_COMPACTION_ATTRIBUTES, false);
+
+        String sAttemptCount = ((Map) mapJournalProperties.get("totalCompactionAttemptCount"))
+                .get("description").toString();
+        String sTotalTime = ((Map) mapJournalProperties.get("totalCompactionTime"))
+                .get("description").toString();
+        String sMaximumTime = ((Map) mapJournalProperties.get("maximumCompactionTime"))
+                .get("description").toString();
+        String sTotalBytes = ((Map) mapJournalProperties.get("totalCompactionBytes"))
+                .get("description").toString();
+
+        assertThat(sAttemptCount, allOf(containsString("successful"), containsString("failed"),
+                containsString("currently active")));
+        assertThat(sTotalTime, allOf(containsString("failed completed attempts"),
+                containsString("currently active attempt")));
+        assertThat(sMaximumTime, allOf(containsString("currently active"),
+                containsString("failed attempts")));
+        assertThat(sTotalBytes, containsString("successfully completed"));
+        }
+
+    private static void assertSwaggerJournalAttributes(Map mapJournalProperties,
+                                                        String[] asAttributes,
+                                                        boolean fUnsupportedSentinel)
+        {
+        for (String sAttribute : asAttributes)
+            {
+            Map mapAttribute = (Map) mapJournalProperties.get(sAttribute);
+            assertThat(sAttribute, mapAttribute, notNullValue());
+            assertThat(sAttribute, mapAttribute.get("type"), is("integer"));
+            assertThat(sAttribute, mapAttribute.get("format"), is("int64"));
+            assertThat(sAttribute, mapAttribute.get("readOnly"), is(true));
+            if (fUnsupportedSentinel)
+                {
+                assertThat(sAttribute, mapAttribute.get("description").toString(),
+                        containsString("returns -1 when unsupported"));
+                }
+            }
         }
 
     @Test
@@ -5859,6 +5910,49 @@ public abstract class BaseManagementInfoResourceTests
      * The clear/truncate cache.
      */
     protected static final String CLEAR_CACHE_NAME = "dist-clear";
+
+    /**
+     * FlashJournal-specific writer attributes exposed through management over REST.
+     */
+    private static final String[] FLASH_JOURNAL_WRITER_ATTRIBUTES =
+        {
+        "totalWriteOperationCount",
+        "totalWriteBytes",
+        "totalWriteTime",
+        "maximumWriteTime",
+        "totalForceCount",
+        "totalForceTime",
+        "maximumForceTime",
+        "totalWriteErrors",
+        "totalFileWriteErrors",
+        "totalForceErrors",
+        "totalWriteRetries"
+        };
+
+    /**
+     * FlashJournal-specific congestion attributes exposed through management
+     * over REST.
+     */
+    private static final String[] FLASH_JOURNAL_CONGESTION_ATTRIBUTES =
+        {
+        "totalCongestionCount",
+        "totalCongestionTime",
+        "maximumCongestionTime",
+        "currentCongestionTime"
+        };
+
+    /**
+     * Collector compaction attributes exposed for both journal types through
+     * management over REST.
+     */
+    private static final String[] JOURNAL_COMPACTION_ATTRIBUTES =
+        {
+        "totalCompactionAttemptCount",
+        "totalCompactionTime",
+        "maximumCompactionTime",
+        "currentCompactionTime",
+        "totalCompactionBytes"
+        };
 
     /**
      * The name of the invocation service.
