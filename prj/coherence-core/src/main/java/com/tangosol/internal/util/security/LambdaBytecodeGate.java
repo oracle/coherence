@@ -425,11 +425,18 @@ public final class LambdaBytecodeGate
 
     private static Policy loadPolicy(String sAllow)
         {
-        Set<String> setClass  = new LinkedHashSet<>();
-        Set<String> setMethod = new LinkedHashSet<>();
+        Set<String> setClass    = new LinkedHashSet<>();
+        Set<String> setMethod   = new LinkedHashSet<>();
+        ClassLoader loaderGate  = LambdaBytecodeGate.class.getClassLoader();
+        ClassLoader loaderCtx   = Base.getContextClassLoader(LambdaBytecodeGate.class);
 
-        readResources(RESOURCE_BASE, setClass, setMethod);
-        readExtensionResources(setClass, setMethod);
+        // the built-in hard floor must not depend on a mutable context loader
+        readResources(RESOURCE_BASE, loaderGate, setClass, setMethod);
+        readExtensionResources(loaderGate, setClass, setMethod);
+        if (loaderCtx != loaderGate)
+            {
+            readExtensionResources(loaderCtx, setClass, setMethod);
+            }
 
         Set<String> setAllowed = parseAllow(sAllow);
         if (!setAllowed.isEmpty())
@@ -457,12 +464,11 @@ public final class LambdaBytecodeGate
         return Collections.unmodifiableSet(setAllowed);
         }
 
-    private static void readResources(String sResource, Set<String> setClass, Set<String> setMethod)
+    private static void readResources(String sResource, ClassLoader loader, Set<String> setClass, Set<String> setMethod)
         {
         try
             {
-            ClassLoader      loader    = Base.getContextClassLoader(LambdaBytecodeGate.class);
-            Enumeration<URL> resources = loader.getResources(sResource);
+            Enumeration<URL> resources = resources(loader, sResource);
             while (resources.hasMoreElements())
                 {
                 readResource(resources.nextElement(), setClass, setMethod);
@@ -474,12 +480,11 @@ public final class LambdaBytecodeGate
             }
         }
 
-    private static void readExtensionResources(Set<String> setClass, Set<String> setMethod)
+    private static void readExtensionResources(ClassLoader loader, Set<String> setClass, Set<String> setMethod)
         {
         try
             {
-            ClassLoader      loader    = Base.getContextClassLoader(LambdaBytecodeGate.class);
-            Enumeration<URL> resources = loader.getResources(RESOURCE_EXTENSION_DIR);
+            Enumeration<URL> resources = resources(loader, RESOURCE_EXTENSION_DIR);
             while (resources.hasMoreElements())
                 {
                 URL url = resources.nextElement();
@@ -497,6 +502,12 @@ public final class LambdaBytecodeGate
             {
             throw Base.ensureRuntimeException(e);
             }
+        }
+
+    private static Enumeration<URL> resources(ClassLoader loader, String sResource)
+            throws IOException
+        {
+        return loader == null ? ClassLoader.getSystemResources(sResource) : loader.getResources(sResource);
         }
 
     private static void readFileExtensionResources(URL url, Set<String> setClass, Set<String> setMethod)
