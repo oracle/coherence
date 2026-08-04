@@ -46,12 +46,6 @@ public abstract class BufferedSocketBus
         extends AbstractSocketBus
     {
     /**
-     * Thread-local depth marker for transport-owned callbacks.
-     */
-    private static final ThreadLocal<Integer> TL_TRANSPORT_CALLBACK_DEPTH =
-            ThreadLocal.withInitial(() -> 0);
-
-    /**
      * Enables lightweight per-connection performance tracing for socket bus write progression.
      */
     protected static final boolean PERF_TRACE = Boolean.getBoolean("coherence.socketbus.perf.trace");
@@ -82,40 +76,6 @@ public abstract class BufferedSocketBus
             throws IOException
         {
         super(driver, pointLocal);
-        }
-
-    /**
-     * Return {@code true} if the current thread is inside a transport-owned callback.
-     *
-     * @return {@code true} iff the current thread is executing a socket-bus callback
-     */
-    protected static boolean isTransportCallbackThread()
-        {
-        return TL_TRANSPORT_CALLBACK_DEPTH.get() > 0;
-        }
-
-    /**
-     * Mark entry into a transport-owned callback.
-     */
-    protected static void enterTransportCallback()
-        {
-        TL_TRANSPORT_CALLBACK_DEPTH.set(TL_TRANSPORT_CALLBACK_DEPTH.get() + 1);
-        }
-
-    /**
-     * Mark exit from a transport-owned callback.
-     */
-    protected static void exitTransportCallback()
-        {
-        int cDepth = TL_TRANSPORT_CALLBACK_DEPTH.get() - 1;
-        if (cDepth <= 0)
-            {
-            TL_TRANSPORT_CALLBACK_DEPTH.remove();
-            }
-        else
-            {
-            TL_TRANSPORT_CALLBACK_DEPTH.set(cDepth);
-            }
         }
 
     /**
@@ -323,6 +283,18 @@ public abstract class BufferedSocketBus
             return m_fWriterActive.get();
             }
 
+        @Override
+        protected boolean tryAcquireMigrationOwnership()
+            {
+            return tryActivateWriter();
+            }
+
+        @Override
+        protected void releaseMigrationOwnership()
+            {
+            deactivateWriter();
+            }
+
         /**
          * Schedule an already-owned consumer write-progression pass on the SelectionService thread.
          *
@@ -331,6 +303,7 @@ public abstract class BufferedSocketBus
          */
         protected void scheduleActiveWriteProgression(boolean fSocketWrite, boolean fAuto)
             {
+            long ldtScheduled = System.nanoTime();
             try
                 {
                 invoke(new Runnable()
@@ -338,7 +311,16 @@ public abstract class BufferedSocketBus
                     @Override
                     public void run()
                         {
-                        processQueuedWritesOnSelectionThread(fSocketWrite, fAuto);
+                        recordSelectorTaskDelayForTesting(ldtScheduled);
+                        enterTransportCallback();
+                        try
+                            {
+                            processQueuedWritesOnSelectionThread(fSocketWrite, fAuto);
+                            }
+                        finally
+                            {
+                            exitTransportCallback();
+                            }
                         }
                     });
                 }
@@ -483,9 +465,9 @@ public abstract class BufferedSocketBus
                 lock();
                 try
                     {
-                    // avoid surfacing a spurious IllegalArgumentException if the connection
-                    // becomes defunct between producer publication and consumer processing.
-                    if (!isValid())
+                    // avoid transport I/O if the connection becomes defunct or starts a replacement-channel handshake
+                    // between producer publication and consumer processing
+                    if (!isValid() || !isTransportReady())
                         {
                         return;
                         }
@@ -512,25 +494,18 @@ public abstract class BufferedSocketBus
                 {
                 deactivateWriter();
 
-                if (isValid() && hasProducerWriteWork() && tryActivateWriter())
+                if (isTransportReady() && hasProducerWriteWork() && tryActivateWriter())
                     {
-                    // Producer publications that arrive after this pass are handled as follow-up background work.
+                    // producer publications that arrive after this pass are handled as follow-up background work
                     scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ true);
                     }
-                else if (isValid() && f_cbQueued.get() > 0)
+                else if (isTransportReady() && f_cbQueued.get() > 0)
                     {
-                    // If this pass queued socket writes but there is no further producer work, drive the queued
-                    // writes immediately instead of waiting for a future OP_WRITE callback that may never come.
+                    // if this pass queued socket writes but there is no further producer work, drive the queued
+                    // writes immediately instead of waiting for a future OP_WRITE callback that may never come
                     // processWrites() performs its own writer activation; pre-activating here can strand the
-                    // writer bit and turn the follow-up into a no-op.
-                    try
-                        {
-                        processWrites(/*fReady*/ false);
-                        }
-                    catch (IOException e)
-                        {
-                        onException(e);
-                        }
+                    // writer bit and turn the follow-up into a no-op
+                    processWrites(/*fReady*/ false);
                     }
                 }
             }
@@ -699,7 +674,7 @@ public abstract class BufferedSocketBus
                     // stream is now in an unknown state; queue the remainder and reconnect
                     detachUnflushedWriteBatch();
                     enqueueWriteBatch(batch);
-                    onException(e);
+                    onException(m_lTransportGeneration, e);
                     fResult = true; // nothing more can be done
                     long cbPostDrain = absorbPublishedWrites();
                     m_cbProgressPostDrain += cbPostDrain;
@@ -712,7 +687,7 @@ public abstract class BufferedSocketBus
                             }
                         catch (IOException eWakeup)
                             {
-                            onException(eWakeup);
+                            onException(m_lTransportGeneration, eWakeup);
                             }
                         return false;
                         }
@@ -756,7 +731,7 @@ public abstract class BufferedSocketBus
                     }
                 catch (IOException e)
                     {
-                    onException(e);
+                    onException(m_lTransportGeneration, e);
                     }
                 return false;
                 }
@@ -772,7 +747,7 @@ public abstract class BufferedSocketBus
             boolean fResult = false;
             if (m_cbWrite        == m_cbHeartbeatLast &&    // we've sent nothing since the last check
                 f_cbQueued.get() == 0 &&                    // we have no outbound traffic queued up
-                m_state          == ConnectionState.ACTIVE) // COH-25350 - messages can be sent on the connection
+                isTransportReady())                         // COH-25350 - messages can be sent on the connection
                 {
                 // prevent the network infrastructure from closing the idle socket
 
@@ -813,7 +788,7 @@ public abstract class BufferedSocketBus
                     }
                 catch (IOException e)
                     {
-                    onException(e);
+                    onException(m_lTransportGeneration, e);
                     }
                 }
 
@@ -1049,25 +1024,20 @@ public abstract class BufferedSocketBus
         /**
          * {@inheritDoc}
          */
-        public int onReadySafe(int nOps)
+        public int onReadySafe(int nOps, long lTransportGeneration)
             throws IOException
             {
-            enterTransportCallback();
-            try
-                {
-                return m_nInterestOpsLast = processReads((nOps & OP_READ) != 0) | processWrites((nOps & OP_WRITE) != 0);
-                }
-            finally
-                {
-                exitTransportCallback();
-                }
+            return m_nInterestOpsLast = processReads((nOps & OP_READ) != 0, lTransportGeneration) |
+                                        processWrites((nOps & OP_WRITE) != 0, lTransportGeneration);
             }
 
         @Override
         protected void checkHealth(long ldtNow)
             {
-            if (m_state == null || m_state.ordinal() > ConnectionState.ACTIVE.ordinal())
+            long lTransportGeneration = getReadyTransportGeneration();
+            if (lTransportGeneration < 0)
                 {
+                checkMigrationHandshakeTimeout(ldtNow);
                 return;
                 }
 
@@ -1218,7 +1188,7 @@ public abstract class BufferedSocketBus
                         "{0} dropping connection with {1} after {2} fatal ack timeout health(read={3}, write={4}), receiptWait={5}: {6}",
                         getLocalEndPoint(), getPeer(), dur, fReadHealthy, fWriteHealthy, oReceiptUnacked, BufferedConnection.this));
 
-                scheduleDisconnect(new IOException("fatal ack timeout after " + dur));
+                scheduleDisconnect(lTransportGeneration, new IOException("fatal ack timeout after " + dur));
                 }
             else if (ldtNow >= ldtAckTimeout)
                 {
@@ -1275,7 +1245,7 @@ public abstract class BufferedSocketBus
                 // reset ack timeout
                 m_ldtAckTimeout = ldtNow + cMillisTimeout;
 
-                migrate(new IOException("ack timeout after " + dur));
+                migrate(lTransportGeneration, new IOException("ack timeout after " + dur));
                 }
             // else; progressing towards timeout
             }
@@ -1393,17 +1363,93 @@ public abstract class BufferedSocketBus
 
 
         @Override
-        public void onMigration()
+        protected void onMigrationStarted(long lTransportGeneration)
             {
-            boolean fDeactivateWriter = tryActivateWriter();
+            super.onMigrationStarted(lTransportGeneration);
+            long ldtNow       = SafeClock.INSTANCE.getSafeTimeMillis();
+            long cMillisFatal = f_driver.getDependencies().getAckFatalTimeoutMillis();
+            long ldtFatal     = cMillisFatal == 0 ? Long.MAX_VALUE : ldtNow + cMillisFatal;
+            long ldtAckFatal  = m_ldtAckFatalTimeout;
+            long ldtMigration = m_ldtMigrationFatalTimeout;
+
+            // preserve earlier migration and fatal ack deadlines so retries cannot extend total recovery time
+            if (ldtAckFatal != 0)
+                {
+                ldtFatal = Math.min(ldtFatal, ldtAckFatal);
+                }
+            if (ldtMigration != 0)
+                {
+                ldtFatal = Math.min(ldtFatal, ldtMigration);
+                }
+
+            m_ldtMigrationFatalTimeout   = ldtFatal;
+            m_fMigrationTimeoutScheduled = false;
+            ++m_lMigrationSequence;
+            }
+
+        @Override
+        protected void onMigrationCompleted(long lTransportGeneration)
+            {
+            super.onMigrationCompleted(lTransportGeneration);
+            m_ldtMigrationFatalTimeout   = 0;
+            m_fMigrationTimeoutScheduled = false;
+            ++m_lMigrationSequence;
+            }
+
+        @Override
+        protected boolean isMigrationHandshakeTimeoutCurrent(long lMigrationSequence)
+            {
+            return m_lMigrationSequence == lMigrationSequence &&
+                   isMigrationHandshakeInProgress() &&
+                   m_ldtMigrationFatalTimeout != 0;
+            }
+
+        /**
+         * Disconnect an active connection whose replacement handshake exceeded its fatal deadline.
+         *
+         * @param ldtNow  the current safe time
+         */
+        protected void checkMigrationHandshakeTimeout(long ldtNow)
+            {
+            long lMigrationSequence = -1L;
+            lock();
             try
                 {
-                super.onMigration();
+                long ldtFatal = m_ldtMigrationFatalTimeout;
+                if (isMigrationHandshakeInProgress() &&
+                    ldtFatal != 0 && ldtNow >= ldtFatal && !m_fMigrationTimeoutScheduled)
+                    {
+                    lMigrationSequence           = m_lMigrationSequence;
+                    m_fMigrationTimeoutScheduled = true;
+                    }
+                }
+            finally
+                {
+                unlock();
+                }
 
-                // don't log as a warning, we can get here simply because the other process terminated, i.e. delay
-                // logging as a warning until we actually re-establish the connection.
-                getLogger().log(makeRecord(Level.FINER, "{0} migrating connection with {1}",
-                        getLocalEndPoint(), BufferedConnection.this));
+            if (lMigrationSequence >= 0)
+                {
+                long     cMillisFatal = f_driver.getDependencies().getAckFatalTimeoutMillis();
+                Duration duration     = new Duration(cMillisFatal, Duration.Magnitude.MILLI);
+
+                getLogger().log(makeRecord(Level.WARNING,
+                        "{0} dropping connection with {1} after {2} replacement handshake timeout: {3}",
+                        getLocalEndPoint(), getPeer(), duration, BufferedConnection.this));
+                scheduleHandshakeTimeoutDisconnect(lMigrationSequence,
+                        new IOException("replacement handshake timeout after " + duration));
+                }
+            }
+
+        @Override
+        public void onMigration()
+            {
+            super.onMigration();
+
+            // don't log as a warning, we can get here simply because the other process terminated, i.e. delay
+            // logging as a warning until we actually re-establish the connection.
+            getLogger().log(makeRecord(Level.FINER, "{0} migrating connection with {1}",
+                    getLocalEndPoint(), BufferedConnection.this));
 
                 m_cMsgInSkip = 0; // our peer will start with a new SYNC message which will tell us exactly how much we should skip
 
@@ -1490,14 +1536,6 @@ public abstract class BufferedSocketBus
                     // a version yet it also means we could not have exchanged messages either, so it is safe to skip the SYNC.
                     m_batchWriteSendHead = batchResendHead;
                     }
-                }
-            finally
-                {
-                if (fDeactivateWriter)
-                    {
-                    deactivateWriter();
-                    }
-                }
             }
 
         /**
@@ -1541,13 +1579,14 @@ public abstract class BufferedSocketBus
         /**
          * Handle any incoming data.
          *
-         * @param fReady  true iff the channel is readable
+         * @param fReady               true iff the channel is readable
+         * @param lTransportGeneration  the transport generation selected for this callback
          *
          * @return a partial SelectionService.Handler interest set
          *
          * @throws IOException if an I/O error occurs
          */
-        protected abstract int processReads(boolean fReady)
+        protected abstract int processReads(boolean fReady, long lTransportGeneration)
                 throws IOException;
 
         /**
@@ -1557,11 +1596,52 @@ public abstract class BufferedSocketBus
          *
          * @return a partial SelectionService.Handler interest set
          *
-         * @throws IOException if an I/O error occurs
          */
         protected int processWrites(boolean fReady)
+            {
+            lock();
+            try
+                {
+                long lTransportGeneration = isTransportReady() ? m_lTransportGeneration : -1L;
+                if (lTransportGeneration < 0)
+                    {
+                    return 0;
+                    }
+
+                try
+                    {
+                    return processWrites(fReady, lTransportGeneration);
+                    }
+                catch (IOException e)
+                    {
+                    onException(lTransportGeneration, e);
+                    return 0;
+                    }
+                }
+            finally
+                {
+                unlock();
+                }
+            }
+
+        /**
+         * Write the contents of the WriteQueue to a specific transport generation.
+         *
+         * @param fReady               true iff the channel is writeable
+         * @param lTransportGeneration the transport generation selected for this callback
+         *
+         * @return a partial SelectionService.Handler interest set
+         *
+         * @throws IOException if an I/O error occurs
+         */
+        protected int processWrites(boolean fReady, long lTransportGeneration)
                 throws IOException
             {
+            if (!isTransportReady() || m_lTransportGeneration != lTransportGeneration)
+                {
+                return 0;
+                }
+
             long cbBacklog = f_cbQueued.get();
 
             if (fReady || cbBacklog > 0)
@@ -1651,10 +1731,10 @@ public abstract class BufferedSocketBus
                     {
                     deactivateWriter();
 
-                    if (isValid() && hasProducerWriteWork() && tryActivateWriter())
+                    if (isTransportReady() && hasProducerWriteWork() && tryActivateWriter())
                         {
-                        // We are already on the SelectionService thread for this channel, so run the follow-up
-                        // progression immediately instead of re-posting it and letting producer backlog sit.
+                        // we are already on the SelectionService thread for this channel, so run the follow-up
+                        // progression immediately instead of re-posting it and letting producer backlog sit
                         processQueuedWritesOnSelectionThread(/*fSocketWrite*/ false, /*fAuto*/ true);
                         }
                     }
@@ -2655,6 +2735,21 @@ public abstract class BufferedSocketBus
          * timestamp at which the current pending ack fatally times out
          */
         protected long m_ldtAckFatalTimeout;
+
+        /**
+         * Timestamp at which the current replacement handshake fatally times out.
+         */
+        protected long m_ldtMigrationFatalTimeout;
+
+        /**
+         * The replacement-handshake sequence used to reject stale timeout tasks.
+         */
+        protected long m_lMigrationSequence;
+
+        /**
+         * True when a timeout task has been scheduled for the current replacement handshake.
+         */
+        protected boolean m_fMigrationTimeoutScheduled;
 
         }
 
