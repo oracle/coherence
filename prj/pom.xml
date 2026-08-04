@@ -1075,9 +1075,9 @@
     <profile>
       <id>test-production-mode</id>
       <properties>
-        <default.surefire.argLine>-Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.surefire.argLine>
+        <default.surefire.argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Xshare:off -Djava.net.preferIPv4Stack=true -Xmx2g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.surefire.argLine>
         <surefire.argLine>${default.surefire.argLine}</surefire.argLine>
-        <default.failsafe.argLine>-Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.failsafe.argLine>
+        <default.failsafe.argLine>-javaagent:${settings.localRepository}/org/mockito/mockito-core/${mockito.version}/mockito-core-${mockito.version}.jar -Xshare:off -Djava.net.preferIPv4Stack=true -Xmx${failsafe.max.heap} -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory} -XX:+ExitOnOutOfMemoryError -Dfile.encoding=UTF-8 -Dcoherence.mode=prod</default.failsafe.argLine>
         <failsafe.argLine>${default.failsafe.argLine}</failsafe.argLine>
       </properties>
       <build>
@@ -1088,7 +1088,7 @@
               <artifactId>maven-surefire-plugin</artifactId>
               <version>${maven.surefire.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.productionmode>prod</bedrock.profile.productionmode>
                   <bedrock.profile.productionmode.classname>com.oracle.coherence.testing.bedrock.ProductionmodeProfile</bedrock.profile.productionmode.classname>
                 </systemPropertyVariables>
@@ -1099,7 +1099,7 @@
               <artifactId>maven-failsafe-plugin</artifactId>
               <version>${maven.failsafe.plugin.version}</version>
               <configuration>
-                <systemPropertyVariables>
+                <systemPropertyVariables combine.children="append">
                   <bedrock.profile.productionmode>prod</bedrock.profile.productionmode>
                   <bedrock.profile.productionmode.classname>com.oracle.coherence.testing.bedrock.ProductionmodeProfile</bedrock.profile.productionmode.classname>
                 </systemPropertyVariables>
