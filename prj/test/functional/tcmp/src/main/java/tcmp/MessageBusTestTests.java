@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.console.CapturingApplicationConsole;
 import com.oracle.bedrock.runtime.java.JavaApplication;
 import com.oracle.bedrock.runtime.java.options.ClassName;
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.runtime.options.Arguments;
 import com.oracle.bedrock.runtime.options.Console;
 
@@ -311,6 +312,50 @@ public class MessageBusTestTests
         }
 
     /**
+     * 39634552 - test that a producer publishing the MPSC tail before linking the next entry does not
+     * block the SelectionService thread long enough to trigger ack timeout connection migration.
+     */
+    @Test
+    public void testMpscProducerPublicationWindow()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "4",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "16m",
+                "-reportInterval", "5s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-txThreads",      "4",
+                "-msgSize",        "1024",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "16m",
+                "-reportInterval", "5s"
+                };
+
+        OptionsByType options = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "2000"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.crc", "true"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "2"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketMessageBus.mpsc.enqueueLinkDelayMillis", "250"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketMessageBus.mpsc.pollMaxSpins", "16384"));
+
+        twoMembersTest(options, asArg1, asArg2, 15000);
+        }
+
+    /**
      * Test OOM error case.
      *
      * This test depends on the machine on which the test is run.
@@ -426,8 +471,21 @@ public class MessageBusTestTests
     protected void twoMembersTest(String[] asArg1, String[] asArg2, long cMillis)
             throws Exception
         {
-        OptionsByType options = OptionsByType.of();
+        twoMembersTest(OptionsByType.of(), asArg1, asArg2, cMillis);
+        }
 
+    /*
+     * Test MessageBusTest with 2 members.
+     *
+     * @param options  the options used to start both members
+     * @param asArg1   arguments for member1
+     * @param asArg2   arguments for member2
+     * @param cMillis  time (in milliseconds) to run the servers before
+     *                 checking the output
+     */
+    protected void twoMembersTest(OptionsByType options, String[] asArg1, String[] asArg2, long cMillis)
+            throws Exception
+        {
         CapturingApplicationConsole console1 = new CapturingApplicationConsole();
         Queue<String> output1 = new LinkedList<>();
 
@@ -448,6 +506,8 @@ public class MessageBusTestTests
         Eventually.assertThat(invoking(console2).getCapturedOutputLines(), hasItem(containsString("connections 1, errors 0")));
         assertThat(console1.getCapturedErrorLines(), everyItem(not(containsString("WARNING: polling collector"))));
         assertThat(console2.getCapturedErrorLines(), everyItem(not(containsString("WARNING: polling collector"))));
+        assertNoMessageBusFailures(console1);
+        assertNoMessageBusFailures(console2);
 
         output1.addAll(console1.getCapturedOutputLines());
         output1.addAll(console1.getCapturedErrorLines());
@@ -460,6 +520,18 @@ public class MessageBusTestTests
 
         application1.close();
         application2.close();
+        }
+
+    protected void assertNoMessageBusFailures(CapturingApplicationConsole console)
+        {
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("PERF[ack-timeout]"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("initiating connection migration"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("incompatible protocol"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("protocol error"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("out of sync"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("corrupt"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("Exception"))));
+        assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("DISCONNECT"))));
         }
 
     private LocalPlatform m_platform;

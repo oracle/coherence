@@ -143,6 +143,18 @@ public class SocketMessageBus
             ThreadLocal.withInitial(CRC32::new);
 
     /**
+     * Test hook to widen the MPSC producer publication window.
+     */
+    private static final long MPSC_ENQUEUE_LINK_DELAY_MILLIS = Long.getLong(
+            SocketMessageBus.class.getName() + ".mpsc.enqueueLinkDelayMillis", 0L);
+
+    /**
+     * Maximum producer-link spins before the SelectionService thread backs out.
+     */
+    private static final long MPSC_POLL_MAX_SPINS = Math.max(1L, Long.getLong(
+            SocketMessageBus.class.getName() + ".mpsc.pollMaxSpins", 16_384L));
+
+    /**
      * Lock-free MPSC queue entry for user message sends.
      */
     static class SendEntry
@@ -505,7 +517,19 @@ public class SocketMessageBus
             m_cbPendingPeak = Math.max(m_cbPendingPeak, cbPending);
 
             entry.next = null;
-            m_queueFifoMsTail.getAndSet(entry).next = entry;
+
+            // split the tail update from the next link to allow tests to widen the publication window
+            SendEntry entryPrev = m_queueFifoMsTail.getAndSet(entry);
+            long      cDelay    = MPSC_ENQUEUE_LINK_DELAY_MILLIS;
+            if (cDelay > 0L)
+                {
+                LockSupport.parkNanos(cDelay * 1_000_000L);
+                }
+            entryPrev.next = entry;
+
+            // 39634552 - linking next closes the publication window and makes the entry visible to
+            // the consumer
+            m_fMpscLinkPending = false;
             }
 
         @Override
@@ -574,13 +598,15 @@ public class SocketMessageBus
         @Override
         protected boolean hasProducerWriteWork()
             {
-            return m_queueFifoMsHead != m_queueFifoMsTail.get();
+            // 39634552 - do not report producer work while only the tail publication is visible
+            return !m_fMpscLinkPending && m_queueFifoMsHead != m_queueFifoMsTail.get();
             }
 
         /**
          * Poll a single entry from the inline MPSC FIFO queue.
          *
-         * @return the next drained entry, or {@code null} if the queue is empty
+         * @return the next drained entry, or {@code null} if the queue is empty or a producer link
+         *         is pending
          */
         protected SendEntry pollQueueFifoMs()
             {
@@ -594,14 +620,29 @@ public class SocketMessageBus
                     return null;
                     }
 
+                long cSpin    = 0L;
+                long cSpinMax = MPSC_POLL_MAX_SPINS;
                 do
                     {
                     Thread.onSpinWait();
                     next = head.next;
+                    if (next == null && ++cSpin >= cSpinMax)
+                        {
+                        // 39634552 - after bounded spins waiting for the producer to link next, back
+                        // out instead of pinning the SelectionService thread
+                        m_fMpscLinkPending = true;
+                        next = head.next;
+                        if (next == null)
+                            {
+                            return null;
+                            }
+                        break;
+                        }
                     }
                 while (next == null);
                 }
 
+            m_fMpscLinkPending = false;
             head.next = null;
             m_queueFifoMsHead = next;
             return next;
@@ -1547,6 +1588,11 @@ public class SocketMessageBus
          * Producer-owned tail for the inline MPSC FIFO queue.
          */
         private final AtomicReference<SendEntry> m_queueFifoMsTail = new AtomicReference<>(m_queueFifoMsStub);
+
+        /**
+         * True if the consumer observed a producer that has published tail but not yet linked next.
+         */
+        private volatile boolean m_fMpscLinkPending;
 
         /**
          * Total bytes enqueued but not yet drained into the unflushed batch.
