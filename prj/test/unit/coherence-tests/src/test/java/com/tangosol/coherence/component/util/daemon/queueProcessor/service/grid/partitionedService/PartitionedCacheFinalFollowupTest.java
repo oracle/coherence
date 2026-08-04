@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
  * Regression tests for the final bug 39635940 review findings.
  *
  * @author fryp  2026.07.15
- * @since 26.04
+ * @since 26.07
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class PartitionedCacheFinalFollowupTest

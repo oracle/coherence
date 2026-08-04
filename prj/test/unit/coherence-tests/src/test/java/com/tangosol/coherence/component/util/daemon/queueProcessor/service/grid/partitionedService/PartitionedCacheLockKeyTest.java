@@ -41,7 +41,7 @@ import static org.junit.Assert.assertTrue;
  * Tests for key locking in {@link PartitionedCache}.
  *
  * @author fryp  2026.07.14
- * @since 26.04
+ * @since 26.07
  */
 public class PartitionedCacheLockKeyTest
     {
