@@ -175,6 +175,20 @@ public class SecurityConfigGeneratorTest
         }
 
     @Test
+    public void shouldScanJava26ClassFileVersion()
+            throws Exception
+        {
+        Path dir = classesDir();
+        copyClass(dir, ExecutableFixture.class, JAVA_26_CLASS_MAJOR);
+
+        Map<String, SecurityConfigGenerator.Entry> mapEntries = entryMap(SecurityConfigGenerator.generate(dir));
+
+        assertThat(mapEntries.get(ExecutableFixture.class.getName()).getSource(),
+                is(SecurityConfigGenerator.SOURCE_REMOTE_EXECUTABLE));
+        assertTrue(mapEntries.get(ExecutableFixture.class.getName()).isExecutable());
+        }
+
+    @Test
     public void shouldIncludeInheritedSamInterfaceAsLambdaTarget()
             throws Exception
         {
@@ -419,6 +433,19 @@ public class SecurityConfigGeneratorTest
         copyResource(dir, clz.getName().replace('.', '/') + ".class");
         }
 
+    private static void copyClass(Path dir, Class<?> clz, int nMajorVersion)
+            throws Exception
+        {
+        String sResource = clz.getName().replace('.', '/') + ".class";
+        copyResource(dir, sResource);
+
+        Path   path  = dir.resolve(sResource);
+        byte[] ab    = Files.readAllBytes(path);
+        ab[6] = (byte) (nMajorVersion >>> 8);
+        ab[7] = (byte) nMajorVersion;
+        Files.write(path, ab);
+        }
+
     private static void copyResource(Path dir, String sResource)
             throws Exception
         {
@@ -429,4 +456,6 @@ public class SecurityConfigGeneratorTest
         Files.createDirectories(to.getParent());
         Files.copy(from, to, StandardCopyOption.REPLACE_EXISTING);
         }
+
+    private static final int JAVA_26_CLASS_MAJOR = 70;
     }
