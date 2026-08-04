@@ -23,6 +23,8 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.SerializationRole;
 
+import com.tangosol.internal.util.processor.CacheProcessors;
+
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 
@@ -712,6 +714,24 @@ class JsonSerializerTest
         assertThrows(JsonBindingException.class, () -> genson.aliasFor(SafeJsonSerializer[].class));
         assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer.class.getName()));
         assertThrows(JsonBindingException.class, () -> genson.classFor(SafeJsonSerializer[].class.getName()));
+        }
+
+    @Test
+    void shouldAliasCacheProcessorFunctionCarriers()
+        {
+        JsonSerializer serializer = new JsonSerializer();
+        Genson         genson     = serializer.underlying();
+
+        assertThat(genson.aliasFor(CacheProcessors.ReplaceFunction.class),
+                is("internal.util.processor.CacheProcessors.ReplaceFunction"));
+        assertThat(genson.aliasFor(CacheProcessors.ComputeIfAbsent.class),
+                is("internal.util.processor.CacheProcessors.ComputeIfAbsent"));
+        assertThat(genson.aliasFor(CacheProcessors.ComputeIfPresent.class),
+                is("internal.util.processor.CacheProcessors.ComputeIfPresent"));
+        assertThat(genson.aliasFor(CacheProcessors.Compute.class),
+                is("internal.util.processor.CacheProcessors.Compute"));
+        assertThat(genson.aliasFor(CacheProcessors.Merge.class),
+                is("internal.util.processor.CacheProcessors.Merge"));
         }
 
     @Test

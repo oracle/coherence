@@ -404,8 +404,12 @@
     <class name="com.tangosol.internal.util.processor.BinaryProcessors$BinarySyntheticRemoveBlindProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors" source="manual"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$BinaryGet" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Compute" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$ComputeIfAbsent" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$ComputeIfPresent" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Get" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$GetOrDefault" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$Merge" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Null" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Put" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$PutAll" source="manual" executable="true"/>
@@ -416,6 +420,7 @@
     <class name="com.tangosol.internal.util.processor.CacheProcessors$RemoveNoResults" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$RemoveValue" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$Replace" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.util.processor.CacheProcessors$ReplaceFunction" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.processor.CacheProcessors$ReplaceValue" source="manual" executable="true"/>
     <class name="com.tangosol.internal.util.security.LambdaBytecodeGate$Site" source="manual"/>
     <class name="com.tangosol.internal.util.security.SecurityConfigGenerator$ReadFailure" source="manual"/>

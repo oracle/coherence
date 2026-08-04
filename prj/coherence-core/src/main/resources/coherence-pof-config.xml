@@ -1205,6 +1205,27 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.processor.BinaryProcessors$BinaryPutAllWithExpiryProcessor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>495</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$ReplaceFunction</class-name>
+    </user-type>
+    <user-type>
+      <type-id>496</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$ComputeIfAbsent</class-name>
+    </user-type>
+    <user-type>
+      <type-id>497</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$ComputeIfPresent</class-name>
+    </user-type>
+    <user-type>
+      <type-id>498</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$Compute</class-name>
+    </user-type>
+    <user-type>
+      <type-id>499</type-id>
+      <class-name>com.tangosol.internal.util.processor.CacheProcessors$Merge</class-name>
+    </user-type>
+
     <!-- com.tangosol.internal.util.aggregator package (990-999) -->
 
     <user-type>

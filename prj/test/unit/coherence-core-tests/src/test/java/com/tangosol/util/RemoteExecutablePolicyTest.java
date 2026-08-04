@@ -10,6 +10,7 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberInterceptor;
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.processor.CacheProcessors;
 import com.tangosol.internal.util.security.SecurityConfig;
 
 import com.tangosol.io.SerializationRole;
@@ -84,6 +85,16 @@ public class RemoteExecutablePolicyTest
     public void isExecutable_returnsTrueForCorePagedTopicSubscriberInterceptor()
         {
         assertTrue(RemoteExecutablePolicy.current().isExecutable(PagedTopicSubscriberInterceptor.class));
+        }
+
+    @Test
+    public void isExecutable_returnsTrueForCoreFunctionCacheProcessors()
+        {
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(CacheProcessors.ReplaceFunction.class));
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(CacheProcessors.ComputeIfAbsent.class));
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(CacheProcessors.ComputeIfPresent.class));
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(CacheProcessors.Compute.class));
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(CacheProcessors.Merge.class));
         }
 
     @Test
