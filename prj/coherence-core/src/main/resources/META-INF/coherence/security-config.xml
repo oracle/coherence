@@ -311,6 +311,7 @@
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicChannelPublisherConnector$State" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicDependencies" source="manual"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberConnector$State" source="manual"/>
+    <class name="com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberInterceptor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CleanupSubscribers" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CloseSubscriptionProcessor" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.topic.impl.paged.agent.CommitProcessor" source="manual" executable="true"/>

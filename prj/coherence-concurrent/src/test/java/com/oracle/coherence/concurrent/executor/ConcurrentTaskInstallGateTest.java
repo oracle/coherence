@@ -7,7 +7,12 @@
 package com.oracle.coherence.concurrent.executor;
 
 import com.oracle.coherence.concurrent.executor.function.Predicates;
+import com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor;
+import com.oracle.coherence.concurrent.executor.internal.LifecycleEventInterceptor;
+import com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor;
 import com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor;
+import com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber;
+import com.oracle.coherence.concurrent.executor.subscribers.SystemOutSubscriber;
 import com.oracle.coherence.concurrent.executor.tasks.CronTask;
 import com.oracle.coherence.concurrent.executor.tasks.ValueTask;
 import com.oracle.coherence.concurrent.executor.tasks.internal.CallableTask;
@@ -27,6 +32,7 @@ import com.tangosol.io.SerializationRole;
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.RemoteExecutablePolicy;
 
 import com.tangosol.util.function.Remote;
 
@@ -134,6 +140,23 @@ public class ConcurrentTaskInstallGateTest
         assertTrue(e.getMessage().contains(PlainEntryProcessor.class.getName()));
         assertEquals(0, PlainEntryProcessor.COUNT.get());
         assertDoesNotThrow(() -> enforceProcessor(LocalOnlyProcessor.of(new AnnotatedEntryProcessor())));
+        }
+
+    @Test
+    public void shouldAllowShippedSubscribers()
+        {
+        assertDoesNotThrow(() -> ConcurrentTaskInstallGate.enforceSubscriber(new RecordingSubscriber<>(), null));
+        assertDoesNotThrow(() -> ConcurrentTaskInstallGate.enforceSubscriber(new SystemOutSubscriber<>(), null));
+        }
+
+    @Test
+    public void shouldMarkShippedInterceptorsExecutable()
+        {
+        RemoteExecutablePolicy policy = RemoteExecutablePolicy.current();
+
+        assertTrue(policy.isExecutable(ClusteredTaskInterceptor.class));
+        assertTrue(policy.isExecutable(LifecycleEventInterceptor.class));
+        assertTrue(policy.isExecutable(LiveObjectEventInterceptor.class));
         }
 
     @Test

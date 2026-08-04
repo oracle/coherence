@@ -8,6 +8,7 @@ package com.tangosol.util;
 
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
+import com.tangosol.internal.net.topic.impl.paged.PagedTopicSubscriberInterceptor;
 import com.tangosol.internal.util.CoherenceMode;
 import com.tangosol.internal.util.security.SecurityConfig;
 
@@ -77,6 +78,12 @@ public class RemoteExecutablePolicyTest
         withConfig(entry(XmlExecutable.class.getName(), "manual", true));
 
         assertTrue(RemoteExecutablePolicy.current().isExecutable(XmlExecutable.class));
+        }
+
+    @Test
+    public void isExecutable_returnsTrueForCorePagedTopicSubscriberInterceptor()
+        {
+        assertTrue(RemoteExecutablePolicy.current().isExecutable(PagedTopicSubscriberInterceptor.class));
         }
 
     @Test

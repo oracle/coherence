@@ -75,8 +75,11 @@
     <class name="com.oracle.coherence.concurrent.executor.function.Predicates$RolePredicate" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.function.Predicates$ThrowablePredicate" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.Cause" source="manual"/>
+    <class name="com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SequenceComparator" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.ClusteredTaskInterceptor$SetTaskStateProcessor" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.internal.LifecycleEventInterceptor" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor$ExpiredProcessor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.internal.LiveObjectEventInterceptor$MemberAwareProcessor" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.options.CloseExecutor" source="manual"/>
@@ -88,6 +91,8 @@
     <class name="com.oracle.coherence.concurrent.executor.options.Role" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.options.Storage" source="manual"/>
     <class name="com.oracle.coherence.concurrent.executor.processors.LocalOnlyProcessor" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.subscribers.RecordingSubscriber" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.concurrent.executor.subscribers.SystemOutSubscriber" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.subscribers.internal.AnyFutureSubscriber" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.subscribers.internal.FutureSubscriber" source="manual" executable="true"/>
     <class name="com.oracle.coherence.concurrent.executor.tasks.CronTask" source="manual" executable="true"/>
