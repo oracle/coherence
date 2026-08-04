@@ -2562,25 +2562,49 @@ public class PagedTopic
 
         PartitionSet      partMask   = msgRequest.getRequestMaskSafe();
         PartitionSet      partReject = pinOwnedPartitions(partMask);
-        SubscriberGroupId groupId    = msgRequest.getSubscriberGroupId();
-        int[]             anChannel  = msgRequest.getChannels();
+        Throwable         eFailure   = null;
 
         try
             {
-            Map<Integer, PagedPosition> mapRollback = storageSubs.getRollbackPositions(groupId, anChannel);
-            Map<Integer, Integer>       mapRemain   = storageContent.getRemainingMessages(mapRollback);
-            msgResponse.setResult(mapRemain);
-            msgResponse.setRejectPartitions(partReject);
+            SubscriberGroupId groupId   = msgRequest.getSubscriberGroupId();
+            int[]             anChannel = msgRequest.getChannels();
+
+            try
+                {
+                Map<Integer, PagedPosition> mapRollback = storageSubs.getRollbackPositions(groupId, anChannel);
+                Map<Integer, Integer>       mapRemain   = storageContent.getRemainingMessages(mapRollback);
+                msgResponse.setResult(mapRemain);
+                msgResponse.setRejectPartitions(partReject);
+                }
+            catch (Throwable e)
+                {
+                msgResponse.setException(tagException(e));
+                }
+
+            processChanges(msgResponse);
             }
-        catch (Throwable e)
+        catch (RuntimeException | Error e)
             {
-            msgResponse.setException(tagException(e));
+            eFailure = e;
+            throw e;
             }
-
-        processChanges(msgResponse);
-
-        // lastly, exit the partitions
-        unpinPartitions(partMask);
+        finally
+            {
+            // lastly, exit the partitions
+            Throwable ePrimary = eFailure == null ? msgResponse.getException() : eFailure;
+            try
+                {
+                unpinPartitions(partMask);
+                }
+            catch (RuntimeException | Error e)
+                {
+                if (ePrimary == null)
+                    {
+                    throw e;
+                    }
+                addCleanupFailure(ePrimary, e);
+                }
+            }
         }
 
     // ----- inner class ConfigUpdate override ------------------------------
