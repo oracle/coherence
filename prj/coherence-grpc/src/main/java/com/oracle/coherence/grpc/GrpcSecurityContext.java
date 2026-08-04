@@ -60,12 +60,23 @@ public final class GrpcSecurityContext
             {
             action.run();
             }
-        else
+        else if (KEY_SUBJECT.get() == subject)
             {
             Subject.doAs(subject, (PrivilegedAction<Void>) () ->
                 {
                 action.run();
                 return null;
+                });
+            }
+        else
+            {
+            runWithSubjectContext(subject, () ->
+                {
+                Subject.doAs(subject, (PrivilegedAction<Void>) () ->
+                    {
+                    action.run();
+                    return null;
+                    });
                 });
             }
         }
@@ -86,7 +97,50 @@ public final class GrpcSecurityContext
             {
             return supplier.get();
             }
-        return Subject.doAs(subject, (PrivilegedAction<T>) supplier::get);
+        if (KEY_SUBJECT.get() == subject)
+            {
+            return Subject.doAs(subject, (PrivilegedAction<T>) supplier::get);
+            }
+        return runWithSubjectContext(subject, () ->
+                Subject.doAs(subject, (PrivilegedAction<T>) supplier::get));
+        }
+
+    /**
+     * Run an action under a gRPC context containing the specified subject.
+     *
+     * @param subject  the subject to add to the current gRPC context
+     * @param action   the action to run
+     */
+    private static void runWithSubjectContext(Subject subject, Runnable action)
+        {
+        runWithSubjectContext(subject, () ->
+            {
+            action.run();
+            return null;
+            });
+        }
+
+    /**
+     * Run a supplier under a gRPC context containing the specified subject.
+     *
+     * @param subject   the subject to add to the current gRPC context
+     * @param supplier  the supplier to run
+     * @param <T>       the supplied type
+     *
+     * @return the supplied value
+     */
+    private static <T> T runWithSubjectContext(Subject subject, Supplier<T> supplier)
+        {
+        Context context  = withSubject(Context.current(), subject);
+        Context previous = context.attach();
+        try
+            {
+            return supplier.get();
+            }
+        finally
+            {
+            context.detach(previous);
+            }
         }
 
     /**
