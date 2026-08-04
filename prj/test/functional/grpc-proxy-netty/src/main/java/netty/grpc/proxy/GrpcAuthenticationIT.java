@@ -68,8 +68,11 @@ import java.security.Principal;
 
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.security.auth.Subject;
@@ -179,12 +182,14 @@ class GrpcAuthenticationIT
         }
 
     @Test
-    void shouldBindSubjectOnV0RouteWithValidBasicCredentials()
+    void shouldBindSubjectOnV0RouteWithValidBasicCredentials() throws InterruptedException
         {
-        String                    sCacheName = "grpc-auth-v0";
+        String                     sCacheName = "grpc-auth-v0";
         NamedCache<Object, Object> cache      = s_session.getCache(sCacheName);
+
         cache.clear();
-        CapturingAuthorizer.reset();
+        CapturingAuthorizer.AuthorizationCapture capture = CapturingAuthorizer.beginCapture(sCacheName,
+                CapturingAuthorizer.Hook.WRITE_ANY, StorageAccessAuthorizer.REASON_INVOKE);
 
         v0BlockingStub(basic("grpc-user", "secret"))
                 .put(Requests.put(GrpcDependencies.DEFAULT_SCOPE, sCacheName, "pof",
@@ -192,7 +197,7 @@ class GrpcAuthenticationIT
                         BinaryHelper.toByteString("value", SERIALIZER)));
 
         assertUsernameAndPasswordToken("grpc-user", "secret");
-        assertSubject(CapturingAuthorizer.s_subject.get(), "grpc-user");
+        assertCapturedAuthorization(capture, "grpc-user");
         }
 
     @Test
@@ -227,11 +232,58 @@ class GrpcAuthenticationIT
         assertThat(observer.valueAt(0).getResponseCase(), is(ProxyResponse.ResponseCase.INIT));
 
         int nCacheId = ensureCache(channel, observer, sCacheName, 2);
-        CapturingAuthorizer.reset();
+        CapturingAuthorizer.AuthorizationCapture capture = CapturingAuthorizer.beginCapture(sCacheName,
+                CapturingAuthorizer.Hook.WRITE, StorageAccessAuthorizer.REASON_PUT);
         put(channel, observer, nCacheId, 3);
 
         assertUsernameAndPasswordToken("grpc-user", "secret");
-        assertSubject(awaitCapturedSubject("grpc-user"), "grpc-user");
+        assertCapturedAuthorization(capture, "grpc-user");
+        }
+
+    @Test
+    void shouldNotAllowUnrelatedSubjectToMaskNullSubjectOnV1Put() throws InterruptedException
+        {
+        String                                    sCacheName = "grpc-auth-v1-negative-control";
+        Subject                                   subject    = new Subject();
+        CapturingAuthorizer.AuthorizationCapture prior      = CapturingAuthorizer.beginCapture(sCacheName,
+                CapturingAuthorizer.Hook.WRITE, StorageAccessAuthorizer.REASON_PUT);
+
+        subject.getPrincipals().add(new TestPrincipal("grpc-user"));
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+
+        CapturingAuthorizer.AuthorizationCapture capture = CapturingAuthorizer.beginCapture(sCacheName,
+                CapturingAuthorizer.Hook.WRITE, StorageAccessAuthorizer.REASON_PUT);
+
+        CapturingAuthorizer.record("unrelated-cache", CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.READ,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.READ_ANY,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.WRITE_ANY,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_CLEAR, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_PUT, null);
+        CapturingAuthorizer.record("another-unrelated-cache", CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+        CapturingAuthorizer.record(sCacheName, CapturingAuthorizer.Hook.WRITE,
+                StorageAccessAuthorizer.REASON_PUT, subject);
+
+        CapturingAuthorizer.AuthorizationEvent priorEvent = prior.await(1, TimeUnit.SECONDS);
+        assertThat(priorEvent, is(notNullValue()));
+        assertSubject(priorEvent.f_subject, "grpc-user");
+        assertThat(priorEvent.f_lGeneration, not(is(capture.f_lGeneration)));
+
+        CapturingAuthorizer.AuthorizationEvent event = capture.await(1, TimeUnit.SECONDS);
+        assertThat(event, is(notNullValue()));
+        assertThat(event.f_lGeneration, is(capture.f_lGeneration));
+        assertThat(event.f_sCacheName, is(sCacheName));
+        assertThat(event.f_hook, is(capture.f_expectedHook));
+        assertThat(event.f_nReason, is(capture.f_nExpectedReason));
+        assertThat(event.f_subject, is((Subject) null));
         }
 
     // ----- helper methods -------------------------------------------------
@@ -369,23 +421,20 @@ class GrpcAuthenticationIT
         assertTrue(subject.getPrincipals().stream().anyMatch(principal -> sUser.equals(principal.getName())));
         }
 
-    private static Subject awaitCapturedSubject(String sUser) throws InterruptedException
+    private static void assertCapturedAuthorization(CapturingAuthorizer.AuthorizationCapture capture, String sUser)
+            throws InterruptedException
         {
-        long ldtStop = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(30);
-        Subject subject;
-        do
-            {
-            subject = CapturingAuthorizer.s_subject.get();
-            if (subject != null
-                    && subject.getPrincipals().stream().anyMatch(principal -> sUser.equals(principal.getName())))
-                {
-                return subject;
-                }
-            Thread.sleep(100L);
-            }
-        while (System.currentTimeMillis() < ldtStop);
-
-        return subject;
+        CapturingAuthorizer.AuthorizationEvent event = capture.await(30, TimeUnit.SECONDS);
+        assertThat("No matching authorization event for cache=" + capture.f_sCacheName
+                        + ", hook=" + capture.f_expectedHook
+                        + ", reason=" + StorageAccessAuthorizer.reasonToString(capture.f_nExpectedReason)
+                        + "; observed " + capture.f_events,
+                event, is(notNullValue()));
+        assertThat(event.f_lGeneration, is(capture.f_lGeneration));
+        assertThat(event.f_sCacheName, is(capture.f_sCacheName));
+        assertThat(event.f_hook, is(capture.f_expectedHook));
+        assertThat(event.f_nReason, is(capture.f_nExpectedReason));
+        assertSubject(event.f_subject, sUser);
         }
 
     // ----- inner class: TestIdentityAsserter -----------------------------
@@ -436,33 +485,139 @@ class GrpcAuthenticationIT
         @Override
         public void checkRead(BinaryEntry entry, Subject subject, int nReason)
             {
-            s_subject.set(subject);
+            record(entry.getBackingMapContext().getCacheName(), Hook.READ, nReason, subject);
             }
 
         @Override
         public void checkWrite(BinaryEntry entry, Subject subject, int nReason)
             {
-            s_subject.set(subject);
+            record(entry.getBackingMapContext().getCacheName(), Hook.WRITE, nReason, subject);
             }
 
         @Override
         public void checkReadAny(BackingMapContext context, Subject subject, int nReason)
             {
-            s_subject.set(subject);
+            record(context.getCacheName(), Hook.READ_ANY, nReason, subject);
             }
 
         @Override
         public void checkWriteAny(BackingMapContext context, Subject subject, int nReason)
             {
-            s_subject.set(subject);
+            record(context.getCacheName(), Hook.WRITE_ANY, nReason, subject);
             }
 
         static void reset()
             {
-            s_subject.set(null);
+            s_capture.set(null);
             }
 
-        static final AtomicReference<Subject> s_subject = new AtomicReference<>();
+        static AuthorizationCapture beginCapture(String sCacheName, Hook expectedHook, int nExpectedReason)
+            {
+            AuthorizationCapture capture = new AuthorizationCapture(s_generation.incrementAndGet(),
+                    sCacheName, expectedHook, nExpectedReason);
+            s_capture.set(capture);
+            return capture;
+            }
+
+        static void record(String sCacheName, Hook hook, int nReason, Subject subject)
+            {
+            AuthorizationCapture capture = s_capture.get();
+            if (capture != null)
+                {
+                capture.record(sCacheName, hook, nReason, subject);
+                }
+            }
+
+        enum Hook
+            {
+            READ,
+            WRITE,
+            READ_ANY,
+            WRITE_ANY
+            }
+
+        static class AuthorizationCapture
+            {
+            AuthorizationCapture(long lGeneration, String sCacheName, Hook expectedHook, int nExpectedReason)
+                {
+                f_lGeneration     = lGeneration;
+                f_sCacheName      = sCacheName;
+                f_expectedHook    = expectedHook;
+                f_nExpectedReason = nExpectedReason;
+                }
+
+            void record(String sCacheName, Hook hook, int nReason, Subject subject)
+                {
+                AuthorizationEvent event = new AuthorizationEvent(f_lGeneration, sCacheName,
+                        hook, nReason, subject);
+                f_events.add(event);
+                if (f_sCacheName.equals(sCacheName)
+                        && hook == f_expectedHook
+                        && nReason == f_nExpectedReason)
+                    {
+                    if (f_event.compareAndSet(null, event))
+                        {
+                        f_latch.countDown();
+                        }
+                    }
+                }
+
+            AuthorizationEvent await(long cTimeout, TimeUnit unit) throws InterruptedException
+                {
+                return f_latch.await(cTimeout, unit) ? f_event.get() : null;
+                }
+
+            final long f_lGeneration;
+
+            final String f_sCacheName;
+
+            final Hook f_expectedHook;
+
+            final int f_nExpectedReason;
+
+            final CountDownLatch f_latch = new CountDownLatch(1);
+
+            final AtomicReference<AuthorizationEvent> f_event = new AtomicReference<>();
+
+            final ConcurrentLinkedQueue<AuthorizationEvent> f_events = new ConcurrentLinkedQueue<>();
+            }
+
+        static class AuthorizationEvent
+            {
+            AuthorizationEvent(long lGeneration, String sCacheName, Hook hook, int nReason, Subject subject)
+                {
+                f_lGeneration = lGeneration;
+                f_sCacheName  = sCacheName;
+                f_hook        = hook;
+                f_nReason     = nReason;
+                f_subject     = subject;
+                }
+
+            @Override
+            public String toString()
+                {
+                return "AuthorizationEvent{" + "generation=" + f_lGeneration
+                        + ", cache='" + f_sCacheName + '\''
+                        + ", hook=" + f_hook
+                        + ", reason=" + StorageAccessAuthorizer.reasonToString(f_nReason)
+                        + ", subject=" + f_subject
+                        + '}';
+                }
+
+            final long f_lGeneration;
+
+            final String f_sCacheName;
+
+            final Hook f_hook;
+
+            final int f_nReason;
+
+            final Subject f_subject;
+            }
+
+        static final AtomicLong s_generation = new AtomicLong();
+
+        static final AtomicReference<AuthorizationCapture> s_capture = new AtomicReference<>();
         }
 
     // ----- inner class: TestPrincipal ------------------------------------
