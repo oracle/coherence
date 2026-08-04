@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Tests for JSON class metadata policy.
  *
  * @author Vaso Putica  2026.05.09
- * @since 26.04
+ * @since 26.07
  */
 class JsonClassMetadataPolicyTest
     {

@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * while keeping raw URL expression compatibility only in LEGACY.
  *
  * @author Vaso Putica  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public final class RestExpressionPolicy
     {

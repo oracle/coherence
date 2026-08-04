@@ -17,7 +17,7 @@ import java.util.Map;
  * projection, aggregator, and processor expression inputs.
  *
  * @author Vaso Putica  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public class ExpressionAliasConfig
     {

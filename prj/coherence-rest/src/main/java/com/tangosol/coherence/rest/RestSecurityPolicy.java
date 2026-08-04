@@ -16,7 +16,7 @@ import jakarta.ws.rs.core.SecurityContext;
  * Central mode-aware policy for Coherence REST security boundaries.
  *
  * @author Vaso Putica  2026.05.07
- * @since 26.04
+ * @since 26.07
  */
 public final class RestSecurityPolicy
     {

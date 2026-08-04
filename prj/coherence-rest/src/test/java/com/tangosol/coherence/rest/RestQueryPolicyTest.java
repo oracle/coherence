@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
  * Tests for {@link RestQueryPolicy}.
  *
  * @author Vaso Putica  2026.05.09
- * @since 26.04
+ * @since 26.07
  */
 public class RestQueryPolicyTest
     {

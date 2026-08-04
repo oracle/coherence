@@ -18,7 +18,7 @@ import java.util.Objects;
  * Local REST extractors used after query execution returns cache entries.
  *
  * @author Vaso Putica  2026.05.11
- * @since 26.04
+ * @since 26.07
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 final class RestValueExtractors

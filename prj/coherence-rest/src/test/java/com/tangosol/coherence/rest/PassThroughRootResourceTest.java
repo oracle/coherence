@@ -34,7 +34,7 @@ import static org.junit.Assert.fail;
  * for pass-through resources.
  *
  * @author Vaso Putica  2026.05.07
- * @since 26.04
+ * @since 26.07
  */
 public class PassThroughRootResourceTest
     {

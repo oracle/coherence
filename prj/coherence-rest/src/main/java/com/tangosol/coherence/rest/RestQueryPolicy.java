@@ -45,7 +45,7 @@ import jakarta.ws.rs.core.Response;
  * path so SSE and non-SSE resources cannot diverge.
  *
  * @author Vaso Putica  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public final class RestQueryPolicy
     {

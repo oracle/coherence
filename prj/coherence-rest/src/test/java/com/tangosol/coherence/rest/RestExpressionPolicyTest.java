@@ -22,7 +22,7 @@ import static org.junit.Assert.fail;
  * Tests for {@link RestExpressionPolicy}.
  *
  * @author Vaso Putica  2026.05.08
- * @since 26.04
+ * @since 26.07
  */
 public class RestExpressionPolicyTest
     {

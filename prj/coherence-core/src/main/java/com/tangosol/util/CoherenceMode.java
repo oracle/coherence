@@ -10,7 +10,7 @@ package com.tangosol.util;
  * Public facade for REST-safe access to the current Coherence mode.
  *
  * @author Vaso Putica  2026.05.10
- * @since 26.04
+ * @since 26.07
  */
 public final class CoherenceMode
     {

@@ -35,7 +35,7 @@ import java.util.Base64;
  * {@code design/features/security-bugs/plans/rest-01/prompts/08-slice-f-test-plan-implementation.md}.
  *
  * @author Vaso Putica  2026.05.10
- * @since 26.04
+ * @since 26.07
  */
 @ApplicationPath("/api")
 public class Rest01EngagedAuthResourceConfig

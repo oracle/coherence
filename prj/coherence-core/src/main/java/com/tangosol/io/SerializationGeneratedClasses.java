@@ -14,7 +14,7 @@ import java.lang.invoke.MethodHandles;
  * Registration facade for Coherence-generated serialization helper classes.
  *
  * @author Vaso Putica  2026.05.11
- * @since 26.04
+ * @since 26.07
  */
 public final class SerializationGeneratedClasses
     {
