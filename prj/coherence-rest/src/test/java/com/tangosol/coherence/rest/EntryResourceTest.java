@@ -6,12 +6,14 @@
  */
 package com.tangosol.coherence.rest;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.coherence.rest.config.ExpressionAliasConfig;
+
 import com.tangosol.coherence.rest.io.Marshaller;
 import com.tangosol.coherence.rest.io.MarshallerRegistry;
 
 import com.tangosol.coherence.rest.util.PartialObject;
-import com.tangosol.coherence.rest.util.PropertySet;
-
 import com.tangosol.coherence.rest.util.processor.ProcessorRegistry;
 
 import com.tangosol.net.NamedCache;
@@ -45,6 +47,7 @@ import jakarta.ws.rs.core.Variant;
 
 import jakarta.xml.bind.JAXBException;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,6 +59,10 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link EntryResource}.
+ * <p>
+ * Prompt 04 at
+ * design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md
+ * adds alias-policy coverage for entry projection and processor paths.
  *
  * @author ic  2011.06.29
  */
@@ -70,6 +77,12 @@ public class EntryResourceTest
         {
         m_cache = new WrapperNamedCache(new HashMap<Integer, Person>(), "persons");
         m_cache.put(1, m_person = Person.create());
+        }
+
+    @After
+    public void cleanup()
+        {
+        CoherenceModeHelper.clear();
         }
 
     @Test
@@ -152,8 +165,7 @@ public class EntryResourceTest
     public void testGetPartial()
         {
         EntryResource resource = createEntryResource(m_cache, 1, Person.class);
-        Response      response = resource.get(PropertySet
-                .fromString("name,dateOfBirth,address:(city,state)"), GET_REQUEST);
+        Response      response = resource.get("name,dateOfBirth,address:(city,state)", GET_REQUEST);
 
         assertEquals(200 /* OK */, response.getStatus());
 
@@ -240,6 +252,22 @@ public class EntryResourceTest
 
         assertEquals(409 /* Conflict */, response.getStatus());
         assertEquals("Belgrade", ((Person) m_cache.get(2)).getAddress().getCity());
+        }
+
+    @Test
+    public void shouldRejectRawAndAllowAliasesInDev()
+        {
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.dev())
+            {
+            EntryResource resource = createEntryResource(m_cache, 1, Person.class);
+            resource.setExpressionAliases(createExpressionAliases());
+
+            assertEquals(400 , resource.get("name", GET_REQUEST).getStatus());
+            assertEquals(200 /* OK */, resource.get("names", GET_REQUEST).getStatus());
+
+            assertEquals(400 , resource.process("increment(dateOfBirth,1)").getStatus());
+            assertEquals(200 /* OK */, resource.process("increment(age,1)").getStatus());
+            }
         }
 
     // ----- helpers --------------------------------------------------------
@@ -354,7 +382,7 @@ public class EntryResourceTest
         }
 
     // ---- helper methods --------------------------------------------------
-    
+
     protected EntryResource createEntryResource(NamedCache cache, Object oKey, Class clzValue)
         {
         EntryResource resource = new EntryResource(cache, oKey, clzValue);
@@ -363,6 +391,14 @@ public class EntryResourceTest
         resource.m_marshallerRegistry = new MarshallerRegistry();
 
         return resource;
+        }
+
+    protected ExpressionAliasConfig createExpressionAliases()
+        {
+        return ExpressionAliasConfig.builder()
+                .addProjectionAlias("names", "name")
+                .addProcessorArgumentAlias("increment", "age", "age")
+                .build();
         }
 
 

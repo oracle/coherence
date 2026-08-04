@@ -16,6 +16,10 @@ import static org.junit.Assert.*;
 
 /**
  * Tests for {@link RestConfig}.
+ * <p>
+ * Prompt 04 at
+ * design/features/security-bugs/plans/rest-01/prompts/04-slice-c-query-expression-implementation.md
+ * adds schema/config coverage for global and resource-scoped expression aliases.
  *
  * @author ic  2011.12.16
  */
@@ -93,6 +97,37 @@ public abstract class AbstractRestConfigTest
         {
         assertEquals(1000, m_restConfig.getResources().get("test-cache-direct-query1").getMaxResults());
         assertEquals(-1, m_restConfig.getResources().get("test-cache-direct-query2").getMaxResults());
+        }
+
+    @Test
+    public void testExpressionAliases()
+        {
+        ExpressionAliasConfig aliases = m_restConfig.getExpressionAliases();
+        assertEquals("name", aliases.getSortExpression("by-name"));
+        assertEquals("name,age", aliases.getProjectionProperties("summary"));
+        assertEquals("age", aliases.getAggregatorArgumentExpression("long-sum", "age"));
+        assertEquals("age", aliases.getProcessorArgumentExpression("increment", "age"));
+
+        ResourceConfig resourceConfig = m_restConfig.getResources().get("test-cache-direct-query1");
+        aliases = resourceConfig.getExpressionAliases();
+        assertEquals("lastName", aliases.getSortExpression("by-name"));
+        assertEquals("name,age", aliases.getProjectionProperties("summary"));
+        }
+
+    @Test
+    public void testDuplicateExpressionAliasesRejected()
+        {
+        try
+            {
+            ExpressionAliasConfig.builder()
+                    .addSortAlias("by-name", "name")
+                    .addSortAlias("by-name", "lastName");
+            fail("Expected duplicate alias rejection");
+            }
+        catch (IllegalArgumentException expected)
+            {
+            assertTrue(expected.getMessage().contains("duplicate sort alias"));
+            }
         }
 
     private RestConfig m_restConfig;

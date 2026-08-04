@@ -8,7 +8,12 @@ package com.tangosol.coherence.rest.providers;
 
 import org.glassfish.jersey.server.ContainerRequest;
 
+import com.tangosol.coherence.http.AbstractHttpServer;
 import com.tangosol.coherence.http.BasicAuthentication;
+
+import com.tangosol.coherence.rest.RestSecurityPolicy;
+
+import com.tangosol.util.CoherenceMode;
 
 import java.io.IOException;
 
@@ -24,6 +29,7 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.container.PreMatching;
 
 import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 
@@ -32,7 +38,9 @@ import jakarta.ws.rs.ext.Provider;
 /**
  * Simple authentication filter.
  *
- * Returns response with http status 401 when proper authentication is not provided in incoming request.
+ * In DEV and PROD mode, returns response with http status 401 when REST
+ * authentication is engaged but proper authentication is not provided in the
+ * incoming request. LEGACY mode preserves the historical fail-open behavior.
  *
  * @author lh
  * @see ContainerRequestFilter
@@ -49,41 +57,54 @@ public class SecurityFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext filterContext) throws IOException
         {
-        SecurityContext securityContext = authenticate((ContainerRequest) filterContext.getRequest(),
-                filterContext.getSecurityContext());
+        SecurityContext contextCurrent = filterContext.getSecurityContext();
+        RestSecurityPolicy.AuthenticationState authState =
+                RestSecurityPolicy.evaluateAuthentication(contextCurrent);
+        SecurityContext securityContext = authenticate((ContainerRequest) filterContext.getRequest(), authState);
         if (securityContext != null)
             {
             filterContext.setSecurityContext(securityContext);
             }
+        else if (authState.isPrincipalRequired())
+            {
+            filterContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                    .header(HttpHeaders.WWW_AUTHENTICATE, "Basic realm=\""
+                                                          + AbstractHttpServer.HTTP_BASIC_REALM + '"')
+                    .build());
+            }
         }
 
-    private SecurityContext authenticate(ContainerRequest request, Object securityContext)
+    private SecurityContext authenticate(ContainerRequest request, RestSecurityPolicy.AuthenticationState authState)
         {
-        // Extract authentication credentials
         String authentication = request.getHeaderString(HttpHeaders.AUTHORIZATION);
-        Principal principal = null;
+        boolean   fAuthEngaged     = authState.isEngaged();
+        boolean   fPrincipalUsable = authState.hasUsablePrincipal();
+        Principal principal        = fPrincipalUsable ? authState.getPrincipal() : null;
+        String    sPrincipalName   = authState.getPrincipalName();
+        String    sScheme          = authState.getAuthenticationScheme();
         if (authentication == null)
             {
-            if (securityContext instanceof SecurityContext)
-                {
-                try
-                    {
-                    principal = ((SecurityContext) securityContext).getUserPrincipal();
-                    }
-                catch (Exception ignore)
-                    {
-                    // fall through and return null
-                    }
-                }
-
             if (principal == null)
                 {
                 return null;
                 }
             else
                 {
-                return new Authorizer(principal.getName(), principal, SecurityContext.CLIENT_CERT_AUTH);
+                return new Authorizer(sPrincipalName, principal, sScheme);
                 }
+            }
+
+
+        if (fAuthEngaged && CoherenceMode.isCoherenceRestAuthEnforced())
+            {
+            return fPrincipalUsable
+                   ? new Authorizer(sPrincipalName, principal, sScheme)
+                   : null;
+            }
+
+        if (!fAuthEngaged && CoherenceMode.isCoherenceRestAuthEnforced())
+            {
+            return null;
             }
 
         BasicAuthentication.Credentials credentials;
@@ -102,7 +123,6 @@ public class SecurityFilter implements ContainerRequestFilter
             return null;
             }
 
-        // Nothing to do; our HTTP server already authenticated user
         return new Authorizer(credentials.getUsername());
         }
 

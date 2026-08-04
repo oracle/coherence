@@ -44,7 +44,8 @@ public class ClassConverter
     @Override
     public Class<?> deserialize(ObjectReader reader, Context ctx) throws Exception
         {
-        return Thread.currentThread().getContextClassLoader().loadClass(reader.valueAsString());
+        return JsonClassMetadataPolicy.resolveClassLiteral(reader.valueAsString(),
+                Thread.currentThread().getContextClassLoader());
         }
 
     // ----- inner class: Factory -------------------------------------------

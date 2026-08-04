@@ -82,14 +82,14 @@ public class DefaultRootResource
             {
             NamedCache cache = m_session.getCache(configResource.getCacheName(),
                                                   withoutTypeChecking());
-            return InjectionBinder.inject(
-                    instantiateCacheResource(cache,
-                                            configResource.getKeyClass(),
-                                            configResource.getValueClass(),
-                                            configResource.getKeyConverter(),
-                                            configResource.getQueryConfig(),
-                                            configResource.getMaxResults()),
-                    m_serviceLocator);
+            CacheResource resource = instantiateCacheResource(cache,
+                    configResource.getKeyClass(),
+                    configResource.getValueClass(),
+                    configResource.getKeyConverter(),
+                    configResource.getQueryConfig(),
+                    configResource.getMaxResults());
+            resource.setExpressionAliases(configResource.getExpressionAliases());
+            return InjectionBinder.inject(resource, m_serviceLocator);
             }
         catch (Exception e)
             {

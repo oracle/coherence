@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+
+<rest xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns="http://xmlns.oracle.com/coherence/coherence-rest-config"
+      xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-rest-config coherence-rest-config.xsd">
+  <resources>
+    <resource>
+      <cache-name>dist-test</cache-name>
+      <key-class>java.lang.String</key-class>
+      <value-class>java.lang.String</value-class>
+    </resource>
+    <resource>
+      <cache-name>dist-test-named-query</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>rest.data.Persona</value-class>
+      <query engine="DEFAULT">
+        <name>age-37-query</name>
+        <expression>age = 37</expression>
+      </query>
+      <direct-query enabled="true" engine="DEFAULT"/>
+      <expression-aliases>
+        <sort-alias>
+          <name>by-age</name>
+          <expression>age</expression>
+        </sort-alias>
+      </expression-aliases>
+    </resource>
+    <resource>
+      <cache-name>dist-http-example</cache-name>
+      <key-class>java.lang.Integer</key-class>
+      <value-class>rest.data.Persona</value-class>
+      <direct-query enabled="true" engine="DEFAULT" max-results="100"/>
+      <expression-aliases>
+        <sort-alias>
+          <name>by-age</name>
+          <expression>age</expression>
+        </sort-alias>
+        <projection-alias>
+          <name>person-summary</name>
+          <properties>name,age</properties>
+        </projection-alias>
+      </expression-aliases>
+    </resource>
+  </resources>
+</rest>

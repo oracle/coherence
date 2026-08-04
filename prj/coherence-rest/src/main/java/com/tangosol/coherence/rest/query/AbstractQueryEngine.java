@@ -8,7 +8,10 @@ package com.tangosol.coherence.rest.query;
 
 import com.tangosol.config.expression.Value;
 
+import com.tangosol.coherence.rest.RestQueryPolicy;
+
 import com.tangosol.util.Base;
+import com.tangosol.util.CoherenceMode;
 import com.tangosol.util.UID;
 import com.tangosol.util.UUID;
 
@@ -22,6 +25,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -55,13 +59,12 @@ public abstract class AbstractQueryEngine
      */
     protected ParsedQuery parseQueryString(String sQuery)
         {
-        Matcher                  matcher = QUERY_PARAMS_PATTERN.matcher(sQuery);
-        String                   sFinal  = matcher.replaceAll(":$1");
-        Map<String, ParsedQuery> map     = m_mapParsedQuery;
+        Matcher             matcher = QUERY_PARAMS_PATTERN.matcher(sQuery);
+        String              sFinal  = matcher.replaceAll(":$1");
+        ParsedQueryCacheKey key     = getParsedQueryCacheKey(sQuery, sFinal);
 
         // check to see if we've already created a ParsedQuery for the
-        // given final query string
-        ParsedQuery query = map.get(sFinal);
+        ParsedQuery query = m_mapParsedQuery.get(key);
         if (query == null)
             {
             matcher.reset();
@@ -77,7 +80,7 @@ public abstract class AbstractQueryEngine
                 }
 
             query = new ParsedQuery(sFinal, mapParamTypes);
-            map.put(sFinal, query);
+            m_mapParsedQuery.put(key, query);
             }
 
         return query;
@@ -99,6 +102,10 @@ public abstract class AbstractQueryEngine
         Class clz = s_mapTypeNames.get(sType);
         if (clz == null)
             {
+            if (!CoherenceMode.isLegacy() && RestQueryPolicy.isDirectQueryTypePolicyActive())
+                {
+                throw new IllegalArgumentException("unsupported REST query parameter type hint: " + sType);
+                }
             try
                 {
                 clz = Base.getContextClassLoader(this).loadClass(sType);
@@ -110,6 +117,27 @@ public abstract class AbstractQueryEngine
             }
 
         return clz;
+        }
+
+    protected ParsedQueryCacheKey getParsedQueryCacheKey(String sQuery, String sFinal)
+        {
+        if (CoherenceMode.isLegacy())
+            {
+            return new ParsedQueryCacheKey(sFinal, TypePolicyCacheScope.LEGACY_COMPATIBLE);
+            }
+        return new ParsedQueryCacheKey(sQuery, getTypePolicyCacheScope());
+        }
+
+    /**
+     * Return the current type-policy cache scope.
+     *
+     * @return the type-policy cache scope
+     */
+    protected TypePolicyCacheScope getTypePolicyCacheScope()
+        {
+        return RestQueryPolicy.isDirectQueryTypePolicyActive()
+                ? TypePolicyCacheScope.DIRECT_STRICT
+                : TypePolicyCacheScope.OPERATOR_OR_NON_DIRECT;
         }
 
     /**
@@ -209,13 +237,79 @@ public abstract class AbstractQueryEngine
         private final Map<String, Class> m_mapParameterTypes;
         }
 
+
+    /**
+     * Cache key for parsed queries.
+     */
+    protected static class ParsedQueryCacheKey
+        {
+        /**
+         * Construct a cache key.
+         *
+         * @param sQuery  original query string
+         * @param scope   type-policy cache scope
+         */
+        protected ParsedQueryCacheKey(String sQuery, TypePolicyCacheScope scope)
+            {
+            m_sQuery = sQuery;
+            m_scope  = scope;
+            }
+
+        @Override
+        public boolean equals(Object o)
+            {
+            if (this == o)
+                {
+                return true;
+                }
+            if (!(o instanceof ParsedQueryCacheKey))
+                {
+                return false;
+                }
+            ParsedQueryCacheKey that = (ParsedQueryCacheKey) o;
+            return Objects.equals(m_sQuery, that.m_sQuery)
+                    && m_scope == that.m_scope;
+            }
+
+        @Override
+        public int hashCode()
+            {
+            return Objects.hash(m_sQuery, m_scope);
+            }
+
+        private final String m_sQuery;
+
+        private final TypePolicyCacheScope m_scope;
+        }
+
+
+    /**
+     * Type-policy cache scopes.
+     */
+    protected enum TypePolicyCacheScope
+        {
+        /**
+         * Operator-owned or non-direct query parsing.
+         */
+        OPERATOR_OR_NON_DIRECT,
+
+        /**
+         * LEGACY stripped-query compatibility parsing.
+         */
+        LEGACY_COMPATIBLE,
+
+        /**
+         * DEV/PROD direct-query parsing.
+         */
+        DIRECT_STRICT
+        }
+
     // ----- data members ---------------------------------------------------
 
     /**
-     * Map of cached ParsedQuery instances, keyed by their corresponding
-     * final query string.
+     * Map of cached ParsedQuery instances.
      */
-    protected final Map m_mapParsedQuery = new ConcurrentHashMap<String, ParsedQuery>();
+    protected final Map<ParsedQueryCacheKey, ParsedQuery> m_mapParsedQuery = new ConcurrentHashMap<>();
 
     // ----- constants ------------------------------------------------------
 

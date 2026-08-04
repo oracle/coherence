@@ -18,6 +18,27 @@
     </marshallers>
   </defaults>
 
+  <expression-aliases>
+    <sort-alias>
+      <name>by-name</name>
+      <expression>name</expression>
+    </sort-alias>
+    <projection-alias>
+      <name>summary</name>
+      <properties>name,age</properties>
+    </projection-alias>
+    <aggregator-argument-alias>
+      <aggregator>long-sum</aggregator>
+      <name>age</name>
+      <expression>age</expression>
+    </aggregator-argument-alias>
+    <processor-argument-alias>
+      <processor>increment</processor>
+      <name>age</name>
+      <expression>age</expression>
+    </processor-argument-alias>
+  </expression-aliases>
+
   <resources>
     <resource>
       <cache-name>dist-test1</cache-name>
@@ -117,6 +138,12 @@
         <key-class>java.lang.String</key-class>
         <value-class>java.lang.String</value-class>
         <direct-query enabled="true" engine="null-engine" max-results="500"/>
+        <expression-aliases>
+          <sort-alias>
+            <name>by-name</name>
+            <expression>lastName</expression>
+          </sort-alias>
+        </expression-aliases>
     </resource>
     <resource>
         <cache-name>test-cache-direct-query2</cache-name>
