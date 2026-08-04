@@ -107,6 +107,18 @@ public class ReporterSecurityTest
         }
 
     @Test
+    public void shouldAcceptOpenLibertyWsjarReportResource()
+            throws Exception
+        {
+        String      sReport = "reports/report-group.xml";
+        ClassLoader loader  = new ReportResourceClassLoader(sReport, "wsjar:file");
+
+        URL url = ReporterSecurity.resolveTrustedReportUrl(sReport, loader, "setConfigFile", "jmx-direct");
+
+        assertThat(url.getProtocol(), is("wsjar"));
+        }
+
+    @Test
     public void shouldRejectUnknownReportResourceProtocolInCompatibilityMode()
             throws Exception
         {

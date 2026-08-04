@@ -495,7 +495,8 @@ public final class ReporterSecurity
                 || "jar".equalsIgnoreCase(sProtocol)
                 || "bundle".equalsIgnoreCase(sProtocol)
                 || "bundleresource".equalsIgnoreCase(sProtocol)
-                || "vfs".equalsIgnoreCase(sProtocol); // WildFly/JBoss/EAP-style classloader resources
+                || "vfs".equalsIgnoreCase(sProtocol)
+                || "wsjar".equalsIgnoreCase(sProtocol);
         }
 
     private static URL resolveRemoteReportUrl(URI uri, String sName, String sOperation, String sScope)
