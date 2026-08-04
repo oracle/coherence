@@ -170,6 +170,8 @@ public class TopicsSubscriberReplayIntegrationTest
         startServer(sCluster + "-initial", sMode, sPolicyDrift, sExecutableClassPath);
 
         String sServiceName = m_member.invoke(new EnsureSubscriberGroup(sTopic, sGroup));
+        // subscriber group metadata must be flushed before the snapshot is created
+        m_member.invoke(new WaitForPersistenceIdle(sServiceName));
         m_member.invoke(new SnapshotOperation("create", sServiceName, sSnapshot));
 
         stopServer();
