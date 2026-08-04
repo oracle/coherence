@@ -1024,7 +1024,8 @@ class HierarchicalNSW : public AlgorithmInterface<dist_t> {
             }
         }
 
-        if (input.tellg() != total_filesize)
+        std::streamoff final_position = input.tellg();
+        if (final_position < 0 || final_position != total_filesize)
             throw std::runtime_error("Index seems to be corrupted or unsupported");
 
         clear();
