@@ -170,5 +170,46 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <!-- maven-plugin-plugin will produce the plugin.xml file containing a
+               *-SNAPSHOT version, which must be replaced with a release version
+          -->
+          <plugin>
+            <groupId>com.google.code.maven-replacer-plugin</groupId>
+            <artifactId>replacer</artifactId>
+            <!-- Replace the version numbers in the standard plugin.xml -->
+            <executions>
+              <execution>
+                <id>standard-plugin</id>
+                <phase>process-classes</phase>
+                <goals>
+                  <goal>replace</goal>
+                </goals>
+                <configuration>
+                  <file>${project.build.outputDirectory}/META-INF/maven/plugin.xml</file>
+                  <replacements>
+                    <!-- replace /plugin/version -->
+                    <replacement>
+                    <xpath>/plugin/version/text()</xpath>
+                    <token>^.*$</token>
+                    <value>${project.version}</value>
+                  </replacement>
+                  <!-- replace version for Coherence dependency -->
+                  <replacement>
+                    <xpath>/plugin/dependencies/dependency/artifactId[text() = 'coherence']/following-sibling::version/text()</xpath>
+                    <token>^.*$</token>
+                    <value>${project.version}</value>
+                  </replacement>
+                </replacements>
+              </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 </project>
