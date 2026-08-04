@@ -453,7 +453,7 @@ public class PofBufferReader
                     break;
 
                 case T_OCTET_STRING:
-                    ab = new byte[validateByteCount("octet string", in.readPackedInt())];
+                    ab = new byte[validateByteCount("octet string", in.readPackedInt(), in)];
                     in.readFully(ab);
                     break;
 
@@ -477,7 +477,7 @@ public class PofBufferReader
 
                     if (nElementType == T_OCTET)
                         {
-                        validateByteCount("byte array", cElements);
+                        validateByteCount("byte array", cElements, in);
                         ab = new byte[cElements];
                         in.readFully(ab);
                         }
@@ -585,7 +585,7 @@ public class PofBufferReader
 
                 case T_OCTET_STRING:
                     {
-                    int    cb = validateByteCount("octet string", in.readPackedInt());
+                    int    cb = validateByteCount("octet string", in.readPackedInt(), in);
                     byte[] ab = new byte[cb];
                     in.readFully(ab);
 
@@ -1628,7 +1628,7 @@ public class PofBufferReader
 
                     if (nElementType == T_OCTET)
                         {
-                        validateByteCount("binary", cb);
+                        validateByteCount("binary", cb, in);
                         byte[] ab = new byte[cb];
                         in.readFully(ab);
                         bin = new Binary(ab);
@@ -1749,7 +1749,7 @@ public class PofBufferReader
 
                 case T_OCTET_STRING:
                     {
-                    int cb = validateByteCount("octet string", in.readPackedInt());
+                    int cb = validateByteCount("octet string", in.readPackedInt(), in);
                     int of = in.getOffset();
 
                     ReadBuffer buf = in.getBuffer();
@@ -3433,7 +3433,7 @@ public class PofBufferReader
 
                     case T_OCTET:
                         {
-                        validateByteCount("byte array", cElements);
+                        validateByteCount("byte array", cElements, in);
                         byte[] ab = new byte[cElements];
                         in.readFully(ab);
                         o = ab;
@@ -4169,10 +4169,13 @@ public class PofBufferReader
             throws IOException
         {
         getLimitPolicy().validateContainerBytes(sKind, cb);
-        int cbRemaining = remainingBytes(in);
-        if (cb > cbRemaining)
+        if (in.getBuffer() != null)
             {
-            throw new IOException("POF " + sKind + " byte count exceeds remaining input: " + cb + " > " + cbRemaining);
+            int cbRemaining = in.available();
+            if (cb > cbRemaining)
+                {
+                throw new IOException("POF " + sKind + " byte count exceeds remaining input: " + cb + " > " + cbRemaining);
+                }
             }
         return cb;
         }
@@ -4197,24 +4200,6 @@ public class PofBufferReader
             throw new IOException("POF " + sKind + " byte count overflow: " + cElements + " * " + cbElement);
             }
         return validateByteCount(sKind, (int) cb);
-        }
-
-    /**
-     * Return the remaining readable bytes for the specified input.
-     *
-     * @param in  the buffer input to inspect
-     *
-     * @return the remaining readable bytes
-     *
-     * @throws IOException if the input cannot report its offset
-     */
-    protected int remainingBytes(ReadBuffer.BufferInput in)
-            throws IOException
-        {
-        ReadBuffer buffer = in.getBuffer();
-        return buffer == null
-                ? in.available()
-                : buffer.length() - in.getOffset();
         }
 
     /**
@@ -4298,15 +4283,15 @@ public class PofBufferReader
         }
 
     /**
-    * Read a Binary object from the specified BufferInput in an optimal way,
-    * depending on the existence of an enclosing ReadBuffer.
-    *
-    * @param in  a BufferInput to read from
-    *
-    * @return a Binary object
-    *
-    * @throws IOException  if an I/O error occurs
-    */
+     * Read a Binary object from the specified BufferInput in an optimal way,
+     * depending on the existence of an enclosing ReadBuffer.
+     *
+     * @param in  a BufferInput to read from
+     *
+     * @return a Binary object
+     *
+     * @throws IOException  if an I/O error occurs
+     */
     protected Binary readBinary(ReadBuffer.BufferInput in)
             throws IOException
         {
@@ -4314,17 +4299,17 @@ public class PofBufferReader
         }
 
     /**
-    * Read a Binary object from the specified BufferInput in an optimal way,
-    * depending on the existence of an enclosing ReadBuffer.
-    *
-    * @param in                  a BufferInput to read from
-    * @param fValidateRemaining  true to validate the byte count against the
-    *                            input before reading
-    *
-    * @return a Binary object
-    *
-    * @throws IOException  if an I/O error occurs
-    */
+     * Read a Binary object from the specified BufferInput in an optimal way,
+     * depending on the existence of an enclosing ReadBuffer.
+     *
+     * @param in                  a BufferInput to read from
+     * @param fValidateRemaining  true to validate the byte count against the
+     *                            input before reading
+     *
+     * @return a Binary object
+     *
+     * @throws IOException  if an I/O error occurs
+     */
     protected Binary readBinary(ReadBuffer.BufferInput in, boolean fValidateRemaining)
             throws IOException
         {

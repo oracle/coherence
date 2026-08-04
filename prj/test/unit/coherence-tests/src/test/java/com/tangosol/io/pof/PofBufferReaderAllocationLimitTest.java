@@ -10,6 +10,7 @@ import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.WrapperBufferInput;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.LongArray;
@@ -17,6 +18,8 @@ import com.tangosol.util.SparseArray;
 
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 
 import java.util.HashMap;
@@ -111,6 +114,16 @@ public class PofBufferReaderAllocationLimitTest
             });
 
         assertEquals(new Binary(new byte[] {1, 2, 3}), reader.readBinaryForTest(input.getBufferInput()));
+        }
+
+    @Test
+    public void shouldAllowStreamingInputByteCountWhenOnlyBufferedBytesAreAvailable()
+            throws IOException
+        {
+        TestReader reader = reader(limits(64, 8, 8), out -> {});
+
+        assertEquals(3, reader.validateByteCountForTest("byte array", 3,
+                new StreamingBufferInput(new byte[] {1, 2, 3})));
         }
 
     @Test
@@ -223,6 +236,28 @@ public class PofBufferReaderAllocationLimitTest
                 throws IOException
             {
             return readBinary(in);
+            }
+
+        private int validateByteCountForTest(String sKind, int cb, ReadBuffer.BufferInput in)
+                throws IOException
+            {
+            return validateByteCount(sKind, cb, in);
+            }
+
+        }
+
+    private static class StreamingBufferInput
+            extends WrapperBufferInput
+        {
+        private StreamingBufferInput(byte[] ab)
+            {
+            super(new DataInputStream(new ByteArrayInputStream(ab)));
+            }
+
+        @Override
+        public ReadBuffer getBuffer()
+            {
+            return null;
             }
         }
     }
