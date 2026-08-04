@@ -55,6 +55,7 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.XMLReader;
 
+import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.*;
 
@@ -365,7 +366,7 @@ public class SaxParserTest
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
             SAXException e = expectSaxException(() -> validateXmlWithSchema(fileSchema));
-            assertThat(e.getMessage(), containsString("accessExternalDTD"));
+            assertExternalDtdBlocked(e);
             }
         }
 
@@ -422,6 +423,14 @@ public class SaxParserTest
             SaxParser.resetForTesting();
             expectSaxException(() -> new SaxParser().parseXml(sXml));
             }
+        }
+
+    private static void assertExternalDtdBlocked(SAXException e)
+        {
+        String sMessage = e.getMessage();
+        assertThat(sMessage, anyOf(
+                containsString("accessExternalDTD"),
+                containsString("CatalogResolver is enabled")));
         }
 
     private void validateXmlWithSchema(File fileSchema)
