@@ -510,6 +510,7 @@ public final class ManagementInvocationPolicy
     private static boolean isCompatibilityShadowReason(String sReason)
         {
         return "executable-value".equals(sReason)
+                || "attribute-not-writable".equals(sReason)
                 || "filter-not-allowed".equals(sReason)
                 || "foreign-domain".equals(sReason)
                 || "function-not-allowed".equals(sReason)

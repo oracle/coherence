@@ -8,6 +8,8 @@
 package com.tangosol.net.security;
 
 
+import com.tangosol.internal.util.CoherenceMode;
+
 import com.tangosol.net.Service;
 
 import com.tangosol.util.Base;
@@ -18,7 +20,8 @@ import javax.security.auth.Subject;
 /**
 * The default implementation of the IdentityAsserter interface.
 * <p>
-* The default implementation accepts only an absent identity token.
+* The default implementation accepts only an absent identity token, unless
+* security hardening is disabled and the token is a {@link Subject}.
 *
 * @author dag 2009.11.16
 */
@@ -39,6 +42,10 @@ public class DefaultIdentityAsserter
         if (oToken == null)
             {
             return null;
+            }
+        if (oToken instanceof Subject && !CoherenceMode.isSecurityHardeningEnabled())
+            {
+            return (Subject) oToken;
             }
         String sType = oToken.getClass().getName();
 
