@@ -954,9 +954,10 @@ public class PagedTopicCaches
         CompletableFuture<?> futureSub = InvocableMapHelper.invokeAllAsync(Subscriptions, setSubKeys,
                 key -> getUnitOfOrder(key.getPartitionId()), processor);
 
+        long cMillis = getDependencies().getSubscriberTimeoutMillis();
         try
             {
-            futureSub.get(30, TimeUnit.SECONDS);
+            futureSub.get(cMillis, TimeUnit.MILLISECONDS);
             }
         catch (TimeoutException e)
             {
@@ -968,7 +969,7 @@ public class PagedTopicCaches
                 {
                 // ignored
                 }
-            throw Exceptions.ensureRuntimeException(e, "Timed out after 30 seconds waiting for subscriptions"
+            throw Exceptions.ensureRuntimeException(e, "Timed out after " + cMillis + " ms waiting for subscriptions"
                     + " to advance for topic " + f_sTopicName + ", subscriber " + subscriberId
                     + ", subscription " + lSubscription);
             }
