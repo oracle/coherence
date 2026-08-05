@@ -143,6 +143,12 @@ public class DaemonPool
      * The maximum number of Daemon threads that can exist.
      */
     private int __m_DaemonCountMax;
+
+    /**
+     * The configured maximum. An unbounded value is retained here while
+     * DaemonCountMax exposes the coordinator's live effective maximum.
+     */
+    private int __m_DaemonCountConfiguredMax;
     
     /**
      * Property DaemonCountMin
@@ -150,6 +156,16 @@ public class DaemonPool
      * The minimum number of Daemon threads that can exist.
      */
     private int __m_DaemonCountMin;
+
+    /**
+     * The role used to allocate this platform pool's JVM-wide fair share.
+     */
+    private DaemonPoolSizing.Role __m_DaemonPoolSizingRole = DaemonPoolSizing.Role.SERVICE;
+
+    /**
+     * The live process-wide platform-worker registration.
+     */
+    private transient DaemonPoolSizing.Registration __m_DaemonPoolSizingRegistration;
     
     /**
      * Property DaemonIndex
@@ -1271,6 +1287,36 @@ public class DaemonPool
         {
         return __m_DaemonCountMax;
         }
+
+    /**
+     * Return the configured daemon maximum before live-pool coordination.
+     *
+     * @return the configured daemon maximum
+     */
+    public int getDaemonCountConfiguredMax()
+        {
+        return __m_DaemonCountConfiguredMax;
+        }
+
+    /**
+     * Return the role used for process-wide platform-pool allocation.
+     *
+     * @return the sizing role
+     */
+    public DaemonPoolSizing.Role getDaemonPoolSizingRole()
+        {
+        return __m_DaemonPoolSizingRole;
+        }
+
+    /**
+     * Return the live platform-worker registration.
+     *
+     * @return the registration, or {@code null} when this pool is dormant
+     */
+    protected DaemonPoolSizing.Registration getDaemonPoolSizingRegistration()
+        {
+        return __m_DaemonPoolSizingRegistration;
+        }
     
     // Accessor for the property "DaemonCountMin"
     /**
@@ -2071,11 +2117,15 @@ public class DaemonPool
      */
     protected void onDependencies(com.tangosol.internal.util.DaemonPoolDependencies deps)
         {
-        String                        sName   = deps.getName();
-        int                           cMin    = deps.getThreadCountMin();
-        DaemonPoolSizing.Result       result  = DaemonPoolSizing.resolveThreadCountMax(deps.getThreadCountMax(), cMin);
-        int                           cMax    = result.getEffectiveMax();
-        int                           cThread = Math.min(Math.max(deps.getThreadCount(), cMin), cMax);
+        String sName   = deps.getName();
+        int    cMin    = deps.getThreadCountMin();
+        int    cMax    = deps.getThreadCountMax();
+        int    cThread = Math.max(deps.getThreadCount(), cMin);
+
+        if (cMax != Integer.MAX_VALUE)
+            {
+            cThread = Math.min(cThread, cMax);
+            }
 
         setInternalGuardian(deps.getGuardian());
         setName(sName);
@@ -2084,15 +2134,6 @@ public class DaemonPool
         setDaemonCount(cThread);
         setThreadGroup(deps.getThreadGroup());
         setThreadPriority(deps.getThreadPriority());
-
-        if (result.isDerived())
-            {
-            _trace("DaemonPool \"" + (sName == null ? "<unnamed>" : sName)
-                + "\": deriving platform thread-count-max=" + cMax
-                + " from Xmx=" + Base.toMemorySizeString(result.getMaxMemory())
-                + ", thread-stack=" + Base.toMemorySizeString(result.getThreadStackSize())
-                + ", hard-limit=" + result.getHardMax(), 4);
-            }
         }
     
     // Declared at the super level
@@ -2333,8 +2374,28 @@ public class DaemonPool
     public synchronized void setDaemonCount(int cThreads)
         {
         // import com.tangosol.util.Base;
-        
+
         int cOrig = getDaemonCount();
+        if (isStarted() && isInTransition())
+            {
+            _trace("DaemonPool \"" + getName()
+                 + "\" : ignoring a repetitive pool resize request; actual size="
+                 + cOrig + ", target=" + cThreads, 2);
+            return;
+            }
+
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            int cRequested = cThreads;
+            cThreads = registration.requestCount(cRequested);
+            if (cThreads < cRequested)
+                {
+                _trace("DaemonPool \"" + getName() + "\": limiting requested platform worker count from "
+                        + cRequested + " to " + cThreads + " under the JVM-wide budget", 4);
+                }
+            }
+
         if (cThreads != cOrig)
             {
             if (cThreads <= 0)
@@ -2347,14 +2408,6 @@ public class DaemonPool
             // or stopping threads
             if (isStarted())
                 {
-                if (isInTransition())
-                    {
-                    _trace("DaemonPool \"" + getName()
-                         + "\" : ignoring a repetitive pool resize request; actual size="
-                         + cOrig + ", target=" + cThreads, 2);
-                    return;
-                    }
-        
                 setInTransition(true);
         
                 if (cThreads > cOrig)
@@ -2383,8 +2436,28 @@ public class DaemonPool
             {
             throw new IllegalArgumentException("Maximum daemon count must be greater than 0");
             }
-        
-        __m_DaemonCountMax = (cThreads);
+
+        __m_DaemonCountConfiguredMax = cThreads;
+
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration == null)
+            {
+            setDaemonCountEffectiveMax(cThreads);
+            }
+        else
+            {
+            registration.update(getDaemonPoolSizingRole(), getDaemonCountMin(), cThreads);
+            setDaemonCountEffectiveMax(registration.getEffectiveMax());
+            }
+        }
+
+    /**
+     * Set the coordinator-derived live maximum without replacing the configured
+     * unbounded sentinel.
+     */
+    protected void setDaemonCountEffectiveMax(int cThreads)
+        {
+        __m_DaemonCountMax = cThreads;
         }
     
     // Accessor for the property "DaemonCountMin"
@@ -2400,6 +2473,38 @@ public class DaemonPool
             }
         
         __m_DaemonCountMin = (cThreads);
+
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            registration.update(getDaemonPoolSizingRole(), cThreads, getDaemonCountConfiguredMax());
+            setDaemonCountEffectiveMax(registration.getEffectiveMax());
+            }
+        }
+
+    /**
+     * Set the role used for JVM-wide platform-worker allocation.
+     *
+     * @param role  the sizing role
+     */
+    public void setDaemonPoolSizingRole(DaemonPoolSizing.Role role)
+        {
+        __m_DaemonPoolSizingRole = role == null ? DaemonPoolSizing.Role.SERVICE : role;
+
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            registration.update(__m_DaemonPoolSizingRole, getDaemonCountMin(), getDaemonCountConfiguredMax());
+            setDaemonCountEffectiveMax(registration.getEffectiveMax());
+            }
+        }
+
+    /**
+     * Set the live platform-worker registration.
+     */
+    protected void setDaemonPoolSizingRegistration(DaemonPoolSizing.Registration registration)
+        {
+        __m_DaemonPoolSizingRegistration = registration;
         }
     
     // Accessor for the property "DaemonIndex"
@@ -2860,6 +2965,75 @@ public class DaemonPool
         {
         stop();
         }
+
+    /**
+     * Record a successfully started platform worker.
+     */
+    protected void onPlatformWorkerStarted()
+        {
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            registration.workersStarted(1);
+            }
+        }
+
+    /**
+     * Release unfulfilled worker-start reservations.
+     */
+    protected void onPlatformWorkerStartFailed(int cFailed)
+        {
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            registration.workersFailed(cFailed);
+            }
+        setInTransition(false);
+        __m_DaemonCount = getDaemonCount();
+        }
+
+    /**
+     * Record a terminated platform worker and retire a stopped pool only after
+     * all of its native threads have exited.
+     */
+    protected void onPlatformWorkerStopped()
+        {
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null)
+            {
+            int cRemaining = registration.workersStopped(1);
+            if (!isStarted() && cRemaining == 0)
+                {
+                synchronized (this)
+                    {
+                    if (getDaemonPoolSizingRegistration() == registration)
+                        {
+                        registration.close();
+                        setDaemonPoolSizingRegistration(null);
+                        setDaemonCountEffectiveMax(getDaemonCountConfiguredMax());
+                        }
+                    }
+                }
+            }
+        }
+
+    /**
+     * Refresh this pool's fair share and immediately converge toward a quota
+     * lowered by a late pool registration.
+     */
+    protected synchronized void refreshPlatformPoolSizing()
+        {
+        DaemonPoolSizing.Registration registration = getDaemonPoolSizingRegistration();
+        if (registration != null && registration.isAutomatic())
+            {
+            int cMax = registration.getEffectiveMax();
+            setDaemonCountEffectiveMax(cMax);
+            if (isStarted() && !isInTransition() && getDaemonCount() > cMax)
+                {
+                setDaemonCount(cMax);
+                }
+            }
+        }
     
     // From interface: com.tangosol.internal.util.DaemonPool
     /**
@@ -2876,6 +3050,15 @@ public class DaemonPool
         
         if (!isStarted())
             {
+            DaemonPoolSizing.Registration registration = DaemonPoolSizing.registerPool(this, getName(),
+                    getDaemonPoolSizingRole(), getDaemonCountMin(), getDaemonCountConfiguredMax());
+            setDaemonPoolSizingRegistration(registration);
+
+            int cRequested = Math.max(getDaemonCount(), getDaemonCountMin());
+            int cDaemons   = registration.requestCount(cRequested);
+            setDaemonCountEffectiveMax(registration.getEffectiveMax());
+            __m_DaemonCount = cDaemons;
+
             // create the WorkSlots
             int cSlots = Runtime.getRuntime().availableProcessors();
             try
@@ -2897,8 +3080,7 @@ public class DaemonPool
                 setWorkSlot(i, slot);
                 }
         
-            // create the Daemons and associate with the corresponding slots 
-            int cDaemons = Math.max(getDaemonCount(), getDaemonCountMin());
+            // create the Daemons and associate with the corresponding slots
             _assert(cDaemons > 0);
 
             DaemonPool.Daemon[] aDaemon  = new DaemonPool.Daemon[cDaemons];
@@ -2936,7 +3118,6 @@ public class DaemonPool
                     }
                 }
 
-            setDaemonCount(cDaemons);
             setQueues(aQueue);
             setDaemons(aDaemon);
             clearIdleDaemonStack();
@@ -2951,9 +3132,25 @@ public class DaemonPool
                 getWorkSlot(i).setActive(true);
                 }
         
-            for (int i = 0; i < cDaemons; i++ )
+            try
                 {
-                aDaemon[i].start();
+                for (int i = 0; i < cDaemons; i++ )
+                    {
+                    aDaemon[i].start();
+                    registration.workersStarted(1);
+                    }
+                }
+            catch (RuntimeException | Error e)
+                {
+                registration.workersFailed(Integer.MAX_VALUE);
+                for (DaemonPool.Daemon daemon : aDaemon)
+                    {
+                    if (daemon != null && daemon.isStarted())
+                        {
+                        daemon.stop();
+                        }
+                    }
+                throw e;
                 }
         
             setStarted(true);
@@ -2969,7 +3166,25 @@ public class DaemonPool
             _trace(String.format("Started DaemonPool \"" + getName()
                 + "\": [DeamonCount=%d, DaemonCountMax=%d, DaemonCountMin=%d, Dynamic=%s QueueSize=%d, WorkSlots=%d]", ao), 4);
 
-            if (isDynamic())
+            if (registration.isAutomatic())
+                {
+                DaemonPoolSizing.Snapshot snapshot = registration.getSnapshot();
+                _trace("DaemonPool \"" + getName() + "\": role=" + getDaemonPoolSizingRole()
+                        + ", min=" + getDaemonCountMin() + ", current=" + cDaemons
+                        + ", derived-max=" + getDaemonCountMax() + ", active-pools="
+                        + snapshot.getPoolCount() + ", aggregate-used=" + snapshot.getWorkerCount()
+                        + '/' + snapshot.getBudget(), 4);
+                if (snapshot.isOvercommitted())
+                    {
+                    _trace("Platform daemon-pool budget is overcommitted: active-pools="
+                            + snapshot.getPoolCount() + ", aggregate-used=" + snapshot.getWorkerCount()
+                            + ", allocated-max=" + snapshot.getAllocatedWorkerMax()
+                            + ", budget=" + snapshot.getBudget()
+                            + "; configured minima remain honored and automatic growth is disabled", 2);
+                    }
+                }
+
+            if (isDynamic() || registration.isAutomatic())
                 {
                 // schedule a new ResizeTask
                 DaemonPool.ResizeTask task = (DaemonPool.ResizeTask) _newChild("ResizeTask");
@@ -3069,6 +3284,7 @@ public class DaemonPool
             registerIdleDaemon(daemon);
         
             daemon.start();
+            onPlatformWorkerStarted();
         
             taskStart.scheduleNext();
             }
@@ -3914,6 +4130,11 @@ public class DaemonPool
         protected void onExit()
             {
             deregisterWakeup();
+
+            if (getDaemonType() != DaemonPool.DAEMON_NONPOOLED)
+                {
+                ((DaemonPool) get_Module()).onPlatformWorkerStopped();
+                }
 
             if (!isExiting())
                 {
@@ -5712,7 +5933,8 @@ public class DaemonPool
                 // terminated
                 return;
                 }
-            
+
+            pool.refreshPlatformPoolSizing();
             pool.flushStats();
             
             long ldtNow        = Base.getSafeTimeMillis();
@@ -6710,36 +6932,44 @@ public class DaemonPool
             
             DaemonPool.Daemon daemon = getDaemon();
             DaemonPool pool   = (DaemonPool) get_Module();
-            
-            if (daemon == null)
+            try
                 {
-                // this is a schedule task; find a daemon to start
-                pool.startDaemon(this);
-                }
-            else
-                {
-                // the DaemonPool.StartTask is ASSOCIATION_ALL element, which means that by the time
-                // it's polled from the queue there are no other outstanding associations,
-                // and we can safely activate and start the new daemon
-            
-                DaemonPool.WorkSlot slot = getWorkSlotActivate();
-            
-                // make the "active" state visible by crossing the gate
-                Gate gate = slot.getGate();
-                if (!gate.close(1L))
+                if (daemon == null)
                     {
-                    // failed to close the slot, add the task back to the queue
-                    getQueue().add(pool.instantiateWrapperTask(this, false));
-                    return;
+                    // this is a schedule task; find a daemon to start
+                    pool.startDaemon(this);
                     }
-            
-                slot.setActive(true);
-            
-                gate.open();
-            
-                daemon.start();
-            
-                scheduleNext();
+                else
+                    {
+                    // the DaemonPool.StartTask is ASSOCIATION_ALL element, which means that by the time
+                    // it's polled from the queue there are no other outstanding associations,
+                    // and we can safely activate and start the new daemon
+
+                    DaemonPool.WorkSlot slot = getWorkSlotActivate();
+
+                    // make the "active" state visible by crossing the gate
+                    Gate gate = slot.getGate();
+                    if (!gate.close(1L))
+                        {
+                        // failed to close the slot, add the task back to the queue
+                        getQueue().add(pool.instantiateWrapperTask(this, false));
+                        return;
+                        }
+
+                    slot.setActive(true);
+
+                    gate.open();
+
+                    daemon.start();
+                    pool.onPlatformWorkerStarted();
+
+                    scheduleNext();
+                    }
+                }
+            catch (RuntimeException | Error e)
+                {
+                pool.onPlatformWorkerStartFailed(getStartCount());
+                throw e;
                 }
             }
         
