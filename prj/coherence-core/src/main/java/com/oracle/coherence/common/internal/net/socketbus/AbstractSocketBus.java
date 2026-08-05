@@ -39,6 +39,7 @@ import java.util.*;
 
 import com.oracle.coherence.common.util.SafeClock;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
@@ -125,6 +126,21 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Return {@code true} if the current thread owns the specified transport
+     * progression lane.
+     *
+     * @param connection  the logical connection
+     * @param epoch       the physical transport epoch
+     *
+     * @return {@code true} iff the current thread owns the epoch
+     */
+    protected static boolean isTransportOwner(Object connection, Object epoch)
+        {
+        TransportCallbackState state = TL_TRANSPORT_CALLBACK_STATE.get();
+        return state.m_cDepth > 0 && state.m_oConnection == connection && state.m_oEpoch == epoch;
+        }
+
+    /**
      * Mark entry into transport-owned progression.
      */
     protected static void enterTransportCallback()
@@ -133,11 +149,37 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Mark entry into progression owned by a specific transport epoch.
+     *
+     * @param connection  the logical connection
+     * @param epoch       the physical transport epoch
+     */
+    protected static void enterTransportCallback(Object connection, Object epoch)
+        {
+        TransportCallbackState state = TL_TRANSPORT_CALLBACK_STATE.get();
+        if (state.m_cDepth++ == 0)
+            {
+            state.m_oConnection = connection;
+            state.m_oEpoch      = epoch;
+            }
+        else if (state.m_oConnection != connection || state.m_oEpoch != epoch)
+            {
+            --state.m_cDepth;
+            throw new IllegalStateException("nested transport progression crossed epoch ownership");
+            }
+        }
+
+    /**
      * Mark exit from transport-owned progression.
      */
     protected static void exitTransportCallback()
         {
-        --TL_TRANSPORT_CALLBACK_STATE.get().m_cDepth;
+        TransportCallbackState state = TL_TRANSPORT_CALLBACK_STATE.get();
+        if (--state.m_cDepth == 0)
+            {
+            state.m_oConnection = null;
+            state.m_oEpoch      = null;
+            }
         }
 
     /**
@@ -178,6 +220,16 @@ public abstract class AbstractSocketBus
     public static int getActiveReadFailuresRemainingForTesting()
         {
         return TEST_ACTIVE_READ_FAILURES.get();
+        }
+
+    /**
+     * Arm deferred active-read failures for functional testing.
+     *
+     * @return {@code true} iff the failures transitioned from deferred to armed
+     */
+    public static boolean armActiveReadFailuresForTesting()
+        {
+        return TEST_ACTIVE_READ_FAILURES_ARMED.compareAndSet(false, true);
         }
 
     /**
@@ -308,6 +360,36 @@ public abstract class AbstractSocketBus
     public static long getMigrationCompletionMaxNanosForTesting()
         {
         return TEST_MIGRATION_COMPLETION_MAX_NANOS.get();
+        }
+
+    /**
+     * Return the number of gathering writes capped by the partial-write test hook.
+     *
+     * @return the number of capped gathering writes
+     */
+    public static long getPartialWritesForTesting()
+        {
+        return TEST_PARTIAL_WRITES.get();
+        }
+
+    /**
+     * Return the number of zero-byte gathering writes injected after a partial write.
+     *
+     * @return the number of injected zero-byte gathering writes
+     */
+    public static long getZeroWritesAfterPartialForTesting()
+        {
+        return TEST_ZERO_WRITES_AFTER_PARTIAL.get();
+        }
+
+    /**
+     * Return the number of bytes written after the partial-write hook completed.
+     *
+     * @return the bytes written after the controlled partial write
+     */
+    public static long getBytesWrittenAfterPartialForTesting()
+        {
+        return TEST_BYTES_WRITTEN_AFTER_PARTIAL.get();
         }
 
     /**
@@ -755,9 +837,10 @@ public abstract class AbstractSocketBus
      */
     private boolean checkDataDrop(Connection connection, SocketChannel channel, long lTransportGeneration)
         {
-        if (TEST_ACTIVE_READ_FAILURES_ENABLED && consumeTestFailure(TEST_ACTIVE_READ_FAILURES))
+        if (TEST_ACTIVE_READ_FAILURES_ENABLED && TEST_ACTIVE_READ_FAILURES_ARMED.get()
+                && consumeTestCounter(TEST_ACTIVE_READ_FAILURES))
             {
-            connection.migrate(lTransportGeneration, new IOException("test active transport failure"));
+            connection.migrate(lTransportGeneration, new SocketException("Connection reset"));
             return true;
             }
 
@@ -776,7 +859,7 @@ public abstract class AbstractSocketBus
         {
         if (!TEST_RECONNECT_HANDSHAKE_DELAYS_ENABLED ||
             connection == null || !connection.isMigrationHandshakeInProgress() ||
-            !consumeTestFailure(TEST_RECONNECT_HANDSHAKE_DELAYS))
+            !consumeTestCounter(TEST_RECONNECT_HANDSHAKE_DELAYS))
             {
             return false;
             }
@@ -813,7 +896,8 @@ public abstract class AbstractSocketBus
         }
 
     /**
-     * Start a functional-test migration while the active read still owns the connection lock.
+     * Publish a functional-test migration request while an active read still
+     * owns the epoch lane.
      *
      * @param connection            the connection being read
      * @param lTransportGeneration  the transport generation being read
@@ -822,7 +906,7 @@ public abstract class AbstractSocketBus
         {
         if (!TEST_CONCURRENT_READ_MIGRATIONS_ENABLED ||
             TEST_LAST_CONCURRENT_READ_MIGRATION_GENERATION.get() == lTransportGeneration ||
-            !consumeTestFailure(TEST_CONCURRENT_READ_MIGRATIONS))
+            !consumeTestCounter(TEST_CONCURRENT_READ_MIGRATIONS))
             {
             return;
             }
@@ -841,15 +925,15 @@ public abstract class AbstractSocketBus
         try
             {
             latchStarted.await();
-
-            long ldtTimeout = SafeClock.INSTANCE.getSafeTimeMillis() + 5000L;
-            while (!connection.f_lock.hasQueuedThread(thread))
+            thread.join(5000L);
+            if (thread.isAlive())
                 {
-                if (!thread.isAlive() || SafeClock.INSTANCE.getSafeTimeMillis() >= ldtTimeout)
-                    {
-                    throw new IllegalStateException("test migration did not block behind the active transport callback");
-                    }
-                Thread.yield();
+                throw new IllegalStateException("test migration request did not return");
+                }
+            Connection.TransportEpoch epoch = connection.m_transportEpoch;
+            if (epoch == null || epoch.f_lId != lTransportGeneration || epoch.m_phase != TransportPhase.READY)
+                {
+                throw new IllegalStateException("test migration crossed the active epoch callback");
                 }
             }
         catch (InterruptedException e)
@@ -870,7 +954,7 @@ public abstract class AbstractSocketBus
         {
         if (!TEST_STALE_OUTBOUND_INTRODUCTIONS_ENABLED ||
             connection == null || connection.m_state != ConnectionState.ACTIVE ||
-            !consumeTestFailure(TEST_STALE_OUTBOUND_INTRODUCTIONS))
+            !consumeTestCounter(TEST_STALE_OUTBOUND_INTRODUCTIONS))
             {
             return false;
             }
@@ -924,13 +1008,13 @@ public abstract class AbstractSocketBus
         }
 
     /**
-     * Atomically consume one enabled test failure.
+     * Atomically consume one invocation from a functional test counter.
      *
-     * @param counter  the remaining failure counter
+     * @param counter  the remaining invocation counter
      *
-     * @return true if a failure was consumed
+     * @return {@code true} iff an invocation was consumed
      */
-    private static boolean consumeTestFailure(AtomicInteger counter)
+    protected static boolean consumeTestCounter(AtomicInteger counter)
         {
         int cFailures;
         do
@@ -1261,6 +1345,45 @@ public abstract class AbstractSocketBus
         LogRecord rec = makeRecord(level, sMsg, oaParams);
         rec.setThrown(t);
         return rec;
+        }
+
+    /**
+     * Log an accepted migration with a concise warning-level cause and retain the full exception at FINER.
+     *
+     * @param t         the migration cause
+     * @param sMsg      the migration message
+     * @param oaParams  the migration message parameters
+     */
+    protected void logAcceptedMigration(Throwable t, String sMsg, Object ... oaParams)
+        {
+        int      cParams  = oaParams.length;
+        Object[] aoParams = java.util.Arrays.copyOf(oaParams, cParams + 1);
+        aoParams[cParams] = summarizeException(t);
+
+        getLogger().log(makeRecord(Level.WARNING, sMsg + "; cause={" + cParams + "}", aoParams));
+
+        if (t != null && getLogger().isLoggable(Level.FINER))
+            {
+            getLogger().log(makeExceptionRecord(Level.FINER, t, sMsg, oaParams));
+            }
+        }
+
+    /**
+     * Return a single-line exception summary suitable for warning-level operational logs.
+     *
+     * @param t  the exception
+     *
+     * @return the exception class and optional message
+     */
+    protected String summarizeException(Throwable t)
+        {
+        if (t == null)
+            {
+            return "none";
+            }
+
+        String sMessage = t.getMessage();
+        return t.getClass().getName() + (sMessage == null || sMessage.isEmpty() ? "" : ": " + sMessage);
         }
 
     /**
@@ -1611,6 +1734,22 @@ public abstract class AbstractSocketBus
         FINAL
         }
 
+    // ----- TransportPhase -------------------------------------------------
+
+    /**
+     * TransportPhase describes the monotonic lifecycle of one physical socket
+     * belonging to a logical {@link Connection}.
+     */
+    protected enum TransportPhase
+        {
+        NEW,
+        CONNECTING,
+        HANDSHAKING,
+        READY,
+        RETIRING,
+        CLOSED
+        }
+
     // ----- HandshakePhase --------------------------------------------------
 
     /**
@@ -1708,6 +1847,206 @@ public abstract class AbstractSocketBus
                 }
             }
 
+        // ----- transport epoch ---------------------------------------
+
+        /**
+         * Immutable identity for one physical transport owned by this
+         * logical connection. The phase is monotonic and the data handler is
+         * permanently bound to this epoch.
+         */
+        protected final class TransportEpoch
+            {
+            /**
+             * Construct a transport epoch.
+             *
+             * @param lId       the epoch identity
+             * @param channel   the epoch channel
+             * @param fOutbound true iff this side created the channel
+             * @param phase     the initial phase
+             */
+            private TransportEpoch(long lId, SocketChannel channel, boolean fOutbound, TransportPhase phase)
+                {
+                f_lId       = lId;
+                f_channel   = channel;
+                f_fOutbound = fOutbound;
+                m_phase     = phase;
+                f_handler   = new TransportHandler(this);
+                }
+
+            /**
+             * Advance this epoch to a later phase.
+             *
+             * @param phase  the new phase
+             */
+            protected synchronized void transitionTo(TransportPhase phase)
+                {
+                TransportPhase phaseCurrent = m_phase;
+                if (phase.ordinal() < phaseCurrent.ordinal())
+                    {
+                    throw new IllegalStateException("epoch " + f_lId + " cannot move from "
+                            + phaseCurrent + " to " + phase);
+                    }
+                m_phase = phase;
+                }
+
+            @Override
+            public String toString()
+                {
+                return "epoch=" + f_lId + ", phase=" + m_phase + ", channel=" + f_channel;
+                }
+
+            /**
+             * Immutable epoch identity.
+             */
+            protected final long f_lId;
+
+            /**
+             * Immutable physical channel.
+             */
+            protected final SocketChannel f_channel;
+
+            /**
+             * True iff this side created the physical channel.
+             */
+            protected final boolean f_fOutbound;
+
+            /**
+             * Epoch-bound application handler.
+             */
+            protected final TransportHandler f_handler;
+
+            /**
+             * Monotonic epoch phase.
+             */
+            protected volatile TransportPhase m_phase;
+            }
+
+        /**
+         * Data handler permanently bound to one transport epoch.
+         */
+        protected final class TransportHandler
+                implements SelectionService.Handler
+            {
+            private TransportHandler(TransportEpoch epoch)
+                {
+                f_epoch = epoch;
+                }
+
+            @Override
+            public int onReady(int nOps)
+                {
+                return onTransportReady(f_epoch, nOps);
+                }
+
+            @Override
+            public String toString()
+                {
+                return "TransportHandler{" + f_epoch + '}';
+                }
+
+            protected final TransportEpoch f_epoch;
+            }
+
+        /**
+         * Create an epoch for a fully prepared channel.
+         */
+        protected TransportEpoch createTransportEpoch(long lId, SocketChannel channel,
+                                                       boolean fOutbound, TransportPhase phase)
+            {
+            return new TransportEpoch(lId, channel, fOutbound, phase);
+            }
+
+        /**
+         * Publish the epoch as the current physical transport. The caller must
+         * hold the connection lock.
+         */
+        protected void publishTransportEpoch(TransportEpoch epoch, SelectionService.Handler handler)
+            {
+            m_transportEpoch       = epoch;
+            m_lTransportGeneration = epoch.f_lId;
+
+            // Transitional aliases retained while non-I/O lifecycle code is
+            // moved to the epoch representation.
+            m_channel = epoch.f_channel;
+            m_handler = handler;
+            }
+
+        /**
+         * Return the current epoch, or {@code null}.
+         */
+        protected TransportEpoch getTransportEpoch()
+            {
+            return m_transportEpoch;
+            }
+
+        /**
+         * Return the current READY epoch, or {@code null}.
+         */
+        protected TransportEpoch getReadyTransportEpoch()
+            {
+            TransportEpoch epoch = m_transportEpoch;
+            return epoch != null && epoch.m_phase == TransportPhase.READY ? epoch : null;
+            }
+
+        /**
+         * Return true iff the epoch is the current epoch in the required phase.
+         */
+        protected boolean isCurrentTransportEpoch(TransportEpoch epoch, TransportPhase phase)
+            {
+            return epoch != null && m_transportEpoch == epoch && epoch.m_phase == phase;
+            }
+
+        /**
+         * Retire the specified epoch if it has not already been retired.
+         */
+        protected void retireTransportEpoch(TransportEpoch epoch)
+            {
+            if (epoch != null && epoch.m_phase.ordinal() < TransportPhase.RETIRING.ordinal())
+                {
+                epoch.transitionTo(TransportPhase.RETIRING);
+                }
+            }
+
+        /**
+         * Close only the specified epoch.
+         */
+        protected void closeTransportEpoch(TransportEpoch epoch)
+            {
+            if (epoch != null)
+                {
+                retireTransportEpoch(epoch);
+                closeChannel(epoch.f_channel);
+                epoch.transitionTo(TransportPhase.CLOSED);
+                }
+            }
+
+        /**
+         * Hold an inbound replacement socket that lost the deterministic
+         * simultaneous-migration election. Keeping the socket open prevents
+         * the peer from consuming another retry while the winning outbound
+         * handshake is still in progress.
+         *
+         * @param channel  the losing inbound replacement socket
+         */
+        protected void deferMigrationCollision(SocketChannel channel)
+            {
+            f_queueDeferredMigrationCollisions.add(channel);
+            }
+
+        /**
+         * Close replacement sockets held during a simultaneous-migration
+         * collision. This is called once the elected transport is READY or
+         * the logical connection is being disconnected.
+         */
+        protected void closeDeferredMigrationCollisions()
+            {
+            SocketChannel channel;
+            while ((channel = f_queueDeferredMigrationCollisions.poll()) != null)
+                {
+                closeChannel(channel);
+                }
+            }
+
 
         // ----- Connection interface -----------------------------------
 
@@ -1792,6 +2131,7 @@ public abstract class AbstractSocketBus
             {
             ConnectionState state;
             long            lTransportGeneration;
+            SocketChannel   channelOwner;
 
             lock();
             try
@@ -1808,6 +2148,8 @@ public abstract class AbstractSocketBus
                     }
 
                 lTransportGeneration = ++m_lTransportGeneration;
+                TransportEpoch epochOwner = m_transportEpoch;
+                channelOwner = state == null || epochOwner == null ? null : epochOwner.f_channel;
                 if (state != null && TEST_TRACK_RECONNECT_ATTEMPTS)
                     {
                     TEST_RECONNECT_ATTEMPTS.incrementAndGet();
@@ -1822,11 +2164,11 @@ public abstract class AbstractSocketBus
             try
                 {
                 if (state == null && TEST_INITIAL_OPEN_FAILURES_ENABLED &&
-                        consumeTestFailure(TEST_INITIAL_OPEN_FAILURES))
+                        consumeTestCounter(TEST_INITIAL_OPEN_FAILURES))
                     {
                     throw new IOException("test initial socket open failure");
                     }
-                if (state != null && consumeTestFailure(TEST_RECONNECT_OPEN_FAILURES))
+                if (state != null && consumeTestCounter(TEST_RECONNECT_OPEN_FAILURES))
                     {
                     throw new IOException("test replacement socket open failure");
                     }
@@ -1842,6 +2184,13 @@ public abstract class AbstractSocketBus
                 configureSocket(channel.socket());
                 channel.connect(f_peer.getAddress());
 
+                if (channelOwner != null)
+                    {
+                    // Outbound recovery remains on the logical connection's existing owner lane. The candidate
+                    // has not yet been registered, so this association has no stale-registration ordering hazard.
+                    getSelectionService().associate(channelOwner, channel);
+                    }
+
                 if (state != null && TEST_RECONNECT_SETUP_DELAY_MILLIS > 0L)
                     {
                     while (channel.isConnectionPending() && !channel.finishConnect())
@@ -1851,13 +2200,15 @@ public abstract class AbstractSocketBus
                     delayReconnectSetup(TEST_RECONNECT_SETUP_DELAY_MILLIS);
                     }
                 }
-            catch (IOException e)
+            catch (IOException | RuntimeException e)
                 {
                 if (channel != null)
                     {
                     closeChannel(channel);
                     }
-                handleConnectFailure(state, lTransportGeneration, e);
+                handleConnectFailure(state, lTransportGeneration,
+                        e instanceof IOException ? (IOException) e
+                                : new IOException("socket setup failed", e));
                 return;
                 }
 
@@ -1872,12 +2223,12 @@ public abstract class AbstractSocketBus
                     return;
                     }
 
-                // publish the replacement only after all provider/configuration/connect work completes; registration
-                // remains inside this critical section so transport progression sees either the old epoch or the fully
-                // registered handshake epoch
-                m_channel = channel;
-                SelectionService.Handler handler = new HandshakeHandler(channel, this);
-                m_handler = handler;
+                // Publish only after provider/configuration/connect work completes. The immutable epoch binds this
+                // channel to every handshake and data callback for the rest of its lifetime.
+                TransportEpoch   epoch   = createTransportEpoch(lTransportGeneration, channel,
+                        /*fOutbound*/ true, TransportPhase.HANDSHAKING);
+                HandshakeHandler handler = new HandshakeHandler(epoch, this);
+                publishTransportEpoch(epoch, handler);
                 fPublished = true;
 
                 try
@@ -1889,7 +2240,7 @@ public abstract class AbstractSocketBus
                         }
                     // else this is a re-connect and open has already been issued
 
-                    if (state != null && consumeTestFailure(TEST_RECONNECT_REGISTRATION_FAILURES))
+                    if (state != null && consumeTestCounter(TEST_RECONNECT_REGISTRATION_FAILURES))
                         {
                         throw new IOException("test replacement handler registration failure");
                         }
@@ -1966,12 +2317,14 @@ public abstract class AbstractSocketBus
             }
 
         /**
-         * Lock this connection in order to progress the active transport or migrate it.
+         * Lock this connection in order to change logical connection lifecycle
+         * state or atomically publish a transport epoch.
          * <p>
-         * This is the single synchronization boundary between active socket I/O, consumer-owned write state,
-         * and transport replacement. Low-level {@link #read} and {@link #write} methods require this lock and do
-         * not acquire it again. Event collector operations produced inside the boundary are deferred until the
-         * outermost connection lock for this bus is released.
+         * Physical transport I/O and consumer-owned write progression are
+         * serialized by the current epoch's SelectionService lane and do not
+         * require this lock. Event collector operations produced while this
+         * lock is held are deferred until the outermost connection lock for
+         * this bus is released.
          */
         public void lock()
             {
@@ -1981,6 +2334,26 @@ public abstract class AbstractSocketBus
                 m_ldtConnectionLockAcquiredNanos = System.nanoTime();
                 }
             ++f_tloEventDispatch.get().m_cConnectionLocks;
+            }
+
+        /**
+         * Attempt to lock this connection without parking the caller.
+         *
+         * @return {@code true} iff the lock was acquired
+         */
+        public boolean tryLock()
+            {
+            if (!f_lock.tryLock())
+                {
+                return false;
+                }
+
+            if (TEST_TRACK_TRANSPORT_METRICS && f_lock.getHoldCount() == 1)
+                {
+                m_ldtConnectionLockAcquiredNanos = System.nanoTime();
+                }
+            ++f_tloEventDispatch.get().m_cConnectionLocks;
+            return true;
             }
 
         /**
@@ -2011,7 +2384,7 @@ public abstract class AbstractSocketBus
          */
         protected boolean isTransportReady()
             {
-            return m_state == ConnectionState.ACTIVE && m_handler == this;
+            return m_state == ConnectionState.ACTIVE && getReadyTransportEpoch() != null;
             }
 
         /**
@@ -2024,7 +2397,8 @@ public abstract class AbstractSocketBus
             lock();
             try
                 {
-                return isTransportReady() ? m_lTransportGeneration : -1L;
+                TransportEpoch epoch = getReadyTransportEpoch();
+                return m_state == ConnectionState.ACTIVE && epoch != null ? epoch.f_lId : -1L;
                 }
             finally
                 {
@@ -2233,13 +2607,10 @@ public abstract class AbstractSocketBus
 
                 try
                     {
-                    SocketChannel channel = m_channel;
-                    if (channel != null)
-                        {
-                        channel.close(); // may already be closed
-                        }
+                    closeDeferredMigrationCollisions();
+                    closeTransportEpoch(m_transportEpoch);
                     }
-                catch (IOException e) {}
+                catch (RuntimeException e) {}
 
 
                 // in case of multiple disconnects force drain of receipts on each pass
@@ -2375,21 +2746,16 @@ public abstract class AbstractSocketBus
             }
 
         /**
-         * Attempt to acquire exclusive ownership of consumer-owned transport progression for migration.
-         * The caller holds the connection lock, so a failed acquisition represents a scheduled consumer that must
-         * observe the transport gate and relinquish ownership before migration mutates its write state.
+         * Prepare consumer-owned transport progression for migration.
+         * <p>
+         * The caller is running on the retired epoch's owner lane.  That lane is
+         * the serialization boundary for transport-state mutation, so subclasses
+         * may retire scheduling duties associated with {@code epochRetired}
+         * without acquiring a second ownership barrier.
          *
-         * @return true iff migration owns consumer transport progression
+         * @param epochRetired  the transport epoch being replaced
          */
-        protected boolean tryAcquireMigrationOwnership()
-            {
-            return true;
-            }
-
-        /**
-         * Release consumer transport progression ownership acquired for migration.
-         */
-        protected void releaseMigrationOwnership()
+        protected void prepareMigrationOnOwner(TransportEpoch epochRetired)
             {
             }
 
@@ -2439,9 +2805,6 @@ public abstract class AbstractSocketBus
 
         /**
          * Perform an optimistic flush, i.e. flush only if the connection is not already being flushed.
-         * <p/>
-         * The callers need not lock the connection when calling this method, though the method
-         * will lock the connection if it determines that it will flush.
          */
         public void optimisticFlush()
             {
@@ -2450,9 +2813,11 @@ public abstract class AbstractSocketBus
 
         /**
          * Perform an optimistic flush, i.e. flush only if the connection is not already being flushed.
-         * <p/>
-         * The callers need not lock the connection when calling this method, though the method
-         * will lock the connection if it determines that it will flush.
+         * <p>
+         * Producer publication and the writer ticket make this coordination
+         * independent of the logical connection lock. A concurrent producer
+         * either owns the current progression duty or is observed by the
+         * consumer's mandatory final recheck.
          *
          * @param fSocketWrite  true if the caller is willing to offer its cpu to perform a socket write
          */
@@ -2462,37 +2827,22 @@ public abstract class AbstractSocketBus
 
             if (lockFlush.compareAndSet(false, true))
                 {
-                lock();   // wait for any concurrent send to complete
                 try
                     {
-                    try
-                        {
-                        ensureValid().flush(fSocketWrite);
-                        }
-                    catch (IllegalArgumentException e)
-                        {
-                        // connection may have been released
-                        }
-                    finally
-                        {
-                        // we must unlock while still sync'd to ensure that no thread can add to the send queue
-                        // while we hold the flush lock
-                        lockFlush.set(false);
-                        }
+                    ensureValid().flush(fSocketWrite);
+                    }
+                catch (IllegalArgumentException e)
+                    {
+                    // connection may have been released
                     }
                 finally
                     {
-                    unlock();
+                    lockFlush.set(false);
                     }
                 }
-            // else; another thread is actively flushing this connection. Because both conn.send and conn.flush
-            // are performed while sync'd on the conn we know the other thread's flush will include all data on
-            // the connection and thus this thread can skip over that connection.  The intent of this optimization
-            // is to avoid blocking on flush when there will be nothing left to flush anyway.  This is especially
-            // important as SocketBus scalability comes primarily from having many connections, with the idea
-            // that threads are less likely to contend on any given connection.  Flushing however involves all
-            // used threads and would become a high contention point, thus we need to avoid needlessly blocking
-            // here.
+            // else; another thread is already coordinating a flush. Producer
+            // publication independently guarantees a follow-up progression
+            // pass for work that races the active flush.
             }
 
         /**
@@ -2503,6 +2853,36 @@ public abstract class AbstractSocketBus
         public final boolean isFlushInProgress()
             {
             return f_lockFlush.get();
+            }
+
+        /**
+         * Return the queued outbound bytes exposed by a buffered connection for functional testing.
+         *
+         * @return the queued outbound bytes
+         */
+        protected long getQueuedWriteBytesForTesting()
+            {
+            return 0L;
+            }
+
+        /**
+         * Return the current channel identity for diagnostic correlation.
+         *
+         * @return the current channel identity hash
+         */
+        protected int getChannelIdentityForDiagnostics()
+            {
+            return System.identityHashCode(m_channel);
+            }
+
+        /**
+         * Drop a write wakeup selected by a functional test hook.
+         *
+         * @return {@code true} iff the wakeup should be treated as scheduled without registering the channel
+         */
+        protected boolean dropWriteWakeupForTesting()
+            {
+            return false;
             }
 
         /**
@@ -2517,6 +2897,21 @@ public abstract class AbstractSocketBus
         protected boolean wakeup()
                 throws IOException
             {
+            return wakeup(getReadyTransportEpoch());
+            }
+
+        /**
+         * Force the SelectionService to process a specific READY epoch.
+         *
+         * @param epoch  the epoch whose write duty must be scheduled
+         *
+         * @return true iff the wakeup was scheduled
+         *
+         * @throws IOException if the connection has been closed
+         */
+        protected boolean wakeup(TransportEpoch epoch)
+                throws IOException
+            {
             //COH-19338: m_state is null for new connection before open is called
             if (m_state == null)
                 {
@@ -2529,27 +2924,26 @@ public abstract class AbstractSocketBus
                     return false;
 
                 case ACTIVE:
-                    Connection.this.lock();
+                    if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
+                        {
+                        // Never let an old write duty register against a replacement epoch.
+                        return false;
+                        }
+                    if (dropWriteWakeupForTesting())
+                        {
+                        return true;
+                        }
                     try
                         {
-                        if (!isTransportReady())
-                            {
-                            // do not replace the handshake handler while the replacement channel is negotiating
-                            return false;
-                            }
-                        try
-                            {
-                            getSelectionService().register(m_channel, this);
-                            }
-                        catch (IOException e)
-                            {
-                            onException(m_lTransportGeneration, e);
-                            return false;
-                            }
+                        getSelectionService().register(epoch.f_channel, epoch.f_handler);
                         }
-                    finally
+                    catch (IOException e)
                         {
-                        Connection.this.unlock();
+                        // A concurrent replacement may have retired this exact
+                        // channel after the readiness check. The epoch-bound
+                        // failure callback rejects it if it is now stale.
+                        onException(epoch.f_lId, e);
+                        return false;
                         }
                     return true;
 
@@ -2647,6 +3041,17 @@ public abstract class AbstractSocketBus
          */
         protected void invoke(Runnable runnable)
             {
+            invoke(m_transportEpoch, runnable);
+            }
+
+        /**
+         * Schedule an invocation against the lane of a specific epoch.
+         *
+         * @param epoch     the epoch whose lane owns the command, or {@code null}
+         * @param runnable  the runnable to invoke
+         */
+        protected void invoke(TransportEpoch epoch, Runnable runnable)
+            {
             lock();
             try
                 {
@@ -2655,7 +3060,7 @@ public abstract class AbstractSocketBus
                     {
                     try
                         {
-                        SelectableChannel channel = m_channel == null ? f_channelServer : m_channel;
+                        SelectableChannel channel = epoch == null ? f_channelServer : epoch.f_channel;
                         getSelectionService().invoke(channel, runnable, /*cMillisDelay*/ 0);
                         }
                     catch (IOException e)
@@ -2671,6 +3076,31 @@ public abstract class AbstractSocketBus
             finally
                 {
                 unlock();
+                }
+            }
+
+        /**
+         * Schedule an epoch-guarded transport command directly on its immutable
+         * owner lane.
+         * <p>
+         * Unlike logical connection invocations, transport commands do not
+         * participate in the legacy simultaneous-connect deferral queue. A
+         * command that races retirement remains bound to the old channel and
+         * rejects itself by exact epoch identity; it can never act on the
+         * replacement transport.
+         *
+         * @param epoch     the epoch whose lane owns the command
+         * @param runnable  the epoch-guarded transport command
+         */
+        protected void invokeTransport(TransportEpoch epoch, Runnable runnable)
+            {
+            try
+                {
+                getSelectionService().invoke(epoch.f_channel, runnable, /*cMillisDelay*/ 0);
+                }
+            catch (IOException e)
+                {
+                throw new RuntimeException(e);
                 }
             }
 
@@ -2713,6 +3143,24 @@ public abstract class AbstractSocketBus
         public long write(ByteBuffer[] srcs, int offset, int length)
                 throws IOException
             {
+            return write(getReadyTransportEpoch(), srcs, offset, length);
+            }
+
+        /**
+         * Write using the explicitly identified physical transport.
+         *
+         * @param epoch   the epoch servicing the write
+         * @param srcs    the source buffers
+         * @param offset  the first source buffer
+         * @param length  the number of source buffers
+         *
+         * @return the number of bytes written
+         *
+         * @throws IOException if an I/O error occurs
+         */
+        protected long write(TransportEpoch epoch, ByteBuffer[] srcs, int offset, int length)
+                throws IOException
+            {
             switch (m_state)
                 {
                 case OPEN:
@@ -2720,12 +3168,12 @@ public abstract class AbstractSocketBus
 
                 case ACTIVE:
                     {
-                    if (!isTransportReady())
+                    if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
                         {
                         return 0;
                         }
 
-                    SocketChannel chan    = m_channel;
+                    SocketChannel chan    = epoch.f_channel;
                     long          cbWrite = 0;
                     long          cb;
 
@@ -2733,6 +3181,12 @@ public abstract class AbstractSocketBus
                     for (int i = offset, e = offset + length; i < e; ++i)
                         {
                         cbPre += srcs[i].remaining();
+                        }
+
+                    if (TEST_PARTIAL_WRITE_TRIGGERED.get() && consumeTestCounter(TEST_ZERO_WRITES_AFTER_PARTIAL_REMAINING))
+                        {
+                        TEST_ZERO_WRITES_AFTER_PARTIAL.incrementAndGet();
+                        return 0;
                         }
 
                     if (m_fDropOutput) // for testing purposes only
@@ -2746,29 +3200,71 @@ public abstract class AbstractSocketBus
                         return cbPre;
                         }
 
+                    int     ofLimit          = -1;
+                    int     nLimitOriginal   = -1;
+                    int     cBufferWrite     = length;
+                    long    cbWriteLimit     = TEST_PARTIAL_WRITE_LIMIT_BYTES;
+                    boolean fPartialWrite    = cbWriteLimit > 0L
+                            && cbPre > cbWriteLimit
+                            && (!TEST_PARTIAL_WRITES_ON_NON_OWNER_ONLY || !isTransportOwner(this, epoch))
+                            && consumeTestCounter(TEST_PARTIAL_WRITES_REMAINING);
+
+                    if (fPartialWrite)
+                        {
+                        long cbLimitRemaining = cbWriteLimit;
+                        for (int i = offset, e = offset + length; i < e; ++i)
+                            {
+                            ByteBuffer buffer = srcs[i];
+                            int        cbBuffer = buffer.remaining();
+
+                            if (cbLimitRemaining <= cbBuffer)
+                                {
+                                cBufferWrite = i - offset + 1;
+                                if (cbLimitRemaining < cbBuffer)
+                                    {
+                                    ofLimit        = i;
+                                    nLimitOriginal = buffer.limit();
+                                    buffer.limit(buffer.position() + (int) cbLimitRemaining);
+                                    }
+                                break;
+                                }
+                            cbLimitRemaining -= cbBuffer;
+                            }
+                        }
+
                     try
                         {
-                        int i = offset;
-                        int c = length;
-                        do
+                        try
                             {
-                            cbWrite += cb = chan.write(srcs, i, c);
-
-                            // According the JRockit team the underlying
-                            // OS will generally only support a maximum number
-                            // of gather buffers (they said 16). So it is
-                            // possible that an incomplete write was not do to
-                            // lack of buffer space but do to this OS issue.
-
-                            // so if we wrote something, and have lots of buffers
-                            // advance through the written ones and try again
-                            while (cb != 0 && c > 0 && !srcs[i].hasRemaining())
+                            int i = offset;
+                            int c = cBufferWrite;
+                            do
                                 {
-                                ++i;
-                                --c;
+                                cbWrite += cb = chan.write(srcs, i, c);
+
+                                // According the JRockit team the underlying
+                                // OS will generally only support a maximum number
+                                // of gather buffers (they said 16). So it is
+                                // possible that an incomplete write was not do to
+                                // lack of buffer space but do to this OS issue.
+
+                                // so if we wrote something, and have lots of buffers
+                                // advance through the written ones and try again
+                                while (cb != 0 && c > 0 && !srcs[i].hasRemaining())
+                                    {
+                                    ++i;
+                                    --c;
+                                    }
+                                }
+                            while (cb != 0 && c > 0);
+                            }
+                        finally
+                            {
+                            if (ofLimit >= 0)
+                                {
+                                srcs[ofLimit].limit(nLimitOriginal);
                                 }
                             }
-                        while (cb != 0 && c > 0);
                         }
                     catch (IOException ex)
                         {
@@ -2792,6 +3288,16 @@ public abstract class AbstractSocketBus
                         // sending anything and then we'll surface the exception
                         }
 
+                    if (fPartialWrite && cbWrite > 0L)
+                        {
+                        TEST_PARTIAL_WRITES.incrementAndGet();
+                        TEST_PARTIAL_WRITE_TRIGGERED.set(true);
+                        }
+                    else if (TEST_PARTIAL_WRITE_TRIGGERED.get() && cbWrite > 0L)
+                        {
+                        TEST_BYTES_WRITTEN_AFTER_PARTIAL.addAndGet(cbWrite);
+                        }
+
                     m_cbWrite += cbWrite;
 
                     return cbWrite;
@@ -2808,17 +3314,7 @@ public abstract class AbstractSocketBus
         public long write(ByteBuffer[] srcs)
                 throws IOException
             {
-            switch (m_state)
-                {
-                case OPEN:
-                    return 0; // not ready yet
-
-                case ACTIVE:
-                    return write(srcs, 0, srcs.length);
-
-                default:
-                    throw new ClosedChannelException();
-                }
+            return write(getReadyTransportEpoch(), srcs, 0, srcs.length);
             }
 
         /**
@@ -2826,17 +3322,26 @@ public abstract class AbstractSocketBus
          */
         public int write(ByteBuffer src) throws IOException
             {
+            return write(getReadyTransportEpoch(), src);
+            }
+
+        /**
+         * Write a single buffer using the explicitly identified transport.
+         */
+        protected int write(TransportEpoch epoch, ByteBuffer src)
+                throws IOException
+            {
             switch (m_state)
                 {
                 case OPEN:
                     return 0; // not ready yet
 
                 case ACTIVE:
-                    if (!isTransportReady())
+                    if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
                         {
                         return 0;
                         }
-                    int cb = m_channel.write(src);
+                    int cb = epoch.f_channel.write(src);
                     m_cbWrite += cb;
                     return cb;
 
@@ -2851,19 +3356,28 @@ public abstract class AbstractSocketBus
         public long read(ByteBuffer[] dsts, int offset, int length)
                 throws IOException
             {
+            return read(getReadyTransportEpoch(), dsts, offset, length);
+            }
+
+        /**
+         * Read using the explicitly identified physical transport.
+         */
+        protected long read(TransportEpoch epoch, ByteBuffer[] dsts, int offset, int length)
+                throws IOException
+            {
             switch (m_state)
                 {
                 case OPEN:
                     return 0; // not ready yet
 
                 case ACTIVE:
-                    if (!isTransportReady())
+                    if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
                         {
                         return 0;
                         }
 
-                    SocketChannel channel              = m_channel;
-                    long          lTransportGeneration = m_lTransportGeneration;
+                    SocketChannel channel              = epoch.f_channel;
+                    long          lTransportGeneration = epoch.f_lId;
 
                     triggerConcurrentReadMigration(this, lTransportGeneration);
 
@@ -2906,7 +3420,7 @@ public abstract class AbstractSocketBus
          */
         public long read(ByteBuffer[] dsts) throws IOException
             {
-            return read(dsts, 0, dsts.length);
+            return read(getReadyTransportEpoch(), dsts, 0, dsts.length);
             }
 
         /**
@@ -2914,19 +3428,28 @@ public abstract class AbstractSocketBus
          */
         public int read(ByteBuffer dst) throws IOException
             {
+            return read(getReadyTransportEpoch(), dst);
+            }
+
+        /**
+         * Read a single buffer using the explicitly identified transport.
+         */
+        protected int read(TransportEpoch epoch, ByteBuffer dst)
+                throws IOException
+            {
             switch (m_state)
                 {
                 case OPEN:
                     return 0; // not ready yet
 
                 case ACTIVE:
-                    if (!isTransportReady())
+                    if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
                         {
                         return 0;
                         }
 
-                    SocketChannel channel              = m_channel;
-                    long          lTransportGeneration = m_lTransportGeneration;
+                    SocketChannel channel              = epoch.f_channel;
+                    long          lTransportGeneration = epoch.f_lId;
                     triggerConcurrentReadMigration(this, lTransportGeneration);
                     int           cb                   = channel.read(dst);
                     if (cb >= 0)
@@ -2957,10 +3480,50 @@ public abstract class AbstractSocketBus
          */
         public void migrate(long lTransportGeneration, Throwable eReason)
             {
+            TransportEpoch epochOwner = m_transportEpoch;
+            if (isTransportOwner(this, epochOwner))
+                {
+                // A failed data or handshake callback may return no interest. Commit the failure before returning
+                // from that callback so migration cannot depend on a later selector turn merely to gate the epoch.
+                migrateOnOwner(lTransportGeneration, eReason);
+                }
+            else
+                {
+                // Application, health, and stale-selector notifications publish a command to the epoch owner.
+                invoke(epochOwner, () ->
+                    {
+                    enterTransportCallback(this, epochOwner);
+                    try
+                        {
+                        migrateOnOwner(lTransportGeneration, eReason);
+                        }
+                    finally
+                        {
+                        exitTransportCallback();
+                        }
+                    });
+                }
+            }
+
+        /**
+         * Process a migration request on the current epoch owner lane.
+         *
+         * @param lTransportGeneration  the failed epoch or connect-attempt id
+         * @param eReason               the failure reason
+         */
+        private void migrateOnOwner(long lTransportGeneration, Throwable eReason)
+            {
             lock();
             try
                 {
-                if (m_lTransportGeneration != lTransportGeneration ||
+                TransportEpoch epochFailed = m_transportEpoch;
+                boolean fEpochFailure = epochFailed != null && epochFailed.f_lId == lTransportGeneration;
+                boolean fAttemptFailure = m_lTransportGeneration == lTransportGeneration
+                        && !isTransportReady()
+                        && (epochFailed == null
+                            || epochFailed.m_phase == TransportPhase.CLOSED
+                               && epochFailed.f_lId < lTransportGeneration);
+                if ((!fEpochFailure && !fAttemptFailure) ||
                     m_lFailedTransportGeneration == lTransportGeneration)
                     {
                     return;
@@ -2969,6 +3532,10 @@ public abstract class AbstractSocketBus
                 // claim this transport failure and gate application I/O before closing or scheduling replacement work
                 m_lFailedTransportGeneration = lTransportGeneration;
                 m_handler                    = null;
+                if (fEpochFailure)
+                    {
+                    retireTransportEpoch(epochFailed);
+                    }
 
                 SocketBusDriver.Dependencies depsDriver = f_driver.getDependencies();
                 int cSocketReconnectLimit = depsDriver.getSocketReconnectLimit();
@@ -2999,13 +3566,13 @@ public abstract class AbstractSocketBus
                                         ? depsDriver.getSocketReconnectDelayMillis()
                                         : 0;
 
-                    SocketChannel     chan     = m_channel;
+                    SocketChannel     chan     = epochFailed == null ? null : epochFailed.f_channel;
                     SelectableChannel chanTask = chan == null ? f_channelServer : chan;
                     String            sChan    = String.valueOf(chan); // to preserve port info for subsequent logging
 
-                    if (chan != null)
+                    if (fEpochFailure)
                         {
-                        closeChannel(chan);
+                        closeTransportEpoch(epochFailed);
                         }
 
                     scheduleUnsafeTask(chanTask, new Runnable()
@@ -3016,44 +3583,35 @@ public abstract class AbstractSocketBus
                             Connection.this.lock();
                             try
                                 {
-                                if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal() && chan == m_channel)
+                                if (m_state.ordinal() < ConnectionState.DEFUNCT.ordinal()
+                                        && m_lTransportGeneration == lTransportGeneration
+                                        && m_transportEpoch == epochFailed)
                                     {
-                                    if (!tryAcquireMigrationOwnership())
+                                    prepareMigrationOnOwner(epochFailed);
+
+                                    // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
+                                    getLogger().log(makeRecord(Level.FINER,
+                                                                    "{0} migrating connection with {1} off of {2} on {3}: {4}",
+                                                                    getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
+
+                                    m_eMigrationCause = eReason;
+                                    onMigration();
+
+                                    // we're sync'd on the connection so nothing new can be scheduled
+                                    if (chan != null)
                                         {
-                                        scheduleUnsafeTask(chanTask, this, 0L);
-                                        return;
-                                        }
-
-                                    try
-                                        {
-                                        // COH-24703 - not adding the exception to the LogRecord because logging the stack trace is not useful in this case
-                                        getLogger().log(makeRecord(Level.FINER,
-                                                                        "{0} migrating connection with {1} off of {2} on {3}: {4}",
-                                                                        getLocalEndPoint(), getPeer(), sChan, Connection.this, eReason));
-
-                                        m_eMigrationCause = eReason;
-                                        onMigration();
-
-                                        // we're sync'd on the connection so nothing new can be scheduled
-                                        if (chan != null)
+                                        try
                                             {
-                                            try
-                                                {
-                                                getSelectionService().register(chan, null);
-                                                }
-                                            catch (IOException ignore)
-                                                {
-                                                }
+                                            getSelectionService().register(chan, null);
                                             }
+                                        catch (IOException ignore)
+                                            {
+                                            }
+                                        }
 
-                                        // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
-                                        // schedule task to ensure register and connect are processed sequentially
-                                        scheduleUnsafeTask(chanTask, () -> connect(), cMillisDelay);
-                                        }
-                                    finally
-                                        {
-                                        releaseMigrationOwnership();
-                                        }
+                                    // replaces m_channel, so any subsequent exceptions on the old channel won't make it into this if block
+                                    // schedule task to ensure register and connect are processed sequentially
+                                    scheduleUnsafeTask(chanTask, () -> connect(), cMillisDelay);
                                     }
                                 }
                             finally
@@ -3076,14 +3634,14 @@ public abstract class AbstractSocketBus
          * If this method throws an exception it will be handled by {@link
          * #onException}
          *
-         * @param nOps                  the selected ops
-         * @param lTransportGeneration  the transport generation selected for this callback
+         * @param nOps   the selected ops
+         * @param epoch  the transport epoch selected for this callback
          *
          * @return the new interest set
          *
          * @throws IOException on an I/O error
          */
-        protected abstract int onReadySafe(int nOps, long lTransportGeneration)
+        protected abstract int onReadySafe(int nOps, TransportEpoch epoch)
             throws IOException;
 
         /**
@@ -3124,34 +3682,36 @@ public abstract class AbstractSocketBus
          */
         public final int onReady(int nOps)
             {
-            // Active transport callbacks and queued consumer progression use this same lock boundary. Migration
-            // gates the transport before waiting for the boundary, then revalidates the generation while holding it.
-            enterTransportCallback();
+            return onTransportReady(getReadyTransportEpoch(), nOps);
+            }
+
+        /**
+         * Service a callback from an epoch-bound data handler.
+         *
+         * @param epoch  the epoch permanently bound to the handler
+         * @param nOps   the selected operations
+         *
+         * @return the new interest set
+         */
+        protected final int onTransportReady(TransportEpoch epoch, int nOps)
+            {
+            // The epoch-bound handler and every command scheduled against its channel execute on the same owner
+            // lane. Migration is an owner command, so no connection-wide I/O lock is required here.
+            enterTransportCallback(this, epoch);
             try
                 {
-                lock();
+                if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
+                    {
+                    return 0;
+                    }
+
                 try
                     {
-                    long lTransportGeneration = m_lTransportGeneration;
-                    if (!isTransportReady())
-                        {
-                        return 0;
-                        }
-
-                    try
-                        {
-                        return onReadySafe(nOps, lTransportGeneration);
-                        }
-                    catch (Throwable t)
-                        {
-                        return onException(lTransportGeneration, t);
-                        }
+                    return onReadySafe(nOps, epoch);
                     }
-                finally
+                catch (Throwable t)
                     {
-                    // unlock also drains collector events deferred by this critical section; retain the
-                    // transport marker so a reentrant collector send cannot park the selector thread.
-                    unlock();
+                    return onException(epoch.f_lId, t);
                     }
                 }
             finally
@@ -3186,6 +3746,16 @@ public abstract class AbstractSocketBus
                         System.nanoTime() - m_ldtMigrationStartedNanos, Math::max);
                 m_ldtMigrationStartedNanos = 0L;
                 }
+            }
+
+        /**
+         * Called after the complete MessageBus handshake publishes a READY
+         * epoch.
+         *
+         * @param epoch  the newly READY epoch
+         */
+        protected void onTransportReady(TransportEpoch epoch)
+            {
             }
 
         /**
@@ -3243,6 +3813,12 @@ public abstract class AbstractSocketBus
         private final ReentrantLock f_lock = new ReentrantLock();
 
         /**
+         * Inbound replacement sockets that lost a simultaneous-migration
+         * election and must remain open until the elected transport resolves.
+         */
+        private final Queue<SocketChannel> f_queueDeferredMigrationCollisions = new ConcurrentLinkedQueue<>();
+
+        /**
          * The start of the current outermost measured connection critical section.
          */
         private long m_ldtConnectionLockAcquiredNanos;
@@ -3279,7 +3855,15 @@ public abstract class AbstractSocketBus
         protected long m_lIdentityPeer;
 
         /**
+         * Atomically published current physical transport.
+         */
+        protected volatile TransportEpoch m_transportEpoch;
+
+        /**
          * The channel connecting this bus to the peer.
+         *
+         * @deprecated transitional alias; transport I/O must use
+         *             {@link #m_transportEpoch}.
          */
         private SocketChannel m_channel;
 
@@ -3373,15 +3957,38 @@ public abstract class AbstractSocketBus
         /**
          * Construct a HandshakeHandler for the give SocketChannel.
          *
-         * @param channel     the socket channel
-         * @param connection  the optional connection
+         * @param channel  the unattached inbound socket channel
          */
-        public HandshakeHandler(SocketChannel channel, Connection connection)
+        public HandshakeHandler(SocketChannel channel)
             {
             super(channel);
-            this.m_connection           = connection;
-            this.m_lTransportGeneration = connection == null ? -1L : connection.m_lTransportGeneration;
-            this.f_fOutbound            = connection != null;
+            this.f_fOutbound = false;
+
+            initializeHandshake();
+            }
+
+        /**
+         * Construct an outbound HandshakeHandler bound to an epoch.
+         *
+         * @param epoch       the transport epoch
+         * @param connection  the logical connection
+         */
+        public HandshakeHandler(Connection.TransportEpoch epoch, Connection connection)
+            {
+            super(epoch.f_channel);
+            m_connection           = connection;
+            m_epoch                = epoch;
+            m_lTransportGeneration = epoch.f_lId;
+            f_fOutbound            = epoch.f_fOutbound;
+
+            initializeHandshake();
+            }
+
+        /**
+         * Initialize the protocol negotiation buffers.
+         */
+        private void initializeHandshake()
+            {
 
             int cbNegotiate = 4 + // (int) protocol id
                            2 + // (short) min ver
@@ -3402,6 +4009,37 @@ public abstract class AbstractSocketBus
          * {@inheritDoc}
          */
         public int onReadySafe(int nOps)
+                throws IOException
+            {
+            Connection     connection = m_connection;
+            Connection.TransportEpoch epoch = m_epoch;
+            if (connection == null || epoch == null)
+                {
+                return onReadyOwned(nOps);
+                }
+
+            enterTransportCallback(connection, epoch);
+            try
+                {
+                return onReadyOwned(nOps);
+                }
+            finally
+                {
+                exitTransportCallback();
+                }
+            }
+
+        /**
+         * Process handshake readiness while running on the bound epoch owner
+         * lane.
+         *
+         * @param nOps  the selected operations
+         *
+         * @return the new interest set
+         *
+         * @throws IOException if handshake I/O fails
+         */
+        private int onReadyOwned(int nOps)
                 throws IOException
             {
             if (delayReconnectHandshake(this, m_connection))
@@ -3510,20 +4148,37 @@ public abstract class AbstractSocketBus
                 }
             else
                 {
-                connection.lock();
+                Connection.TransportEpoch epoch = m_epoch;
+                if (epoch != null)
+                    {
+                    enterTransportCallback(connection, epoch);
+                    }
                 try
                     {
-                    ConnectionState state = connection.m_state;
-                    if (connection.m_channel == getChannel() &&
-                        connection.m_lTransportGeneration == m_lTransportGeneration &&
-                        state != null && state.ordinal() < ConnectionState.DEFUNCT.ordinal())
+                    connection.lock();
+                    try
                         {
-                        connection.onException(m_lTransportGeneration, eReason);
+                        ConnectionState state = connection.m_state;
+                        if (epoch != null &&
+                            connection.m_transportEpoch == epoch &&
+                            epoch.f_channel == getChannel() &&
+                            epoch.f_lId == m_lTransportGeneration &&
+                            state != null && state.ordinal() < ConnectionState.DEFUNCT.ordinal())
+                            {
+                            connection.onException(m_lTransportGeneration, eReason);
+                            }
+                        }
+                    finally
+                        {
+                        connection.unlock();
                         }
                     }
                 finally
                     {
-                    connection.unlock();
+                    if (epoch != null)
+                        {
+                        exitTransportCallback();
+                        }
                     }
                 }
 
@@ -3771,9 +4426,14 @@ public abstract class AbstractSocketBus
                             connOld.m_state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
                             {
                             connNew = makeConnection(peer);
+                            Connection.TransportEpoch epoch = connNew.createTransportEpoch(
+                                    connNew.m_lTransportGeneration, getChannel(), /*fOutbound*/ false,
+                                    TransportPhase.HANDSHAKING);
                             connNew.m_nProtocol     = nProt;
-                            connNew.m_channel       = getChannel();
                             connNew.m_lIdentityPeer = lIdThatRx;
+                            connNew.publishTransportEpoch(epoch, HandshakeHandler.this);
+                            m_epoch                = epoch;
+                            m_lTransportGeneration = epoch.f_lId;
                             break;
                             }
                         // else; we lost the connection when we were half connected, i.e. we had learned our peer's ID,
@@ -3812,6 +4472,31 @@ public abstract class AbstractSocketBus
                                         {
                                         if (connOld.m_channel == chanOld && connOld.m_state.ordinal() <= ConnectionState.ACTIVE.ordinal())
                                             {
+                                            Connection.TransportEpoch epochCurrent = connOld.m_transportEpoch;
+                                            boolean fOutboundMigration = connOld.m_handler == null ||
+                                                    epochCurrent != null &&
+                                                    epochCurrent.m_phase == TransportPhase.HANDSHAKING &&
+                                                    epochCurrent.f_fOutbound;
+
+                                            // Both peers can observe the same transport failure and create replacement
+                                            // sockets concurrently. The reconnect delay normally biases the lower
+                                            // endpoint's outbound candidate, but delay is only timing and cannot be the
+                                            // correctness mechanism. Preserve that endpoint ordering explicitly: the
+                                            // lower endpoint keeps its outbound recovery while the higher endpoint
+                                            // accepts it as an inbound migration. Keep the losing candidate dormant until
+                                            // the winner is established; closing it immediately would make the peer retry
+                                            // and could exhaust its retry limit before the winner completes its handshake.
+                                            if (connOld.m_state == ConnectionState.ACTIVE && fOutboundMigration &&
+                                                getLocalEndPoint().getCanonicalName().compareTo(peer.getCanonicalName()) < 0)
+                                                {
+                                                getLogger().log(makeRecord(Level.FINER,
+                                                        "{0} deferring simultaneous connection migration from {1} on {2}; " +
+                                                        "preserving endpoint-ordered outbound recovery on {3}",
+                                                        getLocalEndPoint(), peer, chanNew, connOld));
+                                                connOld.deferMigrationCollision(chanNew);
+                                                return;
+                                                }
+
                                             if (connOld.m_state == ConnectionState.ACTIVE)
                                                 {
                                                 // to get this far we know that the TCP connection went down without the user choosing
@@ -3819,10 +4504,9 @@ public abstract class AbstractSocketBus
                                                 // message, there is something wrong with the environment, though we are auto-correcting
                                                 // it.
 
-                                                getLogger().log(
-                                                        makeExceptionRecord(Level.WARNING, connOld.m_eMigrationCause,
-                                                                "{0} accepting connection migration with {1}, replacing {2} with {3}: {4}",
-                                                                getLocalEndPoint(), peer, connOld.m_channel, getChannel(), connOld));
+                                                logAcceptedMigration(connOld.m_eMigrationCause,
+                                                        "{0} accepting connection migration with {1}, replacing {2} with {3}: {4}",
+                                                        getLocalEndPoint(), peer, connOld.m_channel, getChannel(), connOld);
                                                 connOld.m_eMigrationCause = null;
                                                 }
                                             // else; during connection establishment we may have simply had a connect timeout, this is not
@@ -3859,37 +4543,29 @@ public abstract class AbstractSocketBus
 
                                             if (connOld.m_handler != HandshakeHandler.this)
                                                 {
-                                                // gate the old transport before waiting for an already-scheduled consumer
+                                                // Gate the old epoch before waiting for an already-scheduled consumer.
+                                                Connection.TransportEpoch epochOld = epochCurrent;
                                                 m_lTransportGeneration = ++connOld.m_lTransportGeneration;
-                                                connOld.m_handler      = HandshakeHandler.this;
+                                                m_epoch = connOld.createTransportEpoch(m_lTransportGeneration,
+                                                        chanNew, /*fOutbound*/ false, TransportPhase.HANDSHAKING);
+                                                connOld.retireTransportEpoch(epochOld);
+                                                connOld.m_handler = HandshakeHandler.this;
                                                 connOld.onMigrationStarted(m_lTransportGeneration);
-                                                closeChannel(chanOld);
+                                                connOld.closeTransportEpoch(epochOld);
                                                 }
 
-                                            if (!connOld.tryAcquireMigrationOwnership())
-                                                {
-                                                scheduleUnsafeTask(chanOld, this, 0L);
-                                                return;
-                                                }
+                                            connOld.prepareMigrationOnOwner(connOld.m_transportEpoch);
+                                            connOld.onMigration();
+                                            connOld.publishTransportEpoch(m_epoch, HandshakeHandler.this);
 
+                                            // re-register this channel on the original handler to resume processing
                                             try
                                                 {
-                                                connOld.onMigration();
-                                                connOld.m_channel = chanNew;
-
-                                                // re-register this channel on the original handler to resume processing
-                                                try
-                                                    {
-                                                    getSelectionService().register(getChannel(), HandshakeHandler.this);
-                                                    }
-                                                catch (IOException e)
-                                                    {
-                                                    onException(e);
-                                                    }
+                                                getSelectionService().register(getChannel(), HandshakeHandler.this);
                                                 }
-                                            finally
+                                            catch (IOException e)
                                                 {
-                                                connOld.releaseMigrationOwnership();
+                                                onException(e);
                                                 }
                                             }
                                         else
@@ -4045,21 +4721,17 @@ public abstract class AbstractSocketBus
                                                     connOld.lock();
                                                     try
                                                         {
-                                                        try
-                                                            {
-                                                            connOld.m_channel.close();
-                                                            }
-                                                        catch (IOException ioe)
-                                                            {
-                                                            }
+                                                        connOld.closeTransportEpoch(connOld.m_transportEpoch);
 
                                                         if (connOld.m_state.ordinal() < ConnectionState.DEFUNCT.ordinal())
                                                             {
                                                             // publish the handshake gate before replacing the pending channel
-                                                            m_lTransportGeneration  = ++connOld.m_lTransportGeneration;
-                                                            connOld.m_handler        = handlerNew;
-                                                            connOld.m_channel        = channelNew;
-                                                            connOld.m_lIdentityPeer  = lIdThatRx;
+                                                            m_lTransportGeneration = ++connOld.m_lTransportGeneration;
+                                                            m_epoch = connOld.createTransportEpoch(
+                                                                    m_lTransportGeneration, channelNew,
+                                                                    /*fOutbound*/ false, TransportPhase.HANDSHAKING);
+                                                            connOld.publishTransportEpoch(m_epoch, handlerNew);
+                                                            connOld.m_lIdentityPeer = lIdThatRx;
                                                             fContinue = true;
                                                             }
                                                         else
@@ -4220,8 +4892,11 @@ public abstract class AbstractSocketBus
                 connection.lock();
                 try
                     {
-                    if (connection.m_channel != getChannel() ||
-                        connection.m_lTransportGeneration != m_lTransportGeneration ||
+                    Connection.TransportEpoch epoch = m_epoch;
+                    if (epoch == null ||
+                        connection.m_transportEpoch != epoch ||
+                        epoch.f_channel != getChannel() ||
+                        epoch.f_lId != m_lTransportGeneration ||
                         connection.m_handler != this ||
                         connection.m_state.ordinal() >= ConnectionState.DEFUNCT.ordinal())
                         {
@@ -4309,10 +4984,9 @@ public abstract class AbstractSocketBus
                                 // else; identity match, accept the migration
                                 }
 
-                            getLogger().log(
-                                    makeExceptionRecord(Level.WARNING, connection.m_eMigrationCause,
-                                            "{0} accepted connection migration with {1} on {2}: {3}",
-                                            getLocalEndPoint(), peer, getChannel(), connection));
+                            logAcceptedMigration(connection.m_eMigrationCause,
+                                    "{0} accepted connection migration with {1} on {2}: {3}",
+                                    getLocalEndPoint(), peer, getChannel(), connection);
 
                             connection.m_eMigrationCause = null;
                             break;
@@ -4366,8 +5040,11 @@ public abstract class AbstractSocketBus
             connection.lock();
             try
                 {
-                if (connection.m_channel != getChannel() ||
-                    connection.m_lTransportGeneration != m_lTransportGeneration)
+                Connection.TransportEpoch epoch = m_epoch;
+                if (epoch == null ||
+                    connection.m_transportEpoch != epoch ||
+                    epoch.f_channel != getChannel() ||
+                    epoch.f_lId != m_lTransportGeneration)
                     {
                     closeChannel(getChannel());
                     return 0;
@@ -4381,13 +5058,17 @@ public abstract class AbstractSocketBus
                         // fall through
 
                     case ACTIVE: // because of migration
-                        // switch out the handlers
-                        getSelectionService().register(getChannel(), connection);
-                        connection.m_handler = connection;
+                        // Switch to the handler permanently bound to this epoch. Registration from the
+                        // same channel callback takes effect after this handshake callback returns.
+                        getSelectionService().register(epoch.f_channel, epoch.f_handler);
+                        epoch.transitionTo(TransportPhase.READY);
+                        connection.m_handler = epoch.f_handler;
 
                         // a TCP connect alone is not a successful reconnect; only reset after the bus handshake completes
                         connection.m_cReconnectAttempts = 0;
+                        connection.closeDeferredMigrationCollisions();
                         connection.onMigrationCompleted(m_lTransportGeneration);
+                        connection.onTransportReady(epoch);
                         if (fMigration)
                             {
                             // inbound and outbound completion both establish a healthy replacement transport
@@ -4476,6 +5157,12 @@ public abstract class AbstractSocketBus
         protected Connection m_connection;
 
         /**
+         * Immutable transport epoch associated with this handshake once the
+         * candidate is attached to a logical connection.
+         */
+        protected Connection.TransportEpoch m_epoch;
+
+        /**
          * The transport generation associated with this handshake.
          */
         protected long m_lTransportGeneration = -1L;
@@ -4554,7 +5241,7 @@ public abstract class AbstractSocketBus
                     Sockets.configureBlocking(chan, false);
                     configureSocket(chan.socket());
 
-                    getSelectionService().register(chan, new HandshakeHandler(chan, null));
+                    getSelectionService().register(chan, new HandshakeHandler(chan));
                     }
                 }
             catch (IOException e)
@@ -4697,6 +5384,16 @@ public abstract class AbstractSocketBus
          * The current transport callback depth.
          */
         private int m_cDepth;
+
+        /**
+         * The logical connection owning the outermost callback.
+         */
+        private Object m_oConnection;
+
+        /**
+         * The physical epoch owning the outermost callback.
+         */
+        private Object m_oEpoch;
         }
 
 
@@ -4821,6 +5518,12 @@ public abstract class AbstractSocketBus
     private static final boolean TEST_ACTIVE_READ_FAILURES_ENABLED = TEST_ACTIVE_READ_FAILURES.get() > 0;
 
     /**
+     * Whether configured active-read failures may currently be injected.
+     */
+    private static final AtomicBoolean TEST_ACTIVE_READ_FAILURES_ARMED = new AtomicBoolean(!Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".deferActiveReadFailures"));
+
+    /**
      * The number of migrations to start concurrently with an active read for functional testing.
      */
     private static final AtomicInteger TEST_CONCURRENT_READ_MIGRATIONS = new AtomicInteger(Integer.getInteger(
@@ -4900,6 +5603,51 @@ public abstract class AbstractSocketBus
      * The maximum measured transport migration completion time.
      */
     private static final AtomicLong TEST_MIGRATION_COMPLETION_MAX_NANOS = new AtomicLong();
+
+    /**
+     * Maximum bytes exposed to the first gathering write selected by the functional test hook.
+     */
+    private static final long TEST_PARTIAL_WRITE_LIMIT_BYTES = Long.getLong(
+            AbstractSocketBus.class.getName() + ".partialWriteLimitBytes", 0L);
+
+    /**
+     * The number of gathering writes to cap for functional testing.
+     */
+    private static final AtomicInteger TEST_PARTIAL_WRITES_REMAINING = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".partialWrites",
+            TEST_PARTIAL_WRITE_LIMIT_BYTES > 0L ? 1 : 0));
+
+    /**
+     * Whether the partial-write hook should wait for a write outside the transport owner lane.
+     */
+    private static final boolean TEST_PARTIAL_WRITES_ON_NON_OWNER_ONLY = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".partialWritesOnNonOwnerOnly");
+
+    /**
+     * The number of zero-byte gathering writes to inject after the first capped write.
+     */
+    private static final AtomicInteger TEST_ZERO_WRITES_AFTER_PARTIAL_REMAINING = new AtomicInteger(Integer.getInteger(
+            AbstractSocketBus.class.getName() + ".zeroWritesAfterPartial", 0));
+
+    /**
+     * Whether the capped gathering write has completed.
+     */
+    private static final AtomicBoolean TEST_PARTIAL_WRITE_TRIGGERED = new AtomicBoolean();
+
+    /**
+     * The number of gathering writes capped by the functional test hook.
+     */
+    private static final AtomicLong TEST_PARTIAL_WRITES = new AtomicLong();
+
+    /**
+     * The number of zero-byte gathering writes injected by the functional test hook.
+     */
+    private static final AtomicLong TEST_ZERO_WRITES_AFTER_PARTIAL = new AtomicLong();
+
+    /**
+     * The number of bytes written after the controlled partial write.
+     */
+    private static final AtomicLong TEST_BYTES_WRITTEN_AFTER_PARTIAL = new AtomicLong();
 
     /**
      * The number of initial socket opens to fail for functional testing.
