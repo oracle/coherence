@@ -173,6 +173,56 @@ public abstract class BufferedSocketBus
         return TEST_RECEIPT_FLUSHES_WITH_PENDING_DATA.get();
         }
 
+    /**
+     * Return the number of incomplete socket writes observed while the real-backpressure test hook is enabled.
+     *
+     * @return the number of incomplete socket writes
+     */
+    public static long getSocketBackpressurePartialWritesForTesting()
+        {
+        return TEST_SOCKET_BACKPRESSURE_PARTIAL_WRITES.get();
+        }
+
+    /**
+     * Return the maximum queued bytes observed during an incomplete socket write.
+     *
+     * @return the maximum queued bytes
+     */
+    public static long getSocketBackpressureQueuedBytesForTesting()
+        {
+        return TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES.get();
+        }
+
+    /**
+     * Return the bytes written after genuine socket backpressure was observed.
+     *
+     * @return the bytes written after backpressure
+     */
+    public static long getBytesWrittenAfterSocketBackpressureForTesting()
+        {
+        return TEST_BYTES_WRITTEN_AFTER_SOCKET_BACKPRESSURE.get();
+        }
+
+    /**
+     * Return the latest socket-write state captured by the real-backpressure test hook.
+     *
+     * @return the latest socket-write state
+     */
+    public static String getSocketBackpressureStateForTesting()
+        {
+        BufferedConnection connection = TEST_SOCKET_BACKPRESSURE_CONNECTION.get();
+        return connection == null
+                ? TEST_SOCKET_BACKPRESSURE_STATE.get()
+                : TEST_SOCKET_BACKPRESSURE_STATE.get()
+                    + ", currentQueued=" + connection.f_cbQueued.get()
+                    + ", currentWriterActive=" + connection.isWriterActive()
+                    + ", currentWriterEpoch=" + System.identityHashCode(connection.m_epochWriterActive.get())
+                    + ", currentEpoch=" + System.identityHashCode(connection.m_transportEpoch)
+                    + ", progressionRequest=" + connection.m_nWriteProgressionRequest.get()
+                    + ", processWriteCallsAfterBackpressure=" + TEST_PROCESS_WRITE_CALLS_AFTER_BACKPRESSURE.get()
+                    + ", writerBusyCallsAfterBackpressure=" + TEST_WRITER_BUSY_CALLS_AFTER_BACKPRESSURE.get();
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -2222,9 +2272,17 @@ public abstract class BufferedSocketBus
 
             if (fReady || cbBacklog > 0)
                 {
+                if (TEST_TRACK_SOCKET_BACKPRESSURE && m_fSocketBackpressureObservedForTesting)
+                    {
+                    TEST_PROCESS_WRITE_CALLS_AFTER_BACKPRESSURE.incrementAndGet();
+                    }
                 if (!tryActivateWriter(epoch, fReady ? "selection-write" : "queued-write",
                         /*fRequireReady*/ true))
                     {
+                    if (TEST_TRACK_SOCKET_BACKPRESSURE && m_fSocketBackpressureObservedForTesting)
+                        {
+                        TEST_WRITER_BUSY_CALLS_AFTER_BACKPRESSURE.incrementAndGet();
+                        }
                     return cbBacklog > 0 ? OP_WRITE : 0;
                     }
 
@@ -2232,7 +2290,10 @@ public abstract class BufferedSocketBus
                     {
                     WriteBatch batch       = m_batchWriteSendHead;
                     long       cbBundle    = getAutoFlushThreshold();
-                    long       cbExcessive = getBacklogExcessiveThreshold();
+                    // This threshold must be the same threshold that drives m_fBacklog below. Subclasses may
+                    // define producer-visible backlog independently of the physical socket buffer size; mixing
+                    // those domains leaves the gap between the two thresholds permanently ineligible to drain.
+                    long       cbExcessive = getBacklogSignalExcessiveThreshold();
                     boolean    fBacklog    = m_fBacklog;
 
                     // process the queue
@@ -2797,6 +2858,10 @@ public abstract class BufferedSocketBus
                 // advance offset, decrement cBuffer based on amount written
                 if (cb > 0)
                     {
+                    if (TEST_TRACK_SOCKET_BACKPRESSURE && m_fSocketBackpressureObservedForTesting)
+                        {
+                        TEST_BYTES_WRITTEN_AFTER_SOCKET_BACKPRESSURE.addAndGet(cb);
+                        }
                     if (PROGRESS_DIAGNOSTICS)
                         {
                         m_ldtLastWriteProgress = SafeClock.INSTANCE.getSafeTimeMillis();
@@ -2811,6 +2876,26 @@ public abstract class BufferedSocketBus
                 else if (PROGRESS_DIAGNOSTICS && cbAttempted > 0L)
                     {
                     ++m_cZeroWritePasses;
+                    }
+
+                if (TEST_TRACK_SOCKET_BACKPRESSURE && cbAttempted > 0L && cb < cbAttempted)
+                    {
+                    m_fSocketBackpressureObservedForTesting = true;
+                    TEST_SOCKET_BACKPRESSURE_CONNECTION.set(BufferedConnection.this);
+                    TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES.accumulateAndGet(
+                            Math.max(0L, f_cbQueued.get()), Math::max);
+                    TEST_SOCKET_BACKPRESSURE_PARTIAL_WRITES.incrementAndGet();
+                    }
+
+                if (TEST_TRACK_SOCKET_BACKPRESSURE)
+                    {
+                    TEST_SOCKET_BACKPRESSURE_STATE.set("attempted=" + cbAttempted
+                            + ", written=" + cb
+                            + ", batchRemaining=" + m_cbBatch
+                            + ", queued=" + f_cbQueued.get()
+                            + ", interestOps=" + m_nInterestOpsLast
+                            + ", writerActive=" + isWriterActive()
+                            + ", generation=" + m_lTransportGeneration);
                     }
 
                 return ofSend == ofAdd;
@@ -3284,6 +3369,9 @@ public abstract class BufferedSocketBus
         protected long m_ldtNextLivenessReport;
         protected long m_cLivenessReports;
 
+        /** Whether this connection observed genuine socket backpressure while the functional hook was enabled. */
+        protected boolean m_fSocketBackpressureObservedForTesting;
+
         /**
          * Next time a periodic performance snapshot may be emitted.
          */
@@ -3599,6 +3687,33 @@ public abstract class BufferedSocketBus
 
     /** The number of receipt flushes that found pending consumer-owned application data. */
     private static final AtomicLong TEST_RECEIPT_FLUSHES_WITH_PENDING_DATA = new AtomicLong();
+
+    /** Whether the genuine socket-backpressure regression is tracking write results. */
+    private static final boolean TEST_TRACK_SOCKET_BACKPRESSURE = Boolean.getBoolean(
+            BufferedSocketBus.class.getName() + ".trackSocketBackpressure");
+
+    /** Number of incomplete writes observed by the genuine socket-backpressure regression. */
+    private static final AtomicLong TEST_SOCKET_BACKPRESSURE_PARTIAL_WRITES = new AtomicLong();
+
+    /** Maximum queued bytes observed during an incomplete socket write. */
+    private static final AtomicLong TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES = new AtomicLong();
+
+    /** Bytes written after the connection observed an incomplete socket write. */
+    private static final AtomicLong TEST_BYTES_WRITTEN_AFTER_SOCKET_BACKPRESSURE = new AtomicLong();
+
+    /** Latest socket-write state captured by the genuine socket-backpressure regression. */
+    private static final AtomicReference<String> TEST_SOCKET_BACKPRESSURE_STATE =
+            new AtomicReference<>("not observed");
+
+    /** Connection currently tracked by the genuine socket-backpressure regression. */
+    private static final AtomicReference<BufferedConnection> TEST_SOCKET_BACKPRESSURE_CONNECTION =
+            new AtomicReference<>();
+
+    /** Number of write-progress callbacks observed after genuine socket backpressure. */
+    private static final AtomicLong TEST_PROCESS_WRITE_CALLS_AFTER_BACKPRESSURE = new AtomicLong();
+
+    /** Number of post-backpressure callbacks that found the epoch writer ticket occupied. */
+    private static final AtomicLong TEST_WRITER_BUSY_CALLS_AFTER_BACKPRESSURE = new AtomicLong();
 
     /**
      * Empty buffer array for use in bundling.
