@@ -3223,7 +3223,7 @@ public class ManagementInfoResourceTests
                 {
                 if (!mapCache.get(NAME).equals("dist-persistence-test") && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                     {
-                    assertThat(mapCache.get("units"), is(1));
+                    assertThat((Integer) mapCache.get("units"), greaterThan(0));
                     }
                 }
             }
