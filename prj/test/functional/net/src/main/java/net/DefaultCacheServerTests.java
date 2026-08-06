@@ -6,7 +6,6 @@
  */
 package net;
 
-import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.coherence.common.base.Timeout;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
@@ -15,13 +14,15 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
 
-import java.io.File;
 import java.io.IOException;
 
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -40,7 +41,7 @@ import static com.oracle.coherence.testing.matcher.CoherenceMatchers.hasThreadGr
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Test the functionality of DefaultCacheServer in both normal and gar modes.
+ * Test the functionality of DefaultCacheServer.
  *
  * @author hr 2012.08.03
  */
@@ -55,12 +56,6 @@ public class DefaultCacheServerTests
     @BeforeClass
     public static void _startup()
         {
-        File buildFolder   = MavenProjectFileUtils.locateBuildFolder(DefaultCacheServerTests.class);
-        File classesFolder = new File(buildFolder, "classes");
-        File fileGar       = new File(classesFolder, "coh_new_examples.gar");
-
-        GAR_FILE_NAME = fileGar.getAbsolutePath();
-
         System.setProperty("coherence.distributed.localstorage", "true");
         System.setProperty("coherence.wka", "127.0.0.1");
         System.setProperty("coherence.localhost", "127.0.0.1");
@@ -108,7 +103,7 @@ public class DefaultCacheServerTests
         DefaultCacheServer server = new DefaultCacheServer(
                CacheFactory.getConfigurableCacheFactory(getContextClassLoader()));
 
-        server.startDaemon(1000);
+        startDaemon(server);
 
         Eventually.assertDeferred(server::isMonitorStopped, is(false));
 
@@ -187,10 +182,51 @@ public class DefaultCacheServerTests
         private final DefaultCacheServer m_server;
         }
 
+    // ----- helpers -------------------------------------------------------
+
     /**
-     * The GAR file to be exploded by the tests
+     * Start a DefaultCacheServer daemon.
+     * <p>
+     * This timeboxes DCS.startDaemon() and throws on timeout so an
+     * indefinitely retrying startup path cannot hang the test fork.
+     *
+     * @param server  the server to start
      */
-    public static String GAR_FILE_NAME;
+    protected static void startDaemon(DefaultCacheServer server)
+        {
+        ExecutorService executor = Executors.newSingleThreadExecutor(r ->
+            {
+            Thread thread = new Thread(r, "DefaultCacheServerTests.startDaemon");
+            thread.setDaemon(true);
+            return thread;
+            });
+        Future<?> future = executor.submit(() -> server.startDaemon(1000));
+
+        try
+            {
+            future.get(5, TimeUnit.MINUTES);
+            }
+        catch (TimeoutException e)
+            {
+            future.cancel(true);
+            server.shutdownServer();
+            throw new AssertionError("DefaultCacheServer.startDaemon did not complete within 5 minutes", e);
+            }
+        catch (InterruptedException e)
+            {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new AssertionError("Interrupted while waiting for DefaultCacheServer.startDaemon", e);
+            }
+        catch (ExecutionException e)
+            {
+            throw new AssertionError("DefaultCacheServer.startDaemon failed", e.getCause());
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
+        }
 
     /**
      * Scheduler service commonly used to start or shutdown DCS in a
