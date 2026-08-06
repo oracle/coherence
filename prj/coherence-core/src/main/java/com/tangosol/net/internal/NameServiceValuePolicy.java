@@ -96,6 +96,18 @@ public final class NameServiceValuePolicy
             }
 
         String sProtocol = url.getProtocol();
+        if ("iiop".equalsIgnoreCase(sProtocol) || "iiops".equalsIgnoreCase(sProtocol)
+                || "t3".equalsIgnoreCase(sProtocol) || "t3s".equalsIgnoreCase(sProtocol))
+            {
+            String sPath = url.getURLPath();
+            if (url.getHost() == null || url.getHost().isEmpty() || url.getPort() <= 0
+                    || sPath == null || !sPath.startsWith("/jndi/") || sPath.length() == "/jndi/".length())
+                {
+                throw new IllegalArgumentException("unsupported IIOP/T3 JMX service URL: " + url);
+                }
+            return url;
+            }
+
         if (!"rmi".equalsIgnoreCase(sProtocol))
             {
             throw new IllegalArgumentException("unsupported JMX service URL protocol: " + sProtocol);
