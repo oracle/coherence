@@ -3223,7 +3223,8 @@ public class ManagementInfoResourceTests
                 {
                 if (!mapCache.get(NAME).equals("dist-persistence-test") && !mapCache.get(NAME).equals(CLEAR_CACHE_NAME))
                     {
-                    assertThat((Integer) mapCache.get("units"), greaterThan(0));
+                    String sCacheName = (String) mapCache.get(NAME);
+                    Eventually.assertDeferred(() -> getCacheUnits(sCacheName), is(1));
                     }
                 }
             }
@@ -3254,6 +3255,15 @@ public class ManagementInfoResourceTests
             assertNull(mapCache.get(NAME));
             assertThat(mapCache.get(SERVICE), isOneOf(SERVICES_LIST));
             }
+        }
+
+    private int getCacheUnits(String sCacheName)
+        {
+        WebTarget target   = getBaseTarget().path(CACHES).path(sCacheName).queryParam("fields", "units");
+        Response  response = target.request().get();
+
+        assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
+        return ((Number) readEntity(target, response).get("units")).intValue();
         }
 
     public WebTarget getBaseTarget()
