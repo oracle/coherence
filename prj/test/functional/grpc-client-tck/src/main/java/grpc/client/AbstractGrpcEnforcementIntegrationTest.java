@@ -30,6 +30,9 @@ import com.tangosol.util.filter.ScriptFilter;
 import com.tangosol.util.function.Remote;
 
 import io.grpc.Channel;
+import io.grpc.Status;
+import io.grpc.StatusException;
+import io.grpc.StatusRuntimeException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,6 +52,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Shared cache data-plane executable policy coverage for gRPC v0 and v1.
@@ -235,6 +239,7 @@ abstract class AbstractGrpcEnforcementIntegrationTest
         RuntimeException e = assertThrows(RuntimeException.class,
                 () -> clientWithData().invoke("one", new PlainProcessor()));
 
+        assertStatusCode(e, Status.Code.PERMISSION_DENIED);
         assertContains(e, "Remote execution denied");
         assertCounter(OperationReason.PROCESS_ENTRY, "rejected", SerializationTelemetry.SUB_REASON_POLICY, 1L);
         }
@@ -444,6 +449,25 @@ abstract class AbstractGrpcEnforcementIntegrationTest
             t = t.getCause();
             }
         assertThat("exception chain", containsString(sMessage));
+        }
+
+    private static void assertStatusCode(Throwable t, Status.Code expected)
+        {
+        while (t != null)
+            {
+            if (t instanceof StatusRuntimeException)
+                {
+                assertEquals(expected, ((StatusRuntimeException) t).getStatus().getCode());
+                return;
+                }
+            if (t instanceof StatusException)
+                {
+                assertEquals(expected, ((StatusException) t).getStatus().getCode());
+                return;
+                }
+            t = t.getCause();
+            }
+        fail("No gRPC status exception in rejection chain");
         }
 
     // ----- fixtures ------------------------------------------------------

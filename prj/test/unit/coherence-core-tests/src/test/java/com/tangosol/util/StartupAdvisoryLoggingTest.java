@@ -74,22 +74,14 @@ public class StartupAdvisoryLoggingTest
         RemoteInstallGate.adviseDeclaredMapTrigger(new PlainTrigger(), setDedup);
         RemoteInstallGate.adviseDeclaredEventInterceptor(new PlainInterceptor(), setDedup);
         RemoteInstallGate.adviseDeclaredEventInterceptor(new PlainInterceptor(), setDedup);
-        RemoteInstallGate.adviseDeclaredTopicSubscriber(new PlainFilter(), new PlainExtractor(), setDedup);
-        RemoteInstallGate.adviseDeclaredTopicSubscriber(new PlainFilter(), new PlainExtractor(), setDedup);
 
-        assertEquals(m_listMessages.toString(), 4, m_listMessages.size());
+        assertEquals(m_listMessages.toString(), 2, m_listMessages.size());
         assertTrue(m_listMessages.get(0).contains("Declared MapTrigger class "
                 + PlainTrigger.class.getName()));
         assertTrue(m_listMessages.get(1).contains("Declared EventInterceptor class "
                 + PlainInterceptor.class.getName()));
-        assertTrue(m_listMessages.get(2).contains("Declared topic subscriber filter class "
-                + PlainFilter.class.getName()));
-        assertTrue(m_listMessages.get(3).contains("Declared topic subscriber extractor class "
-                + PlainExtractor.class.getName()));
         assertTrue(m_listMessages.get(0).contains("remote-install of this class would be refused"));
         assertTrue(m_listMessages.get(1).contains("remote-install of this class would be refused"));
-        assertTrue(m_listMessages.get(2).contains("remote-install of this class would be refused"));
-        assertTrue(m_listMessages.get(3).contains("remote-install of this class would be refused"));
         }
 
     @Test
@@ -99,7 +91,6 @@ public class StartupAdvisoryLoggingTest
 
         RemoteInstallGate.adviseDeclaredMapTrigger(new AnnotatedTrigger(), setDedup);
         RemoteInstallGate.adviseDeclaredEventInterceptor(new AnnotatedInterceptor(), setDedup);
-        RemoteInstallGate.adviseDeclaredTopicSubscriber(new AnnotatedFilter(), new AnnotatedExtractor(), setDedup);
 
         assertTrue(m_listMessages.toString(), m_listMessages.isEmpty());
         }
@@ -210,26 +201,6 @@ public class StartupAdvisoryLoggingTest
             }
         }
 
-    public static class PlainFilter
-            implements Filter<String>
-        {
-        @Override
-        public boolean evaluate(String value)
-            {
-            return true;
-            }
-        }
-
-    public static class PlainExtractor
-            implements ValueExtractor<String, String>
-        {
-        @Override
-        public String extract(String target)
-            {
-            return target;
-            }
-        }
-
     @Remote.Executable
     public static class AnnotatedInterceptor
             implements EventInterceptor
@@ -237,28 +208,6 @@ public class StartupAdvisoryLoggingTest
         @Override
         public void onEvent(com.tangosol.net.events.Event event)
             {
-            }
-        }
-
-    @Remote.Executable
-    public static class AnnotatedFilter
-            implements Filter<String>
-        {
-        @Override
-        public boolean evaluate(String value)
-            {
-            return true;
-            }
-        }
-
-    @Remote.Executable
-    public static class AnnotatedExtractor
-            implements ValueExtractor<String, String>
-        {
-        @Override
-        public String extract(String target)
-            {
-            return target;
             }
         }
 
