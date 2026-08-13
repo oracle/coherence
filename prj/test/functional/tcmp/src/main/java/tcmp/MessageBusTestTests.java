@@ -1462,15 +1462,21 @@ public class MessageBusTestTests
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", "1000"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackTransportMetrics", "true"));
         OptionsByType options2 = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", "1000"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackTransportMetrics", "true"));
 
         CapturingApplicationConsole console1     = new CapturingApplicationConsole();
@@ -1482,6 +1488,9 @@ public class MessageBusTestTests
             {
             application2 = startMessageBusTest(options2, asArg2, console2);
             JavaApplication applicationPeer = application2;
+
+            assertThat(application1.invoke(AbstractSocketBus::armActiveReadFailuresForTesting), is(true));
+            assertThat(applicationPeer.invoke(AbstractSocketBus::armActiveReadFailuresForTesting), is(true));
 
             Eventually.assertDeferred(
                     () -> application1.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
@@ -1501,10 +1510,25 @@ public class MessageBusTestTests
             Eventually.assertDeferred(
                     () -> applicationPeer.invoke(AbstractSocketBus::getCompletedMigrationCountForTesting),
                     greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            long cReady1 = application1.invoke(AbstractSocketBus::getReadyEpochCountForTesting);
+            long cReady2 = applicationPeer.invoke(AbstractSocketBus::getReadyEpochCountForTesting);
+            long cAcceptInbound =
+                    application1.invoke(AbstractSocketBus::getMigrationCollisionAcceptInboundCountForTesting)
+                    + applicationPeer.invoke(AbstractSocketBus::getMigrationCollisionAcceptInboundCountForTesting);
+            long cCompletedOutbound =
+                    application1.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting)
+                    + applicationPeer.invoke(AbstractSocketBus::getCompletedOutboundMigrationCountForTesting);
+            assertThat(cReady1, greaterThanOrEqualTo(2L));
+            assertThat(cReady2, greaterThanOrEqualTo(2L));
+            assertThat(cAcceptInbound, greaterThanOrEqualTo(1L));
+            assertThat(cCompletedOutbound, greaterThanOrEqualTo(1L));
+
             long cMigrationNanos1 = application1.invoke(AbstractSocketBus::getMigrationCompletionMaxNanosForTesting);
             long cMigrationNanos2 = applicationPeer.invoke(AbstractSocketBus::getMigrationCompletionMaxNanosForTesting);
             System.out.println("simultaneous migration completion nanos: peer1=" + cMigrationNanos1 +
                     ", peer2=" + cMigrationNanos2);
+            printSimultaneousMigrationDiagnostics(application1, applicationPeer);
             assertThat(cMigrationNanos1, greaterThanOrEqualTo(1L));
             assertThat(cMigrationNanos2, greaterThanOrEqualTo(1L));
 
@@ -1514,6 +1538,11 @@ public class MessageBusTestTests
             assertHealthyTrafficAfter(console2, cLines2);
             assertMigrationHandshakeHealthy(console1);
             assertMigrationHandshakeHealthy(console2);
+            }
+        catch (AssertionError e)
+            {
+            printSimultaneousMigrationDiagnostics(application1, application2);
+            throw e;
             }
         finally
             {
@@ -1775,6 +1804,33 @@ public class MessageBusTestTests
 
         application1.close();
         application2.close();
+        }
+
+    protected void printSimultaneousMigrationDiagnostics(JavaApplication application1,
+            JavaApplication application2)
+        {
+        System.err.println("simultaneous migration diagnostics:");
+        printSimultaneousMigrationDiagnostics("peer1", application1);
+        printSimultaneousMigrationDiagnostics("peer2", application2);
+        }
+
+    protected void printSimultaneousMigrationDiagnostics(String sPeer, JavaApplication application)
+        {
+        if (application == null)
+            {
+            System.err.println(sPeer + "=not-started");
+            return;
+            }
+
+        try
+            {
+            System.err.println(sPeer + '='
+                    + application.invoke(AbstractSocketBus::getMigrationDiagnosticsForTesting));
+            }
+        catch (Throwable t)
+            {
+            System.err.println(sPeer + "=unavailable:" + t);
+            }
         }
 
     protected boolean waitForHealthyTraffic(CapturingApplicationConsole console, long cMillis)

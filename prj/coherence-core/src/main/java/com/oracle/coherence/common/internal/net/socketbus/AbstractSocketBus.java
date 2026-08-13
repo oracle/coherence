@@ -229,7 +229,74 @@ public abstract class AbstractSocketBus
      */
     public static boolean armActiveReadFailuresForTesting()
         {
+        if (TEST_ACTIVE_READ_FAILURES_ARMED.get())
+            {
+            return false;
+            }
+
+        TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.set(
+                SafeClock.INSTANCE.getSafeTimeMillis() + TEST_ACTIVE_READ_FAILURE_ARM_DELAY_MILLIS);
         return TEST_ACTIVE_READ_FAILURES_ARMED.compareAndSet(false, true);
+        }
+
+    /**
+     * Return the number of READY epochs observed while migration diagnostics are enabled.
+     *
+     * @return the number of READY epoch publications
+     */
+    public static long getReadyEpochCountForTesting()
+        {
+        return TEST_READY_EPOCHS.get();
+        }
+
+    /**
+     * Return the number of simultaneous-migration elections that preserved the local outbound transport.
+     *
+     * @return the outbound-preserving collision count
+     */
+    public static long getMigrationCollisionPreserveOutboundCountForTesting()
+        {
+        return TEST_MIGRATION_COLLISION_PRESERVE_OUTBOUND.get();
+        }
+
+    /**
+     * Return the number of simultaneous-migration elections that accepted the peer's inbound transport.
+     *
+     * @return the inbound-accepting collision count
+     */
+    public static long getMigrationCollisionAcceptInboundCountForTesting()
+        {
+        return TEST_MIGRATION_COLLISION_ACCEPT_INBOUND.get();
+        }
+
+    /**
+     * Return a compact snapshot of migration test diagnostics.
+     *
+     * @return the diagnostic snapshot
+     */
+    public static String getMigrationDiagnosticsForTesting()
+        {
+        int nPhase = TEST_LAST_IGNORED_MIGRATION_CURRENT_PHASE.get();
+        return "enabled=" + TEST_TRACK_MIGRATION_DIAGNOSTICS
+                + ", activeReadFailuresRemaining=" + TEST_ACTIVE_READ_FAILURES.get()
+                + ", activeReadFailureInjections=" + TEST_ACTIVE_READ_FAILURE_INJECTIONS.get()
+                + ", lastActiveReadFailureGeneration=" + TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.get()
+                + ", activeReadFailureNotBeforeMillis=" + TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.get()
+                + ", migrationStarts=" + TEST_MIGRATION_STARTS.get()
+                + ", lastMigrationStartGeneration=" + TEST_LAST_MIGRATION_START_GENERATION.get()
+                + ", reconnectAttempts=" + TEST_RECONNECT_ATTEMPTS.get()
+                + ", readyEpochs=" + TEST_READY_EPOCHS.get()
+                + ", lastReadyGeneration=" + TEST_LAST_READY_EPOCH_GENERATION.get()
+                + ", lastReadyOutbound=" + TEST_LAST_READY_EPOCH_OUTBOUND.get()
+                + ", completedMigrations=" + TEST_COMPLETED_MIGRATIONS.get()
+                + ", completedOutboundMigrations=" + TEST_COMPLETED_OUTBOUND_MIGRATIONS.get()
+                + ", ignoredMigrationRequests=" + TEST_IGNORED_MIGRATION_REQUESTS.get()
+                + ", lastIgnoredRequestGeneration=" + TEST_LAST_IGNORED_MIGRATION_REQUEST_GENERATION.get()
+                + ", lastIgnoredCurrentGeneration=" + TEST_LAST_IGNORED_MIGRATION_CURRENT_GENERATION.get()
+                + ", lastIgnoredCurrentPhase="
+                + (nPhase < 0 ? "none" : TransportPhase.values()[nPhase])
+                + ", collisionPreserveOutbound=" + TEST_MIGRATION_COLLISION_PRESERVE_OUTBOUND.get()
+                + ", collisionAcceptInbound=" + TEST_MIGRATION_COLLISION_ACCEPT_INBOUND.get();
         }
 
     /**
@@ -838,8 +905,14 @@ public abstract class AbstractSocketBus
     private boolean checkDataDrop(Connection connection, SocketChannel channel, long lTransportGeneration)
         {
         if (TEST_ACTIVE_READ_FAILURES_ENABLED && TEST_ACTIVE_READ_FAILURES_ARMED.get()
+                && SafeClock.INSTANCE.getSafeTimeMillis() >= TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.get()
                 && consumeTestCounter(TEST_ACTIVE_READ_FAILURES))
             {
+            if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+                {
+                TEST_ACTIVE_READ_FAILURE_INJECTIONS.incrementAndGet();
+                TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.set(lTransportGeneration);
+                }
             connection.migrate(lTransportGeneration, new SocketException("Connection reset"));
             return true;
             }
@@ -3526,6 +3599,15 @@ public abstract class AbstractSocketBus
                 if ((!fEpochFailure && !fAttemptFailure) ||
                     m_lFailedTransportGeneration == lTransportGeneration)
                     {
+                    if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+                        {
+                        TEST_IGNORED_MIGRATION_REQUESTS.incrementAndGet();
+                        TEST_LAST_IGNORED_MIGRATION_REQUEST_GENERATION.set(lTransportGeneration);
+                        TEST_LAST_IGNORED_MIGRATION_CURRENT_GENERATION.set(
+                                epochFailed == null ? m_lTransportGeneration : epochFailed.f_lId);
+                        TEST_LAST_IGNORED_MIGRATION_CURRENT_PHASE.set(
+                                epochFailed == null ? -1 : epochFailed.m_phase.ordinal());
+                        }
                     return;
                     }
 
@@ -3727,6 +3809,11 @@ public abstract class AbstractSocketBus
          */
         protected void onMigrationStarted(long lTransportGeneration)
             {
+            if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+                {
+                TEST_MIGRATION_STARTS.incrementAndGet();
+                TEST_LAST_MIGRATION_START_GENERATION.set(lTransportGeneration);
+                }
             if (TEST_TRACK_TRANSPORT_METRICS && m_ldtMigrationStartedNanos == 0L)
                 {
                 m_ldtMigrationStartedNanos = System.nanoTime();
@@ -3756,6 +3843,12 @@ public abstract class AbstractSocketBus
          */
         protected void onTransportReady(TransportEpoch epoch)
             {
+            if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+                {
+                TEST_READY_EPOCHS.incrementAndGet();
+                TEST_LAST_READY_EPOCH_GENERATION.set(epoch.f_lId);
+                TEST_LAST_READY_EPOCH_OUTBOUND.set(epoch.f_fOutbound ? 1 : 0);
+                }
             }
 
         /**
@@ -4477,6 +4570,18 @@ public abstract class AbstractSocketBus
                                                     epochCurrent != null &&
                                                     epochCurrent.m_phase == TransportPhase.HANDSHAKING &&
                                                     epochCurrent.f_fOutbound;
+                                            boolean fMigrationCollision = connOld.m_state == ConnectionState.ACTIVE
+                                                    && fOutboundMigration;
+                                            boolean fPreserveOutbound = fMigrationCollision
+                                                    && getLocalEndPoint().getCanonicalName()
+                                                       .compareTo(peer.getCanonicalName()) < 0;
+
+                                            if (TEST_TRACK_MIGRATION_DIAGNOSTICS && fMigrationCollision)
+                                                {
+                                                (fPreserveOutbound
+                                                        ? TEST_MIGRATION_COLLISION_PRESERVE_OUTBOUND
+                                                        : TEST_MIGRATION_COLLISION_ACCEPT_INBOUND).incrementAndGet();
+                                                }
 
                                             // Both peers can observe the same transport failure and create replacement
                                             // sockets concurrently. The reconnect delay normally biases the lower
@@ -4486,8 +4591,7 @@ public abstract class AbstractSocketBus
                                             // accepts it as an inbound migration. Keep the losing candidate dormant until
                                             // the winner is established; closing it immediately would make the peer retry
                                             // and could exhaust its retry limit before the winner completes its handshake.
-                                            if (connOld.m_state == ConnectionState.ACTIVE && fOutboundMigration &&
-                                                getLocalEndPoint().getCanonicalName().compareTo(peer.getCanonicalName()) < 0)
+                                            if (fPreserveOutbound)
                                                 {
                                                 getLogger().log(makeRecord(Level.FINER,
                                                         "{0} deferring simultaneous connection migration from {1} on {2}; " +
@@ -5507,6 +5611,77 @@ public abstract class AbstractSocketBus
     private static final AtomicLong TEST_COMPLETED_OUTBOUND_MIGRATIONS = new AtomicLong();
 
     /**
+     * Track READY publication, generation rejection, and collision-election state for migration tests.
+     */
+    private static final boolean TEST_TRACK_MIGRATION_DIAGNOSTICS = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics");
+
+    /**
+     * The number of active-read failures injected while migration diagnostics are enabled.
+     */
+    private static final AtomicLong TEST_ACTIVE_READ_FAILURE_INJECTIONS = new AtomicLong();
+
+    /**
+     * The transport generation targeted by the last injected active-read failure.
+     */
+    private static final AtomicLong TEST_LAST_ACTIVE_READ_FAILURE_GENERATION = new AtomicLong(-1L);
+
+    /**
+     * The number of transport migrations started while diagnostics are enabled.
+     */
+    private static final AtomicLong TEST_MIGRATION_STARTS = new AtomicLong();
+
+    /**
+     * The most recent transport generation for which migration started.
+     */
+    private static final AtomicLong TEST_LAST_MIGRATION_START_GENERATION = new AtomicLong(-1L);
+
+    /**
+     * The number of READY epoch publications while diagnostics are enabled.
+     */
+    private static final AtomicLong TEST_READY_EPOCHS = new AtomicLong();
+
+    /**
+     * The generation of the most recently published READY epoch.
+     */
+    private static final AtomicLong TEST_LAST_READY_EPOCH_GENERATION = new AtomicLong(-1L);
+
+    /**
+     * Whether the most recently published READY epoch was outbound, encoded as zero or one.
+     */
+    private static final AtomicInteger TEST_LAST_READY_EPOCH_OUTBOUND = new AtomicInteger(-1);
+
+    /**
+     * The number of migration requests ignored because their generation was stale or already claimed.
+     */
+    private static final AtomicLong TEST_IGNORED_MIGRATION_REQUESTS = new AtomicLong();
+
+    /**
+     * The generation requested by the most recently ignored migration.
+     */
+    private static final AtomicLong TEST_LAST_IGNORED_MIGRATION_REQUEST_GENERATION = new AtomicLong(-1L);
+
+    /**
+     * The current generation observed by the most recently ignored migration.
+     */
+    private static final AtomicLong TEST_LAST_IGNORED_MIGRATION_CURRENT_GENERATION = new AtomicLong(-1L);
+
+    /**
+     * The current epoch phase observed by the most recently ignored migration.
+     */
+    private static final AtomicInteger TEST_LAST_IGNORED_MIGRATION_CURRENT_PHASE = new AtomicInteger(-1);
+
+    /**
+     * The number of simultaneous-migration elections that preserved the local outbound candidate.
+     */
+    private static final AtomicLong TEST_MIGRATION_COLLISION_PRESERVE_OUTBOUND = new AtomicLong();
+
+    /**
+     * The number of simultaneous-migration elections that accepted the peer's inbound candidate.
+     */
+    private static final AtomicLong TEST_MIGRATION_COLLISION_ACCEPT_INBOUND = new AtomicLong();
+
+    /**
      * The number of active transport reads to fail for functional testing.
      */
     private static final AtomicInteger TEST_ACTIVE_READ_FAILURES = new AtomicInteger(Integer.getInteger(
@@ -5522,6 +5697,17 @@ public abstract class AbstractSocketBus
      */
     private static final AtomicBoolean TEST_ACTIVE_READ_FAILURES_ARMED = new AtomicBoolean(!Boolean.getBoolean(
             AbstractSocketBus.class.getName() + ".deferActiveReadFailures"));
+
+    /**
+     * Delay between arming and injecting an active-read failure, used to coordinate multiple test processes.
+     */
+    private static final long TEST_ACTIVE_READ_FAILURE_ARM_DELAY_MILLIS = Long.getLong(
+            AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", 0L);
+
+    /**
+     * Earliest safe-clock time at which an armed active-read failure may be injected.
+     */
+    private static final AtomicLong TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS = new AtomicLong();
 
     /**
      * The number of migrations to start concurrently with an active read for functional testing.
