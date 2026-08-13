@@ -6,6 +6,8 @@
  */
 package com.oracle.coherence.rag.api;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import io.helidon.microprofile.testing.junit5.AddBean;
 import io.helidon.microprofile.testing.junit5.HelidonTest;
 import jakarta.inject.Inject;
@@ -84,18 +86,13 @@ class ConfigIT
     @Test
     void shouldRejectUnallowlistedModelDownloadConfigWriteInProd()
         {
-        System.setProperty("coherence.mode", "prod");
-        try
+        try (var ignored = CoherenceModeHelper.prod())
             {
             try (Response put = admin(target.path("api/_config/model.embedding"))
                     .put(Entity.text("sentence-transformers/all-MiniLM-L6-v2")))
                 {
                 assertThat(put.getStatus(), is(400));
                 }
-            }
-        finally
-            {
-            System.clearProperty("coherence.mode");
             }
         }
 

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="com.oracle.coherence.rag.api.RagSecurity$PolicyViolation" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.ConfigKey" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.StoreConfig" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.index.BinaryQuantIndexConfig" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.index.HnswIndexConfig" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.index.IndexConfig" source="manual"/>
+    <class name="com.oracle.coherence.rag.config.index.SimpleIndexConfig" source="manual"/>
+    <class name="com.oracle.coherence.rag.model.PoolingMode" source="manual"/>
+    <class name="com.oracle.coherence.rag.util.Timer" source="manual"/>
+  </allowed-classes>
+</security-config>
