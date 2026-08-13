@@ -30,7 +30,7 @@ import io.helidon.microprofile.cors.CrossOrigin;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 
 import jakarta.ws.rs.Consumes;
@@ -136,7 +136,7 @@ public class Kb
      *
      * @param evt the map event containing the new store configuration
      */
-    void onStoreCreated(@Observes @MapName("storeConfig") MapEvent<String, StoreConfig> evt)
+    void onStoreCreated(@ObservesAsync @MapName("storeConfig") MapEvent<String, StoreConfig> evt)
         {
         getStore(evt.getKey());
         }
