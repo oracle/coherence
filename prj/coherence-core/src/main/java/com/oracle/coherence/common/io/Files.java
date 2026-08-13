@@ -61,7 +61,7 @@ public class Files
             {
             }
 
-        if (pathNative != null && pathNative.isAbsolute())
+        if (pathNative != null && (pathNative.isAbsolute() || !hasUriScheme(sPath)))
             {
             return pathNative;
             }
@@ -80,6 +80,45 @@ public class Files
             }
 
         return Path.of(uri);
+        }
+
+    /**
+     * Return whether the specified path starts with an explicit URI scheme.
+     * A Windows drive prefix is a native path prefix rather than a URI scheme.
+     *
+     * @param sPath  the path to inspect
+     *
+     * @return {@code true} if the path starts with a URI scheme
+     */
+    private static boolean hasUriScheme(String sPath)
+        {
+        int ofColon = sPath.indexOf(':');
+        if (ofColon <= 0)
+            {
+            return false;
+            }
+
+        char ch = sPath.charAt(0);
+        if (!((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')))
+            {
+            return false;
+            }
+
+        if (File.separatorChar == '\\' && ofColon == 1)
+            {
+            return false;
+            }
+
+        for (int i = 1; i < ofColon; i++)
+            {
+            ch = sPath.charAt(i);
+            if (!((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
+                    || (ch >= '0' && ch <= '9') || ch == '+' || ch == '-' || ch == '.'))
+                {
+                return false;
+                }
+            }
+        return true;
         }
 
     /**

@@ -15,6 +15,7 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -28,10 +29,12 @@ public class FilesTest
     public void shouldConvertNativePaths()
         {
         Path pathRelative = Path.of("credentials", "identity.p12");
+        Path pathRelativeWithSpace = Path.of("credential files", "member identity.p12");
         Path pathAbsolute = Path.of(System.getProperty("java.io.tmpdir"))
                 .toAbsolutePath().resolve("credential file.p12");
 
         assertEquals(pathRelative, Files.toPath(pathRelative.toString()));
+        assertEquals(pathRelativeWithSpace, Files.toPath(pathRelativeWithSpace.toString()));
         assertEquals(pathAbsolute, Files.toPath(pathAbsolute.toString()));
         }
 
@@ -66,10 +69,13 @@ public class FilesTest
 
         String sDrive  = System.getenv().getOrDefault("SystemDrive", "C:");
         Path   path    = Path.of(sDrive + "\\coherence\\identity.p12");
+        Path   pathDriveRelative = Path.of(sDrive + "coherence\\identity.p12");
         Path   pathUnc = Path.of("\\\\credential.invalid\\identity\\member-one.p12");
 
         assertTrue(path.isAbsolute());
         assertEquals(path, Files.toPath(path.toString()));
+        assertFalse(pathDriveRelative.isAbsolute());
+        assertEquals(pathDriveRelative, Files.toPath(pathDriveRelative.toString()));
         assertTrue(pathUnc.isAbsolute());
         assertEquals(pathUnc, Files.toPath(pathUnc.toString()));
         }
