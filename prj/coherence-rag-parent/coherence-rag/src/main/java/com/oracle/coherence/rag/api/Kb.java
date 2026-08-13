@@ -13,12 +13,8 @@ import com.oracle.coherence.rag.model.EmbeddingModelSupplier;
 import com.oracle.coherence.rag.model.ModelName;
 import com.oracle.coherence.rag.util.Timer;
 
-import com.oracle.coherence.cdi.events.MapName;
-
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
-
-import com.tangosol.util.MapEvent;
 
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.rag.content.Content;
@@ -30,7 +26,6 @@ import io.helidon.microprofile.cors.CrossOrigin;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.ObservesAsync;
 import jakarta.inject.Inject;
 
 import jakarta.ws.rs.Consumes;
@@ -125,20 +120,6 @@ public class Kb
         {
         // initialize existing stores
         storeConfig.keySet().forEach(this::getStore);
-        }
-
-    /**
-     * Handles store creation events to automatically initialize new stores.
-     * <p/>
-     * This method is called whenever a new store configuration is added
-     * to the storeConfig map, ensuring that stores are initialized immediately
-     * upon creation.
-     *
-     * @param evt the map event containing the new store configuration
-     */
-    void onStoreCreated(@ObservesAsync @MapName("storeConfig") MapEvent<String, StoreConfig> evt)
-        {
-        getStore(evt.getKey());
         }
 
     /**
