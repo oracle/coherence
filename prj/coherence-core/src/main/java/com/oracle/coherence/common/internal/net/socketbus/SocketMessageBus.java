@@ -324,7 +324,7 @@ public class SocketMessageBus
                         }
                     catch (IOException e)
                         {
-                        onException(e);
+                        scheduleDisconnect(e);
                         break;
                         }
                     }
@@ -374,7 +374,7 @@ public class SocketMessageBus
         /**
          * {@inheritDoc}
          */
-        protected int processReads(boolean fReady)
+        protected int processReads(boolean fReady, long lTransportGeneration)
                 throws IOException
             {
             if (f_fBacklogLocal.get() && m_cbEventQueue.get() > getReadThrottleThreshold())
@@ -396,7 +396,7 @@ public class SocketMessageBus
                     batch.m_cbRequired = getMessageHeaderSize();
                     }
 
-                batch.read();
+                batch.read(lTransportGeneration);
 
                 if (batch.m_fHeader && batch.m_cbReadable == 0)
                     {
@@ -1025,9 +1025,11 @@ public class SocketMessageBus
             /**
              * Process reads.
              *
+             * @param lTransportGeneration  the transport generation being read
+             *
              * @throws IOException on an I/O error
              */
-            public void read()
+            public void read(long lTransportGeneration)
                     throws IOException
                 {
                 long         cbAlloc = Math.abs(m_cbRequired) - m_cbWritable;
@@ -1078,7 +1080,7 @@ public class SocketMessageBus
                     }
                 else if (cb < 0)
                     {
-                    migrate(new IOException("input shutdown"));
+                    migrate(lTransportGeneration, new IOException("input shutdown"));
                     }
                 }
 
@@ -1727,7 +1729,7 @@ public class SocketMessageBus
                 }
             catch (IOException e)
                 {
-                conn.onException(e);
+                conn.scheduleDisconnect(e);
                 }
             }
         }
