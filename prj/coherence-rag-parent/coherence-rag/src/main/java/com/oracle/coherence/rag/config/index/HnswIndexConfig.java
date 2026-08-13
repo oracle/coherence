@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,7 @@
 package com.oracle.coherence.rag.config.index;
 
 import com.oracle.coherence.ai.hnsw.HnswIndex;
+import com.oracle.coherence.hnswlib.Index;
 
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
@@ -130,7 +131,7 @@ public class HnswIndexConfig
      */
     public HnswIndexConfig setSpaceName(String sSpaceName)
         {
-        m_sSpaceName = sSpaceName;
+        m_sSpaceName = Index.validateSpaceName(sSpaceName);
         return this;
         }
 
@@ -161,7 +162,7 @@ public class HnswIndexConfig
      */
     public HnswIndexConfig setMaxElements(int cMaxElements)
         {
-        m_cMaxElements = cMaxElements;
+        m_cMaxElements = Index.validateMaxElements(cMaxElements);
         return this;
         }
 
@@ -208,7 +209,7 @@ public class HnswIndexConfig
      */
     public HnswIndexConfig setM(int nM)
         {
-        m_nM = nM;
+        m_nM = Index.validateM(nM);
         return this;
         }
 
@@ -244,7 +245,7 @@ public class HnswIndexConfig
      */
     public HnswIndexConfig setEfConstruction(int nEfConstruction)
         {
-        m_nEfConstruction = nEfConstruction;
+        m_nEfConstruction = Index.validateEfConstruction(nEfConstruction);
         return this;
         }
 
@@ -273,7 +274,7 @@ public class HnswIndexConfig
      */
     public HnswIndexConfig setEfSearch(int nEfSearch)
         {
-        m_nEfSearch = nEfSearch;
+        m_nEfSearch = Index.validateEfSearch(nEfSearch);
         return this;
         }
 
@@ -379,6 +380,7 @@ public class HnswIndexConfig
         m_nEfConstruction = in.readInt(3);
         m_nEfSearch = in.readInt(4);
         m_nRandomSeed = in.readInt(5);
+        validateState();
         }
 
     public void writeExternal(PofWriter out) throws IOException
@@ -389,6 +391,20 @@ public class HnswIndexConfig
         out.writeInt(3, m_nEfConstruction);
         out.writeInt(4, m_nEfSearch);
         out.writeInt(5, m_nRandomSeed);
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Validate this HNSW index configuration.
+     */
+    protected void validateState()
+        {
+        m_sSpaceName = Index.validateSpaceName(m_sSpaceName);
+        Index.validateMaxElements(m_cMaxElements);
+        Index.validateM(m_nM);
+        Index.validateEfConstruction(m_nEfConstruction);
+        Index.validateEfSearch(m_nEfSearch);
         }
 
     // ---- constants -------------------------------------------------------
