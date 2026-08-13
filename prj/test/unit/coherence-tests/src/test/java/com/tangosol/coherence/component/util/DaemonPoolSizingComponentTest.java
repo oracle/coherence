@@ -29,6 +29,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DaemonPoolSizingComponentTest
@@ -164,11 +165,9 @@ public class DaemonPoolSizingComponentTest
     @Test
     public void shouldNotRegisterDormantProxyPoolsDuringConfiguration()
         {
-        int cPools = DaemonPoolSizing.getSnapshot().getPoolCount();
+        Acceptor.DaemonPool pool = createProxyAcceptorDaemonPool(50, null);
 
-        createProxyAcceptorDaemonPool(50, null);
-
-        assertThat(DaemonPoolSizing.getSnapshot().getPoolCount(), is(cPools));
+        assertThat(pool.getDaemonPoolSizingRegistration(), is(nullValue()));
         }
 
     @Test
