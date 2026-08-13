@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Unit tests for {@link HnswIndexConfig} HNSW guardrails.
  *
  * @author Aleks Seovic  2026.05.21
- * @since 26.04
+ * @since 26.07
  */
 class HnswIndexConfigTest
     {
