@@ -10,7 +10,10 @@ package micrometer;
 import com.oracle.coherence.common.base.Logger;
 
 import com.oracle.coherence.micrometer.CoherenceMicrometerMetrics;
+
+import com.tangosol.net.CacheFactory;
 import com.tangosol.net.DefaultCacheServer;
+import com.tangosol.net.NamedCache;
 
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
@@ -54,6 +57,14 @@ public class CoherenceMicrometerMetricsIT
     @Test
     public void shouldHaveAllMetricsWithSamePrometheusNameAsCoherenceMetrics()
         {
+        // create and populate a cache so that there will be cache metrics
+        NamedCache foo = CacheFactory.getCache("foo");
+
+        for (int i = 0; i < 100; ++i)
+            {
+            foo.put(i,i);
+            }
+
         SortedSet<String> setExpected = new TreeSet<>();
         SortedSet<String> setActual   = new TreeSet<>();
 
@@ -64,7 +75,11 @@ public class CoherenceMicrometerMetricsIT
             StringBuilder str = new StringBuilder(sName);
             for (Map.Entry<String, String> entry : holder.getIdentifier().getPrometheusTags().entrySet())
                 {
-                str.append(" ").append(entry.getKey()).append("=").append(entry.getValue());
+                String sKey = entry.getKey();
+                if(!CoherenceMicrometerMetrics.NAME_TAG_EXCLUDES.contains(sKey))
+                    {
+                    str.append(" ").append(sKey).append("=").append(entry.getValue());
+                    }
                 }
             setExpected.add(str.toString());
             }
