@@ -59,6 +59,18 @@ public class NSLookupTest
                 "service:jmx:rmi:///jndi/rmi://127.0.0.1:9000/jmxrmi")));
         assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
                 "service:jmx:rmi://127.0.0.1:9000")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:iiop://127.0.0.1:9000/jndi/weblogic.management.mbeanservers.runtime")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:iiops://127.0.0.1:9000/jndi/weblogic.management.mbeanservers.runtime")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:iiop://127.0.0.1:9000/jndi/iiop://127.0.0.1:9000/weblogic.management.mbeanservers.runtime")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:iiops://127.0.0.1:9000/jndi/iiops://127.0.0.1:9000/weblogic.management.mbeanservers.runtime")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:t3://127.0.0.1:9000/jndi/weblogic.management.mbeanservers.runtime")));
+        assertNotNull(NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:t3s://127.0.0.1:9000/jndi/weblogic.management.mbeanservers.runtime")));
 
         assertThrowsRuntime(() -> NSLookup.validateJMXServiceURL(new JMXServiceURL(
                 "service:jmx:rmi://127.0.0.1:9000/stub/abcd")));
@@ -70,6 +82,8 @@ public class NSLookupTest
                 "service:jmx:iiop:///jndi/iiop://127.0.0.1:9000/jmxrmi")));
         assertThrowsRuntime(() -> NSLookup.validateJMXServiceURL(new JMXServiceURL(
                 "service:jmx:rmi:///jndi/iiops://127.0.0.1:9000/jmxrmi")));
+        assertThrowsRuntime(() -> NSLookup.validateJMXServiceURL(new JMXServiceURL(
+                "service:jmx:iiop://127.0.0.1:9000/jndi/")));
         assertThrowsRuntime(() -> NSLookup.validateJMXServiceURL(new JMXServiceURL(
                 "service:jmx:rmi:///jndi/dns://127.0.0.1/jmxrmi")));
         assertThrowsRuntime(() -> NSLookup.validateJMXServiceURL(new JMXServiceURL(
