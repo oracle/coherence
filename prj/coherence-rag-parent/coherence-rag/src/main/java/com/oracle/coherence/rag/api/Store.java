@@ -1462,6 +1462,10 @@ public class Store
 
                 return doc;
                 }
+            catch (RagSecurity.PolicyViolation e)
+                {
+                RagSecurity.warn(RagSecurity.ROUTE_DOCUMENT_IMPORT, e.gate(), "unknown", e.reason());
+                }
             catch (Throwable e)
                 {
                 Throwable cause = Exceptions.getRootCause(e);

@@ -84,7 +84,7 @@ class ConfigIT
         }
 
     @Test
-    void shouldRejectUnallowlistedModelDownloadConfigWriteInProd()
+    void shouldRejectUnallowlistedModelDownloadConfigWriteInHardenedMode()
         {
         try (var ignored = CoherenceModeHelper.securityHardened())
             {

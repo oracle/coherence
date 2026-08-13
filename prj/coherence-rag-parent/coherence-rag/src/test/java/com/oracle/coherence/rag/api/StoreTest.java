@@ -6,10 +6,12 @@
  */
 package com.oracle.coherence.rag.api;
 
+import com.oracle.coherence.rag.DocumentLoader;
 import com.oracle.coherence.rag.config.StoreConfig;
 import com.oracle.coherence.rag.model.StreamingChatModelSupplier;
 import com.oracle.coherence.rag.model.EmbeddingModelSupplier;
 import com.oracle.coherence.rag.model.ModelName;
+import com.oracle.coherence.rag.util.CdiHelper;
 import com.oracle.coherence.rag.util.TestDataFactory;
 
 import com.tangosol.net.NamedMap;
@@ -19,6 +21,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -26,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.net.InetAddress;
@@ -39,9 +43,13 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 /**
@@ -301,6 +309,32 @@ class StoreTest
     class ImportUriPolicyTests
         {
         @Test
+        @DisplayName("Should retain structured telemetry for loader policy rejection")
+        void shouldRetainStructuredTelemetryForLoaderPolicyRejection()
+            {
+            String sDocumentId = "file:///sensitive/path/document.txt";
+            DocumentLoader loader = uri ->
+                {
+                throw new RagSecurity.PolicyViolation(RagSecurity.GATE_IMPORT_URI_ALLOWLIST,
+                        RagSecurity.REASON_PATH_NOT_ALLOWED);
+                };
+
+            try (MockedStatic<RagSecurity> security = mockStatic(RagSecurity.class);
+                 MockedStatic<CdiHelper> cdi = mockStatic(CdiHelper.class))
+                {
+                cdi.when(() -> CdiHelper.getNamedBean(DocumentLoader.class, "file")).thenReturn(loader);
+                Store store = mock(Store.class, CALLS_REAL_METHODS);
+
+                assertNull(store.new DocumentProcessor().loadDocument(sDocumentId));
+
+                security.verify(() -> RagSecurity.validateImportUri(sDocumentId));
+                security.verify(() -> RagSecurity.warn(RagSecurity.ROUTE_DOCUMENT_IMPORT,
+                        RagSecurity.GATE_IMPORT_URI_ALLOWLIST, "unknown", RagSecurity.REASON_PATH_NOT_ALLOWED));
+                security.verifyNoMoreInteractions();
+                }
+            }
+
+        @Test
         @DisplayName("Should reject file import outside allowed roots")
         void shouldRejectFileImportOutsideAllowedRoots() throws Exception
             {
@@ -325,6 +359,31 @@ class StoreTest
             System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, pathRoot.toString());
 
             assertDoesNotThrow(() -> RagSecurity.validateImportUri(pathFile.toUri().toString()));
+            }
+
+        @Test
+        @DisplayName("Should reject file symlink escaping allowed root")
+        void shouldRejectFileSymlinkEscapingAllowedRoot() throws Exception
+            {
+            Path pathRoot  = Files.createTempDirectory("rag-allowed");
+            Path pathOther = Files.createTempFile("rag-denied", ".txt");
+            Path pathLink  = pathRoot.resolve("document.txt");
+            try
+                {
+                Files.createSymbolicLink(pathLink, pathOther);
+                }
+            catch (UnsupportedOperationException | SecurityException | java.io.IOException e)
+                {
+                Assumptions.assumeTrue(false,
+                        "symbolic links are not supported: " + e.getClass().getSimpleName());
+                }
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+            System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, pathRoot.toString());
+
+            RagSecurity.PolicyViolation error = assertThrows(RagSecurity.PolicyViolation.class,
+                    () -> RagSecurity.validateImportUri(pathLink.toUri().toString()));
+
+            assertThat(error.reason(), is(RagSecurity.REASON_PATH_NOT_ALLOWED));
             }
 
         @Test

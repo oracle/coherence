@@ -348,8 +348,8 @@ class KbTest
             }
 
         @Test
-        @DisplayName("Should reject store configuration with unallowlisted model download in prod")
-        void shouldRejectStoreConfigurationWithUnallowlistedModelDownloadInProd()
+        @DisplayName("Should reject store configuration with unallowlisted model download in hardened mode")
+        void shouldRejectStoreConfigurationWithUnallowlistedModelDownloadInHardenedMode()
             {
             StoreConfig config = new StoreConfig();
             config.setEmbeddingModel("sentence-transformers/all-MiniLM-L6-v2");
@@ -378,8 +378,8 @@ class KbTest
             }
 
         @Test
-        @DisplayName("Should reject search scoring model download in prod")
-        void shouldRejectSearchScoringModelDownloadInProd()
+        @DisplayName("Should reject search scoring model download in hardened mode")
+        void shouldRejectSearchScoringModelDownloadInHardenedMode()
             {
             Store.SearchRequest request = new Store.SearchRequest(
                     "query", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
@@ -392,8 +392,8 @@ class KbTest
             }
 
         @Test
-        @DisplayName("Should reject chat scoring model download in prod")
-        void shouldRejectChatScoringModelDownloadInProd()
+        @DisplayName("Should reject chat scoring model download in hardened mode")
+        void shouldRejectChatScoringModelDownloadInHardenedMode()
             {
             Store.ChatRequest request = new Store.ChatRequest(
                     null, "question", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
