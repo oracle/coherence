@@ -353,7 +353,7 @@ class KbTest
             {
             StoreConfig config = new StoreConfig();
             config.setEmbeddingModel("sentence-transformers/all-MiniLM-L6-v2");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = m_kb.configureStore(TEST_STORE_1, config);
 
@@ -369,7 +369,7 @@ class KbTest
             StoreConfig config = new StoreConfig();
             config.setChatModel("OpenAI/gpt-4o-mini");
             config.setEmbeddingModel("-/all-MiniLM-L6-v2");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = m_kb.configureStore(TEST_STORE_1, config);
 
@@ -383,7 +383,7 @@ class KbTest
             {
             Store.SearchRequest request = new Store.SearchRequest(
                     "query", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = m_kb.search(request);
 
@@ -397,7 +397,7 @@ class KbTest
             {
             Store.ChatRequest request = new Store.ChatRequest(
                     null, "question", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = m_kb.chat(request);
 

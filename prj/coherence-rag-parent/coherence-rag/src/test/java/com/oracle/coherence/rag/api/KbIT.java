@@ -59,6 +59,7 @@ class KbIT
     @BeforeAll
     static void setUp()
         {
+        System.setProperty("coherence.cluster", "KbIT-" + System.nanoTime());
         System.setProperty("coherence.cacheconfig", "coherence-rag-cache-config.xml");
         System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
         System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, Path.of("src/test/resources").toAbsolutePath().toString());

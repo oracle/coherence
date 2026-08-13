@@ -231,14 +231,15 @@ public final class RagSecurity
         Set<String> setAllowed = allowedHuggingFaceModels();
         if (setAllowed.isEmpty())
             {
-            if (isProductionMode())
+            if (isSecurityHardeningEnabled())
                 {
-                throw new PolicyViolation(sGate, REASON_PROD_MODE_EMPTY_ALLOWLIST, boundedValue(name.fullName()));
+                throw new PolicyViolation(sGate, REASON_HARDENED_EMPTY_ALLOWLIST, boundedValue(name.fullName()));
                 }
 
             if (s_fWarnedUnrestrictedDownloads.compareAndSet(false, true))
                 {
-                Logger.warn("RAG HuggingFace model download allowlist is empty in dev mode; downloads are unrestricted for this process");
+                Logger.warn("RAG HuggingFace model download allowlist is empty and security hardening is disabled; "
+                        + "downloads are unrestricted for this process");
                 }
             return;
             }
@@ -625,9 +626,9 @@ public final class RagSecurity
         return false;
         }
 
-    private static boolean isProductionMode()
+    private static boolean isSecurityHardeningEnabled()
         {
-        return CoherenceMode.isProd();
+        return CoherenceMode.isSecurityHardeningEnabled();
         }
 
     private static int connectTimeoutMillis()
@@ -1019,7 +1020,7 @@ public final class RagSecurity
     public static final String REASON_METADATA_ADDRESS_NOT_ALLOWED    = "metadata-address-not-allowed";
     public static final String REASON_PROVIDER_LOCATION_NOT_ALLOWED   = "provider-location-not-allowed";
     public static final String REASON_DOWNLOAD_NOT_ALLOWLISTED        = "download-not-allowlisted";
-    public static final String REASON_PROD_MODE_EMPTY_ALLOWLIST       = "prod-mode-empty-allowlist";
+    public static final String REASON_HARDENED_EMPTY_ALLOWLIST       = "security-mode-hardened-empty-allowlist";
     public static final String REASON_HUGGINGFACE_ALLOWLIST_ENTRY_INVALID = "huggingface-allowlist-entry-invalid";
     public static final String REASON_IMPORT_BODY_EXCEEDS_CAP         = "import-body-exceeds-cap";
 

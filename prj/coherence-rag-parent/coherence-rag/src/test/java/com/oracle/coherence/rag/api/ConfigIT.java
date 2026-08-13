@@ -86,7 +86,7 @@ class ConfigIT
     @Test
     void shouldRejectUnallowlistedModelDownloadConfigWriteInProd()
         {
-        try (var ignored = CoherenceModeHelper.prod())
+        try (var ignored = CoherenceModeHelper.securityHardened())
             {
             try (Response put = admin(target.path("api/_config/model.embedding"))
                     .put(Entity.text("sentence-transformers/all-MiniLM-L6-v2")))

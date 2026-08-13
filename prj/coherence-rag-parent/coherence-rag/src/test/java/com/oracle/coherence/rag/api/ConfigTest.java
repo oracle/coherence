@@ -275,7 +275,7 @@ class ConfigTest
         void shouldRejectUnapprovedModelDownloadInProd()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
@@ -291,7 +291,7 @@ class ConfigTest
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "BAAI/bge-large-en-v1.5");
             when(coherenceConfig.setValue("model.embedding", "BAAI/bge-large-en-v1.5")).thenReturn(null);
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "BAAI/bge-large-en-v1.5");
 
@@ -305,7 +305,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
@@ -321,7 +321,7 @@ class ConfigTest
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "cross-encoder/*");
             when(coherenceConfig.setValue("model.scoring", "cross-encoder/ms-marco-MiniLM-L-6-v2")).thenReturn(null);
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.scoring", "cross-encoder/ms-marco-MiniLM-L-6-v2");
 
@@ -335,7 +335,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers/*");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "sentence-transformers-extra/all-MiniLM-L6-v2");
 
@@ -350,7 +350,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers/all-mini*");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
@@ -365,7 +365,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers*/x");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "sentence-transformers/x");
 
@@ -380,7 +380,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, ",a/b/c");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.embedding", "a/b");
 
@@ -396,7 +396,7 @@ class ConfigTest
             {
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS,
                     "sentence-transformers,sentence-transformers/all-mini*");
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 assertThrows(RagSecurity.PolicyViolation.class, () ->
                         RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
@@ -415,7 +415,7 @@ class ConfigTest
             {
             injectSecurityContext(context("admin-user", "admin"));
             when(coherenceConfig.setValue("model.chat", "OpenAI/gpt-4o-mini")).thenReturn(null);
-            try (var ignored = CoherenceModeHelper.prod())
+            try (var ignored = CoherenceModeHelper.securityHardened())
                 {
                 Response response = config.set("model.chat", "OpenAI/gpt-4o-mini");
 

@@ -61,6 +61,7 @@ class StoreIT
     @BeforeAll
     static void beforeAll()
         {
+        System.setProperty("coherence.cluster", "StoreIT-" + System.nanoTime());
         System.setProperty("coherence.cacheconfig", "coherence-rag-cache-config.xml");
         System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
         System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, Path.of("src/test/resources").toAbsolutePath().toString());
@@ -99,7 +100,7 @@ class StoreIT
     void shouldRejectStoreConfigWithUnallowlistedModelDownloadInProd()
         {
         String cfg = "{\"embeddingModel\":\"sentence-transformers/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
-        try (var ignored = CoherenceModeHelper.prod())
+        try (var ignored = CoherenceModeHelper.securityHardened())
             {
             try (Response putCfg = admin(target.path("api/kb/config/" + store))
                     .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
