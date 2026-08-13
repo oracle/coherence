@@ -83,6 +83,7 @@ import com.tangosol.net.events.EventDispatcherRegistry;
 import com.tangosol.net.events.internal.InterceptorManager;
 import com.tangosol.net.events.internal.ServiceDispatcher;
 import com.tangosol.net.events.internal.StorageDispatcher;
+import com.tangosol.net.events.partition.cache.EntryEvent;
 import com.tangosol.net.internal.EntryInfo;
 import com.tangosol.net.internal.MemberInfo;
 import com.tangosol.net.internal.PartitionInfo;
@@ -3638,8 +3639,10 @@ public class PartitionedCache
      */
     public boolean lockKey(Storage storage, com.tangosol.util.Binary binKey, boolean fEnter, long cWait)
         {
-        int     nPartition = getKeyPartition(binKey);
-        boolean fEntered   = false;
+        int       nPartition = getKeyPartition(binKey);
+        boolean   fEntered   = false;
+        boolean   fLocked    = false;
+        Throwable eFailure   = null;
         
         PartitionedCache.PartitionControl ctrl = (PartitionedCache.PartitionControl) getPartitionControl(nPartition);
         
@@ -3648,20 +3651,42 @@ public class PartitionedCache
             return false;
             }
         
-        if ((!fEnter || (fEntered = enterPartition(nPartition, cWait))) &&
-            isPrimaryOwner(nPartition))
+        try
             {
-            if (getResourceCoordinator().lock(storage, binKey, cWait))
+            if ((!fEnter || (fEntered = enterPartition(nPartition, cWait))) &&
+                isPrimaryOwner(nPartition))
                 {
-                return true;
+                fLocked = getResourceCoordinator().lock(storage, binKey, cWait);
+                if (fLocked)
+                    {
+                    return true;
+                    }
+                }
+            return false;
+            }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = e;
+            throw e;
+            }
+        finally
+            {
+            if (fEntered && !fLocked)
+                {
+                try
+                    {
+                    exitPartition(nPartition);
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    if (eFailure == null)
+                        {
+                        throw e;
+                        }
+                    addCleanupFailure(eFailure, e);
+                    }
                 }
             }
-        
-        if (fEntered)
-            {
-            exitPartition(nPartition);
-            }
-        return false;
         }
     
     /**
@@ -3927,24 +3952,24 @@ public class PartitionedCache
         Set             setKeys = msgRequest.getKeySetSafe();
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner  = createPinningIterator(setKeys);
         
-        Set setKeysPinned = new HashSet(setKeys.size());
-        
-        while (pinner.hasNext())
-            {
-            Binary binKey = (Binary) pinner.next();
-        
-            // Note: we instantiate a Storage.BinaryEntry here directly, as
-            //       it is passed in read-only form to the aggregation
-            setKeysPinned.add(binKey);
-            }
-        
-        PartitionSet partsPinned = pinner.getPinnedPartitions();
-        
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(partsPinned);
-        ctxInvoke.markReadOnlyRequest();
+        Set                                setKeysPinned = new HashSet(setKeys.size());
+        PartitionSet                       partsPinned   = pinner.getPinnedPartitions();
+        PartitionedCache.InvocationContext ctxInvoke     = null;
         
         try
             {
+            while (pinner.hasNext())
+                {
+                Binary binKey = (Binary) pinner.next();
+
+                // Note: we instantiate a Storage.BinaryEntry here directly, as
+                //       it is passed in read-only form to the aggregation
+                setKeysPinned.add(binKey);
+                }
+
+            ctxInvoke = ensureInvocationContext(partsPinned);
+            ctxInvoke.markReadOnlyRequest();
+
             com.tangosol.util.InvocableMap.EntryAggregator agent = msgRequest.deserializeAggregator();
         
             ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
@@ -4017,13 +4042,14 @@ public class PartitionedCache
         PartitionSet partMask = msgRequest.getRequestMaskSafe();
         Filter       filter   = msgRequest.getFilter();
         
-        PartitionSet partReject = pinOwnedPartitions(partMask);
-        
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(partMask);
-        ctxInvoke.markReadOnlyRequest();
+        PartitionSet                       partReject = pinOwnedPartitions(partMask);
+        PartitionedCache.InvocationContext ctxInvoke  = null;
         
         try
             {
+            ctxInvoke = ensureInvocationContext(partMask);
+            ctxInvoke.markReadOnlyRequest();
+
             com.tangosol.util.InvocableMap.EntryAggregator agent = msgRequest.deserializeAggregator();
         
             ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
@@ -4475,14 +4501,14 @@ public class PartitionedCache
             return;
             }
         
-        PartitionSet partMask   = msgRequest.getRequestMaskSafe();
-        PartitionSet partReject = pinOwnedPartitions(partMask);
-        
-        msgResponse.setRejectPartitions(partReject);
-        
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(partMask);
+        PartitionSet                       partMask   = msgRequest.getRequestMaskSafe();
+        PartitionSet                       partReject = pinOwnedPartitions(partMask);
+        PartitionedCache.InvocationContext ctxInvoke  = null;
         try
             {
+            msgResponse.setRejectPartitions(partReject);
+            ctxInvoke = ensureInvocationContext(partMask);
+
             // clear acquires a global lock thus key-based locks
             // (ctxInvoke.lockEntry()) can be avoided
             ctxInvoke.lockStorage(storage);
@@ -4537,7 +4563,7 @@ public class PartitionedCache
             GuardSupport.reset();
         
             processChanges(/*ctx*/ null, /*job*/ null, -1L,
-                ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
+                ctxInvoke == null ? null : ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
             }
         finally
             {
@@ -4569,29 +4595,30 @@ public class PartitionedCache
             return;
             }
         
-        Set             setKeys = msgRequest.getKeySetSafe();
+        Set          setKeys     = msgRequest.getKeySetSafe();
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner  = createPinningIterator(setKeys);
-        try
-            {
-            while (pinner.hasNext())
-                {
-                if (!storage.containsKey((Binary) pinner.next()))
-                    {
-                    msgResponse.setResult(Boolean.FALSE);
-                    break;
-                    }
-                }
-            
-            msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
-            }
-        catch (Throwable e)
-            {
-            msgResponse.setException(tagException(e));
-            }
-        
         PartitionSet partsPinned = pinner.getPinnedPartitions();
+
         try
             {
+            try
+                {
+                while (pinner.hasNext())
+                    {
+                    if (!storage.containsKey((Binary) pinner.next()))
+                        {
+                        msgResponse.setResult(Boolean.FALSE);
+                        break;
+                        }
+                    }
+
+                msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
+                }
+            catch (Throwable e)
+                {
+                msgResponse.setException(tagException(e));
+                }
+
             processChanges(msgResponse);
         
             msgRequest.setProcessedPartitions(partsPinned);
@@ -4854,37 +4881,38 @@ public class PartitionedCache
         PartitionSet partsPinned   = instantiatePartitionSet(/*fFill*/ false);
         PartitionSet partsRejected = null;
         boolean      fBackupRead   = !msgRequest.isCoherentResult();
-        
-        // pin partitions where necessary
-        for (Iterator iter = mapPartKeys.keySet().iterator(); iter.hasNext(); )
+        PartitionedCache.InvocationContext ctxInvoke;
+
+        try
             {
-            int iPart = ((Integer) iter.next()).intValue();
-        
-            if (isPrimaryOwner(iPart) && pinOwnedPartition(iPart))
+            // pin partitions where necessary
+            for (Iterator iter = mapPartKeys.keySet().iterator(); iter.hasNext(); )
                 {
-                partsPinned.add(iPart);
-                }
-            else if (!fBackupRead || !isBackupOwner(iPart))
-                {
-                if (partsRejected == null)
+                int iPart = ((Integer) iter.next()).intValue();
+
+                if (isPrimaryOwner(iPart) && pinOwnedPartition(iPart))
                     {
-                    partsRejected = instantiatePartitionSet(/*fFill*/ false);
+                    partsPinned.add(iPart);
                     }
-                    
-                partsRejected.add(iPart);
-        
-                colKeys.removeAll((Collection) mapPartKeys.get(Integer.valueOf(iPart)));
+                else if (!fBackupRead || !isBackupOwner(iPart))
+                    {
+                    if (partsRejected == null)
+                        {
+                        partsRejected = instantiatePartitionSet(/*fFill*/ false);
+                        }
+
+                    partsRejected.add(iPart);
+
+                    colKeys.removeAll((Collection) mapPartKeys.get(Integer.valueOf(iPart)));
+                    }
                 }
-            }
-        
-        // adjust the set of keys if reading from backup
-        if (fBackupRead)
-            {
-            if (!partsPinned.isEmpty())
+
+            // adjust the set of keys if reading from backup
+            if (fBackupRead && !partsPinned.isEmpty())
                 {
                 // mixed-mode: client requested 'incoherent reads' however we became
                 // primary for some of the targetted partitions
-        
+
                 Collection[] acol = new Collection[partsPinned.cardinality()];
                 for (int iPart = partsPinned.next(0), i = 0; iPart >= 0; iPart = partsPinned.next(iPart + 1))
                     {
@@ -4892,10 +4920,23 @@ public class PartitionedCache
                     }
                 colKeys = acol.length == 1 ? acol[0] : new ChainedCollection(acol);
                 }
+
+            // lock all keys for primary partitions
+            ctxInvoke = ensureInvocationContext();
             }
-        
-        // lock all keys for primary partitions
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext();
+        catch (RuntimeException | Error e)
+            {
+            try
+                {
+                unpinPartitions(partsPinned);
+                }
+            catch (RuntimeException | Error eCleanup)
+                {
+                e.addSuppressed(eCleanup);
+                }
+            throw e;
+            }
+
         try
             {
             while (true)
@@ -5357,92 +5398,98 @@ public class PartitionedCache
         // or the underlying set implementation is sorted;
         // see PartitionedCache.InvokeAllRequest.instantiateKeySet
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner = createPinningIterator(setKeys, msgRequest.getOwnershipVersions());
-        
-        while (pinner.hasNext())
-            {
-            aoKey[cEntries++] = (Binary) pinner.next();
-            }
-        
-        PartitionSet       partsPinned = pinner.getPinnedPartitions();
-        PartitionedCache.InvocationContext ctxInvoke   = ensureInvocationContext(partsPinned);
+        PartitionSet                       partsPinned = pinner.getPinnedPartitions();
+        PartitionedCache.InvocationContext ctxInvoke   = null;
+        Throwable                          eFailure    = null;
+
         try
             {
-            ctxInvoke.prepareAccess(context, storage,
-                Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
-        
-            while (true)
+            while (pinner.hasNext())
                 {
-                com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
-                try
+                aoKey[cEntries++] = (Binary) pinner.next();
+                }
+
+            ctxInvoke = ensureInvocationContext(partsPinned);
+            try
+                {
+                ctxInvoke.prepareAccess(context, storage,
+                    Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
+
+                while (true)
                     {
-                    // lock all of the keys to be submitted to the invocation.
-                    aoStatus = ctxInvoke.lockEntries(storage, aoKey, cEntries);
-        
-                    // do the invocation
-                    storage.invokeAll(ctxInvoke, aoStatus, 0, cEntries, agent);
-        
-                    break; // user-space request complete
+                    com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
+                    try
+                        {
+                        // lock all of the keys to be submitted to the invocation.
+                        aoStatus = ctxInvoke.lockEntries(storage, aoKey, cEntries);
+
+                        // do the invocation
+                        storage.invokeAll(ctxInvoke, aoStatus, 0, cEntries, agent);
+
+                        break; // user-space request complete
+                        }
+                    catch (LockContentionException e)
+                        {
+                        // this request was involved in a deadlock; release acquired
+                        // locks allowing the winning thread to acquire all locks and
+                        // subsequently re-request the locks
+                        ctxInvoke.rollback(e, msgRequest, "processor = " + agent.getClass().getName());
+                        msgRequest.setProcessor(null); // force the creation of a new EP
+                        }
                     }
-                catch (LockContentionException e)
+
+                // Note: we executed user code without exception thus maintain any
+                //       results to ensure the request is idempotent
+                aoResult = aoVal;
+
+                // collect the results
+                for (int i = 0; i < cEntries; i++)
                     {
-                    // this request was involved in a deadlock; release acquired
-                    // locks allowing the winning thread to acquire all locks and
-                    // subsequently re-request the locks
-                    ctxInvoke.rollback(e, msgRequest, "processor = " + agent.getClass().getName());
-                    msgRequest.setProcessor(null); // force the creation of a new EP
+                    // Note: result could be null if the result map returned by the
+                    //       entry processor does not include all keys
+                    Storage.EntryStatus status = (Storage.EntryStatus) aoStatus[i];
+
+                    aoKey   [cResults]   = status.getKey();
+                    aoResult[cResults++] = status.getResult();
                     }
                 }
-        
-            // Note: we executed user code without exception thus maintain any
-            //       results to ensure the request is idempotent
-            aoResult = aoVal;
-        
-            // collect the results
-            for (int i = 0; i < cEntries; i++)
+            catch (HeuristicCommitException e)
                 {
-                // Note: result could be null if the result map returned by the
-                //       entry processor does not include all keys
-                Storage.EntryStatus status = (Storage.EntryStatus) aoStatus[i];
-        
-                aoKey   [cResults]   = status.getKey();
-                aoResult[cResults++] = status.getResult();
+                // unrecoverable backing map exception
+                if (isExiting())
+                    {
+                    // the service is stopped, we can ignore it;
+                    // the client will re-try the operation
+                    return;
+                    }
+
+                onPartialCommit(msgResponse, e);
                 }
-            }
-        catch (HeuristicCommitException e)
-            {
-            // unrecoverable backing map exception
-            if (isExiting())
+            catch (Throwable e)
                 {
-                // the service is stopped, we can ignore it;
-                // the client will re-try the operation
-                return;
+                // this exception should be set right away since
+                // the response could be sent back on a different thread
+                msgResponse.setException(tagException(e));
+                msgResponse.setFailedKeys(
+                    collectResultOnException(null, aoStatus, aoKey, 0, cEntries, e));
                 }
-        
-            onPartialCommit(msgResponse, e);
-            }
-        catch (Throwable e)
-            {
-            // this exception should be set right away since
-            // the response could be sent back on a different thread
-            msgResponse.setException(tagException(e));
-            msgResponse.setFailedKeys(
-                collectResultOnException(null, aoStatus, aoKey, 0, cEntries, e));
-            }
-        
-        if (cEntriesPrev > 0)
-            {
-            // merge results
-            System.arraycopy(aoKeyPrev, 0, aoKey, cResults, cEntriesPrev);
-            System.arraycopy(aoValPrev, 0, aoResult, cResults, cEntriesPrev);
-            }
-        
-        msgResponse.setSize(cResults + cEntriesPrev);
-        msgResponse.setKey(aoKey);
-        msgResponse.setValue(aoResult);
-        msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
-        
-        try
-            {
+
+            if (cEntriesPrev > 0)
+                {
+                // merge results
+                if (aoResult == null)
+                    {
+                    aoResult = aoVal;
+                    }
+                System.arraycopy(aoKeyPrev, 0, aoKey, cResults, cEntriesPrev);
+                System.arraycopy(aoValPrev, 0, aoResult, cResults, cEntriesPrev);
+                }
+
+            msgResponse.setSize(cResults + cEntriesPrev);
+            msgResponse.setKey(aoKey);
+            msgResponse.setValue(aoResult);
+            msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
+
             // COH-22088: if the thread was interrupted due to the guardian we must reset
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
@@ -5461,9 +5508,15 @@ public class PartitionedCache
         
             msgRequest.setProcessedPartitions(partsPinned);
             }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = e;
+            throw e;
+            }
         finally
             {
-            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true,
+                    eFailure == null ? msgResponse.getException() : eFailure);
             }
         }
     
@@ -5492,9 +5545,9 @@ public class PartitionedCache
         Map      mapJob      = job.getMap(); // <Binary, null>
         com.tangosol.coherence.component.net.RequestContext  context     = job.getRequestContext();
         int      cKeys       = mapJob.size();
-        boolean  fEntered    = pinOwnedPartition(iPartition, job.getOwnershipVersion());
         long     lCacheId    = job.getCacheId();
-        Storage storage     = getKnownStorage(lCacheId);
+        Storage  storage     = getKnownStorage(lCacheId);
+        boolean  fEntered    = pinOwnedPartition(iPartition, job.getOwnershipVersion());
         
         try
             {
@@ -5561,89 +5614,94 @@ public class PartitionedCache
             PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(iPartition);
             try
                 {
-                ctxInvoke.prepareAccess(job.getRequestContext(), storage,
-                    Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
-        
-                while (true)
+                try
                     {
-                    com.tangosol.util.InvocableMap.EntryProcessor agent = job.deserializeProcessor();
-                    try
+                    ctxInvoke.prepareAccess(job.getRequestContext(), storage,
+                        Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
+
+                    while (true)
                         {
-                        // lock all of the keys to be submitted to the invocation.
-                        // Note: the job map is sorted in key order
-                        for (int i = iL; i < iR; i++)
+                        com.tangosol.util.InvocableMap.EntryProcessor agent = job.deserializeProcessor();
+                        try
                             {
-                            aoStatus[i] = ctxInvoke.lockEntry(storage, (Binary) aoKey[i], false);
+                            // lock all of the keys to be submitted to the invocation.
+                            // Note: the job map is sorted in key order
+                            for (int i = iL; i < iR; i++)
+                                {
+                                aoStatus[i] = ctxInvoke.lockEntry(storage, (Binary) aoKey[i], false);
+                                }
+
+                            // do the invocation
+                            storage.invokeAll(ctxInvoke, aoStatus, iL, iR, agent);
+
+                            break; // user-space request complete
                             }
-        
-                        // do the invocation
-                        storage.invokeAll(ctxInvoke, aoStatus, iL, iR, agent);
-        
-                        break; // user-space request complete
+                        catch (LockContentionException e)
+                            {
+                            // this request was involved in a deadlock; release acquired
+                            // locks allowing the winning thread to acquire all locks and
+                            // subsequently re-request the locks
+                            ctxInvoke.rollback(e, job.getRequest(), "processor = " + agent.getClass().getName());
+                            job.setProcessor(null); // force the creation of a new EP
+                            }
                         }
-                    catch (LockContentionException e)
+
+                    // Note: we executed user code without exception thus maintain any
+                    //       results to ensure the request is idempotent
+                    aoResult = aoStatus;
+
+                    // collect the results
+                    for (int i = iL; i < iR; i++)
                         {
-                        // this request was involved in a deadlock; release acquired
-                        // locks allowing the winning thread to acquire all locks and
-                        // subsequently re-request the locks
-                        ctxInvoke.rollback(e, job.getRequest(), "processor = " + agent.getClass().getName());
-                        job.setProcessor(null); // force the creation of a new EP
+                        // Note: result could be null if the result map returned by the
+                        //       entry processor does not include all keys
+                        Storage.EntryStatus status = (Storage.EntryStatus) aoStatus[i];
+                        aoResult[i] = status == null ? null : status.getResult();
                         }
                     }
-        
-                // Note: we executed user code without exception thus maintain any
-                //       results to ensure the request is idempotent
-                aoResult = aoStatus;
-        
-                // collect the results
-                for (int i = iL; i < iR; i++)
+                catch (HeuristicCommitException e)
                     {
-                    // Note: result could be null if the result map returned by the
-                    //       entry processor does not include all keys
-                    Storage.EntryStatus status = (Storage.EntryStatus) aoStatus[i];
-                    aoResult[i] = status == null ? null : status.getResult();
+                    // unrecoverable backing map exception
+                    if (isExiting())
+                        {
+                        // the service is stopped, we can ignore it;
+                        // the client will re-try the operation
+                        return;
+                        }
+
+                    onPartialCommit(msgResponse, e);
                     }
+                catch (Throwable e)
+                    {
+                    msgResponse.setException(tagException(e));
+
+                    synchronized (msgResponse)
+                        {
+                        msgResponse.setFailedKeys(collectResultOnException(
+                            msgResponse.getFailedKeys(), aoStatus, aoKey, iL, iR, e));
+                        }
+                    }
+
+                // COH-22088: if the thread was interrupted due to the guardian we must reset
+                //            (heartbeat and clear the interrupt bit) to avoid an exception when
+                //            invoking an interruptible method
+                GuardSupport.reset();
+
+                ctxInvoke.resetAccess();
+
+                // register the results
+                registerMultiResult(context, iPartition, aoResult == null
+                        ? Collections.emptyMap()
+                        : new KeyValueArrayMap(aoKey, iL, aoResult, iL, iR - iL));
+
+                // even if there was an exception, we need to backup the changes
+                processChanges(context, job, lCacheId, ctxInvoke.getEntryStatuses(), job.getBatchContext());
                 }
-            catch (HeuristicCommitException e)
+            finally
                 {
-                // unrecoverable backing map exception
-                if (isExiting())
-                    {
-                    // the service is stopped, we can ignore it;
-                    // the client will re-try the operation
-                    return;
-                    }
-        
-                onPartialCommit(msgResponse, e);
+                // only now, after the backup message is sent, we can unlock (COH-3304)
+                releaseInvocationContext(ctxInvoke);
                 }
-            catch (Throwable e)
-                {
-                msgResponse.setException(tagException(e));
-        
-                synchronized (msgResponse)
-                    {
-                    msgResponse.setFailedKeys(collectResultOnException(
-                        msgResponse.getFailedKeys(), aoStatus, aoKey, iL, iR, e));
-                    }
-                }
-        
-            // COH-22088: if the thread was interrupted due to the guardian we must reset
-            //            (heartbeat and clear the interrupt bit) to avoid an exception when
-            //            invoking an interruptible method
-            GuardSupport.reset();
-        
-            ctxInvoke.resetAccess();
-        
-            // register the results
-            registerMultiResult(context, iPartition, aoResult == null
-                    ? Collections.emptyMap()
-                    : new KeyValueArrayMap(aoKey, iL, aoResult, iL, iR - iL));
-        
-            // even if there was an exception, we need to backup the changes
-            processChanges(context, job, lCacheId, ctxInvoke.getEntryStatuses(), job.getBatchContext());
-        
-            // only now, after the backup message is sent, we can unlock (COH-3304)
-            releaseInvocationContext(ctxInvoke);
             }
         finally
             {
@@ -5702,99 +5760,104 @@ public class PartitionedCache
         
         flushOOBEvents();
         
-        PartitionSet partReject = pinOwnedPartitions(partMask, msgRequest.getOwnershipVersions());
-        
-        msgResponse.setRejectPartitions(partReject);
-        
-        Object[] aoResult = null;
-        int      cResults = 0;
-        
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(partMask);
-        try
-            {
-            ctxInvoke.prepareAccess(context, storage,
-                Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
-        
-            Object[] aoStatus = null;
-            int      cEntries = 0;
-            while (true)
-                {
-                com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
-                try
-                    {
-                    // query to find and lock the matching entries
-                    QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask, msgRequest.checkTimeoutRemaining());
+        PartitionSet                       partReject = pinOwnedPartitions(partMask, msgRequest.getOwnershipVersions());
+        PartitionedCache.InvocationContext ctxInvoke  = null;
+        Throwable                          eFailure   = null;
 
-                    aoStatus = result.getResults();
-                    cEntries = result.getCount();
-        
-                    // invoke the entry processor on the matching entries
-                    storage.invokeAll(ctxInvoke, aoStatus, 0, cEntries, agent);
-        
-                    break; // user-space request complete
-                    }
-                catch (LockContentionException e)
-                    {
-                    // this request was involved in a deadlock; release acquired
-                    // locks allowing the winning thread to acquire all locks and
-                    // subsequently re-request the locks
-                    ctxInvoke.rollback(e, msgRequest, "processor = " + agent.getClass().getName());
-                    msgRequest.setProcessor(null); // force the creation of a new EP
-                    }
-                }
-        
-            // Note: we executed user code without exception thus maintain any
-            //       results to ensure the request is idempotent
-            aoResult = aoStatus;
-        
-            for (int i = 0; i < cEntries; ++i)
-                {
-                // Note: the Storage.EntryStatus result could be null if the result map
-                //       returned by processAll() didn't include all the keys
-                Storage.EntryStatus status    = (Storage.EntryStatus) aoStatus[i];
-                Binary       binResult = status.getResult();
-                
-                if (binResult != null)
-                    {
-                    aoResult[cResults++] =
-                        new SimpleMapEntry(status.getKey(), binResult);
-                    }
-                }
-            }
-        catch (HeuristicCommitException e)
-            {
-            // unrecoverable backing map exception
-            if (isExiting())
-                {
-                // the service is stopped, we can ignore it;
-                // the client will re-try the operation
-                return;
-                }
-        
-            onPartialCommit(msgResponse, e);
-            }
-        catch (Throwable e)
-            {
-            // since the client didn't know what keys matched, there is
-            // no reason to report what keys failed
-            msgResponse.setException(tagException(e));
-            }
-        
-        if (cResultsPrev > 0)
-            {
-            // merge results
-            Object[] aoResultTmp = aoResult;
-        
-            aoResult = new Object[cResultsPrev + cResults];
-            System.arraycopy(aoResultPrev, 0, aoResult, 0, cResultsPrev);
-            System.arraycopy(aoResultTmp,  0, aoResult, cResultsPrev, cResults);
-            }
-        
-        msgResponse.setResult(aoResult);
-        msgResponse.setSize(cResults + cResultsPrev);
-        
         try
             {
+            msgResponse.setRejectPartitions(partReject);
+
+            Object[] aoResult = null;
+            int      cResults = 0;
+
+            ctxInvoke = ensureInvocationContext(partMask);
+            try
+                {
+                ctxInvoke.prepareAccess(context, storage,
+                    Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_INVOKE);
+
+                Object[] aoStatus = null;
+                int      cEntries = 0;
+                while (true)
+                    {
+                    com.tangosol.util.InvocableMap.EntryProcessor agent = msgRequest.deserializeProcessor();
+                    try
+                        {
+                        // query to find and lock the matching entries
+                        QueryResult result = storage.query(msgRequest.getFilter(), Storage.QUERY_INVOKE, partMask, msgRequest.checkTimeoutRemaining());
+
+                        aoStatus = result.getResults();
+                        cEntries = result.getCount();
+
+                        // invoke the entry processor on the matching entries
+                        storage.invokeAll(ctxInvoke, aoStatus, 0, cEntries, agent);
+
+                        break; // user-space request complete
+                        }
+                    catch (LockContentionException e)
+                        {
+                        // this request was involved in a deadlock; release acquired
+                        // locks allowing the winning thread to acquire all locks and
+                        // subsequently re-request the locks
+                        ctxInvoke.rollback(e, msgRequest, "processor = " + agent.getClass().getName());
+                        msgRequest.setProcessor(null); // force the creation of a new EP
+                        }
+                    }
+
+                // Note: we executed user code without exception thus maintain any
+                //       results to ensure the request is idempotent
+                aoResult = aoStatus;
+
+                for (int i = 0; i < cEntries; ++i)
+                    {
+                    // Note: the Storage.EntryStatus result could be null if the result map
+                    //       returned by processAll() didn't include all the keys
+                    Storage.EntryStatus status    = (Storage.EntryStatus) aoStatus[i];
+                    Binary              binResult = status.getResult();
+
+                    if (binResult != null)
+                        {
+                        aoResult[cResults++] =
+                            new SimpleMapEntry(status.getKey(), binResult);
+                        }
+                    }
+                }
+            catch (HeuristicCommitException e)
+                {
+                // unrecoverable backing map exception
+                if (isExiting())
+                    {
+                    // the service is stopped, we can ignore it;
+                    // the client will re-try the operation
+                    return;
+                    }
+
+                onPartialCommit(msgResponse, e);
+                }
+            catch (Throwable e)
+                {
+                // since the client didn't know what keys matched, there is
+                // no reason to report what keys failed
+                msgResponse.setException(tagException(e));
+                }
+
+            if (cResultsPrev > 0)
+                {
+                // merge results
+                Object[] aoResultTmp = aoResult;
+
+                aoResult = new Object[cResultsPrev + cResults];
+                System.arraycopy(aoResultPrev, 0, aoResult, 0, cResultsPrev);
+                if (cResults > 0)
+                    {
+                    System.arraycopy(aoResultTmp, 0, aoResult, cResultsPrev, cResults);
+                    }
+                }
+
+            msgResponse.setResult(aoResult);
+            msgResponse.setSize(cResults + cResultsPrev);
+
             // COH-22088: if the thread was interrupted due to the guardian we must reset
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
@@ -5815,9 +5878,15 @@ public class PartitionedCache
         
             msgRequest.setProcessedPartitions(partMask);
             }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = e;
+            throw e;
+            }
         finally
             {
-            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
+            releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true,
+                    eFailure == null ? msgResponse.getException() : eFailure);
             }
         }
     
@@ -5836,7 +5905,7 @@ public class PartitionedCache
         // import com.tangosol.util.InvocableMap$EntryProcessor as com.tangosol.util.InvocableMap.EntryProcessor;
         // import java.util.Collection;
         // import java.util.HashSet;
-        
+
         PartitionedCache.Response msgResponse = (PartitionedCache.Response) instantiateMessage("Response");
         msgResponse.respondTo(msgRequest);
         
@@ -5852,7 +5921,7 @@ public class PartitionedCache
             {
             return;
             }
-        
+
         int     nPartition = getKeyPartition(binKey);
         boolean fEntered   = pinOwnedPartition(nPartition, msgRequest.getOwnershipVersion());
         if (!fEntered)
@@ -6063,18 +6132,19 @@ public class PartitionedCache
         Binary[]        abinKey  = new Binary[setKeys.size()];
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner   = createPinningIterator(setKeys);
         int             cEntries = 0;
-        
-        while (pinner.hasNext())
-            {
-            abinKey[cEntries++] = (Binary) pinner.next();
-            }
-        
-        PartitionSet       partsPinned = pinner.getPinnedPartitions();
-        PartitionedCache.InvocationContext ctxInvoke   = ensureInvocationContext(partsPinned);
+        PartitionSet                       partsPinned = pinner.getPinnedPartitions();
+        PartitionedCache.InvocationContext ctxInvoke   = null;
         PartitionedCache.BatchContext      ctxBatch    = null;
         
         try
             {
+            while (pinner.hasNext())
+                {
+                abinKey[cEntries++] = (Binary) pinner.next();
+                }
+
+            ctxInvoke = ensureInvocationContext(partsPinned);
+
             // key listeners could be removed asynchronously (see $BinaryMap#dispatch)
             // where the caller's context is completely lost;
             // since it doesn't really represent any security risk, don't authorize them
@@ -6209,9 +6279,9 @@ public class PartitionedCache
         com.tangosol.coherence.component.net.Member  member     = job.getFromMember();
         Map     map        = job.getMap();
         Set     setKeys    = map.keySet();
-        
-        boolean  fEntered = pinOwnedPartition(iPartition);
+
         Storage storage  = getKnownStorage(lCacheId);
+        boolean fEntered = pinOwnedPartition(iPartition);
         
         try
             {
@@ -7142,66 +7212,67 @@ public class PartitionedCache
         Binary[]        aKeys    = new Binary[cSize];
         Binary[]        aValues  = new Binary[cSize];
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner   = createPinningIterator(map.entrySet());
-        for (; pinner.hasNext(); cEntries++)
-            {
-            java.util.Map.Entry entry       = (java.util.Map.Entry)  pinner.next();
-        
-            aKeys[cEntries]   = (Binary) entry.getKey();
-            aValues[cEntries] = (Binary) entry.getValue();
-            }
-        
-        PartitionSet       partsPinned  = pinner.getPinnedPartitions();
-        PartitionedCache.InvocationContext ctxInvoke    = ensureInvocationContext(partsPinned);
-        
+        PartitionSet                       partsPinned = pinner.getPinnedPartitions();
+        PartitionedCache.InvocationContext ctxInvoke   = null;
+
         try
             {
-            ctxInvoke.prepareAccess(context, storage,
-                Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_PUT);
-        
-            while (true)
+            for (; pinner.hasNext(); cEntries++)
                 {
-                try
+                java.util.Map.Entry entry       = (java.util.Map.Entry)  pinner.next();
+
+                aKeys[cEntries]   = (Binary) entry.getKey();
+                aValues[cEntries] = (Binary) entry.getValue();
+                }
+
+            ctxInvoke = ensureInvocationContext(partsPinned);
+            try
+                {
+                ctxInvoke.prepareAccess(context, storage,
+                    Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_PUT);
+
+                while (true)
                     {
-                    Storage.EntryStatus[] aStatus = ctxInvoke.lockEntries(storage, aKeys, cEntries);
-        
-                    storage.putAll(ctxInvoke, aStatus, aValues);
-        
-                    break; // user-space request complete
-                    }
-                catch (LockContentionException e)
-                    {
-                    // this request was involved in a deadlock; release acquired
-                    // locks allowing the winning thread to acquire all locks and
-                    // subsequently re-request the locks
-                    ctxInvoke.rollback(e, msgRequest);
+                    try
+                        {
+                        Storage.EntryStatus[] aStatus = ctxInvoke.lockEntries(storage, aKeys, cEntries);
+
+                        storage.putAll(ctxInvoke, aStatus, aValues);
+
+                        break; // user-space request complete
+                        }
+                    catch (LockContentionException e)
+                        {
+                        // this request was involved in a deadlock; release acquired
+                        // locks allowing the winning thread to acquire all locks and
+                        // subsequently re-request the locks
+                        ctxInvoke.rollback(e, msgRequest);
+                        }
                     }
                 }
-            }
-        catch (HeuristicCommitException e)
-            {
-            // unrecoverable backing map exception
-            if (isExiting())
+            catch (HeuristicCommitException e)
                 {
-                // the service is stopped, we can ignore it;
-                // the client will re-try the operation
-                return;
+                // unrecoverable backing map exception
+                if (isExiting())
+                    {
+                    // the service is stopped, we can ignore it;
+                    // the client will re-try the operation
+                    return;
+                    }
+
+                onPartialCommit(msgResponse, e);
                 }
-        
-            onPartialCommit(msgResponse, e);
-            }
-        catch (Throwable e)
-            {
-            msgResponse.setException(tagException(e));
-            Collection col = new SafeLinkedList();
-        
-            col.addAll(Arrays.asList(aKeys));
-            msgResponse.setFailedKeys(col);
-            }
-        
-        msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
-        
-        try
-            {
+            catch (Throwable e)
+                {
+                msgResponse.setException(tagException(e));
+                Collection col = new SafeLinkedList();
+
+                col.addAll(Arrays.asList(aKeys));
+                msgResponse.setFailedKeys(col);
+                }
+
+            msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
+
             // COH-22088: if the thread was interrupted due to the guardian we must reset
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
@@ -7265,10 +7336,12 @@ public class PartitionedCache
             return;
             }
         
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(nPartition);
+        PartitionedCache.InvocationContext ctxInvoke = null;
         
         try
             {
+            ctxInvoke = ensureInvocationContext(nPartition);
+
             while (true)
                 {
                 status = ctxInvoke.lockEntry(storage, binKey, false);
@@ -7383,12 +7456,14 @@ public class PartitionedCache
 
         flushOOBEvents();
 
-        PartitionSet       partReject = pinOwnedPartitions(partMask);
-        PartitionedCache.InvocationContext ctxInvoke  = ensureInvocationContext(partMask);
-        ctxInvoke.markReadOnlyRequest();
+        PartitionSet                        partReject = pinOwnedPartitions(partMask);
+        PartitionedCache.InvocationContext  ctxInvoke  = null;
 
         try
             {
+            ctxInvoke = ensureInvocationContext(partMask);
+            ctxInvoke.markReadOnlyRequest();
+
             storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
                 fKeySet ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_KEYSET : com.tangosol.net.security.StorageAccessAuthorizer.REASON_ENTRYSET);
 
@@ -7443,13 +7518,13 @@ public class PartitionedCache
             post(msgResponse);
             }
 
-        // COH-22088: if the thread was interrupted due to the guardian we must reset
-        //            (heartbeat and clear the interrupt bit) to avoid an exception when
-        //            invoking an interruptible method
-        GuardSupport.reset();
-
         try
             {
+            // COH-22088: if the thread was interrupted due to the guardian we must reset
+            //            (heartbeat and clear the interrupt bit) to avoid an exception when
+            //            invoking an interruptible method
+            GuardSupport.reset();
+
             processChanges();
         
             msgRequest.setProcessedPartitions(partMask);
@@ -7533,64 +7608,64 @@ public class PartitionedCache
         int             cEntries = 0;
         Binary[]        aKeys    = new Binary[setKeys.size()];
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner   = createPinningIterator(setKeys);
-        while (pinner.hasNext())
-            {
-            aKeys[cEntries++] = (Binary) pinner.next();
-            }
-        
-        PartitionSet partsPinned = pinner.getPinnedPartitions();
-        
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(partsPinned);
+        PartitionSet                       partsPinned = pinner.getPinnedPartitions();
+        PartitionedCache.InvocationContext ctxInvoke   = null;
         
         try
             {
-            ctxInvoke.prepareAccess(context, storage,
-                Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_REMOVE);
-        
-            while (true)
+            while (pinner.hasNext())
                 {
-                try
-                    {
-                    Storage.EntryStatus[] aStatus = ctxInvoke.lockEntries(storage, aKeys, cEntries);
-        
-                    if (storage.removeAll(ctxInvoke, aStatus))
-                        {
-                        // Binary.EMPTY serves as the "Removed" flag
-                        msgResponse.setResult(Binary.EMPTY);
-                        }
-        
-                    break; // user-space request complete
-                    }
-                catch (LockContentionException e)
-                    {
-                    // this request was involved in a deadlock; release acquired
-                    // locks allowing the winning thread to acquire all locks and
-                    // subsequently re-request the locks
-                    ctxInvoke.rollback(e, msgRequest);
-                    }
-                }    
-            }
-        catch (HeuristicCommitException e)
-            {
-            // unrecoverable backing map exception
-            if (isExiting())
-                {
-                // the service is stopped, we can ignore it;
-                // the client will re-try the operation
-                return;
+                aKeys[cEntries++] = (Binary) pinner.next();
                 }
-        
-            onPartialCommit(msgResponse, e);
-            }
-        catch (Throwable e)
-            {
-            msgResponse.setException(tagException(e));
-            }
-        
-        msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
-        
-        try
-            {
+
+            ctxInvoke = ensureInvocationContext(partsPinned);
+            try
+                {
+                ctxInvoke.prepareAccess(context, storage,
+                    Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_REMOVE);
+
+                while (true)
+                    {
+                    try
+                        {
+                        Storage.EntryStatus[] aStatus = ctxInvoke.lockEntries(storage, aKeys, cEntries);
+
+                        if (storage.removeAll(ctxInvoke, aStatus))
+                            {
+                            // Binary.EMPTY serves as the "Removed" flag
+                            msgResponse.setResult(Binary.EMPTY);
+                            }
+
+                        break; // user-space request complete
+                        }
+                    catch (LockContentionException e)
+                        {
+                        // this request was involved in a deadlock; release acquired
+                        // locks allowing the winning thread to acquire all locks and
+                        // subsequently re-request the locks
+                        ctxInvoke.rollback(e, msgRequest);
+                        }
+                    }
+                }
+            catch (HeuristicCommitException e)
+                {
+                // unrecoverable backing map exception
+                if (isExiting())
+                    {
+                    // the service is stopped, we can ignore it;
+                    // the client will re-try the operation
+                    return;
+                    }
+
+                onPartialCommit(msgResponse, e);
+                }
+            catch (Throwable e)
+                {
+                msgResponse.setException(tagException(e));
+                }
+
+            msgResponse.setRejectPartitions(pinner.getRejectedPartitions());
+
             // COH-22088: if the thread was interrupted due to the guardian we must reset
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
@@ -7633,9 +7708,9 @@ public class PartitionedCache
         
         int      iPartition = job.getPartition();
         com.tangosol.coherence.component.net.RequestContext  context    = job.getRequestContext();
-        boolean  fEntered   = pinOwnedPartition(iPartition);
         long     lCacheId   = job.getCacheId();
-        Storage storage    = getKnownStorage(lCacheId);
+        Storage  storage    = getKnownStorage(lCacheId);
+        boolean  fEntered   = pinOwnedPartition(iPartition);
         try
             {
             if (fEntered && storage != null)
@@ -7785,10 +7860,12 @@ public class PartitionedCache
             return;
             }
         
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext(nPartition);
-        Storage.EntryStatus       status    = null;
+        PartitionedCache.InvocationContext ctxInvoke = null;
+        Storage.EntryStatus                status    = null;
         try
             {
+            ctxInvoke = ensureInvocationContext(nPartition);
+
             while (true)
                 {
                 status = ctxInvoke.lockEntry(storage, binKey, false);
@@ -7894,22 +7971,22 @@ public class PartitionedCache
         // for all partitions
         PartitionSet partsOwned = collectOwnedPartitions(true);
         
-        // reduce parts owned to partitions that have backups to send &
-        // can be pinned
+        // reduce parts owned to partitions that have backups to send
         for (int iPart = partsOwned.next(0); iPart != -1; iPart = partsOwned.next(iPart + 1))
             {
-            if (!((PartitionedCache.PartitionControl) getPartitionControl(iPart)).hasScheduledBackups() ||
-                !pinOwnedPartition(iPart, /*nVersion*/ -1))
+            if (!((PartitionedCache.PartitionControl) getPartitionControl(iPart)).hasScheduledBackups())
                 {
                 partsOwned.remove(iPart);
                 }
             }
-        
-        // Map<List<Member>, PartitionSet>
-        Map mapMemberParts = splitByBackupOwners(partsOwned);
+
+        pinOwnedPartitions(partsOwned);
         
         try
             {
+            // Map<List<Member>, PartitionSet>
+            Map mapMemberParts = splitByBackupOwners(partsOwned);
+
             for (Iterator iter = mapMemberParts.entrySet().iterator(); iter.hasNext(); )
                 {
                 java.util.Map.Entry                entry       = (java.util.Map.Entry) iter.next();
@@ -8874,7 +8951,25 @@ public class PartitionedCache
         
         if (fPinned)
             {
-            ensureIndexReady(nPartition);
+            try
+                {
+                ensureIndexReady(nPartition);
+                }
+            catch (RuntimeException | Error e)
+                {
+                if (isConcurrent())
+                    {
+                    try
+                        {
+                        exitPartition(nPartition);
+                        }
+                    catch (RuntimeException | Error eCleanup)
+                        {
+                        e.addSuppressed(eCleanup);
+                        }
+                    }
+                throw e;
+                }
             }
         
         return fPinned;
@@ -9984,6 +10079,31 @@ public class PartitionedCache
      */
     protected void publishChanges(com.tangosol.coherence.component.net.RequestContext ctx, com.tangosol.coherence.component.util.PartialJob job, java.util.Collection colStatus, java.util.Collection colStatusOOB, PartitionedCache.BatchContext ctxBatch)
         {
+        try
+            {
+            publishChangesLocked(ctx, job, colStatus, colStatusOOB, ctxBatch);
+            }
+        catch (RuntimeException | Error e)
+            {
+            try
+                {
+                unlockStatusKeys(colStatusOOB);
+                }
+            catch (RuntimeException | Error eCleanup)
+                {
+                e.addSuppressed(eCleanup);
+                }
+            throw e;
+            }
+
+        unlockStatusKeys(colStatusOOB);
+        }
+
+    /**
+     * Publish changes while retaining ownership of out-of-band key locks.
+     */
+    protected void publishChangesLocked(com.tangosol.coherence.component.net.RequestContext ctx, com.tangosol.coherence.component.util.PartialJob job, java.util.Collection colStatus, java.util.Collection colStatusOOB, PartitionedCache.BatchContext ctxBatch)
+        {
         // Combine the expected status updates with the out-of-band
         // (unexpected) updates, producing a data structure to be used
         // to perform either a single-cache or multi-cache backup.
@@ -10231,18 +10351,6 @@ public class PartitionedCache
         synchronized (ctxBatch)
             {
             ctxBatch.onJobCompleted(job);  // may be null
-            }
-        
-        // Now, only after backup messages/events have been queued/sent, unlock the
-        // keys that were locked during #processEvent
-        if (cStatusOOB > 0)
-            {
-            PartitionedCache.ResourceCoordinator coordinator = getResourceCoordinator();
-            for (Iterator iter = colStatusOOB.iterator(); iter.hasNext();)
-                {
-                Storage.EntryStatus status = (Storage.EntryStatus) iter.next();
-                unlockKey(status.getStorage(), status.getKey(), true);
-                }
             }
         }
     
@@ -10855,6 +10963,28 @@ public class PartitionedCache
         }
 
     /**
+     * Record a cleanup failure, preserving the first failure as primary.
+     *
+     * @param eFailure  the current primary failure, or null
+     * @param eCleanup  the new cleanup failure
+     *
+     * @return the primary failure
+     */
+    protected Throwable addCleanupFailure(Throwable eFailure, Throwable eCleanup)
+        {
+        if (eFailure == null)
+            {
+            return eCleanup;
+            }
+
+        if (eFailure != eCleanup)
+            {
+            eFailure.addSuppressed(eCleanup);
+            }
+        return eFailure;
+        }
+
+    /**
      * Resets the thread local Invocation Context optionally unpinning any
      * partitions entered via the context itself.
      *
@@ -10884,13 +11014,46 @@ public class PartitionedCache
     protected void releaseInvocationContextAndUnpin(PartitionedCache.InvocationContext ctxInvoke,
             com.tangosol.net.partition.PartitionSet partsPinned, boolean fUnpin)
         {
+        releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, fUnpin, null);
+        }
+
+    /**
+     * Release the InvocationContext and then unpin the specified partitions,
+     * preserving an operation failure as primary.
+     *
+     * @param ctxInvoke    the InvocationContext to release
+     * @param partsPinned  the externally pinned partitions to unpin
+     * @param fUnpin       true to unpin partitions entered by the InvocationContext itself
+     * @param eFailure     the operation failure to preserve, or null
+     *
+     * @since 12.2.1.4.30
+     */
+    protected void releaseInvocationContextAndUnpin(PartitionedCache.InvocationContext ctxInvoke,
+            com.tangosol.net.partition.PartitionSet partsPinned, boolean fUnpin, Throwable eFailure)
+        {
+        boolean fThrowFailure = eFailure == null;
+
         try
             {
             releaseInvocationContext(ctxInvoke, fUnpin);
             }
-        finally
+        catch (RuntimeException | Error e)
+            {
+            eFailure = addCleanupFailure(eFailure, e);
+            }
+
+        try
             {
             unpinPartitions(partsPinned);
+            }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = addCleanupFailure(eFailure, e);
+            }
+
+        if (fThrowFailure)
+            {
+            throwCleanupFailure(eFailure);
             }
         }
 
@@ -10908,16 +11071,46 @@ public class PartitionedCache
     protected void releaseInvocationContextAndUnpin(PartitionedCache.InvocationContext ctxInvoke,
             int nPartition, boolean fEntered, boolean fUnpin)
         {
+        Throwable eFailure = null;
+
         try
             {
             releaseInvocationContext(ctxInvoke, fUnpin);
             }
-        finally
+        catch (RuntimeException | Error e)
             {
-            if (fEntered)
+            eFailure = addCleanupFailure(eFailure, e);
+            }
+
+        if (fEntered)
+            {
+            try
                 {
                 unpinPartition(nPartition);
                 }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = addCleanupFailure(eFailure, e);
+                }
+            }
+
+        throwCleanupFailure(eFailure);
+        }
+
+    /**
+     * Throw the specified cleanup failure, if any.
+     *
+     * @param eFailure  the cleanup failure, or null
+     */
+    protected void throwCleanupFailure(Throwable eFailure)
+        {
+        if (eFailure instanceof RuntimeException)
+            {
+            throw (RuntimeException) eFailure;
+            }
+        if (eFailure instanceof Error)
+            {
+            throw (Error) eFailure;
             }
         }
     
@@ -12336,10 +12529,34 @@ public class PartitionedCache
      */
     public void unlockKey(Storage storage, com.tangosol.util.Binary binKey, boolean fExit)
         {
-        getResourceCoordinator().unlock(storage, binKey);
-        if (fExit)
+        Throwable eFailure = null;
+
+        try
             {
-            exitPartition(getKeyPartition(binKey));
+            getResourceCoordinator().unlock(storage, binKey);
+            }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = e;
+            throw e;
+            }
+        finally
+            {
+            if (fExit)
+                {
+                try
+                    {
+                    exitPartition(getKeyPartition(binKey));
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    if (eFailure == null)
+                        {
+                        throw e;
+                        }
+                    addCleanupFailure(eFailure, e);
+                    }
+                }
             }
         }
     
@@ -12357,6 +12574,8 @@ public class PartitionedCache
         {
         // import com.tangosol.util.Binary;
         
+        Throwable eFailure = null;
+
         for (int i = ofStart; i < ofEnd; i++)
             {
             Object entry = aEntry[i];
@@ -12364,8 +12583,75 @@ public class PartitionedCache
                 {
                 Binary binKey = entry instanceof Storage.BinaryEntry ?
                     ((Storage.BinaryEntry) entry).getBinaryKey() : (Binary) entry;
-                unlockKey(storage, binKey, fExit);
+                try
+                    {
+                    unlockKey(storage, binKey, fExit);
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    if (eFailure == null)
+                        {
+                        eFailure = e;
+                        }
+                    else
+                        {
+                        eFailure.addSuppressed(e);
+                        }
+                    }
                 }
+            }
+
+        if (eFailure instanceof RuntimeException)
+            {
+            throw (RuntimeException) eFailure;
+            }
+        if (eFailure instanceof Error)
+            {
+            throw (Error) eFailure;
+            }
+        }
+
+    /**
+     * Unlock the keys represented by the specified entry statuses.
+     */
+    protected void unlockStatusKeys(java.util.Collection colStatus)
+        {
+        // import java.util.Iterator;
+
+        if (colStatus == null || colStatus.isEmpty())
+            {
+            return;
+            }
+
+        Throwable eFailure = null;
+
+        for (Iterator iter = colStatus.iterator(); iter.hasNext(); )
+            {
+            Storage.EntryStatus status = (Storage.EntryStatus) iter.next();
+            try
+                {
+                unlockKey(status.getStorage(), status.getKey(), true);
+                }
+            catch (RuntimeException | Error e)
+                {
+                if (eFailure == null)
+                    {
+                    eFailure = e;
+                    }
+                else
+                    {
+                    eFailure.addSuppressed(e);
+                    }
+                }
+            }
+
+        if (eFailure instanceof RuntimeException)
+            {
+            throw (RuntimeException) eFailure;
+            }
+        if (eFailure instanceof Error)
+            {
+            throw (Error) eFailure;
             }
         }
     
@@ -21069,10 +21355,10 @@ public class PartitionedCache
             com.tangosol.net.events.internal.StorageDispatcher  dispatcher = getStorageDispatcher(storage);
             boolean     fDispatch  = storage.hasInterceptors() && dispatcher != null;
 
-            if (fDispatch && eventType == com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATED &&
-                ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
+            if (fDispatch && eventType == EntryEvent.Type.UPDATED &&
+                    ReadWriteBackingMap.BIN_ERASE_PENDING.equals(binEntry.getBinaryValue()))
                 {
-                eventType = com.tangosol.net.events.partition.cache.EntryEvent.Type.REMOVED;
+                eventType = EntryEvent.Type.REMOVED;
                 }
 
             if (storage.hasInterceptors() && dispatcher != null && dispatcher.isSubscribed(eventType))
@@ -21088,7 +21374,7 @@ public class PartitionedCache
                 continuation.proceed(Boolean.FALSE);
                 }
             }
-        
+
         /**
          * Raise an event (if necessary) signalling that the specified entry is
          * being changed, and complete the specified continuation.
@@ -21113,7 +21399,7 @@ public class PartitionedCache
                     eventType = binEntry.isValueLoaded() || binEntry.getOriginalBinaryValue() == null
                             ? com.tangosol.net.events.partition.cache.EntryEvent.Type.INSERTING : com.tangosol.net.events.partition.cache.EntryEvent.Type.UPDATING;
                     }
-            
+
                 // raise pre-events synchronously on the worker thread
                 dispatcher.getEntryEventContinuation(
                     eventType, Collections.singleton(binEntry), continuation).proceed(Boolean.TRUE);
@@ -21123,7 +21409,7 @@ public class PartitionedCache
                 continuation.proceed(Boolean.FALSE);
                 }
             }
-        
+
         // From interface: com.tangosol.net.events.EventInterceptor
         public void onEvent(com.tangosol.net.events.Event event)
             {
@@ -21361,7 +21647,7 @@ public class PartitionedCache
                 // create a [lazy] set of entries, realizing the BinaryEntry from the 
                 // Storage.EntryStatus upon access
                 Set setEntries = getBinaryEntries(colStatus, /*fPost*/ false);
-            
+
                 if (!setEntries.isEmpty())
                     {
                     // raise pre-events synchronously on the worker thread
@@ -21697,7 +21983,7 @@ public class PartitionedCache
                 {
                 Storage.EntryStatus status   = (Storage.EntryStatus) oValue;
                 Storage.BinaryEntry binEntry = status.getBinaryEntry();
-                
+
                 return binEntry != null && (binEntry.isValueChanged() || binEntry.isValueLoaded());
                 }
             }
@@ -23417,28 +23703,58 @@ public class PartitionedCache
             // import java.util.Set;
             
             PartitionedCache service          = getService();
-            Set     setLockedStorage = getLockedStorage();
-            Map     mapStorageStatus = getStorageStatusMap();
+            Set              setLockedStorage = getLockedStorage();
+            Map              mapStorageStatus = getStorageStatusMap();
+            Throwable        eFailure         = null;
             
-            for (Iterator iter = mapStorageStatus.entrySet().iterator(); iter.hasNext(); )
+            try
                 {
-                java.util.Map.Entry    entry        = (java.util.Map.Entry) iter.next();
-                Storage storage      = (Storage) entry.getKey();
-                Map      mapKeyStatus = (Map) entry.getValue();
-            
-                if (!setLockedStorage.contains(storage))
+                for (Iterator iter = mapStorageStatus.entrySet().iterator(); iter.hasNext(); )
                     {
-                    for (Iterator iterStatus = mapKeyStatus.values().iterator(); iterStatus.hasNext(); )
+                    java.util.Map.Entry entry        = (java.util.Map.Entry) iter.next();
+                    Storage             storage      = (Storage) entry.getKey();
+                    Map                 mapKeyStatus = (Map) entry.getValue();
+
+                    if (!setLockedStorage.contains(storage))
                         {
-                        Storage.EntryStatus status = (Storage.EntryStatus) iterStatus.next();
-            
-                        // Note: always pass false here, as pinned partitions are tracked
-                        //       separately and exited by release()
-                        service.unlockKey(storage, status.getKey(), false);
+                        for (Iterator iterStatus = mapKeyStatus.values().iterator(); iterStatus.hasNext(); )
+                            {
+                            Storage.EntryStatus status = (Storage.EntryStatus) iterStatus.next();
+
+                            // Note: always pass false here, as pinned partitions are tracked
+                            //       separately and exited by release()
+                            try
+                                {
+                                service.unlockKey(storage, status.getKey(), false);
+                                }
+                            catch (RuntimeException | Error e)
+                                {
+                                if (eFailure == null)
+                                    {
+                                    eFailure = e;
+                                    }
+                                else
+                                    {
+                                    eFailure.addSuppressed(e);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-            mapStorageStatus.clear();
+            finally
+                {
+                mapStorageStatus.clear();
+                }
+
+            if (eFailure instanceof RuntimeException)
+                {
+                throw (RuntimeException) eFailure;
+                }
+            if (eFailure instanceof Error)
+                {
+                throw (Error) eFailure;
+                }
             }
         
         /**
@@ -23806,6 +24122,72 @@ public class PartitionedCache
             {
             return __m_ReadOnlyRequest;
             }
+
+        /**
+         * Unwind a key lock that could not be registered with this context.
+         */
+        protected void cleanupFailedEntryLock(Storage storage, com.tangosol.util.Binary binKey,
+                Storage.EntryStatus status, Map mapKeyStatus, int nPartition, boolean fExit, Throwable eFailure)
+            {
+            // import java.util.Map;
+            // import java.util.Set;
+
+            if (status != null && mapKeyStatus != null)
+                {
+                try
+                    {
+                    if (mapKeyStatus.get(binKey) == status)
+                        {
+                        mapKeyStatus.remove(binKey);
+                        }
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    eFailure.addSuppressed(e);
+                    }
+                }
+
+            if (status != null)
+                {
+                try
+                    {
+                    Map mapEnlisted = getEnlistedStatuses();
+                    if (mapEnlisted != null)
+                        {
+                        Set setStatus = (Set) mapEnlisted.get(storage);
+                        if (setStatus != null)
+                            {
+                            setStatus.remove(status);
+                            }
+                        }
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    eFailure.addSuppressed(e);
+                    }
+                }
+
+            if (nPartition >= 0)
+                {
+                try
+                    {
+                    getPinnedPartitions().remove(nPartition);
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    eFailure.addSuppressed(e);
+                    }
+                }
+
+            try
+                {
+                getService().unlockKey(storage, binKey, fExit);
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure.addSuppressed(e);
+                }
+            }
         
         /**
          * Lock the entries for the specified keys from the specified $Storage,
@@ -23832,22 +24214,35 @@ public class PartitionedCache
             for (int i = 0; i < cSize; i++)
                 {
                 Binary binKey = aKeys[i];
-            
-                service.lockKey(storage, binKey, false);
-            
+
+                if (!service.lockKey(storage, binKey, false))
+                    {
+                    _trace("Unable to lock entry; skipping key", 1);
+                    continue;
+                    }
+
                 Storage.EntryStatus status = coordinator.getStatus(storage, binKey);
                 if (status == null || status.getBinaryEntry() != null)
                     {
                     _trace("Status invalid while locking entry; skipping key", 1);
                     // skip, soft assert; this could happen during shutdown with concurrent requests
+                    service.unlockKey(storage, binKey, false);
                     continue;
                     }
 
-                mapKeyStatus.put(binKey, status);
-            
-                status.setBinaryEntry(storage.instantiateBinaryEntry(binKey, null, false));
+                try
+                    {
+                    mapKeyStatus.put(binKey, status);
 
-                lStatus.add(status);
+                    status.setBinaryEntry(storage.instantiateBinaryEntry(binKey, null, false));
+
+                    lStatus.add(status);
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    cleanupFailedEntryLock(storage, binKey, status, mapKeyStatus, -1, false, e);
+                    throw e;
+                    }
                 }
             
             return lStatus.toArray(new Storage.EntryStatus[lStatus.size()]);
@@ -23893,37 +24288,48 @@ public class PartitionedCache
             Storage.EntryStatus status       = mapKeyStatus == null ? null : (Storage.EntryStatus) mapKeyStatus.get(binKey);
             int          nPartition   = status == null ? getKeyPartition(binKey) : status.getPartition();
             
-            fEnter = fEnter && !partsPinned.contains(nPartition); // only if not already entered
+            boolean fPartitionPinned = partsPinned.contains(nPartition);
+            fEnter = fEnter && !fPartitionPinned; // only if not already entered
             if (status == null && service.lockKey(storage, binKey, fEnter))
                 {
-                if (fEnter || !service.isConcurrent())
+                boolean fAddPartition = !fPartitionPinned && (fEnter || !service.isConcurrent());
+                try
                     {
-                    // remember the partition as having been entered by the InvocationContext
-                    partsPinned.add(nPartition);
-                    }
-            
-                status = service.getResourceCoordinator().getStatus(storage, binKey);
-                _assert(status != null && status.getBinaryEntry() == null);
-            
-                if (mapKeyStatus == null)
-                    {
-                    mapStorage.put(storage, mapKeyStatus = new LiteMap());
-                    }
-                mapKeyStatus.put(binKey, status);
-            
-                // we may be reusing an EntryStatus, however a previous BinaryEntry
-                // can be safely dereferenced
-                status.setBinaryEntry(binEntry);
-            
-                Map mapEnlisted = getEnlistedStatuses();
-                if (mapEnlisted != null)
-                    {
-                    Set setStatus = (Set) mapEnlisted.get(storage);
-                    if (setStatus == null)
+                    status = service.getResourceCoordinator().getStatus(storage, binKey);
+                    _assert(status != null && status.getBinaryEntry() == null);
+
+                    if (mapKeyStatus == null)
                         {
-                        mapEnlisted.put(storage, setStatus = new LiteSet());
+                        mapStorage.put(storage, mapKeyStatus = new LiteMap());
                         }
-                    setStatus.add(status);
+                    mapKeyStatus.put(binKey, status);
+
+                    // we may be reusing an EntryStatus, however a previous BinaryEntry
+                    // can be safely dereferenced
+                    status.setBinaryEntry(binEntry);
+
+                    Map mapEnlisted = getEnlistedStatuses();
+                    if (mapEnlisted != null)
+                        {
+                        Set setStatus = (Set) mapEnlisted.get(storage);
+                        if (setStatus == null)
+                            {
+                            mapEnlisted.put(storage, setStatus = new LiteSet());
+                            }
+                        setStatus.add(status);
+                        }
+
+                    if (fAddPartition)
+                        {
+                        // remember the partition as having been entered by the InvocationContext
+                        partsPinned.add(nPartition);
+                        }
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    cleanupFailedEntryLock(storage, binKey, status, mapKeyStatus,
+                            fAddPartition ? nPartition : -1, fEnter, e);
+                    throw e;
                     }
                 }
             
@@ -23937,9 +24343,29 @@ public class PartitionedCache
          */
         public void lockStorage(Storage storage)
             {
-            getService().getResourceCoordinator().lockAll(storage, -1L);
-            
-            getLockedStorage().add(storage);
+            PartitionedCache.ResourceCoordinator coordinator = getService().getResourceCoordinator();
+
+            if (!coordinator.lockAll(storage, -1L))
+                {
+                throw new IllegalStateException("Unable to lock storage");
+                }
+
+            try
+                {
+                getLockedStorage().add(storage);
+                }
+            catch (RuntimeException | Error e)
+                {
+                try
+                    {
+                    coordinator.unlockAll(storage);
+                    }
+                catch (RuntimeException | Error eCleanup)
+                    {
+                    e.addSuppressed(eCleanup);
+                    }
+                throw e;
+                }
             }
         
         public void markCommitted()
@@ -24194,56 +24620,110 @@ public class PartitionedCache
             // import java.util.Iterator;
             // import java.util.Set;
             
-            setAttempt(0);
-            clearStatuses();
-            setActive(false);
-            setReadOnlyRequest(false);
-            setAllowReadThrough(true);
-            setCommitted(false);
-            getStorageMap().clear();
-                
-            PartitionedCache.ResourceCoordinator coordinator = getService().getResourceCoordinator();
+            PartitionedCache                     service     = getService();
+            PartitionedCache.ResourceCoordinator coordinator = service.getResourceCoordinator();
 
             PartitionSet partsPinned      = getPinnedPartitions();
             PartitionSet partsPinnedPre   = getPrePinnedPartitions();
             Set          setLockedStorage = getLockedStorage();
-            
+            Throwable    eFailure         = null;
+
             try
                 {
-                try
+                clearStatuses();
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            try
+                {
+                setAttempt(0);
+                setActive(false);
+                setReadOnlyRequest(false);
+                setAllowReadThrough(true);
+                setCommitted(false);
+                getStorageMap().clear();
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            try
+                {
+                for (Iterator iter = setLockedStorage.iterator(); iter.hasNext(); )
                     {
-                    for (Iterator iter = setLockedStorage.iterator(); iter.hasNext(); )
+                    try
                         {
                         coordinator.unlockAll((Storage) iter.next());
                         }
-                    }
-                finally
-                    {
-                    setLockedStorage.clear();
+                    catch (RuntimeException | Error e)
+                        {
+                        eFailure = service.addCleanupFailure(eFailure, e);
+                        }
                     }
                 }
-            finally
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            try
+                {
+                setLockedStorage.clear();
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            if (fUnpin)
                 {
                 try
                     {
-                    if (fUnpin)
-                        {
-                        getService().unpinPartitions(partsPinned);
-                        }
+                    service.unpinPartitions(partsPinned);
                     }
-                finally
+                catch (RuntimeException | Error e)
                     {
-                    Span span = TracingHelper.getActiveSpan();
-                    if (!TracingHelper.isNoop(span))
-                        {
-                        partsPinned.add(partsPinnedPre);
-                        span.setMetadata("partitions", partsPinned.toString(/*fVerbose*/ false));
-                        }
-                    
-                    partsPinned.clear();
-                    partsPinnedPre.clear();
+                    eFailure = service.addCleanupFailure(eFailure, e);
                     }
                 }
+
+            try
+                {
+                Span span = TracingHelper.getActiveSpan();
+                if (!TracingHelper.isNoop(span))
+                    {
+                    partsPinned.add(partsPinnedPre);
+                    span.setMetadata("partitions", partsPinned.toString(/*fVerbose*/ false));
+                    }
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            try
+                {
+                partsPinned.clear();
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            try
+                {
+                partsPinnedPre.clear();
+                }
+            catch (RuntimeException | Error e)
+                {
+                eFailure = service.addCleanupFailure(eFailure, e);
+                }
+
+            service.throwCleanupFailure(eFailure);
             }
         
         /**
@@ -33911,7 +34391,26 @@ public class PartitionedCache
             
             if (fEntered)
                 {
-                ((PartitionedCache) get_Module()).ensureIndexReady(nPartition);
+                PartitionedCache service = (PartitionedCache) get_Module();
+                try
+                    {
+                    service.ensureIndexReady(nPartition);
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    if (isConcurrent())
+                        {
+                        try
+                            {
+                            service.exitPartition(nPartition);
+                            }
+                        catch (RuntimeException | Error eCleanup)
+                            {
+                            e.addSuppressed(eCleanup);
+                            }
+                        }
+                    throw e;
+                    }
                 }
             
             return fEntered;
@@ -39185,15 +39684,31 @@ public class PartitionedCache
             {
             // ensure that there is a TLO event-queue for this thread
             ensureEventQueue();
-            
-            if (!getService().isConcurrent() || // no need to use a physical lock if there are no worker threads
-                storage.getResourceControlMap().lock(binKey, cWait))
+
+            boolean fLocked = !getService().isConcurrent() || // no need to use a physical lock if there are no worker threads
+                              storage.getResourceControlMap().lock(binKey, cWait);
+            if (fLocked)
                 {
-                // all locked keys are "managed" (as they are "front-door" operations)
-                ensureStatus(storage, binKey).setManaged(true);
-                return true;
+                try
+                    {
+                    // all locked keys are "managed" (as they are "front-door" operations)
+                    ensureStatus(storage, binKey).setManaged(true);
+                    return true;
+                    }
+                catch (RuntimeException | Error e)
+                    {
+                    try
+                        {
+                        unlock(storage, binKey);
+                        }
+                    catch (RuntimeException | Error eCleanup)
+                        {
+                        e.addSuppressed(eCleanup);
+                        }
+                    throw e;
+                    }
                 }
-            
+
             return false;
             }
         
@@ -39285,14 +39800,11 @@ public class PartitionedCache
          */
         protected boolean processEvent(com.tangosol.internal.util.BMEventFabric.EventHolder evtHolder)
             {
-            PartitionedCache           service    = getService();
-            com.tangosol.util.MapEvent event      = evtHolder.getEvent();
-            Storage.EntryStatus        status     = (Storage.EntryStatus) evtHolder.getStatus();
-            Storage                    storage    = status.getStorage();
-            Binary                     binKey     = status.getKey();
-            boolean                    fOOBEvent  = false;
-            Storage.BinaryEntry        entry      = null;
-            boolean                    fSynthetic = false;
+            PartitionedCache    service   = getService();
+            Storage.EntryStatus status    = (Storage.EntryStatus) evtHolder.getStatus();
+            Storage             storage   = status.getStorage();
+            Binary              binKey    = status.getKey();
+            boolean             fOOBEvent = false;
             
             //  attempt to lock the entry (thus make the entry managed) prior to
             //  updating the index & partitioned key index
@@ -39313,6 +39825,39 @@ public class PartitionedCache
                // else this is a troubling case; process the com.tangosol.util.MapEvent updating ancillary
                //      data structures
                }
+
+            try
+                {
+                return processEventLocked(evtHolder, service, status, storage, binKey, fOOBEvent);
+                }
+            catch (RuntimeException | Error e)
+                {
+                if (fOOBEvent)
+                    {
+                    try
+                        {
+                        service.unlockKey(storage, binKey, true);
+                        }
+                    catch (RuntimeException | Error eCleanup)
+                        {
+                        e.addSuppressed(eCleanup);
+                        }
+                    }
+                throw e;
+                }
+            }
+
+        /**
+         * Process an event after any required out-of-band key lock has been
+         * acquired.
+         */
+        protected boolean processEventLocked(com.tangosol.internal.util.BMEventFabric.EventHolder evtHolder,
+                PartitionedCache service, Storage.EntryStatus status, Storage storage,
+                Binary binKey, boolean fOOBEvent)
+            {
+            com.tangosol.util.MapEvent event      = evtHolder.getEvent();
+            Storage.BinaryEntry        entry      = null;
+            boolean                    fSynthetic = false;
 
             // event could be null if this is a "synthetic" event holder used
             // to force a flush of the backup & client event changes
@@ -39712,34 +40257,41 @@ public class PartitionedCache
          */
         public void unlock(Storage storage, com.tangosol.util.Binary binKey)
             {
-            Storage.EntryStatus status = getStatus(storage, binKey);
-            
-            if (status != null)
+            boolean fConcurrent = getService().isConcurrent();
+
+            try
                 {
-                synchronized (status)
+                Storage.EntryStatus status = getStatus(storage, binKey);
+
+                if (status != null)
                     {
-                    // Note: it is possible that after finalizeInvoke, some additional
-                    //       OOB events were observed for this status
-                    if (status.getEventQueue().isEmpty())
+                    synchronized (status)
                         {
-                        removeStatus(storage, binKey, status);
+                        // Note: it is possible that after finalizeInvoke, some additional
+                        //       OOB events were observed for this status
+                        if (status.getEventQueue().isEmpty())
+                            {
+                            removeStatus(storage, binKey, status);
+                            }
+                        else
+                            {
+                            // we need to leave the non-empty eventQueue in place so that it can be subsequently
+                            // processed; we cannot however leave a non-null BinaryEntry once we've unlocked as
+                            // the next thread to lock needs to see a fresh entry.
+                            status.setBinaryEntry(null);
+                            }
+                        status.setManaged(false);
                         }
-                    else
-                        {
-                        // we need to leave the non-empty eventQueue in place so that it can be subsequently
-                        // processed; we cannot however leave a non-null BinaryEntry once we've unlocked as
-                        // the next thread to lock needs to see a fresh entry.
-                        status.setBinaryEntry(null);
-                        }
-                    status.setManaged(false);
                     }
                 }
-            
-            if (getService().isConcurrent())
+            finally
                 {
-                storage.getResourceControlMap().unlock(binKey);
+                if (fConcurrent)
+                    {
+                    storage.getResourceControlMap().unlock(binKey);
+                    }
+                // else; // there is no physical lock to release if we are single-threaded
                 }
-            // else; // there is no physical lock to release if we are single-threaded
             }
         
         /**
