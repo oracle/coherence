@@ -138,6 +138,86 @@ public interface ModelProvider {
 | `/api/models` | GET | List model configuration entries |
 | `/api/models/{type}/{provider}/{model}` | GET/PUT/DELETE | Manage model configuration (optional `?store=...`) |
 
+### Authentication
+
+RAG REST supports bearer tokens and API keys. Basic auth is rejected at the API
+layer; a proxy may terminate Basic auth before forwarding a bearer token or API
+key to RAG REST. Cookie session auth is not supported.
+
+Sensitive RAG REST operations require authentication. Configuration writes,
+model configuration mutations, store configuration updates, and document
+imports require the configured admin role. `_config` reads require an
+authenticated caller and return `404` for sensitive keys.
+
+The default admin role is configured with:
+
+```properties
+coherence.rag.security.admin-role=admin
+```
+
+Runtime `_config` writes are restricted to explicitly allowed properties:
+
+```properties
+coherence.rag.config.write.allowed-properties=model.embedding,model.chat,model.scoring,coherence.rag.default.parser
+```
+
+### Model Download Policy
+
+Local ONNX embedding and scoring models may auto-download model artifacts from
+HuggingFace when they are not shipped as classpath resources. CDI-registered
+`ModelProvider` beans, including OpenAI, Ollama, OCI, DeepSeek, and Anthropic,
+are JAR-wired and do not use this download gate. Chat model selectors are not
+validated by the download policy.
+
+Set the HuggingFace allowlist with exact model names or owner-wide trailing
+wildcards:
+
+```yaml
+coherence:
+  rag:
+    security:
+      huggingface:
+        allowed-models:
+          - sentence-transformers/all-MiniLM-L6-v2     # exact
+          - sentence-transformers/*                     # all from owner
+          - cross-encoder/ms-marco-TinyBERT-L-2-v2     # exact
+```
+
+The equivalent system property is:
+
+```properties
+coherence.rag.security.huggingface.allowed-models=sentence-transformers/all-MiniLM-L6-v2,sentence-transformers/*,cross-encoder/ms-marco-TinyBERT-L-2-v2
+```
+
+When the allowlist is empty:
+
+| `coherence.mode` | Behavior |
+|------------------|----------|
+| `dev` or unset | Downloads are allowed and a single bounded warning is logged per process startup. |
+| `prod` | Downloads are rejected until `coherence.rag.security.huggingface.allowed-models` is configured. |
+
+Document imports are denied by default until schemes and locations are
+configured:
+
+```properties
+coherence.rag.import.allowed-schemes=
+coherence.rag.import.file.allowed-roots=
+coherence.rag.import.http.allowed-hosts=
+coherence.rag.import.http.allow-private-addresses=false
+coherence.rag.import.connect-timeout-ms=10000
+coherence.rag.import.read-timeout-ms=30000
+coherence.rag.import.max-bytes=52428800
+coherence.rag.import.s3.allowed-buckets=
+coherence.rag.import.azure.blob.allowed-containers=
+coherence.rag.import.gcs.allowed-buckets=
+coherence.rag.import.oci.os.allowed-locations=
+```
+
+HTTP(S) imports require an allowed host and resolved addresses are checked
+before opening the URI. Loopback, link-local, metadata, and private addresses
+are rejected by default; the private-address opt-in still requires an allowed
+host and does not permit link-local metadata targets.
+
 ### Configuration
 
 #### Store Configuration

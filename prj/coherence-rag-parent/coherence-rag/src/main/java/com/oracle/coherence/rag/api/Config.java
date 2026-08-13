@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.Context;
 
 /**
  * REST API endpoint for managing Coherence configuration properties.
@@ -55,6 +57,12 @@ public class Config
     private CoherenceConfigSource coherenceConfig;
 
     /**
+     * Security context for caller authentication and role checks.
+     */
+    @Context
+    private SecurityContext securityContext;
+
+    /**
      * Retrieves the value of a configuration property.
      * <p/>
      * This endpoint returns the current value of the specified configuration
@@ -71,6 +79,19 @@ public class Config
     @Produces(MediaType.TEXT_PLAIN)
     public Response get(@PathParam("property") String property)
         {
+        Response response = RagSecurity.requireAuthenticated(securityContext, RagSecurity.ROUTE_CONFIG_READ);
+        if (response != null)
+            {
+            return response;
+            }
+
+        if (RagSecurity.isSensitiveConfigRead(property))
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_CONFIG_READ, RagSecurity.GATE_CONFIG_READ_REDACTION,
+                    RagSecurity.principal(securityContext), RagSecurity.REASON_SENSITIVE_READ_DENIED);
+            return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
         String value = coherenceConfig.getValue(property);
         return value == null
                ? Response.status(Response.Status.NOT_FOUND).build()
@@ -96,6 +117,23 @@ public class Config
     @Produces(MediaType.TEXT_PLAIN)
     public Response set(@PathParam("property") String property, String value)
         {
+        Response response = RagSecurity.requireAdmin(securityContext, RagSecurity.ROUTE_CONFIG_WRITE);
+        if (response != null)
+            {
+            return response;
+            }
+
+        try
+            {
+            RagSecurity.validateConfigWrite(property, value);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_CONFIG_WRITE, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         return Response.ok(coherenceConfig.setValue(property, value)).build();
         }
     }

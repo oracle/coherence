@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,11 +19,12 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * REST API for managing model configuration documents.
@@ -49,6 +50,12 @@ public class Models
     @Produces(MediaType.APPLICATION_JSON)
     public Response list()
         {
+        Response response = RagSecurity.requireAuthenticated(securityContext, RagSecurity.ROUTE_MODEL_CONFIG);
+        if (response != null)
+            {
+            return response;
+            }
+
         List<ConfigEntry> entries = repo.keys().stream()
                 .map(k -> new ConfigEntry(String.valueOf(k.key())))
                 .sorted((a, b) -> a.key.compareToIgnoreCase(b.key))
@@ -73,6 +80,12 @@ public class Models
                         @PathParam("provider") String provider,
                         @PathParam("model") String model)
         {
+        Response response = RagSecurity.requireAuthenticated(securityContext, RagSecurity.ROUTE_MODEL_CONFIG);
+        if (response != null)
+            {
+            return response;
+            }
+
         ConfigKey key = new ConfigKey(key(type, provider, model));
         String    json = repo.get(key);
         return json == null
@@ -98,7 +111,23 @@ public class Models
                         @PathParam("model") String model,
                         String json)
         {
-        Objects.requireNonNull(json, "Configuration JSON cannot be null");
+        Response response = RagSecurity.requireAdmin(securityContext, RagSecurity.ROUTE_MODEL_CONFIG);
+        if (response != null)
+            {
+            return response;
+            }
+
+        try
+            {
+            RagSecurity.validateModelConfigJson(json);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_MODEL_CONFIG, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         ConfigKey key = new ConfigKey(key(type, provider, model));
         repo.put(key, json);
         return Response.noContent().build();
@@ -119,6 +148,12 @@ public class Models
                            @PathParam("provider") String provider,
                            @PathParam("model") String model)
         {
+        Response response = RagSecurity.requireAdmin(securityContext, RagSecurity.ROUTE_MODEL_CONFIG);
+        if (response != null)
+            {
+            return response;
+            }
+
         ConfigKey key = new ConfigKey(key(type, provider, model));
         repo.remove(key);
         return Response.noContent().build();
@@ -136,8 +171,12 @@ public class Models
     @Inject
     private ConfigRepository repo;
 
+    /**
+     * Security context for caller authentication and role checks.
+     */
+    @Context
+    private SecurityContext securityContext;
+
     /** Entry returned by the list endpoint. */
     public record ConfigEntry(String key) {}
     }
-
-

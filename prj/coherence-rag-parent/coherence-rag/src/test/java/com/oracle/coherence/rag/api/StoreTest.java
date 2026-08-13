@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -27,6 +28,9 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +38,8 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -95,6 +101,20 @@ class StoreTest
         when(embeddingModelSupplier.defaultModelName()).thenReturn(new ModelName("test/embedding-model"));
         when(embeddingModelSupplier.get()).thenReturn(embeddingModel);
         when(chatModelSupplier.get()).thenReturn(streamingChatModel);
+        }
+
+    @AfterEach
+    void cleanup()
+        {
+        System.clearProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES);
+        System.clearProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS);
+        System.clearProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS);
+        System.clearProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOW_PRIVATE);
+        System.clearProperty(RagSecurity.PROP_IMPORT_S3_ALLOWED_BUCKETS);
+        System.clearProperty(RagSecurity.PROP_IMPORT_AZURE_ALLOWED_CONTAINERS);
+        System.clearProperty(RagSecurity.PROP_IMPORT_GCS_ALLOWED_BUCKETS);
+        System.clearProperty(RagSecurity.PROP_IMPORT_OCI_ALLOWED_LOCATIONS);
+        RagSecurity.setAddressResolverForTesting(null);
         }
 
     // ---- request/response record tests ----------------------------------
@@ -276,7 +296,102 @@ class StoreTest
             }
         }
 
+    @Nested
+    @DisplayName("Import URI Policy Tests")
+    class ImportUriPolicyTests
+        {
+        @Test
+        @DisplayName("Should reject file import outside allowed roots")
+        void shouldRejectFileImportOutsideAllowedRoots() throws Exception
+            {
+            Path pathRoot  = Files.createTempDirectory("rag-allowed");
+            Path pathOther = Files.createTempFile("rag-denied", ".txt");
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+            System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, pathRoot.toString());
+
+            RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                    () -> RagSecurity.validateImportUri(pathOther.toUri().toString()));
+
+            assertThat(e.reason(), is(RagSecurity.REASON_PATH_NOT_ALLOWED));
+            }
+
+        @Test
+        @DisplayName("Should allow file import under allowed root")
+        void shouldAllowFileImportUnderAllowedRoot() throws Exception
+            {
+            Path pathRoot = Files.createTempDirectory("rag-allowed");
+            Path pathFile = Files.createTempFile(pathRoot, "rag", ".txt");
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+            System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, pathRoot.toString());
+
+            assertDoesNotThrow(() -> RagSecurity.validateImportUri(pathFile.toUri().toString()));
+            }
+
+        @Test
+        @DisplayName("Should reject allowlisted HTTP host resolving to private address")
+        void shouldRejectAllowlistedHttpHostResolvingToPrivateAddress() throws Exception
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "http");
+            System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "docs.example.com");
+            RagSecurity.setAddressResolverForTesting(host -> new InetAddress[]{InetAddress.getByName("10.0.0.5")});
+
+            RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                    () -> RagSecurity.validateImportUri("http://docs.example.com/document.txt"));
+
+            assertThat(e.reason(), is(RagSecurity.REASON_PRIVATE_ADDRESS_NOT_ALLOWED));
+            }
+
+        @Test
+        @DisplayName("Should allow HTTPS host resolving to public address")
+        void shouldAllowHttpsHostResolvingToPublicAddress() throws Exception
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "https");
+            System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "docs.example.com");
+            RagSecurity.setAddressResolverForTesting(host -> new InetAddress[]{InetAddress.getByName("93.184.216.34")});
+
+            assertDoesNotThrow(() -> RagSecurity.validateImportUri("https://docs.example.com/document.txt"));
+            }
+
+        @Test
+        @DisplayName("Should reject cloud import without provider location allowlist")
+        void shouldRejectCloudImportWithoutProviderLocationAllowlist()
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "s3");
+
+            RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                    () -> RagSecurity.validateImportUri("s3://coherence-rag/document.txt"));
+
+            assertThat(e.reason(), is(RagSecurity.REASON_PROVIDER_LOCATION_NOT_ALLOWED));
+            }
+
+        @Test
+        @DisplayName("Should allow cloud import with provider location allowlist")
+        void shouldAllowCloudImportWithProviderLocationAllowlist()
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "s3");
+            System.setProperty(RagSecurity.PROP_IMPORT_S3_ALLOWED_BUCKETS, "coherence-rag");
+
+            assertDoesNotThrow(() -> RagSecurity.validateImportUri("s3://coherence-rag/document.txt"));
+            }
+
+        @Test
+        @DisplayName("Should reject mixed import list atomically")
+        void shouldRejectMixedImportListAtomically() throws Exception
+            {
+            Path pathRoot = Files.createTempDirectory("rag-allowed");
+            Path pathFile = Files.createTempFile(pathRoot, "rag", ".txt");
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file,s3");
+            System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, pathRoot.toString());
+
+            RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                    () -> RagSecurity.validateImportUris(List.of(pathFile.toUri().toString(), "s3://blocked/doc.txt")));
+
+            assertThat(e.reason(), is(RagSecurity.REASON_PROVIDER_LOCATION_NOT_ALLOWED));
+            }
+        }
+
     // ---- validation tests -----------------------------------------------
+
 
     @Nested
     @DisplayName("Business Logic Validation Tests")

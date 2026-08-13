@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,8 +41,10 @@ import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import java.util.Comparator;
 import java.util.List;
@@ -99,6 +101,12 @@ public class Kb
      */
     @Inject
     private StreamingChatModelSupplier chatModelSupplier;
+
+    /**
+     * Security context for caller authentication and role checks.
+     */
+    @Context
+    private SecurityContext securityContext;
 
     /**
      * Cache of store instances indexed by store name.
@@ -246,6 +254,23 @@ public class Kb
     @Consumes(MediaType.APPLICATION_JSON)
     public Response configureStore(@PathParam("storeName") String storeName, StoreConfig config)
         {
+        Response response = RagSecurity.requireAdmin(securityContext, RagSecurity.ROUTE_STORE_CONFIG);
+        if (response != null)
+            {
+            return response;
+            }
+
+        try
+            {
+            RagSecurity.validateStoreConfig(config);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_STORE_CONFIG, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         storeConfig.put(storeName, config);
         return Response.noContent().build();
         }
@@ -270,6 +295,17 @@ public class Kb
     @Path("search")
     public Response search(Store.SearchRequest req)
         {
+        try
+            {
+            RagSecurity.validateModelDownload(req.scoringModel(), RagSecurity.GATE_DOWNLOAD_SEARCH_REQUEST);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_SEARCH_REQUEST, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         Timer timer = new Timer().start();
         List<Store.ChunkResult> results = findChunks(req.query(), req.maxResults(), req.minScore(), req.fullTextWeight(), req.scoringModel());
         timer.stop();
@@ -298,6 +334,17 @@ public class Kb
     @Produces(MediaType.TEXT_PLAIN)
     public Response chat(Store.ChatRequest req)
         {
+        try
+            {
+            RagSecurity.validateModelDownload(req.scoringModel(), RagSecurity.GATE_DOWNLOAD_CHAT_REQUEST);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_CHAT_REQUEST, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         StreamingChatModel chatModel = req.chatModel() == null
                                   ? chatModelSupplier.get()
                                   : chatModelSupplier.get(new ModelName(req.chatModel()));

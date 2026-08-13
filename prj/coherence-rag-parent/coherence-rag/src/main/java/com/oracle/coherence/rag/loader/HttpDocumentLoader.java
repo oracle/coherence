@@ -1,22 +1,24 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.rag.loader;
 
+import com.oracle.coherence.rag.api.RagSecurity;
 import com.oracle.coherence.rag.DocumentLoader;
 
-import com.oracle.coherence.rag.ParserProvider;
 import com.oracle.coherence.rag.parser.ParserSupplier;
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.loader.UrlDocumentLoader;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 
 /**
@@ -77,7 +79,83 @@ public class HttpDocumentLoader implements DocumentLoader
      */
     public Document load(URI uri)
         {
-        return UrlDocumentLoader.load(uri.toString(), m_parserSupplier.get());
+        try
+            {
+            HttpURLConnection connection = RagSecurity.openValidatedHttpConnection(uri);
+            try (InputStream in = new BoundedInputStream(connection.getInputStream(), RagSecurity.maxImportBytes()))
+                {
+                return m_parserSupplier.get().parse(in);
+                }
+            finally
+                {
+                connection.disconnect();
+                }
+            }
+        catch (IOException e)
+            {
+            throw new RuntimeException(e);
+            }
+        }
+
+    // ---- inner class: BoundedInputStream --------------------------------
+
+    /**
+     * Input stream wrapper that enforces the configured import byte cap.
+     */
+    static class BoundedInputStream
+            extends InputStream
+        {
+        BoundedInputStream(InputStream in, long cbMax)
+            {
+            this.in    = in;
+            this.cbMax = cbMax;
+            }
+
+        @Override
+        public int read()
+                throws IOException
+            {
+            int b = in.read();
+            if (b != -1)
+                {
+                check(1);
+                }
+            return b;
+            }
+
+        @Override
+        public int read(byte[] ab, int of, int cb)
+                throws IOException
+            {
+            int cbRead = in.read(ab, of, cb);
+            if (cbRead > 0)
+                {
+                check(cbRead);
+                }
+            return cbRead;
+            }
+
+        @Override
+        public void close()
+                throws IOException
+            {
+            in.close();
+            }
+
+        private void check(int cbRead)
+            {
+            cb += cbRead;
+            if (cb > cbMax)
+                {
+                throw new RagSecurity.PolicyViolation(
+                        RagSecurity.GATE_IMPORT_URI_ALLOWLIST,
+                        RagSecurity.REASON_IMPORT_BODY_EXCEEDS_CAP);
+                }
+            }
+
+        private final InputStream in;
+        private final long        cbMax;
+        private long              cb;
         }
 
     // ---- data members ----------------------------------------------------

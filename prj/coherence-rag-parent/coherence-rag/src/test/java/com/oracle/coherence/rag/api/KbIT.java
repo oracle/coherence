@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -9,6 +9,7 @@ package com.oracle.coherence.rag.api;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
+import io.helidon.microprofile.testing.junit5.AddBean;
 import io.helidon.microprofile.testing.junit5.HelidonTest;
 
 import jakarta.inject.Inject;
@@ -18,6 +19,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Assumptions;
@@ -37,6 +39,7 @@ import static org.hamcrest.Matchers.is;
 
 @SuppressWarnings({"NewClassNamingConvention", "CdiInjectionPointsInspection"})
 @HelidonTest
+@AddBean(TestSecurityContextFilter.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisabledOnOs(OS.WINDOWS)
@@ -57,6 +60,8 @@ class KbIT
     static void setUp()
         {
         System.setProperty("coherence.cacheconfig", "coherence-rag-cache-config.xml");
+        System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+        System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, Path.of("src/test/resources").toAbsolutePath().toString());
         }
 
     @Test
@@ -65,8 +70,7 @@ class KbIT
         {
         // configure store with local ONNX embedding model
         String cfg = "{\"embeddingModel\":\"-/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":512,\"chunkOverlap\":64}";
-        try (Response putCfg = target.path("api/kb/config/" + store)
-                .request()
+        try (Response putCfg = admin(target.path("api/kb/config/" + store))
                 .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
             {
             assertThat(putCfg.getStatus(), is(204));
@@ -79,8 +83,7 @@ class KbIT
 
         // import document via docs endpoint
         String importBody = "[\"" + docUri + "\"]";
-        try (Response imp = target.path("api/kb/" + store + "/docs")
-                .request()
+        try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
                 .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
             {
             assertThat(imp.getStatus(), is(204));
@@ -173,5 +176,11 @@ class KbIT
         var mapChunks = kb.store(store).getChunks(docId);
         return mapChunks != null && mapChunks.size() >= cExpectedChunks;
         }
-    }
 
+    private static jakarta.ws.rs.client.Invocation.Builder admin(WebTarget target)
+        {
+        return target.request()
+                .header(TestSecurityContextFilter.HEADER_USER, "admin-user")
+                .header(TestSecurityContextFilter.HEADER_ROLES, "admin");
+        }
+    }

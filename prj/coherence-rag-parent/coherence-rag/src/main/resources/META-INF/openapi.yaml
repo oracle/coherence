@@ -20,7 +20,8 @@ info:
     
     ## Authentication
     
-    The API endpoints support standard HTTP authentication mechanisms. Authentication details should be configured according to your deployment requirements.
+    RAG REST supports bearer tokens and API keys. Basic auth is rejected at the
+    API layer, and cookie session auth is not supported.
     
     ## Rate Limiting
     
@@ -203,8 +204,16 @@ paths:
       summary: Configure store settings
       description: |
         Updates the configuration for a specific document store. Changes are applied
-        immediately and propagated across all cluster members.
+        immediately and propagated across all cluster members. This operation requires
+        authentication and the configured RAG admin role. Embedding model
+        selectors that can trigger HuggingFace downloads must match
+        `coherence.rag.security.huggingface.allowed-models` as exact
+        `owner/model` entries or owner-wide `owner/*` entries; chat selectors
+        are JAR-wired and are not validated by this download gate.
       operationId: configureStore
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: storeName
           in: path
@@ -237,6 +246,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+        '403':
+          description: Configured RAG admin role required
 
   # Store-level operations
   /api/db/{storeName}:
@@ -504,6 +517,9 @@ paths:
       description: |
         Imports documents from the specified URIs for processing. Documents are processed
         asynchronously - they are loaded, chunked, embedded, and stored automatically.
+        This operation requires authentication and the configured RAG admin role.
+        Every URI must match the configured scheme and location allowlists before
+        any URI from the request is queued.
         
         Supported URI schemes include:
         - http/https: Web documents
@@ -512,7 +528,23 @@ paths:
         - azure.blob: Azure Blob Storage
         - gcs: Google Cloud Storage
         - oci.os: OCI Object Storage
+
+        Configure import allowlists with:
+        - `coherence.rag.import.allowed-schemes`
+        - `coherence.rag.import.file.allowed-roots`
+        - `coherence.rag.import.http.allowed-hosts`
+        - `coherence.rag.import.http.allow-private-addresses`
+        - `coherence.rag.import.connect-timeout-ms`
+        - `coherence.rag.import.read-timeout-ms`
+        - `coherence.rag.import.max-bytes`
+        - `coherence.rag.import.s3.allowed-buckets`
+        - `coherence.rag.import.azure.blob.allowed-containers`
+        - `coherence.rag.import.gcs.allowed-buckets`
+        - `coherence.rag.import.oci.os.allowed-locations`
       operationId: importDocuments
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: storeName
           in: path
@@ -545,6 +577,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
+        '403':
+          description: Configured RAG admin role required
 
   /api/db/{storeName}/chunks:
     get:
@@ -686,8 +722,13 @@ paths:
       summary: Get configuration property
       description: |
         Retrieves the value of a specific configuration property from the
-        distributed configuration store.
+        distributed configuration store. This operation requires an authenticated
+        caller. Sensitive keys, including secrets and provider destination keys,
+        return the same `404` response as missing keys.
       operationId: getConfigProperty
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: property
           in: path
@@ -705,20 +746,34 @@ paths:
                 type: string
               example: "text-embedding-3-small"
         '404':
-          description: Property not found
+          description: Property not found or sensitive
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Authentication required
 
     put:
       tags:
         - Configuration
       summary: Set configuration property
       description: |
-        Sets the value of a configuration property. Changes are propagated
-        across all cluster members and take effect immediately.
+        Sets the value of an explicitly allowed runtime RAG configuration
+        property. This operation requires authentication and the configured RAG
+        admin role. Sensitive keys, provider destination keys, and RAG policy
+        namespaces cannot be written through this endpoint.
+
+        Configure write allowlists with:
+        - `coherence.rag.config.write.allowed-properties`
+        - `coherence.rag.security.huggingface.allowed-models` for embedding
+          and scoring selectors that can trigger HuggingFace downloads. The
+          download allowlist accepts exact `owner/model` entries and
+          owner-wide `owner/*` entries only.
       operationId: setConfigProperty
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: property
           in: path
@@ -737,6 +792,12 @@ paths:
       responses:
         '200':
           description: Previous property value (may be null)
+        '400':
+          description: Property or value is not allowed
+        '401':
+          description: Authentication required
+        '403':
+          description: Configured RAG admin role required
   # Model configuration management
   /api/models:
     get:
@@ -797,8 +858,15 @@ paths:
         - Model Configuration
       summary: Upsert model configuration
       description: |
-        Creates or updates the JSON configuration for the specified model. The body is stored verbatim.
+        Creates or updates the JSON configuration for the specified model. This
+        operation requires authentication and the configured RAG admin role.
+        Slice A rejects JSON containing known destination or secret-bearing
+        field names such as `baseUrl`, `apiKey`, `endpoint`, `auth`,
+        `password`, `secret`, or `token`.
       operationId: putModelConfig
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: type
           in: path
@@ -829,14 +897,24 @@ paths:
       responses:
         '204':
           description: Configuration stored
+        '400':
+          description: JSON content is not allowed
+        '401':
+          description: Authentication required
+        '403':
+          description: Configured RAG admin role required
 
     delete:
       tags:
         - Model Configuration
       summary: Delete model configuration
       description: |
-        Deletes the configuration if present.
+        Deletes the configuration if present. This operation requires
+        authentication and the configured RAG admin role.
       operationId: deleteModelConfig
+      security:
+        - BearerAuth: []
+        - ApiKeyAuth: []
       parameters:
         - name: type
           in: path
@@ -862,6 +940,10 @@ paths:
               schema:
                 type: string
                 nullable: true
+        '401':
+          description: Authentication required
+        '403':
+          description: Configured RAG admin role required
 
   # Scoring services
   /api/score:
@@ -1222,15 +1304,9 @@ components:
       name: X-API-Key
       description: API key authentication
     
-    BasicAuth:
-      type: http
-      scheme: basic
-      description: Basic HTTP authentication
-
 security:
   - BearerAuth: []
   - ApiKeyAuth: []
-  - BasicAuth: []
   - {} # Allow unauthenticated access for development
 
 # Global response headers

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -86,8 +86,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.StreamingOutput;
 
 import java.io.IOException;
@@ -739,8 +741,25 @@ public class Store
     @POST
     @Path("docs")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response importDocuments(List<String> uris)
+    public Response importDocuments(List<String> uris, @Context SecurityContext securityContext)
         {
+        Response response = RagSecurity.requireAdmin(securityContext, RagSecurity.ROUTE_DOCUMENT_IMPORT);
+        if (response != null)
+            {
+            return response;
+            }
+
+        try
+            {
+            RagSecurity.validateImportUris(uris);
+            }
+        catch (RagSecurity.PolicyViolation e)
+            {
+            RagSecurity.warn(RagSecurity.ROUTE_DOCUMENT_IMPORT, e.gate(),
+                    RagSecurity.principal(securityContext), e.reason(), e.deniedModel());
+            return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+
         //noinspection resource
         Publisher<String> publisher = ensureDocsPublisher();
         uris.forEach(publisher::publish);
@@ -1113,7 +1132,7 @@ public class Store
                                      {
                                      doc.metadata().put("url", docId);
                                      docs.put(docId, doc);
-                                     Logger.fine("Loaded %s in %,d ms".formatted(docId, time));
+                                     Logger.fine("Loaded document in %,d ms".formatted(time));
                                      }
                                  }
 
@@ -1174,6 +1193,16 @@ public class Store
          */
         public Document loadDocument(String docId)
             {
+            try
+                {
+                RagSecurity.validateImportUri(docId);
+                }
+            catch (RagSecurity.PolicyViolation e)
+                {
+                RagSecurity.warn(RagSecurity.ROUTE_DOCUMENT_IMPORT, e.gate(), "unknown", e.reason());
+                return null;
+                }
+
             URI uri     = URI.create(docId);
             String sScheme = uri.getScheme();
 
@@ -1188,7 +1217,7 @@ public class Store
                 Document doc = loader.load(uri);
                 if (doc == null)
                     {
-                    Logger.info("Unable to load document %s".formatted(docId));
+                    Logger.info("Unable to load document");
                     }
 
                 return doc;
@@ -1196,7 +1225,8 @@ public class Store
             catch (Throwable e)
                 {
                 Throwable cause = Exceptions.getRootCause(e);
-                Logger.info("Failed to load document %s: %s".formatted(cause.getClass().getName(), cause.getMessage()));
+                Logger.info("Failed to load document: category=document-load-failure, exception=%s"
+                        .formatted(cause.getClass().getSimpleName()));
                 }
 
             return null;

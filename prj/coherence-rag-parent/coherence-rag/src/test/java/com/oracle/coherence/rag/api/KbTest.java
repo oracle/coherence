@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,8 +15,10 @@ import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +36,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -94,11 +100,19 @@ class KbTest
             injectField("storeConfig", storeConfig);
             injectField("embeddingModelSupplier", embeddingModelSupplier);
             injectField("chatModelSupplier", chatModelSupplier);
+            injectField("securityContext", context("admin-user", "admin"));
             }
         catch (Exception e)
             {
             throw new RuntimeException("Failed to inject mocks", e);
             }
+        }
+
+    @AfterEach
+    void cleanup()
+        {
+        System.clearProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS);
+        System.clearProperty("coherence.mode");
         }
 
     private void injectField(String fieldName, Object value) throws Exception
@@ -209,6 +223,7 @@ class KbTest
             // Arrange
             String storeName = TEST_STORE_1;
             StoreConfig config = TestDataFactory.createStoreConfig(storeName);
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
 
             // Act
             Response response = m_kb.configureStore(storeName, config);
@@ -225,6 +240,7 @@ class KbTest
             String storeName = TEST_STORE_1;
             StoreConfig oldConfig = TestDataFactory.createStoreConfig(storeName);
             StoreConfig newConfig = TestDataFactory.createStoreConfig(storeName);
+            newConfig.setEmbeddingModel("-/all-MiniLM-L6-v2");
             
             when(storeConfig.get(storeName)).thenReturn(oldConfig);
 
@@ -243,8 +259,19 @@ class KbTest
     class ErrorHandlingTests
         {
         @Test
-        @DisplayName("Should handle null store configuration gracefully")
-        void shouldHandleNullStoreConfigurationGracefully()
+        @DisplayName("Should accept bearer authentication scheme")
+        void shouldAcceptBearerAuthenticationScheme()
+            {
+            // symmetric Basic rejection is covered by ConfigTest.shouldRejectBasicAuthentication
+            Response response = RagSecurity.requireAuthenticated(
+                    contextWithScheme("BEARER", "reader", "reader"), RagSecurity.ROUTE_MODEL_CONFIG);
+
+            assertNull(response);
+            }
+
+        @Test
+        @DisplayName("Should reject null store configuration")
+        void shouldRejectNullStoreConfiguration()
             {
             // Arrange
             String storeName = TEST_STORE_1;
@@ -253,7 +280,8 @@ class KbTest
             Response response = m_kb.configureStore(storeName, null);
 
             // Assert
-            assertThat(response.getStatus(), is(204)); // Should handle gracefully
+            assertThat(response.getStatus(), is(400));
+            verify(storeConfig, never()).put(storeName, null);
             }
 
         @Test
@@ -263,6 +291,7 @@ class KbTest
             // Arrange
             String emptyStoreName = "";
             StoreConfig config = TestDataFactory.createStoreConfig("test");
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
 
             // Act
             Response response = m_kb.configureStore(emptyStoreName, config);
@@ -288,6 +317,88 @@ class KbTest
                 assertThat(e.getMessage(), is("Map access error"));
                 }
             }
+
+        @Test
+        @DisplayName("Should reject unauthenticated store configuration")
+        void shouldRejectUnauthenticatedStoreConfiguration() throws Exception
+            {
+            injectField("securityContext", null);
+            StoreConfig config = new StoreConfig();
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
+
+            Response response = m_kb.configureStore(TEST_STORE_1, config);
+
+            assertThat(response.getStatus(), is(401));
+            verify(storeConfig, never()).put(TEST_STORE_1, config);
+            }
+
+        @Test
+        @DisplayName("Should reject non-admin store configuration")
+        void shouldRejectNonAdminStoreConfiguration() throws Exception
+            {
+            injectField("securityContext", context("bob", "reader"));
+            StoreConfig config = new StoreConfig();
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
+
+            Response response = m_kb.configureStore(TEST_STORE_1, config);
+
+            assertThat(response.getStatus(), is(403));
+            verify(storeConfig, never()).put(TEST_STORE_1, config);
+            }
+
+        @Test
+        @DisplayName("Should reject store configuration with unallowlisted model download in prod")
+        void shouldRejectStoreConfigurationWithUnallowlistedModelDownloadInProd()
+            {
+            System.setProperty("coherence.mode", "prod");
+            StoreConfig config = new StoreConfig();
+            config.setEmbeddingModel("sentence-transformers/all-MiniLM-L6-v2");
+
+            Response response = m_kb.configureStore(TEST_STORE_1, config);
+
+            assertThat(response.getStatus(), is(400));
+            verify(storeConfig, never()).put(TEST_STORE_1, config);
+            }
+
+        @Test
+        @DisplayName("Should not validate chat model in store configuration")
+        void shouldNotValidateChatModelInStoreConfiguration()
+            {
+            System.setProperty("coherence.mode", "prod");
+            StoreConfig config = new StoreConfig();
+            config.setChatModel("OpenAI/gpt-4o-mini");
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
+
+            Response response = m_kb.configureStore(TEST_STORE_1, config);
+
+            assertThat(response.getStatus(), is(204));
+            }
+
+        @Test
+        @DisplayName("Should reject search scoring model download in prod")
+        void shouldRejectSearchScoringModelDownloadInProd()
+            {
+            System.setProperty("coherence.mode", "prod");
+            Store.SearchRequest request = new Store.SearchRequest(
+                    "query", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
+
+            Response response = m_kb.search(request);
+
+            assertThat(response.getStatus(), is(400));
+            }
+
+        @Test
+        @DisplayName("Should reject chat scoring model download in prod")
+        void shouldRejectChatScoringModelDownloadInProd()
+            {
+            System.setProperty("coherence.mode", "prod");
+            Store.ChatRequest request = new Store.ChatRequest(
+                    null, "question", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
+
+            Response response = m_kb.chat(request);
+
+            assertThat(response.getStatus(), is(400));
+            }
         }
 
     // ---- integration tests ---------------------------------------------
@@ -303,6 +414,7 @@ class KbTest
             // Arrange
             String storeName = TEST_STORE_1;
             StoreConfig config = TestDataFactory.createStoreConfig(storeName);
+            config.setEmbeddingModel("-/all-MiniLM-L6-v2");
             
             when(storeConfig.get(storeName)).thenReturn(null)
                     .thenReturn(config);
@@ -316,5 +428,47 @@ class KbTest
             assertThat(getResponse.getStatus(), is(200));
             // Note: Would be config if we properly set up the when().thenReturn chain
             }
+        }
+
+    private static SecurityContext context(String sName, String... asRole)
+        {
+        return contextWithScheme("test", sName, asRole);
+        }
+
+    private static SecurityContext contextWithScheme(String sScheme, String sName, String... asRole)
+        {
+        return new SecurityContext()
+            {
+            @Override
+            public Principal getUserPrincipal()
+                {
+                return () -> sName;
+                }
+
+            @Override
+            public boolean isUserInRole(String role)
+                {
+                for (String sRole : asRole)
+                    {
+                    if (sRole.equals(role))
+                        {
+                        return true;
+                        }
+                    }
+                return false;
+                }
+
+            @Override
+            public boolean isSecure()
+                {
+                return false;
+                }
+
+            @Override
+            public String getAuthenticationScheme()
+                {
+                return sScheme;
+                }
+            };
         }
     } 

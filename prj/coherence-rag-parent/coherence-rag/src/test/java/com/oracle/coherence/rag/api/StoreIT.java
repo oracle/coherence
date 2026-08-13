@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.ai.DocumentChunk;
 import com.oracle.coherence.cdi.Name;
 import com.tangosol.net.NamedMap;
+import io.helidon.microprofile.testing.junit5.AddBean;
 import io.helidon.microprofile.testing.junit5.HelidonTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.client.Entity;
@@ -18,6 +19,8 @@ import jakarta.ws.rs.client.WebTarget;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
+import java.net.InetAddress;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +40,7 @@ import static org.hamcrest.Matchers.is;
 
 @SuppressWarnings("CdiInjectionPointsInspection")
 @HelidonTest
+@AddBean(TestSecurityContextFilter.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DisabledOnOs(OS.WINDOWS)
@@ -57,15 +61,64 @@ class StoreIT
     static void beforeAll()
         {
         System.setProperty("coherence.cacheconfig", "coherence-rag-cache-config.xml");
+        System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+        System.setProperty(RagSecurity.PROP_IMPORT_FILE_ALLOWED_ROOTS, Path.of("src/test/resources").toAbsolutePath().toString());
         }
 
     @Test
     @Order(1)
-    void configureStore()
+    void shouldRejectUnauthenticatedStoreConfig()
         {
         String cfg = "{\"embeddingModel\":\"-/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
         try (Response putCfg = target.path("api/kb/config/" + store)
                 .request()
+                .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(putCfg.getStatus(), is(401));
+            }
+        }
+
+    @Test
+    @Order(2)
+    void shouldRejectNonAdminStoreConfig()
+        {
+        String cfg = "{\"embeddingModel\":\"-/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
+        try (Response putCfg = target.path("api/kb/config/" + store)
+                .request()
+                .header(TestSecurityContextFilter.HEADER_USER, "reader")
+                .header(TestSecurityContextFilter.HEADER_ROLES, "reader")
+                .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(putCfg.getStatus(), is(403));
+            }
+        }
+
+    @Test
+    @Order(3)
+    void shouldRejectStoreConfigWithUnallowlistedModelDownloadInProd()
+        {
+        System.setProperty("coherence.mode", "prod");
+        String cfg = "{\"embeddingModel\":\"sentence-transformers/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
+        try
+            {
+            try (Response putCfg = admin(target.path("api/kb/config/" + store))
+                    .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
+                {
+                assertThat(putCfg.getStatus(), is(400));
+                }
+            }
+        finally
+            {
+            System.clearProperty("coherence.mode");
+            }
+        }
+
+    @Test
+    @Order(4)
+    void configureStore()
+        {
+        String cfg = "{\"embeddingModel\":\"-/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
+        try (Response putCfg = admin(target.path("api/kb/config/" + store))
                 .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
             {
             assertThat(putCfg.getStatus(), is(204));
@@ -73,7 +126,104 @@ class StoreIT
         }
 
     @Test
-    @Order(2)
+    @Order(5)
+    void shouldRejectUnauthenticatedImport()
+        {
+        String importBody = "[\"file:///tmp/rejected.txt\"]";
+        try (Response imp = target.path("api/kb/" + store + "/docs")
+                .request()
+                .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(imp.getStatus(), is(401));
+            }
+        }
+
+    @Test
+    @Order(6)
+    void shouldRejectNonAdminImport()
+        {
+        String importBody = "[\"file:///tmp/rejected.txt\"]";
+        try (Response imp = target.path("api/kb/" + store + "/docs")
+                .request()
+                .header(TestSecurityContextFilter.HEADER_USER, "reader")
+                .header(TestSecurityContextFilter.HEADER_ROLES, "reader")
+                .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(imp.getStatus(), is(403));
+            }
+        }
+
+    @Test
+    @Order(7)
+    void shouldRejectFileImportOutsideAllowedRoot()
+        {
+        String importBody = "[\"file:///tmp/rejected.txt\"]";
+        try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
+                .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(imp.getStatus(), is(400));
+            }
+        }
+
+    @Test
+    @Order(8)
+    void shouldRejectHttpImportResolvingToPrivateAddress() throws Exception
+        {
+        System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file,http");
+        System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "docs.example.com");
+        RagSecurity.setAddressResolverForTesting(host -> new InetAddress[]{InetAddress.getByName("10.0.0.5")});
+        try
+            {
+            String importBody = "[\"http://docs.example.com/document.txt\"]";
+            try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
+                    .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+                {
+                assertThat(imp.getStatus(), is(400));
+                }
+            }
+        finally
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+            System.clearProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS);
+            RagSecurity.setAddressResolverForTesting(null);
+            }
+        }
+
+    @Test
+    @Order(9)
+    void shouldRejectCloudImportWithoutLocationAllowlist()
+        {
+        System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file,s3");
+        try
+            {
+            String importBody = "[\"s3://blocked/document.txt\"]";
+            try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
+                    .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+                {
+                assertThat(imp.getStatus(), is(400));
+                }
+            }
+        finally
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "file");
+            }
+        }
+
+    @Test
+    @Order(10)
+    void shouldRejectMixedImportListAtomically()
+        {
+        File pdf = new File("src/test/resources/database-release-notes.pdf");
+        String importBody = "[\"" + pdf.toURI() + "\",\"file:///tmp/rejected.txt\"]";
+        try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
+                .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
+            {
+            assertThat(imp.getStatus(), is(400));
+            }
+        }
+
+    @Test
+    @Order(11)
     void importPdfDocument() throws Exception
         {
         File pdf = new File("src/test/resources/database-release-notes.pdf");
@@ -81,8 +231,7 @@ class StoreIT
         docUri = pdf.toURI().toString();
 
         String importBody = "[\"" + docUri + "\"]";
-        try (Response imp = target.path("api/kb/" + store + "/docs")
-                .request()
+        try (Response imp = admin(target.path("api/kb/" + store + "/docs"))
                 .post(Entity.entity(importBody, MediaType.APPLICATION_JSON_TYPE)))
             {
             assertThat(imp.getStatus(), is(204));
@@ -92,7 +241,7 @@ class StoreIT
         }
 
     @Test
-    @Order(3)
+    @Order(12)
     void getStoreConfig()
         {
         Response getCfg = target.path("api/kb/" + store + "/config")
@@ -103,7 +252,7 @@ class StoreIT
         }
 
     @Test
-    @Order(4)
+    @Order(13)
     void getDocumentsListAndSpecific()
         {
         // list doc ids
@@ -122,7 +271,7 @@ class StoreIT
         }
 
     @Test
-    @Order(5)
+    @Order(14)
     void getDocumentChunks()
         {
         Response chunks = target.path("api/kb/" + store + "/chunks")
@@ -134,7 +283,7 @@ class StoreIT
         }
 
     @Test
-    @Order(6)
+    @Order(15)
     void addPreprocessedChunks()
         {
         String payload = "[ {\"id\":\"doc-extra\",\"chunks\":[{\"text\":\"Extra chunk text\",\"metadata\":{}}]} ]";
@@ -147,7 +296,7 @@ class StoreIT
         }
 
     @Test
-    @Order(7)
+    @Order(16)
     void createAndRemoveIndex()
         {
         String hnsw = "{\"type\":\"HNSW\",\"parameters\":{\"m\":16,\"efConstruction\":200,\"efSearch\":64}}";
@@ -165,7 +314,7 @@ class StoreIT
         }
 
     @Test
-    @Order(8)
+    @Order(17)
     void vectorOnlySearch()
         {
         String body = "{\"query\":\"release notes\",\"maxResults\":5}";
@@ -179,7 +328,7 @@ class StoreIT
         }
 
     @Test
-    @Order(9)
+    @Order(18)
     void hybridSearch()
         {
         String body = "{\"query\":\"release notes\",\"maxResults\":5,\"minScore\":0.3,\"fullTextWeight\":0.5}";
@@ -198,6 +347,11 @@ class StoreIT
         var mapChunks = kb.store(store).getChunks(docId);
         return mapChunks != null && mapChunks.size() >= cExpectedChunks;
         }
+
+    private static jakarta.ws.rs.client.Invocation.Builder admin(WebTarget target)
+        {
+        return target.request()
+                .header(TestSecurityContextFilter.HEADER_USER, "admin-user")
+                .header(TestSecurityContextFilter.HEADER_ROLES, "admin");
+        }
     }
-
-
