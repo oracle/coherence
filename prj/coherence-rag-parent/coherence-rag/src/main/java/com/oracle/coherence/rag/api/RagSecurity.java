@@ -11,7 +11,7 @@ import com.oracle.coherence.rag.ModelProvider;
 import com.oracle.coherence.rag.config.StoreConfig;
 import com.oracle.coherence.rag.model.ModelName;
 import com.oracle.coherence.rag.util.CdiHelper;
-import com.tangosol.net.CacheFactory;
+import com.tangosol.internal.util.CoherenceMode;
 
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
@@ -627,12 +627,7 @@ public final class RagSecurity
 
     private static boolean isProductionMode()
         {
-        String sMode = normalize(com.tangosol.coherence.config.Config.getProperty("coherence.mode"));
-        if (sMode == null)
-            {
-            sMode = normalize(CacheFactory.getLicenseMode());
-            }
-        return "prod".equals(sMode) || "production".equals(sMode);
+        return CoherenceMode.isProd();
         }
 
     private static int connectTimeoutMillis()
