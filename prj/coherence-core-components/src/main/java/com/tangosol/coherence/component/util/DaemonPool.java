@@ -1937,7 +1937,7 @@ public class DaemonPool
      */
     public boolean isDynamic()
         {
-        return getDaemonCountMin() < getDaemonCountMax();
+        return getDaemonCountMin() < getDaemonCountConfiguredMax();
         }
     
     // Accessor for the property "InTransition"
