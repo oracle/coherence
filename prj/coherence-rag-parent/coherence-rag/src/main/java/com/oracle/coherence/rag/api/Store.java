@@ -173,21 +173,23 @@ public class Store
 
     private final NamedTopic<String> docsTopic;
     private Publisher<String> docsPublisher;
-    private final Subscriber<String> docsSubscriber;
+    private volatile Subscriber<String> docsSubscriber;
 
     private final NamedTopic<DocumentChunk> chunksTopic;
     private Publisher<DocumentChunk> chunksPublisher;
-    private final Subscriber<DocumentChunk> chunksSubscriber;
+    private volatile Subscriber<DocumentChunk> chunksSubscriber;
 
     private final EmbeddingModelSupplier embeddingModelSupplier;
     private final StreamingChatModelSupplier chatModelSupplier;
 
     private final LuceneQueryParser queryParser = LuceneQueryParser.create(TEXT);
 
-    private final Thread documentProcessor;
-    private final Thread batchingEmbedder;
+    private volatile Thread documentProcessor;
+    private volatile Thread batchingEmbedder;
 
     private final Stats stats;
+
+    private final Object processorLock = new Object();
 
     /**
      * Cleanup method called when the store is destroyed.
@@ -201,8 +203,18 @@ public class Store
         {
         try
             {
-            documentProcessor.interrupt();
-            batchingEmbedder.interrupt();
+            Thread processor = documentProcessor;
+            Thread embedder   = batchingEmbedder;
+            if (processor != null)
+                {
+                processor.interrupt();
+                }
+            if (embedder != null)
+                {
+                embedder.interrupt();
+                }
+            close(docsSubscriber);
+            close(chunksSubscriber);
             }
         catch (Throwable t)
             {
@@ -214,9 +226,9 @@ public class Store
      * Constructs a new Store instance with the specified configuration.
      * <p/>
      * This constructor initializes all the necessary components for the store,
-     * including distributed maps, topics, publishers, subscribers, and background
-     * processing threads. The store is ready to handle document operations
-     * immediately after construction.
+     * including distributed maps, topics, indexes, statistics, and management.
+     * The asynchronous import pipeline is started lazily by document import
+     * requests after security checks pass.
      *
      * @param session the Coherence session for accessing distributed resources
      * @param name the unique name of this store
@@ -232,12 +244,7 @@ public class Store
         this.storeConfig = session.getMap("storeConfig");
 
         this.docsTopic      = session.getTopic("docs-" + name);
-        this.docsPublisher  = ensureDocsPublisher();
-        this.docsSubscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name));
-
         this.chunksTopic      = session.getTopic("chunks-" + name);
-        this.chunksPublisher  = ensureChunksPublisher();
-        this.chunksSubscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name));
 
         this.docs   = session.getMap("documents-" + name);
         this.chunks = session.getMap("chunks-" + name);
@@ -247,18 +254,6 @@ public class Store
 
         chunks.addIndex(DOC_ID);
         chunks.addIndex(new LuceneIndex<>(TEXT));
-
-        documentProcessor = Thread.ofPlatform()
-                .name("DocumentProcessor")
-                .priority(Thread.MIN_PRIORITY)
-                .daemon()
-                .start(new DocumentProcessor());
-
-        batchingEmbedder = Thread.ofPlatform()
-                .name("BatchingEmbedder")
-                .priority(Thread.MIN_PRIORITY)
-                .daemon()
-                .start(new BatchingChunkEmbedder());
 
         stats = new Stats();
         registerMBean();
@@ -760,6 +755,8 @@ public class Store
             return Response.status(Response.Status.BAD_REQUEST).build();
             }
 
+        ensureProcessingStarted();
+
         //noinspection resource
         Publisher<String> publisher = ensureDocsPublisher();
         uris.forEach(publisher::publish);
@@ -819,6 +816,10 @@ public class Store
     @Consumes(MediaType.APPLICATION_JSON)
     public Response addDocumentChunks(DocChunks[] aDocs)
         {
+        ensureProcessingStarted();
+
+        //noinspection resource
+        Publisher<DocumentChunk> publisher = ensureChunksPublisher();
         for (DocChunks document : aDocs)
             {
             String     docId   = document.id();
@@ -831,10 +832,10 @@ public class Store
                 documentChunk.metadata().put("url", docId);
                 documentChunk.metadata().put("index", i);
 
-                chunksPublisher.publish(documentChunk);
+                publisher.publish(documentChunk);
                 }
             }
-        chunksPublisher.flush().join();
+        publisher.flush().join();
 
         return Response.noContent().build();
         }
@@ -968,6 +969,70 @@ public class Store
             chunksPublisher = publisher = chunksTopic.createPublisher(OrderBy.none());
             }
         return publisher;
+        }
+
+    /**
+     * Ensures the asynchronous document processing pipeline is running.
+     */
+    private void ensureProcessingStarted()
+        {
+        synchronized (processorLock)
+            {
+            Thread processor = documentProcessor;
+            if (processor == null || !processor.isAlive())
+                {
+                documentProcessor = Thread.ofPlatform()
+                        .name("DocumentProcessor")
+                        .priority(Thread.MIN_PRIORITY)
+                        .daemon()
+                        .start(new DocumentProcessor());
+                }
+
+            Thread embedder = batchingEmbedder;
+            if (embedder == null || !embedder.isAlive())
+                {
+                batchingEmbedder = Thread.ofPlatform()
+                        .name("BatchingEmbedder")
+                        .priority(Thread.MIN_PRIORITY)
+                        .daemon()
+                        .start(new BatchingChunkEmbedder());
+                }
+            }
+        }
+
+    /**
+     * Close a resource, ignoring failures during shutdown.
+     *
+     * @param closeable  the resource to close
+     */
+    private static void close(AutoCloseable closeable)
+        {
+        if (closeable != null)
+            {
+            try
+                {
+                closeable.close();
+                }
+            catch (Throwable t)
+                {
+                Logger.err(t);
+                }
+            }
+        }
+
+    /**
+     * Pause briefly before retrying subscriber creation.
+     */
+    private static void pauseBeforeRetry()
+        {
+        try
+            {
+            Thread.sleep(Duration.ofSeconds(5));
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            }
         }
 
     /**
@@ -1108,70 +1173,93 @@ public class Store
 
             try (var executor = VirtualThreads.newVirtualThreadPerTaskExecutor())
                 {
-                while (docsSubscriber.isActive())
+                while (!Thread.currentThread().isInterrupted())
                     {
-                    try
+                    try (Subscriber<String> subscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name)))
                         {
-                        Element<String> e = docsSubscriber.receive().join();
-                        String docId = e.getValue();
-
-                        executor.execute(() ->
-                             {
-                             Timer loadTimer = new Timer();
-                             Timer splitTimer = new Timer();
-
-                             Document doc = docs.get(docId);
-                             if (doc == null)
-                                 {
-                                 loadTimer.start();
-
-                                 doc = loadDocument(docId);
-                                 long time = loadTimer.stop().duration().toMillis();
-
-                                 if (doc != null)
-                                     {
-                                     doc.metadata().put("url", docId);
-                                     docs.put(docId, doc);
-                                     Logger.fine("Loaded document in %,d ms".formatted(time));
-                                     }
-                                 }
-
-                             if (doc != null)
-                                 {
-                                 splitTimer.start();
-                                 DocumentSplitter splitter = DocumentSplitters.recursive(config().getChunkSize(), config().getChunkOverlap());
-                                 List<TextSegment> segments = splitter.split(doc);
-
-                                 long splitTime = splitTimer.stop().duration().toMillis();
-                                 int chunkCount = segments.size();
-                                 Logger.fine("Split %s into %,d segments in %,d ms".formatted(docId, chunkCount, splitTime));
-
-                                 //noinspection resource
-                                 Publisher<DocumentChunk> publisher = ensureChunksPublisher();
-                                 for (TextSegment segment : segments)
-                                     {
-                                     DocumentChunk chunk = new DocumentChunk(segment.text(), segment.metadata().toMap());
-                                     publisher.publish(chunk);
-                                     }
-                                 publisher.flush().join();
-
-                                 stats.finishDocument(loadTimer.duration(), splitTimer.duration());
-                                 }
-                             else
-                                 {
-                                 stats.failDocument(loadTimer.duration(), splitTimer.duration());
-                                 }
-
-                             e.commit();
-                             });
-                        }
-                    catch (Exception e)
-                        {
-                        Logger.err(e);
-                        if (!docsSubscriber.isActive())
+                        docsSubscriber = subscriber;
+                        while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
-                            throw e;
+                            try
+                                {
+                                Element<String> e = subscriber.receive().join();
+                                String docId = e.getValue();
+
+                                executor.execute(() ->
+                                     {
+                                     Timer loadTimer = new Timer();
+                                     Timer splitTimer = new Timer();
+
+                                     Document doc = docs.get(docId);
+                                     if (doc == null)
+                                         {
+                                         loadTimer.start();
+
+                                         doc = loadDocument(docId);
+                                         long time = loadTimer.stop().duration().toMillis();
+
+                                         if (doc != null)
+                                             {
+                                             doc.metadata().put("url", docId);
+                                             docs.put(docId, doc);
+                                             Logger.fine("Loaded document in %,d ms".formatted(time));
+                                             }
+                                         }
+
+                                     if (doc != null)
+                                         {
+                                         splitTimer.start();
+                                         DocumentSplitter splitter = DocumentSplitters.recursive(config().getChunkSize(), config().getChunkOverlap());
+                                         List<TextSegment> segments = splitter.split(doc);
+
+                                         long splitTime = splitTimer.stop().duration().toMillis();
+                                         int chunkCount = segments.size();
+                                         Logger.fine("Split %s into %,d segments in %,d ms".formatted(docId, chunkCount, splitTime));
+
+                                         //noinspection resource
+                                         Publisher<DocumentChunk> publisher = ensureChunksPublisher();
+                                         for (TextSegment segment : segments)
+                                             {
+                                             DocumentChunk chunk = new DocumentChunk(segment.text(), segment.metadata().toMap());
+                                             publisher.publish(chunk);
+                                             }
+                                         publisher.flush().join();
+
+                                         stats.finishDocument(loadTimer.duration(), splitTimer.duration());
+                                         }
+                                     else
+                                         {
+                                         stats.failDocument(loadTimer.duration(), splitTimer.duration());
+                                         }
+
+                                     e.commit();
+                                     });
+                                }
+                            catch (Exception e)
+                                {
+                                if (subscriber.isActive())
+                                    {
+                                    Logger.err(e);
+                                    }
+                                else
+                                    {
+                                    return;
+                                    }
+                                }
                             }
+                        }
+                    catch (Throwable t)
+                        {
+                        if (Thread.currentThread().isInterrupted())
+                            {
+                            return;
+                            }
+                        Logger.err(t);
+                        pauseBeforeRetry();
+                        }
+                    finally
+                        {
+                        docsSubscriber = null;
                         }
                     }
                 }
@@ -1289,47 +1377,71 @@ public class Store
                 {
                 Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
 
-                while (chunksSubscriber.isActive())
+                while (!Thread.currentThread().isInterrupted())
                     {
-                    try
+                    try (Subscriber<DocumentChunk> subscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name)))
                         {
-                        List<Element<DocumentChunk>> chunkList = chunksSubscriber.receive(batchSize).join();
-                        if (!chunkList.isEmpty())
+                        chunksSubscriber = subscriber;
+                        while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
-                            ChunkBatch batch = new ChunkBatch(chunkList);
+                            try
+                                {
+                                List<Element<DocumentChunk>> chunkList = subscriber.receive(batchSize).join();
+                                if (!chunkList.isEmpty())
+                                    {
+                                    ChunkBatch batch = new ChunkBatch(chunkList);
 
-                            executor.execute(() ->
-                                 {
-                                 Timer timer = new Timer();
-                                 int count = batch.chunks().size();
+                                    executor.execute(() ->
+                                         {
+                                         Timer timer = new Timer();
+                                         int count = batch.chunks().size();
 
-                                 try
-                                     {
-                                     timer.start();
-                                     batch.embedAll(embeddingModel);
-                                     long time = timer.stop().duration().toMillis();
+                                         try
+                                             {
+                                             timer.start();
+                                             batch.embedAll(embeddingModel);
+                                             long time = timer.stop().duration().toMillis();
 
-                                     Logger.fine("Created %,d embeddings in %,d ms (%,.3f ms/embedding)".formatted(count, time, 1.0f * time / count));
+                                             Logger.fine("Created %,d embeddings in %,d ms (%,.3f ms/embedding)".formatted(count, time, 1.0f * time / count));
 
-                                     chunks.putAll(batch.chunks());
-                                     chunksSubscriber.commit(chunkList.stream().collect(
-                                             Collectors.toMap(Element::getChannel, Element::getPosition, (p1, p2) -> p1.compareTo(p2) < 0 ? p2 : p1)));
-                                     stats.finishEmbeddings(count, timer.duration());
-                                     }
-                                 catch (Throwable t)
-                                     {
-                                     Logger.err("Failed to create %,d embeddings".formatted(count), t);
-                                     stats.failEmbeddings(count, timer.duration());
-                                     }
-                                 });
+                                             chunks.putAll(batch.chunks());
+                                             subscriber.commit(chunkList.stream().collect(
+                                                     Collectors.toMap(Element::getChannel, Element::getPosition, (p1, p2) -> p1.compareTo(p2) < 0 ? p2 : p1)));
+                                             stats.finishEmbeddings(count, timer.duration());
+                                             }
+                                         catch (Throwable t)
+                                             {
+                                             Logger.err("Failed to create %,d embeddings".formatted(count), t);
+                                             stats.failEmbeddings(count, timer.duration());
+                                             }
+                                         });
+                                    }
+                                }
+                            catch (Exception e)
+                                {
+                                if (subscriber.isActive())
+                                    {
+                                    Logger.err(e);
+                                    }
+                                else
+                                    {
+                                    return;
+                                    }
+                                }
                             }
                         }
-                    catch (Exception e)
+                    catch (Throwable t)
                         {
-                        if (chunksSubscriber.isActive())
+                        if (Thread.currentThread().isInterrupted())
                             {
-                            Logger.err(e);
+                            return;
                             }
+                        Logger.err(t);
+                        pauseBeforeRetry();
+                        }
+                    finally
+                        {
+                        chunksSubscriber = null;
                         }
                     }
                 }
@@ -2126,7 +2238,8 @@ public class Store
 
         int documentPendingCount()
             {
-            return docsSubscriber.getRemainingMessages();
+            Subscriber<String> subscriber = docsSubscriber;
+            return subscriber == null ? 0 : subscriber.getRemainingMessages();
             }
 
         long documentLoadDuration()
@@ -2156,7 +2269,8 @@ public class Store
 
         int embeddingPendingCount()
             {
-            return chunksSubscriber.getRemainingMessages();
+            Subscriber<DocumentChunk> subscriber = chunksSubscriber;
+            return subscriber == null ? 0 : subscriber.getRemainingMessages();
             }
 
         long embeddingDuration()
