@@ -11,6 +11,7 @@ import com.oracle.coherence.rag.model.StreamingChatModelSupplier;
 import com.oracle.coherence.rag.model.EmbeddingModelSupplier;
 import com.oracle.coherence.rag.util.TestDataFactory;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.Session;
 
@@ -112,7 +113,7 @@ class KbTest
     void cleanup()
         {
         System.clearProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS);
-        System.clearProperty("coherence.mode");
+        CoherenceModeHelper.clear();
         }
 
     private void injectField(String fieldName, Object value) throws Exception
@@ -350,54 +351,58 @@ class KbTest
         @DisplayName("Should reject store configuration with unallowlisted model download in prod")
         void shouldRejectStoreConfigurationWithUnallowlistedModelDownloadInProd()
             {
-            System.setProperty("coherence.mode", "prod");
             StoreConfig config = new StoreConfig();
             config.setEmbeddingModel("sentence-transformers/all-MiniLM-L6-v2");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = m_kb.configureStore(TEST_STORE_1, config);
 
-            Response response = m_kb.configureStore(TEST_STORE_1, config);
-
-            assertThat(response.getStatus(), is(400));
-            verify(storeConfig, never()).put(TEST_STORE_1, config);
+                assertThat(response.getStatus(), is(400));
+                verify(storeConfig, never()).put(TEST_STORE_1, config);
+                }
             }
 
         @Test
         @DisplayName("Should not validate chat model in store configuration")
         void shouldNotValidateChatModelInStoreConfiguration()
             {
-            System.setProperty("coherence.mode", "prod");
             StoreConfig config = new StoreConfig();
             config.setChatModel("OpenAI/gpt-4o-mini");
             config.setEmbeddingModel("-/all-MiniLM-L6-v2");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = m_kb.configureStore(TEST_STORE_1, config);
 
-            Response response = m_kb.configureStore(TEST_STORE_1, config);
-
-            assertThat(response.getStatus(), is(204));
+                assertThat(response.getStatus(), is(204));
+                }
             }
 
         @Test
         @DisplayName("Should reject search scoring model download in prod")
         void shouldRejectSearchScoringModelDownloadInProd()
             {
-            System.setProperty("coherence.mode", "prod");
             Store.SearchRequest request = new Store.SearchRequest(
                     "query", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = m_kb.search(request);
 
-            Response response = m_kb.search(request);
-
-            assertThat(response.getStatus(), is(400));
+                assertThat(response.getStatus(), is(400));
+                }
             }
 
         @Test
         @DisplayName("Should reject chat scoring model download in prod")
         void shouldRejectChatScoringModelDownloadInProd()
             {
-            System.setProperty("coherence.mode", "prod");
             Store.ChatRequest request = new Store.ChatRequest(
                     null, "question", 10, 0.0, 0.0, "cross-encoder/ms-marco-MiniLM-L-6-v2");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = m_kb.chat(request);
 
-            Response response = m_kb.chat(request);
-
-            assertThat(response.getStatus(), is(400));
+                assertThat(response.getStatus(), is(400));
+                }
             }
         }
 

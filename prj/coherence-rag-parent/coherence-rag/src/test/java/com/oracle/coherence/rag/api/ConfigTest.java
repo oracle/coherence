@@ -8,6 +8,8 @@ package com.oracle.coherence.rag.api;
 
 import com.oracle.coherence.mp.config.CoherenceConfigSource;
 
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.SecurityContext;
 
@@ -77,7 +79,7 @@ class ConfigTest
         System.clearProperty(RagSecurity.PROP_CONFIG_WRITE_ALLOWED_PROPERTIES);
         System.clearProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS);
         System.clearProperty(RagSecurity.PROP_ADMIN_ROLE);
-        System.clearProperty("coherence.mode");
+        CoherenceModeHelper.clear();
         RagSecurity.resetHuggingFaceAllowlistForTesting();
         }
 
@@ -273,12 +275,13 @@ class ConfigTest
         void shouldRejectUnapprovedModelDownloadInProd()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
-            Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
-
-            assertThat(response.getStatus(), is(400));
-            verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                assertThat(response.getStatus(), is(400));
+                verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                }
             }
 
         @Test
@@ -286,13 +289,14 @@ class ConfigTest
         void shouldAllowExactHuggingFaceModelDownloadMatch()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "BAAI/bge-large-en-v1.5");
             when(coherenceConfig.setValue("model.embedding", "BAAI/bge-large-en-v1.5")).thenReturn(null);
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "BAAI/bge-large-en-v1.5");
 
-            Response response = config.set("model.embedding", "BAAI/bge-large-en-v1.5");
-
-            assertThat(response.getStatus(), is(200));
+                assertThat(response.getStatus(), is(200));
+                }
             }
 
         @Test
@@ -300,13 +304,14 @@ class ConfigTest
         void shouldRejectHuggingFaceBareOwnerEntry()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
-            Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
-
-            assertThat(response.getStatus(), is(400));
-            verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                assertThat(response.getStatus(), is(400));
+                verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                }
             }
 
         @Test
@@ -314,13 +319,14 @@ class ConfigTest
         void shouldAllowHuggingFaceOwnerTrailingWildcard()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "cross-encoder/*");
             when(coherenceConfig.setValue("model.scoring", "cross-encoder/ms-marco-MiniLM-L-6-v2")).thenReturn(null);
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.scoring", "cross-encoder/ms-marco-MiniLM-L-6-v2");
 
-            Response response = config.set("model.scoring", "cross-encoder/ms-marco-MiniLM-L-6-v2");
-
-            assertThat(response.getStatus(), is(200));
+                assertThat(response.getStatus(), is(200));
+                }
             }
 
         @Test
@@ -328,13 +334,14 @@ class ConfigTest
         void shouldRejectHuggingFaceTrailingWildcardForDifferentOwner()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers/*");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "sentence-transformers-extra/all-MiniLM-L6-v2");
 
-            Response response = config.set("model.embedding", "sentence-transformers-extra/all-MiniLM-L6-v2");
-
-            assertThat(response.getStatus(), is(400));
-            verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers-extra/all-MiniLM-L6-v2");
+                assertThat(response.getStatus(), is(400));
+                verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers-extra/all-MiniLM-L6-v2");
+                }
             }
 
         @Test
@@ -342,13 +349,14 @@ class ConfigTest
         void shouldRejectHuggingFaceMidStringGlob()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers/all-mini*");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
 
-            Response response = config.set("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
-
-            assertThat(response.getStatus(), is(400));
-            verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                assertThat(response.getStatus(), is(400));
+                verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                }
             }
 
         @Test
@@ -356,13 +364,14 @@ class ConfigTest
         void shouldRejectHuggingFaceWildcardInOwner()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, "sentence-transformers*/x");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "sentence-transformers/x");
 
-            Response response = config.set("model.embedding", "sentence-transformers/x");
-
-            assertThat(response.getStatus(), is(400));
-            verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/x");
+                assertThat(response.getStatus(), is(400));
+                verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/x");
+                }
             }
 
         @Test
@@ -370,32 +379,34 @@ class ConfigTest
         void shouldRejectHuggingFaceEmptyAndOverqualifiedAllowlistEntries()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS, ",a/b/c");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.embedding", "a/b");
 
-            Response response = config.set("model.embedding", "a/b");
-
-            assertThat(response.getStatus(), is(400));
-            assertThat(RagSecurity.invalidHuggingFaceAllowlistWarningCountForTesting(), is(2));
-            verify(coherenceConfig, never()).setValue("model.embedding", "a/b");
+                assertThat(response.getStatus(), is(400));
+                assertThat(RagSecurity.invalidHuggingFaceAllowlistWarningCountForTesting(), is(2));
+                verify(coherenceConfig, never()).setValue("model.embedding", "a/b");
+                }
             }
 
         @Test
         @DisplayName("Should warn once for each invalid HuggingFace allowlist entry")
         void shouldWarnOnceForEachInvalidHuggingFaceAllowlistEntry()
             {
-            System.setProperty("coherence.mode", "prod");
             System.setProperty(RagSecurity.PROP_HUGGINGFACE_ALLOWED_MODELS,
                     "sentence-transformers,sentence-transformers/all-mini*");
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                assertThrows(RagSecurity.PolicyViolation.class, () ->
+                        RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
+                                RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
+                assertThrows(RagSecurity.PolicyViolation.class, () ->
+                        RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
+                                RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
 
-            assertThrows(RagSecurity.PolicyViolation.class, () ->
-                    RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
-                            RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
-            assertThrows(RagSecurity.PolicyViolation.class, () ->
-                    RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
-                            RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
-
-            assertThat(RagSecurity.invalidHuggingFaceAllowlistWarningCountForTesting(), is(2));
+                assertThat(RagSecurity.invalidHuggingFaceAllowlistWarningCountForTesting(), is(2));
+                }
             }
 
         @Test
@@ -403,12 +414,13 @@ class ConfigTest
         void shouldAllowChatModelWriteWithoutDownloadAllowlist()
             {
             injectSecurityContext(context("admin-user", "admin"));
-            System.setProperty("coherence.mode", "prod");
             when(coherenceConfig.setValue("model.chat", "OpenAI/gpt-4o-mini")).thenReturn(null);
+            try (var ignored = CoherenceModeHelper.prod())
+                {
+                Response response = config.set("model.chat", "OpenAI/gpt-4o-mini");
 
-            Response response = config.set("model.chat", "OpenAI/gpt-4o-mini");
-
-            assertThat(response.getStatus(), is(200));
+                assertThat(response.getStatus(), is(200));
+                }
             }
         }
 

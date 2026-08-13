@@ -10,6 +10,7 @@ import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.ai.DocumentChunk;
 import com.oracle.coherence.cdi.Name;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.net.NamedMap;
 import io.helidon.microprofile.testing.junit5.AddBean;
 import io.helidon.microprofile.testing.junit5.HelidonTest;
@@ -97,19 +98,14 @@ class StoreIT
     @Order(3)
     void shouldRejectStoreConfigWithUnallowlistedModelDownloadInProd()
         {
-        System.setProperty("coherence.mode", "prod");
         String cfg = "{\"embeddingModel\":\"sentence-transformers/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
-        try
+        try (var ignored = CoherenceModeHelper.prod())
             {
             try (Response putCfg = admin(target.path("api/kb/config/" + store))
                     .put(Entity.entity(cfg, MediaType.APPLICATION_JSON_TYPE)))
                 {
                 assertThat(putCfg.getStatus(), is(400));
                 }
-            }
-        finally
-            {
-            System.clearProperty("coherence.mode");
             }
         }
 
