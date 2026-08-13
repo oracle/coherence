@@ -161,6 +161,16 @@ public class JournalResource
      */
     private static final String[] FLASH_JOURNAL_SPECIFIC_ATTRIBUTES =
         {
+        "oldestActiveFileCreationTime",
+        "oldestActiveFileCreationSequenceNumber",
+        "mostRecentFileCreationTime",
+        "mostRecentFileCreationSequenceNumber",
+        "totalFileCreationCount",
+        "totalFileCreationErrors",
+        "mostRecentFileDeletionTime",
+        "totalFileDeletionCount",
+        "totalFileDeletionErrors",
+        "mostRecentCollectorScanCompletionTime",
         "totalWriteOperationCount",
         "totalWriteBytes",
         "totalWriteTime",
