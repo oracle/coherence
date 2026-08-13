@@ -982,6 +982,8 @@ public class Store
             {
             ensureDocsPublisher();
             ensureChunksPublisher();
+            ensureDocsSubscriber();
+            ensureChunksSubscriber();
 
             Thread processor = documentProcessor;
             if (processor == null || !processor.isAlive())
@@ -1138,12 +1140,16 @@ public class Store
      *
      * @return the created subscriber
      */
-    private Subscriber<String> createDocsSubscriber()
+    private Subscriber<String> ensureDocsSubscriber()
         {
         synchronized (processorLock)
             {
-            docsSubscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name));
-            processorLock.notifyAll();
+            Subscriber<String> subscriber = docsSubscriber;
+            if (subscriber == null || !subscriber.isActive())
+                {
+                docsSubscriber = subscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name));
+                processorLock.notifyAll();
+                }
             return docsSubscriber;
             }
         }
@@ -1151,12 +1157,15 @@ public class Store
     /**
      * Clear the subscriber for document URI processing.
      */
-    private void clearDocsSubscriber()
+    private void clearDocsSubscriber(Subscriber<String> subscriber)
         {
         synchronized (processorLock)
             {
-            docsSubscriber = null;
-            processorLock.notifyAll();
+            if (docsSubscriber == subscriber)
+                {
+                docsSubscriber = null;
+                processorLock.notifyAll();
+                }
             }
         }
 
@@ -1165,12 +1174,16 @@ public class Store
      *
      * @return the created subscriber
      */
-    private Subscriber<DocumentChunk> createChunksSubscriber()
+    private Subscriber<DocumentChunk> ensureChunksSubscriber()
         {
         synchronized (processorLock)
             {
-            chunksSubscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name));
-            processorLock.notifyAll();
+            Subscriber<DocumentChunk> subscriber = chunksSubscriber;
+            if (subscriber == null || !subscriber.isActive())
+                {
+                chunksSubscriber = subscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name));
+                processorLock.notifyAll();
+                }
             return chunksSubscriber;
             }
         }
@@ -1178,12 +1191,15 @@ public class Store
     /**
      * Clear the subscriber for chunk embedding.
      */
-    private void clearChunksSubscriber()
+    private void clearChunksSubscriber(Subscriber<DocumentChunk> subscriber)
         {
         synchronized (processorLock)
             {
-            chunksSubscriber = null;
-            processorLock.notifyAll();
+            if (chunksSubscriber == subscriber)
+                {
+                chunksSubscriber = null;
+                processorLock.notifyAll();
+                }
             }
         }
 
@@ -1308,13 +1324,16 @@ public class Store
                 {
                 while (!Thread.currentThread().isInterrupted())
                     {
-                    try (Subscriber<String> subscriber = createDocsSubscriber())
+                    Subscriber<String> subscriber = null;
+                    try
                         {
-                        while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
+                        subscriber = ensureDocsSubscriber();
+                        Subscriber<String> activeSubscriber = subscriber;
+                        while (activeSubscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
                             try
                                 {
-                                Element<String> e = subscriber.receive().join();
+                                Element<String> e = activeSubscriber.receive().join();
                                 String docId = e.getValue();
 
                                 executor.execute(() ->
@@ -1369,7 +1388,7 @@ public class Store
                                 }
                             catch (Exception e)
                                 {
-                                if (subscriber.isActive())
+                                if (activeSubscriber.isActive())
                                     {
                                     Logger.err(e);
                                     }
@@ -1391,7 +1410,8 @@ public class Store
                         }
                     finally
                         {
-                        clearDocsSubscriber();
+                        close(subscriber);
+                        clearDocsSubscriber(subscriber);
                         }
                     }
                 }
@@ -1504,19 +1524,22 @@ public class Store
 
             while (!Thread.currentThread().isInterrupted())
                 {
-                try (Subscriber<DocumentChunk> subscriber = createChunksSubscriber())
+                Subscriber<DocumentChunk> subscriber = null;
+                try
                     {
+                    subscriber = ensureChunksSubscriber();
+                    Subscriber<DocumentChunk> activeSubscriber = subscriber;
                     EmbeddingModel embeddingModel = getEmbeddingModel();
                     try (var executor = embeddingModel instanceof LocalOnnxEmbeddingModel
                                                ? ForkJoinPool.commonPool()
                                                : VirtualThreads.newVirtualThreadPerTaskExecutor())
                         {
                         Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
-                        while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
+                        while (activeSubscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
                             try
                                 {
-                                List<Element<DocumentChunk>> chunkList = subscriber.receive(batchSize).join();
+                                List<Element<DocumentChunk>> chunkList = activeSubscriber.receive(batchSize).join();
                                 if (!chunkList.isEmpty())
                                     {
                                     ChunkBatch batch = new ChunkBatch(chunkList);
@@ -1535,7 +1558,7 @@ public class Store
                                              Logger.fine("Created %,d embeddings in %,d ms (%,.3f ms/embedding)".formatted(count, time, 1.0f * time / count));
 
                                              chunks.putAll(batch.chunks());
-                                             subscriber.commit(chunkList.stream().collect(
+                                             activeSubscriber.commit(chunkList.stream().collect(
                                                      Collectors.toMap(Element::getChannel, Element::getPosition, (p1, p2) -> p1.compareTo(p2) < 0 ? p2 : p1)));
                                              stats.finishEmbeddings(count, timer.duration());
                                              }
@@ -1549,7 +1572,7 @@ public class Store
                                 }
                             catch (Exception e)
                                 {
-                                if (subscriber.isActive())
+                                if (activeSubscriber.isActive())
                                     {
                                     Logger.err(e);
                                     }
@@ -1572,7 +1595,8 @@ public class Store
                     }
                 finally
                     {
-                    clearChunksSubscriber();
+                    close(subscriber);
+                    clearChunksSubscriber(subscriber);
                     }
                 }
             }
