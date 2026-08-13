@@ -10,6 +10,7 @@
 
 package com.tangosol.coherence.component.net;
 
+import com.tangosol.internal.net.security.SubjectProofPayload;
 import com.tangosol.io.pof.PofPrincipal;
 import java.security.Principal;
 import java.util.Iterator;
@@ -61,6 +62,24 @@ public class RequestContext
      * external form.
      */
     private byte[] __m_SubjectProof;
+
+    /**
+     * Property SubjectProofCacheName
+     *
+     * The transient origin cache name used to bind a locally produced proof.
+     * This value is not serialized in the legacy RequestContext external
+     * form; receivers reconstruct the cache target independently.
+     */
+    private String __m_SubjectProofCacheName;
+
+    /**
+     * Property SubjectProofPayload
+     *
+     * The transient payload associated with a proof produced in this JVM.
+     * It is deliberately absent from the legacy RequestContext external form
+     * and remains null for a received or explicitly supplied proof.
+     */
+    private SubjectProofPayload __m_SubjectProofPayload;
 
     /**
      * Property SubjectProofSenderId
@@ -196,6 +215,22 @@ public class RequestContext
         return __m_SubjectProof;
         }
 
+    /**
+     * Return the transient origin cache name for subject-proof creation.
+     */
+    public String getSubjectProofCacheName()
+        {
+        return __m_SubjectProofCacheName;
+        }
+
+    /**
+     * Return the transient payload associated with a locally produced proof.
+     */
+    public SubjectProofPayload getSubjectProofPayload()
+        {
+        return __m_SubjectProofPayload;
+        }
+
     // Accessor for the property "SubjectProofSenderId"
     /**
      * Getter for property SubjectProofSenderId.<p>
@@ -278,6 +313,22 @@ public class RequestContext
     public void setSubjectProof(byte[] abProof)
         {
         __m_SubjectProof = abProof;
+        }
+
+    /**
+     * Set the transient origin cache name for subject-proof creation.
+     */
+    public void setSubjectProofCacheName(String sCacheName)
+        {
+        __m_SubjectProofCacheName = sCacheName;
+        }
+
+    /**
+     * Set the transient payload associated with a locally produced proof.
+     */
+    public void setSubjectProofPayload(SubjectProofPayload payload)
+        {
+        __m_SubjectProofPayload = payload;
         }
 
     // Accessor for the property "SubjectProofSenderId"

@@ -37547,6 +37547,8 @@ public class PartitionedCache
                 context.setSubject(SecurityHelper.getCurrentSubject());
                 }
 
+            context.setSubjectProofCacheName(mapBinary.getCacheName());
+
             mapBinary._linkChild(context);
             service.registerRequestContext(context);
 
