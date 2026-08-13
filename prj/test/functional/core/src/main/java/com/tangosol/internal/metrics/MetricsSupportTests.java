@@ -17,10 +17,12 @@ import com.oracle.bedrock.runtime.coherence.options.SiteName;
 
 import com.oracle.bedrock.runtime.java.options.IPv4Preferred;
 
+import com.oracle.bedrock.testsupport.MavenProjectFileUtils;
 import com.oracle.coherence.common.collections.ConcurrentHashMap;
 
 import com.tangosol.coherence.component.application.console.Coherence;
 
+import com.tangosol.io.FileHelper;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
 import com.tangosol.net.DefaultCacheServer;
@@ -38,6 +40,7 @@ import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 
 import java.util.ArrayList;
@@ -47,6 +50,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.function.Supplier;
@@ -69,14 +73,14 @@ import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInA
 
 import static org.junit.Assert.fail;
 
-
 /**
  * @author jk  2019.06.25
  */
+@SuppressWarnings("SimplifyStreamApiCallChains")
 public class MetricsSupportTests
     {
     @BeforeClass
-    public static void setup()
+    public static void setup() throws Exception
         {
         // this test requires local storage to be enabled
         System.setProperty(CacheConfig.PROPERTY, "server-cache-config-metrics.xml");
@@ -86,8 +90,19 @@ public class MetricsSupportTests
         System.setProperty("coherence.member", "TestClientServer");
         System.setProperty(SiteName.PROPERTY, "TestSite");
         System.setProperty(Logging.PROPERTY_LEVEL, "9");
-        System.setProperty(ClusterName.PROPERTY, "MetricsSupportTestsCluster");
+        System.setProperty(ClusterName.PROPERTY,
+                System.getProperty(ClusterName.PROPERTY, "MetricsSupportTestsCluster"));
         System.setProperty(IPv4Preferred.JAVA_NET_PREFER_IPV4_STACK, "true");
+
+
+        File file = MavenProjectFileUtils.locateBuildFolder(MetricsSupportTests.class);
+        for (File f : Objects.requireNonNull(file.listFiles((dir, name) -> name.startsWith("store-"))))
+            {
+            if (f.exists() && f.isDirectory())
+                {
+                FileHelper.deleteDir(f);
+                }
+            }
 
         // ensure that all the local services are running before the tests start
         DefaultCacheServer.startServerDaemon();
@@ -793,6 +808,30 @@ public class MetricsSupportTests
                                     "Coherence.Dummy.ValueTwo");                   //  metric from annotated method with no name specified
         }
 
+    @Test
+    public void shouldGetHeapAfterGCMetrics()
+        {
+        Assume.assumeThat("test skipped, no memory pool MBeans", ManagementFactory.getMemoryPoolMXBeans().size(), is(not(0)));
+        MetricsRegistryAdapterStub adapter = new MetricsRegistryAdapterStub();
+        MetricSupport metricSupport = new MetricSupport(registrySupplier(), Collections.singletonList(adapter));
+
+        metricSupport.register(getMBeanName("*:type=Platform,Domain=java.lang,subType=MemoryPool,*"));
+
+        assertThat(adapter.metricCount(), is(not(0)));
+
+        List<String> metrics = adapter.getMetrics()
+                .stream()
+                .map(MBeanMetric::getName)
+                .distinct()
+                .collect(Collectors.toList());
+
+        assertThat(metrics.size(), is(4));
+        assertThat(metrics, containsInAnyOrder("Coherence.Memory.HeapAfterGC.Initial",
+                                               "Coherence.Memory.HeapAfterGC.Used",
+                                               "Coherence.Memory.HeapAfterGC.Committed",
+                                               "Coherence.Memory.HeapAfterGC.Max"));
+        }
+
     // ----- helper methods -------------------------------------------------
 
 
@@ -807,16 +846,13 @@ public class MetricsSupportTests
 
     private void assertMetrics(List<MBeanMetric> list, Map<String, String> mapTags, String... asMetricName)
         {
-        if (list.size() > asMetricName.length)
-            {
-            List<String> listExpected = Arrays.asList(asMetricName);
-            List<String> listExtra = list.stream()
-                    .filter(m -> !listExpected.contains(m.getName()))
-                    .map(MBeanMetric::getName)
-                    .collect(Collectors.toList());
+        List<String> listExpected = Arrays.asList(asMetricName);
+        List<String> listExtra = list.stream()
+                .map(MBeanMetric::getName)
+                .filter(name -> !listExpected.contains(name))
+                .collect(Collectors.toList());
 
-            fail("Extra metric found " + listExtra);
-            }
+        assertThat("Extra metric found " + listExtra, listExtra.isEmpty(), is(true));
 
         List<String> listMissing = new ArrayList<>();
 
@@ -828,10 +864,7 @@ public class MetricsSupportTests
                 }
             }
 
-        if (listMissing.size() > 0)
-            {
-            fail("Missing metrics: " + listMissing);
-            }
+        assertThat("Missing metrics: " + listMissing, listMissing.isEmpty(), is(true));
         }
 
     private boolean assertMetric(List<MBeanMetric> list, Map<String, String> mapTags, String sMetricName)
@@ -845,16 +878,15 @@ public class MetricsSupportTests
 
         Map<String, String> mapMetricTags = metric.getTags();
 
-        if (mapMetricTags.size() > mapTags.size())
-            {
-            Set<String> setTag = new HashSet<>(mapMetricTags.keySet());
-            setTag.removeAll(mapTags.keySet());
-            fail("Metric " + sMetricName + " has extra tags: " + setTag);
-            }
+        Set<String> setTag = new HashSet<>(mapMetricTags.keySet());
+        setTag.removeAll(mapTags.keySet());
+        setTag.remove("quantile");
+        setTag.remove("rate");
+        assertThat("Metric " + sMetricName + " has extra tags: " + setTag, setTag.size(), is(0));
 
         if (mapMetricTags.size() < mapTags.size())
             {
-            Set<String> setTag = new HashSet<>(mapTags.keySet());
+            setTag = new HashSet<>(mapTags.keySet());
             setTag.removeAll(mapMetricTags.keySet());
             fail("Metric " + sMetricName + " has missing tags: " + setTag);
             }
@@ -972,7 +1004,6 @@ public class MetricsSupportTests
         {
         return CacheFactory.getCache(sCache);
         }
-
 
     // ----- inner class: MetricsRegistryAdapterStub  -----------------------
 

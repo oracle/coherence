@@ -1850,7 +1850,7 @@
           "Journal"
         ],
         "summary": "View Flash Journal",
-        "description": "Use this endpoint to view flash journal information. The information is aggregated across all flash journal members in a Coherence cluster. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
+        "description": "Use this endpoint to view flash journal information. The information is aggregated across all flash journal members in a Coherence cluster. This includes physical write and force statistics, error and retry statistics, journal-wide congestion statistics, and collector compaction statistics described by the journalRM definition. Numeric values use the collector-dependent response shape selected by the collector query parameter. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
         "operationId": "/management/coherence/cluster/journal/flash GET",
         "produces": [
           "application/json"
@@ -1865,7 +1865,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A successful request that returns information about the flash journal"
+            "description": "A successful request that returns aggregated flash journal capacity, physical write and force, error and retry, congestion, and compaction information"
           }
         }
       }
@@ -1990,7 +1990,7 @@
           "Journal"
         ],
         "summary": "RAM Journal",
-        "description": "Use this endpoint to view RAM journal information. The information is aggregated across all RAM journal members in a Coherence cluster. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
+        "description": "Use this endpoint to view RAM journal information. The information is aggregated across all RAM journal members in a Coherence cluster. FlashJournal-specific writer and congestion attributes use the scalar value -1 to indicate that they are unsupported instead of aggregating the sentinel across members. Collector compaction statistics are supported. Use the query parameters to change which aggregated results to view and whether the results should be constrained to cluster members with a specific member role.",
         "operationId": "/management/coherence/cluster/journal/ram GET",
         "produces": [
           "application/json"
@@ -5118,6 +5118,32 @@
         }
       }
     },
+    "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/destroy": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Destroy Cache",
+        "description": "Use this endpoint to destroy a specific cache.",
+        "operationId": "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/destroy POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/serviceName"
+          },
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/services/{serviceName}/storage/{cacheName}/clear": {
       "post": {
         "tags": [
@@ -6157,6 +6183,29 @@
         }
       }
     },
+    "/management/coherence/cluster/storage/{cacheName}/destroy": {
+      "post": {
+        "tags": [
+          "Storage Managers"
+        ],
+        "summary": "Destroy Cache",
+        "description": "Use this endpoint to destroy a specific cache.",
+        "operationId": "/management/coherence/cluster/storage/{cacheName}/destroy POST",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "$ref": "#/parameters/cacheName"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Command invocation is successful"
+          }
+        }
+      }
+    },
     "/management/coherence/cluster/storage/{cacheName}/clear": {
       "post": {
         "tags": [
@@ -6990,6 +7039,96 @@
           "description": "The total size, in bytes, of all available buffers in the pool.",
           "readOnly": true
         },
+        "totalWriteOperationCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of FileChannel.write operations attempted by the FlashJournal writer. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalWriteBytes": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of bytes reported written by FileChannel.write operations, including recovery writes. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalWriteTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative time spent in FileChannel.write operations, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "maximumWriteTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The longest FileChannel.write operation since statistics were reset, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalForceCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of FileChannel.force operations attempted by the FlashJournal writer. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalForceTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative time spent in FileChannel.force operations, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "maximumForceTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The longest FileChannel.force operation since statistics were reset, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalWriteErrors": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of IOExceptions thrown by FileChannel.write or FileChannel.force operations. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalFileWriteErrors": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of IOExceptions thrown by FileChannel.write operations. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalForceErrors": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of IOExceptions thrown by FileChannel.force operations. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalWriteRetries": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of recovery attempts made after a FlashJournal write-path error. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalCongestionCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The total number of journal-wide FlashJournal congestion episodes since statistics were reset. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "totalCongestionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative wall-clock time during which the FlashJournal was unable to accept values because of write-backlog congestion, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "maximumCongestionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The longest continuous FlashJournal congestion episode since statistics were reset, in milliseconds. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
+        "currentCongestionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The elapsed time of the current FlashJournal congestion episode, in milliseconds, or zero if the journal is not congested. This FlashJournal-specific attribute returns -1 when unsupported.",
+          "readOnly": true
+        },
         "maxJournalFilesNumber": {
           "type": "integer",
           "format": "int32",
@@ -7035,7 +7174,37 @@
         "compactionCount": {
           "type": "integer",
           "format": "int32",
-          "description": "Number of times compaction (garbage collection) was performed for the journal",
+          "description": "The number of journal files successfully evacuated by the collector.",
+          "readOnly": true
+        },
+        "totalCompactionAttemptCount": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative number of journal-file compaction attempts started by the collector, including successful, failed, and currently active attempts.",
+          "readOnly": true
+        },
+        "totalCompactionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative wall-clock time spent evacuating live values from journal files selected for compaction, including failed completed attempts and elapsed time for the currently active attempt, in milliseconds.",
+          "readOnly": true
+        },
+        "maximumCompactionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The longest completed or currently active single journal-file compaction attempt since statistics were reset, including failed attempts, in milliseconds.",
+          "readOnly": true
+        },
+        "currentCompactionTime": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The elapsed time of the current journal-file compaction, in milliseconds, or zero if no file is currently being compacted.",
+          "readOnly": true
+        },
+        "totalCompactionBytes": {
+          "type": "integer",
+          "format": "int64",
+          "description": "The cumulative number of live bytes evacuated by successfully completed journal-file compactions.",
           "readOnly": true
         },
         "exhaustiveCompactionCount": {

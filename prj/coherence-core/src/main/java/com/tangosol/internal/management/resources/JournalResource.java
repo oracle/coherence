@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.management.resources;
 
@@ -13,6 +13,8 @@ import com.tangosol.internal.http.Response;
 import com.tangosol.internal.management.EntityMBeanResponse;
 
 import com.tangosol.net.management.MBeanAccessor.QueryBuilder;
+
+import com.tangosol.util.Filter;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -59,6 +61,18 @@ public class JournalResource
         Map<String, Object> responseMap  = response.toJson();
 
         addAggregatedMetricsToResponseMap(request, sRoleName, sCollector, getQuery(request, sJournalType), responseMap);
+
+        if (RAM_JOURNAL_TYPE.equals(sJournalType))
+            {
+            Filter<String> filterAttributes = getAttributesFilter(request);
+            for (String sAttribute : FLASH_JOURNAL_SPECIFIC_ATTRIBUTES)
+                {
+                if (filterAttributes.evaluate(sAttribute))
+                    {
+                    responseMap.put(sAttribute, -1L);
+                    }
+                }
+            }
         return response(responseMap);
         }
 
@@ -138,4 +152,29 @@ public class JournalResource
         {
         return createQueryBuilder(request).withBaseQuery(MAP_JOURNAL_URL_TO_MBEAN_QUERY.get(sJournalType));
         }
+
+    // ----- constants ------------------------------------------------------
+
+    /**
+     * FlashJournal-specific attributes that use {@code -1} to denote that
+     * they are unsupported by RamJournal.
+     */
+    private static final String[] FLASH_JOURNAL_SPECIFIC_ATTRIBUTES =
+        {
+        "totalWriteOperationCount",
+        "totalWriteBytes",
+        "totalWriteTime",
+        "maximumWriteTime",
+        "totalForceCount",
+        "totalForceTime",
+        "maximumForceTime",
+        "totalWriteErrors",
+        "totalFileWriteErrors",
+        "totalForceErrors",
+        "totalWriteRetries",
+        "totalCongestionCount",
+        "totalCongestionTime",
+        "maximumCongestionTime",
+        "currentCongestionTime"
+        };
     }
