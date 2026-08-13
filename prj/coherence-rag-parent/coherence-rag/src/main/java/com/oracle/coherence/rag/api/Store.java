@@ -165,6 +165,8 @@ public class Store
     private static final ValueExtractor<DocumentChunk.Id, String> DOC_ID = ValueExtractor.of(DocumentChunk.Id::docId).fromKey();
     private static final ValueExtractor<DocumentChunk, String>    TEXT   = ValueExtractor.of(DocumentChunk::text);
 
+    private static final long PROCESSING_START_TIMEOUT_MILLIS = Duration.ofSeconds(90).toMillis();
+
     private final String name;
 
     private final NamedMap<String, StoreConfig> storeConfig;
@@ -978,6 +980,9 @@ public class Store
         {
         synchronized (processorLock)
             {
+            ensureDocsPublisher();
+            ensureChunksPublisher();
+
             Thread processor = documentProcessor;
             if (processor == null || !processor.isAlive())
                 {
@@ -998,6 +1003,80 @@ public class Store
                         .start(new BatchingChunkEmbedder());
                 }
             }
+
+        awaitProcessingReady();
+        }
+
+    /**
+     * Wait for the asynchronous document processing pipeline to be ready.
+     */
+    private void awaitProcessingReady()
+        {
+        long cTimeout = Config.getLong("coherence.rag.processing.start.timeout.millis", PROCESSING_START_TIMEOUT_MILLIS);
+        long ldtStop  = System.currentTimeMillis() + cTimeout;
+        synchronized (processorLock)
+            {
+            while (!isProcessingReady())
+                {
+                if (!isAlive(documentProcessor) || !isAlive(batchingEmbedder))
+                    {
+                    throw new WebApplicationException("RAG processing pipeline stopped before it became ready",
+                            Response.Status.SERVICE_UNAVAILABLE);
+                    }
+
+                long cWait = ldtStop - System.currentTimeMillis();
+                if (cWait <= 0)
+                    {
+                    throw new WebApplicationException("Timed out waiting for RAG processing pipeline to start",
+                            Response.Status.SERVICE_UNAVAILABLE);
+                    }
+
+                try
+                    {
+                    processorLock.wait(Math.min(cWait, 1000L));
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    throw new WebApplicationException("Interrupted while waiting for RAG processing pipeline to start",
+                            e, Response.Status.SERVICE_UNAVAILABLE);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Return {@code true} if the asynchronous document processing pipeline is ready.
+     *
+     * @return {@code true} if both subscribers are active
+     */
+    private boolean isProcessingReady()
+        {
+        return isActive(docsSubscriber) && isActive(chunksSubscriber);
+        }
+
+    /**
+     * Return {@code true} if the specified subscriber is active.
+     *
+     * @param subscriber  the subscriber to test
+     *
+     * @return {@code true} if the specified subscriber is active
+     */
+    private static boolean isActive(Subscriber<?> subscriber)
+        {
+        return subscriber != null && subscriber.isActive();
+        }
+
+    /**
+     * Return {@code true} if the specified thread is alive.
+     *
+     * @param thread  the thread to test
+     *
+     * @return {@code true} if the specified thread is alive
+     */
+    private static boolean isAlive(Thread thread)
+        {
+        return thread != null && thread.isAlive();
         }
 
     /**
@@ -1052,6 +1131,60 @@ public class Store
             docsPublisher = publisher = docsTopic.createPublisher(OrderBy.none());
             }
         return publisher;
+        }
+
+    /**
+     * Create a subscriber for document URI processing.
+     *
+     * @return the created subscriber
+     */
+    private Subscriber<String> createDocsSubscriber()
+        {
+        synchronized (processorLock)
+            {
+            docsSubscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name));
+            processorLock.notifyAll();
+            return docsSubscriber;
+            }
+        }
+
+    /**
+     * Clear the subscriber for document URI processing.
+     */
+    private void clearDocsSubscriber()
+        {
+        synchronized (processorLock)
+            {
+            docsSubscriber = null;
+            processorLock.notifyAll();
+            }
+        }
+
+    /**
+     * Create a subscriber for chunk embedding.
+     *
+     * @return the created subscriber
+     */
+    private Subscriber<DocumentChunk> createChunksSubscriber()
+        {
+        synchronized (processorLock)
+            {
+            chunksSubscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name));
+            processorLock.notifyAll();
+            return chunksSubscriber;
+            }
+        }
+
+    /**
+     * Clear the subscriber for chunk embedding.
+     */
+    private void clearChunksSubscriber()
+        {
+        synchronized (processorLock)
+            {
+            chunksSubscriber = null;
+            processorLock.notifyAll();
+            }
         }
 
     /**
@@ -1175,9 +1308,8 @@ public class Store
                 {
                 while (!Thread.currentThread().isInterrupted())
                     {
-                    try (Subscriber<String> subscriber = docsTopic.createSubscriber(Subscriber.inGroup("docs-" + name)))
+                    try (Subscriber<String> subscriber = createDocsSubscriber())
                         {
-                        docsSubscriber = subscriber;
                         while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
                             try
@@ -1259,7 +1391,7 @@ public class Store
                         }
                     finally
                         {
-                        docsSubscriber = null;
+                        clearDocsSubscriber();
                         }
                     }
                 }
@@ -1369,19 +1501,17 @@ public class Store
         public void run()
             {
             int batchSize = Config.getInteger("coherence.rag.embed.batch.size", 64);
-            EmbeddingModel embeddingModel = getEmbeddingModel();
 
-            try (var executor = embeddingModel instanceof LocalOnnxEmbeddingModel
-                                       ? ForkJoinPool.commonPool()
-                                       : VirtualThreads.newVirtualThreadPerTaskExecutor())
+            while (!Thread.currentThread().isInterrupted())
                 {
-                Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
-
-                while (!Thread.currentThread().isInterrupted())
+                try (Subscriber<DocumentChunk> subscriber = createChunksSubscriber())
                     {
-                    try (Subscriber<DocumentChunk> subscriber = chunksTopic.createSubscriber(Subscriber.inGroup("chunks-" + name)))
+                    EmbeddingModel embeddingModel = getEmbeddingModel();
+                    try (var executor = embeddingModel instanceof LocalOnnxEmbeddingModel
+                                               ? ForkJoinPool.commonPool()
+                                               : VirtualThreads.newVirtualThreadPerTaskExecutor())
                         {
-                        chunksSubscriber = subscriber;
+                        Logger.info("Started BatchingEmbedder with batch size of %d".formatted(batchSize));
                         while (subscriber.isActive() && !Thread.currentThread().isInterrupted())
                             {
                             try
@@ -1430,19 +1560,19 @@ public class Store
                                 }
                             }
                         }
-                    catch (Throwable t)
+                    }
+                catch (Throwable t)
+                    {
+                    if (Thread.currentThread().isInterrupted())
                         {
-                        if (Thread.currentThread().isInterrupted())
-                            {
-                            return;
-                            }
-                        Logger.err(t);
-                        pauseBeforeRetry();
+                        return;
                         }
-                    finally
-                        {
-                        chunksSubscriber = null;
-                        }
+                    Logger.err(t);
+                    pauseBeforeRetry();
+                    }
+                finally
+                    {
+                    clearChunksSubscriber();
                     }
                 }
             }
