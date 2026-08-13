@@ -10,11 +10,15 @@
 
 package com.tangosol.coherence.component.net.security;
 
+import com.oracle.coherence.common.util.Duration;
+
 import com.tangosol.coherence.component.net.Cluster;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
+
+import com.tangosol.coherence.config.Config;
 
 import com.tangosol.internal.net.security.DefaultStandardDependencies;
 import com.tangosol.internal.net.security.StandardDependencies;
@@ -114,14 +118,22 @@ public class Standard
      * (Private) ThreadLocal holding the Subject. Used by the client threads.
      */
     private transient ThreadLocal __m_ThreadContext;
+
+    /**
+     * Property ValidSubjectExpiryMillis
+     *
+     * The subject validation cache entry expiry in milliseconds.
+     */
+    private int __m_ValidSubjectExpiryMillis;
     
     /**
      * Property ValidSubjects
      *
      * Set of Subjects that have been validated. To avoid repetetive
      * validations of the same subject (which could be very expensive), we use
-     * the LocalCache with 10 second expiration. We don't want to keep then
-     * forever to allow policy changes take effect relatively quickly.
+     * a LocalCache with configurable expiration, defaulting to 10 seconds. We
+     * don't want to keep them forever so policy changes take effect relatively
+     * quickly.
      */
     private java.util.Map __m_ValidSubjects;
 
@@ -421,14 +433,24 @@ public class Standard
         {
         return __m_ThreadContext;
         }
+
+    // Accessor for the property "ValidSubjectExpiryMillis"
+    /**
+     * Getter for property ValidSubjectExpiryMillis.<p>
+     * The subject validation cache entry expiry in milliseconds.
+     */
+    private int getValidSubjectExpiryMillis()
+        {
+        return __m_ValidSubjectExpiryMillis;
+        }
     
     // Accessor for the property "ValidSubjects"
     /**
      * Getter for property ValidSubjects.<p>
     * Set of Subjects that have been validated. To avoid repetetive validations
-    * of the same subject (which could be very expensive), we use the
-    * LocalCache with 10 second expiration. We don't want to keep then forever
-    * to allow policy changes take effect relatively quickly.
+    * of the same subject (which could be very expensive), we use a LocalCache
+    * with configurable expiration, defaulting to 10 seconds. We don't want to
+    * keep them forever so policy changes take effect relatively quickly.
      */
     private java.util.Map getValidSubjects()
         {
@@ -540,9 +562,36 @@ public class Standard
         {
         // import com.tangosol.net.cache.LocalCache;
         
-        setValidSubjects(new LocalCache(Integer.MAX_VALUE, VALID_SUBJECT_EXPIRY_MILLIS));
+        setValidSubjectExpiryMillis(resolveValidSubjectExpiryMillis());
+        setValidSubjects(new LocalCache(Integer.MAX_VALUE, getValidSubjectExpiryMillis()));
         
         super.onInit();
+        }
+
+    /**
+     * Resolve the subject validation cache expiry in milliseconds.
+     *
+     * @return the validated expiry in milliseconds
+     */
+    private static int resolveValidSubjectExpiryMillis()
+        {
+        Duration duration = Config.getDuration(PROP_VALID_SUBJECT_EXPIRY,
+                new Duration(DEFAULT_VALID_SUBJECT_EXPIRY_MILLIS, Duration.Magnitude.MILLI),
+                Duration.Magnitude.MILLI);
+        long     cNanos    = duration.getNanos();
+        long     cMillis   = duration.as(Duration.Magnitude.MILLI);
+        long     cMaxNanos = (long) Integer.MAX_VALUE * Duration.Magnitude.MILLI.getFactor();
+
+        if (cNanos < Duration.Magnitude.MILLI.getFactor() || cNanos > cMaxNanos)
+            {
+            _trace("Ignoring system property \"" + PROP_VALID_SUBJECT_EXPIRY
+                    + "\" because the duration must be between 1 and " + Integer.MAX_VALUE
+                    + " milliseconds; using the default " + DEFAULT_VALID_SUBJECT_EXPIRY_MILLIS
+                    + " milliseconds", Base.LOG_WARN);
+            return DEFAULT_VALID_SUBJECT_EXPIRY_MILLIS;
+            }
+
+        return (int) cMillis;
         }
     
     // Declared at the super level
@@ -701,14 +750,24 @@ public class Standard
         {
         __m_ThreadContext = ctx;
         }
+
+    // Accessor for the property "ValidSubjectExpiryMillis"
+    /**
+     * Setter for property ValidSubjectExpiryMillis.<p>
+     * The subject validation cache entry expiry in milliseconds.
+     */
+    private void setValidSubjectExpiryMillis(int cMillis)
+        {
+        __m_ValidSubjectExpiryMillis = cMillis;
+        }
     
     // Accessor for the property "ValidSubjects"
     /**
      * Setter for property ValidSubjects.<p>
     * Set of Subjects that have been validated. To avoid repetetive validations
-    * of the same subject (which could be very expensive), we use the
-    * LocalCache with 10 second expiration. We don't want to keep then forever
-    * to allow policy changes take effect relatively quickly.
+    * of the same subject (which could be very expensive), we use a LocalCache
+    * with configurable expiration, defaulting to 10 seconds. We don't want to
+    * keep them forever so policy changes take effect relatively quickly.
      */
     private void setValidSubjects(java.util.Map cache)
         {
@@ -816,9 +875,14 @@ public class Standard
         }
 
     /**
-     * Subject validation cache entry expiry in milliseconds.
+     * Subject validation cache entry expiry property.
      */
-    private static final int VALID_SUBJECT_EXPIRY_MILLIS = 10000;
+    private static final String PROP_VALID_SUBJECT_EXPIRY = "coherence.security.subject.validation.ttl";
+
+    /**
+     * Default subject validation cache entry expiry in milliseconds.
+     */
+    private static final int DEFAULT_VALID_SUBJECT_EXPIRY_MILLIS = 10000;
 
     // ---- class: com.tangosol.coherence.component.net.security.Standard$CreateLoginCtxAction
     
