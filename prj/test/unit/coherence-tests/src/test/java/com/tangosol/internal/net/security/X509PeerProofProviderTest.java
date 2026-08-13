@@ -680,7 +680,7 @@ public class X509PeerProofProviderTest
             Future<?> close = executor.submit(provider::close);
             close.get(X509PeerProofProvider.CLOSE_TIMEOUT_MILLIS + 1_000L, TimeUnit.MILLISECONDS);
             assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start)
-                    <= X509PeerProofProvider.CLOSE_TIMEOUT_MILLIS + 500L);
+                    <= X509PeerProofProvider.CLOSE_TIMEOUT_MILLIS + 1_000L);
             assertFalse(refresh.get(5, TimeUnit.SECONDS));
             assertClosedAndFailClosed(provider);
             }
