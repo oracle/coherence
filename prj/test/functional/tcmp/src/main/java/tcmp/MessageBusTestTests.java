@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -1463,7 +1464,7 @@ public class MessageBusTestTests
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
-                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", "1000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureActiveReadFailures", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
@@ -1473,7 +1474,7 @@ public class MessageBusTestTests
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
-                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", "1000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureActiveReadFailures", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
@@ -1489,8 +1490,25 @@ public class MessageBusTestTests
             application2 = startMessageBusTest(options2, asArg2, console2);
             JavaApplication applicationPeer = application2;
 
+            assertHealthyTrafficAfter(console1, 0);
+            assertHealthyTrafficAfter(console2, 0);
+
             assertThat(application1.invoke(AbstractSocketBus::armActiveReadFailuresForTesting), is(true));
             assertThat(applicationPeer.invoke(AbstractSocketBus::armActiveReadFailuresForTesting), is(true));
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getActiveReadFailureCapturesForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(AbstractSocketBus::getActiveReadFailureCapturesForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+
+            CompletableFuture<Boolean> future1 =
+                    application1.submit(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+            CompletableFuture<Boolean> future2 =
+                    applicationPeer.submit(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+            assertThat(future1.get(30, TimeUnit.SECONDS), is(true));
+            assertThat(future2.get(30, TimeUnit.SECONDS), is(true));
 
             Eventually.assertDeferred(
                     () -> application1.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
@@ -1546,6 +1564,23 @@ public class MessageBusTestTests
             }
         finally
             {
+            try
+                {
+                application1.invoke(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+                }
+            catch (Throwable ignored)
+                {
+                }
+            if (application2 != null)
+                {
+                try
+                    {
+                    application2.invoke(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+                    }
+                catch (Throwable ignored)
+                    {
+                    }
+                }
             application1.close();
             if (application2 != null)
                 {
