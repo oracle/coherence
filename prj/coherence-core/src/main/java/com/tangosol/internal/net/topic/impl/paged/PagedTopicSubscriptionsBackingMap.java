@@ -53,7 +53,6 @@ public class PagedTopicSubscriptionsBackingMap
     public void clear()
         {
         f_mapRollback.clear();
-        f_setReplayDedup.clear();
         super.clear();
         }
 
@@ -62,7 +61,7 @@ public class PagedTopicSubscriptionsBackingMap
     public Object put(Object key, Object value, long cMillis)
         {
         Subscription subscription = (Subscription) f_convValue.convert(value);
-        enforceReplay(subscription, f_setReplayDedup);
+        enforceReplay(subscription);
         Object oResult = super.put(key, value, cMillis);
         updateSubscription((Subscription.Key) f_convKey.convert(key), subscription);
         return oResult;
@@ -78,7 +77,7 @@ public class PagedTopicSubscriptionsBackingMap
         for (Map.Entry<?, ?> entry : set)
             {
             Subscription subscription = (Subscription) f_convValue.convert(entry.getValue());
-            enforceReplay(subscription, f_setReplayDedup);
+            enforceReplay(subscription);
             mapResolved.put(entry.getKey(), subscription);
             }
 
@@ -160,7 +159,7 @@ public class PagedTopicSubscriptionsBackingMap
             }
         }
 
-    private void enforceReplay(Subscription subscription, Set<String> setDedup)
+    private void enforceReplay(Subscription subscription)
         {
         if (subscription == null || SerializationRole.current() != SerializationRole.PERSISTENCE)
             {
@@ -169,8 +168,7 @@ public class PagedTopicSubscriptionsBackingMap
 
         Filter<?>       filter    = subscription.getFilter();
         Function<?, ?>  converter = subscription.getConverter();
-        RemoteInstallGate.enforceTopicSubscriberReplay(filter, converter, SerializationRole.PERSISTENCE, null,
-                setDedup);
+        RemoteInstallGate.enforceTopicSubscriberReplay(filter, converter, SerializationRole.PERSISTENCE, null);
         }
 
     /**
@@ -241,11 +239,6 @@ public class PagedTopicSubscriptionsBackingMap
      * The {@link Converter} to use to convert {@link com.tangosol.util.Binary} values to their object form
      */
     private final Converter f_convValue;
-
-    /**
-     * The per-backing-map replay warning and shadow-telemetry deduplication set.
-     */
-    private final Set<String> f_setReplayDedup = ConcurrentHashMap.newKeySet();
 
     /**
      * Am index of {@link SubscriberGroupId} to a map of channel to rollback position.

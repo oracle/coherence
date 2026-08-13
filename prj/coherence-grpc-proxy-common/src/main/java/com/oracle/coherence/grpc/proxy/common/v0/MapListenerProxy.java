@@ -31,7 +31,9 @@ import com.tangosol.coherence.component.net.message.MapEventMessage;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.internal.util.Daemons;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheEvent;
@@ -326,6 +328,10 @@ public class MapListenerProxy
     protected void onKeyRequest(MapListenerRequest request, MapTrigger<?, ?> trigger)
         {
         Object key = m_holder.deserializeRequest(request.getKey());
+        if (trigger != null)
+            {
+            RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.GRPC, null);
+            }
         if (trigger == null)
             {
             if (request.getSubscribe())
@@ -364,6 +370,7 @@ public class MapListenerProxy
         if (trigger == null)
             {
             Filter<Binary> filter = f_service.ensureFilter(request.getFilter(), m_holder.getSerializer());
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
             if (request.getSubscribe())
                 {
                 addListener(filter, request.getFilterId(), request.getLite(), request.getPriming());
@@ -377,6 +384,8 @@ public class MapListenerProxy
             {
             NamedCache  cache    = m_holder.getNonPassThruCache();
             Filter      filter   = f_service.getFilter(request.getFilter(), m_holder.getSerializer());
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+            RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.GRPC, null);
             MapListener listener = new MapTriggerListener(trigger);
             if (request.getSubscribe())
                 {
@@ -860,7 +869,8 @@ public class MapListenerProxy
             }
         else
             {
-            builder.setCode(Status.Code.INTERNAL.value());
+            builder.setCode(ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(t, f_sErrorDisclosure)
+                    .getStatus().getCode().value());
             }
 
         if (!fSafe)
