@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -2028,27 +2029,47 @@ public class X509PeerProofProvider
             checkOpen();
             Future<T> future = f_ioExecutor.submit(() ->
                 {
-                synchronized (ReadScope.this)
+                try
                     {
-                    if (m_nState != SCOPE_OPEN)
+                    synchronized (ReadScope.this)
                         {
-                        throw new IOException("credential operation cancelled");
+                        if (m_nState != SCOPE_OPEN)
+                            {
+                            throw new IOException("credential operation cancelled");
+                            }
+                        m_threadOwner = Thread.currentThread();
                         }
-                    m_threadOwner = Thread.currentThread();
+                    checkOpen();
+                    T result = callable.call();
+                    checkOpen();
+                    return result;
                     }
-                checkOpen();
-                T result = callable.call();
-                checkOpen();
-                return result;
+                finally
+                    {
+                    synchronized (ReadScope.this)
+                        {
+                        if (m_threadOwner == Thread.currentThread())
+                            {
+                            m_threadOwner = null;
+                            }
+                        }
+                    f_workComplete.countDown();
+                    }
                 });
+            boolean fCancelled;
             synchronized (this)
                 {
-                if (m_nState != SCOPE_OPEN)
+                fCancelled = m_nState != SCOPE_OPEN;
+                if (!fCancelled)
                     {
-                    future.cancel(true);
-                    throw new IOException("credential operation cancelled");
+                    m_futureWork = future;
                     }
-                m_futureWork = future;
+                }
+            if (fCancelled)
+                {
+                future.cancel(true);
+                awaitCancellationQuiescence();
+                throw new IOException("credential operation cancelled");
                 }
             try
                 {
@@ -2082,13 +2103,16 @@ public class X509PeerProofProvider
                 }
             finally
                 {
+                if (isCancelled())
+                    {
+                    awaitCancellationQuiescence();
+                    }
                 synchronized (this)
                     {
                     if (m_futureWork == future)
                         {
                         m_futureWork = null;
                         }
-                    m_threadOwner = null;
                     }
                 }
             }
@@ -2163,26 +2187,33 @@ public class X509PeerProofProvider
                 futureWork = m_futureWork;
                 threadOwner = m_threadOwner;
                 }
-            ScheduledFuture<?> future = f_futureDeadline;
-            if (future != null)
+            try
                 {
-                future.cancel(false);
+                ScheduledFuture<?> future = f_futureDeadline;
+                if (future != null)
+                    {
+                    future.cancel(false);
+                    }
+                if (futureWork != null)
+                    {
+                    futureWork.cancel(true);
+                    }
+                if (threadOwner != null)
+                    {
+                    threadOwner.interrupt();
+                    }
+                for (Runnable action : actions)
+                    {
+                    runCancelAction(action);
+                    }
+                for (TrackedInputStream stream : streams)
+                    {
+                    stream.requestClose();
+                    }
                 }
-            if (futureWork != null)
+            finally
                 {
-                futureWork.cancel(true);
-                }
-            if (threadOwner != null)
-                {
-                threadOwner.interrupt();
-                }
-            for (Runnable action : actions)
-                {
-                runCancelAction(action);
-                }
-            for (TrackedInputStream stream : streams)
-                {
-                stream.requestClose();
+                f_cancellationComplete.countDown();
                 }
             }
 
@@ -2229,6 +2260,68 @@ public class X509PeerProofProvider
             synchronized (this) {m_setStreams.remove(stream);}
             }
 
+        private synchronized void trackCleanup(Future<?> future)
+            {
+            m_setCleanupWork.add(future);
+            }
+
+        /**
+         * Wait a bounded grace interval for cancelled backend work to leave
+         * both the credential worker and cleanup executor.  Cancelling a
+         * {@link Future} marks it complete before its running task has
+         * necessarily observed interruption, so Future.get() alone is not a
+         * lifecycle boundary.
+         */
+        private void awaitCancellationQuiescence()
+            {
+            long lDeadline = System.nanoTime()
+                    + TimeUnit.MILLISECONDS.toNanos(CREDENTIAL_CANCELLATION_TIMEOUT_MILLIS);
+            try
+                {
+                long cNanos = lDeadline - System.nanoTime();
+                if (cNanos <= 0L || !f_cancellationComplete.await(cNanos, TimeUnit.NANOSECONDS))
+                    {
+                    return;
+                    }
+
+                cNanos = lDeadline - System.nanoTime();
+                if (cNanos <= 0L || !f_workComplete.await(cNanos, TimeUnit.NANOSECONDS))
+                    {
+                    return;
+                    }
+
+                List<Future<?>> listCleanup;
+                synchronized (this)
+                    {
+                    listCleanup = new ArrayList<>(m_setCleanupWork);
+                    }
+                for (Future<?> future : listCleanup)
+                    {
+                    cNanos = lDeadline - System.nanoTime();
+                    if (cNanos <= 0L)
+                        {
+                        return;
+                        }
+                    try
+                        {
+                        future.get(cNanos, TimeUnit.NANOSECONDS);
+                        }
+                    catch (ExecutionException ignored)
+                        {
+                        // The backend is quiescent even when its close failed.
+                        }
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                }
+            catch (TimeoutException | IllegalStateException ignored)
+                {
+                // Preserve the bounded refresh contract for hostile backends.
+                }
+            }
+
         private void await(Future<?> future) throws IOException
             {
             try
@@ -2266,7 +2359,10 @@ public class X509PeerProofProvider
         private final long f_lDeadline;
         private int m_nState = SCOPE_OPEN;
         private final Set<TrackedInputStream> m_setStreams = new HashSet<>();
+        private final Set<Future<?>> m_setCleanupWork = new HashSet<>();
         private final List<Runnable> m_listCancelActions = new ArrayList<>();
+        private final CountDownLatch f_cancellationComplete = new CountDownLatch(1);
+        private final CountDownLatch f_workComplete = new CountDownLatch(1);
         private volatile Thread m_threadOwner;
         private volatile Future<?> m_futureWork;
         private volatile ScheduledFuture<?> f_futureDeadline;
@@ -2327,6 +2423,7 @@ public class X509PeerProofProvider
                     task.run();
                     }
                 }
+            f_scope.trackCleanup(m_futureClose);
             return m_futureClose;
             }
 
@@ -2368,6 +2465,8 @@ public class X509PeerProofProvider
     public static final long CLOCK_SKEW_MILLIS = ProofTimePolicy.CLOCK_SKEW_MILLIS;
     /** Absolute deadline for one complete credential snapshot operation. */
     public static final long CREDENTIAL_OPERATION_TIMEOUT_MILLIS = 5_000L;
+    /** Bounded grace interval for a cancelled backend to reach quiescence. */
+    static final long CREDENTIAL_CANCELLATION_TIMEOUT_MILLIS = 1_000L;
     /** Maximum provider close wait for its scheduled executor. */
     public static final long CLOSE_TIMEOUT_MILLIS = 5_000L;
     /** Maximum supported bytes in one credential object. */
