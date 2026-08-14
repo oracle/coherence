@@ -20,6 +20,9 @@ import com.tangosol.internal.http.Response;
 import com.tangosol.internal.management.Converter;
 import com.tangosol.internal.management.EntityMBeanResponse;
 import com.tangosol.internal.management.MBeanResponse;
+
+import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
+
 import com.tangosol.net.management.MapJsonBodyHandler;
 import com.tangosol.net.CacheFactory;
 
@@ -1345,21 +1348,7 @@ public abstract class AbstractManagementResource
      */
     protected static boolean isJfrDiagnosticCommand(String sCmd)
         {
-        if (sCmd == null)
-            {
-            return false;
-            }
-
-        switch (sCmd)
-            {
-            case "jfrStart":
-            case "jfrStop":
-            case "jfrDump":
-            case "jfrCheck":
-                return true;
-            default:
-                return false;
-            }
+        return DiagnosticCommandPolicy.isRestOperationAllowed(sCmd);
         }
 
     /**

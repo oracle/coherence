@@ -6,6 +6,7 @@
  */
 package com.tangosol.net.management;
 
+import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
 import com.tangosol.internal.net.management.MBeanCollectorFunction;
 
 import com.tangosol.util.Filter;
@@ -36,6 +37,8 @@ import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -222,6 +225,29 @@ public class ManagementInvocationPolicyTest
         expectSecurity(() -> ManagementInvocationPolicy.validateInvoke(m_server,
                 new ObjectName("com.sun.management:type=DiagnosticCommand"), "vmSystemProperties",
                 null, null, "test"));
+        }
+
+    @Test
+    public void shouldPreserveIntentionalDiagnosticCommandSurfaceRelationship()
+        {
+        String[] asJfrOperation = {"jfrStart", "jfrStop", "jfrDump", "jfrCheck"};
+        for (String sOperation : asJfrOperation)
+            {
+            assertTrue(DiagnosticCommandPolicy.isRestOperationAllowed(sOperation));
+            assertTrue(DiagnosticCommandPolicy.isWrappedJmxOperationAllowed(sOperation));
+            }
+
+        assertFalse(DiagnosticCommandPolicy.isRestOperationAllowed("vmUnlockCommercialFeatures"));
+        assertTrue(DiagnosticCommandPolicy.isWrappedJmxOperationAllowed("vmUnlockCommercialFeatures"));
+
+        for (String sOperation : new String[] {"vmSystemProperties", "jvmtiAgentLoad", "managementAgentStart"})
+            {
+            assertFalse(DiagnosticCommandPolicy.isRestOperationAllowed(sOperation));
+            assertFalse(DiagnosticCommandPolicy.isWrappedJmxOperationAllowed(sOperation));
+            }
+
+        assertFalse(DiagnosticCommandPolicy.isRestOperationAllowed(null));
+        assertFalse(DiagnosticCommandPolicy.isWrappedJmxOperationAllowed(null));
         }
 
     @Test

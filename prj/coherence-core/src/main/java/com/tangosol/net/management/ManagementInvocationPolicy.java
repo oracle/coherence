@@ -8,6 +8,7 @@ package com.tangosol.net.management;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
 import com.tangosol.internal.net.management.MBeanCollectorFunction;
 import com.tangosol.internal.util.CoherenceMode;
 
@@ -291,7 +292,7 @@ public final class ManagementInvocationPolicy
         validateIdentifier(sOperation, "wrapper-jmx", "operation", "invalid-operation");
         validateArguments(aoParam, asSignature, "wrapper-jmx");
 
-        if (isDiagnosticCommand(name) && ALLOWED_DIAGNOSTIC_OPERATIONS.contains(sOperation))
+        if (isDiagnosticCommand(name) && DiagnosticCommandPolicy.isWrappedJmxOperationAllowed(sOperation))
             {
             validateOperationDescriptor(server, name, sOperation, asSignature, "wrapper-jmx");
             return;
@@ -589,6 +590,10 @@ public final class ManagementInvocationPolicy
 
     private static ObjectName validateQueryObjectName(ObjectName name, String sScope)
         {
+        // Query patterns remain broad for inventory compatibility. Every
+        // matched name must be passed through validateQueryResult(),
+        // validateReadQueryResult(), or equivalent concrete-name validation
+        // before it is used as an MBeanServer target.
         if (name == null)
             {
             return null;
@@ -1157,13 +1162,6 @@ public final class ManagementInvocationPolicy
             MBeanAccessor.SetAttributes.class,
             MBeanAccessor.Invoke.class,
             MBeanCollectorFunction.class));
-
-    private static final Set<String> ALLOWED_DIAGNOSTIC_OPERATIONS = new HashSet<>(Arrays.asList(
-            "jfrStart",
-            "jfrDump",
-            "jfrCheck",
-            "jfrStop",
-            "vmUnlockCommercialFeatures"));
 
     private static final int REMOTE_MODEL_OP_GET = 1;
 
