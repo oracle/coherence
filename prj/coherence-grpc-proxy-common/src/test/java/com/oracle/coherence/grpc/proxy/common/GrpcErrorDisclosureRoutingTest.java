@@ -43,6 +43,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.Test;
 
@@ -100,6 +101,43 @@ class GrpcErrorDisclosureRoutingTest
         assertEquals(Status.Code.FAILED_PRECONDITION.value(), error.getCode());
         assertEquals(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE, error.getMessage());
         assertEquals(0, error.getStackCount());
+        }
+
+    @Test
+    void shouldMapDirectSecurityFailureInV0MapListenerPayload()
+        {
+        TestMapListenerProxy      proxy = new TestMapListenerProxy(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        MapListenerErrorResponse error = proxy.error("listener-security-direct", new SecurityException("denied"));
+
+        assertEquals("listener-security-direct", error.getUid());
+        assertEquals(Status.Code.PERMISSION_DENIED.value(), error.getCode());
+        assertEquals("denied", error.getMessage());
+        assertTrue(error.getStackCount() > 0);
+        }
+
+    @Test
+    void shouldMapWrappedSecurityFailureInSafeV0MapListenerPayload()
+        {
+        TestMapListenerProxy proxy = new TestMapListenerProxy(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE);
+        MapListenerErrorResponse error = proxy.error("listener-security-wrapped",
+                new CompletionException(new SecurityException("secret denial detail")));
+
+        assertEquals("listener-security-wrapped", error.getUid());
+        assertEquals(Status.Code.PERMISSION_DENIED.value(), error.getCode());
+        assertEquals(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE, error.getMessage());
+        assertEquals(0, error.getStackCount());
+        }
+
+    @Test
+    void shouldPreserveInvalidArgumentV0MapListenerPayloadErrors()
+        {
+        TestMapListenerProxy      proxy = new TestMapListenerProxy(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        MapListenerErrorResponse error = proxy.error("listener-invalid", new IllegalArgumentException("bad request"));
+
+        assertEquals("listener-invalid", error.getUid());
+        assertEquals(Status.Code.INVALID_ARGUMENT.value(), error.getCode());
+        assertEquals("bad request", error.getMessage());
+        assertTrue(error.getStackCount() > 0);
         }
 
     @Test

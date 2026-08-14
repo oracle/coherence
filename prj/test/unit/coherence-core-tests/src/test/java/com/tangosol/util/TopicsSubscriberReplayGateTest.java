@@ -25,8 +25,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -47,7 +53,7 @@ public class TopicsSubscriberReplayGateTest
         m_sModeOld        = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
         m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
         m_sPolicyDriftOld = System.getProperty(TopicsPersistedPolicyDrift.PROP_PERSISTED_POLICY_DRIFT);
-        m_listMessages    = new ArrayList<>();
+        m_listMessages    = Collections.synchronizedList(new ArrayList<>());
         SerializationTelemetry.resetForTesting();
         resetSecurityConfig();
         RemoteExecutablePolicy.resetForTesting();
@@ -119,6 +125,101 @@ public class TopicsSubscriberReplayGateTest
         assertEquals(m_listMessages.toString(), 1, m_listMessages.size());
         assertTrue(m_listMessages.get(0).contains(PlainFilter.class.getName()));
         assertTrue(m_listMessages.get(0).contains(TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW));
+        }
+
+    @Test
+    public void replayScopeDeduplicatesOnlyWithinOnePass()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        try (RemoteInstallGate.TopicReplayScope ignored = RemoteInstallGate.beginTopicReplayPass())
+            {
+            RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                    SerializationRole.PERSISTENCE, null);
+            RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                    SerializationRole.PERSISTENCE, null);
+            }
+
+        assertEquals(m_listMessages.toString(), 1, m_listMessages.size());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 1L);
+        }
+
+    @Test
+    public void independentReplayScopesDoNotSuppressLaterPass()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        replayPlainFilterInScope();
+        replayPlainFilterInScope();
+
+        assertEquals(m_listMessages.toString(), 2, m_listMessages.size());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 2L);
+        }
+
+    @Test
+    public void compatibilityOverloadUsesFreshStateOutsideReplayScope()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                SerializationRole.PERSISTENCE, null);
+        RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                SerializationRole.PERSISTENCE, null);
+
+        assertEquals(m_listMessages.toString(), 2, m_listMessages.size());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 2L);
+        }
+
+    @Test
+    public void nestedReplayScopeRestoresParentPass()
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        try (RemoteInstallGate.TopicReplayScope ignoredOuter = RemoteInstallGate.beginTopicReplayPass())
+            {
+            replayPlainFilter();
+            try (RemoteInstallGate.TopicReplayScope ignoredInner = RemoteInstallGate.beginTopicReplayPass())
+                {
+                replayPlainFilter();
+                }
+            replayPlainFilter();
+            }
+
+        assertEquals(m_listMessages.toString(), 2, m_listMessages.size());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 2L);
+        }
+
+    @Test
+    public void concurrentReplayScopesAreIsolated()
+            throws Exception
+        {
+        setMode("prod", TopicsPersistedPolicyDrift.VALUE_WARN_ALLOW);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        CountDownLatch  ready    = new CountDownLatch(2);
+        CountDownLatch  start    = new CountDownLatch(1);
+        try
+            {
+            Future<?> futureOne = executor.submit(() -> replayPlainFilterConcurrently(ready, start));
+            Future<?> futureTwo = executor.submit(() -> replayPlainFilterConcurrently(ready, start));
+
+            ready.await();
+            start.countDown();
+            futureOne.get();
+            futureTwo.get();
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
+
+        assertEquals(m_listMessages.toString(), 2, m_listMessages.size());
+        assertPolicyCounter(OperationReason.EVALUATE_FILTER, "prod", "allowed",
+                SerializationTelemetry.SUB_REASON_REPLAY_DRIFT, 2L);
         }
 
     @Test
@@ -224,6 +325,36 @@ public class TopicsSubscriberReplayGateTest
                 + ",result=" + sResult
                 + ",mode=" + sMode
                 + ",sub_reason=" + sSubReason + "}";
+        }
+
+    private void replayPlainFilterInScope()
+        {
+        try (RemoteInstallGate.TopicReplayScope ignored = RemoteInstallGate.beginTopicReplayPass())
+            {
+            replayPlainFilter();
+            }
+        }
+
+    private void replayPlainFilter()
+        {
+        RemoteInstallGate.enforceTopicSubscriberReplay(new PlainFilter(), null,
+                SerializationRole.PERSISTENCE, null);
+        }
+
+    private void replayPlainFilterConcurrently(CountDownLatch ready, CountDownLatch start)
+        {
+        try (RemoteInstallGate.TopicReplayScope ignored = RemoteInstallGate.beginTopicReplayPass())
+            {
+            ready.countDown();
+            start.await();
+            replayPlainFilter();
+            replayPlainFilter();
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(e);
+            }
         }
 
     private static void setMode(String sMode, String sPolicyDrift)

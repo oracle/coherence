@@ -83,6 +83,21 @@ public class RemoteExecutablePolicyTest
         }
 
     @Test
+    public void isExecutable_rechecksLiveSecurityConfigWhenAnnotationResultIsMemoized()
+            throws Exception
+        {
+        withConfig(entry(XmlExecutable.class.getName(), "manual", true));
+        RemoteExecutablePolicy policy = RemoteExecutablePolicy.current();
+
+        assertTrue(policy.isExecutable(XmlExecutable.class));
+
+        withConfig();
+
+        assertSame(policy, RemoteExecutablePolicy.current());
+        assertFalse(policy.isExecutable(XmlExecutable.class));
+        }
+
+    @Test
     public void isExecutable_returnsTrueForCorePagedTopicSubscriberInterceptor()
         {
         assertTrue(RemoteExecutablePolicy.current().isExecutable(PagedTopicSubscriberInterceptor.class));

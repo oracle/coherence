@@ -71,8 +71,8 @@ import com.tangosol.util.processor.UpdaterProcessor;
 import com.tangosol.util.extractor.CompositeUpdater;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -256,7 +256,21 @@ public final class RemoteInstallGate
     public static final void enforceTopicSubscriberReplay(Filter<?> filter, Function<?, ?> extractor,
                                                           SerializationRole role, Subject subject)
         {
-        enforceTopicSubscriberReplay(filter, extractor, role, subject, null);
+        TopicReplayScope scope = s_scopeTopicReplay.get();
+        enforceTopicSubscriberReplay(filter, extractor, role, subject,
+                scope == null ? new HashSet<>() : scope.getDedupSet());
+        }
+
+    /**
+     * Begin one persisted topic replay pass on the current thread.
+     *
+     * @return the replay scope to close when the pass ends
+     */
+    public static final TopicReplayScope beginTopicReplayPass()
+        {
+        TopicReplayScope scope = new TopicReplayScope(s_scopeTopicReplay.get());
+        s_scopeTopicReplay.set(scope);
+        return scope;
         }
 
     /**
@@ -309,20 +323,6 @@ public final class RemoteInstallGate
         }
 
     /**
-     * Emit an advisory for cache-config-declared topic subscriber classes.
-     *
-     * @param filter     the declared subscriber filter
-     * @param extractor  the declared subscriber extractor
-     * @param setDedup   advisory keys already emitted in this bootstrap pass
-     */
-    public static final void adviseDeclaredTopicSubscriber(Filter<?> filter, ValueExtractor<?, ?> extractor,
-                                                           Set<String> setDedup)
-        {
-        adviseDeclaredClass("topic subscriber filter", filter == null ? null : filter.getClass(), setDedup);
-        adviseDeclaredClass("topic subscriber extractor", extractor == null ? null : extractor.getClass(), setDedup);
-        }
-
-    /**
      * Reset advisory logger for tests.
      */
     public static final void resetAdvisoryForTesting()
@@ -335,7 +335,11 @@ public final class RemoteInstallGate
      */
     public static final void resetReplayDedupForTesting()
         {
-        s_setReplayDedup.clear();
+        TopicReplayScope scope = s_scopeTopicReplay.get();
+        if (scope != null)
+            {
+            scope.getDedupSet().clear();
+            }
         }
 
     /**
@@ -1313,10 +1317,7 @@ public final class RemoteInstallGate
 
     private static boolean recordReplayDedup(Class<?> clz, OperationReason reason, Set<String> setDedup)
         {
-        String  sKey       = replayDedupKey(clz, reason);
-        boolean fLocalNew  = setDedup == null || setDedup.add(sKey);
-        boolean fGlobalNew = s_setReplayDedup.add(sKey);
-        return fLocalNew && fGlobalNew;
+        return setDedup == null || setDedup.add(replayDedupKey(clz, reason));
         }
 
     private static void adviseDeclaredClass(String sKind, Class<?> clz, Set<String> setDedup)
@@ -1364,6 +1365,49 @@ public final class RemoteInstallGate
          * @return nested processors for install-gate cascade
          */
         Iterable<? extends InvocableMap.EntryProcessor> getProcessorsForInstallGate();
+        }
+
+    // ----- inner class: TopicReplayScope ---------------------------------
+
+    /**
+     * A nested, thread-confined persisted topic replay pass.
+     */
+    public static final class TopicReplayScope
+            implements AutoCloseable
+        {
+        private TopicReplayScope(TopicReplayScope scopePrevious)
+            {
+            f_scopePrevious = scopePrevious;
+            }
+
+        @Override
+        public void close()
+            {
+            if (Thread.currentThread() != f_threadOwner || s_scopeTopicReplay.get() != this)
+                {
+                throw new IllegalStateException("Topic replay scopes must close in owner-thread nesting order");
+                }
+
+            if (f_scopePrevious == null)
+                {
+                s_scopeTopicReplay.remove();
+                }
+            else
+                {
+                s_scopeTopicReplay.set(f_scopePrevious);
+                }
+            }
+
+        private Set<String> getDedupSet()
+            {
+            return f_setDedup;
+            }
+
+        private final Thread f_threadOwner = Thread.currentThread();
+
+        private final TopicReplayScope f_scopePrevious;
+
+        private final Set<String> f_setDedup = new HashSet<>();
         }
 
     // ----- constants -----------------------------------------------------
@@ -1416,9 +1460,9 @@ public final class RemoteInstallGate
     private static volatile Consumer<String> s_advisoryLogger = Logger::warn;
 
     /**
-     * JVM-local replay warning and shadow-telemetry deduplication keys.
+     * The current thread's nested persisted topic replay pass.
      */
-    private static final Set<String> s_setReplayDedup = ConcurrentHashMap.newKeySet();
+    private static final ThreadLocal<TopicReplayScope> s_scopeTopicReplay = new ThreadLocal<>();
 
     private RemoteInstallGate()
         {

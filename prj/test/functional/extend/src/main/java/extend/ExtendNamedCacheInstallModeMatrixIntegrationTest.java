@@ -27,6 +27,8 @@ import com.tangosol.net.NamedCache;
 
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
 import com.tangosol.util.OperationReason;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.aggregator.ScriptAggregator;
@@ -274,6 +276,44 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
                 SerializationTelemetry.SUB_REASON_MODE_GATE);
         }
 
+    @Test
+    public void plainListenerFilterShadowsWhenSecurityModeIsUnset()
+        {
+        startProxy("prod", null);
+
+        NamedCache<String, Integer> cache = getCache(Operation.QUERY);
+        MapListener<String, Integer> listener = listener();
+        PlainFilter filter = new PlainFilter();
+        cache.addMapListener(listener, filter, false);
+        cache.removeMapListener(listener, filter);
+
+        assertWouldRejectCounterPresent(PlainFilter.class, OperationReason.EVALUATE_FILTER);
+        }
+
+    @Test
+    public void plainListenerFilterRejectsInHardenedDevMode()
+        {
+        startProxy("dev", CoherenceMode.SECURITY_MODE_HARDENED, null);
+
+        NamedCache<String, Integer> cache = getCache(Operation.QUERY);
+        assertRemoteFailure(() -> cache.addMapListener(listener(), new PlainFilter(), false),
+                "Remote execution denied for class");
+        }
+
+    @Test
+    public void annotatedFilterAndKeyOnlyListenersInstallInHardenedProdMode()
+        {
+        startProxy("prod", CoherenceMode.SECURITY_MODE_HARDENED, null);
+
+        NamedCache<String, Integer> cache = getCache(Operation.QUERY);
+        MapListener<String, Integer> listener = listener();
+        AnnotatedFilter filter = new AnnotatedFilter();
+        cache.addMapListener(listener, filter, false);
+        cache.removeMapListener(listener, filter);
+        cache.addMapListener(listener, "one-QUERY", false);
+        cache.removeMapListener(listener, "one-QUERY");
+        }
+
     private void assertAllOperationsInstall(PayloadKind kind)
         {
         for (Operation operation : Operation.values())
@@ -433,6 +473,27 @@ public class ExtendNamedCacheInstallModeMatrixIntegrationTest
             {
             assertTrue(e.toString(), containsMessage(e, sMessage));
             }
+        }
+
+    private static <K, V> MapListener<K, V> listener()
+        {
+        return new MapListener<>()
+            {
+            @Override
+            public void entryInserted(MapEvent<K, V> event)
+                {
+                }
+
+            @Override
+            public void entryUpdated(MapEvent<K, V> event)
+                {
+                }
+
+            @Override
+            public void entryDeleted(MapEvent<K, V> event)
+                {
+                }
+            };
         }
 
     private static void restoreProperty(String sName, String sValue)

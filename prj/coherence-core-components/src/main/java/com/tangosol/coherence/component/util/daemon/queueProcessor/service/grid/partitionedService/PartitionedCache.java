@@ -59,6 +59,7 @@ import com.tangosol.internal.net.security.SubjectProofPayload;
 import com.tangosol.internal.net.security.SubjectProofVerification;
 import com.tangosol.internal.net.security.SubjectProofVerifier;
 import com.tangosol.internal.util.QueryResult;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
@@ -10886,12 +10887,15 @@ public class PartitionedCache
 
             com.oracle.coherence.persistence.PersistentStore.Visitor visitorPersistence =
                     com.tangosol.persistence.CachePersistenceHelper.instantiatePersistenceVisitor(visitor);
-            boolean fJournalMaterialized =
-                    com.tangosol.persistence.journal.JournalPersistenceManager.tryIterateRecoveryMaterialized(
-                            storeFrom, visitorPersistence);
-            if (!fJournalMaterialized)
+            try (RemoteInstallGate.TopicReplayScope ignored = RemoteInstallGate.beginTopicReplayPass())
                 {
-                storeFrom.iterate(visitorPersistence);
+                boolean fJournalMaterialized =
+                        com.tangosol.persistence.journal.JournalPersistenceManager.tryIterateRecoveryMaterialized(
+                                storeFrom, visitorPersistence);
+                if (!fJournalMaterialized)
+                    {
+                    storeFrom.iterate(visitorPersistence);
+                    }
                 }
 
             cRecovered = visitor.getStatsEntriesRecovered();

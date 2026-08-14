@@ -4670,6 +4670,13 @@ public class NamedCacheFactory
             
             NamedCache cache = getNamedCache();
             _assert(cache != null);
+
+            Filter filter = getFilter();
+            if (filter != null)
+                {
+                RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                        channel.getSubject());
+                }
             
             MapTrigger trigger = getTrigger();
             if (trigger == null)
@@ -4677,14 +4684,14 @@ public class NamedCacheFactory
                 MapListenerProxy proxy = (MapListenerProxy) channel.getAttribute(
                         NamedCacheProxy.ATTR_LISTENER);
                 _assert(proxy != null);
-            
+
                 if (isAdd())
                     {
-                    proxy.addListener(cache, getFilter(), getFilterId(), isLite(), isPriming());
+                    proxy.addListener(cache, filter, getFilterId(), isLite(), isPriming());
                     }
                 else
                     {
-                    proxy.removeListener(cache, getFilter(), isPriming());
+                    proxy.removeListener(cache, filter, isPriming());
                     }
                 }
             else
@@ -4694,11 +4701,11 @@ public class NamedCacheFactory
                         channel.getSubject());
                 if (isAdd())
                     {
-                    cache.addMapListener(listener, getFilter(), isLite());
+                    cache.addMapListener(listener, filter, isLite());
                     }
                 else
                     {
-                    cache.removeMapListener(listener, getFilter());
+                    cache.removeMapListener(listener, filter);
                     }
                 }
             }
