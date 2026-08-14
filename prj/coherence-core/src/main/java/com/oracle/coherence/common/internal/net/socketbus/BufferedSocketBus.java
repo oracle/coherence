@@ -184,13 +184,13 @@ public abstract class BufferedSocketBus
         }
 
     /**
-     * Return the maximum queued bytes observed during an incomplete socket write.
+     * Return the maximum outstanding bytes observed during an incomplete socket write.
      *
-     * @return the maximum queued bytes
+     * @return the maximum outstanding bytes
      */
-    public static long getSocketBackpressureQueuedBytesForTesting()
+    public static long getSocketBackpressureOutstandingBytesForTesting()
         {
-        return TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES.get();
+        return TEST_SOCKET_BACKPRESSURE_OUTSTANDING_BYTES.get();
         }
 
     /**
@@ -2863,8 +2863,8 @@ public abstract class BufferedSocketBus
                     {
                     m_fSocketBackpressureObservedForTesting = true;
                     TEST_SOCKET_BACKPRESSURE_CONNECTION.set(BufferedConnection.this);
-                    TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES.accumulateAndGet(
-                            Math.max(0L, f_cbQueued.get()), Math::max);
+                    TEST_SOCKET_BACKPRESSURE_OUTSTANDING_BYTES.accumulateAndGet(
+                            Math.max(Math.max(0L, m_cbBatch), Math.max(0L, f_cbQueued.get())), Math::max);
                     TEST_SOCKET_BACKPRESSURE_PARTIAL_WRITES.incrementAndGet();
                     }
 
@@ -3676,8 +3676,8 @@ public abstract class BufferedSocketBus
     /** Number of incomplete writes observed by the genuine socket-backpressure regression. */
     private static final AtomicLong TEST_SOCKET_BACKPRESSURE_PARTIAL_WRITES = new AtomicLong();
 
-    /** Maximum queued bytes observed during an incomplete socket write. */
-    private static final AtomicLong TEST_SOCKET_BACKPRESSURE_QUEUED_BYTES = new AtomicLong();
+    /** Maximum outstanding bytes observed during an incomplete socket write. */
+    private static final AtomicLong TEST_SOCKET_BACKPRESSURE_OUTSTANDING_BYTES = new AtomicLong();
 
     /** Bytes written after the connection observed an incomplete socket write. */
     private static final AtomicLong TEST_BYTES_WRITTEN_AFTER_SOCKET_BACKPRESSURE = new AtomicLong();
