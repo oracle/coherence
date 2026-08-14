@@ -243,7 +243,7 @@
     <netty.version>4.1.136.Final</netty.version>
     <oci.sdk.version>3.69.0</oci.sdk.version>
     <ok.http.version>5.1.0</ok.http.version>
-    <opentelemetry.version>1.52.0</opentelemetry.version>
+    <opentelemetry.version>1.64.0</opentelemetry.version>
     <opentelemetry.grpc.version>2.14.0-alpha</opentelemetry.grpc.version>
     <!-- only used for testing -->
     <opentelemetry.proto.version>1.0.0-alpha</opentelemetry.proto.version>
