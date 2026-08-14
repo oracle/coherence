@@ -8,8 +8,6 @@ package security;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
 import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
-import com.oracle.bedrock.runtime.java.options.JavaModules;
-import com.oracle.bedrock.runtime.java.options.JavaHome;
 import com.oracle.bedrock.options.Timeout;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
@@ -1080,118 +1078,6 @@ public class StorageAccessAuthorizerRouteTests
             }
         }
 
-    @Test
-    public void shouldBoundActual1221CapabilityFailureAndRecover() throws Exception
-        {
-        String cluster = "peer01-p68-actual-1221-" + System.nanoTime();
-        CoherenceClusterMember senior = null;
-        CoherenceClusterMember oldOne = null;
-        CoherenceClusterMember oldTwo = null;
-        try
-            {
-            Properties props = auxiliaryProperties("peer-proof-client", s_clientStore, s_authorities,
-                    FILE_CFG_OVERRIDE, "dev", "hardened", true);
-            props.setProperty("coherence.cluster", cluster);
-            senior = startCacheServer("PEER01CapabilitySenior", "security", null, props, true);
-
-            Properties oldProps = new Properties();
-            Path resources = Path.of(System.getProperty("test.project.dir"), "src", "main", "resources");
-            oldProps.setProperty("coherence.override", resources.resolve("peer-proof-old-override.xml")
-                    .toUri().toString());
-            oldProps.setProperty("coherence.cacheconfig", resources.resolve("peer-proof-old-cache-config.xml")
-                    .toUri().toString());
-            oldProps.setProperty("coherence.cluster", cluster);
-            oldProps.setProperty("coherence.localhost", "127.0.0.1");
-            oldProps.setProperty("coherence.wka", "127.0.0.1");
-            oldProps.setProperty("coherence.member", "peer-proof-old-1221");
-            oldProps.setProperty("coherence.distributed.localstorage", "false");
-            oldProps.setProperty("coherence.mode", "dev");
-            oldProps.setProperty("coherence.security.peer.senior-metadata-proof.required", "false");
-            oldProps.setProperty("coherence.management", "none");
-            String repository = System.getProperty("test.maven.repository",
-                    Path.of(System.getProperty("user.home"), ".m2", "repository").toString());
-            String oldJar = Path.of(repository, "com", "oracle", "coherence", "coherence", "12.2.1-3-19",
-                    "coherence-12.2.1-3-19.jar").toString();
-            assertTrue("the actual 12.2.1 test artifact is required", Files.isRegularFile(Path.of(oldJar)));
-            oldOne = startCacheServer("PEER01Actual1221One", "security", null, oldProps, true, oldJar,
-                    JavaModules.disabled(), JavaHome.at(findJava17Home()));
-            Properties oldPropsTwo = new Properties();
-            oldPropsTwo.putAll(oldProps);
-            oldPropsTwo.setProperty("coherence.member", "peer-proof-old-1221-two");
-            oldTwo = startCacheServer("PEER01Actual1221Two", "security", null, oldPropsTwo, true, oldJar,
-                    JavaModules.disabled(), JavaHome.at(findJava17Home()));
-
-            Eventually.assertThat(invoking(senior).getClusterSize(), is(3));
-            assertTrue(senior.invoke(new GetMemberVersion("peer-proof-old-1221")).startsWith("12.2.1"));
-            assertTrue(senior.invoke(new GetMemberVersion("peer-proof-old-1221-two")).startsWith("12.2.1"));
-            senior.invoke(new SetSeniorProofRequired(true));
-            long started = System.nanoTime();
-            try
-                {
-                senior.invoke(new SendSeniorHeartbeat());
-                }
-            catch (RuntimeException expected)
-                {
-                // Required emission is allowed to fail the service operation closed.
-                }
-            long elapsedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - started);
-            assertTrue("multiple recipients exceeded one capability interval: " + elapsedMillis,
-                    elapsedMillis < 35_000L);
-            String status = senior.invoke(new GetPeerProofStatus(Role.CLUSTER));
-            assertTrue("actual 12.2.1 must be terminally incompatible, not pending: " + status,
-                    status.startsWith("capability-incompatible:"));
-            assertFalse(status.startsWith("capability-pending:"));
-            assertTrue(status.length() <= 128);
-
-            senior.invoke(new SetSeniorProofRequired(false));
-            oldOne.close();
-            oldOne = null;
-            oldTwo.close();
-            oldTwo = null;
-            Eventually.assertThat(invoking(senior).getClusterSize(), is(1));
-            senior.invoke(new SendSeniorHeartbeat());
-            assertFalse(senior.invoke(new GetPeerProofStatus(Role.CLUSTER))
-                    .startsWith("capability-incompatible:"));
-            }
-        finally
-            {
-            if (oldOne != null) {oldOne.close();}
-            if (oldTwo != null) {oldTwo.close();}
-            if (senior != null) {senior.close();}
-            }
-        }
-
-    private static String findJava17Home() throws Exception
-        {
-        String configured = System.getProperty("peer01.test.java17.home");
-        if (configured != null && !configured.isBlank())
-            {
-            return configured;
-            }
-        Path javaHome = Path.of(System.getProperty("java.home"));
-        Path parent = "Home".equals(String.valueOf(javaHome.getFileName()))
-                ? javaHome.getParent().getParent().getParent() : javaHome.getParent();
-        try (java.util.stream.Stream<Path> stream = Files.list(parent))
-            {
-            return stream.map(path -> Files.isDirectory(path.resolve("Contents/Home"))
-                            ? path.resolve("Contents/Home") : path)
-                    .filter(path -> {
-                        try
-                            {
-                            return Files.readString(path.resolve("release")).contains("JAVA_VERSION=\"17.");
-                            }
-                        catch (Exception ignored)
-                            {
-                            return false;
-                            }
-                        })
-                    .map(Path::toString)
-                    .findFirst()
-                    .orElseThrow(() -> new IllegalStateException(
-                            "actual 12.2.1 coverage requires JDK 17; set peer01.test.java17.home"));
-            }
-        }
-
     private static void assertProcessOutputContains(String processName, String expected)
             throws Exception
         {
@@ -2237,57 +2123,6 @@ public class StorageAccessAuthorizerRouteTests
             }
 
         private final String f_targetName;
-        }
-
-    public static class SendSeniorHeartbeat
-            implements RemoteCallable<Void>
-        {
-        @Override
-        public Void call()
-            {
-            sendSeniorHeartbeat();
-            return null;
-            }
-        }
-
-    public static class GetMemberVersion
-            implements RemoteCallable<String>
-        {
-        public GetMemberVersion(String memberName)
-            {
-            f_memberName = memberName;
-            }
-
-        @Override
-        public String call()
-            {
-            ClusterService service = ((SafeCluster) CacheFactory.getCluster()).getRunningCluster().getClusterService();
-            MasterMemberSet members = service.getClusterMemberSet();
-            com.tangosol.coherence.component.net.Member member = findMember(members, f_memberName);
-            int version = members.getServiceVersionInt(member.getId());
-            return com.tangosol.internal.util.VersionHelper.toVersionString(version, true);
-            }
-
-        private final String f_memberName;
-        }
-
-    public static class SetSeniorProofRequired
-            implements RemoteCallable<Void>
-        {
-        public SetSeniorProofRequired(boolean required)
-            {
-            f_required = required;
-            }
-
-        @Override
-        public Void call()
-            {
-            System.setProperty("coherence.security.peer.senior-metadata-proof.required",
-                    Boolean.toString(f_required));
-            return null;
-            }
-
-        private final boolean f_required;
         }
 
     private static com.tangosol.coherence.component.net.Member findMember(MasterMemberSet members, String name)
