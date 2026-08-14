@@ -52,8 +52,12 @@ prj/.ai/runs/**
 prj/.ai/scratch/**
 prj/.ai/rq-monitor/**
 prj/.ai/rq-investigation/**
+prj/.ai/incidents/
 prj/.ai/branches/*/logs/
 prj/.ai/branches/*/*/logs/
+
+# ignore macOS Finder metadata
+.DS_Store
 
 # ignore JDK Flight Recorder dumps from hung test JVMs
 *.jfr
