@@ -42,6 +42,7 @@
       --add-reads com.oracle.coherence.cdi=weld.core.impl
       --add-reads com.oracle.coherence.cdi.server=weld.core.impl
       --add-reads com.oracle.coherence.mp.config=ALL-UNNAMED
+      --add-reads com.oracle.coherence.mp.metrics=ALL-UNNAMED
       --add-opens java.base/java.lang=weld.core.impl
       --add-opens java.base/java.lang=ALL-UNNAMED
     </failsafe.modules.argline>
