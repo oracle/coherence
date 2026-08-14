@@ -38,6 +38,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -835,6 +836,49 @@ public class X509PeerProofProviderTest
                     executor.shutdownNow();
                     }
                 }
+            }
+        }
+
+    @Test
+    public void shouldAwaitCancelledCredentialCleanupBeforeRefreshReturns() throws Exception
+        {
+        BlockingCleanupCredentialReader reader = new BlockingCleanupCredentialReader();
+        X509PeerProofProvider provider = new X509PeerProofProvider(
+                dependencies(s_memberOne, s_memberOne.f_cert, s_memberOne.f_cert), generation -> {}, reader, 100L);
+        s_providers.add(provider);
+        provider.setLocalMemberName("member-one");
+        provider.observeMemberNames(Collections.singleton("member-one"));
+        reader.arm();
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<Boolean> refresh = executor.submit(provider::refresh);
+        try
+            {
+            assertTrue("cancelled backend cleanup did not start", reader.awaitCloseStarted());
+            try
+                {
+                refresh.get(250L, TimeUnit.MILLISECONDS);
+                fail("refresh completed while cancelled backend cleanup was still running");
+                }
+            catch (TimeoutException expected)
+                {
+                // refresh owns the cancelled backend until cleanup quiesces
+                }
+            }
+        finally
+            {
+            reader.allowClose();
+            }
+
+        try
+            {
+            assertFalse(refresh.get(5L, TimeUnit.SECONDS));
+            assertTrue(reader.wasCancelled());
+            assertEquals(1, reader.getCloseCount());
+            }
+        finally
+            {
+            executor.shutdownNow();
             }
         }
 
@@ -3814,6 +3858,84 @@ public class X509PeerProofProviderTest
         private final AtomicBoolean m_fCancelled = new AtomicBoolean();
         private final AtomicInteger m_cBackendCalls = new AtomicInteger();
         private final AtomicInteger m_cRefreshOpens = new AtomicInteger();
+        }
+
+    private static class BlockingCleanupCredentialReader
+            implements X509PeerProofProvider.CredentialReader
+        {
+        @Override
+        public InputStream open(String sUrl, X509PeerProofProvider.CredentialControl control) throws IOException
+            {
+            control.onCancel(() -> m_fCancelled.set(true));
+            if (!m_fArmed.get())
+                {
+                return Files.newInputStream(Path.of(sUrl));
+                }
+            InputStream delegate = Files.newInputStream(Path.of(sUrl));
+            return new InputStream()
+                {
+                @Override
+                public int read() throws IOException
+                    {
+                    byte[] one = new byte[1];
+                    int count = read(one, 0, 1);
+                    return count < 0 ? -1 : one[0] & 0xff;
+                    }
+
+                @Override
+                public int read(byte[] bytes, int offset, int length) throws IOException
+                    {
+                    if (m_fCancelled.get())
+                        {
+                        throw new IOException("cancelled credential trickle");
+                        }
+                    try {Thread.sleep(10L);} catch (InterruptedException ignored) {}
+                    bytes[offset] = 0;
+                    return 1;
+                    }
+
+                @Override
+                public void close() throws IOException
+                    {
+                    f_closeStarted.countDown();
+                    try
+                        {
+                        if (!f_allowClose.await(5L, TimeUnit.SECONDS))
+                            {
+                            throw new IOException("timed out waiting to release credential cleanup");
+                            }
+                        }
+                    catch (InterruptedException e)
+                        {
+                        Thread.currentThread().interrupt();
+                        throw new IOException("credential cleanup interrupted", e);
+                        }
+                    m_cClose.incrementAndGet();
+                    delegate.close();
+                    }
+                };
+            }
+
+        void arm()
+            {m_fArmed.set(true);}
+
+        boolean awaitCloseStarted() throws InterruptedException
+            {return f_closeStarted.await(10L, TimeUnit.SECONDS);}
+
+        void allowClose()
+            {f_allowClose.countDown();}
+
+        boolean wasCancelled()
+            {return m_fCancelled.get();}
+
+        int getCloseCount()
+            {return m_cClose.get();}
+
+        private final CountDownLatch f_closeStarted = new CountDownLatch(1);
+        private final CountDownLatch f_allowClose = new CountDownLatch(1);
+        private final AtomicBoolean m_fCancelled = new AtomicBoolean();
+        private final AtomicBoolean m_fArmed = new AtomicBoolean();
+        private final AtomicInteger m_cClose = new AtomicInteger();
         }
 
     private static final String PASSWORD = "changeit";
