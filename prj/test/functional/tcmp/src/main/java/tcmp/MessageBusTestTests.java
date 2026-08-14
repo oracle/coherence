@@ -622,7 +622,7 @@ public class MessageBusTestTests
             Eventually.assertDeferred(
                     () -> application1.invoke(BufferedSocketBus::getSocketBackpressurePartialWritesForTesting),
                     greaterThan(0L), within(30, TimeUnit.SECONDS));
-            assertThat(application1.invoke(BufferedSocketBus::getSocketBackpressureQueuedBytesForTesting),
+            assertThat(application1.invoke(BufferedSocketBus::getSocketBackpressureOutstandingBytesForTesting),
                     greaterThan(0L));
             assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
 
