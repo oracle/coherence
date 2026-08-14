@@ -159,7 +159,7 @@ coherence-hnsw/src/main/resources/libhnswlib-x86-64.dll: $(HNSW_HDR_FILES) $(HNS
 
 # To build on Windows using the cl.exe compiler use the following commands:
 #
-# cl /D_USRDLL /D_WINDLL coherence-hnsw\src\main\cpp\bindings.cpp /I prj\coherence-hnsw\src\main\cpp\hnswlib /MT /link /DLL /OUT:prj\coherence-hnsw\target\libs\libhnswlib-x86-64.dll
+# cl /EHsc /D_USRDLL /D_WINDLL coherence-hnsw\src\main\cpp\bindings.cpp /I prj\coherence-hnsw\src\main\cpp\hnswlib /MT /link /DLL /OUT:prj\coherence-hnsw\target\libs\libhnswlib-x86-64.dll
 # ren prj\coherence-hnsw\target\libs\libhnswlib-x86-64.lib libhnswlib-x86-64.libw
 #
 
