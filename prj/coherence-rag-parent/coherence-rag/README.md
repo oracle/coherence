@@ -191,10 +191,13 @@ coherence.rag.security.huggingface.allowed-models=sentence-transformers/all-Mini
 
 When the allowlist is empty:
 
-| `coherence.mode` | Behavior |
-|------------------|----------|
-| `dev` or unset | Downloads are allowed and a single bounded warning is logged per process startup. |
-| `prod` | Downloads are rejected until `coherence.rag.security.huggingface.allowed-models` is configured. |
+| `coherence.security.mode` | Behavior |
+|---------------------------|----------|
+| unset or `compatibility` | Downloads are allowed and a single bounded warning is logged per process startup. |
+| `hardened` | Downloads are rejected until `coherence.rag.security.huggingface.allowed-models` is configured. |
+
+This policy is independent of runtime/license `coherence.mode=dev|prod`.
+Changing runtime mode is not a security rollback mechanism.
 
 Document imports are denied by default until schemes and locations are
 configured:
@@ -216,7 +219,25 @@ coherence.rag.import.oci.os.allowed-locations=
 HTTP(S) imports require an allowed host and resolved addresses are checked
 before opening the URI. Loopback, link-local, metadata, and private addresses
 are rejected by default; the private-address opt-in still requires an allowed
-host and does not permit link-local metadata targets.
+host and does not permit link-local metadata targets. These checks do not bind
+the accepted DNS answer to the peer selected later by `HttpURLConnection`, so
+they mitigate but do not eliminate DNS rebinding. Use only destinations whose
+DNS and any configured system proxy are within the deployment trust boundary.
+
+Local-file imports resolve the requested file and configured roots to canonical
+paths, require canonical containment, and parse content from a channel opened
+through `SecureDirectoryStream` traversal with symbolic-link following
+disabled. Existing symlink spellings remain usable when their canonical target
+is inside an allowed root, while symlinks introduced into the canonical path
+after validation are rejected. A final entry-based regular-file check rejects
+stable special files, including FIFOs, before the blocking open. Java does not
+expose file-type attributes for the returned channel, however, so replacement
+of the final entry between that check and the open remains a race. Local-file
+validation-to-use binding is therefore deferred pending an owner-selected
+platform/native contract; do not treat the current traversal as complete
+binding. File imports also fail closed on filesystem providers that do not
+support `SecureDirectoryStream`; use HTTP(S) or a supported local filesystem
+provider on those platforms.
 
 ### Configuration
 
