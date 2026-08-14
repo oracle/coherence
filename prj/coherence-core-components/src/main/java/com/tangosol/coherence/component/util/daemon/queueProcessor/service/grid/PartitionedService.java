@@ -2364,6 +2364,7 @@ public abstract class PartitionedService
                {
                // publish that we are ownership-enabled prior to accepting clients
                // to ensure the ownership memberset includes this member
+               com.tangosol.internal.net.security.PeerProofReadiness.recordTopologyChange();
                getThisMemberConfigMap().
                    put("ownership-enabled", Integer.valueOf(OWNERSHIP_ENABLED));
         
@@ -5174,6 +5175,7 @@ public abstract class PartitionedService
         // (see #validateMemberConfig, #validatePartitionConfig)
         boolean fOwnershipEnabled = isOwnershipEnabled();
         
+        com.tangosol.internal.net.security.PeerProofReadiness.recordTopologyChange();
         getThisMemberConfigMap().put("ownership-enabled",
             Integer.valueOf(fOwnershipEnabled ? OWNERSHIP_PENDING : OWNERSHIP_DISABLED));
         
@@ -17050,6 +17052,11 @@ public abstract class PartitionedService
             super.onReceived();
             
             PartitionedService service = (PartitionedService) getService();
+
+            if (Base.equals("ownership-enabled", getKey()))
+                {
+                com.tangosol.internal.net.security.PeerProofReadiness.recordTopologyChange();
+                }
             
             if (service.isAcceptingClients() &&
                 service.isOwnershipEnabled() &&

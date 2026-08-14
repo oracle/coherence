@@ -102,6 +102,10 @@ public class CapturingAuthorizer
 
     protected void record(Event event)
         {
+        if (event.getCacheName() != null && event.getCacheName().startsWith("peer-proof-perf-"))
+            {
+            return;
+            }
         s_listEvents.add(event);
 
         if (s_setDeniedReasons.contains(event.getReason()))
