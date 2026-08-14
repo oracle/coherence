@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import java.net.SocketException;
 
@@ -61,6 +62,116 @@ public abstract class BufferedSocketBus
      */
     protected static final long PERF_TRACE_THRESHOLD_BYTES =
             Long.getLong("coherence.socketbus.perf.trace.thresholdBytes", 8L * 1024L * 1024L);
+
+    /**
+     * Diagnostic interval for reporting a ready connection with queued bytes and no visible progress owner.
+     * A non-positive value disables the reporting-only watchdog.
+     */
+    protected static final long LIVENESS_WATCHDOG_MILLIS = Long.getLong(
+            "coherence.socketbus.liveness.watchdogMillis", 0L);
+
+    /**
+     * Whether opt-in transport progression diagnostics are enabled.
+     */
+    protected static final boolean PROGRESS_DIAGNOSTICS =
+            PERF_TRACE || LIVENESS_WATCHDOG_MILLIS > 0L;
+
+    /** A write-progression request is pending. */
+    protected static final int WRITE_PROGRESSION_PENDING = 1;
+
+    /** At least one pending progression request permits an application-thread socket write. */
+    protected static final int WRITE_PROGRESSION_SOCKET_WRITE = 1 << 1;
+
+    /** At least one pending progression request is an explicit, non-auto flush. */
+    protected static final int WRITE_PROGRESSION_EXPLICIT = 1 << 2;
+
+    /**
+     * Return the number of write wakeups dropped after a controlled partial write.
+     *
+     * @return the number of dropped write wakeups
+     */
+    public static long getDroppedWriteWakeupsForTesting()
+        {
+        return TEST_DROPPED_WRITE_WAKEUPS.get();
+        }
+
+    /**
+     * Return the queued bytes captured when the write wakeup was dropped.
+     *
+     * @return the captured queued bytes
+     */
+    public static long getQueuedBytesAtDroppedWriteWakeupForTesting()
+        {
+        return TEST_QUEUED_BYTES_AT_DROPPED_WRITE_WAKEUP.get();
+        }
+
+    /**
+     * Re-register the connection whose write wakeup was dropped by the functional test hook.
+     *
+     * @return {@code true} iff a connection was nudged
+     */
+    public static boolean nudgeDroppedWriteWakeupForTesting()
+        {
+        Runnable task = TEST_DROPPED_WRITE_WAKEUP_NUDGE.getAndSet(null);
+        if (task == null)
+            {
+            return false;
+            }
+        task.run();
+        return true;
+        }
+
+    /**
+     * Return true iff the deliberately dropped wakeup still has an unused
+     * external nudge available.
+     *
+     * @return true iff the test nudge has not been consumed
+     */
+    public static boolean isDroppedWriteWakeupNudgePendingForTesting()
+        {
+        return TEST_DROPPED_WRITE_WAKEUP_NUDGE.get() != null;
+        }
+
+    /**
+     * Return the number of queued-write continuations handed from a producer
+     * back to the transport owner lane.
+     *
+     * @return the number of non-owner queued-write handoffs
+     */
+    public static long getNonOwnerQueuedWriteHandoffsForTesting()
+        {
+        return TEST_NON_OWNER_QUEUED_WRITE_HANDOFFS.get();
+        }
+
+    /**
+     * Return the number of write-progression requests deferred behind an active epoch writer.
+     *
+     * @return the number of deferred progression requests
+     */
+    public static long getDeferredWriteProgressionRequestsForTesting()
+        {
+        return TEST_DEFERRED_WRITE_PROGRESSION_REQUESTS.get();
+        }
+
+    /**
+     * Return the number of deferred write-progression requests handed to a subsequent epoch writer.
+     *
+     * @return the number of deferred progression handoffs
+     */
+    public static long getDeferredWriteProgressionHandoffsForTesting()
+        {
+        return TEST_DEFERRED_WRITE_PROGRESSION_HANDOFFS.get();
+        }
+
+    /**
+     * Return the number of receipt-deadline flushes that also carried pending application data.
+     *
+     * @return the number of receipt/application piggyback flushes
+     */
+    public static long getReceiptFlushesWithPendingDataForTesting()
+        {
+        return TEST_RECEIPT_FLUSHES_WITH_PENDING_DATA.get();
+        }
 
     // ----- constructors ---------------------------------------------------
 
@@ -99,7 +210,7 @@ public abstract class BufferedSocketBus
                         {
                         if (((BufferedConnection) conn).isReceiptFlushRequired())
                             {
-                            conn.optimisticFlush();
+                            ((BufferedConnection) conn).flushPendingReceipts();
                             }
                         }
                     }
@@ -260,9 +371,41 @@ public abstract class BufferedSocketBus
          *
          * @return true iff the caller became the active writer
          */
-        protected boolean tryActivateWriter()
+        protected boolean tryActivateWriter(String sReason)
             {
-            return m_fWriterActive.compareAndSet(false, true);
+            return tryActivateWriter(getReadyTransportEpoch(), sReason, /*fRequireReady*/ true);
+            }
+
+        /**
+         * Attempt to acquire the owner ticket for a specific transport epoch.
+         *
+         * @param epoch          the epoch that will own the progression pass
+         * @param sReason        the ownership reason
+         * @param fRequireReady  true iff the epoch must still be READY
+         *
+         * @return true iff the caller acquired the owner ticket
+         */
+        protected boolean tryActivateWriter(TransportEpoch epoch, String sReason, boolean fRequireReady)
+            {
+            if (epoch == null || !m_epochWriterActive.compareAndSet(null, epoch))
+                {
+                return false;
+                }
+
+            if (m_transportEpoch != epoch ||
+                fRequireReady && epoch.m_phase != TransportPhase.READY)
+                {
+                m_epochWriterActive.compareAndSet(epoch, null);
+                return false;
+                }
+
+            if (PROGRESS_DIAGNOSTICS)
+                {
+                m_sWriterOwner      = Thread.currentThread().getName();
+                m_sWriterReason     = sReason;
+                m_ldtWriterAcquired = SafeClock.INSTANCE.getSafeTimeMillis();
+                }
+            return true;
             }
 
         /**
@@ -270,7 +413,26 @@ public abstract class BufferedSocketBus
          */
         protected void deactivateWriter()
             {
-            m_fWriterActive.set(false);
+            deactivateWriter(m_epochWriterActive.get());
+            }
+
+        /**
+         * Relinquish ownership only if the ticket still belongs to the
+         * specified epoch. A stale command must never clear a newer epoch's
+         * scheduling duty.
+         */
+        protected void deactivateWriter(TransportEpoch epoch)
+            {
+            if (epoch == null || !m_epochWriterActive.compareAndSet(epoch, null))
+                {
+                return;
+                }
+            if (PROGRESS_DIAGNOSTICS)
+                {
+                m_sWriterOwner      = null;
+                m_sWriterReason     = null;
+                m_ldtWriterAcquired = 0L;
+                }
             }
 
         /**
@@ -280,19 +442,18 @@ public abstract class BufferedSocketBus
          */
         protected boolean isWriterActive()
             {
-            return m_fWriterActive.get();
+            return m_epochWriterActive.get() != null;
             }
 
         @Override
-        protected boolean tryAcquireMigrationOwnership()
+        protected void prepareMigrationOnOwner(TransportEpoch epochRetired)
             {
-            return tryActivateWriter();
-            }
-
-        @Override
-        protected void releaseMigrationOwnership()
-            {
-            deactivateWriter();
+            // The retired epoch's SelectionService lane already serializes this
+            // transition with every transport consumer.  Relinquish its
+            // scheduling ticket so a queued stale command cannot prevent the
+            // replacement handshake from starting.  Exact-epoch CAS prevents
+            // that command from clearing a later epoch's duty when it runs.
+            deactivateWriter(epochRetired);
             }
 
         /**
@@ -303,19 +464,36 @@ public abstract class BufferedSocketBus
          */
         protected void scheduleActiveWriteProgression(boolean fSocketWrite, boolean fAuto)
             {
-            long ldtScheduled = System.nanoTime();
+            TransportEpoch epoch = m_epochWriterActive.get();
+            if (epoch == null)
+                {
+                throw new IllegalStateException("write progression scheduled without an epoch owner");
+                }
+
+            boolean fTrackTiming = PROGRESS_DIAGNOSTICS || isTransportMetricsTrackedForTesting();
+            long    ldtScheduled = fTrackTiming ? System.nanoTime() : 0L;
             try
                 {
-                invoke(new Runnable()
+                invokeTransport(epoch, new Runnable()
                     {
                     @Override
                     public void run()
                         {
-                        recordSelectorTaskDelayForTesting(ldtScheduled);
-                        enterTransportCallback();
+                        if (fTrackTiming)
+                            {
+                            long cDelay = System.nanoTime() - ldtScheduled;
+                            if (PROGRESS_DIAGNOSTICS)
+                                {
+                                m_cSelectorTasks++;
+                                m_cSelectorTaskDelayLastNanos = cDelay;
+                                m_cSelectorTaskDelayMaxNanos  = Math.max(m_cSelectorTaskDelayMaxNanos, cDelay);
+                                }
+                            recordSelectorTaskDelayForTesting(ldtScheduled);
+                            }
+                        enterTransportCallback(BufferedConnection.this, epoch);
                         try
                             {
-                            processQueuedWritesOnSelectionThread(fSocketWrite, fAuto);
+                            processQueuedWritesOnSelectionThread(epoch, fSocketWrite, fAuto);
                             }
                         finally
                             {
@@ -326,7 +504,7 @@ public abstract class BufferedSocketBus
                 }
             catch (RuntimeException e)
                 {
-                deactivateWriter();
+                deactivateWriter(epoch);
                 throw e;
                 }
             }
@@ -341,12 +519,50 @@ public abstract class BufferedSocketBus
          */
         protected boolean requestWriteProgression(boolean fSocketWrite, boolean fAuto)
             {
-            if (tryActivateWriter())
+            if (tryActivateWriter(fAuto ? "auto-flush" : "flush"))
                 {
+                tracePerf("schedule", false);
                 scheduleActiveWriteProgression(fSocketWrite, fAuto);
+                }
+            else
+                {
+                // Publish only after losing the optimistic ticket so the uncontended path pays no additional CAS.
+                // Retry acquisition after publication to close the race with an owner that relinquished its ticket
+                // between our first attempt and the publication.
+                publishWriteProgressionRequest(fSocketWrite, fAuto);
+                if (TEST_TRACK_DEFERRED_WRITE_PROGRESSION)
+                    {
+                    TEST_DEFERRED_WRITE_PROGRESSION_REQUESTS.incrementAndGet();
+                    }
+                if (tryActivateWriter(fAuto ? "deferred-auto-flush" : "deferred-flush"))
+                    {
+                    tracePerf("schedule-deferred", false);
+                    scheduleActiveWriteProgression(fSocketWrite, fAuto);
+                    }
                 }
 
             return !hasProducerWriteWork();
+            }
+
+        /**
+         * Publish a progression request before attempting to acquire the epoch writer ticket. This closes the
+         * lost-wakeup window in which an explicit flush or receipt flush raced an active writer but had no MPSC
+         * publication or queued socket bytes for the active writer's final recheck to observe.
+         */
+        protected void publishWriteProgressionRequest(boolean fSocketWrite, boolean fAuto)
+            {
+            int nRequest = WRITE_PROGRESSION_PENDING
+                    | (fSocketWrite ? WRITE_PROGRESSION_SOCKET_WRITE : 0)
+                    | (fAuto ? 0 : WRITE_PROGRESSION_EXPLICIT);
+            int nCurrent = m_nWriteProgressionRequest.get();
+            while ((nCurrent & nRequest) != nRequest)
+                {
+                if (m_nWriteProgressionRequest.compareAndSet(nCurrent, nCurrent | nRequest))
+                    {
+                    return;
+                    }
+                nCurrent = m_nWriteProgressionRequest.get();
+                }
             }
 
         /**
@@ -454,58 +670,131 @@ public abstract class BufferedSocketBus
             }
 
         /**
+         * Publish a fully initialized batch at the tail of the resend chain.
+         *
+         * The normal consumer path constructs and links a batch on the
+         * SelectionService lane. A producer-owned direct path must initialize
+         * the batch before publishing the volatile {@code next} edge so that
+         * concurrent receipt processing cannot observe an empty node.
+         *
+         * @param batch  the initialized, unlinked batch
+         */
+        protected void linkInitializedWriteBatch(WriteBatch batch)
+            {
+            m_batchWriteTail = m_batchWriteTail.m_next = batch;
+            }
+
+        /**
          * Run the consumer-owned queued-write processing step on the SelectionService thread.
          *
          * @param fSocketWrite  true if the consumer may offer cpu to socket writes
          */
-        protected void processQueuedWritesOnSelectionThread(boolean fSocketWrite, boolean fAuto)
+        protected void processQueuedWritesOnSelectionThread(TransportEpoch epoch, boolean fSocketWrite, boolean fAuto)
             {
             try
                 {
-                lock();
-                try
+                // This command is bound to epoch.f_channel and therefore runs on the same owner lane as the
+                // epoch's read/write callback. A stale command performs no consumer-state mutation.
+                if (!isValid() || !isCurrentTransportEpoch(epoch, TransportPhase.READY))
                     {
-                    // avoid transport I/O if the connection becomes defunct or starts a replacement-channel handshake
-                    // between producer publication and consumer processing
-                    if (!isValid() || !isTransportReady())
-                        {
-                        return;
-                        }
+                    return;
+                    }
 
-                    boolean fFlushPending = isFlushable(this);
-                    if (progressQueuedWrites(fSocketWrite, fAuto))
+                int nRequest = m_nWriteProgressionRequest.get();
+                if (nRequest != 0)
+                    {
+                    nRequest = m_nWriteProgressionRequest.getAndSet(0);
+                    }
+                fSocketWrite |= (nRequest & WRITE_PROGRESSION_SOCKET_WRITE) != 0;
+                fAuto &= (nRequest & WRITE_PROGRESSION_EXPLICIT) == 0;
+
+                boolean fFlushPending = isFlushable(this);
+                if (progressQueuedWrites(epoch, fSocketWrite, fAuto))
+                    {
+                    if (fFlushPending)
                         {
-                        if (fFlushPending)
-                            {
-                            removeFlushable(this);
-                            }
-                        }
-                    else if (!fFlushPending)
-                        {
-                        addFlushable(this);
+                        removeFlushable(this);
                         }
                     }
-                finally
+                else if (!fFlushPending)
                     {
-                    unlock();
+                    addFlushable(this);
                     }
                 }
             finally
                 {
-                deactivateWriter();
+                completeWriteProgression(epoch, fSocketWrite);
+                }
+            }
 
-                if (isTransportReady() && hasProducerWriteWork() && tryActivateWriter())
+        /**
+         * Relinquish a completed write-progression pass and transfer any work
+         * that raced the pass to the current epoch owner.
+         *
+         * @param epoch         the epoch that owned the completed pass
+         * @param fSocketWrite  true if a follow-up consumer may offer cpu to socket writes
+         */
+        protected void completeWriteProgression(TransportEpoch epoch, boolean fSocketWrite)
+            {
+            deactivateWriter(epoch);
+
+            TransportEpoch epochReady = getReadyTransportEpoch();
+            int            nRequest    = m_nWriteProgressionRequest.get();
+            if (epochReady != null
+                    && (nRequest != 0 || hasProducerWriteWork())
+                    && tryActivateWriter(epochReady,
+                            epochReady == epoch ? "producer-follow-up" : "epoch-handoff",
+                            /*fRequireReady*/ true))
+                {
+                if (nRequest != 0 && TEST_TRACK_DEFERRED_WRITE_PROGRESSION)
                     {
-                    // producer publications that arrive after this pass are handled as follow-up background work
-                    scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ true);
+                    TEST_DEFERRED_WRITE_PROGRESSION_HANDOFFS.incrementAndGet();
                     }
-                else if (isTransportReady() && f_cbQueued.get() > 0)
+                // Producer publications that arrive after this pass are handled as follow-up background work.
+                // If this command belonged to a retired epoch, the same check transfers the scheduling duty to
+                // the replacement instead of letting the stale command clear the only wakeup.
+                scheduleActiveWriteProgression(
+                        fSocketWrite || (nRequest & WRITE_PROGRESSION_SOCKET_WRITE) != 0,
+                        nRequest == 0 || (nRequest & WRITE_PROGRESSION_EXPLICIT) == 0);
+                }
+            else if (epochReady != null && f_cbQueued.get() > 0)
+                {
+                if (epochReady != epoch || !isTransportOwner(this, epochReady))
                     {
-                    // if this pass queued socket writes but there is no further producer work, drive the queued
-                    // writes immediately instead of waiting for a future OP_WRITE callback that may never come
+                    // A stale command may be running on the former owner lane. A producer-owned direct pass is
+                    // also outside the SelectionService lane. Either caller can request a callback on the current
+                    // owner, but must not advance the owner-only send/resend chain itself.
+                    if (epochReady == epoch && TEST_TRACK_NON_OWNER_QUEUED_WRITE_HANDOFFS)
+                        {
+                        TEST_NON_OWNER_QUEUED_WRITE_HANDOFFS.incrementAndGet();
+                        }
+                    try
+                        {
+                        wakeup(epochReady);
+                        }
+                    catch (IOException e)
+                        {
+                        onException(epochReady.f_lId, e);
+                        }
+                    }
+                else
+                    {
+                    // If this pass queued socket writes but there is no further producer work, drive the queued
+                    // writes immediately instead of waiting for a future OP_WRITE callback that may never come.
                     // processWrites() performs its own writer activation; pre-activating here can strand the
-                    // writer bit and turn the follow-up into a no-op
-                    processWrites(/*fReady*/ false);
+                    // owner ticket and turn the follow-up into a no-op.
+                    try
+                        {
+                        int nInterest = processWrites(/*fReady*/ false, epochReady);
+                        if ((nInterest & OP_WRITE) != 0)
+                            {
+                            wakeup(epochReady);
+                            }
+                        }
+                    catch (IOException e)
+                        {
+                        onException(epochReady.f_lId, e);
+                        }
                     }
                 }
             }
@@ -624,7 +913,7 @@ public abstract class BufferedSocketBus
          *
          * @return true if the connection has flushed all pending data known to the consumer
          */
-        protected boolean progressQueuedWrites(boolean fSocketWrite, boolean fAuto)
+        protected boolean progressQueuedWrites(TransportEpoch epoch, boolean fSocketWrite, boolean fAuto)
             {
             ++m_cProgressPasses;
             absorbPublishedWrites();
@@ -652,7 +941,7 @@ public abstract class BufferedSocketBus
                     batch.lock();  // lock because ack can come in while we're still in batch.write
                     try
                         {
-                        if (batch.write())
+                        if (batch.write(epoch))
                             {
                             m_cWritersBatch       = 0;
                             m_lWritersBatchBitSet = 0;
@@ -674,7 +963,7 @@ public abstract class BufferedSocketBus
                     // stream is now in an unknown state; queue the remainder and reconnect
                     detachUnflushedWriteBatch();
                     enqueueWriteBatch(batch);
-                    onException(m_lTransportGeneration, e);
+                    onException(epoch.f_lId, e);
                     fResult = true; // nothing more can be done
                     long cbPostDrain = absorbPublishedWrites();
                     m_cbProgressPostDrain += cbPostDrain;
@@ -683,11 +972,11 @@ public abstract class BufferedSocketBus
                         addFlushable(this);
                         try
                             {
-                            wakeup();
+                            wakeup(epoch);
                             }
                         catch (IOException eWakeup)
                             {
-                            onException(m_lTransportGeneration, eWakeup);
+                            onException(epoch.f_lId, eWakeup);
                             }
                         return false;
                         }
@@ -744,18 +1033,39 @@ public abstract class BufferedSocketBus
         @Override
         protected boolean heartbeat()
             {
+            TransportEpoch epoch = getTransportEpoch();
+            if (isTransportOwner(this, epoch))
+                {
+                return heartbeatOnOwner(epoch);
+                }
+            invoke(epoch, () -> heartbeatOnOwner(epoch));
+            return epoch != null;
+            }
+
+        /**
+         * Evaluate heartbeat state on the epoch owner lane.
+         *
+         * @param epoch  the owner token captured by the periodic request
+         */
+        protected boolean heartbeatOnOwner(TransportEpoch epoch)
+            {
+            if (m_transportEpoch != epoch)
+                {
+                return false;
+                }
+
             boolean fResult = false;
             if (m_cbWrite        == m_cbHeartbeatLast &&    // we've sent nothing since the last check
                 f_cbQueued.get() == 0 &&                    // we have no outbound traffic queued up
-                isTransportReady())                         // COH-25350 - messages can be sent on the connection
+                isCurrentTransportEpoch(epoch, TransportPhase.READY)) // COH-25350 - messages can be sent on the connection
                 {
                 // prevent the network infrastructure from closing the idle socket
 
                 // setting m_fIdle to true will cause the next flush to minimally send an empty receipt
                 // flush will also reset idle
-                // some writes are seen on the socket when optimisticFlush() is called
+                // some writes are seen on the socket when progression is requested
                 m_fIdle = true;
-                optimisticFlush(); // attempt flush in case auto-flush is disabled
+                requestWriteProgression(/*fSocketWrite*/ false, /*fAuto*/ false);
                 fResult = true;
                 }
             // else; the connection has seen writes since the last heartbeat check, no action required
@@ -877,8 +1187,8 @@ public abstract class BufferedSocketBus
 
                 if (isReceiptFlushRequired())
                     {
-                    // there are no pending flushes for this connection
-                    optimisticFlush();
+                    // honor the receipt deadline and piggyback any pending application data
+                    flushPendingReceipts();
                     }
                 }
             else
@@ -896,10 +1206,25 @@ public abstract class BufferedSocketBus
                 WriteBatch batchNext   = batchResend.next();
                 for (;;)
                     {
-                    // The resend/send/unflushed chain is consumer-owned, and receipts are processed on the
-                    // same SelectionService thread that owns write progression. That means ack processing can
-                    // walk the current resend batch directly without producer-side synchronization.
-                    int cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
+                    int cEmit;
+                    if (isReceiptBatchLockRequired())
+                        {
+                        batchResend.lock();
+                        try
+                            {
+                            cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
+                            }
+                        finally
+                            {
+                            batchResend.unlock();
+                            }
+                        }
+                    else
+                        {
+                        // The normal TransportEpoch path keeps the resend/send/unflushed chain on the
+                        // SelectionService lane, so no producer-side synchronization is required.
+                        cEmit = batchResend.ack(cReturned, f_aoReceiptTmp);
+                        }
                     cReturned -= cEmit;
 
                     // emit receipts outside of synchronization
@@ -962,6 +1287,17 @@ public abstract class BufferedSocketBus
             }
 
         /**
+         * Return true iff a producer may currently mutate a batch while the
+         * SelectionService processes a receipt.
+         *
+         * @return {@code true} if receipt acknowledgement must lock the batch
+         */
+        protected boolean isReceiptBatchLockRequired()
+            {
+            return false;
+            }
+
+        /**
          * Process a receipt from the supplied stream
          *
          * @param in  the receipt
@@ -1001,13 +1337,27 @@ public abstract class BufferedSocketBus
             }
 
         /**
-         * Return true iff there are pending receipts that needs to be flushed but no application data to flush
+         * Return true iff receipt bookkeeping must be flushed. Any unflushed application data is piggybacked on
+         * that flush; it must not suppress the receipt deadline. In particular, MPSC auto progression can leave a
+         * small consumer-owned application batch pending even though no application thread will issue another flush.
          *
-         * @return true iff connection has pending receipts but no unflushed application data
+         * @return true iff the connection has pending receipt bookkeeping
          */
         protected boolean isReceiptFlushRequired()
             {
-            return (m_cReceiptsReturn.get() > 0 || m_fIdle) && !isFlushRequired();
+            return m_cReceiptsReturn.get() > 0 || m_fIdle;
+            }
+
+        /**
+         * Flush pending receipt bookkeeping, piggybacking any application data already owned by the consumer.
+         */
+        protected void flushPendingReceipts()
+            {
+            if (TEST_TRACK_RECEIPT_FLUSH_WITH_PENDING_DATA && isFlushRequired())
+                {
+                TEST_RECEIPT_FLUSHES_WITH_PENDING_DATA.incrementAndGet();
+                }
+            optimisticFlush();
             }
 
         /**
@@ -1024,22 +1374,78 @@ public abstract class BufferedSocketBus
         /**
          * {@inheritDoc}
          */
-        public int onReadySafe(int nOps, long lTransportGeneration)
+        public int onReadySafe(int nOps, TransportEpoch epoch)
             throws IOException
             {
-            return m_nInterestOpsLast = processReads((nOps & OP_READ) != 0, lTransportGeneration) |
-                                        processWrites((nOps & OP_WRITE) != 0, lTransportGeneration);
+            if (PROGRESS_DIAGNOSTICS)
+                {
+                m_nReadyOpsLast            = nOps;
+                m_ldtLastSelectionCallback = SafeClock.INSTANCE.getSafeTimeMillis();
+                }
+
+            int nReadOps  = processReads((nOps & OP_READ) != 0, epoch);
+            int nWriteOps = TEST_WRITE_PROGRESS_PAUSED.get()
+                    ? 0
+                    : processWrites((nOps & OP_WRITE) != 0, epoch);
+
+            return m_nInterestOpsLast = nReadOps | nWriteOps;
+            }
+
+        /**
+         * Re-register this connection after its write wakeup was dropped by the functional test hook.
+         */
+        protected void resumeDroppedWriteWakeupForTesting()
+            {
+            try
+                {
+                wakeup();
+                }
+            catch (IOException e)
+                {
+                onException(m_lTransportGeneration, e);
+                }
             }
 
         @Override
         protected void checkHealth(long ldtNow)
             {
-            long lTransportGeneration = getReadyTransportGeneration();
+            TransportEpoch epoch = getTransportEpoch();
+            Runnable runnable = () -> checkHealthOnOwner(ldtNow, epoch);
+            if (epoch == null)
+                {
+                invoke(null, runnable);
+                }
+            else
+                {
+                invokeTransport(epoch, runnable);
+                }
+            }
+
+        /**
+         * Evaluate ACK, migration-timeout, and write-duty health on the epoch
+         * owner lane.
+         *
+         * @param ldtNow  the time captured by the periodic health request
+         * @param epoch   the owner token captured by that request
+         */
+        protected void checkHealthOnOwner(long ldtNow, TransportEpoch epoch)
+            {
+            if (m_transportEpoch != epoch)
+                {
+                return;
+                }
+
+            long lTransportGeneration = isCurrentTransportEpoch(epoch, TransportPhase.READY)
+                    && m_state == ConnectionState.ACTIVE
+                    ? epoch.f_lId
+                    : -1L;
             if (lTransportGeneration < 0)
                 {
                 checkMigrationHandshakeTimeout(ldtNow);
                 return;
                 }
+
+            checkWriteProgressInvariant(ldtNow, lTransportGeneration);
 
             // establish write health, i.e. we've done a write or have nothing (flushed) to write
 
@@ -1151,8 +1557,8 @@ public abstract class BufferedSocketBus
                     {
                     m_ldtForceHeartbeat = 0; // disable heartbeat timeout
                     }
-                else if (m_ldtForceHeartbeat == 0 ||                   // start of pending read
-                        (ldtNow > m_ldtForceHeartbeat && heartbeat())) // or time to force heartbeat
+                else if (m_ldtForceHeartbeat == 0 ||                                 // start of pending read
+                        (ldtNow > m_ldtForceHeartbeat && heartbeatOnOwner(epoch)))    // or time to force heartbeat
                     {
                     // force a HB multiple times during an ack timeout period, this assumes our peer has the same timeout as us
                     m_ldtForceHeartbeat = ldtNow + f_driver.getDependencies().getAckTimeoutMillis() / 3;
@@ -1251,6 +1657,59 @@ public abstract class BufferedSocketBus
             }
 
         /**
+         * Report, without repairing, a ready connection that has queued bytes but no visible progress owner.
+         *
+         * @param ldtNow                the current safe time
+         * @param lTransportGeneration the ready transport generation
+         */
+        protected void checkWriteProgressInvariant(long ldtNow, long lTransportGeneration)
+            {
+            long cMillis = LIVENESS_WATCHDOG_MILLIS;
+            if (cMillis <= 0L)
+                {
+                return;
+                }
+
+            long    cbQueued       = f_cbQueued.get();
+            boolean fWriter        = isWriterActive();
+            boolean fWriteInterest = (m_nInterestOpsLast & OP_WRITE) != 0;
+            boolean fViolation     = cbQueued > 0L && isTransportReady() && !fWriter && !fWriteInterest;
+
+            if (!fViolation)
+                {
+                m_ldtWriteInvariantStart = 0L;
+                return;
+                }
+
+            long ldtStart = m_ldtWriteInvariantStart;
+            if (ldtStart == 0L)
+                {
+                m_ldtWriteInvariantStart = ldtNow;
+                m_cbWriteInvariantStart  = m_cbWrite;
+                return;
+                }
+
+            if (m_cbWrite != m_cbWriteInvariantStart)
+                {
+                m_ldtWriteInvariantStart = ldtNow;
+                m_cbWriteInvariantStart  = m_cbWrite;
+                return;
+                }
+
+            if (ldtNow - ldtStart >= cMillis && ldtNow >= m_ldtNextLivenessReport)
+                {
+                m_ldtNextLivenessReport = ldtNow + Math.max(cMillis, 1000L);
+                ++m_cLivenessReports;
+
+                getLogger().log(makeRecord(Level.WARNING,
+                        "{0} LIVENESS[stalled-write] peer={1}, generation={2}, queuedBytes={3}, {4}",
+                        getLocalEndPoint(), getPeer(), lTransportGeneration,
+                        new MemorySize(Math.max(0L, cbQueued)),
+                        getProgressTraceDetail(ldtNow) + ", " + getPerfTraceDetail()));
+                }
+            }
+
+        /**
          * Return producer-owned bytes pending drain into the consumer-owned batch.
          *
          * @return pending producer bytes
@@ -1258,6 +1717,36 @@ public abstract class BufferedSocketBus
         protected long getProducerPendingBytes()
             {
             return 0L;
+            }
+
+        @Override
+        protected long getQueuedWriteBytesForTesting()
+            {
+            return Math.max(0L, f_cbQueued.get());
+            }
+
+        @Override
+        protected boolean dropWriteWakeupForTesting()
+            {
+            if (getPartialWritesForTesting() == 0)
+                {
+                return false;
+                }
+
+            if (consumeTestCounter(TEST_DROP_WRITE_WAKEUPS_AFTER_PARTIAL_REMAINING))
+                {
+                TEST_DROPPED_WRITE_WAKEUPS.incrementAndGet();
+                TEST_QUEUED_BYTES_AT_DROPPED_WRITE_WAKEUP.set(Math.max(0L, f_cbQueued.get()));
+                TEST_WRITE_PROGRESS_PAUSED.set(true);
+                TEST_DROPPED_WRITE_WAKEUP_NUDGE.set(this::resumeDroppedWriteWakeupForTesting);
+                m_nInterestOpsLast &= ~OP_WRITE;
+                return true;
+                }
+
+            // A later wakeup is a new durable progress obligation, whether it comes from the diagnostic nudge
+            // or from the implementation under test.
+            TEST_WRITE_PROGRESS_PAUSED.set(false);
+            return false;
             }
 
         /**
@@ -1311,6 +1800,38 @@ public abstract class BufferedSocketBus
             }
 
         /**
+         * Return common connection, scheduling, selector, and socket-write diagnostics.
+         *
+         * @param ldtNow  current safe time
+         *
+         * @return common diagnostic detail
+         */
+        protected String getProgressTraceDetail(long ldtNow)
+            {
+            String sOwner  = m_sWriterOwner;
+            String sReason = m_sWriterReason;
+            return "transport(ready=" + isTransportReady()
+                    + ", generation=" + m_lTransportGeneration
+                    + ", channel=" + getChannelIdentityForDiagnostics()
+                    + "), writer(active=" + isWriterActive()
+                    + ", owner=" + (sOwner == null ? "none" : sOwner)
+                    + ", reason=" + (sReason == null ? "none" : sReason)
+                    + ", ageMillis=" + (m_ldtWriterAcquired == 0L ? 0L : Math.max(0L, ldtNow - m_ldtWriterAcquired))
+                    + "), selection(readyOps=" + m_nReadyOpsLast
+                    + ", interestOps=" + m_nInterestOpsLast
+                    + ", lastCallbackMillis=" + m_ldtLastSelectionCallback
+                    + ", tasks=" + m_cSelectorTasks
+                    + ", delayLastNanos=" + m_cSelectorTaskDelayLastNanos
+                    + ", delayMaxNanos=" + m_cSelectorTaskDelayMaxNanos
+                    + "), write(lastAttemptMillis=" + m_ldtLastWriteAttempt
+                    + ", lastProgressMillis=" + m_ldtLastWriteProgress
+                    + ", attemptedBytes=" + m_cbLastWriteAttempted
+                    + ", writtenBytes=" + m_cbLastWriteResult
+                    + ", zeroPasses=" + m_cZeroWritePasses
+                    + ")";
+            }
+
+        /**
          * Emit an opt-in performance snapshot for troubleshooting write progression and ack stalls.
          *
          * @param sReason  the trigger reason
@@ -1345,6 +1866,7 @@ public abstract class BufferedSocketBus
                 {
                 sDetail = ", " + sDetail;
                 }
+            sDetail = ", " + getProgressTraceDetail(ldtNow) + sDetail;
 
             getLogger().log(makeRecord(Level.INFO,
                     "{0} PERF[{1}] peer={2}, state={3}, writerActive={4}, concurrentWriters={5}, pendingMsgs={6}, pendingBytes={7}, queuedBytes={8}, unflushed={9}, sendHead={10}, resendHead={11}, bytesUnacked={12}, receiptsReturn={13}, receiptsUnflushed={14}, progress(pass={15}, direct={16}, queued={17}, idle={18}, postDrain={19}), receipts(calls={20}, req={21}, returned={22}, emitted={23}), ackTimeouts={24}{25}",
@@ -1385,6 +1907,7 @@ public abstract class BufferedSocketBus
             m_ldtMigrationFatalTimeout   = ldtFatal;
             m_fMigrationTimeoutScheduled = false;
             ++m_lMigrationSequence;
+            tracePerf("migration-start", true);
             }
 
         @Override
@@ -1394,6 +1917,41 @@ public abstract class BufferedSocketBus
             m_ldtMigrationFatalTimeout   = 0;
             m_fMigrationTimeoutScheduled = false;
             ++m_lMigrationSequence;
+            tracePerf("migration-complete", true);
+            }
+
+        @Override
+        protected void onTransportReady(TransportEpoch epoch)
+            {
+            super.onTransportReady(epoch);
+
+            // READY publication is a mandatory owner-lane kick. Producer work
+            // may have accumulated while the replacement handshook, and
+            // replay/SYNC batches may already be queued by migration.
+            int nRequest = m_nWriteProgressionRequest.get();
+            if ((nRequest != 0 || hasProducerWriteWork())
+                    && tryActivateWriter(epoch, "epoch-ready", /*fRequireReady*/ true))
+                {
+                if (nRequest != 0 && TEST_TRACK_DEFERRED_WRITE_PROGRESSION)
+                    {
+                    TEST_DEFERRED_WRITE_PROGRESSION_HANDOFFS.incrementAndGet();
+                    }
+                scheduleActiveWriteProgression(
+                        (nRequest & WRITE_PROGRESSION_SOCKET_WRITE) != 0,
+                        nRequest != 0 && (nRequest & WRITE_PROGRESSION_EXPLICIT) == 0);
+                }
+
+            if (f_cbQueued.get() > 0)
+                {
+                try
+                    {
+                    wakeup(epoch);
+                    }
+                catch (IOException e)
+                    {
+                    onException(epoch.f_lId, e);
+                    }
+                }
             }
 
         @Override
@@ -1579,14 +2137,14 @@ public abstract class BufferedSocketBus
         /**
          * Handle any incoming data.
          *
-         * @param fReady               true iff the channel is readable
-         * @param lTransportGeneration  the transport generation selected for this callback
+         * @param fReady  true iff the channel is readable
+         * @param epoch   the transport epoch selected for this callback
          *
          * @return a partial SelectionService.Handler interest set
          *
          * @throws IOException if an I/O error occurs
          */
-        protected abstract int processReads(boolean fReady, long lTransportGeneration)
+        protected abstract int processReads(boolean fReady, TransportEpoch epoch)
                 throws IOException;
 
         /**
@@ -1602,19 +2160,19 @@ public abstract class BufferedSocketBus
             lock();
             try
                 {
-                long lTransportGeneration = isTransportReady() ? m_lTransportGeneration : -1L;
-                if (lTransportGeneration < 0)
+                TransportEpoch epoch = getReadyTransportEpoch();
+                if (epoch == null)
                     {
                     return 0;
                     }
 
                 try
                     {
-                    return processWrites(fReady, lTransportGeneration);
+                    return processWrites(fReady, epoch);
                     }
                 catch (IOException e)
                     {
-                    onException(lTransportGeneration, e);
+                    onException(epoch.f_lId, e);
                     return 0;
                     }
                 }
@@ -1627,17 +2185,17 @@ public abstract class BufferedSocketBus
         /**
          * Write the contents of the WriteQueue to a specific transport generation.
          *
-         * @param fReady               true iff the channel is writeable
-         * @param lTransportGeneration the transport generation selected for this callback
+         * @param fReady  true iff the channel is writeable
+         * @param epoch   the transport epoch selected for this callback
          *
          * @return a partial SelectionService.Handler interest set
          *
          * @throws IOException if an I/O error occurs
          */
-        protected int processWrites(boolean fReady, long lTransportGeneration)
+        protected int processWrites(boolean fReady, TransportEpoch epoch)
                 throws IOException
             {
-            if (!isTransportReady() || m_lTransportGeneration != lTransportGeneration)
+            if (!isCurrentTransportEpoch(epoch, TransportPhase.READY))
                 {
                 return 0;
                 }
@@ -1646,7 +2204,8 @@ public abstract class BufferedSocketBus
 
             if (fReady || cbBacklog > 0)
                 {
-                if (!tryActivateWriter())
+                if (!tryActivateWriter(epoch, fReady ? "selection-write" : "queued-write",
+                        /*fRequireReady*/ true))
                     {
                     return cbBacklog > 0 ? OP_WRITE : 0;
                     }
@@ -1677,7 +2236,7 @@ public abstract class BufferedSocketBus
                                 cbBatch = batch.bundle();
                                 }
 
-                            if (cbBatch == 0 || batch.write()) // unlike in flush we don't need to sync since acks are also processed on this thread
+                            if (cbBatch == 0 || batch.write(epoch)) // unlike in flush we don't need to sync since acks are also processed on this thread
                                 {
                                 cbWritten += cbBatch;
                                 cbBacklog -= cbBatch;
@@ -1729,13 +2288,22 @@ public abstract class BufferedSocketBus
                     }
                 finally
                     {
-                    deactivateWriter();
+                    deactivateWriter(epoch);
 
-                    if (isTransportReady() && hasProducerWriteWork() && tryActivateWriter())
+                    int nRequest = m_nWriteProgressionRequest.get();
+                    if (isCurrentTransportEpoch(epoch, TransportPhase.READY)
+                            && (nRequest != 0 || hasProducerWriteWork())
+                            && tryActivateWriter(epoch, "selection-follow-up", /*fRequireReady*/ true))
                         {
+                        if (nRequest != 0 && TEST_TRACK_DEFERRED_WRITE_PROGRESSION)
+                            {
+                            TEST_DEFERRED_WRITE_PROGRESSION_HANDOFFS.incrementAndGet();
+                            }
                         // we are already on the SelectionService thread for this channel, so run the follow-up
                         // progression immediately instead of re-posting it and letting producer backlog sit
-                        processQueuedWritesOnSelectionThread(/*fSocketWrite*/ false, /*fAuto*/ true);
+                        processQueuedWritesOnSelectionThread(epoch,
+                                (nRequest & WRITE_PROGRESSION_SOCKET_WRITE) != 0,
+                                nRequest == 0 || (nRequest & WRITE_PROGRESSION_EXPLICIT) == 0);
                         }
                     }
                 }
@@ -2176,20 +2744,54 @@ public abstract class BufferedSocketBus
             public boolean write()
                 throws IOException
                 {
+                return write(getReadyTransportEpoch());
+                }
+
+            /**
+             * Attempt to write this batch on a specific transport epoch.
+             *
+             * @param epoch  the epoch owning the write pass
+             *
+             * @return true iff the entire batch has been written
+             *
+             * @throws IOException if an I/O error occurs
+             */
+            public boolean write(TransportEpoch epoch)
+                throws IOException
+                {
                 ByteBuffer[] aBuffer = m_aBuffer;
                 int          ofSend  = m_ofSend;
                 int          ofAdd   = m_ofAdd;
+                long         cbAttempted = m_cbBatch;
 
-                long cb = BufferedConnection.this.write(aBuffer, ofSend, ofAdd - ofSend);
+                if (PROGRESS_DIAGNOSTICS)
+                    {
+                    m_ldtLastWriteAttempt  = SafeClock.INSTANCE.getSafeTimeMillis();
+                    m_cbLastWriteAttempted = cbAttempted;
+                    }
+                long cb = BufferedConnection.this.write(epoch, aBuffer, ofSend, ofAdd - ofSend);
+                if (PROGRESS_DIAGNOSTICS)
+                    {
+                    m_cbLastWriteResult = cb;
+                    }
 
                 // advance offset, decrement cBuffer based on amount written
                 if (cb > 0)
                     {
+                    if (PROGRESS_DIAGNOSTICS)
+                        {
+                        m_ldtLastWriteProgress = SafeClock.INSTANCE.getSafeTimeMillis();
+                        m_cZeroWritePasses     = 0L;
+                        }
                     for (; ofSend < ofAdd && !aBuffer[ofSend].hasRemaining(); ++ofSend)
                         {}
 
                     m_cbBatch -= cb;
                     m_ofSend   = ofSend;
+                    }
+                else if (PROGRESS_DIAGNOSTICS && cbAttempted > 0L)
+                    {
+                    ++m_cZeroWritePasses;
                     }
 
                 return ofSend == ofAdd;
@@ -2566,6 +3168,16 @@ public abstract class BufferedSocketBus
         protected int m_nInterestOpsLast;
 
         /**
+         * The ready ops supplied to the last selection callback.
+         */
+        protected volatile int m_nReadyOpsLast;
+
+        /**
+         * Safe-clock time of the last selection callback.
+         */
+        protected volatile long m_ldtLastSelectionCallback;
+
+        /**
          * The current unflushed WriteBatch, or null.
          *
          * Unflushed means that its size hasn't been added for f_cbQueued and it is still usable by application threads.
@@ -2612,9 +3224,46 @@ public abstract class BufferedSocketBus
         protected final AtomicLong f_cBytesUnacked = new AtomicLong();
 
         /**
-         * True iff a single consumer currently owns write progression for this connection.
+         * The transport epoch that currently owns write progression for this connection.
+         * A stale epoch can only release its own ticket.
          */
-        protected final AtomicBoolean m_fWriterActive = new AtomicBoolean();
+        protected final AtomicReference<TransportEpoch> m_epochWriterActive = new AtomicReference<>();
+
+        /**
+         * Coalesced progression requests that arrived before or while an epoch writer owned the connection.
+         */
+        protected final AtomicInteger m_nWriteProgressionRequest = new AtomicInteger();
+
+        /**
+         * Thread and reason associated with the active writer, for diagnostics.
+         */
+        protected volatile String m_sWriterOwner;
+        protected volatile String m_sWriterReason;
+        protected volatile long   m_ldtWriterAcquired;
+
+        /**
+         * Per-connection SelectionService scheduling diagnostics.
+         */
+        protected volatile long m_cSelectorTasks;
+        protected volatile long m_cSelectorTaskDelayLastNanos;
+        protected volatile long m_cSelectorTaskDelayMaxNanos;
+
+        /**
+         * Per-connection socket-write diagnostics.
+         */
+        protected volatile long m_ldtLastWriteAttempt;
+        protected volatile long m_ldtLastWriteProgress;
+        protected volatile long m_cbLastWriteAttempted;
+        protected volatile long m_cbLastWriteResult;
+        protected volatile long m_cZeroWritePasses;
+
+        /**
+         * Reporting-only liveness watchdog state.
+         */
+        protected long m_ldtWriteInvariantStart;
+        protected long m_cbWriteInvariantStart;
+        protected long m_ldtNextLivenessReport;
+        protected long m_cLivenessReports;
 
         /**
          * Next time a periodic performance snapshot may be emitted.
@@ -2872,6 +3521,65 @@ public abstract class BufferedSocketBus
         }
 
     protected static final ReceiptSpanMarker[] RECEIPT_SPAN_MARKERS = createReceiptSpanMarkers();
+
+    /**
+     * The number of post-partial write wakeups to drop for functional testing.
+     */
+    private static final AtomicInteger TEST_DROP_WRITE_WAKEUPS_AFTER_PARTIAL_REMAINING =
+            new AtomicInteger(Integer.getInteger(
+                    BufferedSocketBus.class.getName() + ".dropWriteWakeupsAfterPartial", 0));
+
+    /**
+     * The number of write wakeups dropped by the functional test hook.
+     */
+    private static final AtomicLong TEST_DROPPED_WRITE_WAKEUPS = new AtomicLong();
+
+    /**
+     * The queued bytes captured when the functional test hook dropped a write wakeup.
+     */
+    private static final AtomicLong TEST_QUEUED_BYTES_AT_DROPPED_WRITE_WAKEUP = new AtomicLong();
+
+    /**
+     * Whether already-delivered write callbacks should be quarantined until the diagnostic nudge.
+     */
+    private static final AtomicBoolean TEST_WRITE_PROGRESS_PAUSED = new AtomicBoolean();
+
+    /**
+     * The diagnostic nudge for the connection whose write wakeup was dropped.
+     */
+    private static final AtomicReference<Runnable> TEST_DROPPED_WRITE_WAKEUP_NUDGE = new AtomicReference<>();
+
+    /**
+     * Whether the adaptive partial-write owner handoff regression is tracking
+     * producer-to-owner transitions.
+     */
+    private static final boolean TEST_TRACK_NON_OWNER_QUEUED_WRITE_HANDOFFS = Boolean.getBoolean(
+            BufferedSocketBus.class.getName() + ".trackNonOwnerQueuedWriteHandoffs");
+
+    /**
+     * Number of queued-write continuations transferred from a producer to the
+     * transport owner lane by the partial-write regression path.
+     */
+    private static final AtomicLong TEST_NON_OWNER_QUEUED_WRITE_HANDOFFS = new AtomicLong();
+
+    /**
+     * Whether the lost progression-request regression is tracking deferrals and handoffs.
+     */
+    private static final boolean TEST_TRACK_DEFERRED_WRITE_PROGRESSION = Boolean.getBoolean(
+            BufferedSocketBus.class.getName() + ".trackDeferredWriteProgression");
+
+    /** The number of test-observed progression requests deferred behind an active writer. */
+    private static final AtomicLong TEST_DEFERRED_WRITE_PROGRESSION_REQUESTS = new AtomicLong();
+
+    /** The number of deferred progression requests handed to a subsequent writer. */
+    private static final AtomicLong TEST_DEFERRED_WRITE_PROGRESSION_HANDOFFS = new AtomicLong();
+
+    /** Whether the receipt/application piggyback regression is tracking the relevant flush condition. */
+    private static final boolean TEST_TRACK_RECEIPT_FLUSH_WITH_PENDING_DATA = Boolean.getBoolean(
+            BufferedSocketBus.class.getName() + ".trackReceiptFlushWithPendingData");
+
+    /** The number of receipt flushes that found pending consumer-owned application data. */
+    private static final AtomicLong TEST_RECEIPT_FLUSHES_WITH_PENDING_DATA = new AtomicLong();
 
     /**
      * Empty buffer array for use in bundling.

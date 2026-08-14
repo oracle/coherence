@@ -22,6 +22,8 @@ import com.oracle.bedrock.util.Capture;
 import com.oracle.bedrock.runtime.LocalPlatform;
 
 import com.oracle.coherence.common.internal.net.socketbus.AbstractSocketBus;
+import com.oracle.coherence.common.internal.net.socketbus.BufferedSocketBus;
+import com.oracle.coherence.common.internal.net.socketbus.SocketMessageBus;
 import com.oracle.coherence.common.net.exabus.util.MessageBusTest;
 
 import org.junit.Before;
@@ -41,6 +43,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.core.IsCollectionContaining.hasItem;
 import static org.junit.Assert.assertTrue;
@@ -361,6 +364,365 @@ public class MessageBusTestTests
         }
 
     /**
+     * Test that a partial gathering write retains a durable write-progress obligation when no subsequent
+     * application send can nudge the connection.
+     */
+    @Test
+    public void testPartialWriteProgressWithoutSubsequentSend()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "1",
+                "-msgSize",        "177302",
+                "-cached",
+                "-block",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-txThreads",      "0",
+                "-msgSize",        "177302",
+                "-cached",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType optionsSender = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWriteLimitBytes", "98304"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWrites", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".zeroWritesAfterPartial", "1"),
+                SystemProperty.of(BufferedSocketBus.class.getName() + ".dropWriteWakeupsAfterPartial", "1"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketMessageBus.mpsc.enqueueLinkDelayMillis", "500"),
+                SystemProperty.of("coherence.socketbus.liveness.watchdogMillis", "200"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(OptionsByType.of(), asArg2, console2);
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getPartialWritesForTesting),
+                    is(1L), within(10, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getZeroWritesAfterPartialForTesting),
+                    is(1L), within(10, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getDroppedWriteWakeupsForTesting),
+                    is(1L), within(10, TimeUnit.SECONDS));
+
+            assertThat(application1.invoke(BufferedSocketBus::getQueuedBytesAtDroppedWriteWakeupForTesting),
+                    greaterThan(0L));
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+            assertNoMessageBusFailures(console1);
+            assertNoMessageBusFailures(console2);
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getBytesWrittenAfterPartialForTesting),
+                    greaterThan(0L), within(10, TimeUnit.SECONDS));
+
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+            assertThat("the deliberately dropped wakeup was externally nudged",
+                    application1.invoke(BufferedSocketBus::isDroppedWriteWakeupNudgePendingForTesting), is(true));
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+            assertThat(console1.getCapturedErrorLines(),
+                    everyItem(not(containsString("LIVENESS[stalled-write]"))));
+            assertNoMessageBusFailures(console1);
+            assertNoMessageBusFailures(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that a producer-owned partial direct write returns queued send/resend progression to the transport
+     * owner lane instead of continuing through the selector-only write loop on the application thread.
+     */
+    @Test
+    public void testAdaptiveDirectPartialWriteOwnerHandoff()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "1",
+                "-msgSize",        "177302",
+                "-cached",
+                "-block",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-txThreads",      "0",
+                "-msgSize",        "177302",
+                "-cached",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType optionsSender = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWriteLimitBytes", "98304"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWrites", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWritesOnNonOwnerOnly", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWriteRetryMillis", "5000"),
+                SystemProperty.of(BufferedSocketBus.class.getName() + ".trackNonOwnerQueuedWriteHandoffs", "true"),
+                SystemProperty.of(SocketMessageBus.class.getName() + ".blockAdaptiveDirectSend", "true"),
+                SystemProperty.of(SocketMessageBus.class.getName() + ".blockAdaptiveDirectSendAfterPartial", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(OptionsByType.of(), asArg2, console2);
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getPartialWritesForTesting),
+                    is(1L), within(10, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(SocketMessageBus::getAdaptiveDirectSendBlocksForTesting),
+                    is(1L), within(10, TimeUnit.SECONDS));
+            assertThat(application1.invoke(SocketMessageBus::releaseAdaptiveDirectSendForTesting), is(true));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getNonOwnerQueuedWriteHandoffsForTesting),
+                    greaterThan(0L), within(10, TimeUnit.SECONDS));
+
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+            assertNoMessageBusFailures(console1);
+            assertNoMessageBusFailures(console2);
+            }
+        finally
+            {
+            try
+                {
+                application1.invoke(SocketMessageBus::releaseAdaptiveDirectSendForTesting);
+                }
+            catch (Throwable ignored)
+                {
+                }
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test the direct-to-MPSC ownership transition while receipts advance and the active transport starts migration.
+     */
+    @Test
+    public void testAdaptiveDirectToMpscReceiptMigration()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "2",
+                "-msgSize",        "4096",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-txThreads",      "1",
+                "-msgSize",        "4096",
+                "-cached",
+                "-txRate",         "64KBps",
+                "-txMaxBacklog",   "16m",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType optionsSender = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
+                SystemProperty.of(SocketMessageBus.class.getName() + ".blockAdaptiveDirectSend", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
+                SystemProperty.of(BufferedSocketBus.class.getName() + ".trackDeferredWriteProgression", "true"));
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(optionsPeer, asArg2, console2);
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(SocketMessageBus::getAdaptiveDirectSendBlocksForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(SocketMessageBus::getAdaptiveMpscFallbacksDuringDirectForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(SocketMessageBus::getAdaptiveReceiptsDuringDirectForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getDeferredWriteProgressionRequestsForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+
+            assertThat(application1.invoke(AbstractSocketBus::armActiveReadFailuresForTesting), is(true));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            assertThat(application1.invoke(SocketMessageBus::releaseAdaptiveDirectSendForTesting), is(true));
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getDeferredWriteProgressionHandoffsForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(AbstractSocketBus::getCompletedMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            int cLines1 = console1.getCapturedOutputLines().size();
+            int cLines2 = console2.getCapturedOutputLines().size();
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            if (application1 != null)
+                {
+                try
+                    {
+                    application1.invoke(SocketMessageBus::releaseAdaptiveDirectSendForTesting);
+                    }
+                catch (Throwable ignored)
+                    {
+                    }
+                application1.close();
+                }
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that the receipt deadline flushes a small consumer-owned application batch instead of allowing the
+     * application data to suppress the receipt indefinitely.
+     */
+    @Test
+    public void testReceiptFlushPiggybacksDeferredApplicationData()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "1",
+                "-msgSize",        "65536",
+                "-cached",
+                "-txRate",         "1000000000",
+                "-txMaxBacklog",   "1m",
+                "-reportInterval", "1s"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType optionsSender = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "3000"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "100"),
+                SystemProperty.of(BufferedSocketBus.class.getName() + ".trackReceiptFlushWithPendingData", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(optionsPeer, asArg2, console2);
+            JavaApplication applicationPeer = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(BufferedSocketBus::getReceiptFlushesWithPendingDataForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+
+            long cReconnects = application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting);
+            int  cLines1     = console1.getCapturedOutputLines().size();
+            int  cLines2     = console2.getCapturedOutputLines().size();
+            Eventually.assertDeferred(
+                    () -> console1.getCapturedOutputLines().size(),
+                    greaterThan(cLines1 + 5), within(15, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> console2.getCapturedOutputLines().size(),
+                    greaterThan(cLines2 + 5), within(15, TimeUnit.SECONDS));
+            assertHealthyTrafficAfter(console1, cLines1);
+            assertHealthyTrafficAfter(console2, cLines2);
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(cReconnects));
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
      * Test that producer write progression cannot cross a connection migration handshake.
      */
     @Test
@@ -433,6 +795,62 @@ public class MessageBusTestTests
             assertHealthyTrafficAfter(console1, cLines1);
             assertHealthyTrafficAfter(console2, cLines2);
 
+            assertMigrationHandshakeHealthy(console1);
+            assertMigrationHandshakeHealthy(console2);
+            }
+        finally
+            {
+            application1.close();
+            if (application2 != null)
+                {
+                application2.close();
+                }
+            }
+        }
+
+    /**
+     * Test that a routine connection reset is summarized without a warning-level stack trace.
+     */
+    @Test
+    public void testRoutineConnectionResetLogging()
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 = createMigrationArguments(port1, port2, true);
+        String[] asArg2 = createMigrationArguments(port2, port1, false);
+
+        OptionsByType optionsReset = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsPeer, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(optionsReset, asArg2, console2);
+            JavaApplication applicationReset = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationReset.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
+                    is(0), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationReset.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting),
+                    greaterThanOrEqualTo(1L), within(10, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationReset.invoke(AbstractSocketBus::getCompletedMigrationCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+
+            assertRoutineConnectionResetSummary(console1, console2);
+            assertHealthyTrafficAfter(console1, console1.getCapturedOutputLines().size());
+            assertHealthyTrafficAfter(console2, console2.getCapturedOutputLines().size());
             assertMigrationHandshakeHealthy(console1);
             assertMigrationHandshakeHealthy(console2);
             }
@@ -914,14 +1332,14 @@ public class MessageBusTestTests
 
         OptionsByType options1 = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
-                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackTransportMetrics", "true"));
         OptionsByType options2 = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
-                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
@@ -1231,6 +1649,23 @@ public class MessageBusTestTests
         application2.close();
         }
 
+    protected boolean waitForHealthyTraffic(CapturingApplicationConsole console, long cMillis)
+            throws InterruptedException
+        {
+        long ldtEnd = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(cMillis);
+        do
+            {
+            if (console.getCapturedOutputLines().stream().anyMatch(PATTERN_HEALTHY_TRAFFIC.asPredicate()))
+                {
+                return true;
+                }
+            Thread.sleep(10L);
+            }
+        while (System.nanoTime() < ldtEnd);
+
+        return false;
+        }
+
     protected void assertNoMessageBusFailures(CapturingApplicationConsole console)
         {
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("PERF[ack-timeout]"))));
@@ -1252,6 +1687,25 @@ public class MessageBusTestTests
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("corrupt"))));
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("DISCONNECT event"))));
         assertThat(console.getCapturedErrorLines(), everyItem(not(containsString("RELEASE event"))));
+        }
+
+    protected void assertRoutineConnectionResetSummary(CapturingApplicationConsole console1,
+            CapturingApplicationConsole console2)
+        {
+        Eventually.assertDeferred(
+                () -> console1.getCapturedErrorLines().stream().anyMatch(
+                        line -> line.contains("cause=java.net.SocketException: Connection reset"))
+                        || console2.getCapturedErrorLines().stream().anyMatch(
+                                line -> line.contains("cause=java.net.SocketException: Connection reset")),
+                is(true), within(30, TimeUnit.SECONDS));
+
+        Queue<String> lines = new LinkedList<>();
+        lines.addAll(console1.getCapturedErrorLines());
+        lines.addAll(console2.getCapturedErrorLines());
+
+        assertThat(lines, hasItem(containsString("cause=java.net.SocketException: Connection reset")));
+        assertThat(lines, everyItem(not(containsString(
+                "at com.oracle.coherence.common.internal.net.socketbus."))));
         }
 
     protected void assertHealthyTrafficAfter(CapturingApplicationConsole console, int cLines)
