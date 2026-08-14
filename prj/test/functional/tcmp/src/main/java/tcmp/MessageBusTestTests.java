@@ -948,7 +948,6 @@ public class MessageBusTestTests
         int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
         String[] asArg1 = createMigrationArguments(port1, port2, true);
         String[] asArg2 = createMigrationArguments(port2, port1, false);
-
         OptionsByType optionsReset = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "5"),
@@ -1404,7 +1403,6 @@ public class MessageBusTestTests
         int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
         String[] asArg1 = createMigrationArguments(port1, port2, true);
         String[] asArg2 = createMigrationArguments(port2, port1, false);
-
         OptionsByType options1 = OptionsByType.of(
                 SystemProperty.of(MessageBusTest.class.getName() + ".collectorBlockMillis", "500"));
         OptionsByType options2 = OptionsByType.of(
@@ -1458,6 +1456,8 @@ public class MessageBusTestTests
         int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
         String[] asArg1 = createMigrationArguments(port1, port2, true);
         String[] asArg2 = createMigrationArguments(port2, port1, false);
+        boolean  fCaptureCollision1 = port1 > port2;
+        boolean  fCaptureCollision2 = !fCaptureCollision1;
 
         OptionsByType options1 = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
@@ -1465,6 +1465,10 @@ public class MessageBusTestTests
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".captureActiveReadFailures", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureMigrationCollisionTask",
+                        Boolean.toString(fCaptureCollision1)),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureOutboundMigrationPublication",
+                        Boolean.toString(fCaptureCollision1)),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
@@ -1475,6 +1479,10 @@ public class MessageBusTestTests
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".activeReadFailures", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".deferActiveReadFailures", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".captureActiveReadFailures", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureMigrationCollisionTask",
+                        Boolean.toString(fCaptureCollision2)),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".captureOutboundMigrationPublication",
+                        Boolean.toString(fCaptureCollision2)),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".reconnectSetupDelayMillis", "250"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackMigrationDiagnostics", "true"),
@@ -1489,6 +1497,8 @@ public class MessageBusTestTests
             {
             application2 = startMessageBusTest(options2, asArg2, console2);
             JavaApplication applicationPeer = application2;
+            JavaApplication applicationHigher = fCaptureCollision1 ? application1 : applicationPeer;
+            JavaApplication applicationLower  = fCaptureCollision1 ? applicationPeer : application1;
 
             assertHealthyTrafficAfter(console1, 0);
             assertHealthyTrafficAfter(console2, 0);
@@ -1509,6 +1519,29 @@ public class MessageBusTestTests
                     applicationPeer.submit(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
             assertThat(future1.get(30, TimeUnit.SECONDS), is(true));
             assertThat(future2.get(30, TimeUnit.SECONDS), is(true));
+
+            // Hold the higher endpoint's outbound publication until its inbound collision has captured the old
+            // channel, then publish outbound and release collision processing. This deterministically covers the
+            // owner-lane ordering where the mutable channel alias changes before the collision task executes.
+            Eventually.assertDeferred(
+                    () -> applicationHigher.invoke(
+                            AbstractSocketBus::getOutboundMigrationPublicationCaptureCountForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationHigher.invoke(AbstractSocketBus::getMigrationCollisionTaskCaptureCountForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            assertThat(applicationHigher.invoke(
+                    AbstractSocketBus::triggerCapturedOutboundMigrationPublicationForTesting), is(true));
+            Eventually.assertDeferred(
+                    () -> applicationHigher.invoke(
+                            AbstractSocketBus::isCapturedMigrationCollisionOutboundPublishedForTesting),
+                    is(true), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> applicationLower.invoke(
+                            AbstractSocketBus::getMigrationCollisionPreserveOutboundCountForTesting),
+                    greaterThanOrEqualTo(1L), within(30, TimeUnit.SECONDS));
+            assertThat(applicationHigher.invoke(AbstractSocketBus::triggerCapturedMigrationCollisionForTesting),
+                    is(true));
 
             Eventually.assertDeferred(
                     () -> application1.invoke(AbstractSocketBus::getActiveReadFailuresRemainingForTesting),
@@ -1567,6 +1600,8 @@ public class MessageBusTestTests
             try
                 {
                 application1.invoke(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+                application1.invoke(AbstractSocketBus::triggerCapturedOutboundMigrationPublicationForTesting);
+                application1.invoke(AbstractSocketBus::triggerCapturedMigrationCollisionForTesting);
                 }
             catch (Throwable ignored)
                 {
@@ -1576,6 +1611,8 @@ public class MessageBusTestTests
                 try
                     {
                     application2.invoke(AbstractSocketBus::triggerCapturedActiveReadFailureForTesting);
+                    application2.invoke(AbstractSocketBus::triggerCapturedOutboundMigrationPublicationForTesting);
+                    application2.invoke(AbstractSocketBus::triggerCapturedMigrationCollisionForTesting);
                     }
                 catch (Throwable ignored)
                     {

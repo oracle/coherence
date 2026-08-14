@@ -296,6 +296,92 @@ public abstract class AbstractSocketBus
         }
 
     /**
+     * Return the number of inbound migration collision tasks captured by the functional test hook.
+     *
+     * @return the number of captured collision tasks
+     */
+    public static long getMigrationCollisionTaskCaptureCountForTesting()
+        {
+        return TEST_MIGRATION_COLLISION_TASK_CAPTURES.get();
+        }
+
+    /**
+     * Return whether the connection associated with the captured inbound collision task has published an outbound
+     * replacement epoch.
+     *
+     * @return {@code true} iff the captured collision now races an outbound replacement epoch
+     */
+    public static boolean isCapturedMigrationCollisionOutboundPublishedForTesting()
+        {
+        CapturedMigrationCollision collision = TEST_CAPTURED_MIGRATION_COLLISION_TASK.get();
+        if (collision == null)
+            {
+            return false;
+            }
+
+        Connection connection = collision.f_connection;
+        connection.lock();
+        try
+            {
+            Connection.TransportEpoch epoch = connection.m_transportEpoch;
+            return connection.m_state == ConnectionState.ACTIVE
+                    && epoch != null
+                    && epoch.f_channel != collision.f_channelOwner
+                    && epoch.m_phase == TransportPhase.HANDSHAKING
+                    && epoch.f_fOutbound;
+            }
+        finally
+            {
+            connection.unlock();
+            }
+        }
+
+    /**
+     * Schedule an inbound migration collision task captured by the functional test hook.
+     *
+     * @return {@code true} iff a captured task was scheduled
+     */
+    public static boolean triggerCapturedMigrationCollisionForTesting()
+        {
+        CapturedMigrationCollision collision = TEST_CAPTURED_MIGRATION_COLLISION_TASK.getAndSet(null);
+        if (collision == null)
+            {
+            return false;
+            }
+
+        collision.f_bus.scheduleUnsafeTask(collision.f_channelOwner, collision.f_task, 0L);
+        return true;
+        }
+
+    /**
+     * Return the number of outbound migration publications captured by the functional test hook.
+     *
+     * @return the number of captured outbound publications
+     */
+    public static long getOutboundMigrationPublicationCaptureCountForTesting()
+        {
+        return TEST_OUTBOUND_MIGRATION_PUBLICATION_CAPTURES.get();
+        }
+
+    /**
+     * Schedule an outbound migration publication captured by the functional test hook.
+     *
+     * @return {@code true} iff a captured publication was scheduled
+     */
+    public static boolean triggerCapturedOutboundMigrationPublicationForTesting()
+        {
+        CapturedOutboundMigrationPublication publication =
+                TEST_CAPTURED_OUTBOUND_MIGRATION_PUBLICATION.getAndSet(null);
+        if (publication == null)
+            {
+            return false;
+            }
+
+        publication.f_bus.scheduleUnsafeTask(publication.f_channelOwner, publication.f_task, 0L);
+        return true;
+        }
+
+    /**
      * Return a compact snapshot of migration test diagnostics.
      *
      * @return the diagnostic snapshot
@@ -322,7 +408,12 @@ public abstract class AbstractSocketBus
                 + ", lastIgnoredCurrentPhase="
                 + (nPhase < 0 ? "none" : TransportPhase.values()[nPhase])
                 + ", collisionPreserveOutbound=" + TEST_MIGRATION_COLLISION_PRESERVE_OUTBOUND.get()
-                + ", collisionAcceptInbound=" + TEST_MIGRATION_COLLISION_ACCEPT_INBOUND.get();
+                + ", collisionAcceptInbound=" + TEST_MIGRATION_COLLISION_ACCEPT_INBOUND.get()
+                + ", collisionTaskCaptures=" + TEST_MIGRATION_COLLISION_TASK_CAPTURES.get()
+                + ", collisionTaskPending=" + (TEST_CAPTURED_MIGRATION_COLLISION_TASK.get() == null ? 0 : 1)
+                + ", outboundPublicationCaptures=" + TEST_OUTBOUND_MIGRATION_PUBLICATION_CAPTURES.get()
+                + ", outboundPublicationPending="
+                + (TEST_CAPTURED_OUTBOUND_MIGRATION_PUBLICATION.get() == null ? 0 : 1);
         }
 
     /**
@@ -964,6 +1055,62 @@ public abstract class AbstractSocketBus
             TEST_CAPTURED_ACTIVE_READ_FAILURE.set(new CapturedActiveReadFailure(connection, lTransportGeneration));
             TEST_ACTIVE_READ_FAILURE_CAPTURES.incrementAndGet();
             }
+        }
+
+    /**
+     * Capture an inbound migration collision task so a functional test can publish the competing outbound epoch
+     * before releasing collision processing.
+     *
+     * @param connection    the logical connection being migrated
+     * @param channelOwner  the channel whose lane owns collision processing
+     * @param task          the collision task
+     *
+     * @return {@code true} iff the task was captured
+     */
+    private boolean captureMigrationCollisionTaskForTesting(Connection connection, SelectableChannel channelOwner,
+                                                            Runnable task)
+        {
+        if (!TEST_CAPTURE_MIGRATION_COLLISION_TASK)
+            {
+            return false;
+            }
+
+        CapturedMigrationCollision collision =
+                new CapturedMigrationCollision(this, connection, channelOwner, task);
+        if (!TEST_CAPTURED_MIGRATION_COLLISION_TASK.compareAndSet(null, collision))
+            {
+            return false;
+            }
+
+        TEST_MIGRATION_COLLISION_TASK_CAPTURES.incrementAndGet();
+        return true;
+        }
+
+    /**
+     * Capture outbound migration publication so a functional test can first enqueue the competing inbound
+     * collision task.
+     *
+     * @param channelOwner  the channel whose lane owns publication
+     * @param task          the publication task
+     *
+     * @return {@code true} iff the publication was captured
+     */
+    private boolean captureOutboundMigrationPublicationForTesting(SelectableChannel channelOwner, Runnable task)
+        {
+        if (!TEST_CAPTURE_OUTBOUND_MIGRATION_PUBLICATION)
+            {
+            return false;
+            }
+
+        CapturedOutboundMigrationPublication publication =
+                new CapturedOutboundMigrationPublication(this, channelOwner, task);
+        if (!TEST_CAPTURED_OUTBOUND_MIGRATION_PUBLICATION.compareAndSet(null, publication))
+            {
+            return false;
+            }
+
+        TEST_OUTBOUND_MIGRATION_PUBLICATION_CAPTURES.incrementAndGet();
+        return true;
         }
 
     /**
@@ -2331,6 +2478,26 @@ public abstract class AbstractSocketBus
                 return;
                 }
 
+            SocketChannel channelConnected = channel;
+            Runnable taskPublication =
+                    () -> publishConnectedTransport(state, lTransportGeneration, channelConnected);
+            if (state == null ||
+                !captureOutboundMigrationPublicationForTesting(channelOwner, taskPublication))
+                {
+                taskPublication.run();
+                }
+            }
+
+        /**
+         * Publish and register a fully prepared outbound transport.
+         *
+         * @param state                 the connection state when the attempt started
+         * @param lTransportGeneration  the reserved transport generation
+         * @param channel               the connected channel
+         */
+        private void publishConnectedTransport(ConnectionState state, long lTransportGeneration,
+                                               SocketChannel channel)
+            {
             boolean fPublished = false;
             lock();
             try
@@ -4601,7 +4768,7 @@ public abstract class AbstractSocketBus
                             SocketChannel chanOld = connOld.m_channel;
                             SocketChannel chanNew = getChannel();
 
-                            scheduleUnsafeTask(chanOld, new Runnable()
+                            Runnable taskMigration = new Runnable()
                                 {
                                 @Override
                                 public void run()
@@ -4609,15 +4776,25 @@ public abstract class AbstractSocketBus
                                     connOld.lock();
                                     try
                                         {
-                                        if (connOld.m_channel == chanOld && connOld.m_state.ordinal() <= ConnectionState.ACTIVE.ordinal())
+                                        ConnectionState          stateCurrent = connOld.m_state;
+                                        Connection.TransportEpoch epochCurrent = connOld.m_transportEpoch;
+                                        boolean fOutboundEpoch = epochCurrent != null &&
+                                                epochCurrent.m_phase == TransportPhase.HANDSHAKING &&
+                                                epochCurrent.f_fOutbound;
+                                        boolean fOutboundMigration = connOld.m_handler == null || fOutboundEpoch;
+                                        boolean fMigrationCollision = stateCurrent == ConnectionState.ACTIVE
+                                                && fOutboundMigration;
+                                        boolean fPublishedOutboundCollision = stateCurrent == ConnectionState.ACTIVE
+                                                && connOld.m_channel != chanOld
+                                                && fOutboundEpoch;
+
+                                        // The owner-lane task may observe the outbound candidate published after
+                                        // the inbound introduction captured chanOld. That mismatch is the collision
+                                        // this task must elect; only a newer non-outbound epoch makes it stale.
+                                        if (stateCurrent != null &&
+                                            stateCurrent.ordinal() <= ConnectionState.ACTIVE.ordinal() &&
+                                            (connOld.m_channel == chanOld || fPublishedOutboundCollision))
                                             {
-                                            Connection.TransportEpoch epochCurrent = connOld.m_transportEpoch;
-                                            boolean fOutboundMigration = connOld.m_handler == null ||
-                                                    epochCurrent != null &&
-                                                    epochCurrent.m_phase == TransportPhase.HANDSHAKING &&
-                                                    epochCurrent.f_fOutbound;
-                                            boolean fMigrationCollision = connOld.m_state == ConnectionState.ACTIVE
-                                                    && fOutboundMigration;
                                             boolean fPreserveOutbound = fMigrationCollision
                                                     && getLocalEndPoint().getCanonicalName()
                                                        .compareTo(peer.getCanonicalName()) < 0;
@@ -4728,7 +4905,11 @@ public abstract class AbstractSocketBus
                                         connOld.unlock();
                                         }
                                     }
-                                }, /*cMillis*/ 0);
+                                };
+                            if (!captureMigrationCollisionTaskForTesting(connOld, chanOld, taskMigration))
+                                {
+                                scheduleUnsafeTask(chanOld, taskMigration, /*cMillis*/ 0);
+                                }
                             return 0;
                             }
 
@@ -5568,6 +5749,70 @@ public abstract class AbstractSocketBus
         private final long f_lTransportGeneration;
         }
 
+    /**
+     * An inbound migration collision task captured for deterministic functional testing.
+     */
+    private static class CapturedMigrationCollision
+        {
+        private CapturedMigrationCollision(AbstractSocketBus bus, Connection connection,
+                                           SelectableChannel channelOwner, Runnable task)
+            {
+            f_bus          = bus;
+            f_connection   = connection;
+            f_channelOwner = channelOwner;
+            f_task         = task;
+            }
+
+        /**
+         * The bus that schedules the captured task.
+         */
+        private final AbstractSocketBus f_bus;
+
+        /**
+         * The logical connection being migrated.
+         */
+        private final Connection f_connection;
+
+        /**
+         * The channel whose SelectionService lane owns collision processing.
+         */
+        private final SelectableChannel f_channelOwner;
+
+        /**
+         * The captured collision task.
+         */
+        private final Runnable f_task;
+        }
+
+    /**
+     * An outbound migration publication captured for deterministic functional testing.
+     */
+    private static class CapturedOutboundMigrationPublication
+        {
+        private CapturedOutboundMigrationPublication(AbstractSocketBus bus, SelectableChannel channelOwner,
+                                                     Runnable task)
+            {
+            f_bus          = bus;
+            f_channelOwner = channelOwner;
+            f_task         = task;
+            }
+
+        /**
+         * The bus that schedules the captured publication.
+         */
+        private final AbstractSocketBus f_bus;
+
+        /**
+         * The channel whose SelectionService lane owns publication.
+         */
+        private final SelectableChannel f_channelOwner;
+
+        /**
+         * The captured publication task.
+         */
+        private final Runnable f_task;
+        }
+
 
     // ----- data members ---------------------------------------------------
 
@@ -5748,6 +5993,40 @@ public abstract class AbstractSocketBus
      * The number of simultaneous-migration elections that accepted the peer's inbound candidate.
      */
     private static final AtomicLong TEST_MIGRATION_COLLISION_ACCEPT_INBOUND = new AtomicLong();
+
+    /**
+     * Whether to capture the first inbound migration collision task for functional testing.
+     */
+    private static final boolean TEST_CAPTURE_MIGRATION_COLLISION_TASK = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".captureMigrationCollisionTask");
+
+    /**
+     * The inbound migration collision task captured by the functional test hook.
+     */
+    private static final AtomicReference<CapturedMigrationCollision> TEST_CAPTURED_MIGRATION_COLLISION_TASK =
+            new AtomicReference<>();
+
+    /**
+     * The number of inbound migration collision tasks captured by the functional test hook.
+     */
+    private static final AtomicLong TEST_MIGRATION_COLLISION_TASK_CAPTURES = new AtomicLong();
+
+    /**
+     * Whether to capture the first outbound migration publication for functional testing.
+     */
+    private static final boolean TEST_CAPTURE_OUTBOUND_MIGRATION_PUBLICATION = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".captureOutboundMigrationPublication");
+
+    /**
+     * The outbound migration publication captured by the functional test hook.
+     */
+    private static final AtomicReference<CapturedOutboundMigrationPublication>
+            TEST_CAPTURED_OUTBOUND_MIGRATION_PUBLICATION = new AtomicReference<>();
+
+    /**
+     * The number of outbound migration publications captured by the functional test hook.
+     */
+    private static final AtomicLong TEST_OUTBOUND_MIGRATION_PUBLICATION_CAPTURES = new AtomicLong();
 
     /**
      * The number of active transport reads to fail for functional testing.
