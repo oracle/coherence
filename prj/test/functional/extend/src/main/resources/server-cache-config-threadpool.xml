@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -54,6 +54,7 @@
           </init-params>
         </instance>
       </serializer>
+      <thread-count-min>50</thread-count-min>
       <lease-granularity>member</lease-granularity>
       <backing-map-scheme>
         <local-scheme/>
@@ -148,6 +149,20 @@
         </cache-service-proxy>
       </proxy-config>
       <autostart system-property="test.extend.enabled">true</autostart>
+    </proxy-scheme>
+
+    <proxy-scheme>
+      <service-name>UnboundedTcpProxyService</service-name>
+      <thread-count-min>50</thread-count-min>
+      <acceptor-config>
+        <tcp-acceptor>
+          <local-address>
+            <address>127.0.0.1</address>
+            <port>0</port>
+          </local-address>
+        </tcp-acceptor>
+      </acceptor-config>
+      <autostart>true</autostart>
     </proxy-scheme>
   </caching-schemes>
 </cache-config>

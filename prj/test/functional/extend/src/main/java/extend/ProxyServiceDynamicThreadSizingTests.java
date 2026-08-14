@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,7 @@ import com.tangosol.coherence.component.net.Cluster;
 
 import com.tangosol.coherence.component.util.SafeCluster;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
@@ -19,6 +20,8 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.
 import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
+
+import com.tangosol.internal.util.DaemonPoolSizing;
 
 import com.tangosol.net.AbstractInvocable;
 import com.tangosol.net.CacheFactory;
@@ -40,10 +43,13 @@ import java.util.Set;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Test;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.lessThan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -95,10 +101,48 @@ public class ProxyServiceDynamicThreadSizingTests
     public static void shutdown()
         {
         stopCacheServer("ProxyServiceThreadSizingTests");
+        System.clearProperty("coherence.daemonpool.adjust.period");
+        System.clearProperty("coherence.daemonpool.max.period");
+        System.clearProperty("coherence.daemonpool.min.period");
+        System.clearProperty("coherence.daemonpool.grow.percentage");
+        System.clearProperty("coherence.daemonpool.debug");
         }
 
 
     // ----- ProxyService ThreadPoolSizingStrategy test ---------------------
+
+    /**
+    * Verify that a proxy worker pool with no configured maximum receives a
+    * finite derived maximum.
+    */
+    @Test
+    public void shouldCoordinateCustomerShapedUnboundedPools()
+        {
+        int cProxyMax = getSizingValue("UnboundedTcpProxyService", ThreadCountInvocable.THREAD_COUNT_MAX);
+        int cCacheMax = getSizingValue("DistributedCache", ThreadCountInvocable.SERVICE_THREAD_COUNT_MAX);
+        int cBudget   = getSizingValue(null, ThreadCountInvocable.WORKER_BUDGET);
+        int cAllocated = getSizingValue(null, ThreadCountInvocable.ALLOCATED_WORKER_MAX);
+        int fOvercommitted = getSizingValue(null, ThreadCountInvocable.OVERCOMMITTED);
+        int cProxyAllocations = getSizingValue("UnboundedTcpProxyService",
+                ThreadCountInvocable.MATCHING_ALLOCATION_COUNT);
+
+        assertThat(cProxyMax, greaterThanOrEqualTo(50));
+        assertThat(cProxyMax, lessThan(Integer.MAX_VALUE));
+        assertThat(cCacheMax, greaterThanOrEqualTo(50));
+        assertThat(cCacheMax, lessThan(Integer.MAX_VALUE));
+        assertThat(cProxyMax, greaterThanOrEqualTo(cCacheMax));
+        assertThat(cProxyAllocations, is(1));
+
+        if (fOvercommitted == 0)
+            {
+            assertThat(cAllocated <= cBudget, is(true));
+            }
+        else
+            {
+            assertThat(cProxyMax, is(50));
+            assertThat(cCacheMax, is(50));
+            }
+        }
 
     /**
     * Test DefaultProxyServiceThreadPoolSizing using PartitionedFilter from an extend client.
@@ -344,6 +388,28 @@ public class ProxyServiceDynamicThreadSizingTests
         return ((Integer) oResult).intValue();
         }
 
+    public int getThreadCountMax()
+        {
+        return getSizingValue("UnboundedTcpProxyService", ThreadCountInvocable.THREAD_COUNT_MAX);
+        }
+
+    public int getSizingValue(String sServiceName, int nMetric)
+        {
+        InvocationService service = (InvocationService)
+                getFactory().ensureService(InvocationExtendTests.INVOCATION_SERVICE_NAME);
+
+        ThreadCountInvocable task = new ThreadCountInvocable(sServiceName);
+        task.setValue(nMetric);
+        Map map = service.query(task, null);
+
+        assertTrue(map != null);
+        assertTrue(map.size() == 1);
+
+        Object oResult = map.values().iterator().next();
+        assertTrue(oResult instanceof Integer);
+        return ((Integer) oResult).intValue();
+        }
+
     // ----- inner class: ThreadCountInvocable ------------------------------
 
     /**
@@ -380,11 +446,45 @@ public class ProxyServiceDynamicThreadSizingTests
             {
             SafeCluster  safeCluster = (com.tangosol.coherence.component.util.SafeCluster) CacheFactory.ensureCluster();
             Cluster      cluster     = (Cluster) safeCluster.getCluster();
+
+            if (m_nValue == WORKER_BUDGET)
+                {
+                m_nValue = DaemonPoolSizing.getSnapshot().getBudget();
+                return;
+                }
+            if (m_nValue == ALLOCATED_WORKER_MAX)
+                {
+                m_nValue = DaemonPoolSizing.getSnapshot().getAllocatedWorkerMax();
+                return;
+                }
+            if (m_nValue == OVERCOMMITTED)
+                {
+                m_nValue = DaemonPoolSizing.getSnapshot().isOvercommitted() ? 1 : 0;
+                return;
+                }
+            if (m_nValue == MATCHING_ALLOCATION_COUNT)
+                {
+                m_nValue = (int) DaemonPoolSizing.getSnapshot().getAllocations().keySet().stream()
+                        .filter(sName -> sName.contains(m_sServiceName))
+                        .count();
+                return;
+                }
+            if (m_nValue == SERVICE_THREAD_COUNT_MAX)
+                {
+                Service service = (Service) cluster.getService(m_sServiceName);
+                m_nValue = service == null ? 0 : service.getDaemonPool().getDaemonCountMax();
+                return;
+                }
+
             ProxyService service     = (ProxyService) cluster.getService(
                     m_sServiceName == null ? "ExtendTcpProxyService" : m_sServiceName);
             if (service != null)
                 {
-                m_nValue = ((Acceptor) service.getAcceptor()).getDaemonPool().getDaemonCount();
+                com.tangosol.coherence.component.util.DaemonPool pool =
+                        ((Acceptor) service.getAcceptor()).getDaemonPool();
+                m_nValue = m_nValue == THREAD_COUNT_MAX
+                        ? pool.getDaemonCountMax()
+                        : pool.getDaemonCount();
                 }
             }
 
@@ -441,6 +541,26 @@ public class ProxyServiceDynamicThreadSizingTests
         * The proxy service name.
         */
         private String m_sServiceName;
+
+        /**
+        * Request value used to return the configured maximum thread count.
+        */
+        public static final int THREAD_COUNT_MAX = -1;
+
+        /** Request value used to return a service worker-pool maximum. */
+        public static final int SERVICE_THREAD_COUNT_MAX = -2;
+
+        /** Request value used to return the JVM-wide worker budget. */
+        public static final int WORKER_BUDGET = -3;
+
+        /** Request value used to return the aggregate allocated maximum. */
+        public static final int ALLOCATED_WORKER_MAX = -4;
+
+        /** Request value used to return the budget overcommit flag. */
+        public static final int OVERCOMMITTED = -5;
+
+        /** Request value used to count matching live-pool allocations. */
+        public static final int MATCHING_ALLOCATION_COUNT = -6;
         }
 
     // ----- inner class: ThreadCountChecker --------------------------------

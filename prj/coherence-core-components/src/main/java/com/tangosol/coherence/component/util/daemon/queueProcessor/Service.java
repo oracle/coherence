@@ -1213,10 +1213,8 @@ public abstract class Service
         int cThreads = deps.getWorkerThreadCountMin();
         if (cThreads > 0)
             {
-            boolean                 fVirtual     = shouldUseVirtualDaemonPool(deps);
-            String                  sServiceName = getServiceName();
-            DaemonPoolSizing.Result result       = DaemonPoolSizing.resolveThreadCountMax(deps.getWorkerThreadCountMax(), cThreads);
-            int                     cMax         = result.getEffectiveMax();
+            boolean fVirtual     = shouldUseVirtualDaemonPool(deps);
+            String  sServiceName = getServiceName();
             com.tangosol.coherence.component.util.DaemonPool pool = ensureDaemonPool(fVirtual);
             if (this instanceof com.tangosol.net.Guardian)
                 {
@@ -1230,22 +1228,15 @@ public abstract class Service
                 {
                 // cThreads is WorkerThreadCountMin, and validation guarantees max >= min.
                 pool.setDaemonCount(cThreads);
-                pool.setDaemonCountMax(cMax);
+                pool.setDaemonCountMax(deps.getWorkerThreadCountMax());
                 pool.setDaemonCountMin(cThreads);
+                pool.setDaemonPoolSizingRole(DaemonPoolSizing.Role.SERVICE);
                 }
             pool.setHungThreshold(deps.getTaskHungThresholdMillis());
             pool.setName(sServiceName);
             pool.setTaskTimeout(deps.getTaskTimeoutMillis());
             pool.setThreadPriority(deps.getWorkerThreadPriority());
 
-            if (!fVirtual && result.isDerived())
-                {
-                _trace("DaemonPool \"" + sServiceName
-                    + "\": deriving platform thread-count-max=" + cMax
-                    + " from Xmx=" + Base.toMemorySizeString(result.getMaxMemory())
-                    + ", thread-stack=" + Base.toMemorySizeString(result.getThreadStackSize())
-                    + ", hard-limit=" + result.getHardMax(), 4);
-                }
             }
         
         setPriority(deps.getThreadPriority());
