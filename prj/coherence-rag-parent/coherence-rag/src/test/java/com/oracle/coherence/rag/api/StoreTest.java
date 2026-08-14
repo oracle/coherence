@@ -33,6 +33,8 @@ import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
 
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -109,6 +111,7 @@ class StoreTest
         when(embeddingModelSupplier.defaultModelName()).thenReturn(new ModelName("test/embedding-model"));
         when(embeddingModelSupplier.get()).thenReturn(embeddingModel);
         when(chatModelSupplier.get()).thenReturn(streamingChatModel);
+        RagSecurity.setDirectConnectionPolicyForTesting(uri -> true);
         }
 
     @AfterEach
@@ -123,6 +126,7 @@ class StoreTest
         System.clearProperty(RagSecurity.PROP_IMPORT_GCS_ALLOWED_BUCKETS);
         System.clearProperty(RagSecurity.PROP_IMPORT_OCI_ALLOWED_LOCATIONS);
         RagSecurity.setAddressResolverForTesting(null);
+        RagSecurity.setDirectConnectionPolicyForTesting(null);
         }
 
     // ---- request/response record tests ----------------------------------
@@ -409,6 +413,30 @@ class StoreTest
             RagSecurity.setAddressResolverForTesting(host -> new InetAddress[]{InetAddress.getByName("93.184.216.34")});
 
             assertDoesNotThrow(() -> RagSecurity.validateImportUri("https://docs.example.com/document.txt"));
+            }
+
+        @Test
+        @DisplayName("Should reject HTTP import when a proxy route is selected")
+        void shouldRejectHttpImportWhenProxyRouteIsSelected() throws Exception
+            {
+            System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "http");
+            System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "docs.example.com");
+            RagSecurity.setAddressResolverForTesting(host ->
+                    new InetAddress[]{InetAddress.getByName("93.184.216.34")});
+            RagSecurity.setDirectConnectionPolicyForTesting(null);
+            ProxySelector selectorPrevious = ProxySelector.getDefault();
+            try
+                {
+                ProxySelector.setDefault(ProxySelector.of(new InetSocketAddress("localhost", 8080)));
+                RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                        () -> RagSecurity.validateImportUri("http://docs.example.com/document.txt"));
+
+                assertThat(e.reason(), is(RagSecurity.REASON_PROXY_NOT_ALLOWED));
+                }
+            finally
+                {
+                ProxySelector.setDefault(selectorPrevious);
+                }
             }
 
         @Test

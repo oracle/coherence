@@ -6,15 +6,17 @@
  */
 package com.oracle.coherence.rag.api;
 
+import java.io.IOException;
+
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 
-import java.io.IOException;
-
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Test support for package-private RAG security policy hooks.
@@ -46,6 +48,57 @@ public final class RagSecurityTestSupport
     public static void setHttpConnectionFactory(HttpConnectionFactory factory)
         {
         RagSecurity.setHttpConnectionFactoryForTesting(factory == null ? null : factory::open);
+        }
+
+    /**
+     * Override the direct-route policy used by HTTP(S) imports.
+     *
+     * @param policy  the policy to use, or {@code null} to reset
+     */
+    public static void setDirectConnectionPolicy(DirectConnectionPolicy policy)
+        {
+        RagSecurity.setDirectConnectionPolicyForTesting(policy == null ? null : policy::isDirect);
+        }
+
+    /**
+     * Open the production pinned HTTP connection for a focused transport test.
+     *
+     * @param uri                    the logical destination URI
+     * @param address                the validated address
+     * @param cMillisConnectTimeout  the connection timeout
+     * @param cMillisReadTimeout     the read timeout
+     *
+     * @return the opened connection
+     *
+     * @throws IOException if the connection cannot be opened
+     */
+    public static HttpURLConnection openPinnedHttpConnection(URI uri, InetAddress address,
+            int cMillisConnectTimeout, int cMillisReadTimeout)
+            throws IOException
+        {
+        return RagSecurity.openPinnedHttpConnection(uri, address,
+                cMillisConnectTimeout, cMillisReadTimeout);
+        }
+
+    /**
+     * Open the production pinned HTTPS connection with a test trust context.
+     *
+     * @param uri                    the logical destination URI
+     * @param address                the validated address
+     * @param cMillisConnectTimeout  the connection timeout
+     * @param cMillisReadTimeout     the read timeout
+     * @param sslContext             the test SSL context
+     *
+     * @return the opened connection
+     *
+     * @throws IOException if the connection cannot be opened
+     */
+    public static HttpURLConnection openPinnedHttpsConnection(URI uri, InetAddress address,
+            int cMillisConnectTimeout, int cMillisReadTimeout, SSLContext sslContext)
+            throws IOException
+        {
+        return RagSecurity.openPinnedHttpsConnectionForTesting(uri, address,
+                cMillisConnectTimeout, cMillisReadTimeout, sslContext);
         }
 
     /**
@@ -97,13 +150,34 @@ public final class RagSecurityTestSupport
         /**
          * Open a test HTTP connection.
          *
-         * @param uri  the URI to open
+         * @param uri                    the URI to open
+         * @param address                the validated address to connect to
+         * @param cMillisConnectTimeout  the connection timeout
+         * @param cMillisReadTimeout     the read timeout
          *
          * @return the HTTP connection
          *
          * @throws IOException if the connection cannot be opened
          */
-        HttpURLConnection open(URI uri) throws IOException;
+        HttpURLConnection open(URI uri, InetAddress address,
+                int cMillisConnectTimeout, int cMillisReadTimeout) throws IOException;
+        }
+
+    // ---- inner interface: DirectConnectionPolicy -----------------------
+
+    /**
+     * Public test-facing direct-route policy facade.
+     */
+    public interface DirectConnectionPolicy
+        {
+        /**
+         * Return whether the specified URI will use a direct route.
+         *
+         * @param uri  the URI to inspect
+         *
+         * @return {@code true} only for a direct route
+         */
+        boolean isDirect(URI uri);
         }
 
     // ---- inner interface: FileOpenHook ----------------------------------

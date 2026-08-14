@@ -24,15 +24,26 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 
+import java.nio.charset.StandardCharsets;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -75,6 +86,7 @@ class HttpDocumentLoaderTest
         System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "http");
         System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "example.com,localhost");
         RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {InetAddress.getByName("93.184.216.34")});
+        RagSecurityTestSupport.setDirectConnectionPolicy(uri -> true);
         }
 
     @AfterEach
@@ -88,6 +100,7 @@ class HttpDocumentLoaderTest
         System.clearProperty(RagSecurity.PROP_IMPORT_MAX_BYTES);
         RagSecurityTestSupport.setAddressResolver(null);
         RagSecurityTestSupport.setHttpConnectionFactory(null);
+        RagSecurityTestSupport.setDirectConnectionPolicy(null);
         }
 
     @Test
@@ -105,6 +118,193 @@ class HttpDocumentLoaderTest
 
         assertThat(result, is(sameInstance(mockDocument)));
         assertThat(uriOpened.get(), is(httpUri));
+        }
+
+    @Test
+    @DisplayName("should bind the validated DNS answer to the connection")
+    void shouldBindValidatedDnsAnswerToConnection()
+            throws Exception
+        {
+        AtomicInteger cResolution = new AtomicInteger();
+        AtomicReference<InetAddress> addressOpened = new AtomicReference<>();
+        RagSecurityTestSupport.setAddressResolver(host ->
+            {
+            String sAddress = cResolution.incrementAndGet() == 1 ? "93.184.216.34" : "10.0.0.5";
+            return new InetAddress[] {InetAddress.getByName(sAddress)};
+            });
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            addressOpened.set(address);
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        when(mockParserSupplier.get()).thenReturn(mockDocumentParser);
+        when(mockDocumentParser.parse(any(InputStream.class))).thenReturn(mockDocument);
+
+        loader.load(URI.create("http://example.com/document.pdf"));
+
+        assertThat(cResolution.get(), is(1));
+        assertThat(addressOpened.get().getHostAddress(), is("93.184.216.34"));
+        assertThat(addressOpened.get().getHostName(), is("example.com"));
+        }
+
+    @Test
+    @DisplayName("should bind every redirect target to its validated DNS answer")
+    void shouldBindEveryRedirectTargetToValidatedDnsAnswer()
+            throws Exception
+        {
+        System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "example.com,docs.example.com");
+        RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {
+                InetAddress.getByName("docs.example.com".equals(host) ? "93.184.216.35" : "93.184.216.34")
+        });
+        List<String> listOpened = new ArrayList<>();
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            listOpened.add(uri.getHost() + "=" + address.getHostAddress());
+            if ("example.com".equals(uri.getHost()))
+                {
+                return new TestRedirectHttpURLConnection(uri.toURL(), "http://docs.example.com/document.pdf");
+                }
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        when(mockParserSupplier.get()).thenReturn(mockDocumentParser);
+        when(mockDocumentParser.parse(any(InputStream.class))).thenReturn(mockDocument);
+
+        loader.load(URI.create("http://example.com/start"));
+
+        assertThat(listOpened, is(List.of(
+                "example.com=93.184.216.34",
+                "docs.example.com=93.184.216.35")));
+        }
+
+    @Test
+    @DisplayName("should reject mixed public and private DNS answers before connect")
+    void shouldRejectMixedPublicAndPrivateDnsAnswersBeforeConnect()
+            throws Exception
+        {
+        AtomicBoolean fOpened = new AtomicBoolean();
+        RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {
+                InetAddress.getByName("93.184.216.34"),
+                InetAddress.getByName("10.0.0.5")
+        });
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            fOpened.set(true);
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                () -> loader.load(URI.create("http://example.com/document.pdf")));
+
+        assertThat(e.reason(), is(RagSecurity.REASON_PRIVATE_ADDRESS_NOT_ALLOWED));
+        assertThat(fOpened.get(), is(false));
+        }
+
+    @Test
+    @DisplayName("should reject a configured proxy before connect")
+    void shouldRejectConfiguredProxyBeforeConnect()
+            throws Exception
+        {
+        AtomicBoolean fOpened = new AtomicBoolean();
+        RagSecurityTestSupport.setDirectConnectionPolicy(uri -> false);
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            fOpened.set(true);
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        RagSecurity.PolicyViolation e = assertThrows(RagSecurity.PolicyViolation.class,
+                () -> loader.load(URI.create("http://example.com/document.pdf")));
+
+        assertThat(e.reason(), is(RagSecurity.REASON_PROXY_NOT_ALLOWED));
+        assertThat(fOpened.get(), is(false));
+        }
+
+    @Test
+    @DisplayName("should retry only addresses from the validated answer set")
+    void shouldRetryOnlyAddressesFromValidatedAnswerSet()
+            throws Exception
+        {
+        RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {
+                InetAddress.getByName("93.184.216.34"),
+                InetAddress.getByName("93.184.216.35")
+        });
+        List<String> listOpened = new ArrayList<>();
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            listOpened.add(address.getHostAddress());
+            if (listOpened.size() == 1)
+                {
+                throw new IOException("first validated address unavailable");
+                }
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        when(mockParserSupplier.get()).thenReturn(mockDocumentParser);
+        when(mockDocumentParser.parse(any(InputStream.class))).thenReturn(mockDocument);
+
+        loader.load(URI.create("http://example.com/document.pdf"));
+
+        assertThat(listOpened, is(List.of("93.184.216.34", "93.184.216.35")));
+        }
+
+    @Test
+    @DisplayName("should connect the production client to the pinned address")
+    void shouldConnectProductionClientToPinnedAddress()
+            throws Exception
+        {
+        InetAddress addressLoopback = InetAddress.getLoopbackAddress();
+        AtomicReference<String> hostHeader = new AtomicReference<>();
+        AtomicReference<Throwable> serverFailure = new AtomicReference<>();
+        try (ServerSocket server = new ServerSocket(0, 1, addressLoopback))
+            {
+            Thread threadServer = Thread.ofVirtual().start(() ->
+                {
+                try (Socket socket = server.accept();
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(
+                             socket.getInputStream(), StandardCharsets.US_ASCII)))
+                    {
+                    for (String sLine = reader.readLine(); sLine != null && !sLine.isEmpty(); sLine = reader.readLine())
+                        {
+                        if (sLine.regionMatches(true, 0, "Host:", 0, 5))
+                            {
+                            hostHeader.set(sLine.substring(5).trim());
+                            }
+                        }
+                    socket.getOutputStream().write(("HTTP/1.1 200 OK\r\n"
+                            + "Content-Length: 16\r\n"
+                            + "Connection: close\r\n\r\n"
+                            + "Document content").getBytes(StandardCharsets.US_ASCII));
+                    socket.getOutputStream().flush();
+                    }
+                catch (Throwable t)
+                    {
+                    serverFailure.set(t);
+                    }
+                });
+
+            String sHost = "unresolvable.invalid";
+            URI uri = URI.create("http://" + sHost + ":" + server.getLocalPort() + "/document.txt");
+            InetAddress addressPinned = InetAddress.getByAddress(sHost, addressLoopback.getAddress());
+            HttpURLConnection connection = RagSecurityTestSupport.openPinnedHttpConnection(
+                    uri, addressPinned, 5_000, 5_000);
+            try
+                {
+                assertThat(new String(connection.getInputStream().readAllBytes(), StandardCharsets.US_ASCII),
+                        is("Document content"));
+                assertThat(connection.usingProxy(), is(false));
+                }
+            finally
+                {
+                connection.disconnect();
+                }
+
+            threadServer.join(5_000);
+            assertThat(threadServer.isAlive(), is(false));
+            assertThat(serverFailure.get(), is(nullValue()));
+            assertThat(hostHeader.get(), is(sHost + ":" + server.getLocalPort()));
+            }
         }
 
     @Test
@@ -219,7 +419,7 @@ class HttpDocumentLoaderTest
         RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {
                 InetAddress.getByName("docs.example.com".equals(host) ? "10.0.0.5" : "93.184.216.34")
         });
-        RagSecurityTestSupport.setHttpConnectionFactory(uri ->
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
             {
             if ("example.com".equals(uri.getHost()))
                 {
@@ -241,12 +441,13 @@ class HttpDocumentLoaderTest
         {
         System.setProperty(RagSecurity.PROP_IMPORT_CONNECT_TIMEOUT, "1234");
         System.setProperty(RagSecurity.PROP_IMPORT_READ_TIMEOUT, "5678");
-        AtomicReference<TestHttpURLConnection> connectionRef = new AtomicReference<>();
-        RagSecurityTestSupport.setHttpConnectionFactory(uri ->
+        AtomicInteger connectTimeoutRef = new AtomicInteger();
+        AtomicInteger readTimeoutRef = new AtomicInteger();
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
             {
-            TestHttpURLConnection connection = new TestHttpURLConnection(uri.toURL(), "Document content");
-            connectionRef.set(connection);
-            return connection;
+            connectTimeoutRef.set(connectTimeout);
+            readTimeoutRef.set(readTimeout);
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
             });
 
         when(mockParserSupplier.get()).thenReturn(mockDocumentParser);
@@ -254,8 +455,8 @@ class HttpDocumentLoaderTest
 
         loader.load(URI.create("http://example.com/document.pdf"));
 
-        assertThat(connectionRef.get().getConnectTimeout(), is(1234));
-        assertThat(connectionRef.get().getReadTimeout(), is(5678));
+        assertThat(connectTimeoutRef.get(), is(1234));
+        assertThat(readTimeoutRef.get(), is(5678));
         }
 
     @Test
@@ -285,7 +486,7 @@ class HttpDocumentLoaderTest
             throws IOException
         {
         AtomicReference<URI> uriOpened = new AtomicReference<>();
-        RagSecurityTestSupport.setHttpConnectionFactory(uri ->
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
             {
             uriOpened.set(uri);
             return new TestHttpURLConnection(uri.toURL(), sContent);
