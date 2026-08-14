@@ -31,6 +31,19 @@ public final class BridgeObjectInputFilter
     // ----- factory methods -----------------------------------------------
 
     /**
+     * Return whether the specified exception-state array length is supported.
+     * A negative value represents an unknown length and is not rejected.
+     *
+     * @param cLength  the array length
+     *
+     * @return {@code true} if the length is unknown or within the limit
+     */
+    public static boolean isExceptionArrayLengthSupported(long cLength)
+        {
+        return cLength < 0 || cLength <= MAX_EXCEPTION_ARRAY_LENGTH;
+        }
+
+    /**
      * Return a filter for JCache exception bridges.
      *
      * @return an exception bridge filter
@@ -80,8 +93,22 @@ public final class BridgeObjectInputFilter
      */
     private BridgeObjectInputFilter(String sReason, Set<String> setAllowed)
         {
-        f_sReason    = sReason;
-        f_setAllowed = setAllowed;
+        this(sReason, setAllowed, -1L);
+        }
+
+    /**
+     * Construct a bridge filter.
+     *
+     * @param sReason          the telemetry rejection reason
+     * @param setAllowed       the exact allowed class names
+     * @param cMaxArrayLength  the maximum admitted array length, or a negative
+     *                         value for no bridge-local limit
+     */
+    private BridgeObjectInputFilter(String sReason, Set<String> setAllowed, long cMaxArrayLength)
+        {
+        f_sReason         = sReason;
+        f_setAllowed      = setAllowed;
+        f_cMaxArrayLength = cMaxArrayLength;
         }
 
     // ----- ObjectInputFilter interface -----------------------------------
@@ -97,6 +124,17 @@ public final class BridgeObjectInputFilter
 
         if (isAllowed(clz))
             {
+            long cLength = filterInfo.arrayLength();
+            if (clz.isArray()
+                    && f_cMaxArrayLength >= 0
+                    && cLength >= 0
+                    && cLength > f_cMaxArrayLength)
+                {
+                SerializationTelemetry.recordFilterCheck(
+                        "rejected", "bridge-exception-array-length-rejected", clz, null);
+                return Status.REJECTED;
+                }
+
             return Status.ALLOWED;
             }
 
@@ -118,7 +156,9 @@ public final class BridgeObjectInputFilter
         if (clz.isArray())
             {
             Class<?> clzComponent = clz.getComponentType();
-            return clzComponent.isPrimitive() || isAllowed(clzComponent);
+            return f_setAllowed.contains(clz.getName())
+                    || clzComponent.isPrimitive()
+                    || isAllowed(clzComponent);
             }
 
         return clz.isPrimitive() || f_setAllowed.contains(clz.getName());
@@ -142,10 +182,17 @@ public final class BridgeObjectInputFilter
     // ----- constants ------------------------------------------------------
 
     /**
+     * Maximum array length accepted by exception bridge filters.
+     */
+    public static final int MAX_EXCEPTION_ARRAY_LENGTH = 16_384;
+
+    /**
      * Java serialization classes needed by ordinary exception state.
      */
     private static final Set<String> EXCEPTION_INFRASTRUCTURE = Set.of(
+            Object[].class.getName(),
             "java.lang.StackTraceElement",
+            "java.util.ArrayList",
             "java.util.Collections$EmptyList");
 
     /**
@@ -202,7 +249,8 @@ public final class BridgeObjectInputFilter
      */
     private static final BridgeObjectInputFilter EXCEPTION_FILTER =
             new BridgeObjectInputFilter("bridge-exception-type-rejected",
-                    allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
+                    allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE),
+                    MAX_EXCEPTION_ARRAY_LENGTH);
 
     /**
      * Management publish bridge filter singleton.
@@ -233,4 +281,9 @@ public final class BridgeObjectInputFilter
      * Exact allowed class names.
      */
     private final Set<String> f_setAllowed;
+
+    /**
+     * Maximum admitted array length, or a negative value for no limit.
+     */
+    private final long f_cMaxArrayLength;
     }
