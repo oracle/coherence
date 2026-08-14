@@ -6,45 +6,87 @@
  */
 package com.oracle.coherence.rag.model;
 
-import com.oracle.coherence.common.base.Logger;
 import com.oracle.coherence.common.io.Files;
-import com.oracle.coherence.testing.http.UseProxy;
+
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 import dev.langchain4j.data.embedding.Embedding;
 
-import java.io.IOException;
+import io.helidon.webclient.api.WebClient;
 
-import java.net.SocketTimeoutException;
-
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Path;
 
-import java.time.Duration;
-
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.nio.file.Files.deleteIfExists;
 import static java.nio.file.Files.exists;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-@UseProxy
 public class LocalOnnxEmbeddingModelTest
     {
+    @BeforeAll
+    public static void setup()
+        {
+        s_huggingFace = new WireMockServer(wireMockConfig().dynamicPort());
+        s_huggingFace.start();
+
+        s_huggingFace.stubFor(get(urlEqualTo(POOLING_CONFIG_URI))
+                .willReturn(aResponse().withStatus(200).withBody(POOLING_CONFIG)));
+        s_huggingFace.stubFor(get(urlEqualTo(MODEL_URI))
+                .willReturn(aResponse().withStatus(200).withBody(MODEL_CONTENT)));
+        s_huggingFace.stubFor(get(urlEqualTo(TOKENIZER_URI))
+                .willReturn(aResponse().withStatus(200).withBody(TOKENIZER_CONTENT)));
+
+        s_client = WebClient.builder()
+                .baseUri(s_huggingFace.baseUrl() + "/")
+                .build();
+        }
+
+    @BeforeEach
+    public void deleteDownloadedModel() throws Exception
+        {
+        ModelName name = new ModelName("TaylorAI/bge-micro");
+        deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "config.json"));
+        deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "model.onnx"));
+        deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "tokenizer.json"));
+        }
+
     @AfterAll
     public static void cleanup() throws Exception
         {
-        for (int i = 0; i < 5; i++)
+        try
             {
-            try
+            for (int i = 0; i < 5; i++)
                 {
-                Files.deleteDirectory(Path.of("models", "TaylorAI"));
-                break;
+                try
+                    {
+                    Files.deleteDirectory(Path.of("models", "TaylorAI"));
+                    break;
+                    }
+                catch (DirectoryNotEmptyException e)
+                    {
+                    System.gc();
+                    Thread.sleep(1000L * (1L << i)); // 1s, 2s, 4s, ...
+                    }
                 }
-            catch (DirectoryNotEmptyException e)
+            }
+        finally
+            {
+            if (s_huggingFace != null && s_huggingFace.isRunning())
                 {
-                System.gc();
-                Thread.sleep(1000L * (1L << i)); // 1s, 2s, 4s, ...
+                s_huggingFace.stop();
                 }
             }
         }
@@ -65,132 +107,43 @@ public class LocalOnnxEmbeddingModelTest
     public void testLocalModelDownload() throws Exception
         {
         ModelName name = new ModelName("TaylorAI/bge-micro");
-        try (LocalOnnxEmbeddingModel model = createWithDownloadRetry(name))
+        PoolingConfig config = LocalOnnxEmbeddingModel.getPoolingConfig(name, s_client);
+        try (InputStream model = LocalOnnxEmbeddingModel.getModelStream(name, s_client);
+             InputStream tokenizer = LocalOnnxEmbeddingModel.getTokenizerStream(name, s_client))
             {
             assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "config.json")), is(true));
             assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "model.onnx")), is(true));
             assertThat(exists(LocalOnnxEmbeddingModel.pathTo(name, "tokenizer.json")), is(true));
 
-            Embedding embedding = model.embed("Create a vector").content();
-            assertThat(embedding.dimension(), is(model.dimension()));
-            assertThat(model.name(), is(name));
-            }
-        }
-
-    /**
-     * Create a model, retrying transient HuggingFace download failures.
-     *
-     * @param name  the model name
-     *
-     * @return the model
-     *
-     * @throws Exception if creation fails
-     */
-    private static LocalOnnxEmbeddingModel createWithDownloadRetry(ModelName name) throws Exception
-        {
-        for (int i = 1; i <= DOWNLOAD_ATTEMPTS; i++)
-            {
-            try
-                {
-                return LocalOnnxEmbeddingModel.create(name);
-                }
-            catch (RuntimeException e)
-                {
-                if (i == DOWNLOAD_ATTEMPTS || !isRetriableDownloadFailure(e))
-                    {
-                    throw e;
-                    }
-
-                deleteDownloadedFiles(name, e);
-                Logger.warn("Failed to download embedding model [%s] after attempt %d of %d; retrying in %d seconds"
-                        .formatted(name.fullName(), i, DOWNLOAD_ATTEMPTS, DOWNLOAD_RETRY_DELAY.toSeconds()), e);
-                sleepBeforeRetry();
-                }
+            assertThat(config, is(new PoolingConfig(3, false, true)));
+            assertThat(new String(model.readAllBytes(), StandardCharsets.UTF_8), is(MODEL_CONTENT));
+            assertThat(new String(tokenizer.readAllBytes(), StandardCharsets.UTF_8), is(TOKENIZER_CONTENT));
             }
 
-        throw new AssertionError("unreachable");
-        }
-
-    /**
-     * Return {@code true} if the exception chain reports a transient model
-     * download failure.
-     *
-     * @param thrown  the exception
-     *
-     * @return {@code true} if the exception is a transient download failure
-     */
-    private static boolean isRetriableDownloadFailure(Throwable thrown)
-        {
-        while (thrown != null)
-            {
-            if (thrown instanceof SocketTimeoutException)
-                {
-                return true;
-                }
-
-            String message = thrown.getMessage();
-            if (message != null && message.contains("Failed to download") && message.contains("403"))
-                {
-                return true;
-                }
-            if (message != null && message.contains("Read timed out"))
-                {
-                return true;
-                }
-
-            thrown = thrown.getCause();
-            }
-        return false;
-        }
-
-    /**
-     * Delete local model files before retrying to avoid reusing a partial
-     * download.
-     *
-     * @param name   the model name
-     * @param cause  the retry cause
-     */
-    private static void deleteDownloadedFiles(ModelName name, RuntimeException cause)
-        {
-        try
-            {
-            java.nio.file.Files.deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "config.json"));
-            java.nio.file.Files.deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "model.onnx"));
-            java.nio.file.Files.deleteIfExists(LocalOnnxEmbeddingModel.pathTo(name, "tokenizer.json"));
-            }
-        catch (IOException e)
-            {
-            cause.addSuppressed(e);
-            }
-        }
-
-    /**
-     * Sleep before retrying a transient download failure.
-     *
-     * @throws InterruptedException if interrupted
-     */
-    private static void sleepBeforeRetry() throws InterruptedException
-        {
-        try
-            {
-            Thread.sleep(DOWNLOAD_RETRY_DELAY.toMillis());
-            }
-        catch (InterruptedException e)
-            {
-            Thread.currentThread().interrupt();
-            throw e;
-            }
+        s_huggingFace.verify(getRequestedFor(urlEqualTo(POOLING_CONFIG_URI)));
+        s_huggingFace.verify(getRequestedFor(urlEqualTo(MODEL_URI)));
+        s_huggingFace.verify(getRequestedFor(urlEqualTo(TOKENIZER_URI)));
         }
 
     // ---- constants ------------------------------------------------------
 
-    /**
-     * Maximum number of download attempts for transient failures.
-     */
-    private static final int DOWNLOAD_ATTEMPTS = 5;
+    private static final String POOLING_CONFIG_URI = "/TaylorAI/bge-micro/resolve/main/1_Pooling/config.json";
 
-    /**
-     * Delay between download attempts for transient failures.
-     */
-    private static final Duration DOWNLOAD_RETRY_DELAY = Duration.ofSeconds(30);
+    private static final String MODEL_URI = "/TaylorAI/bge-micro/resolve/main/onnx/model.onnx";
+
+    private static final String TOKENIZER_URI = "/TaylorAI/bge-micro/resolve/main/tokenizer.json";
+
+    private static final String POOLING_CONFIG = """
+            {"word_embedding_dimension":3,"pooling_mode_cls_token":false,"pooling_mode_mean_tokens":true}
+            """;
+
+    private static final String MODEL_CONTENT = "mock embedding model";
+
+    private static final String TOKENIZER_CONTENT = "mock embedding tokenizer";
+
+    // ---- data members ---------------------------------------------------
+
+    private static WireMockServer s_huggingFace;
+
+    private static WebClient s_client;
     }

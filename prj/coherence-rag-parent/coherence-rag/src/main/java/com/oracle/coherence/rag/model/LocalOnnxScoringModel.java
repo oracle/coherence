@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -314,10 +314,25 @@ public class LocalOnnxScoringModel
     static InputStream getModelStream(ModelName name)
             throws IOException
         {
+        return getModelStream(name, CLIENT);
+        }
+
+    /**
+     * Gets the model input stream using the specified web client.
+     *
+     * @param name    the model name
+     * @param client  the web client to use for downloading
+     *
+     * @return the model input stream
+     * @throws IOException  if there's an error accessing the model
+     */
+    static InputStream getModelStream(ModelName name, WebClient client)
+            throws IOException
+        {
         Path path = pathTo(name, "model.onnx");
         if (!Files.exists(path))
             {
-            fetch(name, path, "onnx/model.onnx", new MemorySize("64k"));
+            fetch(client, name, path, "onnx/model.onnx", new MemorySize("64k"));
             }
 
         return Files.newInputStream(path);
@@ -334,10 +349,25 @@ public class LocalOnnxScoringModel
     static InputStream getTokenizerStream(ModelName name)
             throws IOException
         {
+        return getTokenizerStream(name, CLIENT);
+        }
+
+    /**
+     * Gets the tokenizer input stream using the specified web client.
+     *
+     * @param name    the model name
+     * @param client  the web client to use for downloading
+     *
+     * @return the tokenizer input stream
+     * @throws IOException  if there's an error accessing the tokenizer
+     */
+    static InputStream getTokenizerStream(ModelName name, WebClient client)
+            throws IOException
+        {
         Path path = pathTo(name, "tokenizer.json");
         if (!Files.exists(path))
             {
-            fetch(name, path, "tokenizer.json", new MemorySize("64k"));
+            fetch(client, name, path, "tokenizer.json", new MemorySize("64k"));
             }
 
         return Files.newInputStream(path);
@@ -374,6 +404,7 @@ public class LocalOnnxScoringModel
     /**
      * Fetches a model file from HuggingFace if it doesn't exist locally.
      * 
+     * @param client      the web client to use for downloading
      * @param modelName   the model name
      * @param path        the local path to save the file
      * @param uri         the URI to download from
@@ -381,13 +412,13 @@ public class LocalOnnxScoringModel
      *
      * @throws IOException  if there's an error downloading the file
      */
-    private static void fetch(ModelName modelName, Path path, String uri, MemorySize bufferSize)
+    private static void fetch(WebClient client, ModelName modelName, Path path, String uri, MemorySize bufferSize)
             throws IOException
         {
         int cbBufferSize = (int) bufferSize.getByteCount();
 
         String url = "%s/resolve/main/%s".formatted(modelName.fullName(), uri);
-        HttpClientRequest request = CLIENT.get(url);
+        HttpClientRequest request = client.get(url);
         Logger.info("Downloading %s to %s".formatted(request.uri(), path));
 
         Files.createDirectories(path.getParent());
