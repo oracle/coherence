@@ -46,6 +46,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -229,14 +230,39 @@ public abstract class AbstractSocketBus
      */
     public static boolean armActiveReadFailuresForTesting()
         {
-        if (TEST_ACTIVE_READ_FAILURES_ARMED.get())
+        return TEST_ACTIVE_READ_FAILURES_ARMED.compareAndSet(false, true);
+        }
+
+    /**
+     * Return the number of active-read failures captured by the functional test hook.
+     *
+     * @return the number of captured active-read failures
+     */
+    public static long getActiveReadFailureCapturesForTesting()
+        {
+        return TEST_ACTIVE_READ_FAILURE_CAPTURES.get();
+        }
+
+    /**
+     * Trigger an active-read failure captured by the functional test hook.
+     *
+     * @return {@code true} iff a captured failure was triggered
+     */
+    public static boolean triggerCapturedActiveReadFailureForTesting()
+        {
+        CapturedActiveReadFailure failure = TEST_CAPTURED_ACTIVE_READ_FAILURE.getAndSet(null);
+        if (failure == null || !consumeTestCounter(TEST_ACTIVE_READ_FAILURES))
             {
             return false;
             }
 
-        TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.set(
-                SafeClock.INSTANCE.getSafeTimeMillis() + TEST_ACTIVE_READ_FAILURE_ARM_DELAY_MILLIS);
-        return TEST_ACTIVE_READ_FAILURES_ARMED.compareAndSet(false, true);
+        if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+            {
+            TEST_ACTIVE_READ_FAILURE_INJECTIONS.incrementAndGet();
+            TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.set(failure.f_lTransportGeneration);
+            }
+        failure.f_connection.migrate(failure.f_lTransportGeneration, new SocketException("Connection reset"));
+        return true;
         }
 
     /**
@@ -280,8 +306,8 @@ public abstract class AbstractSocketBus
         return "enabled=" + TEST_TRACK_MIGRATION_DIAGNOSTICS
                 + ", activeReadFailuresRemaining=" + TEST_ACTIVE_READ_FAILURES.get()
                 + ", activeReadFailureInjections=" + TEST_ACTIVE_READ_FAILURE_INJECTIONS.get()
+                + ", activeReadFailureCaptures=" + TEST_ACTIVE_READ_FAILURE_CAPTURES.get()
                 + ", lastActiveReadFailureGeneration=" + TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.get()
-                + ", activeReadFailureNotBeforeMillis=" + TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.get()
                 + ", migrationStarts=" + TEST_MIGRATION_STARTS.get()
                 + ", lastMigrationStartGeneration=" + TEST_LAST_MIGRATION_START_GENERATION.get()
                 + ", reconnectAttempts=" + TEST_RECONNECT_ATTEMPTS.get()
@@ -902,20 +928,42 @@ public abstract class AbstractSocketBus
      */
     private boolean checkDataDrop(Connection connection, SocketChannel channel, long lTransportGeneration)
         {
-        if (TEST_ACTIVE_READ_FAILURES_ENABLED && TEST_ACTIVE_READ_FAILURES_ARMED.get()
-                && SafeClock.INSTANCE.getSafeTimeMillis() >= TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS.get()
-                && consumeTestCounter(TEST_ACTIVE_READ_FAILURES))
+        if (TEST_ACTIVE_READ_FAILURES_ENABLED && TEST_ACTIVE_READ_FAILURES_ARMED.get())
             {
-            if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+            if (TEST_CAPTURE_ACTIVE_READ_FAILURES)
                 {
-                TEST_ACTIVE_READ_FAILURE_INJECTIONS.incrementAndGet();
-                TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.set(lTransportGeneration);
+                captureActiveReadFailureForTesting(connection, lTransportGeneration);
                 }
-            connection.migrate(lTransportGeneration, new SocketException("Connection reset"));
-            return true;
+            else if (consumeTestCounter(TEST_ACTIVE_READ_FAILURES))
+                {
+                if (TEST_TRACK_MIGRATION_DIAGNOSTICS)
+                    {
+                    TEST_ACTIVE_READ_FAILURE_INJECTIONS.incrementAndGet();
+                    TEST_LAST_ACTIVE_READ_FAILURE_GENERATION.set(lTransportGeneration);
+                    }
+                connection.migrate(lTransportGeneration, new SocketException("Connection reset"));
+                return true;
+                }
             }
 
         return checkDrop(channel);
+        }
+
+    /**
+     * Capture the first eligible active read so a functional test can trigger its failure after all peers have
+     * reached the same boundary. The selector remains unblocked and continues normal I/O while the controller
+     * completes the barrier.
+     *
+     * @param connection            the connection being read
+     * @param lTransportGeneration  the transport generation being read
+     */
+    private void captureActiveReadFailureForTesting(Connection connection, long lTransportGeneration)
+        {
+        if (TEST_ACTIVE_READ_FAILURE_CAPTURE_CLAIMED.compareAndSet(false, true))
+            {
+            TEST_CAPTURED_ACTIVE_READ_FAILURE.set(new CapturedActiveReadFailure(connection, lTransportGeneration));
+            TEST_ACTIVE_READ_FAILURE_CAPTURES.incrementAndGet();
+            }
         }
 
     /**
@@ -5498,6 +5546,28 @@ public abstract class AbstractSocketBus
         private Object m_oEpoch;
         }
 
+    /**
+     * An active transport read captured for deterministic functional-test failure injection.
+     */
+    private static class CapturedActiveReadFailure
+        {
+        private CapturedActiveReadFailure(Connection connection, long lTransportGeneration)
+            {
+            f_connection            = connection;
+            f_lTransportGeneration = lTransportGeneration;
+            }
+
+        /**
+         * The logical connection whose active transport was captured.
+         */
+        private final Connection f_connection;
+
+        /**
+         * The captured active transport generation.
+         */
+        private final long f_lTransportGeneration;
+        }
+
 
     // ----- data members ---------------------------------------------------
 
@@ -5697,15 +5767,26 @@ public abstract class AbstractSocketBus
             AbstractSocketBus.class.getName() + ".deferActiveReadFailures"));
 
     /**
-     * Delay between arming and injecting an active-read failure, used to coordinate multiple test processes.
+     * Whether the first eligible active-read failure should be captured for functional testing.
      */
-    private static final long TEST_ACTIVE_READ_FAILURE_ARM_DELAY_MILLIS = Long.getLong(
-            AbstractSocketBus.class.getName() + ".activeReadFailureArmDelayMillis", 0L);
+    private static final boolean TEST_CAPTURE_ACTIVE_READ_FAILURES = Boolean.getBoolean(
+            AbstractSocketBus.class.getName() + ".captureActiveReadFailures");
 
     /**
-     * Earliest safe-clock time at which an armed active-read failure may be injected.
+     * Whether an active read has claimed the functional test capture point.
      */
-    private static final AtomicLong TEST_ACTIVE_READ_FAILURE_NOT_BEFORE_MILLIS = new AtomicLong();
+    private static final AtomicBoolean TEST_ACTIVE_READ_FAILURE_CAPTURE_CLAIMED = new AtomicBoolean();
+
+    /**
+     * The active-read failure captured by the functional test hook.
+     */
+    private static final AtomicReference<CapturedActiveReadFailure> TEST_CAPTURED_ACTIVE_READ_FAILURE =
+            new AtomicReference<>();
+
+    /**
+     * The number of active-read failures captured by the functional test hook.
+     */
+    private static final AtomicLong TEST_ACTIVE_READ_FAILURE_CAPTURES = new AtomicLong();
 
     /**
      * The number of migrations to start concurrently with an active read for functional testing.
