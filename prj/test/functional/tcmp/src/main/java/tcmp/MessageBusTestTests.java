@@ -489,6 +489,7 @@ public class MessageBusTestTests
         OptionsByType optionsSender = OptionsByType.of(
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
+                SystemProperty.of("coherence.socketbus.adaptiveDirectSend", "true"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWriteLimitBytes", "98304"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWrites", "1"),
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".partialWritesOnNonOwnerOnly", "true"),
@@ -702,6 +703,7 @@ public class MessageBusTestTests
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "0"),
+                SystemProperty.of("coherence.socketbus.adaptiveDirectSend", "true"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "0"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectLimit", "3"),
                 SystemProperty.of(SocketMessageBus.class.getName() + ".blockAdaptiveDirectSend", "true"),
