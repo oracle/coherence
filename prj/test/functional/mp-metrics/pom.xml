@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -35,6 +35,7 @@
       --add-reads com.oracle.coherence.cdi=weld.core.impl
       --add-reads com.oracle.coherence.cdi.server=weld.core.impl
       --add-reads com.oracle.coherence.mp.config=ALL-UNNAMED
+      --add-reads com.oracle.coherence.mp.metrics=ALL-UNNAMED
       --add-opens java.base/java.lang=weld.core.impl
       --add-opens java.base/java.lang=ALL-UNNAMED
     </failsafe.modules.argline>

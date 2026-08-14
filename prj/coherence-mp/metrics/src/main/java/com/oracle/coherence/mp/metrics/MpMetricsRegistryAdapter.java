@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,13 +11,24 @@ import com.oracle.coherence.common.base.Logger;
 import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.function.Supplier;
 
+import jakarta.annotation.Priority;
+
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.Initialized;
+
+import jakarta.enterprise.event.Observes;
+
 import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+
+import jakarta.interceptor.Interceptor;
 
 import org.eclipse.microprofile.metrics.Metadata;
 import org.eclipse.microprofile.metrics.MetricID;
@@ -38,7 +49,7 @@ import org.eclipse.microprofile.metrics.annotation.RegistryScope;
  *
  * @author Aleks Seovic     2019.09.13
  * @author Jonathan Knight  2020.01.08
- * 
+ *
  * @since 20.06
  */
 @ApplicationScoped
@@ -55,19 +66,109 @@ public class MpMetricsRegistryAdapter
      *
      * @throws NullPointerException if either {@link MetricRegistry} parameter is {@code null}
      */
-    @Inject
     public MpMetricsRegistryAdapter(
             @RegistryScope(scope = MetricRegistry.VENDOR_SCOPE) MetricRegistry vendorRegistry,
             @RegistryScope(scope = MetricRegistry.APPLICATION_SCOPE) MetricRegistry appRegistry)
         {
-        f_vendorRegistry = Objects.requireNonNull(vendorRegistry);
-        f_appRegistry    = Objects.requireNonNull(appRegistry);
+        m_vendorRegistry = Objects.requireNonNull(vendorRegistry);
+        m_appRegistry    = Objects.requireNonNull(appRegistry);
+
+        f_vendorRegistryProvider = null;
+        f_appRegistryProvider    = null;
+
+        m_fInitialized = true;
+        }
+
+    /**
+     * Construct a CDI-managed {@link MpMetricsRegistryAdapter}.
+     *
+     * @param vendorRegistryProvider  the provider for the vendor metrics registry
+     * @param appRegistryProvider     the provider for the application metrics registry
+     */
+    @Inject
+    MpMetricsRegistryAdapter(
+            @RegistryScope(scope = MetricRegistry.VENDOR_SCOPE) Provider<MetricRegistry> vendorRegistryProvider,
+            @RegistryScope(scope = MetricRegistry.APPLICATION_SCOPE) Provider<MetricRegistry> appRegistryProvider)
+        {
+        f_vendorRegistryProvider = Objects.requireNonNull(vendorRegistryProvider);
+        f_appRegistryProvider    = Objects.requireNonNull(appRegistryProvider);
         }
 
     // ---- MetricsRegistryAdapter interface --------------------------------
 
     @Override
     public synchronized void register(MBeanMetric metric)
+        {
+        Objects.requireNonNull(metric);
+
+        if (m_fInitialized)
+            {
+            registerInternal(metric);
+            }
+        else
+            {
+            f_deferredActions.add(() -> registerInternal(metric));
+            }
+        }
+
+    @Override
+    public synchronized void remove(MBeanMetric.Identifier identifier)
+        {
+        Objects.requireNonNull(identifier);
+
+        if (m_fInitialized)
+            {
+            removeInternal(identifier);
+            }
+        else
+            {
+            f_deferredActions.add(() -> removeInternal(identifier));
+            }
+        }
+
+    // ---- lifecycle methods ----------------------------------------------
+
+    /**
+     * Resolve the MicroProfile metrics registries after library initialization
+     * has completed and apply any deferred metric operations.
+     *
+     * @param event  the application scope initialization event
+     */
+    synchronized void onApplicationScopeInitialized(
+            @Observes @Priority(Interceptor.Priority.APPLICATION) @Initialized(ApplicationScoped.class) Object event)
+        {
+        if (m_fInitialized)
+            {
+            return;
+            }
+
+        m_vendorRegistry = Objects.requireNonNull(f_vendorRegistryProvider.get());
+        m_appRegistry    = Objects.requireNonNull(f_appRegistryProvider.get());
+
+        for (Runnable action : f_deferredActions)
+            {
+            try
+                {
+                action.run();
+                }
+            catch (Throwable t)
+                {
+                Logger.err("Failed to apply a deferred MicroProfile metric operation", t);
+                }
+            }
+
+        f_deferredActions.clear();
+        m_fInitialized = true;
+        }
+
+    // ---- helpers ---------------------------------------------------------
+
+    /**
+     * Register a metric with the appropriate MicroProfile metrics registry.
+     *
+     * @param metric  the metric to register
+     */
+    private void registerInternal(MBeanMetric metric)
         {
         String   sName        = metric.getName();
         String   sDescription = getDescription(metric);
@@ -87,15 +188,15 @@ public class MpMetricsRegistryAdapter
         switch (metric.getScope())
             {
             case VENDOR:
-                if (!f_vendorRegistry.getGauges().containsKey(id))
+                if (!m_vendorRegistry.getGauges().containsKey(id))
                     {
-                    f_vendorRegistry.gauge(metadata, gauge, aTags);
+                    m_vendorRegistry.gauge(metadata, gauge, aTags);
                     }
                 break;
             case APPLICATION:
-                if (!f_appRegistry.getGauges().containsKey(id))
+                if (!m_appRegistry.getGauges().containsKey(id))
                     {
-                    f_appRegistry.gauge(metadata, gauge, aTags);
+                    m_appRegistry.gauge(metadata, gauge, aTags);
                     }
                 break;
             case BASE:
@@ -104,8 +205,12 @@ public class MpMetricsRegistryAdapter
             }
         }
 
-    @Override
-    public void remove(MBeanMetric.Identifier identifier)
+    /**
+     * Remove a metric from the appropriate MicroProfile metrics registry.
+     *
+     * @param identifier  the identifier of the metric to remove
+     */
+    private void removeInternal(MBeanMetric.Identifier identifier)
         {
         Tag[]    aTags = getTags(identifier);
         MetricID id    = new MetricID(identifier.getName(), aTags);
@@ -113,15 +218,15 @@ public class MpMetricsRegistryAdapter
         switch (identifier.getScope())
             {
             case VENDOR:
-                if (f_vendorRegistry.getGauges().containsKey(id))
+                if (m_vendorRegistry.getGauges().containsKey(id))
                     {
-                    f_vendorRegistry.remove(id);
+                    m_vendorRegistry.remove(id);
                     }
                 break;
             case APPLICATION:
-                if (f_appRegistry.getGauges().containsKey(id))
+                if (m_appRegistry.getGauges().containsKey(id))
                     {
-                    f_appRegistry.remove(id);
+                    m_appRegistry.remove(id);
                     }
                 break;
             case BASE:
@@ -129,8 +234,6 @@ public class MpMetricsRegistryAdapter
                 // do nothing - ignore any other type of metric
             }
         }
-
-    // ---- helpers ---------------------------------------------------------
 
     /**
      * Create an array of {@link Tag} instances from an {@link
@@ -244,10 +347,30 @@ public class MpMetricsRegistryAdapter
     /**
      * MicroProfile Vendor Registry to publish metrics to.
      */
-    private final MetricRegistry f_vendorRegistry;
+    private MetricRegistry m_vendorRegistry;
 
     /**
      * MicroProfile Application Registry to publish metrics to.
      */
-    private final MetricRegistry f_appRegistry;
+    private MetricRegistry m_appRegistry;
+
+    /**
+     * Provider for the MicroProfile Vendor Registry used by CDI.
+     */
+    private final Provider<MetricRegistry> f_vendorRegistryProvider;
+
+    /**
+     * Provider for the MicroProfile Application Registry used by CDI.
+     */
+    private final Provider<MetricRegistry> f_appRegistryProvider;
+
+    /**
+     * Deferred metric operations waiting for CDI application initialization.
+     */
+    private final List<Runnable> f_deferredActions = new ArrayList<>();
+
+    /**
+     * {@code true} after the MicroProfile metrics registries are safe to use.
+     */
+    private boolean m_fInitialized;
     }
