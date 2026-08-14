@@ -10,6 +10,14 @@
               xsi:schemaLocation="http://xmlns.oracle.com/coherence/coherence-cache-config coherence-cache-config.xsd">
   <caching-scheme-mapping>
     <cache-mapping>
+      <cache-name>peer-proof-perf-proof</cache-name>
+      <scheme-name>proof-performance-distributed</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>peer-proof-perf-baseline</cache-name>
+      <scheme-name>baseline-performance-distributed</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
       <cache-name>authorized-*</cache-name>
       <scheme-name>authorized-distributed</scheme-name>
     </cache-mapping>
@@ -20,6 +28,28 @@
   </caching-scheme-mapping>
 
   <caching-schemes>
+    <distributed-scheme>
+      <scheme-name>proof-performance-distributed</scheme-name>
+      <service-name>StorageAuthorizerPerformanceService</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <backing-map-scheme>
+        <storage-authorizer>capture</storage-authorizer>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
+    <distributed-scheme>
+      <scheme-name>baseline-performance-distributed</scheme-name>
+      <service-name>StorageAuthorizerPerformanceService</service-name>
+      <local-storage system-property="coherence.distributed.localstorage">true</local-storage>
+      <backing-map-scheme>
+        <storage-authorizer>capture-baseline</storage-authorizer>
+        <local-scheme/>
+      </backing-map-scheme>
+      <autostart>true</autostart>
+    </distributed-scheme>
+
     <distributed-scheme>
       <scheme-name>authorized-distributed</scheme-name>
       <service-name>StorageAuthorizerRouteService</service-name>

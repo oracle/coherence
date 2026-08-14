@@ -204,13 +204,13 @@ public class RequestMessageSubjectProofPolicyTest
         RequestMessage       request = requestWithSubject(service);
 
         service.setProofRequired(true);
-        service.setProofMetadata(7L, 1_000L, Long.MAX_VALUE - 1);
+        service.setProofMetadata(7L, ISSUED_AT, EXPIRES_AT);
         writeBodyAndExtensions(service, request);
 
         byte[] abProof = request.getRequestContext().getSubjectProof();
         assertNotNull(abProof);
 
-        service.setProofMetadata(11L, 2_000L, Long.MAX_VALUE - 2);
+        service.setProofMetadata(11L, ISSUED_AT + 1L, EXPIRES_AT + 1L);
 
         assertSame(request.getRequestContext().getSubject(),
                 service.getStorageAccessSubject(request.getRequestContext(), storage));
@@ -616,13 +616,13 @@ public class RequestMessageSubjectProofPolicyTest
         @Override
         public boolean isVersionCompatible(Member member, IntPredicate predicate)
             {
-            return predicate.test(VersionHelper.encodeVersion(15, 1, 2, 0, 0));
+            return predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
             }
 
         @Override
         public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
             {
-            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 1, 2, 0, 0));
+            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
             }
 
         public void setProofRequired(boolean fRequired)
@@ -787,8 +787,8 @@ public class RequestMessageSubjectProofPolicyTest
     private static final long REQUEST_SUID = 142L;
     private static final long CACHE_ID     = 123L;
     private static final long NONCE        = 99L;
-    private static final long ISSUED_AT    = 1_000L;
-    private static final long EXPIRES_AT   = Long.MAX_VALUE - 1;
+    private static final long ISSUED_AT    = System.currentTimeMillis();
+    private static final long EXPIRES_AT   = ISSUED_AT + 5L * 60L * 1000L;
 
     private static final byte[] SECRET = "deterministic-secret".getBytes(StandardCharsets.UTF_8);
 

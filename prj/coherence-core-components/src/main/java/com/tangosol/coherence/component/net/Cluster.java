@@ -3656,6 +3656,7 @@ public class Cluster
             finally
                 {
                 getSocketManager().releaseSockets();
+                Security.closePeerProofProvider();
                 com.tangosol.internal.tracing.TracingShim.Control control = getTracingControl();
                 if (control != null)
                     {

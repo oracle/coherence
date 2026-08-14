@@ -76,16 +76,20 @@ public class SeniorMetadataProofProductionTest
         }
 
     @Test
-    public void shouldSuppressHeartbeatProofForBroadcastIncompatibleAndMixedRecipients()
+    public void shouldProduceBroadcastHeartbeatProofAndSuppressIncompatibleAndMixedRecipients()
             throws Exception
         {
         ProductionClusterService service = new ProductionClusterService(true, true);
-        Binary binBroadcast = writeLegacyHeartbeat(heartbeat(service, false, true, false));
-        Binary binDirected  = writeLegacyHeartbeat(heartbeat(service, true, false, false));
-        Binary binMixed     = writeLegacyHeartbeat(heartbeat(service, true, true, true));
+        ClusterService.SeniorMemberHeartbeat heartbeatBroadcast = heartbeat(service, false, true, false);
+        Binary binBroadcast = writeLegacyHeartbeat(heartbeatBroadcast);
+        Binary binProof = writeMessageBody(heartbeatBroadcast);
+        assertProofRecord(binProof, binBroadcast, heartbeatBroadcast.getSeniorMetadataProof());
+        assertVerified(service, heartbeatBroadcast.getSeniorMetadataProof());
 
-        assertEquals(binBroadcast, writeMessageBody(heartbeat(service, false, true, false)));
+        Binary binDirected = writeLegacyHeartbeat(heartbeat(service, true, false, false));
         assertEquals(binDirected, writeMessageBody(heartbeat(service, true, false, false)));
+
+        Binary binMixed = writeLegacyHeartbeat(heartbeat(service, true, true, true));
         assertEquals(binMixed, writeMessageBody(heartbeat(service, true, true, true)));
         }
 
@@ -453,6 +457,12 @@ public class SeniorMetadataProofProductionTest
         public Member getServiceOldestMember()
             {
             return f_memberSenior;
+            }
+
+        @Override
+        protected String getSeniorMetadataProofMemberId(Member member)
+            {
+            return member == null || member.getUuid() == null ? "" : memberId(member);
             }
 
         @Override

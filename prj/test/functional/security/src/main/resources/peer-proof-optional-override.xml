@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!--
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+  -->
+<coherence xmlns="http://xmlns.oracle.com/coherence/coherence-operational-config">
+  <cluster-config>
+    <password-providers>
+      <password-provider id="peer-proof-pass">
+        <class-name>com.tangosol.net.URLPasswordProvider</class-name>
+        <init-params><init-param><param-type>String</param-type>
+          <param-value system-property="peer.proof.password.file">not-set</param-value>
+        </init-param></init-params>
+      </password-provider>
+    </password-providers>
+  </cluster-config>
+  <security-config>
+    <peer-proof>
+      <provider>x509-signature-v1</provider>
+      <identity><key-store>
+        <url system-property="peer.proof.identity.store">not-set</url>
+        <type>PKCS12</type>
+        <password-provider><name>peer-proof-pass</name></password-provider>
+      </key-store><alias>peer-signing</alias></identity>
+      <subject-authorities><cert system-property="peer.proof.authorities">not-set</cert></subject-authorities>
+      <senior-authorities><cert system-property="peer.proof.authorities">not-set</cert></senior-authorities>
+      <algorithm>rsa-sha256</algorithm>
+      <refresh-period>1m</refresh-period>
+    </peer-proof>
+  </security-config>
+</coherence>

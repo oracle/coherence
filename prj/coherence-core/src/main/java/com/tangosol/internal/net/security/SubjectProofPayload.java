@@ -272,14 +272,24 @@ public final class SubjectProofPayload
      */
     public boolean matchesScope(SubjectProofPayload expected)
         {
-        return expected != null
-                && f_nProofVersion == expected.f_nProofVersion
-                && f_sClusterName.equals(expected.f_sClusterName)
-                && f_sServiceType.equals(expected.f_sServiceType)
-                && f_sServiceName.equals(expected.f_sServiceName)
-                && f_sCacheName.equals(expected.f_sCacheName)
-                && f_lRequestSuid == expected.f_lRequestSuid
-                && f_lReplayEpoch == expected.f_lReplayEpoch;
+        return scopeMismatch(expected).isEmpty();
+        }
+
+    /**
+     * Return a field-only description of the first scope mismatch. Values
+     * are deliberately omitted so diagnostics cannot disclose signed data.
+     */
+    String scopeMismatch(SubjectProofPayload expected)
+        {
+        if (expected == null)                                    {return "expected-payload";}
+        if (f_nProofVersion != expected.f_nProofVersion)         {return "proof-version";}
+        if (!f_sClusterName.equals(expected.f_sClusterName))     {return "cluster";}
+        if (!f_sServiceType.equals(expected.f_sServiceType))     {return "service-type";}
+        if (!f_sServiceName.equals(expected.f_sServiceName))     {return "service";}
+        if (!f_sCacheName.equals(expected.f_sCacheName))         {return "cache";}
+        if (f_lRequestSuid != expected.f_lRequestSuid)           {return "request-suid";}
+        if (f_lReplayEpoch != expected.f_lReplayEpoch)           {return "replay-epoch";}
+        return "";
         }
 
     /**

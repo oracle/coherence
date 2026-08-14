@@ -29,6 +29,10 @@ public final class SubjectProofVerification
         PAYLOAD_MISMATCH,
         PRINCIPAL_MISMATCH,
         SENDER_MISMATCH,
+        NOT_YET_VALID,
+        UNAUTHORIZED_ISSUER,
+        DUPLICATE_IDENTITY,
+        PROVIDER_UNAVAILABLE,
         PROOF_MISMATCH
         }
 

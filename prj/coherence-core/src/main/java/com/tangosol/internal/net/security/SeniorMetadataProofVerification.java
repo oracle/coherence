@@ -26,6 +26,10 @@ public final class SeniorMetadataProofVerification
         UNKNOWN_KEY,
         WRONG_ALGORITHM,
         EXPIRED,
+        NOT_YET_VALID,
+        UNAUTHORIZED_ISSUER,
+        DUPLICATE_IDENTITY,
+        PROVIDER_UNAVAILABLE,
         PAYLOAD_MISMATCH,
         PROOF_MISMATCH
         }

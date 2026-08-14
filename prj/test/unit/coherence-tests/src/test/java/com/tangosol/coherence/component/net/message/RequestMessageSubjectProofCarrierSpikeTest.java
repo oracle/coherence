@@ -91,6 +91,8 @@ public class RequestMessageSubjectProofCarrierSpikeTest
     @Test
     public void shouldEvaluateSubjectProofV1CompatibilityPredicate()
         {
+        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 0, 0, 2601, 0)));
+        assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(26, 1, 0)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 1, 2, 0, 0)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(15, 1, 1, 0, 4)));
         assertTrue(RequestMessage.isSubjectProofV1Compatible(VersionHelper.encodeVersion(14, 1, 2, 0, 8)));
@@ -337,13 +339,13 @@ public class RequestMessageSubjectProofCarrierSpikeTest
         @Override
         public boolean isVersionCompatible(Member member, IntPredicate predicate)
             {
-            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(15, 1, 2, 0, 0));
+            return m_fSenderCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
             }
 
         @Override
         public boolean isVersionCompatible(MemberSet setMembers, IntPredicate predicate)
             {
-            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 1, 2, 0, 0));
+            return m_fRecipientsCompatible && predicate.test(VersionHelper.encodeVersion(15, 0, 0, 2601, 0));
             }
 
         public void setRecipientsCompatible(boolean fCompatible)
