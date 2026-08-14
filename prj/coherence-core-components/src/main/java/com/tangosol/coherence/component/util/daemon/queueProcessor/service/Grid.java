@@ -120,6 +120,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntPredicate;
 import javax.management.Notification;
 import javax.security.auth.Subject;
@@ -263,6 +264,9 @@ public abstract class Grid
 
     /** First pending observation for the current required-operation window. */
     private final AtomicLong m_atlSeniorMetadataCapabilityPendingSince = new AtomicLong(Long.MIN_VALUE);
+
+    /** Last incompatible senior-metadata recipient-capability state reported. */
+    private final AtomicReference<String> m_atomicSeniorMetadataIncompatibleState = new AtomicReference<>();
     
     /**
      * Property ActionPolicy
@@ -5430,16 +5434,25 @@ public abstract class Grid
         MemberSet setMembers = getSeniorMetadataProofRecipients(msg);
         if (setMembers == null)
             {
+            clearSeniorMetadataProofIncompatibleRecipients();
             handleSeniorMetadataProofUnavailable(msg, "unknown recipient set");
             return;
             }
         if (!isVersionCompatible(setMembers, Message::isSeniorMetadataProofV1Compatible))
             {
-            _trace("Senior metadata proof cannot be emitted for recipient capabilities: "
-                    + describeSeniorMetadataProofRecipients(setMembers), 1);
+            if (isSeniorMetadataProofRequired(msg))
+                {
+                reportSeniorMetadataProofIncompatibleRecipients(msg, setMembers);
+                }
+            else
+                {
+                clearSeniorMetadataProofIncompatibleRecipients();
+                }
             handleSeniorMetadataProofUnavailable(msg, "incompatible recipient set");
             return;
             }
+
+        clearSeniorMetadataProofIncompatibleRecipients();
 
         byte[] ab = ensureSeniorMetadataProof(msg);
         if (ab == null || ab.length == 0)
@@ -5517,6 +5530,53 @@ public abstract class Grid
             sb.append(",...");
             }
         return sb.toString();
+        }
+
+    /**
+     * Report an incompatible senior-metadata recipient-capability state once.
+     */
+    protected void reportSeniorMetadataProofIncompatibleRecipients(Message msg, MemberSet setMembers)
+        {
+        String sState = getSeniorMetadataProofRecipientCapabilityState(setMembers);
+        String sPrior = m_atomicSeniorMetadataIncompatibleState.getAndSet(sState);
+        if (!sState.equals(sPrior))
+            {
+            onSeniorMetadataProofIncompatibleRecipients(msg,
+                    describeSeniorMetadataProofRecipients(setMembers));
+            }
+        }
+
+    /**
+     * Return the exact recipient-capability state used for diagnostic
+     * suppression.
+     */
+    protected String getSeniorMetadataProofRecipientCapabilityState(MemberSet setMembers)
+        {
+        StringBuilder   sb        = new StringBuilder();
+        MasterMemberSet setMaster = getClusterMemberSet();
+
+        for (int nId : setMembers.toIdArray())
+            {
+            int nVersion = setMaster == null ? 0 : setMaster.getServiceVersionInt(nId);
+            sb.append(nId).append('=').append(nVersion).append(';');
+            }
+        return sb.toString();
+        }
+
+    /**
+     * Emit an incompatible senior-metadata recipient-capability diagnostic.
+     */
+    protected void onSeniorMetadataProofIncompatibleRecipients(Message msg, String sRecipients)
+        {
+        _trace("Senior metadata proof cannot be emitted for recipient capabilities: " + sRecipients, 1);
+        }
+
+    /**
+     * Clear the incompatible senior-metadata recipient-capability state.
+     */
+    protected void clearSeniorMetadataProofIncompatibleRecipients()
+        {
+        m_atomicSeniorMetadataIncompatibleState.set(null);
         }
 
     /**

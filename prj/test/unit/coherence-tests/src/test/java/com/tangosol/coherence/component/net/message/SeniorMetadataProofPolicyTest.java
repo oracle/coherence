@@ -143,6 +143,52 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
+    public void shouldNotReportOptionalIncompatibleRecipients()
+            throws Exception
+        {
+        setProofRequired(false);
+        PolicyClusterService service = new PolicyClusterService(true, true);
+        ClusterService.SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+
+        service.setRecipientsCompatible(false);
+        writeHeartbeat(heartbeat);
+        writeHeartbeat(heartbeat);
+
+        assertNull(heartbeat.getSeniorMetadataProof());
+        assertEquals(0, service.getIncompatibleRecipientsCount());
+        }
+
+    @Test
+    public void shouldReportRequiredIncompatibleRecipientStateOnce()
+            throws Exception
+        {
+        setProofRequired(true);
+        PolicyClusterService service = new PolicyClusterService(true, true);
+        ClusterService.SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+
+        service.setRecipientsCompatible(false);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(1, service.getIncompatibleRecipientsCount());
+
+        Member memberThree = member(3);
+        MemberSet setRecipients = new MemberSet();
+        setRecipients.add(member(2));
+        setRecipients.add(memberThree);
+        heartbeat.setToMemberSet(setRecipients);
+        heartbeat.getMemberSet().add(memberThree);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(2, service.getIncompatibleRecipientsCount());
+
+        service.setRecipientsCompatible(true);
+        writeHeartbeat(heartbeat);
+
+        service.setRecipientsCompatible(false);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(3, service.getIncompatibleRecipientsCount());
+        }
+
+    @Test
     public void shouldRejectProofRequiredDisabledProvider()
             throws Exception
         {
@@ -454,6 +500,11 @@ public class SeniorMetadataProofPolicyTest
             return m_cDebugAllow;
             }
 
+        int getIncompatibleRecipientsCount()
+            {
+            return m_cIncompatibleRecipients;
+            }
+
         String getLastWouldRejectReason()
             {
             return m_sLastWouldRejectReason;
@@ -478,8 +529,15 @@ public class SeniorMetadataProofPolicyTest
             m_sLastDebugAllowReason = sReason;
             }
 
+        @Override
+        protected void onSeniorMetadataProofIncompatibleRecipients(Message msg, String sRecipients)
+            {
+            m_cIncompatibleRecipients++;
+            }
+
         private int    m_cWouldReject;
         private int    m_cDebugAllow;
+        private int    m_cIncompatibleRecipients;
         private String m_sLastWouldRejectReason;
         private String m_sLastDebugAllowReason;
         }
