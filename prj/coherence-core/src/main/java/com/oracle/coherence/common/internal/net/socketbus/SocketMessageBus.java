@@ -289,9 +289,10 @@ public class SocketMessageBus
      * Experimental adaptive producer path. A producer may append and flush
      * directly only when both the connection lock and epoch writer ticket are
      * immediately available; all contention falls back to MPSC publication.
+     * Disabled by default in favor of consistent MPSC publication.
      */
     private static final boolean ADAPTIVE_DIRECT_SEND = Config.getBoolean(
-            "coherence.socketbus.adaptiveDirectSend", true);
+            "coherence.socketbus.adaptiveDirectSend", false);
 
     /**
      * Whether the first completed adaptive direct-send pass should pause for functional testing.
