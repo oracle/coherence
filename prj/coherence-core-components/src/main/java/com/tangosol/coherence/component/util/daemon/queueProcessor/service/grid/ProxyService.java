@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -32,6 +32,7 @@ import com.oracle.coherence.common.net.SSLSocketProvider;
 import com.tangosol.coherence.config.builder.ServiceLoadBalancerBuilder;
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.grid.ProxyServiceDependencies;
+import com.tangosol.internal.util.DaemonPoolSizing;
 import com.tangosol.net.ActionPolicy;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.ConfigurableCacheFactory;
@@ -1436,6 +1437,12 @@ public class ProxyService
         // import com.tangosol.util.Base;
         
         super.onDependencies(deps);
+
+        com.tangosol.coherence.component.util.DaemonPool poolService = getDaemonPool();
+        if (poolService != null)
+            {
+            poolService.setDaemonPoolSizingRole(DaemonPoolSizing.Role.AUXILIARY);
+            }
         
         ProxyServiceDependencies proxyDeps = (ProxyServiceDependencies) deps;
         
@@ -1494,6 +1501,7 @@ public class ProxyService
                     pool.setDaemonCount(cThreads);
                     pool.setDaemonCountMax(proxyDeps.getWorkerThreadCountMax());
                     pool.setDaemonCountMin(cThreads);
+                    pool.setDaemonPoolSizingRole(DaemonPoolSizing.Role.BLOCKING_IO);
                     pool.setHungThreshold(proxyDeps.getTaskHungThresholdMillis());
                     pool.setName(sAcceptorServiceName);
                     pool.setTaskTimeout(proxyDeps.getTaskTimeoutMillis());
