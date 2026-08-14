@@ -58,6 +58,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -76,6 +78,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Functional install-mode coverage for RemoteExecutor client paths.
  */
+@Execution(ExecutionMode.SAME_THREAD)
 public class RemoteExecutorInstallModeMatrixIT
     {
     private static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
