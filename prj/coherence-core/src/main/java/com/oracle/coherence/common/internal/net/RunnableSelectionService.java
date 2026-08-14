@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net;
 
@@ -81,12 +81,15 @@ public class RunnableSelectionService
 
         if (cMillis == 0)
             {
-            boolean fEmpty = f_tasks.isEmpty();
             f_tasks.add(runnable);
-            if (fEmpty)
-                {
-                wakeup();
-                }
+
+            // A selector wakeup may be consumed by a selection that is already
+            // returning. The queue can also appear non-empty while its consumer
+            // marker is being drained, so queue non-emptiness is not proof that
+            // a durable wakeup is pending for this task. Selector.wakeup()
+            // coalesces redundant notifications, so publish one for every newly
+            // queued immediate task.
+            wakeup();
             }
         else
             {
