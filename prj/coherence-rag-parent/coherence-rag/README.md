@@ -213,10 +213,18 @@ coherence.rag.import.gcs.allowed-buckets=
 coherence.rag.import.oci.os.allowed-locations=
 ```
 
-HTTP(S) imports require an allowed host and resolved addresses are checked
-before opening the URI. Loopback, link-local, metadata, and private addresses
-are rejected by default; the private-address opt-in still requires an allowed
-host and does not permit link-local metadata targets.
+HTTP(S) imports require an allowed host and use direct connections only. If the
+JVM proxy selector chooses an HTTP, HTTPS-tunnel, or SOCKS proxy, the import is
+rejected with `reason=proxy-not-allowed`. Loopback, link-local, metadata, and
+private addresses are rejected by default; the private-address opt-in still
+requires an allowed host and does not permit link-local metadata targets.
+
+For each request and redirect hop, all DNS answers are validated before any
+connection is attempted. The client then connects only to an address from that
+accepted answer set, without resolving the origin again or reusing a connection
+from another hop. HTTPS retains the URI hostname for the HTTP `Host` header,
+TLS SNI, and certificate hostname verification. Deployments that require a
+proxy cannot use HTTP(S) document imports under this direct-only contract.
 
 ### Configuration
 

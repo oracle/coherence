@@ -13,6 +13,11 @@ import com.oracle.coherence.rag.model.ModelName;
 import com.oracle.coherence.rag.util.CdiHelper;
 import com.tangosol.internal.util.CoherenceMode;
 
+import io.helidon.common.tls.Tls;
+import io.helidon.http.HeaderNames;
+import io.helidon.webclient.api.HttpClientResponse;
+import io.helidon.webclient.api.WebClient;
+
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
@@ -29,8 +34,10 @@ import java.io.InputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.DirectoryStream;
@@ -42,15 +49,20 @@ import java.nio.file.SecureDirectoryStream;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributeView;
 import java.security.Principal;
+import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import javax.net.ssl.SSLContext;
 
 /**
  * Shared authorization and allowlist policy for RAG REST endpoints.
@@ -377,12 +389,9 @@ public final class RagSecurity
         URI uriCurrent = uri;
         for (int i = 0; i < MAX_REDIRECTS; i++)
             {
-            validateHttpUri(uriCurrent);
+            InetAddress[] aAddress = validateHttpUri(uriCurrent);
 
-            HttpURLConnection connection = s_connectionFactory.open(uriCurrent);
-            connection.setInstanceFollowRedirects(false);
-            connection.setConnectTimeout(connectTimeoutMillis());
-            connection.setReadTimeout(readTimeoutMillis());
+            HttpURLConnection connection = openValidatedHttpConnection(uriCurrent, aAddress);
 
             int nStatus = connection.getResponseCode();
             if (!isRedirect(nStatus))
@@ -401,6 +410,97 @@ public final class RagSecurity
             }
 
         throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_INVALID_REQUEST);
+        }
+
+    private static HttpURLConnection openValidatedHttpConnection(URI uri, InetAddress[] aAddress)
+            throws IOException
+        {
+        IOException failure = null;
+        for (InetAddress address : aAddress)
+            {
+            try
+                {
+                return s_connectionFactory.open(uri, pinAddress(uri.getHost(), address),
+                        connectTimeoutMillis(), readTimeoutMillis());
+                }
+            catch (IOException e)
+                {
+                failure = e;
+                }
+            }
+
+        if (failure == null)
+            {
+            throw new IOException(REASON_DNS_ADDRESS_NOT_ALLOWED);
+            }
+        throw failure;
+        }
+
+    static HttpURLConnection openPinnedHttpConnection(URI uri, InetAddress address,
+            int cMillisConnectTimeout, int cMillisReadTimeout)
+            throws IOException
+        {
+        return openPinnedHttpConnection(uri, address,
+                cMillisConnectTimeout, cMillisReadTimeout, null);
+        }
+
+    static HttpURLConnection openPinnedHttpsConnectionForTesting(URI uri, InetAddress address,
+            int cMillisConnectTimeout, int cMillisReadTimeout, SSLContext sslContext)
+            throws IOException
+        {
+        Tls tls = Tls.builder()
+                .sslContext(sslContext)
+                .endpointIdentificationAlgorithm(Tls.ENDPOINT_IDENTIFICATION_HTTPS)
+                .build();
+        return openPinnedHttpConnection(uri, address,
+                cMillisConnectTimeout, cMillisReadTimeout, tls);
+        }
+
+    private static HttpURLConnection openPinnedHttpConnection(URI uri, InetAddress address,
+            int cMillisConnectTimeout, int cMillisReadTimeout, Tls tls)
+            throws IOException
+        {
+        WebClient client = null;
+        try
+            {
+            var builder = WebClient.builder()
+                    .baseUri(uri)
+                    .connectTimeout(Duration.ofMillis(cMillisConnectTimeout))
+                    .readTimeout(Duration.ofMillis(cMillisReadTimeout))
+                    .followRedirects(false)
+                    .keepAlive(false)
+                    .connectionCacheSize(1)
+                    .shareConnectionCache(false)
+                    .proxy(io.helidon.webclient.api.Proxy.noProxy())
+                    .dnsResolver((host, lookup) ->
+                        {
+                        if (!uri.getHost().equalsIgnoreCase(host))
+                            {
+                            throw new IllegalStateException(REASON_DNS_ADDRESS_NOT_ALLOWED);
+                        }
+                        return address;
+                        });
+            if (tls != null)
+                {
+                builder.tls(tls);
+                }
+            client = builder.build();
+
+            HttpClientResponse response = client.get().request();
+            return new HelidonHttpURLConnection(uri.toURL(), client, response);
+            }
+        catch (RuntimeException | IOException e)
+            {
+            if (client != null)
+                {
+                client.closeResource();
+                }
+            if (e instanceof IOException ioException)
+                {
+                throw ioException;
+                }
+            throw new IOException(e);
+            }
         }
 
     /**
@@ -484,9 +584,21 @@ public final class RagSecurity
     static HttpConnectionFactory setHttpConnectionFactoryForTesting(HttpConnectionFactory factory)
         {
         HttpConnectionFactory previous = s_connectionFactory;
-        s_connectionFactory = factory == null
-                ? uri -> (HttpURLConnection) uri.toURL().openConnection()
-                : factory;
+        s_connectionFactory = factory == null ? RagSecurity::openPinnedHttpConnection : factory;
+        return previous;
+        }
+
+    /**
+     * Override the direct-route policy for tests.
+     *
+     * @param policy  the policy to use
+     *
+     * @return the previous policy
+     */
+    static DirectConnectionPolicy setDirectConnectionPolicyForTesting(DirectConnectionPolicy policy)
+        {
+        DirectConnectionPolicy previous = s_directConnectionPolicy;
+        s_directConnectionPolicy = policy == null ? RagSecurity::isDirectConnection : policy;
         return previous;
         }
 
@@ -665,7 +777,7 @@ public final class RagSecurity
             }
         }
 
-    private static void validateHttpUri(URI uri)
+    private static InetAddress[] validateHttpUri(URI uri)
         {
         String sHost = normalize(uri.getHost());
         if (sHost == null)
@@ -699,6 +811,47 @@ public final class RagSecurity
             {
             validateAddress(address, fAllowPrivate);
             }
+        requireDirectConnection(uri);
+        return aAddress;
+        }
+
+    private static InetAddress pinAddress(String sHost, InetAddress address)
+            throws UnknownHostException
+        {
+        return InetAddress.getByAddress(sHost, address.getAddress());
+        }
+
+    private static void requireDirectConnection(URI uri)
+        {
+        boolean fDirect;
+        try
+            {
+            fDirect = s_directConnectionPolicy.isDirect(uri);
+            }
+        catch (RuntimeException e)
+            {
+            fDirect = false;
+            }
+
+        if (!fDirect)
+            {
+            throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PROXY_NOT_ALLOWED);
+            }
+        }
+
+    private static boolean isDirectConnection(URI uri)
+        {
+        ProxySelector selector = ProxySelector.getDefault();
+        if (selector == null)
+            {
+            return true;
+            }
+
+        List<java.net.Proxy> listProxy = selector.select(uri);
+        return listProxy != null
+               && !listProxy.isEmpty()
+               && listProxy.stream().allMatch(proxy -> proxy == java.net.Proxy.NO_PROXY
+                                                        || proxy.type() == java.net.Proxy.Type.DIRECT);
         }
 
     private static void validateAddress(InetAddress address, boolean fAllowPrivate)
@@ -1079,15 +1232,124 @@ public final class RagSecurity
     interface HttpConnectionFactory
         {
         /**
-         * Open a connection to the specified URI.
+         * Open a direct connection to the specified URI and validated address.
          *
-         * @param uri  the URI to open
+         * @param uri                    the URI to open
+         * @param address                the validated address to connect to
+         * @param cMillisConnectTimeout  the connection timeout
+         * @param cMillisReadTimeout     the read timeout
          *
          * @return the HTTP connection
          *
          * @throws IOException if the connection cannot be opened
          */
-        HttpURLConnection open(URI uri) throws IOException;
+        HttpURLConnection open(URI uri, InetAddress address,
+                int cMillisConnectTimeout, int cMillisReadTimeout) throws IOException;
+        }
+
+    // ---- inner interface: DirectConnectionPolicy -----------------------
+
+    /**
+     * Direct-route policy abstraction for import URI tests.
+     */
+    interface DirectConnectionPolicy
+        {
+        /**
+         * Return whether the URI will use a direct connection.
+         *
+         * @param uri  the URI to inspect
+         *
+         * @return {@code true} only for a direct route
+         */
+        boolean isDirect(URI uri);
+        }
+
+    // ---- inner class: HelidonHttpURLConnection -------------------------
+
+    /**
+     * Compatibility adapter over a pinned Helidon response.
+     */
+    private static final class HelidonHttpURLConnection
+            extends HttpURLConnection
+        {
+        private HelidonHttpURLConnection(URL url, WebClient client, HttpClientResponse response)
+            {
+            super(url);
+            m_client   = client;
+            m_response = response;
+            connected  = true;
+            }
+
+        @Override
+        public void connect()
+            {
+            connected = true;
+            }
+
+        @Override
+        public void disconnect()
+            {
+            if (m_fClosed.compareAndSet(false, true))
+                {
+                try
+                    {
+                    m_response.close();
+                    }
+                finally
+                    {
+                    m_client.closeResource();
+                    connected = false;
+                    }
+                }
+            }
+
+        @Override
+        public boolean usingProxy()
+            {
+            return false;
+            }
+
+        @Override
+        public int getResponseCode()
+            {
+            return m_response.status().code();
+            }
+
+        @Override
+        public String getResponseMessage()
+            {
+            return m_response.status().reasonPhrase();
+            }
+
+        @Override
+        public String getHeaderField(String name)
+            {
+            return name == null
+                   ? null
+                   : m_response.headers().first(HeaderNames.create(name)).orElse(null);
+            }
+
+        @Override
+        public Map<String, List<String>> getHeaderFields()
+            {
+            return Collections.unmodifiableMap(m_response.headers().toMap());
+            }
+
+        @Override
+        public InputStream getInputStream()
+                throws IOException
+            {
+            int nStatus = getResponseCode();
+            if (nStatus >= HTTP_BAD_REQUEST)
+                {
+                throw new IOException("HTTP request failed with status " + nStatus);
+                }
+            return m_response.inputStream();
+            }
+
+        private final WebClient           m_client;
+        private final HttpClientResponse  m_response;
+        private final AtomicBoolean       m_fClosed = new AtomicBoolean();
         }
 
     // ---- inner interface: FileOpenHook ----------------------------------
@@ -1218,6 +1480,7 @@ public final class RagSecurity
     public static final String REASON_DNS_ADDRESS_NOT_ALLOWED         = "dns-address-not-allowed";
     public static final String REASON_PRIVATE_ADDRESS_NOT_ALLOWED     = "private-address-not-allowed";
     public static final String REASON_METADATA_ADDRESS_NOT_ALLOWED    = "metadata-address-not-allowed";
+    public static final String REASON_PROXY_NOT_ALLOWED               = "proxy-not-allowed";
     public static final String REASON_PROVIDER_LOCATION_NOT_ALLOWED   = "provider-location-not-allowed";
     public static final String REASON_DOWNLOAD_NOT_ALLOWLISTED        = "download-not-allowlisted";
     public static final String REASON_HARDENED_EMPTY_ALLOWLIST       = "security-mode-hardened-empty-allowlist";
@@ -1276,7 +1539,10 @@ public final class RagSecurity
     private static volatile AddressResolver s_resolver = InetAddress::getAllByName;
 
     private static volatile HttpConnectionFactory s_connectionFactory =
-            uri -> (HttpURLConnection) uri.toURL().openConnection();
+            RagSecurity::openPinnedHttpConnection;
+
+    private static volatile DirectConnectionPolicy s_directConnectionPolicy =
+            RagSecurity::isDirectConnection;
 
     private static volatile FileOpenHook s_fileOpenHook = path -> {};
 

@@ -24,20 +24,44 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
 
+import java.nio.charset.StandardCharsets;
+
+import java.security.KeyFactory;
+import java.security.KeyStore;
+import java.security.PrivateKey;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
+
+import java.util.Base64;
+
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.net.ssl.ExtendedSSLSession;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SNIHostName;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManagerFactory;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -72,6 +96,7 @@ class HttpsDocumentLoaderTest
         System.setProperty(RagSecurity.PROP_IMPORT_ALLOWED_SCHEMES, "https");
         System.setProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOWED_HOSTS, "secure.example.com,api.example.com");
         RagSecurityTestSupport.setAddressResolver(host -> new InetAddress[] {InetAddress.getByName("93.184.216.34")});
+        RagSecurityTestSupport.setDirectConnectionPolicy(uri -> true);
         }
 
     @AfterEach
@@ -82,6 +107,7 @@ class HttpsDocumentLoaderTest
         System.clearProperty(RagSecurity.PROP_IMPORT_HTTP_ALLOW_PRIVATE);
         RagSecurityTestSupport.setAddressResolver(null);
         RagSecurityTestSupport.setHttpConnectionFactory(null);
+        RagSecurityTestSupport.setDirectConnectionPolicy(null);
         }
 
     @Test
@@ -99,6 +125,145 @@ class HttpsDocumentLoaderTest
 
         assertThat(result, is(sameInstance(mockDocument)));
         assertThat(uriOpened.get(), is(httpsUri));
+        }
+
+    @Test
+    @DisplayName("should retain the logical HTTPS host on the pinned address")
+    void shouldRetainLogicalHttpsHostOnPinnedAddress()
+            throws Exception
+        {
+        AtomicReference<InetAddress> addressOpened = new AtomicReference<>();
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
+            {
+            addressOpened.set(address);
+            return new TestHttpURLConnection(uri.toURL(), "Document content");
+            });
+
+        when(mockParserSupplier.get()).thenReturn(mockDocumentParser);
+        when(mockDocumentParser.parse(any(InputStream.class))).thenReturn(mockDocument);
+
+        loader.load(URI.create("https://secure.example.com/document.pdf"));
+
+        assertThat(addressOpened.get().getHostAddress(), is("93.184.216.34"));
+        assertThat(addressOpened.get().getHostName(), is("secure.example.com"));
+        }
+
+    @Test
+    @DisplayName("should use the logical host for TLS SNI and endpoint identification")
+    void shouldUseLogicalHostForTlsIdentity()
+            throws Exception
+        {
+        InetAddress addressLoopback = InetAddress.getLoopbackAddress();
+        AtomicReference<String> sniHost = new AtomicReference<>();
+        AtomicReference<String> hostHeader = new AtomicReference<>();
+        AtomicReference<Throwable> serverFailure = new AtomicReference<>();
+        try (SSLServerSocket server = (SSLServerSocket) createServerSslContext()
+                .getServerSocketFactory().createServerSocket(0, 1, addressLoopback))
+            {
+            enableHttp11(server);
+            Thread threadServer = Thread.ofPlatform().daemon().start(() ->
+                {
+                try (SSLSocket socket = (SSLSocket) server.accept();
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(
+                             socket.getInputStream(), StandardCharsets.US_ASCII)))
+                    {
+                    socket.startHandshake();
+                    ExtendedSSLSession session = (ExtendedSSLSession) socket.getSession();
+                    session.getRequestedServerNames().stream()
+                            .filter(SNIHostName.class::isInstance)
+                            .map(SNIHostName.class::cast)
+                            .map(SNIHostName::getAsciiName)
+                            .findFirst()
+                            .ifPresent(sniHost::set);
+
+                    for (String sLine = reader.readLine(); sLine != null && !sLine.isEmpty(); sLine = reader.readLine())
+                        {
+                        if (sLine.regionMatches(true, 0, "Host:", 0, 5))
+                            {
+                            hostHeader.set(sLine.substring(5).trim());
+                            }
+                        }
+                    socket.getOutputStream().write(("HTTP/1.1 200 OK\r\n"
+                            + "Content-Length: 16\r\n"
+                            + "Connection: close\r\n\r\n"
+                            + "Document content").getBytes(StandardCharsets.US_ASCII));
+                    socket.getOutputStream().flush();
+                    }
+                catch (Throwable t)
+                    {
+                    serverFailure.set(t);
+                    try
+                        {
+                        server.close();
+                        }
+                    catch (IOException ignored)
+                        {
+                        }
+                    }
+                });
+
+            String sHost = "secure.example.com";
+            URI uri = URI.create("https://" + sHost + ":" + server.getLocalPort() + "/document.txt");
+            InetAddress addressPinned = InetAddress.getByAddress(sHost, addressLoopback.getAddress());
+            HttpURLConnection connection = RagSecurityTestSupport.openPinnedHttpsConnection(
+                    uri, addressPinned, 5_000, 5_000, createClientSslContext());
+            try
+                {
+                assertThat(new String(connection.getInputStream().readAllBytes(), StandardCharsets.US_ASCII),
+                        is("Document content"));
+                }
+            finally
+                {
+                connection.disconnect();
+                }
+
+            threadServer.join(5_000);
+            assertThat(threadServer.isAlive(), is(false));
+            assertThat(serverFailure.get(), is(nullValue()));
+            assertThat(sniHost.get(), is(sHost));
+            assertThat(hostHeader.get(), is(sHost + ":" + server.getLocalPort()));
+            }
+        }
+
+    @Test
+    @DisplayName("should reject a certificate for a different logical host")
+    void shouldRejectCertificateForDifferentLogicalHost()
+            throws Exception
+        {
+        InetAddress addressLoopback = InetAddress.getLoopbackAddress();
+        try (SSLServerSocket server = (SSLServerSocket) createServerSslContext()
+                .getServerSocketFactory().createServerSocket(0, 1, addressLoopback))
+            {
+            enableHttp11(server);
+            Thread threadServer = Thread.ofPlatform().daemon().start(() ->
+                {
+                try (SSLSocket socket = (SSLSocket) server.accept())
+                    {
+                    socket.startHandshake();
+                    socket.getInputStream().read();
+                    }
+                catch (IOException ignored)
+                    {
+                    try
+                        {
+                        server.close();
+                        }
+                    catch (IOException ignoredClose)
+                        {
+                        }
+                    }
+                });
+
+            String sHost = "other.example.com";
+            URI uri = URI.create("https://" + sHost + ":" + server.getLocalPort() + "/document.txt");
+            InetAddress addressPinned = InetAddress.getByAddress(sHost, addressLoopback.getAddress());
+
+            assertThrows(IOException.class, () -> RagSecurityTestSupport.openPinnedHttpsConnection(
+                    uri, addressPinned, 5_000, 5_000, createClientSslContext()));
+
+            threadServer.join(5_000);
+            assertThat(threadServer.isAlive(), is(false));
+            }
         }
 
     @Test
@@ -158,12 +323,72 @@ class HttpsDocumentLoaderTest
             throws IOException
         {
         AtomicReference<URI> uriOpened = new AtomicReference<>();
-        RagSecurityTestSupport.setHttpConnectionFactory(uri ->
+        RagSecurityTestSupport.setHttpConnectionFactory((uri, address, connectTimeout, readTimeout) ->
             {
             uriOpened.set(uri);
             return new TestHttpURLConnection(uri.toURL(), sContent);
             });
         return uriOpened;
+        }
+
+    private void enableHttp11(SSLServerSocket server)
+        {
+        SSLParameters parameters = server.getSSLParameters();
+        parameters.setApplicationProtocols(new String[] {"http/1.1"});
+        server.setSSLParameters(parameters);
+        }
+
+    private SSLContext createServerSslContext()
+            throws Exception
+        {
+        X509Certificate certificate = readCertificate();
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setKeyEntry("server", readPrivateKey(), KEY_PASSWORD,
+                new java.security.cert.Certificate[] {certificate});
+
+        KeyManagerFactory factory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        factory.init(keyStore, KEY_PASSWORD);
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(factory.getKeyManagers(), null, null);
+        return context;
+        }
+
+    private SSLContext createClientSslContext()
+            throws Exception
+        {
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        keyStore.load(null, null);
+        keyStore.setCertificateEntry("server", readCertificate());
+
+        TrustManagerFactory factory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        factory.init(keyStore);
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, factory.getTrustManagers(), null);
+        return context;
+        }
+
+    private X509Certificate readCertificate()
+            throws Exception
+        {
+        try (InputStream in = getClass().getResourceAsStream("/secure-example-cert.pem"))
+            {
+            return (X509Certificate) CertificateFactory.getInstance("X.509").generateCertificate(in);
+            }
+        }
+
+    private PrivateKey readPrivateKey()
+            throws Exception
+        {
+        try (InputStream in = getClass().getResourceAsStream("/secure-example-key.pem"))
+            {
+            String sPem = new String(in.readAllBytes(), StandardCharsets.US_ASCII)
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s", "");
+            byte[] abKey = Base64.getDecoder().decode(sPem);
+            return KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(abKey));
+            }
         }
 
     // ---- inner class: TestHttpURLConnection -----------------------------
@@ -214,4 +439,6 @@ class HttpsDocumentLoaderTest
 
         private final String sContent;
         }
+
+    private static final char[] KEY_PASSWORD = "changeit".toCharArray();
     }
