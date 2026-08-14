@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2025, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,26 +7,30 @@
 package com.oracle.coherence.rag.loader;
 
 import com.oracle.coherence.rag.DocumentLoader;
+import com.oracle.coherence.rag.api.RagSecurity;
 
-import com.oracle.coherence.rag.ParserProvider;
 import com.oracle.coherence.rag.parser.ParserSupplier;
+
+import dev.langchain4j.data.document.BlankDocumentException;
 import dev.langchain4j.data.document.Document;
-import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
+import java.io.InputStream;
+
 import java.net.URI;
+
+import java.nio.file.Path;
 
 /**
  * Document loader implementation for local file system documents.
  * <p/>
  * This CDI-managed implementation of {@link DocumentLoader} provides
  * support for loading documents from the local file system using the
- * "file" URI scheme. It leverages LangChain4J's FileSystemDocumentLoader
- * for the actual file operations and supports various document formats
- * through pluggable document parsers.
+ * "file" URI scheme. It opens allowed paths through the RAG security policy
+ * and passes the resulting stream to a pluggable document parser.
  * <p/>
  * The loader automatically handles file path resolution and delegates
  * document parsing to the injected DocumentParser, allowing for flexible
@@ -64,10 +68,9 @@ public class FileDocumentLoader
     /**
      * Loads a document from a local file system location.
      * <p/>
-     * This method extracts the file path from the provided URI and uses
-     * the LangChain4J FileSystemDocumentLoader to read and parse the
-     * document content. The actual parsing is delegated to the injected
-     * DocumentParser implementation.
+     * This method policy-checks and opens the allowed file, then delegates
+     * parsing of the already-open stream to the injected DocumentParser
+     * implementation.
      * 
      * @param uri the file URI pointing to the document to load,
      *            must use the "file" scheme
@@ -79,7 +82,23 @@ public class FileDocumentLoader
      */
     public Document load(URI uri)
         {
-        return FileSystemDocumentLoader.loadDocument(uri.getPath(), m_parserSupplier.get());
+        Path path = Path.of(uri).toAbsolutePath().normalize();
+        try (InputStream in = RagSecurity.openValidatedFile(uri))
+            {
+            Document document = m_parserSupplier.get().parse(in);
+            document.metadata()
+                    .put("file_name", path.getFileName().toString())
+                    .put("absolute_directory_path", path.getParent().toString());
+            return document;
+            }
+        catch (BlankDocumentException | RagSecurity.PolicyViolation e)
+            {
+            throw e;
+            }
+        catch (Exception e)
+            {
+            throw new RuntimeException("Failed to load document", e);
+            }
         }
 
     // ---- data members ----------------------------------------------------

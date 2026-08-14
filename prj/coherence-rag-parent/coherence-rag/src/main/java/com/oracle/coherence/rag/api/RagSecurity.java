@@ -25,12 +25,22 @@ import jakarta.ws.rs.core.SecurityContext;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.channels.Channels;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.SecureDirectoryStream;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.BasicFileAttributeView;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
@@ -323,6 +333,36 @@ public final class RagSecurity
         }
 
     /**
+     * Open a validated local file through secure directory handles.
+     * <p/>
+     * The final directory entry is checked for regular-file type before it is
+     * opened so stable special files cannot block the open. The Java API does
+     * not expose attributes for the returned channel, so this check is not a
+     * final-object type binding and file imports retain that documented race.
+     *
+     * @param uri  the file URI to open
+     *
+     * @return an input stream bound to the securely opened file
+     */
+    public static InputStream openValidatedFile(URI uri)
+        {
+        Path pathTarget = validatedFilePath(uri);
+        try
+            {
+            s_fileOpenHook.beforeOpen(pathTarget);
+            return Channels.newInputStream(openSecureFile(pathTarget));
+            }
+        catch (PolicyViolation e)
+            {
+            throw e;
+            }
+        catch (IOException | RuntimeException e)
+            {
+            throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+            }
+        }
+
+    /**
      * Open a validated HTTP(S) connection, revalidating every redirect target.
      *
      * @param uri  the URI to open
@@ -451,6 +491,34 @@ public final class RagSecurity
         }
 
     /**
+     * Override the file pre-open hook for tests.
+     *
+     * @param hook  the hook to use
+     *
+     * @return the previous hook
+     */
+    static FileOpenHook setFileOpenHookForTesting(FileOpenHook hook)
+        {
+        FileOpenHook previous = s_fileOpenHook;
+        s_fileOpenHook = hook == null ? path -> {} : hook;
+        return previous;
+        }
+
+    /**
+     * Override the root directory-stream factory for tests.
+     *
+     * @param factory  the factory to use
+     *
+     * @return the previous factory
+     */
+    static DirectoryStreamFactory setDirectoryStreamFactoryForTesting(DirectoryStreamFactory factory)
+        {
+        DirectoryStreamFactory previous = s_directoryStreamFactory;
+        s_directoryStreamFactory = factory == null ? Files::newDirectoryStream : factory;
+        return previous;
+        }
+
+    /**
      * Reset cached HuggingFace download allowlist state for tests.
      */
     static void resetHuggingFaceAllowlistForTesting()
@@ -471,12 +539,30 @@ public final class RagSecurity
         return s_cInvalidHuggingFaceAllowlistWarnings.get();
         }
 
+    /**
+     * Return whether the unrestricted-download compatibility warning was
+     * emitted since the last test reset.
+     *
+     * @return {@code true} if the warning was emitted
+     */
+    static boolean wasUnrestrictedDownloadWarningEmittedForTesting()
+        {
+        return s_fWarnedUnrestrictedDownloads.get();
+        }
+
     private static void validateFileUri(URI uri)
         {
+        validatedFilePath(uri);
+        }
+
+    private static Path validatedFilePath(URI uri)
+        {
         Path pathTarget;
+        Path pathTargetReal;
         try
             {
-            pathTarget = Path.of(uri).toRealPath();
+            pathTarget     = Path.of(uri).toAbsolutePath().normalize();
+            pathTargetReal = pathTarget.toRealPath();
             }
         catch (Exception e)
             {
@@ -487,10 +573,10 @@ public final class RagSecurity
             {
             try
                 {
-                Path pathRoot = Path.of(sRoot).toRealPath();
-                if (pathTarget.startsWith(pathRoot))
+                Path pathRootReal = Path.of(sRoot).toRealPath();
+                if (pathTargetReal.startsWith(pathRootReal))
                     {
-                    return;
+                    return pathTargetReal;
                     }
                 }
             catch (IOException ignored)
@@ -499,6 +585,84 @@ public final class RagSecurity
             }
 
         throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+        }
+
+    private static SeekableByteChannel openSecureFile(Path pathTarget)
+            throws IOException
+        {
+        Path pathRoot = pathTarget.getRoot();
+        if (pathRoot == null)
+            {
+            throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+            }
+
+        SeekableByteChannel channel = null;
+        try (DirectoryStream<Path> stream = s_directoryStreamFactory.open(pathRoot))
+            {
+            if (!(stream instanceof SecureDirectoryStream<Path> streamSecure))
+                {
+                throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+                }
+
+            Path pathRelative = pathRoot.relativize(pathTarget);
+            if (pathRelative.getNameCount() == 0)
+                {
+                throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+                }
+
+            channel = openSecureFile(streamSecure, pathRelative, 0);
+            return channel;
+            }
+        catch (IOException | RuntimeException e)
+            {
+            closeOnFailure(channel, e);
+            throw e;
+            }
+        }
+
+    private static SeekableByteChannel openSecureFile(SecureDirectoryStream<Path> stream,
+            Path pathRelative, int i)
+            throws IOException
+        {
+        Path pathName = pathRelative.getName(i);
+        if (i == pathRelative.getNameCount() - 1)
+            {
+            BasicFileAttributeView view = stream.getFileAttributeView(pathName,
+                    BasicFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+            if (view == null || !view.readAttributes().isRegularFile())
+                {
+                throw new PolicyViolation(GATE_IMPORT_URI_ALLOWLIST, REASON_PATH_NOT_ALLOWED);
+                }
+            return stream.newByteChannel(pathName, FILE_OPEN_OPTIONS);
+            }
+
+        SeekableByteChannel channel = null;
+        try (SecureDirectoryStream<Path> streamChild =
+                     stream.newDirectoryStream(pathName, LinkOption.NOFOLLOW_LINKS))
+            {
+            channel = openSecureFile(streamChild, pathRelative, i + 1);
+            return channel;
+            }
+        catch (IOException | RuntimeException e)
+            {
+            closeOnFailure(channel, e);
+            throw e;
+            }
+        }
+
+    private static void closeOnFailure(SeekableByteChannel channel, Throwable failure)
+        {
+        if (channel != null)
+            {
+            try
+                {
+                channel.close();
+                }
+            catch (IOException e)
+                {
+                failure.addSuppressed(e);
+                }
+            }
         }
 
     private static void validateHttpUri(URI uri)
@@ -926,6 +1090,42 @@ public final class RagSecurity
         HttpURLConnection open(URI uri) throws IOException;
         }
 
+    // ---- inner interface: FileOpenHook ----------------------------------
+
+    /**
+     * File pre-open hook for deterministic race tests.
+     */
+    interface FileOpenHook
+        {
+        /**
+         * Run after path validation and before secure traversal.
+         *
+         * @param path  the validated canonical path
+         *
+         * @throws IOException if the hook cannot complete
+         */
+        void beforeOpen(Path path) throws IOException;
+        }
+
+    // ---- inner interface: DirectoryStreamFactory -----------------------
+
+    /**
+     * Directory-stream factory for secure-open tests.
+     */
+    interface DirectoryStreamFactory
+        {
+        /**
+         * Open a directory stream.
+         *
+         * @param path  the directory path
+         *
+         * @return the opened stream
+         *
+         * @throws IOException if the stream cannot be opened
+         */
+        DirectoryStream<Path> open(Path path) throws IOException;
+        }
+
     // ---- inner class: PolicyViolation -----------------------------------
 
     /**
@@ -1070,10 +1270,17 @@ public final class RagSecurity
     private static final int MAX_PRINCIPAL_LENGTH = 256;
     private static final int MAX_REDIRECTS        = 5;
 
+    private static final Set<OpenOption> FILE_OPEN_OPTIONS =
+            Set.of(StandardOpenOption.READ, LinkOption.NOFOLLOW_LINKS);
+
     private static volatile AddressResolver s_resolver = InetAddress::getAllByName;
 
     private static volatile HttpConnectionFactory s_connectionFactory =
             uri -> (HttpURLConnection) uri.toURL().openConnection();
+
+    private static volatile FileOpenHook s_fileOpenHook = path -> {};
+
+    private static volatile DirectoryStreamFactory s_directoryStreamFactory = Files::newDirectoryStream;
 
     private static final AtomicBoolean s_fWarnedUnrestrictedDownloads = new AtomicBoolean();
     private static final AtomicReference<AllowedModels> s_allowedHuggingFaceModels = new AtomicReference<>();

@@ -97,7 +97,7 @@ class StoreIT
 
     @Test
     @Order(3)
-    void shouldRejectStoreConfigWithUnallowlistedModelDownloadInProd()
+    void shouldRejectStoreConfigWithUnallowlistedModelDownloadInHardenedMode()
         {
         String cfg = "{\"embeddingModel\":\"sentence-transformers/all-MiniLM-L6-v2\",\"normalizeEmbeddings\":true,\"chunkSize\":384,\"chunkOverlap\":64}";
         try (var ignored = CoherenceModeHelper.securityHardened())

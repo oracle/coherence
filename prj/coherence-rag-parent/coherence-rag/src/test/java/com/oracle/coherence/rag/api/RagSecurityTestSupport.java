@@ -13,6 +13,9 @@ import java.net.UnknownHostException;
 
 import java.io.IOException;
 
+import java.nio.file.DirectoryStream;
+import java.nio.file.Path;
+
 /**
  * Test support for package-private RAG security policy hooks.
  *
@@ -43,6 +46,26 @@ public final class RagSecurityTestSupport
     public static void setHttpConnectionFactory(HttpConnectionFactory factory)
         {
         RagSecurity.setHttpConnectionFactoryForTesting(factory == null ? null : factory::open);
+        }
+
+    /**
+     * Override the hook invoked after file validation and before secure open.
+     *
+     * @param hook  the hook to use, or {@code null} to reset
+     */
+    public static void setFileOpenHook(FileOpenHook hook)
+        {
+        RagSecurity.setFileOpenHookForTesting(hook == null ? null : hook::beforeOpen);
+        }
+
+    /**
+     * Override the directory-stream factory used by secure file open.
+     *
+     * @param factory  the factory to use, or {@code null} to reset
+     */
+    public static void setDirectoryStreamFactory(DirectoryStreamFactory factory)
+        {
+        RagSecurity.setDirectoryStreamFactoryForTesting(factory == null ? null : factory::open);
         }
 
     // ---- inner interface: AddressResolver -------------------------------
@@ -81,5 +104,41 @@ public final class RagSecurityTestSupport
          * @throws IOException if the connection cannot be opened
          */
         HttpURLConnection open(URI uri) throws IOException;
+        }
+
+    // ---- inner interface: FileOpenHook ----------------------------------
+
+    /**
+     * Public test-facing file pre-open hook.
+     */
+    public interface FileOpenHook
+        {
+        /**
+         * Run before secure traversal opens the file.
+         *
+         * @param path  the validated canonical path
+         *
+         * @throws IOException if the hook cannot complete
+         */
+        void beforeOpen(Path path) throws IOException;
+        }
+
+    // ---- inner interface: DirectoryStreamFactory -----------------------
+
+    /**
+     * Public test-facing directory-stream factory.
+     */
+    public interface DirectoryStreamFactory
+        {
+        /**
+         * Open a test directory stream.
+         *
+         * @param path  the path to open
+         *
+         * @return the opened stream
+         *
+         * @throws IOException if the stream cannot be opened
+         */
+        DirectoryStream<Path> open(Path path) throws IOException;
         }
     }

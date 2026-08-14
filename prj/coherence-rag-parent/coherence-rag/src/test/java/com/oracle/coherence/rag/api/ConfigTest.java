@@ -27,6 +27,7 @@ import java.security.Principal;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -272,7 +273,7 @@ class ConfigTest
 
         @Test
         @DisplayName("Should reject unapproved model provider update")
-        void shouldRejectUnapprovedModelDownloadInProd()
+        void shouldRejectUnapprovedModelDownloadInHardenedMode()
             {
             injectSecurityContext(context("admin-user", "admin"));
             try (var ignored = CoherenceModeHelper.securityHardened())
@@ -281,6 +282,39 @@ class ConfigTest
 
                 assertThat(response.getStatus(), is(400));
                 verify(coherenceConfig, never()).setValue("model.embedding", "sentence-transformers/all-MiniLM-L6-v2");
+                }
+            }
+
+        @Test
+        @DisplayName("Should warn and allow an empty HuggingFace allowlist in compatibility mode regardless of runtime mode")
+        void shouldWarnAndAllowEmptyHuggingFaceAllowlistInCompatibilityModeRegardlessOfRuntimeMode()
+            {
+            try (var runtimeMode = CoherenceModeHelper.prod();
+                 var securityMode = CoherenceModeHelper.securityCompatibility())
+                {
+                assertDoesNotThrow(() -> RagSecurity.validateModelDownload(
+                        "sentence-transformers/all-MiniLM-L6-v2", RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
+                assertThat(RagSecurity.wasUnrestrictedDownloadWarningEmittedForTesting(), is(true));
+
+                assertDoesNotThrow(() -> RagSecurity.validateModelDownload(
+                        "sentence-transformers/all-MiniLM-L6-v2", RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
+                assertThat(RagSecurity.wasUnrestrictedDownloadWarningEmittedForTesting(), is(true));
+                }
+            }
+
+        @Test
+        @DisplayName("Should reject an empty HuggingFace allowlist in hardened mode regardless of runtime mode")
+        void shouldRejectEmptyHuggingFaceAllowlistInHardenedModeRegardlessOfRuntimeMode()
+            {
+            try (var runtimeMode = CoherenceModeHelper.dev();
+                 var securityMode = CoherenceModeHelper.securityHardened())
+                {
+                RagSecurity.PolicyViolation error = assertThrows(RagSecurity.PolicyViolation.class,
+                        () -> RagSecurity.validateModelDownload("sentence-transformers/all-MiniLM-L6-v2",
+                                RagSecurity.GATE_DOWNLOAD_CONFIG_VALUE));
+
+                assertThat(error.reason(), is(RagSecurity.REASON_HARDENED_EMPTY_ALLOWLIST));
+                assertThat(RagSecurity.wasUnrestrictedDownloadWarningEmittedForTesting(), is(false));
                 }
             }
 
