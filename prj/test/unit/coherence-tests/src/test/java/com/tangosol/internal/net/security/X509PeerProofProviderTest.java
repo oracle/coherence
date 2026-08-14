@@ -1524,7 +1524,8 @@ public class X509PeerProofProviderTest
             assertFalse(unavailable.isReady());
             assertTrue(unavailable.getReadinessStatus().startsWith("reload-unavailable:"));
             assertFalse(unavailable.getReadinessStatus().contains(source));
-            String expected = "relative-identity.p12".equals(source) ? "absolute local path"
+            String expected = "relative-identity.p12".equals(source) || source.startsWith("\\\\")
+                    ? "absolute local path"
                     : s_dir.toString().equals(source) ? "local regular file" : "IOException";
             assertProviderFailure(optional.setSubjectProofRequired(true), expected);
             }
