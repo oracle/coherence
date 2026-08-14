@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -161,7 +161,15 @@ public class Duration
                     String    sSuffix   = matcher.group(i + 2);
                     Magnitude magnitude = Magnitude.fromSuffix(sSuffix);
 
-                    m_cNanos += Math.round(nAmount * magnitude.getFactor());
+                    try
+                        {
+                        m_cNanos = Math.addExact(m_cNanos,
+                                Math.round(nAmount * magnitude.getFactor()));
+                        }
+                    catch (ArithmeticException e)
+                        {
+                        throw new IllegalArgumentException("The specified duration exceeds the supported range", e);
+                        }
                     }
 
                 i += 3;
