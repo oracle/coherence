@@ -98,6 +98,54 @@ public class SocketMessageBus
         return fPending;
         }
 
+    /**
+     * Return the number of partial inbound frames paused by the functional test hook.
+     *
+     * @return the number of paused partial reads
+     */
+    public static long getPartialReadPausesForTesting()
+        {
+        return TEST_PARTIAL_READ_PAUSES.get();
+        }
+
+    /**
+     * Return the number of messages completed after their partial read was resumed.
+     *
+     * @return the number of completed resumed messages
+     */
+    public static long getMessagesCompletedAfterPartialReadResumeForTesting()
+        {
+        return TEST_PARTIAL_READ_RESUMED_MESSAGES.get();
+        }
+
+    /**
+     * Return the latest inbound state captured by the partial-read test hook.
+     *
+     * @return the latest inbound state
+     */
+    public static String getPartialReadStateForTesting()
+        {
+        return TEST_PARTIAL_READ_STATE.get();
+        }
+
+    /**
+     * Resume the connection paused after reading a frame prefix.
+     *
+     * @return {@code true} iff a paused connection was resumed
+     */
+    public static boolean resumePartialReadForTesting()
+        {
+        Runnable task = TEST_PARTIAL_READ_RESUME.getAndSet(null);
+        if (task == null)
+            {
+            return false;
+            }
+
+        TEST_PARTIAL_READ_PAUSED.set(false);
+        task.run();
+        return true;
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -283,6 +331,26 @@ public class SocketMessageBus
      * Number of returned receipts advanced while the functional test direct producer was active.
      */
     private static final AtomicLong TEST_ADAPTIVE_RECEIPTS_DURING_DIRECT = new AtomicLong();
+
+    /** Minimum partial-frame bytes that trigger the functional read pause. */
+    private static final long TEST_PAUSE_PARTIAL_READ_AFTER_BYTES = Long.getLong(
+            SocketMessageBus.class.getName() + ".pausePartialReadAfterBytes", 0L);
+
+    /** Whether a connection is currently paused after reading a frame prefix. */
+    private static final AtomicBoolean TEST_PARTIAL_READ_PAUSED = new AtomicBoolean();
+
+    /** Number of partial inbound frames paused by the functional hook. */
+    private static final AtomicLong TEST_PARTIAL_READ_PAUSES = new AtomicLong();
+
+    /** Number of messages completed after the functional partial-read pause was released. */
+    private static final AtomicLong TEST_PARTIAL_READ_RESUMED_MESSAGES = new AtomicLong();
+
+    /** Latest inbound state captured by the functional partial-read hook. */
+    private static final AtomicReference<String> TEST_PARTIAL_READ_STATE =
+            new AtomicReference<>("not observed");
+
+    /** Exact-epoch wakeup used to resume the paused partial read. */
+    private static final AtomicReference<Runnable> TEST_PARTIAL_READ_RESUME = new AtomicReference<>();
 
     /**
      * Lock-free MPSC queue entry for user message sends.
@@ -753,6 +821,21 @@ public class SocketMessageBus
         protected int processReads(boolean fReady, TransportEpoch epoch)
                 throws IOException
             {
+            if (TEST_PAUSE_PARTIAL_READ_AFTER_BYTES > 0L && TEST_PARTIAL_READ_PAUSED.get())
+                {
+                if (m_fPartialReadPausedForTesting)
+                    {
+                    ReadBatch batch = m_readBatch;
+                    TEST_PARTIAL_READ_STATE.set("paused, ready=" + fReady
+                            + ", readable=" + (batch == null ? -1L : batch.m_cbReadable)
+                            + ", required=" + (batch == null ? -1L : batch.m_cbRequired)
+                            + ", header=" + (batch == null || batch.m_fHeader)
+                            + ", bytesRead=" + m_cbRead
+                            + ", messages=" + m_cMsgIn);
+                    }
+                return OP_READ;
+                }
+
             if (f_fBacklogLocal.get() && m_cbEventQueue.get() > getReadThrottleThreshold())
                 {
                 // if a backlog has been declared *and* we've exceeded the read threshold then stop reading; once
@@ -772,7 +855,32 @@ public class SocketMessageBus
                     batch.m_cbRequired = getMessageHeaderSize();
                     }
 
+                boolean fResumedFrame = TEST_PAUSE_PARTIAL_READ_AFTER_BYTES > 0L
+                        && m_fPartialReadPausedForTesting;
+                long cMsgIn = fResumedFrame ? m_cMsgIn : 0L;
+                long cbRead = fResumedFrame ? m_cbRead : 0L;
                 batch.read(epoch);
+
+                if (fResumedFrame)
+                    {
+                    TEST_PARTIAL_READ_STATE.set("resumed, ready=" + fReady
+                            + ", read=" + (m_cbRead - cbRead)
+                            + ", readable=" + batch.m_cbReadable
+                            + ", required=" + batch.m_cbRequired
+                            + ", header=" + batch.m_fHeader
+                            + ", bytesRead=" + m_cbRead
+                            + ", messages=" + m_cMsgIn);
+                    if (m_cMsgIn > cMsgIn)
+                        {
+                        m_fPartialReadPausedForTesting = false;
+                        TEST_PARTIAL_READ_RESUMED_MESSAGES.addAndGet(m_cMsgIn - cMsgIn);
+                        }
+                    }
+
+                if (TEST_PAUSE_PARTIAL_READ_AFTER_BYTES > 0L && pausePartialReadForTesting(batch, epoch))
+                    {
+                    return OP_READ;
+                    }
 
                 if (batch.m_fHeader && batch.m_cbReadable == 0)
                     {
@@ -795,6 +903,31 @@ public class SocketMessageBus
                 }
 
             return OP_READ;
+            }
+
+        /**
+         * Pause after receiving a real frame prefix so the peer must exhaust its kernel send buffer and later
+         * resume from an actual write-readiness notification.
+         */
+        protected boolean pausePartialReadForTesting(ReadBatch batch, TransportEpoch epoch)
+            {
+            long cbPause = TEST_PAUSE_PARTIAL_READ_AFTER_BYTES;
+            if (cbPause <= 0L || TEST_PARTIAL_READ_PAUSES.get() != 0L
+                    || batch.m_fHeader || batch.m_cbReadable < cbPause
+                    || !TEST_PARTIAL_READ_PAUSED.compareAndSet(false, true))
+                {
+                return false;
+                }
+
+            TEST_PARTIAL_READ_PAUSES.incrementAndGet();
+            m_fPartialReadPausedForTesting = true;
+            TEST_PARTIAL_READ_STATE.set("armed, readable=" + batch.m_cbReadable
+                    + ", required=" + batch.m_cbRequired
+                    + ", header=" + batch.m_fHeader
+                    + ", bytesRead=" + m_cbRead
+                    + ", messages=" + m_cMsgIn);
+            TEST_PARTIAL_READ_RESUME.set(() -> invokeTransport(epoch, () -> {}));
+            return true;
             }
 
         @Override
@@ -1968,6 +2101,9 @@ public class SocketMessageBus
          * The read buffer data.
          */
         protected ReadBatch m_readBatch;
+
+        /** Whether this connection has a partial frame awaiting test-controlled completion. */
+        protected boolean m_fPartialReadPausedForTesting;
 
         /**
          * The limit on how much inbound data to buffer.

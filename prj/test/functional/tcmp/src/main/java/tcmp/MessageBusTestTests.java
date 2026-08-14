@@ -540,6 +540,132 @@ public class MessageBusTestTests
         }
 
     /**
+     * Test that adaptive direct-send resumes a genuinely backpressured socket after the peer becomes readable.
+     */
+    @Test
+    public void testAdaptiveDirectRealSocketBackpressureProgress()
+            throws Exception
+        {
+        assertRealSocketBackpressureProgress(true);
+        }
+
+    /**
+     * Test that the MPSC-only path resumes a genuinely backpressured socket after the peer becomes readable.
+     */
+    @Test
+    public void testMpscRealSocketBackpressureProgress()
+            throws Exception
+        {
+        assertRealSocketBackpressureProgress(false);
+        }
+
+    /**
+     * Fill the sender's real kernel socket buffer while the receiver is paused part-way through an 8 MB frame,
+     * then make the receiver readable again and require selector-driven write progress without any subsequent send.
+     *
+     * @param fAdaptiveDirect  whether adaptive direct-send is enabled
+     */
+    protected void assertRealSocketBackpressureProgress(boolean fAdaptiveDirect)
+            throws Exception
+        {
+        int      port1  = new Capture<>(m_platform.getAvailablePorts()).get();
+        int      port2  = new Capture<>(m_platform.getAvailablePorts()).get();
+        String[] asArg1 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port1,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port2,
+                "-txThreads",      "1",
+                "-msgSize",        "8MB",
+                "-cached",
+                "-block",
+                "-reportInterval", "1s",
+                "-polite"
+                };
+        String[] asArg2 =
+                {
+                "-bind",           "tmb://" + m_hostAddress + ":" + port2,
+                "-peer",           "tmb://" + m_hostAddress + ":" + port1,
+                "-txThreads",      "0",
+                "-msgSize",        "8MB",
+                "-cached",
+                "-reportInterval", "1s"
+                };
+
+        OptionsByType optionsSender = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
+                SystemProperty.of("depot.socket.txbuffer", "8KB"),
+                SystemProperty.of("coherence.socketbus.adaptiveDirectSend", Boolean.toString(fAdaptiveDirect)),
+                SystemProperty.of(BufferedSocketBus.class.getName() + ".trackSocketBackpressure", "true"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+        OptionsByType optionsPeer = OptionsByType.of(
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.ackTimeoutMillis", "30000"),
+                SystemProperty.of("depot.socket.rxbuffer", "256KB"),
+                SystemProperty.of("coherence.socketbus.adaptiveDirectSend", Boolean.toString(fAdaptiveDirect)),
+                SystemProperty.of(SocketMessageBus.class.getName() + ".pausePartialReadAfterBytes", "4096"),
+                SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"));
+
+        CapturingApplicationConsole console1     = new CapturingApplicationConsole();
+        CapturingApplicationConsole console2     = new CapturingApplicationConsole();
+        JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
+        JavaApplication             application2 = null;
+
+        try
+            {
+            application2 = startMessageBusTest(optionsPeer, asArg2, console2);
+            JavaApplication applicationPeer = application2;
+
+            Eventually.assertDeferred(
+                    () -> applicationPeer.invoke(SocketMessageBus::getPartialReadPausesForTesting),
+                    is(1L), within(30, TimeUnit.SECONDS));
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getSocketBackpressurePartialWritesForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+            assertThat(application1.invoke(BufferedSocketBus::getSocketBackpressureQueuedBytesForTesting),
+                    greaterThan(0L));
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+
+            Thread.sleep(1000L);
+            assertThat(application2.invoke(SocketMessageBus::resumePartialReadForTesting), is(true));
+
+            Eventually.assertDeferred(
+                    () -> application1.invoke(BufferedSocketBus::getBytesWrittenAfterSocketBackpressureForTesting),
+                    greaterThan(0L), within(30, TimeUnit.SECONDS));
+            try
+                {
+                Eventually.assertDeferred(
+                        () -> applicationPeer.invoke(SocketMessageBus::getMessagesCompletedAfterPartialReadResumeForTesting),
+                        greaterThan(0L), within(30, TimeUnit.SECONDS));
+                }
+            catch (AssertionError e)
+                {
+                throw new AssertionError("real socket backpressure did not complete the resumed frame; sender="
+                        + application1.invoke(BufferedSocketBus::getSocketBackpressureStateForTesting)
+                        + ", receiver=" + applicationPeer.invoke(SocketMessageBus::getPartialReadStateForTesting), e);
+                }
+            assertThat(application1.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+            assertThat(application2.invoke(AbstractSocketBus::getReconnectAttemptCountForTesting), is(0L));
+            assertNoMessageBusFailures(console1);
+            assertNoMessageBusFailures(console2);
+            }
+        finally
+            {
+            if (application2 != null)
+                {
+                try
+                    {
+                    application2.invoke(SocketMessageBus::resumePartialReadForTesting);
+                    }
+                catch (Throwable ignored)
+                    {
+                    }
+                application2.close();
+                }
+            application1.close();
+            }
+        }
+
+    /**
      * Test the direct-to-MPSC ownership transition while receipts advance and the active transport starts migration.
      */
     @Test
