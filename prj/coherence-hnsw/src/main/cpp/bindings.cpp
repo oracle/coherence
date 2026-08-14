@@ -37,6 +37,10 @@
 #include <stdexcept>
 #include "hnswlib/hnswlib.h"
 
+#if defined(_MSC_VER) && !defined(_CPPUNWIND)
+#error "The HNSW native library requires C++ exception unwinding; compile with /EHsc"
+#endif
+
 #if _WIN32
 #define DLLEXPORT __declspec(dllexport)
 #else
