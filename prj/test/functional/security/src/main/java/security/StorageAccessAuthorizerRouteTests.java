@@ -529,7 +529,8 @@ public class StorageAccessAuthorizerRouteTests
                     PeerProofReadiness.Role.SUBJECT, PeerProofReadiness.Stage.ADD, oldKey, newKey));
             awaitFile(seniorEntered);
             s_member.invoke(new StopGridService(seniorService));
-            Eventually.assertThat(s_memberTwo.invoke(new ServiceSenior(seniorService)), is("peer-proof-server-two"));
+            Eventually.assertDeferred(() -> s_memberTwo.invoke(new ServiceSenior(seniorService)),
+                    is("peer-proof-server-two"));
             Files.writeString(seniorRelease, "release");
             changed = senior.get(45, TimeUnit.SECONDS);
             assertFalse("in-flight service senior change was accepted: " + changed.getStatus(), changed.isReady());
