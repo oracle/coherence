@@ -93,6 +93,8 @@ public class CoherencePlugin
         final TaskProvider<SecurityConfigTask> securityConfigTestTaskProvider = taskContainer.register(
                 SECURITY_CONFIG_TEST_TASK_NAME, SecurityConfigTask.class, securityConfigTestTaskRegistrationAction);
 
+        SecurityConfigShadowSupport.configure(project);
+
         project.afterEvaluate(evaluatedProject ->
                 project.getPlugins().withType(JavaPlugin.class).forEach(javaPlugin -> {
                     project.getTasks().getByName("compileJava").doLast(e ->
