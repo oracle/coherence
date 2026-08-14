@@ -26,7 +26,7 @@ import java.nio.file.Path;
  * plugin to one version of Shadow's transformer SPI.
  *
  * @author Aleks Seovic  2026.08.10
- * @since 26.1
+ * @since 26.07
  */
 public class SecurityConfigShadowTransformer
         implements Action<AbstractCopyTask>

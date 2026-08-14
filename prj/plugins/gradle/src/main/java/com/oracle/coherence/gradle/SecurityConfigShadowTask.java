@@ -27,7 +27,7 @@ import java.nio.file.Path;
  * a Gradle Shadow uber JAR.
  *
  * @author Aleks Seovic  2026.08.10
- * @since 26.1
+ * @since 26.07
  */
 @CacheableTask
 public abstract class SecurityConfigShadowTask

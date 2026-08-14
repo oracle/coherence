@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * End-to-end tests for Gradle Shadow security configuration merging.
  *
  * @author Aleks Seovic  2026.08.10
- * @since 26.1
+ * @since 26.07
  */
 class SecurityConfigShadowTransformerTest
     {
@@ -112,11 +112,11 @@ class SecurityConfigShadowTransformerTest
                 ? "plugins {\n"
                         + "    id 'java'\n"
                         + "    id '" + sPluginId + "'\n"
-                        + "    id 'com.oracle.coherence'\n"
+                        + "    id 'com.oracle.coherence.ce'\n"
                         + "}\n"
                 : "plugins {\n"
                         + "    id 'java'\n"
-                        + "    id 'com.oracle.coherence'\n"
+                        + "    id 'com.oracle.coherence.ce'\n"
                         + "}\n"
                         + "apply plugin: '" + sPluginId + "'\n";
 

@@ -54,7 +54,7 @@ import javax.xml.validation.SchemaFactory;
  * from directories and JARs on a Gradle classpath.
  *
  * @author Aleks Seovic  2026.08.10
- * @since 26.1
+ * @since 26.07
  */
 final class SecurityConfigResourceMerger
     {
