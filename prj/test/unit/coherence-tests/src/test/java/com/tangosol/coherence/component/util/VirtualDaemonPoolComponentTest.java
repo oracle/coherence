@@ -415,6 +415,36 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
+    public void shouldKeepAutomaticPlatformMBeanSizingEnabledWhenEffectiveMaxEqualsMinimum()
+        {
+        Service.DaemonPool pool  = createPlatformPool(4, Integer.MAX_VALUE);
+        TestServiceModel   model = new TestServiceModel("AutomaticPlatformMBeanTest", pool);
+
+        pool.setDaemonCountEffectiveMax(4);
+
+        assertThat(pool.isDynamic(), is(true));
+        assertThat(model.isThreadPoolSizingEnabled(), is(true));
+        assertThat(model.getThreadCountMin(), is(4));
+        assertThat(model.getThreadCountMax(), is(4));
+
+        model.setThreadCountMin(3);
+
+        assertThat(model.getThreadCountMin(), is(3));
+        }
+
+    @Test
+    public void shouldKeepFixedPlatformMBeanSizingDisabled()
+        {
+        Service.DaemonPool pool  = createPlatformPool(4, 4);
+        TestServiceModel   model = new TestServiceModel("FixedPlatformMBeanTest", pool);
+
+        assertThat(pool.isDynamic(), is(false));
+        assertThat(model.isThreadPoolSizingEnabled(), is(false));
+        assertThat(model.getThreadCountMin(), is(-1));
+        assertThat(model.getThreadCountMax(), is(-1));
+        }
+
+    @Test
     public void shouldComputePoolSaturationForLegacyDp()
             throws Exception
         {

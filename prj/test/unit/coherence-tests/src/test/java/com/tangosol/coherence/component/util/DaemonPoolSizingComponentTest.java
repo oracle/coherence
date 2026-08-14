@@ -169,6 +169,19 @@ public class DaemonPoolSizingComponentTest
         }
 
     @Test
+    public void shouldKeepUnboundedProxyAcceptorDynamicWhenEffectiveMaxEqualsMinimum()
+        {
+        int cMin = 50;
+
+        Acceptor.DaemonPool pool = createProxyAcceptorDaemonPool(cMin, null);
+        pool.setDaemonCountEffectiveMax(cMin);
+
+        assertThat(pool.getDaemonCountConfiguredMax(), is(Integer.MAX_VALUE));
+        assertThat(pool.getDaemonCountMax(), is(cMin));
+        assertThat(pool.isDynamic(), is(true));
+        }
+
+    @Test
     public void shouldNotRegisterDormantProxyPoolsDuringConfiguration()
         {
         int cPools = DaemonPoolSizing.getSnapshot().getPoolCount();

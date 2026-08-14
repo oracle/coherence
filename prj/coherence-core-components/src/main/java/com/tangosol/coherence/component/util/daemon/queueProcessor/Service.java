@@ -4144,6 +4144,12 @@ public abstract class Service
             }
 
         // Declared at the super level
+        public boolean isDynamic()
+            {
+            return true;
+            }
+
+        // Declared at the super level
         public void setDaemonCount(int cDaemons)
             {
             traceThreadCountSetterNoEffect("setThreadCount", cDaemons);
