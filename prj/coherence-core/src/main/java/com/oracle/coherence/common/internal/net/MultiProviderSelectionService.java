@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.internal.net;
 
@@ -63,8 +63,9 @@ public class MultiProviderSelectionService
     public void associate(SelectableChannel chanParent, SelectableChannel chanChild)
             throws IOException
         {
-        // Note: parent (if non-null) and child must be from the same provider
-        if (chanParent != null && chanParent.provider() != chanChild.provider())
+        // Provider wrappers may be distinct objects while still selecting the
+        // same underlying provider and therefore the same SelectionService.
+        if (chanParent != null && !chanParent.provider().equals(chanChild.provider()))
             {
             throw new IllegalArgumentException("parent and child must use the same SelectorProvider");
             }

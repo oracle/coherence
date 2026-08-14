@@ -21,12 +21,16 @@ import com.oracle.coherence.common.io.BufferManager;
 import com.oracle.coherence.common.io.BufferSequenceInputStream;
 import com.oracle.coherence.common.util.MemorySize;
 
+import com.tangosol.coherence.config.Config;
+
 import java.io.IOException;
 import java.io.DataInput;
 import java.nio.ByteBuffer;
 
 import java.util.Arrays;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -50,6 +54,50 @@ public class SocketMessageBus
         extends BufferedSocketBus
         implements MessageBus
     {
+    // ----- test support --------------------------------------------------
+
+    /**
+     * Return the number of adaptive direct sends paused by the functional test hook.
+     *
+     * @return the number of paused direct sends
+     */
+    public static long getAdaptiveDirectSendBlocksForTesting()
+        {
+        return TEST_ADAPTIVE_DIRECT_SEND_BLOCKS.get();
+        }
+
+    /**
+     * Return the number of MPSC fallbacks published while a direct producer was active.
+     *
+     * @return the number of concurrent MPSC fallbacks
+     */
+    public static long getAdaptiveMpscFallbacksDuringDirectForTesting()
+        {
+        return TEST_ADAPTIVE_MPSC_FALLBACKS_DURING_DIRECT.get();
+        }
+
+    /**
+     * Return the number of receipts advanced while a direct producer was active.
+     *
+     * @return the number of concurrently advanced receipts
+     */
+    public static long getAdaptiveReceiptsDuringDirectForTesting()
+        {
+        return TEST_ADAPTIVE_RECEIPTS_DURING_DIRECT.get();
+        }
+
+    /**
+     * Release a direct send paused by the functional test hook.
+     *
+     * @return {@code true} iff the release latch was pending
+     */
+    public static boolean releaseAdaptiveDirectSendForTesting()
+        {
+        boolean fPending = TEST_ADAPTIVE_DIRECT_SEND_RELEASE.getCount() > 0L;
+        TEST_ADAPTIVE_DIRECT_SEND_RELEASE.countDown();
+        return fPending;
+        }
+
     // ----- constructors ---------------------------------------------------
 
     /**
@@ -114,10 +162,37 @@ public class SocketMessageBus
             return;
             }
 
-        long cbMsg;
         ByteBuffer header = conn.prepareHeader(bufseq);
-        cbMsg = header.remaining() + bufseq.getLength();
-        conn.enqueue(new SendEntry(header, bufseq, receipt, cbMsg));
+        long       cbMsg  = header.remaining() + bufseq.getLength();
+
+        if (ADAPTIVE_DIRECT_SEND)
+            {
+            if (conn.isAdaptiveDirectCandidate() && conn.tryLock())
+                {
+                try
+                    {
+                    if (conn.trySendDirect(header, bufseq, receipt, cbMsg, fSocketWrite))
+                        {
+                        return;
+                        }
+                    }
+                finally
+                    {
+                    conn.unlock();
+                    }
+                }
+
+            if (PROGRESS_DIAGNOSTICS)
+                {
+                ++conn.m_cAdaptiveMpscFallbacks;
+                }
+            conn.recordAdaptiveMpscFallbackForTesting();
+            conn.enqueue(new SendEntry(header, bufseq, receipt, cbMsg));
+            }
+        else
+            {
+            conn.enqueue(new SendEntry(header, bufseq, receipt, cbMsg));
+            }
 
         if (!conn.isValid())
             {
@@ -131,10 +206,18 @@ public class SocketMessageBus
     // ----- helpers --------------------------------------------------------
 
     /**
+     * Header slab size. This retains the bounded per-producer ownership used
+     * by the MPSC implementation while restoring the old implementation's
+     * amortization of roughly one allocation per 1,024 version-5 headers.
+     */
+    private static final int HEADER_SLAB_BYTES = Math.max(1024, Integer.getInteger(
+            SocketMessageBus.class.getName() + ".headerSlabBytes", 16 * 1024));
+
+    /**
      * ThreadLocal header buffer slab.
      */
     private static final ThreadLocal<ByteBuffer> TL_HEADER =
-            ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(1024));
+            ThreadLocal.withInitial(() -> ByteBuffer.allocateDirect(HEADER_SLAB_BYTES));
 
     /**
      * ThreadLocal CRC32 used for message header preparation.
@@ -153,6 +236,53 @@ public class SocketMessageBus
      */
     private static final long MPSC_POLL_MAX_SPINS = Math.max(1L, Long.getLong(
             SocketMessageBus.class.getName() + ".mpsc.pollMaxSpins", 16_384L));
+
+    /**
+     * Experimental adaptive producer path. A producer may append and flush
+     * directly only when both the connection lock and epoch writer ticket are
+     * immediately available; all contention falls back to MPSC publication.
+     */
+    private static final boolean ADAPTIVE_DIRECT_SEND = Config.getBoolean(
+            "coherence.socketbus.adaptiveDirectSend", true);
+
+    /**
+     * Whether the first completed adaptive direct-send pass should pause for functional testing.
+     */
+    private static final AtomicBoolean TEST_BLOCK_ADAPTIVE_DIRECT_SEND = new AtomicBoolean(Boolean.getBoolean(
+            SocketMessageBus.class.getName() + ".blockAdaptiveDirectSend"));
+
+    /**
+     * Whether the adaptive direct-send pause should wait for a controlled partial write.
+     */
+    private static final boolean TEST_BLOCK_ADAPTIVE_DIRECT_SEND_AFTER_PARTIAL = Boolean.getBoolean(
+            SocketMessageBus.class.getName() + ".blockAdaptiveDirectSendAfterPartial");
+
+    /**
+     * Latch used to release the adaptive direct-send functional test hook.
+     */
+    private static final CountDownLatch TEST_ADAPTIVE_DIRECT_SEND_RELEASE = new CountDownLatch(
+            TEST_BLOCK_ADAPTIVE_DIRECT_SEND.get() ? 1 : 0);
+
+    /**
+     * Latch indicating that the first adaptive direct-send pass reached its functional test pause point.
+     */
+    private static final CountDownLatch TEST_ADAPTIVE_DIRECT_SEND_BLOCKED = new CountDownLatch(
+            TEST_BLOCK_ADAPTIVE_DIRECT_SEND.get() ? 1 : 0);
+
+    /**
+     * Number of direct sends paused by the functional test hook.
+     */
+    private static final AtomicLong TEST_ADAPTIVE_DIRECT_SEND_BLOCKS = new AtomicLong();
+
+    /**
+     * Number of MPSC fallbacks published while the functional test direct producer was active.
+     */
+    private static final AtomicLong TEST_ADAPTIVE_MPSC_FALLBACKS_DURING_DIRECT = new AtomicLong();
+
+    /**
+     * Number of returned receipts advanced while the functional test direct producer was active.
+     */
+    private static final AtomicLong TEST_ADAPTIVE_RECEIPTS_DURING_DIRECT = new AtomicLong();
 
     /**
      * Lock-free MPSC queue entry for user message sends.
@@ -266,6 +396,252 @@ public class SocketMessageBus
             }
 
         /**
+         * Return true iff this connection has so far observed a single stable
+         * producer thread. Once a second producer appears the epoch remains on
+         * the MPSC path, avoiding an optimistic CAS/lock tax on every contended
+         * send. Migration resets the observation for the replacement epoch.
+         */
+        protected boolean isAdaptiveDirectCandidate()
+            {
+            if (m_fAdaptiveDirectContended)
+                {
+                return false;
+                }
+
+            long lThread      = Thread.currentThread().getId();
+            long lThreadOwner = m_lAdaptiveDirectProducer.get();
+            if (lThreadOwner == lThread)
+                {
+                return true;
+                }
+            if (lThreadOwner == 0L && m_lAdaptiveDirectProducer.compareAndSet(0L, lThread))
+                {
+                return true;
+                }
+
+            awaitAdaptiveDirectSendBlockForTesting();
+            m_fAdaptiveDirectContended = true;
+            return false;
+            }
+
+        /**
+         * Keep the functional test's second producer from latching MPSC before the first direct pass reaches its
+         * deterministic pause point.
+         */
+        protected void awaitAdaptiveDirectSendBlockForTesting()
+            {
+            if (TEST_ADAPTIVE_DIRECT_SEND_RELEASE.getCount() == 0L)
+                {
+                return;
+                }
+
+            try
+                {
+                if (!TEST_ADAPTIVE_DIRECT_SEND_BLOCKED.await(60L, TimeUnit.SECONDS))
+                    {
+                    throw new IllegalStateException("timed out waiting for adaptive direct send test hook");
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("interrupted waiting for adaptive direct send test hook", e);
+                }
+            }
+
+        /**
+         * Attempt an uncontended producer-owned append/flush pass. The caller
+         * must hold the logical connection lock. The epoch writer ticket keeps
+         * this pass mutually exclusive with SelectionService write progression;
+         * the connection lock keeps retirement and migration rewind outside the
+         * pass. Receipt processing coordinates only on the affected WriteBatch.
+         *
+         * @return {@code true} iff the message was accepted by the direct path
+         */
+        protected boolean trySendDirect(ByteBuffer header, BufferSequence body, Object receipt,
+                                        long cbMsg, boolean fSocketWrite)
+            {
+            TransportEpoch epoch = getReadyTransportEpoch();
+            if (!isValid() || epoch == null || !isProducerQueueQuiescent()
+                    || f_cbQueued.get() != 0
+                    || !tryActivateWriter(epoch, "producer-direct", /*fRequireReady*/ true))
+                {
+                return false;
+                }
+
+            // Publish producer mutation ownership before rechecking the
+            // contention latch. If a second producer wins that race, this
+            // attempt falls back without touching batch state; otherwise a
+            // concurrent receipt coordinates on the affected batch.
+            m_fAdaptiveDirectActive = true;
+            try
+                {
+                // Revalidate after acquiring both gates. A producer that began
+                // publication concurrently owns the fallback path and must not
+                // be overtaken by a later direct send.
+                if (m_fAdaptiveDirectContended
+                        || !isCurrentTransportEpoch(epoch, TransportPhase.READY)
+                        || !isProducerQueueQuiescent() || f_cbQueued.get() != 0)
+                    {
+                    return false;
+                    }
+
+                WriteBatch batch    = m_batchWriteUnflushed;
+                boolean    fLinkNew = false;
+                if (batch == null)
+                    {
+                    batch    = new WriteBatch(/*fLink*/ false);
+                    fLinkNew = true;
+                    }
+
+                long cbBatchMax = getMaxWriteBatchBytes();
+                int  cBatchMax  = getMaxWriteBatchMessages();
+                if (batch.getLength() > 0 &&
+                    ((cbBatchMax > 0 && batch.getLength() + cbMsg > cbBatchMax) ||
+                     (cBatchMax > 0 && batch.getMessageCount() >= cBatchMax)))
+                    {
+                    enqueueWriteBatch(detachUnflushedWriteBatch());
+                    batch    = new WriteBatch(/*fLink*/ false);
+                    fLinkNew = true;
+                    }
+
+                boolean fFlushPending = isFlushable(this);
+                long    cbPending      = batch.appendPrepared(header, body, receipt);
+                if (fLinkNew)
+                    {
+                    linkInitializedWriteBatch(batch);
+                    m_batchWriteUnflushed = batch;
+                    }
+                ++m_cMsgUserOut;
+                if (receipt == null)
+                    {
+                    ++m_cReceiptsNull;
+                    }
+                if (PROGRESS_DIAGNOSTICS)
+                    {
+                    ++m_cAdaptiveDirectSends;
+                    }
+
+                if (cbPending > getAutoFlushThreshold())
+                    {
+                    if (PROGRESS_DIAGNOSTICS)
+                        {
+                        ++m_cAdaptiveDirectFlushes;
+                        }
+                    if (progressQueuedWrites(epoch, fSocketWrite, /*fAuto*/ true))
+                        {
+                        if (fFlushPending)
+                            {
+                            removeFlushable(this);
+                            }
+                        }
+                    else if (!fFlushPending)
+                        {
+                        addFlushable(this);
+                        }
+                    }
+                else if (!fFlushPending)
+                    {
+                    addFlushable(this);
+                    }
+
+                blockAdaptiveDirectSendForTesting();
+
+                return true;
+                }
+            finally
+                {
+                try
+                    {
+                    // A partial producer write publishes its remainder to the SelectionService. Do not continue
+                    // through processWrites() on this application thread: receipt processing owns the send/resend
+                    // pointers on the selector lane and only the individual batch mutation is lock-coordinated.
+                    completeWriteProgression(epoch, fSocketWrite);
+                    }
+                finally
+                    {
+                    m_fAdaptiveDirectActive = false;
+                    }
+                }
+            }
+
+        /**
+         * Record an MPSC publication that overlaps an active direct producer when the functional test hook is enabled.
+         */
+        protected void recordAdaptiveMpscFallbackForTesting()
+            {
+            if (TEST_ADAPTIVE_DIRECT_SEND_BLOCKS.get() > 0L && m_fAdaptiveDirectActive)
+                {
+                TEST_ADAPTIVE_MPSC_FALLBACKS_DURING_DIRECT.incrementAndGet();
+                }
+            }
+
+        /**
+         * Pause the first completed direct-send progression pass when requested by a functional test.
+         */
+        protected void blockAdaptiveDirectSendForTesting()
+            {
+            if (TEST_BLOCK_ADAPTIVE_DIRECT_SEND_AFTER_PARTIAL && getPartialWritesForTesting() == 0L)
+                {
+                return;
+                }
+
+            if (!TEST_BLOCK_ADAPTIVE_DIRECT_SEND.compareAndSet(true, false))
+                {
+                return;
+                }
+
+            TEST_ADAPTIVE_DIRECT_SEND_BLOCKS.incrementAndGet();
+            TEST_ADAPTIVE_DIRECT_SEND_BLOCKED.countDown();
+            try
+                {
+                if (!TEST_ADAPTIVE_DIRECT_SEND_RELEASE.await(60L, TimeUnit.SECONDS))
+                    {
+                    throw new IllegalStateException("timed out waiting to release adaptive direct send test hook");
+                    }
+                }
+            catch (InterruptedException e)
+                {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("interrupted waiting to release adaptive direct send test hook", e);
+                }
+            }
+
+        @Override
+        protected boolean isReceiptBatchLockRequired()
+            {
+            return ADAPTIVE_DIRECT_SEND
+                    && (!m_fAdaptiveDirectContended || m_fAdaptiveDirectActive);
+            }
+
+        @Override
+        protected void processReceipt(DataInput in)
+                throws IOException
+            {
+            long cReturned = m_cReceiptsReturned;
+            super.processReceipt(in);
+            if (TEST_ADAPTIVE_DIRECT_SEND_BLOCKS.get() > 0L && m_fAdaptiveDirectActive)
+                {
+                long cAdvanced = m_cReceiptsReturned - cReturned;
+                if (cAdvanced > 0L)
+                    {
+                    TEST_ADAPTIVE_RECEIPTS_DURING_DIRECT.addAndGet(cAdvanced);
+                    }
+                }
+            }
+
+        /**
+         * Return true iff the producer queue has no published or partially
+         * published entry. The caller owns the epoch writer ticket.
+         */
+        protected boolean isProducerQueueQuiescent()
+            {
+            SendEntry head = m_queueFifoMsHead;
+            return !m_fMpscLinkPending && m_cbPending.get() == 0L
+                    && head.next == null && head == m_queueFifoMsTail.get();
+            }
+
+        /**
          * Coordinate post-send progression and apply producer-side pacing once the connection backlog grows too large.
          *
          * @param fSocketWrite  true if the caller is willing to offer its cpu to socket writes
@@ -278,7 +654,7 @@ public class SocketMessageBus
             long cbPublished    = getPublishedBacklogBytes();
             boolean fPressure   = cbPublished > cbBackpressure;
 
-            if (tryActivateWriter())
+            if (tryActivateWriter(fPressure ? "producer-pressure" : "producer-send"))
                 {
                 // Once producers are being throttled, progression must behave like an explicit flush rather than
                 // a soft auto-flush; otherwise the connection can livelock with a "small" batch parked forever.
@@ -311,7 +687,7 @@ public class SocketMessageBus
             {
             for (int i = 0; isValid() && getPublishedBacklogBytes() > cbResume; ++i)
                 {
-                if (tryActivateWriter())
+                if (tryActivateWriter("producer-backpressure"))
                     {
                     scheduleActiveWriteProgression(fSocketWrite, /*fAuto*/ false);
                     }
@@ -374,7 +750,7 @@ public class SocketMessageBus
         /**
          * {@inheritDoc}
          */
-        protected int processReads(boolean fReady, long lTransportGeneration)
+        protected int processReads(boolean fReady, TransportEpoch epoch)
                 throws IOException
             {
             if (f_fBacklogLocal.get() && m_cbEventQueue.get() > getReadThrottleThreshold())
@@ -396,7 +772,7 @@ public class SocketMessageBus
                     batch.m_cbRequired = getMessageHeaderSize();
                     }
 
-                batch.read(lTransportGeneration);
+                batch.read(epoch);
 
                 if (batch.m_fHeader && batch.m_cbReadable == 0)
                     {
@@ -455,7 +831,7 @@ public class SocketMessageBus
 
             if (slab.remaining() < cbHeader)
                 {
-                slab = ByteBuffer.allocateDirect(1024);
+                slab = ByteBuffer.allocateDirect(Math.max(HEADER_SLAB_BYTES, cbHeader));
                 TL_HEADER.set(slab);
                 ++m_cHeaderSlabAllocs;
                 }
@@ -530,6 +906,7 @@ public class SocketMessageBus
             // 39634552 - linking next closes the publication window and makes the entry visible to
             // the consumer
             m_fMpscLinkPending = false;
+            tracePerf("publish", false);
             }
 
         @Override
@@ -701,14 +1078,31 @@ public class SocketMessageBus
         @Override
         protected String getPerfTraceDetail()
             {
+            SendEntry head      = m_queueFifoMsHead;
+            SendEntry tail      = m_queueFifoMsTail.get();
+            ReadBatch batchRead = m_readBatch;
+
             return "mpsc(drainCalls=" + m_cDrainCalls
                     + ", queueMode=fifo-ms"
                     + ", consumerAppendFast=true"
                     + ", drainedMsgs=" + m_cDrainedMsgs
                     + ", drainedBytes=" + new MemorySize(Math.max(0L, m_cbDrained))
+                    + ", head=" + System.identityHashCode(head)
+                    + ", tail=" + System.identityHashCode(tail)
+                    + ", linkPending=" + m_fMpscLinkPending
                     + ", pendingPeakMsgs=" + m_cPendingMsgsPeak
                     + ", pendingPeakBytes=" + new MemorySize(Math.max(0L, m_cbPendingPeak))
-                    + ", headerSlabAllocs=" + m_cHeaderSlabAllocs + ")";
+                    + ", headerSlabAllocs=" + m_cHeaderSlabAllocs
+                    + ", adaptiveDirectSends=" + m_cAdaptiveDirectSends
+                    + ", adaptiveDirectFlushes=" + m_cAdaptiveDirectFlushes
+                    + ", adaptiveMpscFallbacks=" + m_cAdaptiveMpscFallbacks
+                    + "), inbound(localBacklog=" + f_fBacklogLocal.get()
+                    + ", eventBytes=" + new MemorySize(Math.max(0L, m_cbEventQueue.get()))
+                    + ", readHeader=" + (batchRead == null || batchRead.m_fHeader)
+                    + ", readReadable=" + (batchRead == null ? 0L : batchRead.m_cbReadable)
+                    + ", readRequired=" + (batchRead == null ? 0L : batchRead.m_cbRequired)
+                    + ", readWritable=" + (batchRead == null ? 0L : batchRead.m_cbWritable)
+                    + ")";
             }
 
         @Override
@@ -1025,11 +1419,11 @@ public class SocketMessageBus
             /**
              * Process reads.
              *
-             * @param lTransportGeneration  the transport generation being read
+             * @param epoch  the transport epoch being read
              *
              * @throws IOException on an I/O error
              */
-            public void read(long lTransportGeneration)
+            public void read(TransportEpoch epoch)
                     throws IOException
                 {
                 long         cbAlloc = Math.abs(m_cbRequired) - m_cbWritable;
@@ -1037,7 +1431,7 @@ public class SocketMessageBus
                 int          of      = m_ofWritable;
                 int          cBuffer = m_cBufferWritable;
 
-                long cb = MessageConnection.this.read(aBuffer, of, cBuffer);
+                long cb = MessageConnection.this.read(epoch, aBuffer, of, cBuffer);
                 if (cb > 0)
                     {
                     for (; cBuffer > 0 && !aBuffer[of].hasRemaining(); ++of, --cBuffer)
@@ -1080,7 +1474,7 @@ public class SocketMessageBus
                     }
                 else if (cb < 0)
                     {
-                    migrate(lTransportGeneration, new IOException("input shutdown"));
+                    migrate(epoch.f_lId, new IOException("input shutdown"));
                     }
                 }
 
@@ -1492,6 +1886,10 @@ public class SocketMessageBus
             {
             super.onMigration();
 
+            m_lAdaptiveDirectProducer.set(0L);
+            m_fAdaptiveDirectContended = false;
+            m_fAdaptiveDirectActive    = false;
+
             ReadBatch batchRead = m_readBatch;
             if (batchRead != null)
                 {
@@ -1635,6 +2033,16 @@ public class SocketMessageBus
          * Number of direct header slab allocations performed by this connection.
          */
         protected long m_cHeaderSlabAllocs;
+
+        /**
+         * Experimental adaptive-path diagnostics.
+         */
+        protected final AtomicLong m_lAdaptiveDirectProducer = new AtomicLong();
+        protected volatile boolean m_fAdaptiveDirectContended;
+        protected volatile boolean m_fAdaptiveDirectActive;
+        protected long m_cAdaptiveDirectSends;
+        protected long m_cAdaptiveDirectFlushes;
+        protected long m_cAdaptiveMpscFallbacks;
 
         /**
          * The total number emitted messages;
