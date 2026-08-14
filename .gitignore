@@ -57,3 +57,6 @@ prj/.ai/branches/*/*/logs/
 
 # ignore JDK Flight Recorder dumps from hung test JVMs
 *.jfr
+
+# ignore Perforce helper files
+p4*
