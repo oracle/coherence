@@ -351,9 +351,48 @@ public abstract class BaseManagementInfoResourceTests
 
         Map mapJournalProperties = (Map) ((Map) ((Map) mapResponse.get("definitions"))
                 .get("journalRM")).get("properties");
+        assertSwaggerJournalAttributes(mapJournalProperties, FLASH_JOURNAL_FILE_LIFECYCLE_ATTRIBUTES, true);
         assertSwaggerJournalAttributes(mapJournalProperties, FLASH_JOURNAL_WRITER_ATTRIBUTES, true);
         assertSwaggerJournalAttributes(mapJournalProperties, FLASH_JOURNAL_CONGESTION_ATTRIBUTES, true);
         assertSwaggerJournalAttributes(mapJournalProperties, JOURNAL_COMPACTION_ATTRIBUTES, false);
+
+        String sOldestTime = ((Map) mapJournalProperties.get("oldestActiveFileCreationTime"))
+                .get("description").toString();
+        String sOldestSequence = ((Map) mapJournalProperties.get("oldestActiveFileCreationSequenceNumber"))
+                .get("description").toString();
+        String sCreationTime = ((Map) mapJournalProperties.get("mostRecentFileCreationTime"))
+                .get("description").toString();
+        String sCreationSequence = ((Map) mapJournalProperties.get("mostRecentFileCreationSequenceNumber"))
+                .get("description").toString();
+        String sCreationCount = ((Map) mapJournalProperties.get("totalFileCreationCount"))
+                .get("description").toString();
+        String sCreationErrors = ((Map) mapJournalProperties.get("totalFileCreationErrors"))
+                .get("description").toString();
+        String sDeletionTime = ((Map) mapJournalProperties.get("mostRecentFileDeletionTime"))
+                .get("description").toString();
+        String sDeletionCount = ((Map) mapJournalProperties.get("totalFileDeletionCount"))
+                .get("description").toString();
+        String sDeletionErrors = ((Map) mapJournalProperties.get("totalFileDeletionErrors"))
+                .get("description").toString();
+        String sScanTime = ((Map) mapJournalProperties.get("mostRecentCollectorScanCompletionTime"))
+                .get("description").toString();
+
+        assertThat(sOldestTime, allOf(containsString("appending"), containsString("congested"),
+                containsString("full"), containsString("evacuating"),
+                containsString("garbage and discarded"), containsString("not reset by resetStatistics")));
+        assertThat(sOldestSequence, allOf(containsString("non-resetting"), containsString("appending"),
+                containsString("garbage and discarded")));
+        assertThat(sCreationTime, allOf(containsString("successfully created"),
+                containsString("not reset by resetStatistics")));
+        assertThat(sCreationSequence, containsString("non-resetting"));
+        assertThat(sCreationCount, containsString("since statistics were reset"));
+        assertThat(sCreationErrors, containsString("since statistics were reset"));
+        assertThat(sDeletionTime, allOf(containsString("successfully deleted managed"),
+                containsString("not reset by resetStatistics")));
+        assertThat(sDeletionCount, containsString("managed FlashJournal files successfully deleted"));
+        assertThat(sDeletionErrors, containsString("File.delete returning false"));
+        assertThat(sScanTime, allOf(containsString("successfully finalized"),
+                containsString("not reset by resetStatistics")));
 
         String sAttemptCount = ((Map) mapJournalProperties.get("totalCompactionAttemptCount"))
                 .get("description").toString();
@@ -5910,6 +5949,24 @@ public abstract class BaseManagementInfoResourceTests
      * The clear/truncate cache.
      */
     protected static final String CLEAR_CACHE_NAME = "dist-clear";
+
+    /**
+     * FlashJournal-specific file lifecycle attributes exposed through
+     * management over REST.
+     */
+    private static final String[] FLASH_JOURNAL_FILE_LIFECYCLE_ATTRIBUTES =
+        {
+        "oldestActiveFileCreationTime",
+        "oldestActiveFileCreationSequenceNumber",
+        "mostRecentFileCreationTime",
+        "mostRecentFileCreationSequenceNumber",
+        "totalFileCreationCount",
+        "totalFileCreationErrors",
+        "mostRecentFileDeletionTime",
+        "totalFileDeletionCount",
+        "totalFileDeletionErrors",
+        "mostRecentCollectorScanCompletionTime"
+        };
 
     /**
      * FlashJournal-specific writer attributes exposed through management over REST.
