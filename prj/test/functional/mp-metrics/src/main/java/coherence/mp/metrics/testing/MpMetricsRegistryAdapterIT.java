@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,7 +10,6 @@ import com.oracle.coherence.mp.metrics.MpMetricsRegistryAdapter;
 import com.tangosol.internal.metrics.BaseMBeanMetric;
 import com.tangosol.net.metrics.MBeanMetric;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +33,9 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -277,6 +278,57 @@ public class MpMetricsRegistryAdapterIT
         }
 
     @Test
+    void shouldRegisterCacheMetricsWithConsistentTagNames()
+        {
+        MetricRegistry vendorRegistry = mock(MetricRegistry.class);
+        MetricRegistry appRegistry = mock(MetricRegistry.class);
+        Map<String, String> frontTags = createTagsMap(
+                "coherence_service", "PartitionedCache",
+                "loader", "12345678",
+                "name", "test-cache",
+                "nodeId", "1",
+                "site", "test-site",
+                "tier", "front");
+        Map<String, String> backTags = createTagsMap(
+                "coherence_service", "PartitionedCache",
+                "name", "test-cache",
+                "nodeId", "1",
+                "site", "test-site",
+                "tier", "back");
+        MBeanMetric.Identifier frontId = new MBeanMetric.Identifier(
+                MBeanMetric.Scope.APPLICATION, "Coherence.Cache.Hits", frontTags);
+        MBeanMetric.Identifier backId = new MBeanMetric.Identifier(
+                MBeanMetric.Scope.APPLICATION, "Coherence.Cache.Hits", backTags);
+        MBeanMetric frontMetric = new MBeanMetricStub(frontId, "Coherence,type=Cache,tier=front", "cache hits", 1);
+        MBeanMetric backMetric = new MBeanMetricStub(backId, "Coherence,type=Cache,tier=back", "cache hits", 2);
+
+        when(appRegistry.getGauges()).thenReturn(Collections.emptySortedMap());
+
+        MpMetricsRegistryAdapter adapter = new MpMetricsRegistryAdapter(vendorRegistry, appRegistry);
+        adapter.register(frontMetric);
+        adapter.register(backMetric);
+
+        ArgumentCaptor<Tag[]> tagsArgument = ArgumentCaptor.forClass(Tag[].class);
+        verify(appRegistry, times(2)).gauge(any(Metadata.class), any(Supplier.class), tagsArgument.capture());
+        verifyNoMoreInteractions(vendorRegistry);
+
+        List<Tag[]> capturedTags = tagsArgument.getAllValues();
+        Map<String, String> actualFrontTags = toTagsMap(capturedTags.get(0));
+        Map<String, String> actualBackTags = toTagsMap(capturedTags.get(1));
+
+        assertThat(actualFrontTags.containsKey("loader"), is(false));
+        assertThat(actualBackTags.containsKey("loader"), is(false));
+        assertThat(actualFrontTags.keySet(), is(actualBackTags.keySet()));
+        assertThat(actualFrontTags, is(createTagsMap(
+                "coherence_service", "PartitionedCache",
+                "name", "test-cache",
+                "nodeId", "1",
+                "site", "test-site",
+                "tier", "front")));
+        assertThat(actualBackTags, is(backTags));
+        }
+
+    @Test
     void shouldRemoveApplicationMetric()
         {
         MetricRegistry vendorRegistry = mock(MetricRegistry.class);
@@ -288,6 +340,40 @@ public class MpMetricsRegistryAdapterIT
         Gauge<?> gauge = mock(Gauge.class);
 
         when(vendorRegistry.getGauges()).thenReturn(Collections.emptySortedMap());
+        when(appRegistry.getGauges()).thenReturn(new TreeMap<>(Collections.singletonMap(metricID, gauge)));
+
+        MpMetricsRegistryAdapter adapter = new MpMetricsRegistryAdapter(vendorRegistry, appRegistry);
+        adapter.remove(id);
+
+        verify(appRegistry).getGauges();
+        verify(appRegistry).remove(metricID);
+        verifyNoMoreInteractions(appRegistry);
+        verifyNoMoreInteractions(vendorRegistry);
+        }
+
+    @Test
+    void shouldRemoveApplicationMetricWithoutLoaderTag()
+        {
+        MetricRegistry vendorRegistry = mock(MetricRegistry.class);
+        MetricRegistry appRegistry = mock(MetricRegistry.class);
+        Map<String, String> tagsMap = createTagsMap(
+                "coherence_service", "PartitionedCache",
+                "loader", "12345678",
+                "name", "test-cache",
+                "nodeId", "1",
+                "site", "test-site",
+                "tier", "front");
+        Map<String, String> expectedTagsMap = createTagsMap(
+                "coherence_service", "PartitionedCache",
+                "name", "test-cache",
+                "nodeId", "1",
+                "site", "test-site",
+                "tier", "front");
+        MBeanMetric.Identifier id = new MBeanMetric.Identifier(
+                MBeanMetric.Scope.APPLICATION, "Coherence.Cache.Hits", tagsMap);
+        MetricID metricID = new MetricID(id.getName(), createTags(expectedTagsMap));
+        Gauge<?> gauge = mock(Gauge.class);
+
         when(appRegistry.getGauges()).thenReturn(new TreeMap<>(Collections.singletonMap(metricID, gauge)));
 
         MpMetricsRegistryAdapter adapter = new MpMetricsRegistryAdapter(vendorRegistry, appRegistry);
@@ -358,6 +444,16 @@ public class MpMetricsRegistryAdapterIT
                 .stream()
                 .map(e -> new Tag(e.getKey(), e.getValue()))
                 .toArray(Tag[]::new);
+        }
+
+    private Map<String, String> toTagsMap(Tag[] tags)
+        {
+        Map<String, String> map = new HashMap<>();
+        for (Tag tag : tags)
+            {
+            map.put(tag.getTagName(), tag.getTagValue());
+            }
+        return map;
         }
 
     private Map<String, String> createTagsMap(String... namesAndValues)

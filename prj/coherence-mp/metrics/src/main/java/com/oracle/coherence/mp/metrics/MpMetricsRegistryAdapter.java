@@ -12,10 +12,12 @@ import com.tangosol.net.metrics.MBeanMetric;
 import com.tangosol.net.metrics.MetricsRegistryAdapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import jakarta.annotation.Priority;
@@ -249,6 +251,7 @@ public class MpMetricsRegistryAdapter
         return identifier.getTags()
                 .entrySet()
                 .stream()
+                .filter(e -> !NAME_TAG_EXCLUDES.contains(e.getKey()))
                 .map(e -> toTag(sName, e))
                 .filter(Objects::nonNull)
                 .toArray(Tag[]::new);
@@ -341,6 +344,17 @@ public class MpMetricsRegistryAdapter
          */
         private final MBeanMetric metric;
         }
+
+    // ---- constants ------------------------------------------------------
+
+    /**
+     * MicroProfile-specific list of tag names to exclude from an
+     * {@link MBeanMetric.Identifier}.
+     * <p>
+     * Exclude the "loader" tag as not all cache MBeans have a loader
+     * attribute.
+     */
+    private static final Set<String> NAME_TAG_EXCLUDES = Collections.singleton("loader");
 
     // ---- data members ----------------------------------------------------
 
