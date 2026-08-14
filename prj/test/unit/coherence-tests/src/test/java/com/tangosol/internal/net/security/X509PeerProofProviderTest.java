@@ -1488,6 +1488,13 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldSupportOnlyPlainAndFileUriRegularFileCredentialSources() throws Exception
         {
+        X509PeerProofProvider plainProvider = new X509PeerProofProvider(
+                dependencies(s_memberOne, s_memberOne.f_cert, s_memberOne.f_cert));
+        s_providers.add(plainProvider);
+        plainProvider.setLocalMemberName("member-one");
+        plainProvider.observeMemberNames(Collections.singleton("member-one"));
+        assertTrue(plainProvider.isReady());
+
         PeerProofDependencies fileUris = new PeerProofDependencies()
                 .setIdentityStoreUrl(s_memberOne.f_store.toUri().toString()).setIdentityStoreType("PKCS12")
                 .setIdentityAlias(ALIAS).setIdentityPasswordProvider(() -> PASSWORD.toCharArray())
@@ -1499,9 +1506,16 @@ public class X509PeerProofProviderTest
         uriProvider.observeMemberNames(Collections.singleton("member-one"));
         assertTrue(uriProvider.isReady());
 
-        for (String source : Arrays.asList("http://credential.invalid/identity.p12",
-                "https://credential.invalid/identity.p12", "classpath:identity.p12",
-                "jar:file:/credential.jar!/identity.p12", "relative-identity.p12", s_dir.toString()))
+        List<String> sources = new ArrayList<>(Arrays.asList("http://credential.invalid/identity.p12",
+                "https://credential.invalid/identity.p12", "file://credential.invalid/identity.p12",
+                "classpath:identity.p12", "jar:file:/credential.jar!/identity.p12",
+                "relative-identity.p12", s_dir.toString()));
+        if (Path.of("C:\\").isAbsolute())
+            {
+            sources.add("\\\\credential.invalid\\identity\\member-one.p12");
+            }
+
+        for (String source : sources)
             {
             PeerProofDependencies optional = dependencies(s_memberOne, s_memberOne.f_cert, s_memberOne.f_cert)
                     .setIdentityStoreUrl(source);

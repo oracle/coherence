@@ -17,8 +17,6 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.net.URI;
-
 import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -62,6 +60,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static com.oracle.coherence.common.io.Files.toPath;
 
 import static com.tangosol.internal.net.security.SeniorMetadataProofVerification.Status.EXPIRED;
 import static com.tangosol.internal.net.security.SeniorMetadataProofVerification.Status.MALFORMED;
@@ -1972,27 +1972,13 @@ public class X509PeerProofProvider
             Path path;
             try
                 {
-                URI uri = URI.create(sSource);
-                String sScheme = uri.getScheme();
-                if (sScheme == null || sScheme.isEmpty())
-                    {
-                    path = Path.of(sSource);
-                    }
-                else if ("file".equalsIgnoreCase(sScheme) && uri.getAuthority() == null
-                        && uri.getQuery() == null && uri.getFragment() == null)
-                    {
-                    path = Path.of(uri);
-                    }
-                else
-                    {
-                    throw new IOException("unsupported peer-proof credential source");
-                    }
+                path = toPath(sSource);
                 }
             catch (IllegalArgumentException e)
                 {
                 throw new IOException("invalid peer-proof credential source", e);
                 }
-            if (!path.isAbsolute())
+            if (!path.isAbsolute() || path.toUri().getAuthority() != null)
                 {
                 throw new IOException("peer-proof credential source must be an absolute local path");
                 }
