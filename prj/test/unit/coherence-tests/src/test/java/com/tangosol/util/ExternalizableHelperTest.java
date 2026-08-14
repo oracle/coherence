@@ -15,6 +15,7 @@ import com.tangosol.io.ExternalizableLiteSerializer;
 import com.tangosol.io.ExternalizableType;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
 import com.tangosol.io.internal.DefaultObjectInputFilter;
 
 import com.tangosol.io.pof.PofBufferReader;
@@ -49,6 +50,7 @@ import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InvalidClassException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -916,6 +918,25 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         assertRejectedByFilter(() -> ctx.new JavaPofSerializer().deserialize(createPofUserTypeReader(wb)));
         }
 
+    @Test
+    public void testExceptionBridgeArrayLengthBoundary()
+        {
+        assertExceptionBridgeArrayLengthBoundary(BridgeObjectInputFilter.runtimeException());
+        assertExceptionBridgeArrayLengthBoundary(BridgeObjectInputFilter.exception());
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.runtimeException()));
+            }
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.runtimeException()));
+            }
+
+        }
+
     /**
      * Test deserialization filter on {@link ReadBuffer.BufferInput}.
      */
@@ -1412,6 +1433,23 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         return new PofBufferReader.UserTypeReader(in, new SimplePofContext(), nType, nVersion);
         }
 
+    private static void assertExceptionBridgeArrayLengthBoundary(ObjectInputFilter filter)
+        {
+        long       cLimit   = BridgeObjectInputFilter.MAX_EXCEPTION_ARRAY_LENGTH;
+        Class<?>[] aClasses = {Object[].class, StackTraceElement[].class,
+                RuntimeException[].class, int[].class};
+
+        for (Class<?> clz : aClasses)
+            {
+            assertEquals(clz.getName(), ObjectInputFilter.Status.ALLOWED,
+                    filter.checkInput(new TestFilterInfo(clz, cLimit)));
+            assertEquals(clz.getName(), ObjectInputFilter.Status.REJECTED,
+                    filter.checkInput(new TestFilterInfo(clz, cLimit + 1L)));
+            assertEquals(clz.getName(), ObjectInputFilter.Status.ALLOWED,
+                    filter.checkInput(new TestFilterInfo(clz, -1L)));
+            }
+        }
+
     private static void assertRejectedByFilter(ThrowingRunnable runnable)
         {
         try
@@ -1456,6 +1494,28 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         if (CoherenceMode.PROP_COHERENCE_MODE.equals(sName) || CoherenceMode.PROP_SECURITY_MODE.equals(sName))
             {
             CoherenceModeHelper.reset();
+            }
+        }
+
+    private record TestFilterInfo(Class<?> serialClass, long arrayLength)
+            implements ObjectInputFilter.FilterInfo
+        {
+        @Override
+        public long depth()
+            {
+            return 0L;
+            }
+
+        @Override
+        public long references()
+            {
+            return 0L;
+            }
+
+        @Override
+        public long streamBytes()
+            {
+            return 0L;
             }
         }
 
