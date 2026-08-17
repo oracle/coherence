@@ -13,6 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests for {@link DaemonPoolGrowthPolicy}.
+ *
+ * @author Aleks Seovic  2026.08.14
+ * @since 26.07
  */
 public class DaemonPoolGrowthPolicyTest
     {
