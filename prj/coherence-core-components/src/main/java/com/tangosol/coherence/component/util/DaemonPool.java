@@ -24,8 +24,9 @@ import com.oracle.coherence.common.util.Timers;
 
 import com.tangosol.coherence.config.Config;
 
-import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
+import com.tangosol.internal.util.DaemonPoolGrowthPolicy;
 import com.tangosol.internal.util.DaemonPoolSizing;
+import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian;
@@ -40,11 +41,15 @@ import com.tangosol.util.ThreadGateLite;
 
 import java.lang.reflect.Array;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
+
 import java.util.Iterator;
 import java.util.Set;
 
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 import java.util.concurrent.atomic.AtomicStampedReference;
+import java.util.concurrent.atomic.LongAdder;
 import java.util.concurrent.locks.LockSupport;
 
 /**
@@ -461,7 +466,95 @@ public class DaemonPool
      */
     private int __m_WorkSlotCount;
     private static com.tangosol.util.ListMap __mapChildren;
-    
+
+    /**
+     * The number of attempts by workers to steal executable work from a
+     * different queue.
+     */
+    private transient LongAdder m_cWorkStealAttempts = new LongAdder();
+
+    /**
+     * The number of successful attempts to steal executable work.
+     */
+    private transient LongAdder m_cWorkStealSuccesses = new LongAdder();
+
+    /**
+     * The number of idle workers unparked to attempt cross-queue stealing.
+     */
+    private transient LongAdder m_cWorkStealWakeups = new LongAdder();
+
+    /**
+     * The number of worker-pool growth decisions applied by the resize task.
+     */
+    private transient LongAdder m_cResizeGrows = new LongAdder();
+
+    /**
+     * The number of worker-pool shrink decisions applied by the resize task.
+     */
+    private transient LongAdder m_cResizeShrinks = new LongAdder();
+
+    /**
+     * The reason supplied for the most recent dynamic resize.
+     */
+    private volatile transient String m_sLastResizeReason;
+
+    /**
+     * The most recent workload-aware growth decision.
+     */
+    private volatile transient String m_sLastWorkloadGrowthDecision;
+
+    /**
+     * The number of requested grows suppressed by the workload-aware policy.
+     */
+    private transient LongAdder m_cWorkloadGrowthSuppressions = new LongAdder();
+
+    /**
+     * The worker CPU/active-wall ratio observed by the latest resize sample.
+     */
+    private volatile transient double m_dflLastWorkerCpuRatio = -1.0d;
+
+    /**
+     * The latest processor allocation used as the workload-aware CPU knee.
+     */
+    private volatile transient int m_cLastWorkloadProcessors;
+
+    /**
+     * The queue size observed by the latest workload-aware resize sample.
+     */
+    private volatile transient int m_cLastWorkloadBacklog;
+
+    /**
+     * The active association count observed by the latest resize sample.
+     */
+    private volatile transient int m_cLastWorkloadAssociations;
+
+    /**
+     * Whether workload-aware resizing metrics are enabled.
+     */
+    private transient boolean m_fWorkloadMetricsEnabled =
+            Config.getBoolean("coherence.daemonpool.workload.metrics", false);
+
+    /**
+     * Whether the workload-aware growth policy is enabled.
+     */
+    private transient boolean m_fWorkloadAwareResizeEnabled =
+            Config.getBoolean("coherence.daemonpool.workload.aware", true);
+
+    /**
+     * The minimum interval between worker CPU-time samples.
+     */
+    private transient long m_cWorkloadCpuSamplePeriodMillis = Math.max(100L,
+            Config.getLong("coherence.daemonpool.workload.cpu.sample.period", 1000L));
+
+    /**
+     * The active-wall CPU ratio at which cross-queue wake-up nudges stop being
+     * useful. Keep this aligned with the workload-aware growth policy: a
+     * worker that spends this fraction of active time on-CPU has no measured
+     * blocking capacity for an additional worker to exploit.
+     */
+    private transient double m_dflWorkloadCpuThreshold = Math.max(0.0d, Math.min(1.0d,
+            Config.getDouble("coherence.daemonpool.workload.cpu.threshold", 0.90d)));
+
     // Static initializer
     static
         {
@@ -665,9 +758,10 @@ public class DaemonPool
                 : getWorkSlot(Base.mod(oAssoc.hashCode(), getWorkSlotCount()));
             slot.add(taskWrapper);
 
-            if (isWakeupNudgeEnabled() && getWorkSlotCount() > 1 && slot.isActive())
+            if (isWakeupNudgeEnabled() && getWorkSlotCount() > 1 && slot.isActive()
+                    && shouldNudgeIdleDaemon())
                 {
-                nudgeIdleDaemon(slot.getQueue());
+                nudgeIdleDaemon(slot);
                 }
             }
         else
@@ -1053,8 +1147,9 @@ public class DaemonPool
      * Pop stale or ineligible idle daemons until one can be nudged or the
      * idle stack is exhausted.
      */
-    protected void nudgeIdleDaemon(com.oracle.coherence.common.util.AssociationPile queueTarget)
+    protected void nudgeIdleDaemon(DaemonPool.WorkSlot slotTarget)
         {
+        com.oracle.coherence.common.util.AssociationPile queueTarget = slotTarget.getQueue();
         AtomicStampedReference<DaemonPool.Daemon> stack = getIdleDaemonStack();
         if (stack.getReference() == null)
             {
@@ -1095,7 +1190,55 @@ public class DaemonPool
 
         if (daemonWake != null)
             {
+            daemonWake.setWakeupTarget(slotTarget);
+            if (isWorkloadMetricsEnabled())
+                {
+                m_cWorkStealWakeups.increment();
+                }
             LockSupport.unpark(daemonWake.getThread());
+            }
+        }
+
+    /**
+     * Return whether a cross-queue wake-up can still expose useful parallelism.
+     *
+     * <p>Before the first workload sample, preserve the eager wake-up behavior
+     * so that a blocking or newly busy pool does not have to wait for the
+     * resize sampler. Once worker CPU time shows that active workers are
+     * CPU-bound, waking another worker merely moves CPU time into cross-queue
+     * scans and gate contention. Pools without the workload-aware policy retain
+     * the historical behavior.</p>
+     *
+     * @return {@code true} if an idle worker should be nudged
+     */
+    protected boolean shouldNudgeIdleDaemon()
+        {
+        if (!isWorkloadAwareResizeEnabled())
+            {
+            return true;
+            }
+
+        double dflCpuRatio = getLastWorkerCpuRatio();
+        return dflCpuRatio < 0.0d || dflCpuRatio < m_dflWorkloadCpuThreshold;
+        }
+
+    /**
+     * Record an applied dynamic pool resize.
+     */
+    protected void recordResize(int cThreadsOld, int cThreadsNew, String sReason)
+        {
+        if (cThreadsNew > cThreadsOld)
+            {
+            m_cResizeGrows.increment();
+            }
+        else if (cThreadsNew < cThreadsOld)
+            {
+            m_cResizeShrinks.increment();
+            }
+
+        if (cThreadsNew != cThreadsOld)
+            {
+            m_sLastResizeReason = sReason;
             }
         }
 
@@ -1254,6 +1397,327 @@ public class DaemonPool
                 }
             }
         return cBacklog;
+        }
+
+    /**
+     * Return whether workload-aware resizing metrics are enabled.
+     *
+     * @return {@code true} if metrics are enabled
+     */
+    protected boolean isWorkloadMetricsEnabled()
+        {
+        return m_fWorkloadMetricsEnabled;
+        }
+
+    /**
+     * Return whether the workload-aware growth policy is enabled.
+     *
+     * @return {@code true} if workload-aware growth is enabled
+     */
+    public boolean isWorkloadAwareResizeEnabled()
+        {
+        return m_fWorkloadAwareResizeEnabled;
+        }
+
+    /**
+     * Return the minimum interval between worker CPU-time samples.
+     *
+     * @return the sample period in milliseconds
+     */
+    protected long getWorkloadCpuSamplePeriodMillis()
+        {
+        return m_cWorkloadCpuSamplePeriodMillis;
+        }
+
+    /**
+     * Return the approximate number of queued tasks that are currently
+     * executable.
+     *
+     * @return the executable backlog
+     */
+    public int getAvailableBacklog()
+        {
+        if (!isWorkloadMetricsEnabled())
+            {
+            return -1;
+            }
+
+        AssociationPile[] aQueue     = getQueues();
+        int               cAvailable = 0;
+        for (int i = 0, c = aQueue == null ? 0 : aQueue.length; i < c; i++)
+            {
+            AssociationPile queue = aQueue[i];
+            cAvailable += queue instanceof ConcurrentAssociationPile
+                    ? ((ConcurrentAssociationPile) queue).getAvailableCount()
+                    : queue.isAvailable() ? 1 : 0;
+            }
+        return cAvailable;
+        }
+
+    /**
+     * Return the approximate number of queued tasks that cannot execute until
+     * an earlier associated task completes.
+     *
+     * @return the association-blocked backlog
+     */
+    public int getAssociationDeferredBacklog()
+        {
+        if (!isWorkloadMetricsEnabled())
+            {
+            return -1;
+            }
+
+        AssociationPile[] aQueue    = getQueues();
+        int               cDeferred = 0;
+        for (int i = 0, c = aQueue == null ? 0 : aQueue.length; i < c; i++)
+            {
+            AssociationPile queue = aQueue[i];
+            if (queue instanceof ConcurrentAssociationPile)
+                {
+                cDeferred += ((ConcurrentAssociationPile) queue).getDeferredCount();
+                }
+            }
+        return cDeferred;
+        }
+
+    /**
+     * Return the cumulative number of tasks deferred behind active
+     * associations.
+     *
+     * @return the association deferral count
+     */
+    public long getAssociationDeferredAddCount()
+        {
+        if (!isWorkloadMetricsEnabled())
+            {
+            return -1L;
+            }
+
+        AssociationPile[] aQueue    = getQueues();
+        long              cDeferred = 0L;
+        for (int i = 0, c = aQueue == null ? 0 : aQueue.length; i < c; i++)
+            {
+            AssociationPile queue = aQueue[i];
+            if (queue instanceof ConcurrentAssociationPile)
+                {
+                cDeferred += ((ConcurrentAssociationPile) queue).getDeferredAddCount();
+                }
+            }
+        return cDeferred;
+        }
+
+    /**
+     * Return the approximate number of active task associations.
+     *
+     * @return the active association count
+     */
+    public int getActiveAssociationCount()
+        {
+        AssociationPile[] aQueue       = getQueues();
+        int               cAssociation = 0;
+        for (int i = 0, c = aQueue == null ? 0 : aQueue.length; i < c; i++)
+            {
+            AssociationPile queue = aQueue[i];
+            if (queue instanceof ConcurrentAssociationPile)
+                {
+                cAssociation += ((ConcurrentAssociationPile) queue).getAssociationCount();
+                }
+            }
+        return cAssociation;
+        }
+
+    /**
+     * Return the cumulative number of cross-queue work-steal attempts.
+     *
+     * @return the work-steal attempt count
+     */
+    public long getWorkStealAttemptCount()
+        {
+        return isWorkloadMetricsEnabled() ? m_cWorkStealAttempts.sum() : -1L;
+        }
+
+    /**
+     * Return the cumulative number of successful cross-queue work steals.
+     *
+     * @return the work-steal success count
+     */
+    public long getWorkStealSuccessCount()
+        {
+        return isWorkloadMetricsEnabled() ? m_cWorkStealSuccesses.sum() : -1L;
+        }
+
+    /**
+     * Return the cumulative number of idle workers unparked to attempt a
+     * cross-queue work steal.
+     *
+     * @return the work-steal wakeup count
+     */
+    public long getWorkStealWakeupCount()
+        {
+        return isWorkloadMetricsEnabled() ? m_cWorkStealWakeups.sum() : -1L;
+        }
+
+    /**
+     * Return the cumulative number of dynamic worker-pool growth operations.
+     *
+     * @return the resize-grow count
+     */
+    public long getResizeGrowCount()
+        {
+        return m_cResizeGrows.sum();
+        }
+
+    /**
+     * Return the cumulative number of dynamic worker-pool shrink operations.
+     *
+     * @return the resize-shrink count
+     */
+    public long getResizeShrinkCount()
+        {
+        return m_cResizeShrinks.sum();
+        }
+
+    /**
+     * Return the reason for the most recent dynamic worker-pool resize.
+     *
+     * @return the last resize reason, or {@code null}
+     */
+    public String getLastResizeReason()
+        {
+        return m_sLastResizeReason;
+        }
+
+    /**
+     * Return the most recent workload-aware growth decision.
+     *
+     * @return the decision reason, or {@code null}
+     */
+    public String getLastWorkloadGrowthDecision()
+        {
+        return m_sLastWorkloadGrowthDecision;
+        }
+
+    /**
+     * Return the number of requested grows suppressed by the workload-aware
+     * policy.
+     *
+     * @return the suppression count
+     */
+    public long getWorkloadGrowthSuppressionCount()
+        {
+        return m_cWorkloadGrowthSuppressions.sum();
+        }
+
+    /**
+     * Return the worker CPU/active-wall ratio from the latest resize sample.
+     *
+     * @return the ratio, or a negative value if CPU time was unavailable
+     */
+    public double getLastWorkerCpuRatio()
+        {
+        return m_dflLastWorkerCpuRatio;
+        }
+
+    /**
+     * Return the effective processor count from the latest resize sample.
+     *
+     * @return the processor count
+     */
+    public int getLastWorkloadProcessorCount()
+        {
+        return m_cLastWorkloadProcessors;
+        }
+
+    /**
+     * Return the backlog from the latest resize sample.
+     *
+     * @return the sampled backlog
+     */
+    public int getLastWorkloadBacklog()
+        {
+        return m_cLastWorkloadBacklog;
+        }
+
+    /**
+     * Return the active association count from the latest resize sample.
+     *
+     * @return the sampled active association count
+     */
+    public int getLastWorkloadAssociationCount()
+        {
+        return m_cLastWorkloadAssociations;
+        }
+
+    /**
+     * Return the effective processor allocation used as the CPU knee.
+     *
+     * @return the processor count
+     */
+    protected int getWorkloadProcessorCount()
+        {
+        return DaemonPoolSizing.getSnapshot().getProcessorCount();
+        }
+
+    /**
+     * Sample cumulative CPU time for the current platform workers.
+     *
+     * @return cumulative worker CPU nanoseconds, or {@code -1} if unavailable
+     */
+    protected long sampleWorkerCpuNanos()
+        {
+        ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+        if (!bean.isThreadCpuTimeSupported() || !bean.isThreadCpuTimeEnabled())
+            {
+            return -1L;
+            }
+
+        long                cNanos  = 0L;
+        DaemonPool.Daemon[] aDaemon = getDaemons();
+        for (int i = 0, c = aDaemon == null ? 0 : aDaemon.length; i < c; i++)
+            {
+            DaemonPool.Daemon daemon = aDaemon[i];
+            Thread            thread = daemon == null ? null : daemon.getThread();
+            if (thread != null)
+                {
+                long cThreadNanos = bean.getThreadCpuTime(thread.getId());
+                if (cThreadNanos >= 0L)
+                    {
+                    cNanos += cThreadNanos;
+                    }
+                }
+            }
+        return cNanos;
+        }
+
+    /**
+     * Record the latest low-overhead workload sample.
+     */
+    protected void recordWorkloadSample(double dflCpuRatio, int cProcessors,
+            int cBacklog, int cAssociations)
+        {
+        m_dflLastWorkerCpuRatio     = dflCpuRatio;
+        m_cLastWorkloadProcessors   = cProcessors;
+        m_cLastWorkloadBacklog      = cBacklog;
+        m_cLastWorkloadAssociations = cAssociations;
+        }
+
+    /**
+     * Record a workload-aware growth decision.
+     */
+    protected void recordWorkloadGrowthDecision(String sReason, boolean fSuppressed)
+        {
+        m_sLastWorkloadGrowthDecision = sReason;
+        if (fSuppressed)
+            {
+            m_cWorkloadGrowthSuppressions.increment();
+            }
+
+        _trace(String.format("DaemonPool \"%s\": workload-aware growth decision "
+                + "[Suppressed=%s, Size=%d, Processors=%d, Backlog=%d, "
+                + "Associations=%d, WorkerCpuRatio=%.3f, Reason=%s]",
+                getName(), fSuppressed, getDaemonCount(), m_cLastWorkloadProcessors,
+                m_cLastWorkloadBacklog, m_cLastWorkloadAssociations,
+                m_dflLastWorkerCpuRatio, sReason), 5);
         }
     
     // From interface: com.tangosol.internal.util.DaemonPool
@@ -2244,6 +2708,9 @@ public class DaemonPool
             getStatsTaskAddCount().set(Math.max(0L, getStatsTaskAddCount().get() - getStatsTaskCount()));
             setStatsTaskCount(0L);
             setStatsTimeoutCount(0);
+            m_cWorkStealAttempts.reset();
+            m_cWorkStealSuccesses.reset();
+            m_cWorkStealWakeups.reset();
         
             // update the reset timestamp
             setStatsLastResetMillis(Base.getSafeTimeMillis());
@@ -3184,9 +3651,13 @@ public class DaemonPool
                     }
                 }
 
-            if (isDynamic() || registration.isAutomatic())
+            if (isDynamic() || registration.isAutomatic()
+                    || isWorkloadAwareResizeEnabled() || isWorkloadMetricsEnabled())
                 {
-                // schedule a new ResizeTask
+                // Schedule a ResizeTask for dynamic sizing and for the
+                // workload sampler. A fixed pool cannot resize, but its CPU
+                // sample still determines whether an idle-worker nudge can
+                // expose useful parallelism.
                 DaemonPool.ResizeTask task = (DaemonPool.ResizeTask) _newChild("ResizeTask");
                 setResizeTask(task);
         
@@ -3505,6 +3976,14 @@ public class DaemonPool
          * The next daemon in the pool-wide idle stack.
          */
         private volatile transient DaemonPool.Daemon __m_NextIdleDaemon;
+
+        /**
+         * Property WakeupTarget
+         *
+         * The work slot that caused the pool-wide nudge which most recently
+         * removed this daemon from the idle stack.
+         */
+        private volatile transient DaemonPool.WorkSlot __m_WakeupTarget;
 
         /**
          * Property WakeupState
@@ -3884,12 +4363,14 @@ public class DaemonPool
                 if (nState == 0)
                     {
                     setNextIdleDaemon(null);
+                    setWakeupTarget(null);
                     return;
                     }
 
                 if (s_updaterWakeupState.compareAndSet(this, nState, 0))
                     {
                     setNextIdleDaemon(null);
+                    setWakeupTarget(null);
 
                     if ((nState & WAKEUP_PARKED) != 0)
                         {
@@ -3991,6 +4472,30 @@ public class DaemonPool
             {
             __m_WakeupState = WAKEUP_REGISTERED;
             setNextIdleDaemon(null);
+            setWakeupTarget(null);
+            }
+
+        /**
+         * Return and clear the work slot that caused this daemon's most recent
+         * pool-wide nudge.
+         */
+        protected DaemonPool.WorkSlot takeWakeupTarget()
+            {
+            DaemonPool.WorkSlot slotTarget = __m_WakeupTarget;
+            if (slotTarget != null)
+                {
+                __m_WakeupTarget = null;
+                }
+            return slotTarget;
+            }
+
+        /**
+         * Set the work slot that this daemon should try after a pool-wide
+         * nudge.
+         */
+        protected void setWakeupTarget(DaemonPool.WorkSlot slotTarget)
+            {
+            __m_WakeupTarget = slotTarget;
             }
 
         /**
@@ -4362,39 +4867,77 @@ public class DaemonPool
                 // no other queues to help
                 return null;
                 }
+
+            if (pool.isWorkloadMetricsEnabled())
+                {
+                pool.m_cWorkStealAttempts.increment();
+                }
             
             AssociationPile queueThis = getQueue();
+            DaemonPool.WorkSlot slotTarget = takeWakeupTarget();
+            if (slotTarget != null)
+                {
+                // A pool-wide nudge is issued for one specific queue. Try that
+                // queue directly instead of walking and locking unrelated
+                // slots; if its local waiter won the race, go idle again.
+                return removeFromAnotherQueue(slotTarget, queueThis);
+                }
+
             for (int i = 0, c = pool.getWorkSlotCount(), nHash = hashCode(); i < c; i++)
                 {
                 DaemonPool.WorkSlot slotThat = pool.getWorkSlot(Base.mod(nHash + i, c));
-            
-                Gate gateThat = slotThat.getGate();
-                if (gateThat.enter(0L)) // see DaemonPool#onDaemonStop()
+                DaemonPool.WrapperTask wrapper = removeFromAnotherQueue(slotThat, queueThis);
+                if (wrapper != null)
                     {
-                    AssociationPile queueThat = slotThat.getQueue();
-                    if (queueThat != queueThis && slotThat.isActive())
-                        {
-                        DaemonPool.WrapperTask wrapper = (DaemonPool.WrapperTask) queueThat.poll();
-                        if (wrapper != null)
-                            {
-                            if (wrapper.isManagementTask())
-                                {
-                                // those are not "transferable" tasks; put them back
-                                queueThat.release(wrapper);
-                                queueThat.add(wrapper);
-                                }
-                            else
-                                {
-                                wrapper.set_Feed(queueThat);
-                                wrapper.setGate(gateThat); // see #release()
-                                return wrapper;
-                                }
-                            }
-                        }
-                    gateThat.exit();
+                    return wrapper;
                     }
                 }
             
+            return null;
+            }
+
+        /**
+         * Try to steal an executable task from the specified work slot.
+         *
+         * @param slotThat   the work slot to inspect
+         * @param queueThis  this daemon's own queue
+         *
+         * @return a stolen task, or {@code null}
+         */
+        protected DaemonPool.WrapperTask removeFromAnotherQueue(
+                DaemonPool.WorkSlot slotThat, AssociationPile queueThis)
+            {
+            DaemonPool pool     = (DaemonPool) get_Parent();
+            Gate       gateThat = slotThat.getGate();
+            if (gateThat.enter(0L)) // see DaemonPool#onDaemonStop()
+                {
+                AssociationPile queueThat = slotThat.getQueue();
+                if (queueThat != queueThis && slotThat.isActive())
+                    {
+                    DaemonPool.WrapperTask wrapper = (DaemonPool.WrapperTask) queueThat.poll();
+                    if (wrapper != null)
+                        {
+                        if (wrapper.isManagementTask())
+                            {
+                            // those are not "transferable" tasks; put them back
+                            queueThat.release(wrapper);
+                            queueThat.add(wrapper);
+                            }
+                        else
+                            {
+                            wrapper.set_Feed(queueThat);
+                            wrapper.setGate(gateThat); // see #release()
+                            if (pool.isWorkloadMetricsEnabled())
+                                {
+                                pool.m_cWorkStealSuccesses.increment();
+                                }
+                            return wrapper;
+                            }
+                        }
+                    }
+                gateThat.exit();
+                }
+
             return null;
             }
         
@@ -4978,6 +5521,31 @@ public class DaemonPool
          * threads while executing tasks measured by this task.
          */
         private long __m_LastActiveMillis;
+
+        /**
+         * Cumulative worker CPU time observed by the previous resize sample.
+         */
+        private long __m_LastWorkerCpuNanos = -1L;
+
+        /**
+         * Cumulative worker active time at the previous CPU-time sample.
+         */
+        private long __m_LastWorkerCpuActiveMillis;
+
+        /**
+         * Timestamp of the previous worker CPU-time sample.
+         */
+        private long __m_LastWorkerCpuSampleMillis;
+
+        /**
+         * The latest low-overhead workload sample.
+         */
+        private transient DaemonPoolGrowthPolicy.Sample m_sampleWorkload;
+
+        /**
+         * The stateful workload-aware growth policy.
+         */
+        private transient DaemonPoolGrowthPolicy m_policyGrowth;
         
         /**
          * Property LastResize
@@ -5506,6 +6074,30 @@ public class DaemonPool
             {
             return __m_LastActiveMillis;
             }
+
+        /**
+         * Return cumulative worker CPU time from the previous resize sample.
+         */
+        public long getLastWorkerCpuNanos()
+            {
+            return __m_LastWorkerCpuNanos;
+            }
+
+        /**
+         * Return cumulative worker active time from the previous CPU sample.
+         */
+        public long getLastWorkerCpuActiveMillis()
+            {
+            return __m_LastWorkerCpuActiveMillis;
+            }
+
+        /**
+         * Return the timestamp of the previous worker CPU sample.
+         */
+        public long getLastWorkerCpuSampleMillis()
+            {
+            return __m_LastWorkerCpuSampleMillis;
+            }
         
         // Accessor for the property "LastResize"
         /**
@@ -5757,6 +6349,82 @@ public class DaemonPool
                 ? Math.max(cPeriod, getShrinkCooldownMillis())
                 : cPeriod;
             }
+
+        /**
+         * Return the workload-aware growth policy, creating it on first use.
+         */
+        protected DaemonPoolGrowthPolicy getGrowthPolicy()
+            {
+            DaemonPoolGrowthPolicy policy = m_policyGrowth;
+            if (policy == null)
+                {
+                m_policyGrowth = policy = new DaemonPoolGrowthPolicy();
+                }
+            return policy;
+            }
+
+        /**
+         * Return whether low-overhead workload sampling is required.
+         */
+        protected boolean isWorkloadSamplingEnabled()
+            {
+            DaemonPool pool = getDaemonPool();
+            return pool.isWorkloadAwareResizeEnabled() || pool.isWorkloadMetricsEnabled();
+            }
+
+        /**
+         * Evaluate an active above-CPU worker probe.
+         *
+         * @return the new pool size, or the current size when no probe was
+         *         rejected
+         */
+        protected int evaluateWorkloadProbe()
+            {
+            DaemonPoolGrowthPolicy.Sample sample = m_sampleWorkload;
+            if (!getDaemonPool().isWorkloadAwareResizeEnabled() || sample == null)
+                {
+                return getDaemonCount();
+                }
+
+            DaemonPoolGrowthPolicy.Decision decision = getGrowthPolicy().evaluateProbe(sample);
+            if (decision.getReason() != null)
+                {
+                getDaemonPool().recordWorkloadGrowthDecision(decision.getReason(), false);
+                }
+            return decision.getAction() == DaemonPoolGrowthPolicy.Decision.Action.REVERT
+                    ? shrinkDaemonPool(decision.getReason())
+                    : getDaemonCount();
+            }
+
+        /**
+         * Apply workload-aware limits to a requested growth.
+         */
+        protected int growDaemonPool(int cRequested, String sReason)
+            {
+            int cThreads = getDaemonCount();
+            if (!getDaemonPool().isWorkloadAwareResizeEnabled() || m_sampleWorkload == null)
+                {
+                return resizeDaemonPool(cRequested, sReason);
+                }
+
+            DaemonPoolGrowthPolicy.Decision decision = getGrowthPolicy().requestGrowth(
+                    m_sampleWorkload, cRequested);
+            if (decision.getAction() != DaemonPoolGrowthPolicy.Decision.Action.GROW)
+                {
+                getDaemonPool().recordWorkloadGrowthDecision(decision.getReason(), true);
+                return cThreads;
+                }
+
+            String sPolicyReason = decision.getReason();
+            int    cNew          = resizeDaemonPool(decision.getDelta(),
+                    sReason + "; " + sPolicyReason);
+            getDaemonPool().recordWorkloadGrowthDecision(sPolicyReason, false);
+            if (decision.isProbe() && cNew > cThreads)
+                {
+                getGrowthPolicy().onProbeApplied(m_sampleWorkload, cNew);
+                }
+            return cNew;
+            }
         
         /**
          * Grow the DaemonPool.
@@ -5767,7 +6435,7 @@ public class DaemonPool
             {
             int cThreads = getDaemonCount();
 
-            return resizeDaemonPool(Math.max(1, (int) (cThreads * getResizeGrow())), sReason);
+            return growDaemonPool(Math.max(1, (int) (cThreads * getResizeGrow())), sReason);
             }
         
         /**
@@ -5862,6 +6530,12 @@ public class DaemonPool
                 setLastActiveMillis(pool.getStatsActiveMillis());
                 setLastTaskCount(pool.getStatsTaskCount());
                 }
+            if (isWorkloadSamplingEnabled())
+                {
+                setLastWorkerCpuNanos(pool.sampleWorkerCpuNanos());
+                setLastWorkerCpuActiveMillis(getLastActiveMillis());
+                setLastWorkerCpuSampleMillis(ldtNow);
+                }
             setLastThreadCount(pool.getDaemonCount());
             
             super.onInit();
@@ -5915,8 +6589,11 @@ public class DaemonPool
                 }
             
             pool.setDaemonCount(cNew);
-            
-            return cNew;
+
+            int cApplied = pool.getDaemonCount();
+            pool.recordResize(cCurrent, cApplied, sReason);
+
+            return cApplied;
             }
         
         // From interface: java.lang.Runnable
@@ -5941,6 +6618,7 @@ public class DaemonPool
             long cPeriod       = getPeriodMillis();
             long cTasks        = 0L;
             long cActiveMillis = 0L;
+            long cWorkerCpuNanos = getLastWorkerCpuNanos();
             int  cThreads      = pool.getDaemonCount();
             int  cNew          = cThreads;
             int  cLast         = getLastResize();
@@ -5949,6 +6627,7 @@ public class DaemonPool
 
             boolean fCountOverutilized = false;
             boolean fPreserveResize    = false;
+            boolean fWorkerCpuSampled  = false;
             
             if (pool.isInTransition())
                 {
@@ -5975,6 +6654,13 @@ public class DaemonPool
                     cTasks        = pool.getStatsTaskCount();
                     ldtReset      = pool.getStatsLastResetMillis();
                     ldtResizeEnd  = pool.getStatsLastResizeMillis();
+                    }
+                if (isWorkloadSamplingEnabled()
+                        && ldtNow - getLastWorkerCpuSampleMillis()
+                                >= pool.getWorkloadCpuSamplePeriodMillis())
+                    {
+                    cWorkerCpuNanos = pool.sampleWorkerCpuNanos();
+                    fWorkerCpuSampled = true;
                     }
             
                 long ldtLastRun    = getLastRunMillis();
@@ -6011,6 +6697,29 @@ public class DaemonPool
             
                 double dflTP     = cTasksDelta <= 0 || cMillisDelta <= 0L ? 0.0 : (cTasksDelta * 1000.0) / cMillisDelta;
                 double dflActive = (getActiveCountAverage() + pool.getActiveDaemonCount()) / 2;
+
+                if (isWorkloadSamplingEnabled())
+                    {
+                    double dflCpuRatio = pool.getLastWorkerCpuRatio();
+                    if (fWorkerCpuSampled)
+                        {
+                        long cActiveDelta = cActiveMillis - getLastWorkerCpuActiveMillis();
+                        long cCpuDelta    = cWorkerCpuNanos < 0L || getLastWorkerCpuNanos() < 0L
+                                ? -1L : cWorkerCpuNanos - getLastWorkerCpuNanos();
+                        dflCpuRatio = cActiveDelta <= 0L || cCpuDelta < 0L
+                                ? -1.0d
+                                : Math.min(1.0d, cCpuDelta / (cActiveDelta * 1000000.0d));
+                        }
+                    int    cProcessors  = pool.getWorkloadProcessorCount();
+                    int    cBacklog     = pool.getBacklog();
+                    int    cAssociation = pool.getActiveAssociationCount();
+
+                    m_sampleWorkload = new DaemonPoolGrowthPolicy.Sample(ldtNow, cThreads,
+                            pool.getDaemonCountMin(), pool.getDaemonCountMax(), cProcessors,
+                            cBacklog, cAssociation, dflCpuRatio, dflTP,
+                            pool.getDaemonPoolSizingRole());
+                    pool.recordWorkloadSample(dflCpuRatio, cProcessors, cBacklog, cAssociation);
+                    }
             
                 // gather data used in resize analysis
                 double dflTPLast   = getLastThroughput();
@@ -6036,6 +6745,15 @@ public class DaemonPool
             
                 setLastThroughput(dflTP);
                 setActiveCountAverage(dflActive);
+
+                int cProbe = evaluateWorkloadProbe();
+                if (cProbe < cThreads)
+                    {
+                    cNew    = cProbe;
+                    cResize = cNew - cThreads;
+                    cPeriod = applyShrinkCooldown(cPeriod, cThreads, cNew);
+                    return;
+                    }
             
                 // determine if it is time to "shake" the pool
                 if (ldtNow >= getLastShakeMillis() + getEffectiveShakePeriod())
@@ -6190,6 +6908,12 @@ public class DaemonPool
                 setLastTaskCount(cTasks);
                 setLastThreadCount(cNew);
                 setLastActiveMillis(cActiveMillis);
+                if (fWorkerCpuSampled)
+                    {
+                    setLastWorkerCpuNanos(cWorkerCpuNanos);
+                    setLastWorkerCpuActiveMillis(cActiveMillis);
+                    setLastWorkerCpuSampleMillis(ldtNow);
+                    }
                 setLastResize(fPreserveResize ? cLast : cResize);
 
                 pool.schedule(this, cPeriod);
@@ -6288,6 +7012,30 @@ public class DaemonPool
         protected void setLastActiveMillis(long cMillis)
             {
             __m_LastActiveMillis = cMillis;
+            }
+
+        /**
+         * Set cumulative worker CPU time for the next resize interval.
+         */
+        protected void setLastWorkerCpuNanos(long cNanos)
+            {
+            __m_LastWorkerCpuNanos = cNanos;
+            }
+
+        /**
+         * Set cumulative worker active time for the next CPU sample.
+         */
+        protected void setLastWorkerCpuActiveMillis(long cMillis)
+            {
+            __m_LastWorkerCpuActiveMillis = cMillis;
+            }
+
+        /**
+         * Set the timestamp of the latest worker CPU sample.
+         */
+        protected void setLastWorkerCpuSampleMillis(long ldtSample)
+            {
+            __m_LastWorkerCpuSampleMillis = ldtSample;
             }
         
         // Accessor for the property "LastResize"
@@ -6497,8 +7245,11 @@ public class DaemonPool
             
             int cDelta = Math.max(1, (int) (getDaemonCount() * getResizeShake()));
             int cRange = 2*cDelta + 1;
-            
-            return resizeDaemonPool(Base.getRandom().nextInt(cRange) - cDelta, "the pool being shaken");
+            int cShake = Base.getRandom().nextInt(cRange) - cDelta;
+
+            return cShake > 0
+                    ? growDaemonPool(cShake, "the pool being shaken")
+                    : resizeDaemonPool(cShake, "the pool being shaken");
             }
         
         /**

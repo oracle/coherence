@@ -373,6 +373,45 @@ public class DaemonPoolIT
         }
 
     @Test
+    public void shouldSuppressWakeupNudgeForCpuBoundWork()
+        {
+        TestDaemonPool pool = new TestDaemonPool();
+
+        pool.setWorkloadAwareResizeEnabled(true);
+        pool.setWorkerCpuRatio(-1.0d);
+        assertTrue("unknown workload should preserve eager wake-up", pool.shouldNudgeIdleDaemon());
+
+        pool.setWorkerCpuRatio(0.50d);
+        assertTrue("blocking workload should preserve eager wake-up", pool.shouldNudgeIdleDaemon());
+
+        pool.setWorkerCpuRatio(0.90d);
+        assertFalse("CPU-bound workload should suppress cross-queue wake-up",
+                pool.shouldNudgeIdleDaemon());
+        }
+
+    @Test
+    public void shouldSampleWorkloadForFixedPool()
+        {
+        TestDaemonPool pool = new TestDaemonPool();
+
+        try
+            {
+            pool.setWorkloadAwareResizeEnabled(true);
+            pool.setDaemonCountMin(2);
+            pool.setDaemonCountMax(2);
+            pool.setDaemonCount(2);
+            pool.start();
+
+            assertThat("fixed workload-aware pool should schedule its CPU sampler",
+                    pool.getResizeTask(), is(notNullValue()));
+            }
+        finally
+            {
+            stopPool(pool);
+            }
+        }
+
+    @Test
     public void shouldCleanIdleStackAfterReplacingAbandonedDaemon() throws Exception
         {
         if (!isWakeupNudgeEnabled())
@@ -434,6 +473,120 @@ public class DaemonPoolIT
 
         assertThat(resizeTask.growDaemonPool("test"), is(8));
         assertThat(pool.getDaemonCount(), is(8));
+        }
+
+    @Test
+    public void shouldSuppressCpuBoundGrowthAtProcessorCount()
+        {
+        ResizeTaskDaemonPoolStub pool       = new ResizeTaskDaemonPoolStub();
+        DaemonPool.ResizeTask    resizeTask = createResizeTask(pool, 5, 1, 10);
+
+        pool.setWorkloadAwareResizeEnabled(true);
+        pool.setWorkloadProcessorCount(5);
+        pool.setBacklog(100);
+        pool.setActiveAssociationCount(20);
+        pool.setWorkerCpuNanos(4750000000L);
+        configureRun(resizeTask, pool, 5, 0L, 0L, 1000.0d, 0, 500L, 5);
+        resizeTask.setLastWorkerCpuNanos(0L);
+        pool.setStatsTaskCount(1000L);
+        pool.setStatsActiveMillis(5000L);
+
+        resizeTask.run();
+
+        assertThat(pool.getDaemonCount(), is(5));
+        assertThat(pool.getWorkloadGrowthSuppressionCount(), is(1L));
+        assertThat(pool.getLastWorkloadGrowthDecision(),
+                is("CPU-bound work at the CPU allocation"));
+        }
+
+    @Test
+    public void shouldSuppressAssociationLimitedGrowthAtProcessorCount()
+        {
+        ResizeTaskDaemonPoolStub pool       = new ResizeTaskDaemonPoolStub();
+        DaemonPool.ResizeTask    resizeTask = createResizeTask(pool, 5, 1, 10);
+
+        pool.setWorkloadAwareResizeEnabled(true);
+        pool.setWorkloadProcessorCount(5);
+        pool.setBacklog(100);
+        pool.setActiveAssociationCount(5);
+        pool.setWorkerCpuNanos(500000000L);
+        configureRun(resizeTask, pool, 5, 0L, 0L, 1000.0d, 0, 500L, 5);
+        resizeTask.setLastWorkerCpuNanos(0L);
+        pool.setStatsTaskCount(1000L);
+        pool.setStatsActiveMillis(5000L);
+
+        resizeTask.run();
+
+        assertThat(pool.getDaemonCount(), is(5));
+        assertThat(pool.getWorkloadGrowthSuppressionCount(), is(1L));
+        assertThat(pool.getLastWorkloadGrowthDecision(),
+                is("association-limited work at the CPU allocation"));
+        }
+
+    @Test
+    public void shouldThrottleWorkerCpuSampling()
+        {
+        ResizeTaskDaemonPoolStub pool       = new ResizeTaskDaemonPoolStub();
+        DaemonPool.ResizeTask    resizeTask = createResizeTask(pool, 5, 1, 10);
+
+        pool.setWorkloadAwareResizeEnabled(true);
+        pool.setWorkloadProcessorCount(5);
+        pool.setBacklog(0);
+        pool.setWorkerCpuNanos(500000000L);
+        configureRun(resizeTask, pool, 5, 0L, 0L, 0.0d, 0, 500L, 0);
+        resizeTask.setLastWorkerCpuNanos(0L);
+        resizeTask.setLastWorkerCpuSampleMillis(Base.getSafeTimeMillis());
+        pool.setStatsTaskCount(100L);
+        pool.setStatsActiveMillis(500L);
+
+        resizeTask.run();
+        assertThat(pool.getWorkerCpuSampleCount(), is(0));
+
+        resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
+        resizeTask.setLastWorkerCpuSampleMillis(Base.getSafeTimeMillis() - 1000L);
+        pool.setStatsTaskCount(200L);
+        pool.setStatsActiveMillis(1000L);
+
+        resizeTask.run();
+        assertThat(pool.getWorkerCpuSampleCount(), is(1));
+        }
+
+    @Test
+    public void shouldRevertAboveProcessorProbeWithoutThroughputBenefit()
+        {
+        ResizeTaskDaemonPoolStub pool       = new ResizeTaskDaemonPoolStub();
+        DaemonPool.ResizeTask    resizeTask = createResizeTask(pool, 5, 1, 10);
+
+        pool.setWorkloadAwareResizeEnabled(true);
+        pool.setWorkloadProcessorCount(5);
+        pool.setBacklog(100);
+        pool.setActiveAssociationCount(20);
+        pool.setWorkerCpuNanos(500000000L);
+        configureRun(resizeTask, pool, 5, 0L, 0L, 1000.0d, 0, 500L, 5);
+        resizeTask.setLastWorkerCpuNanos(0L);
+        pool.setStatsTaskCount(1000L);
+        pool.setStatsActiveMillis(5000L);
+
+        resizeTask.run();
+        assertThat(pool.getDaemonCount(), is(6));
+
+        resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
+        pool.setActiveDaemonCount(6);
+        pool.setWorkerCpuNanos(1100000000L);
+        pool.setStatsTaskCount(2000L);
+        pool.setStatsActiveMillis(11000L);
+        resizeTask.run();
+        assertThat(pool.getDaemonCount(), is(6));
+
+        resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
+        pool.setWorkerCpuNanos(1700000000L);
+        pool.setStatsTaskCount(3000L);
+        pool.setStatsActiveMillis(17000L);
+        resizeTask.run();
+
+        assertThat(pool.getDaemonCount(), is(5));
+        assertTrue(pool.getLastWorkloadGrowthDecision()
+                .startsWith("the above-CPU worker probe improved throughput by only"));
         }
 
     @Test
@@ -658,6 +811,8 @@ public class DaemonPoolIT
         resizeTask.setLastResizeMillis(ldtNow - 2000L);
         resizeTask.setLastTaskCount(cTasksLast);
         resizeTask.setLastActiveMillis(cActiveMillisLast);
+        resizeTask.setLastWorkerCpuActiveMillis(cActiveMillisLast);
+        resizeTask.setLastWorkerCpuSampleMillis(ldtNow - 1000L);
         resizeTask.setLastThroughput(dflLastThroughput);
         resizeTask.setLastResize(cLastResize);
         resizeTask.setPeriodMillis(cPeriod);
@@ -718,6 +873,37 @@ public class DaemonPoolIT
             }
 
         @Override
+        public int getActiveAssociationCount()
+            {
+            return m_cActiveAssociationCount;
+            }
+
+        @Override
+        public int getBacklog()
+            {
+            return m_cBacklog;
+            }
+
+        @Override
+        public boolean isWorkloadAwareResizeEnabled()
+            {
+            return m_fWorkloadAwareResizeEnabled;
+            }
+
+        @Override
+        protected int getWorkloadProcessorCount()
+            {
+            return m_cWorkloadProcessorCount;
+            }
+
+        @Override
+        protected long sampleWorkerCpuNanos()
+            {
+            ++m_cWorkerCpuSamples;
+            return m_cWorkerCpuNanos;
+            }
+
+        @Override
         public long getStatsActiveMillis()
             {
             return m_cStatsActiveMillis;
@@ -757,6 +943,36 @@ public class DaemonPoolIT
             m_cActiveDaemonCount = cActiveDaemonCount;
             }
 
+        public void setActiveAssociationCount(int cActiveAssociationCount)
+            {
+            m_cActiveAssociationCount = cActiveAssociationCount;
+            }
+
+        public void setBacklog(int cBacklog)
+            {
+            m_cBacklog = cBacklog;
+            }
+
+        public void setWorkloadAwareResizeEnabled(boolean fEnabled)
+            {
+            m_fWorkloadAwareResizeEnabled = fEnabled;
+            }
+
+        public void setWorkloadProcessorCount(int cProcessors)
+            {
+            m_cWorkloadProcessorCount = cProcessors;
+            }
+
+        public void setWorkerCpuNanos(long cNanos)
+            {
+            m_cWorkerCpuNanos = cNanos;
+            }
+
+        public int getWorkerCpuSampleCount()
+            {
+            return m_cWorkerCpuSamples;
+            }
+
         public void setStatsActiveMillis(long cStatsActiveMillis)
             {
             m_cStatsActiveMillis = cStatsActiveMillis;
@@ -777,22 +993,34 @@ public class DaemonPoolIT
             m_cStatsTaskCount = cStatsTaskCount;
             }
 
-        protected int  m_cActiveDaemonCount;
-        protected long m_cScheduledMillis;
-        protected long m_cStatsActiveMillis;
-        protected long m_cStatsTaskCount;
-        protected long m_ldtStatsLastResetMillis;
-        protected long m_ldtStatsLastResizeMillis;
+        protected boolean m_fWorkloadAwareResizeEnabled;
+        protected int     m_cActiveAssociationCount;
+        protected int     m_cActiveDaemonCount;
+        protected int     m_cBacklog;
+        protected int     m_cWorkloadProcessorCount;
+        protected int     m_cWorkerCpuSamples;
+        protected long    m_cScheduledMillis;
+        protected long    m_cStatsActiveMillis;
+        protected long    m_cStatsTaskCount;
+        protected long    m_cWorkerCpuNanos = -1L;
+        protected long    m_ldtStatsLastResetMillis;
+        protected long    m_ldtStatsLastResizeMillis;
         }
 
     protected static class TestDaemonPool
             extends DaemonPool
         {
         @Override
-        protected void nudgeIdleDaemon(com.oracle.coherence.common.util.AssociationPile queueTarget)
+        public boolean isWorkloadAwareResizeEnabled()
+            {
+            return m_fWorkloadAwareResizeEnabled;
+            }
+
+        @Override
+        protected void nudgeIdleDaemon(DaemonPool.WorkSlot slotTarget)
             {
             m_cWakeupNudges++;
-            super.nudgeIdleDaemon(queueTarget);
+            super.nudgeIdleDaemon(slotTarget);
             }
 
         @Override
@@ -821,6 +1049,21 @@ public class DaemonPoolIT
         public int getWakeupNudgeCount()
             {
             return m_cWakeupNudges;
+            }
+
+        public boolean shouldNudgeIdleDaemon()
+            {
+            return super.shouldNudgeIdleDaemon();
+            }
+
+        public void setWorkerCpuRatio(double dflCpuRatio)
+            {
+            recordWorkloadSample(dflCpuRatio, 1, 0, 0);
+            }
+
+        public void setWorkloadAwareResizeEnabled(boolean fEnabled)
+            {
+            m_fWorkloadAwareResizeEnabled = fEnabled;
             }
 
         public boolean containsDaemon(DaemonPool.Daemon daemon)
@@ -942,6 +1185,8 @@ public class DaemonPoolIT
             }
 
         protected int m_cWakeupNudges;
+
+        protected boolean m_fWorkloadAwareResizeEnabled;
         protected volatile CountDownLatch m_latchStartTask;
         protected volatile CountDownLatch m_latchActivate;
         }

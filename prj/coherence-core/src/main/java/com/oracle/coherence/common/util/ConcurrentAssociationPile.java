@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -89,6 +89,10 @@ public class ConcurrentAssociationPile<T, A>
         if (value != null)
             {
             f_cValues.decrement();
+            if (isMetricsEnabled())
+                {
+                f_cValuesAvailable.decrement();
+                }
             }
 
         return value;
@@ -144,6 +148,48 @@ public class ConcurrentAssociationPile<T, A>
         return !f_queueAvailable.isEmpty() || !f_queueAvailablePriority.isEmpty();
         }
 
+    /**
+     * Return the approximate number of values that can currently be polled.
+     *
+     * @return the number of available values
+     */
+    public int getAvailableCount()
+        {
+        return isMetricsEnabled() ? Math.max(0, f_cValuesAvailable.intValue()) : -1;
+        }
+
+    /**
+     * Return the approximate number of queued values that are blocked by an
+     * association.
+     *
+     * @return the number of association-blocked values
+     */
+    public int getDeferredCount()
+        {
+        return isMetricsEnabled() ? Math.max(0, size() - getAvailableCount()) : -1;
+        }
+
+    /**
+     * Return the number of values that have been deferred behind an active
+     * association.
+     *
+     * @return the cumulative association deferral count
+     */
+    public long getDeferredAddCount()
+        {
+        return isMetricsEnabled() ? f_cDeferredAdds.sum() : -1L;
+        }
+
+    /**
+     * Return the approximate number of active associations.
+     *
+     * @return the active association count
+     */
+    public int getAssociationCount()
+        {
+        return f_mapQueueDeferred.size();
+        }
+
     // ---- MultiWaiterMultiNotifier interface ------------------------------
 
     @Override
@@ -177,6 +223,16 @@ public class ConcurrentAssociationPile<T, A>
     protected Node<T> makeNode(T value, long lPosition)
         {
         return new SimpleNode<>(value, lPosition);
+        }
+
+    /**
+     * Return whether association availability metrics are enabled.
+     *
+     * @return {@code true} if metrics are enabled
+     */
+    protected boolean isMetricsEnabled()
+        {
+        return METRICS_ENABLED;
         }
 
     /**
@@ -218,6 +274,11 @@ public class ConcurrentAssociationPile<T, A>
             f_queueAvailable.add(node.getValue());
             }
 
+        if (isMetricsEnabled())
+            {
+            f_cValuesAvailable.increment();
+            }
+
         signal(); // free if there are no threads waiting
 
         return true;
@@ -234,6 +295,10 @@ public class ConcurrentAssociationPile<T, A>
         {
         m_lPosAvailableLast = ++m_cAdds;
         f_queueAvailable.add(value);
+        if (isMetricsEnabled())
+            {
+            f_cValuesAvailable.increment();
+            }
 
         signal(); // free if there are no threads waiting
 
@@ -268,12 +333,20 @@ public class ConcurrentAssociationPile<T, A>
                     // pending release
                     m_lPosNextAll = lPos;
                     f_queueDeferredAlls.add(makeNode(valueAll, lPos));
+                    if (isMetricsEnabled())
+                        {
+                        f_cDeferredAdds.increment();
+                        }
                     f_cAssociatedPendingRelease.set(f_mapQueueDeferred.size()); // there must be this many associations pending release (semi-expensive but very rare)
                     }
                 }
             else // there are already ALL nodes, we can only come after them
                 {
                 f_queueDeferredAlls.add(makeNode(valueAll, lPos));
+                if (isMetricsEnabled())
+                    {
+                    f_cDeferredAdds.increment();
+                    }
                 }
             }
 
@@ -337,16 +410,29 @@ public class ConcurrentAssociationPile<T, A>
         boolean fNoAll = m_lPosNextAll == Long.MAX_VALUE; // stable since we hold read lock
         boolean fAdded = fNoAll && queue.add(node);
 
+        if (fAdded && isMetricsEnabled())
+            {
+            f_cDeferredAdds.increment();
+            }
+
         while (!fAdded)
             {
             queue  = f_mapQueueDeferred.putIfAbsent(key, EMPTY_QUEUE);
+            if (queue == null && fNoAll)
+                {
+                return addAvailable(value); // common path; direct add to available
+                }
+
             fAdded = queue == null
-                    ? fNoAll
-                        ? addAvailable(value) // common path; direct add to available
-                        : f_queueDeferredAlls.add(node)
+                    ? f_queueDeferredAlls.add(node)
                     : queue == EMPTY_QUEUE
                         ? f_mapQueueDeferred.replace(key, EMPTY_QUEUE, new CloseableQueue<>(node)) // defer via promotion to inflated queue
                         : queue.add(node); // defer to existing real queue
+
+            if (fAdded && isMetricsEnabled())
+                {
+                f_cDeferredAdds.increment();
+                }
             }
 
         return true;
@@ -620,6 +706,16 @@ public class ConcurrentAssociationPile<T, A>
     protected final LongAdder f_cValues = new LongAdder();
 
     /**
+     * The approximate number of values that can currently be polled.
+     */
+    protected final LongAdder f_cValuesAvailable = new LongAdder();
+
+    /**
+     * The cumulative number of values deferred behind active associations.
+     */
+    protected final LongAdder f_cDeferredAdds = new LongAdder();
+
+    /**
      * The number of values with non-null associations which are either pending release, i.e. available or polled.
      *
      * This is only maintained when there is a pending ALL node.
@@ -688,6 +784,12 @@ public class ConcurrentAssociationPile<T, A>
     protected static final int MAX_UNFAIRNESS_VARIANCE =
             Config.getInteger(ConcurrentAssociationPile.class.getCanonicalName() + ".maxVariance",
                               Runtime.getRuntime().availableProcessors() * 4);
+
+    /**
+     * Whether association availability metrics are enabled.
+     */
+    protected static final boolean METRICS_ENABLED =
+            Config.getBoolean("coherence.daemonpool.workload.metrics", false);
 
     /**
      * A type-safe permanently empty marker queue.
