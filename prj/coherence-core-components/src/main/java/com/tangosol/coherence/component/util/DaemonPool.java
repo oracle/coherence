@@ -1783,15 +1783,12 @@ public class DaemonPool
             m_cWorkloadGrowthSuppressions.increment();
             }
 
-        if (DaemonPool.ResizeTask.isDebug())
-            {
-            _trace(String.format("DaemonPool \"%s\": workload-aware growth decision "
-                    + "[Suppressed=%s, Size=%d, Processors=%d, Backlog=%d, "
-                    + "Associations=%d, WorkerCpuRatio=%.3f, Reason=%s]",
-                    getName(), fSuppressed, getDaemonCount(), m_cLastWorkloadProcessors,
-                    m_cLastWorkloadBacklog, m_cLastWorkloadAssociations,
-                    m_dflLastWorkerCpuRatio, sReason), 5);
-            }
+        _trace(String.format("DaemonPool \"%s\": workload-aware growth decision "
+                + "[Suppressed=%s, Size=%d, Processors=%d, Backlog=%d, "
+                + "Associations=%d, WorkerCpuRatio=%.3f, Reason=%s]",
+                getName(), fSuppressed, getDaemonCount(), m_cLastWorkloadProcessors,
+                m_cLastWorkloadBacklog, m_cLastWorkloadAssociations,
+                m_dflLastWorkerCpuRatio, sReason), 5);
         }
     
     // From interface: com.tangosol.internal.util.DaemonPool
