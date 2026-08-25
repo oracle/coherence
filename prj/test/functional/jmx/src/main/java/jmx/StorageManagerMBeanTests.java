@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -44,6 +44,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -349,6 +350,9 @@ public class StorageManagerMBeanTests
 
             for (ObjectName name : setObjectNames)
                 {
+                Eventually.assertDeferred(() -> getAttribute(server, name, "MaxQueryDescription"),
+                        notNullValue());
+
                 long   lMaxQueryDuration     = (long)   server.getAttribute(name, "MaxQueryDurationMillis");
                 String sAttributeDescription = (String) server.getAttribute(name, "MaxQueryDescription");
 
@@ -361,6 +365,22 @@ public class StorageManagerMBeanTests
                 assertTrue(sAttributeDescription.length() < cSize);
                 }
 
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Return an MBean attribute value, converting checked management failures
+     * so the read can be retried by an eventual assertion.
+     */
+    protected Object getAttribute(MBeanServer server, ObjectName name, String sAttribute)
+        {
+        try
+            {
+            return server.getAttribute(name, sAttribute);
             }
         catch (Exception e)
             {
