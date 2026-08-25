@@ -5214,7 +5214,11 @@ public class PartitionedCache
 
             if (!fMayWriteOnRead)
                 {
-                post(msgResponse);
+                // A direct read can still cause an ordinary expiry in the backing
+                // map. Finalize any resulting out-of-band events before responding
+                // so indexes, backups and listeners observe the removal atomically
+                // with the read.
+                processChanges(msgResponse);
                 }
             }
         finally
@@ -5350,7 +5354,11 @@ public class PartitionedCache
                 }
             else
                 {
-                post(msgResponse);
+                // A direct read can still cause an ordinary expiry in the backing
+                // map. Finalize any resulting out-of-band events before responding
+                // so indexes, backups and listeners observe the removal atomically
+                // with the read.
+                processChanges(msgResponse);
                 }
             }
         finally

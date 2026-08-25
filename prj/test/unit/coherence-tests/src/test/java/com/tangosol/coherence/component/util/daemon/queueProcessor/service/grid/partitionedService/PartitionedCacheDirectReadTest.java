@@ -69,7 +69,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(storage.getDirectCount(), is(1));
         assertThat(storage.getTrackedGetCount(), is(0));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         assertThat(service.getPinCount(), is(1));
         assertThat(service.getUnpinCount(), is(1));
         }
@@ -100,7 +100,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(authorizer.getLastReason(), is(StorageAccessAuthorizer.REASON_GET));
         assertThat(storage.getDirectCount(), is(1));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         }
 
     @Test
@@ -149,7 +149,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(storage.getAllDirectCount(), is(1));
         assertThat(storage.getTrackedGetAllCount(), is(0));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         assertThat(service.getPinCount(), is(2));
         assertThat(service.getUnpinPartitionSetCount(), is(1));
         }
@@ -185,7 +185,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(authorizer.getLastReason(), is(StorageAccessAuthorizer.REASON_GET));
         assertThat(storage.getAllDirectCount(), is(1));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         }
 
     @Test
@@ -230,7 +230,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(storage.getBackupGetCount(), is(1));
         assertThat(storage.getDirectCount(), is(0));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         }
 
     @Test
@@ -262,7 +262,7 @@ public class PartitionedCacheDirectReadTest
         assertThat(storage.getAllDirectCount(), is(1));
         assertThat(storage.getAllBackupCount(), is(1));
         assertThat(service.getEnsureInvocationContextCount(), is(0));
-        assertThat(service.getProcessChangesCount(), is(0));
+        assertThat(service.getProcessChangesCount(), is(1));
         assertThat(service.getPinCount(), is(1));
         assertThat(service.getUnpinPartitionSetCount(), is(1));
         }
