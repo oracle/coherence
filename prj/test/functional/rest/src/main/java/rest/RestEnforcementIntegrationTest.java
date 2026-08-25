@@ -469,6 +469,12 @@ public class RestEnforcementIntegrationTest
             {
             return new ConstructorSideEffectAggregator(getValueExtractor());
             }
+
+        @Override
+        public int characteristics()
+            {
+            return super.characteristics() | InvocableMap.StreamingAggregator.BY_MEMBER;
+            }
         }
 
     @Remote.Executable
