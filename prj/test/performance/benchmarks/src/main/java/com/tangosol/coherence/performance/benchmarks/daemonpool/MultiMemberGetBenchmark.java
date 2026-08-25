@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  * Read workloads for Phase 4 daemon-pool multi-member measurements.
  *
  * @author Aleks Seovic  2026.04.30
- * @since 26.04
+ * @since 26.07
  */
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
