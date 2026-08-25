@@ -159,8 +159,8 @@ public class ServiceModel
      * Property ThreadCountMax
      *
      * The maximum live worker thread count for platform-thread pools. For VDP,
-     * virtual threads are not capped by this value; use TaskLimit for the
-     * active-task cap.
+     * virtual threads are not capped by this value; use the VDP admission-limit
+     * attributes instead.
      */
     private transient int __m_ThreadCountMax;
     
@@ -1691,13 +1691,13 @@ public class ServiceModel
             return -1.0d;
             }
 
-        int cActive = pool.getActiveDaemonCount();
         if (pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool)
             {
-            int cTaskLimit = ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool).getTaskLimit();
-            return cTaskLimit > 0 ? (double) cActive / cTaskLimit : -1.0d;
+            return ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                    .getAdmissionSaturation();
             }
 
+        int cActive = pool.getActiveDaemonCount();
         int cMax = pool.getDaemonCountMax();
         return cMax > 0 ? (double) cActive / cMax : -1.0d;
         }
@@ -1706,8 +1706,9 @@ public class ServiceModel
     /**
      * Getter for property TaskBacklog.<p>
     * The size of the backlog queue that holds tasks scheduled to be executed
-    * by one of the service workers. For VDP this includes virtual threads
-    * parked behind TaskLimit.
+    * by one of the service workers. For VDP this includes work waiting behind
+    * any aggregate or targeted admission gate without double-counting keyed
+    * mailbox tasks.
      */
     public int getTaskBacklog()
         {
@@ -1734,7 +1735,8 @@ public class ServiceModel
     // Accessor for the property "TaskLimit"
     /**
      * Getter for property TaskLimit.<p>
-     * The maximum number of concurrently executing tasks for VDP-backed services.
+     * The optional aggregate limit on concurrently executing tasks for
+     * VDP-backed services.
      */
     public int getTaskLimit()
         {
@@ -1743,6 +1745,58 @@ public class ServiceModel
         DaemonPool pool = get_DaemonPool();
         return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
                 ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool).getTaskLimit()
+                : -1;
+        }
+
+    /**
+     * Return the maximum number of concurrently admitted keyed-mailbox
+     * drainers for a VDP-backed service, or {@code -1} for a platform pool.
+     */
+    public int getMailboxDrainerLimit()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getMailboxDrainerLimit()
+                : -1;
+        }
+
+    /**
+     * Return the number of currently admitted keyed-mailbox drainers for a
+     * VDP-backed service, or {@code -1} for a platform pool.
+     */
+    public int getMailboxDrainerActiveCount()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getMailboxDrainerActiveCount()
+                : -1;
+        }
+
+    /**
+     * Return the maximum number of concurrently admitted read-only tasks for
+     * a VDP-backed service, or {@code -1} for a platform pool.
+     */
+    public int getReadOnlyTaskLimit()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getReadOnlyTaskLimit()
+                : -1;
+        }
+
+    /**
+     * Return the number of currently admitted read-only tasks for a VDP-backed
+     * service, or {@code -1} for a platform pool.
+     */
+    public int getReadOnlyTaskActiveCount()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getReadOnlyTaskActiveCount()
                 : -1;
         }
     
@@ -1919,8 +1973,8 @@ public class ServiceModel
     /**
      * Getter for property ThreadCountMax.<p>
     * The maximum live worker thread count for platform-thread pools. For VDP,
-    * virtual threads are not capped by this value; use TaskLimit for the
-    * active-task cap.
+    * virtual threads are not capped by this value; use the VDP admission-limit
+    * attributes instead.
      */
     public int getThreadCountMax()
         {
@@ -2619,6 +2673,10 @@ public class ServiceModel
         mapSnapshot.put("TaskLimit", Integer.valueOf(-1));
         mapSnapshot.put("DaemonPoolType", "NONE");
         mapSnapshot.put("PoolSaturation", Double.valueOf(-1.0d));
+        mapSnapshot.put("MailboxDrainerLimit", Integer.valueOf(-1));
+        mapSnapshot.put("MailboxDrainerActiveCount", Integer.valueOf(-1));
+        mapSnapshot.put("ReadOnlyTaskLimit", Integer.valueOf(-1));
+        mapSnapshot.put("ReadOnlyTaskActiveCount", Integer.valueOf(-1));
 
         if (ExternalizableHelper.isVersionCompatible(in, 15, 1, 2, 0, 0))
             {
@@ -2627,6 +2685,10 @@ public class ServiceModel
                 mapSnapshot.put("TaskLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
                 mapSnapshot.put("DaemonPoolType", ExternalizableHelper.readSafeUTF(in));
                 mapSnapshot.put("PoolSaturation", Double.valueOf(in.readDouble()));
+                mapSnapshot.put("MailboxDrainerLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("MailboxDrainerActiveCount", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("ReadOnlyTaskLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("ReadOnlyTaskActiveCount", Integer.valueOf(ExternalizableHelper.readInt(in)));
                 }
             catch (java.io.EOFException ignored)
                 {
@@ -2830,7 +2892,8 @@ public class ServiceModel
     // Accessor for the property "TaskLimit"
     /**
      * Setter for property TaskLimit.<p>
-     * The maximum number of concurrently executing tasks for VDP-backed services.
+     * The optional aggregate limit on concurrently executing tasks for
+     * VDP-backed services.
      */
     public void setTaskLimit(int cTaskLimit)
         {
@@ -2891,8 +2954,8 @@ public class ServiceModel
     // Accessor for the property "ThreadCountMax"
     /**
      * Setter for property ThreadCountMax.<p>
-    * The maximum live worker thread count for platform-thread pools. For VDP,
-    * use TaskLimit instead.
+     * The maximum live worker thread count for platform-thread pools. For VDP,
+    * use the VDP admission-limit attributes instead.
      */
     public void setThreadCountMax(int nMax)
         {
@@ -3111,6 +3174,10 @@ public class ServiceModel
             ExternalizableHelper.writeInt(out, getTaskLimit());
             ExternalizableHelper.writeSafeUTF(out, getDaemonPoolType());
             out.writeDouble(getPoolSaturation());
+            ExternalizableHelper.writeInt(out, getMailboxDrainerLimit());
+            ExternalizableHelper.writeInt(out, getMailboxDrainerActiveCount());
+            ExternalizableHelper.writeInt(out, getReadOnlyTaskLimit());
+            ExternalizableHelper.writeInt(out, getReadOnlyTaskActiveCount());
             }
         }
     }

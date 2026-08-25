@@ -39,7 +39,9 @@ import com.tangosol.coherence.config.scheme.AbstractServiceScheme;
 import com.tangosol.coherence.config.scheme.BackingMapScheme;
 import com.tangosol.coherence.config.scheme.BackupMapConfig;
 import com.tangosol.coherence.config.scheme.CachingScheme;
+import com.tangosol.coherence.config.scheme.ClassScheme;
 import com.tangosol.coherence.config.scheme.ClusteredCachingScheme;
+import com.tangosol.coherence.config.scheme.CustomScheme;
 import com.tangosol.coherence.config.scheme.DistributedScheme;
 import com.tangosol.coherence.config.scheme.ExternalScheme;
 import com.tangosol.coherence.config.scheme.FlashJournalScheme;
@@ -50,6 +52,7 @@ import com.tangosol.coherence.config.scheme.ReadWriteBackingMapScheme;
 import com.tangosol.coherence.config.scheme.Scheme;
 import com.tangosol.coherence.config.scheme.ServiceScheme;
 import com.tangosol.coherence.config.scheme.TransactionalScheme;
+import com.tangosol.coherence.config.scheme.WrapperCachingScheme;
 
 import com.tangosol.coherence.config.xml.CacheConfigNamespaceHandler;
 
@@ -1922,6 +1925,59 @@ public class ExtensibleConfigurableCacheFactory
             DistributedScheme schemeDist = findDistributedScheme(sName);
             ParameterResolver resolver   = getResolver(sName);
             return schemeDist.getBackingMapScheme().isSlidingExpiry(resolver);
+            }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean mayWriteOnRead(String sName)
+            {
+            try
+                {
+                DistributedScheme schemeDist = findDistributedScheme(sName);
+                ParameterResolver resolver   = getResolver(sName);
+                BackingMapScheme  schemeMap  = schemeDist == null
+                        ? null : schemeDist.getBackingMapScheme();
+
+                if (schemeMap == null || schemeMap.isSlidingExpiry(resolver))
+                    {
+                    return true;
+                    }
+
+                return mayWriteOnRead(schemeMap.getInnerScheme());
+                }
+            catch (RuntimeException e)
+                {
+                return true;
+                }
+            }
+
+        /**
+         * Return true iff reads against the specified caching scheme may write
+         * cache state.
+         *
+         * @param scheme  the caching scheme
+         *
+         * @return true iff reads against the specified scheme may write
+         */
+        protected boolean mayWriteOnRead(CachingScheme scheme)
+            {
+            while (scheme instanceof WrapperCachingScheme)
+                {
+                scheme = ((WrapperCachingScheme) scheme).getCachingScheme();
+                }
+
+            if (scheme == null
+                    || scheme instanceof ReadWriteBackingMapScheme
+                    || scheme instanceof CustomScheme
+                    || scheme instanceof ClassScheme)
+                {
+                return true;
+                }
+
+            return !scheme.getClass().getName()
+                    .startsWith("com.tangosol.coherence.config.scheme.");
             }
 
         /**

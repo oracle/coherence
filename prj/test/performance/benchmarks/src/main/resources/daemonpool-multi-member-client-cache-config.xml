@@ -18,6 +18,18 @@
       <cache-name>benchmark-persistence</cache-name>
       <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
     </cache-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-get-plain</cache-name>
+      <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-get-rwbm</cache-name>
+      <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
+    </cache-mapping>
+    <cache-mapping>
+      <cache-name>benchmark-get-sliding</cache-name>
+      <scheme-name>benchmark-remote-${benchmark.daemonpool.client.transport extend}</scheme-name>
+    </cache-mapping>
   </caching-scheme-mapping>
 
   <caching-schemes>

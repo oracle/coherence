@@ -212,6 +212,14 @@ public class Storage
     private com.tangosol.util.ObservableMap __m_BackingMapInternal;
 
     /**
+     * Property MayWriteOnRead
+     *
+     * Cached tri-state for whether read-shaped operations may commit writes
+     * against this storage. -1 means unknown, 0 means false, 1 means true.
+     */
+    private volatile transient int __m_MayWriteOnRead;
+
+    /**
      * Property BackupKeyListenerMap
      *
      * A map of backups for key based listener proxies.
@@ -863,6 +871,7 @@ public class Storage
         try
             {
             __m_PotentiallyEvicting = false;
+            __m_MayWriteOnRead      = -1;
             }
         catch (java.lang.Exception e)
             {
@@ -3247,6 +3256,29 @@ public class Storage
             */
         }
 
+    /**
+     * Lock-free read path for storages where {@link #mayWriteOnRead()} returns
+     * false. The caller is responsible for confirming the predicate before
+     * calling this method.
+     * <p>
+     * Assumes {@code BackingMapInternal.get()} is safe to call concurrently.
+     * Coherence's standard backing maps ({@code SafeHashMap},
+     * {@code LocalCache}, {@code ReadWriteBackingMap}) all satisfy this;
+     * custom backing maps must as well.
+     *
+     * @param binKey  the binary key to read
+     *
+     * @return the binary value, or null if no mapping exists
+     */
+    public com.tangosol.util.Binary getDirect(com.tangosol.util.Binary binKey)
+        {
+        // import com.tangosol.util.Binary;
+
+        assert !mayWriteOnRead();
+
+        return (Binary) getBackingMapInternal().get(binKey);
+        }
+
     // Accessor for the property "AccessAuthorizer"
     /**
      * Getter for property AccessAuthorizer.<p>
@@ -3319,6 +3351,53 @@ public class Storage
         if (fRWBM || isExpirySliding())
             {
             ctxInvoke.postInvoke(); // this commits all entries enlisted with the InvocationContext
+            }
+
+        return mapResult;
+        }
+
+    /**
+     * Lock-free multi-key read path for storages where
+     * {@link #mayWriteOnRead()} returns false. The caller is responsible for
+     * confirming the predicate before calling this method.
+     * <p>
+     * Assumes {@code BackingMapInternal.get()} is safe to call concurrently.
+     * Coherence's standard backing maps ({@code SafeHashMap},
+     * {@code LocalCache}, {@code ReadWriteBackingMap}) all satisfy this;
+     * custom backing maps must as well.
+     *
+     * @param colKeys  the binary keys to read
+     *
+     * @return a map of binary keys to binary values
+     */
+    public java.util.Map getAllDirect(java.util.Collection colKeys)
+        {
+        // import com.tangosol.net.cache.CacheMap;
+        // import com.tangosol.util.Binary;
+        // import java.util.HashMap;
+        // import java.util.Iterator;
+        // import java.util.Map;
+
+        assert !mayWriteOnRead();
+
+        Map mapPrime = getBackingMapInternal();
+
+        if (mapPrime instanceof CacheMap)
+            {
+            return ((CacheMap) mapPrime).getAll(colKeys);
+            }
+
+        Map mapResult = new HashMap(colKeys.size());
+
+        for (Iterator iter = colKeys.iterator(); iter.hasNext(); )
+            {
+            Binary binKey = (Binary) iter.next();
+            Binary binVal = (Binary) mapPrime.get(binKey);
+
+            if (binVal != null)
+                {
+                mapResult.put(binKey, binVal);
+                }
             }
 
         return mapResult;
@@ -5949,6 +6028,28 @@ public class Storage
     public boolean isIndexed()
         {
         return !getIndexExtractorMap().isEmpty();
+        }
+
+    /**
+     * Return true iff read-shaped operations against this storage can commit
+     * cache state changes.
+     * <p>
+     * Cached lazily; assumes {@code BackingMapInternal} type and
+     * {@code ExpirySliding} are stable post-init.
+     */
+    public boolean mayWriteOnRead()
+        {
+        // import com.tangosol.net.cache.ReadWriteBackingMap;
+
+        int nMayWrite = __m_MayWriteOnRead;
+        if (nMayWrite < 0)
+            {
+            nMayWrite = getBackingMapInternal() instanceof ReadWriteBackingMap || isExpirySliding()
+                    ? 1 : 0;
+            __m_MayWriteOnRead = nMayWrite;
+            }
+
+        return nMayWrite == 1;
         }
 
     // Accessor for the property "InternBackupKeys"

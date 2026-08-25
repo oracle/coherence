@@ -23,6 +23,8 @@ import com.oracle.coherence.common.util.MemorySize;
 
 import com.tangosol.coherence.config.Config;
 
+import com.tangosol.internal.util.VirtualThreads;
+
 import java.io.IOException;
 import java.io.DataInput;
 import java.nio.ByteBuffer;
@@ -945,7 +947,18 @@ public class SocketMessageBus
             }
 
         /**
-         * Prepare a message header using a ThreadLocal slab.
+         * Prepare a message header using a ThreadLocal slab for platform
+         * threads, or a right-sized heap buffer for virtual threads.
+         * <p>
+         * A slab is a useful amortization for long-lived platform producers,
+         * but is actively harmful for thread-per-task virtual producers: every
+         * virtual thread that sends a message would otherwise retain an entire
+         * direct slab until that thread is collected. At high request rates
+         * that can exhaust direct memory and force repeated {@code System.gc()}
+         * cycles merely to reclaim terminated virtual threads and their slabs.
+         * A message header is only 4 or 16 bytes and remains valid as a heap
+         * buffer throughout the asynchronous write path, so allocating it
+         * directly is both bounded and cheaper for short-lived virtual threads.
          *
          * @param bufseq  the message body
          *
@@ -961,19 +974,28 @@ public class SocketMessageBus
                 }
 
             int        cbHeader = getMessageHeaderSize();
-            ByteBuffer slab     = TL_HEADER.get();
+            ByteBuffer header;
 
-            if (slab.remaining() < cbHeader)
+            if (VirtualThreads.isVirtual(Thread.currentThread()))
                 {
-                slab = ByteBuffer.allocateDirect(Math.max(HEADER_SLAB_BYTES, cbHeader));
-                TL_HEADER.set(slab);
-                ++m_cHeaderSlabAllocs;
+                header = ByteBuffer.allocate(cbHeader);
                 }
+            else
+                {
+                ByteBuffer slab = TL_HEADER.get();
 
-            int        nSlabPos = slab.position();
-            ByteBuffer header   = slab.slice();
-            header.limit(cbHeader);
-            slab.position(nSlabPos + cbHeader);
+                if (slab.remaining() < cbHeader)
+                    {
+                    slab = ByteBuffer.allocateDirect(Math.max(HEADER_SLAB_BYTES, cbHeader));
+                    TL_HEADER.set(slab);
+                    ++m_cHeaderSlabAllocs;
+                    }
+
+                int nSlabPos = slab.position();
+                header = slab.slice();
+                header.limit(cbHeader);
+                slab.position(nSlabPos + cbHeader);
+                }
 
             int  nPos   = header.position();
 

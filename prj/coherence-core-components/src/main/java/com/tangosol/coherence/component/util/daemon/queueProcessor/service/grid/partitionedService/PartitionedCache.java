@@ -970,8 +970,6 @@ public class PartitionedCache
         // import com.tangosol.net.CacheService$CacheAction as com.tangosol.net.CacheService.CacheAction;
         // import com.tangosol.net.RequestPolicyException;
 
-        fReadOnly = isQuorumReadOnly(msg, fReadOnly);
-
         ActionPolicy policy = getActionPolicy();
         if (!policy.isAllowed(this, fReadOnly
                 ? com.tangosol.net.CacheService.CacheAction.READ
@@ -982,17 +980,6 @@ public class PartitionedCache
             }
         }
 
-    /**
-     * Return true iff the request should be checked as a read action by the
-     * cache quorum policy.
-     */
-    protected boolean isQuorumReadOnly(com.tangosol.coherence.component.net.message.RequestMessage msg, boolean fReadOnly)
-        {
-        return fReadOnly
-                || msg instanceof PartitionedCache.GetRequest
-                || msg instanceof PartitionedCache.GetAllRequest;
-        }
-    
     /**
      * Remove current and all remaining elements of the specified iterator.
      */
@@ -3407,6 +3394,22 @@ public class PartitionedCache
             return storage != null && sCacheName.equals(storage.getCacheName()) ? storage : null;
             }
         }
+
+    /**
+     * Return true iff read-shaped operations for the specified cache id cannot
+     * commit cache state changes.
+     */
+    protected boolean isReadOnlyStorage(long lCacheId)
+        {
+        Storage storage = getStorage(lCacheId);
+        if (storage != null)
+            {
+            return !storage.mayWriteOnRead();
+            }
+
+        BinaryMap mapBinary = (BinaryMap) getBinaryMapArray().get(lCacheId);
+        return mapBinary != null && !mapBinary.mayWriteOnRead();
+        }
     
     // Accessor for the property "StorageArray"
     /**
@@ -5029,7 +5032,8 @@ public class PartitionedCache
         PartitionSet partsPinned   = instantiatePartitionSet(/*fFill*/ false);
         PartitionSet partsRejected = null;
         boolean      fBackupRead   = !msgRequest.isCoherentResult();
-        PartitionedCache.InvocationContext ctxInvoke;
+        boolean      fMayWriteOnRead = storage.mayWriteOnRead();
+        PartitionedCache.InvocationContext ctxInvoke = null;
 
         try
             {
@@ -5069,8 +5073,15 @@ public class PartitionedCache
                 colKeys = acol.length == 1 ? acol[0] : new ChainedCollection(acol);
                 }
 
-            // lock all keys for primary partitions
-            ctxInvoke = ensureInvocationContext();
+            if (fMayWriteOnRead)
+                {
+                // lock all keys for primary partitions only when reads can write.
+                // plain-cache direct reads skip EntryStatus enlistment here, but
+                // Get*Request routing remains keyed until the final Phase 4
+                // isReadOnly() activation. After that, backing maps must honor the
+                // Storage.getDirect() concurrent-read contract.
+                ctxInvoke = ensureInvocationContext();
+                }
             }
         catch (RuntimeException | Error e)
             {
@@ -5084,43 +5095,52 @@ public class PartitionedCache
                 }
             throw e;
             }
-
         try
             {
-            while (true)
+            if (fMayWriteOnRead)
                 {
-                Iterator iterKeys = fBackupRead && partsPinned.isEmpty()
-                            ? NullImplementation.getIterator() : colKeys.iterator();
-                try
+                while (true)
                     {
-                    while (iterKeys.hasNext())
+                    Iterator iterKeys = fBackupRead && partsPinned.isEmpty()
+                                ? NullImplementation.getIterator() : colKeys.iterator();
+                    try
                         {
-                        // lock all the keys in the getAll request and prepare 
-                        ctxInvoke.lockEntry(storage, (Binary) iterKeys.next(), /*fEnter*/ false);
+                        while (iterKeys.hasNext())
+                            {
+                            // lock all the keys in the getAll request and prepare
+                            ctxInvoke.lockEntry(storage, (Binary) iterKeys.next(), /*fEnter*/ false);
+                            }
+
+                        break; // user-space request complete
                         }
-        
-                    break; // user-space request complete
+                    catch (LockContentionException e)
+                        {
+                        // this request was involved in a deadlock; release acquired
+                        // locks allowing the winning thread to acquire all locks and
+                        // subsequently re-request the locks
+                        ctxInvoke.rollback(e, msgRequest);
+                        }
                     }
-                catch (LockContentionException e)
-                    {
-                    // this request was involved in a deadlock; release acquired
-                    // locks allowing the winning thread to acquire all locks and
-                    // subsequently re-request the locks
-                    ctxInvoke.rollback(e, msgRequest);
-                    }
+
+                ctxInvoke.getPrePinnedPartitions().add(partsPinned);
+
+                ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
+                    Storage.BinaryEntry.ACCESS_READ_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
                 }
-        
-            ctxInvoke.getPrePinnedPartitions().add(partsPinned);
-        
-            ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
-                Storage.BinaryEntry.ACCESS_READ_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
+            else
+                {
+                storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
+                    com.tangosol.net.security.StorageAccessAuthorizer.REASON_GET);
+                }
         
             Map mapResult = Collections.emptyMap();
         
             // get data from primary
             if (!partsPinned.isEmpty())
                 {
-                mapResult = storage.getAll(ctxInvoke, colKeys);
+                mapResult = fMayWriteOnRead
+                        ? storage.getAll(ctxInvoke, colKeys)
+                        : storage.getAllDirect(colKeys);
                 }
         
             // less common case of backup read
@@ -5181,17 +5201,32 @@ public class PartitionedCache
             //            invoking an interruptible method
             GuardSupport.reset();
         
-            // even if there was an exception, we need to backup potential changes
-            // (synthetic inserts caused by read-through)
-            processChanges(null, null, msgRequest.getCacheId(),
-                    ctxInvoke.getEntryStatuses(),
-                    instantiateBatchContext(msgResponse));
+            if (fMayWriteOnRead)
+                {
+                // even if there was an exception, we need to backup potential changes
+                // (synthetic inserts caused by read-through)
+                processChanges(null, null, msgRequest.getCacheId(),
+                        ctxInvoke.getEntryStatuses(),
+                        instantiateBatchContext(msgResponse));
+                }
         
             msgRequest.setProcessedPartitions(partsPinned);
+
+            if (!fMayWriteOnRead)
+                {
+                post(msgResponse);
+                }
             }
         finally
             {
-            releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+            if (fMayWriteOnRead)
+                {
+                releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
+                }
+            else
+                {
+                unpinPartitions(partsPinned);
+                }
             }
         }
     
@@ -5216,34 +5251,59 @@ public class PartitionedCache
             return;
             }
         
-        PartitionedCache.InvocationContext ctxInvoke = ensureInvocationContext();
         com.tangosol.coherence.component.net.RequestContext            context   = msgRequest.getRequestContext();
         Binary             binKey    = msgRequest.getKey();
         Storage.EntryStatus       status    = null;
         
         int     iPart   = getKeyPartition(binKey);
         boolean fBackup = !msgRequest.isCoherentResult() && isBackupOwner(iPart);
+        boolean fMayWriteOnRead = storage.mayWriteOnRead();
+        PartitionedCache.InvocationContext ctxInvoke = fMayWriteOnRead ? ensureInvocationContext() : null;
         try
             {
             // Note: we need to lock the key prior to get(), as our get() is
             //       a mutation as it can cause a read-through insertion
-            status = fBackup ? null : ctxInvoke.lockEntry(storage, binKey, isConcurrent());
+            status = fBackup || !fMayWriteOnRead ? null : ctxInvoke.lockEntry(storage, binKey, isConcurrent());
         
             Binary binValue = Binary.NO_BINARY;
         
             while (binValue == Binary.NO_BINARY ||
-                   status == null && !fBackup)
+                   status == null && !fBackup && fMayWriteOnRead)
                 {
-                if (status == null && !fBackup)
+                if (status == null && !fBackup && fMayWriteOnRead)
                     {
                     msgResponse.setResult(PartitionedCache.Response.RESULT_RETRY);
                     post(msgResponse);
                     return;
                     }
         
-                binValue = fBackup
-                        ? storage.getFromBackup(binKey)
-                        : storage.get(ctxInvoke, status, binKey);
+                if (fBackup)
+                    {
+                    binValue = storage.getFromBackup(binKey);
+                    }
+                else if (fMayWriteOnRead)
+                    {
+                    binValue = storage.get(ctxInvoke, status, binKey);
+                    }
+                else
+                    {
+                    boolean fEntered = pinOwnedPartition(iPart);
+                    if (!fEntered)
+                        {
+                        msgResponse.setResult(PartitionedCache.Response.RESULT_RETRY);
+                        post(msgResponse);
+                        return;
+                        }
+
+                    try
+                        {
+                        binValue = storage.getDirect(binKey);
+                        }
+                    finally
+                        {
+                        unpinPartition(iPart);
+                        }
+                    }
         
                 fBackup &= isBackupOwner(iPart);
                 }
@@ -5273,22 +5333,32 @@ public class PartitionedCache
             //            invoking an interruptible method
             GuardSupport.reset();
         
-            Collection colStatus = ctxInvoke.getEntryStatuses();
-            if (colStatus.size() == 1)
+            if (fMayWriteOnRead)
                 {
-                // optimized single-entry path
-                processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                Collection colStatus = ctxInvoke.getEntryStatuses();
+                if (colStatus.size() == 1)
+                    {
+                    // optimized single-entry path
+                    processChanges(context, binKey, status, msgRequest.getCacheId(), msgResponse);
+                    }
+                else
+                    {
+                    // a rare scenario of other entries enlisted by the get operation
+                    processChanges(context, null, msgRequest.getCacheId(), colStatus,
+                            instantiateBatchContext(msgResponse));
+                    }
                 }
             else
                 {
-                // a rare scenario of other entries enlisted by the get operation
-                processChanges(context, null, msgRequest.getCacheId(), colStatus,
-                        instantiateBatchContext(msgResponse));
+                post(msgResponse);
                 }
             }
         finally
             {
-            releaseInvocationContext(ctxInvoke);
+            if (fMayWriteOnRead)
+                {
+                releaseInvocationContext(ctxInvoke);
+                }
             }
         }
     
@@ -22652,11 +22722,11 @@ public class PartitionedCache
             }
 
         // Declared at the super level
-        // Phase 1 keeps associated gets on the keyed-mailbox path until
-        // the direct read-only dispatch rules are implemented.
         public boolean isReadOnly()
             {
-            return false;
+            Grid    service = getService();
+            return service instanceof PartitionedCache
+                    && ((PartitionedCache) service).isReadOnlyStorage(getCacheId());
             }
 
         // Declared at the super level
@@ -23031,13 +23101,11 @@ public class PartitionedCache
             }
 
         // Declared at the super level
-        /**
-         * Phase 1 keeps associated gets on the keyed-mailbox path until the
-         * direct read-only dispatch rules are implemented.
-         */
         public boolean isReadOnly()
             {
-            return false;
+            Grid    service = getService();
+            return service instanceof PartitionedCache
+                    && ((PartitionedCache) service).isReadOnlyStorage(getCacheId());
             }
         
         // Declared at the super level

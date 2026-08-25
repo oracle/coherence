@@ -25,6 +25,7 @@ import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.net.ActionPolicy;
+import com.tangosol.net.BackingMapManager;
 import com.tangosol.net.Member;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.RequestIncompleteException;
@@ -139,6 +140,14 @@ public class BinaryMap
      *
      */
     private transient com.tangosol.util.MapListenerSupport __m_ListenerSupport;
+
+    /**
+     * Property MayWriteOnRead
+     *
+     * Tri-state cache of BackingMapManager.mayWriteOnRead(CacheName):
+     * -1 unknown, 0 false, 1 true.
+     */
+    private volatile transient int __m_MayWriteOnRead = -1;
 
     /**
      * Property ReadLocator
@@ -1907,6 +1916,26 @@ public class BinaryMap
     public com.tangosol.util.MapListenerSupport getListenerSupport()
         {
         return __m_ListenerSupport;
+        }
+
+    /**
+     * Return true iff a read operation against this cache may write cache
+     * state.
+     */
+    public boolean mayWriteOnRead()
+        {
+        int nMayWrite = __m_MayWriteOnRead;
+        if (nMayWrite < 0)
+            {
+            BackingMapManager manager = getService().getBackingMapManager();
+            boolean           fWrite  = manager == null
+                    || manager.mayWriteOnRead(getCacheName());
+
+            nMayWrite = fWrite ? 1 : 0;
+            __m_MayWriteOnRead = nMayWrite;
+            }
+
+        return nMayWrite == 1;
         }
 
     /**
@@ -4459,6 +4488,7 @@ public class BinaryMap
     public void setCacheName(String sCacheName)
         {
         __m_CacheName = (sCacheName);
+        __m_MayWriteOnRead = -1;
 
         try
             {

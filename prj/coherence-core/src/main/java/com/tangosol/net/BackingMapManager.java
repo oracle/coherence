@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
@@ -132,6 +132,24 @@ public interface BackingMapManager
      *         enables the sliding expiry
      */
     public boolean isBackingMapSlidingExpiry(String sName);
+
+    /**
+     * Determine if a read operation against the backing map for the specified
+     * NamedCache may write cache state as part of servicing the read.
+     * <p>
+     * The default implementation is conservative because custom managers may
+     * hide read-through, expiry-refresh, or other read-side mutation behavior.
+     * Implementations that can prove their read path is non-mutating should
+     * override this method and return {@code false}.
+     *
+     * @param sName  the name of the NamedCache
+     *
+     * @return true if a read operation may write cache state
+     */
+    public default boolean mayWriteOnRead(String sName)
+        {
+        return true;
+        }
 
     /**
      * Determine the {@link StorageAccessAuthorizer} that is used by a

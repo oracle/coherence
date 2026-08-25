@@ -4262,6 +4262,32 @@ public class DefaultConfigurableCacheFactory
         /**
         * {@inheritDoc}
         */
+        @Override
+        public boolean mayWriteOnRead(String sName)
+            {
+            try
+                {
+                CacheInfo  infoCache  = findSchemeMapping(sName);
+                XmlElement xmlScheme  = resolveScheme(infoCache);
+                XmlElement xmlParent  = xmlScheme == null
+                        ? null : xmlScheme.findElement("backing-map-scheme");
+                XmlElement xmlSliding = xmlParent == null
+                        ? null : xmlParent.getElement("sliding-expiry");
+                XmlElement xmlBacking = resolveBackingMapScheme(infoCache, xmlScheme);
+
+                return xmlSliding != null && xmlSliding.getBoolean()
+                        || xmlBacking == null
+                        || "read-write-backing-map-scheme".equals(xmlBacking.getName());
+                }
+            catch (RuntimeException e)
+                {
+                return true;
+                }
+            }
+
+        /**
+        * {@inheritDoc}
+        */
         public StorageAccessAuthorizer getStorageAccessAuthorizer(String sName)
             {
             return null;

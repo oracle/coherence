@@ -13,6 +13,7 @@ import com.tangosol.coherence.component.net.message.RequestMessage;
 import com.tangosol.coherence.component.net.management.model.localModel.ServiceModel;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
 import com.tangosol.internal.util.VirtualThreads;
@@ -22,9 +23,12 @@ import com.tangosol.net.Guardable;
 import com.tangosol.net.Guardian;
 import com.tangosol.net.PriorityTask;
 import com.tangosol.net.cache.KeyAssociation;
+import com.tangosol.net.cache.LocalCache;
 
 import com.tangosol.util.ExternalizableHelper;
+import com.tangosol.util.SafeHashMap;
 
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
@@ -388,6 +392,12 @@ public class VirtualDaemonPoolComponentTest
 
         assertThat(model.getDaemonPoolType(), is("VIRTUAL"));
         assertThat(model.getTaskLimit(), is(10));
+        assertThat(model.getMailboxDrainerLimit(),
+                is(Math.max(1, Runtime.getRuntime().availableProcessors() * 2)));
+        assertThat(model.getMailboxDrainerActiveCount(), is(0));
+        assertThat(model.getReadOnlyTaskLimit(),
+                is(Math.max(1, Runtime.getRuntime().availableProcessors() * 2)));
+        assertThat(model.getReadOnlyTaskActiveCount(), is(0));
         }
 
     @Test
@@ -402,6 +412,10 @@ public class VirtualDaemonPoolComponentTest
 
             assertThat(model.getDaemonPoolType(), is("PLATFORM"));
             assertThat(model.getTaskLimit(), is(-1));
+            assertThat(model.getMailboxDrainerLimit(), is(-1));
+            assertThat(model.getMailboxDrainerActiveCount(), is(-1));
+            assertThat(model.getReadOnlyTaskLimit(), is(-1));
+            assertThat(model.getReadOnlyTaskActiveCount(), is(-1));
 
             model.setTaskLimit(99);
 
@@ -501,11 +515,11 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
-    public void shouldReportNegativeOneForUnboundedVdpPoolSaturation()
+    public void shouldReportTargetedAdmissionSaturationForUnboundedVdp()
         {
         TestServiceModel model = new TestServiceModel("UnboundedVirtualSaturationTest", m_pool);
 
-        assertThat(model.getPoolSaturation(), is(-1.0d));
+        assertThat(model.getPoolSaturation(), is(0.0d));
         }
 
     @Test
@@ -1095,7 +1109,68 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
-    public void shouldKeepAssociatedReadOnlyRequestsOnKeyedMailbox()
+    public void shouldDirectDispatchPlainGetRequestsThroughReadOnlyClassification()
+            throws Exception
+        {
+        AtomicInteger             active     = new AtomicInteger();
+        AtomicInteger             maxActive  = new AtomicInteger();
+        ReadClassificationService service    = new ReadClassificationService(false);
+        BlockingGetRequest        taskFirst  = new BlockingGetRequest(17L, "alpha", active, maxActive);
+        BlockingGetRequest        taskSecond = new BlockingGetRequest(17L, "alpha", active, maxActive);
+
+        taskFirst.setService(service);
+        taskSecond.setService(service);
+
+        m_pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+
+        m_pool.add(taskSecond);
+        assertTrue(taskSecond.awaitStarted());
+        assertTrue(maxActive.get() >= 2);
+        assertThat(VirtualThreads.isVirtual(taskFirst.getThread()), is(true));
+        assertThat(VirtualThreads.isVirtual(taskSecond.getThread()), is(true));
+        assertThreadNameMatches(taskFirst.getThread().getName(), "^.*:D:BlockingGet:[0-9A-F]{8}$");
+        assertThreadNameMatches(taskSecond.getThread().getName(), "^.*:D:BlockingGet:[0-9A-F]{8}$");
+
+        taskFirst.release();
+        assertTrue(taskFirst.awaitDone());
+
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+        }
+
+    @Test
+    public void shouldKeepWriteCapableGetRequestsOnKeyedMailbox()
+            throws Exception
+        {
+        AtomicInteger             active     = new AtomicInteger();
+        AtomicInteger             maxActive  = new AtomicInteger();
+        ReadClassificationService service    = new ReadClassificationService(true);
+        BlockingGetRequest        taskFirst  = new BlockingGetRequest(17L, "alpha", active, maxActive);
+        BlockingGetRequest        taskSecond = new BlockingGetRequest(17L, "alpha", active, maxActive);
+
+        taskFirst.setService(service);
+        taskSecond.setService(service);
+
+        m_pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+
+        m_pool.add(taskSecond);
+        assertFalse(taskSecond.awaitStarted(200));
+
+        taskFirst.release();
+        assertTrue(taskFirst.awaitDone());
+        assertTrue(taskSecond.awaitStarted());
+        assertThreadNameMatches(taskFirst.getThread().getName(), "^.*:M:[0-9A-F]{8}:BlockingGet:[0-9A-F]{8}$");
+        assertThreadNameMatches(taskSecond.getThread().getName(), "^.*:M:[0-9A-F]{8}:BlockingGet:[0-9A-F]{8}$");
+
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+        assertThat(maxActive.get(), is(1));
+        }
+
+    @Test
+    public void shouldDirectDispatchAssociatedReadOnlyRequests()
             throws Exception
         {
         AtomicInteger          active     = new AtomicInteger();
@@ -1107,15 +1182,344 @@ public class VirtualDaemonPoolComponentTest
         assertTrue(taskFirst.awaitStarted());
 
         m_pool.add(taskSecond);
+        assertTrue(taskSecond.awaitStarted());
+        assertTrue(maxActive.get() >= 2);
+        assertThreadNameMatches(taskFirst.getThreadName(), "^.*:D:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+        assertThreadNameMatches(taskSecond.getThreadName(), "^.*:D:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+
+        taskFirst.release();
+        assertTrue(taskFirst.awaitDone());
+
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+        }
+
+    @Test
+    public void shouldDefaultReadOnlyTaskLimitToTwiceAvailableProcessors()
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        m_pool = pool;
+        m_pool.start();
+
+        int cExpected = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+        assertThat(pool.getReadOnlyTaskLimitForTest(), is(cExpected));
+        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(cExpected));
+        }
+
+    @Test
+    public void shouldDefaultMailboxDrainerLimitToTwiceAvailableProcessors()
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        m_pool = pool;
+        m_pool.start();
+
+        int cExpected = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+        assertThat(pool.getMailboxDrainerLimitForTest(), is(cExpected));
+        assertThat(pool.getAvailableMailboxDrainerPermitsForTest(), is(cExpected));
+        }
+
+    @Test
+    public void shouldHonorConfiguredReadOnlyTaskLimitAfterComponentRegistrationReset()
+        {
+        String sProperty = "coherence.daemonpool.virtual.readOnlyTaskLimit";
+        String sPrevious = System.getProperty(sProperty);
+
+        try
+            {
+            System.setProperty(sProperty, "3");
+            m_pool.stop();
+
+            TestVirtualDaemonPool pool = createControlledPool(0);
+            // Model the primitive-property reset performed when a newly added
+            // child is registered with a generated component.
+            pool.setReadOnlyTaskLimitForTest(0);
+            m_pool = pool;
+            m_pool.start();
+
+            assertThat(pool.getReadOnlyTaskLimitForTest(), is(3));
+            assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(3));
+            }
+        finally
+            {
+            if (sPrevious == null)
+                {
+                System.clearProperty(sProperty);
+                }
+            else
+                {
+                System.setProperty(sProperty, sPrevious);
+                }
+            }
+        }
+
+    @Test
+    public void shouldHonorConfiguredMailboxDrainerLimitAfterComponentRegistrationReset()
+        {
+        String sProperty = "coherence.daemonpool.virtual.mailboxDrainerLimit";
+        String sPrevious = System.getProperty(sProperty);
+
+        try
+            {
+            System.setProperty(sProperty, "3");
+            m_pool.stop();
+
+            TestVirtualDaemonPool pool = createControlledPool(0);
+            pool.setMailboxDrainerLimitForTest(0);
+            m_pool = pool;
+            m_pool.start();
+
+            assertThat(pool.getMailboxDrainerLimitForTest(), is(3));
+            assertThat(pool.getAvailableMailboxDrainerPermitsForTest(), is(3));
+            }
+        finally
+            {
+            if (sPrevious == null)
+                {
+                System.clearProperty(sProperty);
+                }
+            else
+                {
+                System.setProperty(sProperty, sPrevious);
+                }
+            }
+        }
+
+    @Test
+    public void shouldLimitAssociatedReadOnlyConcurrencyWithoutLimitingOtherDirectWork()
+            throws Exception
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        pool.setReadOnlyTaskLimitForTest(1);
+        m_pool = pool;
+        m_pool.start();
+
+        AtomicInteger          readActive   = new AtomicInteger();
+        AtomicInteger          readMax      = new AtomicInteger();
+        AtomicInteger          directActive = new AtomicInteger();
+        AtomicInteger          directMax    = new AtomicInteger();
+        ReadOnlyAssociatedTask taskFirst    = new ReadOnlyAssociatedTask(1, readActive, readMax);
+        ReadOnlyAssociatedTask taskSecond   = new ReadOnlyAssociatedTask(2, readActive, readMax);
+        BlockingTask           taskDirect   = new BlockingTask(null, directActive, directMax);
+
+        m_pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+        TestServiceModel model = new TestServiceModel("ReadOnlyAdmissionMBeanTest", m_pool);
+
+        assertThat(model.getReadOnlyTaskLimit(), is(1));
+        assertThat(model.getReadOnlyTaskActiveCount(), is(1));
+        assertThat(model.getPoolSaturation(), is(1.0d));
+
+        m_pool.add(taskSecond);
         assertFalse(taskSecond.awaitStarted(200));
+
+        // The read-only gate is deliberately narrower than the pool-wide
+        // TaskLimit, so unrelated and potentially blocking direct work keeps
+        // the scalability benefit of virtual threads.
+        m_pool.add(taskDirect);
+        assertTrue(taskDirect.awaitStarted());
+        taskDirect.release();
+        assertTrue(taskDirect.awaitDone());
 
         taskFirst.release();
         assertTrue(taskFirst.awaitDone());
         assertTrue(taskSecond.awaitStarted());
-
         taskSecond.release();
         assertTrue(taskSecond.awaitDone());
-        assertThat(maxActive.get(), is(1));
+
+        assertThat(readMax.get(), is(1));
+        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(1));
+        }
+
+    @Test
+    public void shouldLimitDirectReadOnlyConcurrencyWithoutLimitingBlockingDirectWork()
+            throws Exception
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        pool.setReadOnlyTaskLimitForTest(1);
+        m_pool = pool;
+        m_pool.start();
+
+        AtomicInteger          readActive   = new AtomicInteger();
+        AtomicInteger          readMax      = new AtomicInteger();
+        AtomicInteger          directActive = new AtomicInteger();
+        AtomicInteger          directMax    = new AtomicInteger();
+        ReadOnlyAssociatedTask taskFirst    = new ReadOnlyAssociatedTask(null, readActive, readMax);
+        ReadOnlyAssociatedTask taskSecond   = new ReadOnlyAssociatedTask(null, readActive, readMax);
+        BlockingTask           taskDirect   = new BlockingTask(null, directActive, directMax);
+
+        m_pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+
+        m_pool.add(taskSecond);
+        assertFalse(taskSecond.awaitStarted(200));
+
+        m_pool.add(taskDirect);
+        assertTrue(taskDirect.awaitStarted());
+        taskDirect.release();
+        assertTrue(taskDirect.awaitDone());
+
+        taskFirst.release();
+        assertTrue(taskFirst.awaitDone());
+        assertTrue(taskSecond.awaitStarted());
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+
+        assertThat(readMax.get(), is(1));
+        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(1));
+        }
+
+    @Test
+    public void shouldLimitMailboxDrainersWithoutLimitingDirectWork()
+            throws Exception
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        pool.setMailboxDrainerLimitForTest(1);
+        m_pool = pool;
+        m_pool.start();
+
+        AtomicInteger mailboxActive = new AtomicInteger();
+        AtomicInteger mailboxMax    = new AtomicInteger();
+        AtomicInteger directActive  = new AtomicInteger();
+        AtomicInteger directMax     = new AtomicInteger();
+        BlockingTask  taskFirst     = new BlockingTask(1, mailboxActive, mailboxMax);
+        BlockingTask  taskSecond    = new BlockingTask(2, mailboxActive, mailboxMax);
+        BlockingTask  taskDirect    = new BlockingTask(null, directActive, directMax);
+
+        m_pool.add(taskFirst);
+        assertTrue(taskFirst.awaitStarted());
+        TestServiceModel model = new TestServiceModel("MailboxAdmissionMBeanTest", m_pool);
+
+        assertThat(model.getMailboxDrainerLimit(), is(1));
+        assertThat(model.getMailboxDrainerActiveCount(), is(1));
+        assertThat(model.getPoolSaturation(), is(1.0d));
+
+        m_pool.add(taskSecond);
+        assertFalse(taskSecond.awaitStarted(200));
+        assertEventually(() -> pool.getQueuedBacklogCountForTest() == 1);
+        assertEventually(() -> pool.getBacklog() == 1);
+
+        m_pool.add(taskDirect);
+        assertTrue(taskDirect.awaitStarted());
+        taskDirect.release();
+        assertTrue(taskDirect.awaitDone());
+
+        taskFirst.release();
+        assertTrue(taskFirst.awaitDone());
+        assertTrue(taskSecond.awaitStarted());
+        taskSecond.release();
+        assertTrue(taskSecond.awaitDone());
+
+        assertThat(mailboxMax.get(), is(1));
+        assertThat(pool.getAvailableMailboxDrainerPermitsForTest(), is(1));
+        }
+
+    @Test
+    public void shouldKeepReadOnlyAssociationAllOnAllBarrier()
+            throws Exception
+        {
+        AtomicInteger          active  = new AtomicInteger();
+        AtomicInteger          max     = new AtomicInteger();
+        ReadOnlyAssociatedTask taskAll = new ReadOnlyAssociatedTask(AssociationPile.ASSOCIATION_ALL, active, max);
+
+        m_pool.add(taskAll);
+        assertTrue(taskAll.awaitStarted());
+        assertThreadNameMatches(taskAll.getThreadName(), "^.*:A:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+
+        taskAll.release();
+        assertTrue(taskAll.awaitDone());
+        }
+
+    @Test
+    public void shouldBlockReadOnlyAssociatedTasksBehindAssociationAll()
+            throws Exception
+        {
+        AtomicInteger          active   = new AtomicInteger();
+        AtomicInteger          max      = new AtomicInteger();
+        BlockingTask           taskAll  = new BlockingTask(AssociationPile.ASSOCIATION_ALL, active, max);
+        ReadOnlyAssociatedTask taskRead = new ReadOnlyAssociatedTask(1, active, max);
+
+        m_pool.add(taskAll);
+        assertTrue(taskAll.awaitStarted());
+
+        m_pool.add(taskRead);
+        assertFalse(taskRead.awaitStarted(200));
+
+        taskAll.release();
+        assertTrue(taskAll.awaitDone());
+        assertTrue(taskRead.awaitStarted());
+
+        taskRead.release();
+        assertTrue(taskRead.awaitDone());
+        }
+
+    @Test
+    public void shouldBlockAssociationAllBehindReadOnlyAssociatedTasks()
+            throws Exception
+        {
+        AtomicInteger          active   = new AtomicInteger();
+        AtomicInteger          max      = new AtomicInteger();
+        ReadOnlyAssociatedTask taskRead = new ReadOnlyAssociatedTask(1, active, max);
+        BlockingTask           taskAll  = new BlockingTask(AssociationPile.ASSOCIATION_ALL, active, max);
+
+        m_pool.add(taskRead);
+        assertTrue(taskRead.awaitStarted());
+
+        m_pool.add(taskAll);
+        assertFalse(taskAll.awaitStarted(200));
+
+        taskRead.release();
+        assertTrue(taskRead.awaitDone());
+        assertTrue(taskAll.awaitStarted());
+
+        taskAll.release();
+        assertTrue(taskAll.awaitDone());
+        }
+
+    @Test
+    public void shouldRouteReadOnlyTasksByAssociation()
+            throws Exception
+        {
+        AtomicInteger          active     = new AtomicInteger();
+        AtomicInteger          max        = new AtomicInteger();
+        ReadOnlyAssociatedTask taskDirect = new ReadOnlyAssociatedTask(null, active, max);
+        ReadOnlyAssociatedTask taskAll    = new ReadOnlyAssociatedTask(AssociationPile.ASSOCIATION_ALL, active, max);
+        ReadOnlyAssociatedTask taskKey    = new ReadOnlyAssociatedTask("key", active, max);
+
+        m_pool.add(taskDirect);
+        assertTrue(taskDirect.awaitStarted());
+        assertThreadNameMatches(taskDirect.getThreadName(), "^.*:D:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+        taskDirect.release();
+        assertTrue(taskDirect.awaitDone());
+
+        m_pool.add(taskAll);
+        assertTrue(taskAll.awaitStarted());
+        assertThreadNameMatches(taskAll.getThreadName(), "^.*:A:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+        taskAll.release();
+        assertTrue(taskAll.awaitDone());
+
+        m_pool.add(taskKey);
+        assertTrue(taskKey.awaitStarted());
+        assertThreadNameMatches(taskKey.getThreadName(), "^.*:D:ReadOnlyAssociatedTask:[0-9A-F]{8}$");
+        taskKey.release();
+        assertTrue(taskKey.awaitDone());
+        }
+
+    @Test
+    public void shouldAllowConcurrentGetsFromStandardPlainBackingMaps()
+            throws Exception
+        {
+        assertConcurrentGetDuringPut(new SafeHashMap<>());
+        assertConcurrentGetDuringPut(new LocalCache());
         }
 
     @Test
@@ -1525,6 +1929,78 @@ public class VirtualDaemonPoolComponentTest
             }
         }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void assertConcurrentGetDuringPut(Map map)
+            throws Exception
+        {
+        int cReaders    = 4;
+        int cIterations = 2_000;
+
+        map.put("key", 0);
+
+        CountDownLatch           latchStart = new CountDownLatch(1);
+        AtomicReference<Throwable> refError = new AtomicReference<>();
+        CompletableFuture<?>[]    aFuture   = new CompletableFuture[cReaders + 1];
+
+        aFuture[0] = CompletableFuture.runAsync(() ->
+            {
+            awaitUnchecked(latchStart);
+            for (int i = 0; i < cIterations; i++)
+                {
+                try
+                    {
+                    map.put("key", i);
+                    }
+                catch (Throwable t)
+                    {
+                    refError.compareAndSet(null, t);
+                    return;
+                    }
+                }
+            });
+
+        for (int i = 0; i < cReaders; i++)
+            {
+            aFuture[i + 1] = CompletableFuture.runAsync(() ->
+                {
+                awaitUnchecked(latchStart);
+                for (int j = 0; j < cIterations; j++)
+                    {
+                    try
+                        {
+                        map.get("key");
+                        }
+                    catch (Throwable t)
+                        {
+                        refError.compareAndSet(null, t);
+                        return;
+                        }
+                    }
+                });
+            }
+
+        latchStart.countDown();
+        CompletableFuture.allOf(aFuture).get(10, TimeUnit.SECONDS);
+
+        if (refError.get() != null)
+            {
+            throw new AssertionError("standard backing map failed concurrent get contract", refError.get());
+            }
+        }
+
+    private static void awaitUnchecked(CountDownLatch latch)
+        {
+        try
+            {
+            latch.await();
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(e);
+            }
+        }
+
     private static final class GetRequest
             implements Runnable, KeyAssociation
         {
@@ -1750,6 +2226,38 @@ public class VirtualDaemonPoolComponentTest
             {
             java.util.concurrent.Semaphore permits = getTaskPermits();
             return permits == null ? Integer.MAX_VALUE : permits.availablePermits();
+            }
+
+        public int getAvailableReadOnlyTaskPermitsForTest()
+            {
+            java.util.concurrent.Semaphore permits = getReadOnlyTaskPermits();
+            return permits == null ? Integer.MAX_VALUE : permits.availablePermits();
+            }
+
+        public int getAvailableMailboxDrainerPermitsForTest()
+            {
+            java.util.concurrent.Semaphore permits = getMailboxDrainerPermits();
+            return permits == null ? Integer.MAX_VALUE : permits.availablePermits();
+            }
+
+        public int getMailboxDrainerLimitForTest()
+            {
+            return getMailboxDrainerLimit();
+            }
+
+        public void setMailboxDrainerLimitForTest(int cDrainers)
+            {
+            setMailboxDrainerLimit(cDrainers);
+            }
+
+        public int getReadOnlyTaskLimitForTest()
+            {
+            return getReadOnlyTaskLimit();
+            }
+
+        public void setReadOnlyTaskLimitForTest(int cTaskLimit)
+            {
+            setReadOnlyTaskLimit(cTaskLimit);
             }
 
         public int getMailboxCount()
@@ -2118,6 +2626,8 @@ public class VirtualDaemonPoolComponentTest
         @Override
         public void run()
             {
+            m_sThreadName = Thread.currentThread().getName();
+
             int cActive = f_active.incrementAndGet();
             f_maxActive.accumulateAndGet(cActive, Math::max);
             f_started.countDown();
@@ -2160,12 +2670,19 @@ public class VirtualDaemonPoolComponentTest
             f_release.countDown();
             }
 
+        public String getThreadName()
+            {
+            return m_sThreadName;
+            }
+
         private final Object         f_oAssociation;
         private final AtomicInteger  f_active;
         private final AtomicInteger  f_maxActive;
         private final CountDownLatch f_started = new CountDownLatch(1);
         private final CountDownLatch f_release = new CountDownLatch(1);
         private final CountDownLatch f_done    = new CountDownLatch(1);
+
+        private volatile String m_sThreadName;
         }
 
     public static class BlockingGetRequest
@@ -2244,6 +2761,47 @@ public class VirtualDaemonPoolComponentTest
         private final CountDownLatch f_done    = new CountDownLatch(1);
 
         private volatile Thread m_thread;
+        }
+
+    private static class ReadClassificationService
+            extends PartitionedCache
+        {
+        ReadClassificationService(boolean fMayWriteOnRead)
+            {
+            super("VirtualDaemonPoolComponentTest", null, true);
+            f_storage = new ReadClassificationStorage(fMayWriteOnRead);
+            }
+
+        @Override
+        public Storage getStorage(long lCacheId)
+            {
+            return f_storage;
+            }
+
+        private final Storage f_storage;
+        }
+
+    private static class ReadClassificationStorage
+            extends Storage
+        {
+        ReadClassificationStorage(boolean fMayWriteOnRead)
+            {
+            super(null, null, true);
+            f_fMayWriteOnRead = fMayWriteOnRead;
+            }
+
+        @Override
+        public void onInit()
+            {
+            }
+
+        @Override
+        public boolean mayWriteOnRead()
+            {
+            return f_fMayWriteOnRead;
+            }
+
+        private final boolean f_fMayWriteOnRead;
         }
 
     public static class SignalingTask

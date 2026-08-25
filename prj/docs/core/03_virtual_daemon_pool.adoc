@@ -53,6 +53,16 @@ tasks on virtual threads:
 VDP is opt-in. The default service worker pool is the legacy
 platform-thread pool, and it remains fully supported.
 
+== Requirements
+
+Virtual thread support requires Java 21 or later. VDP is not available
+when a member runs on an earlier Java version.
+
+Java 24 or later is preferred for new VDP deployments because JEP 491
+removes `synchronized` carrier-thread pinning. See
+`design/features/daemon-pool/design/virtual-threads.md` in the source
+tree for the detailed pinning analysis.
+
 == Choosing a Pool Type
 
 Pick the pool type per service, based on what the service does.
@@ -150,16 +160,21 @@ does not override `<daemon-pool>` in its cache-config scheme.
 
 == Admission Cap with `<task-limit>`
 
-Virtual threads are cheap (~300 bytes each), so a single VDP service can
-run thousands of concurrently executing tasks without stress. For most
-workloads no admission cap is needed and `<task-limit>` should be left
-unset (or set to `0`).
+`<task-limit>` is an optional aggregate policy, not VDP's default CPU
+guardrail. VDP already applies independent processor-relative limits to
+read-only tasks and keyed-mailbox drainers, the two high-cardinality
+microtask domains that need bounded admission. Those targeted limits
+default to twice the JVM's available processor count.
+
+For most workloads no additional aggregate cap is needed and
+`<task-limit>` should be left unset (or set to `0`).
 
 An explicit `<task-limit>` is worth setting when:
 
-- *Memory-bound bursts.* If a sudden burst of work could create
-  millions of in-flight tasks, capping the number of concurrently
-  executing tasks bounds memory consumption.
+- *Memory-bound task bodies.* If task execution has a large working set
+  or allocation rate, capping concurrently executing task bodies bounds
+  that pressure. It does not cap the number of queued tasks or waiting
+  virtual threads.
 - *Downstream protection.* If tasks call out to a database, web service,
   or other downstream system that has its own concurrency limits, the
   cap protects the downstream from being overwhelmed.
@@ -171,10 +186,11 @@ When the cap is reached, additional task producers block until permits
 are released. They yield the carrier thread while blocked, so the
 backpressure is cheap.
 
-The cap applies to tasks that are *currently executing*, not to tasks
-queued in mailboxes. Queued tasks consume only their wrapper and queue
-slot; they do not hold a permit until the mailbox drainer pulls them
-from the queue and starts running them.
+The aggregate cap applies to ordinary task bodies, not to tasks merely
+queued in mailboxes. It composes with the targeted read-only and mailbox-
+drainer limits: a task must obtain each permit applicable to its dispatch
+path. The aggregate default intentionally remains unlimited so blocking
+and mixed workloads are not constrained by a CPU-oriented default.
 
 == Element Compatibility Rules
 
@@ -207,8 +223,9 @@ For example, a service configured with
 `<thread-count-max>32</thread-count-max>` fails to start with a message
 identifying both the offending element and the chosen pool type. Fix
 the configuration by removing the legacy element and relying on
-`<task-limit>` (or, if appropriate, remove `<daemon-pool>` and revert
-to the legacy pool).
+VDP's targeted defaults; add `<task-limit>` only when an aggregate cap
+is required. Alternatively, remove `<daemon-pool>` and revert to the
+platform pool.
 
 [NOTE]
 ====
@@ -276,6 +293,30 @@ property `coherence.daemonpool.virtual=true`, that property is also
 removed. Replace it with per-service `<daemon-pool>virtual</daemon-pool>`
 configuration.
 
+== Read Routing Semantics
+
+VDP dispatches truly read-only associated work directly instead of
+through a per-key mailbox. Plain-cache `get` and `getAll` operations
+are eligible for this route. This removes the incidental same-key
+arrival-order serialization that the legacy daemon pool provided for
+some in-flight read/write races. Synchronous clients are unaffected: if
+a client waits for a write acknowledgement before issuing a following
+read, the read observes the completed write. Pipelined asynchronous
+clients that send a write and a read for the same key without waiting
+for the write response may observe the read leapfrog the write and
+return the previous value.
+
+Only operations that cannot commit replicated state are eligible for
+this direct route. Read-through-capable and sliding-expiry `get` and
+`getAll` operations remain write-shaped, stay on the keyed path, and
+are checked against write-quorum policy because read-through and
+sliding-expiry refreshes can update and replicate cache state.
+
+Custom backing maps used with VDP direct reads must make
+`BackingMapInternal.get()` safe under concurrent reads and same-key
+read/write overlap. Standard Coherence backing maps used by the
+built-in cache schemes satisfy this contract.
+
 == Tuning the Cooperative Notifier Flush Policy
 
 VDP uses a *cooperative notifier flush* to wake up callers that are
@@ -293,6 +334,7 @@ The flush policy is controlled by a single production system property:
 | `coherence.daemonpool.virtual.flushPolicy`
 | `idle`
 | Flush policy for the cooperative notifier.
+|===
 
 `idle` (or `default`) flushes at idle boundaries: keyed mailbox drainers
 flush when the mailbox queue drains empty, and direct, priority, and
@@ -310,21 +352,20 @@ mode, but are explicitly rejected on this property and fall back to
 `idle`. Disabling cooperative-notifier flushing recreates a
 request-latency failure that VDP's design specifically addresses, so it
 is not a supported operational setting.
-|===
 
 == Observing VDP
 
 Standard Coherence service metrics (task counts, throughput, latency)
-work identically with VDP. Some metrics are specific to the new
-implementation:
+work identically with VDP. The `ServiceMBean` table below is the
+canonical VDP attribute list and includes the pool-type discriminator,
+active-task cap, saturation signal, and corrected backlog semantics.
 
-- *Active mailbox count* — number of keys with an in-flight task or
-  queue. Reflects current per-key contention.
-- *Mailbox queue depth* — per-mailbox queue depth for active keys.
-- *Permit utilization* — when `<task-limit>` is set, the ratio of
-  permits held to total permits. A consistently high ratio suggests the
-  cap may be too low, or that downstream blocking is the actual
-  bottleneck.
+The numeric service attributes, including `TaskBacklog`, all VDP admission
+limits/counts, and `PoolSaturation`, are also exposed through the Coherence
+metrics surface when metrics are enabled. `DaemonPoolType` is a string
+discriminator exposed through JMX and management REST; use it to
+interpret pool-specific sentinel values such as `TaskLimit=-1` and
+`PoolSaturation=-1.0`.
 
 === VDP MBean Surface
 
@@ -355,7 +396,7 @@ attributes instead of overloading existing ones.
 
 | `ThreadIdleCount`
 | Idle platform workers
-| Parked virtual threads waiting behind `TaskLimit`
+| Live VDP-owned threads not currently executing a wrapper
 
 | `ThreadPoolSizingEnabled`
 | `true` when the platform pool can resize within bounds
@@ -363,11 +404,28 @@ attributes instead of overloading existing ones.
 
 | `TaskBacklog`
 | Tasks queued for platform workers, plus service queue backlog
-| Keyed-mailbox queue depth, parked virtual threads, plus service queue backlog
+| Keyed-mailbox queue depth, pending task VTs, plus service queue backlog,
+  without counting mailbox-permit waiters twice
 
 | `TaskLimit`
 | `-1` — not applicable; use `ThreadCountMax`
-| Configured active-task cap; `0` means unbounded
+| Optional aggregate active-task cap; `0` means disabled
+
+| `ReadOnlyTaskLimit`
+| `-1`
+| Targeted read-only admission limit; defaults to `2 x availableProcessors`
+
+| `ReadOnlyTaskActiveCount`
+| `-1`
+| Read-only permits currently held
+
+| `MailboxDrainerLimit`
+| `-1`
+| Targeted keyed-mailbox drainer limit; defaults to `2 x availableProcessors`
+
+| `MailboxDrainerActiveCount`
+| `-1`
+| Mailbox-drainer permits currently held
 
 | `DaemonPoolType`
 | `PLATFORM`
@@ -375,12 +433,14 @@ attributes instead of overloading existing ones.
 
 | `PoolSaturation`
 | `ActiveDaemonCount / ThreadCountMax`, or `-1.0` when undefined
-| `ActiveDaemonCount / TaskLimit`, or `-1.0` when unbounded
+| Highest utilization of the enabled aggregate, read-only, and mailbox-
+  drainer admission domains
 |===
 
 `ThreadCount` continues to mean "live thread count" for both pool
 types. For VDP this can be much larger than `ActiveDaemonCount`, because
-virtual threads parked behind `TaskLimit` are live but not executing.
+virtual threads parked behind admission or ordering barriers are live but
+not executing.
 Dashboards should use `PoolSaturation` for operational saturation
 instead of constructing their own ratio from thread-count attributes.
 
@@ -401,14 +461,34 @@ backlog exceeds the service threshold.
 | Alert when `PoolSaturation` approaches `1.0`
 
 | Use `ThreadCountMax` as the concurrency cap
-| Use `TaskLimit` when `DaemonPoolType` is `VIRTUAL`
+| Inspect `TaskLimit`, `ReadOnlyTaskLimit`, and `MailboxDrainerLimit` when
+  `DaemonPoolType` is `VIRTUAL`
 
 | Treat `TaskBacklog` as queued worker tasks
 | Treat `TaskBacklog` as queued tasks plus parked virtual threads
 
 | Resize with `ThreadCount`, `ThreadCountMin`, or `ThreadCountMax`
-| Adjust `TaskLimit`; thread-count setters are ignored with a warning
+| Adjust optional aggregate `TaskLimit`; targeted limits are startup policy;
+  thread-count setters are ignored with a warning
 |===
+
+=== Troubleshooting
+
+- `PoolSaturation` stays near `1.0` — raise `<task-limit>` if the
+  member has capacity, or audit downstream blocking if tasks are parked
+  on external resources.
+- Many parked virtual threads appear in thread dumps — this is expected
+  when `<task-limit>` is set and demand exceeds the active-task cap; it
+  is not by itself a thread leak.
+- `TaskBacklog` is high while `ActiveDaemonCount` is low — producers are
+  outpacing the service's ability to admit or run work; review flow
+  control thresholds and downstream latency.
+- `PoolSaturation` is `-1.0` — saturation is undefined, usually because
+  VDP is unbounded (`<task-limit>` unset or `0`); this is expected, not
+  an error.
+- A `WARN` log mentions `<thread-count>` mixed with
+  `<thread-count-min>` or `<thread-count-max>` — choose one sizing form:
+  fixed `<thread-count>` or dynamic min/max bounds.
 
 === Reading VDP Thread Names
 

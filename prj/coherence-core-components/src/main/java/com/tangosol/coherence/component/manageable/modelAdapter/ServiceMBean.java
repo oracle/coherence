@@ -33,6 +33,24 @@ public class ServiceMBean
     private transient String __m_DaemonPoolType;
 
     /**
+     * Property MailboxDrainerActiveCount
+     *
+     * The number of keyed-mailbox drainers currently admitted by VDP.
+     *
+     * @descriptor rest.collector=sum,metrics.value=_default
+     */
+    private transient int __m_MailboxDrainerActiveCount;
+
+    /**
+     * Property MailboxDrainerLimit
+     *
+     * The maximum number of concurrently admitted keyed-mailbox drainers.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    private transient int __m_MailboxDrainerLimit;
+
+    /**
      * Property PoolSaturation
      *
      * Fraction of the active-concurrency cap currently in use.
@@ -40,6 +58,25 @@ public class ServiceMBean
      * @descriptor rest.collector=avg,metrics.value=_default
      */
     private transient double __m_PoolSaturation;
+
+    /**
+     * Property ReadOnlyTaskActiveCount
+     *
+     * The number of read-only VDP tasks currently holding a targeted
+     * admission permit.
+     *
+     * @descriptor rest.collector=sum,metrics.value=_default
+     */
+    private transient int __m_ReadOnlyTaskActiveCount;
+
+    /**
+     * Property ReadOnlyTaskLimit
+     *
+     * The maximum number of concurrently admitted read-only VDP tasks.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    private transient int __m_ReadOnlyTaskLimit;
     
     /**
      * Property RequestTimeoutMillis
@@ -77,7 +114,8 @@ public class ServiceMBean
     /**
      * Property TaskLimit
      *
-     * The maximum number of concurrently executing tasks for VDP-backed services.
+     * The optional aggregate limit on concurrently executing tasks for
+     * VDP-backed services.
      *
      * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -97,8 +135,8 @@ public class ServiceMBean
      * Property ThreadCountMax
      *
      * The maximum live worker thread count for platform-thread pools. For VDP,
-     * virtual threads are not capped by this value; use TaskLimit for the
-     * active-task cap.
+     * virtual threads are not capped by this value; use the VDP admission-limit
+     * attributes instead.
      * 
      * @descriptor rest.collector=set
      */
@@ -223,6 +261,30 @@ public class ServiceMBean
                 null,
                 "Ljava/lang/String;",
                 "rest.collector=set",
+                });
+            }
+
+        // property MailboxDrainerActiveCount
+            {
+            mapInfo.put("MailboxDrainerActiveCount", new Object[]
+                {
+                "The number of keyed-mailbox drainers currently admitted for execution by a virtual-thread pool. Returns -1 for a platform-thread pool.",
+                "getMailboxDrainerActiveCount",
+                null,
+                "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property MailboxDrainerLimit
+            {
+            mapInfo.put("MailboxDrainerLimit", new Object[]
+                {
+                "The targeted limit on concurrently admitted keyed-mailbox drainers for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
+                "getMailboxDrainerLimit",
+                null,
+                "I",
+                "rest.collector=set,metrics.value=_default",
                 });
             }
 
@@ -782,11 +844,35 @@ public class ServiceMBean
             {
             mapInfo.put("PoolSaturation", new Object[]
                 {
-                "Fraction of the active-concurrency cap currently in use, in [0.0, 1.0]. For platform-thread pools this is ActiveDaemonCount/ThreadCountMax; for virtual-thread pools this is ActiveDaemonCount/TaskLimit. Returns -1.0 when saturation is undefined (pool not started, or no concurrency cap configured).",
+                "Fraction of the active-concurrency cap currently in use, in [0.0, 1.0]. For platform-thread pools this is ActiveDaemonCount/ThreadCountMax. For virtual-thread pools it is the highest utilization of the aggregate TaskLimit, ReadOnlyTaskLimit, and MailboxDrainerLimit admission domains. Returns -1.0 when saturation is undefined.",
                 "getPoolSaturation",
                 null,
                 "D",
                 "rest.collector=avg,metrics.value=_default",
+                });
+            }
+
+        // property ReadOnlyTaskActiveCount
+            {
+            mapInfo.put("ReadOnlyTaskActiveCount", new Object[]
+                {
+                "The number of read-only tasks currently holding a targeted admission permit in a virtual-thread pool. Returns -1 for a platform-thread pool.",
+                "getReadOnlyTaskActiveCount",
+                null,
+                "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ReadOnlyTaskLimit
+            {
+            mapInfo.put("ReadOnlyTaskLimit", new Object[]
+                {
+                "The targeted limit on concurrently admitted read-only tasks for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
+                "getReadOnlyTaskLimit",
+                null,
+                "I",
+                "rest.collector=set,metrics.value=_default",
                 });
             }
 
@@ -963,7 +1049,7 @@ public class ServiceMBean
             {
             mapInfo.put("TaskBacklog", new Object[]
                 {
-                "The size of the backlog queue that holds tasks scheduled to be executed by one of the service workers. For VDP this includes virtual threads parked behind TaskLimit.",
+                "The number of tasks scheduled but not executing. For a virtual-thread pool this includes work waiting behind aggregate or targeted admission gates and queued keyed-mailbox tasks, without counting mailbox-permit waiters twice.",
                 "getTaskBacklog",
                 null,
                 "I",
@@ -975,7 +1061,7 @@ public class ServiceMBean
             {
             mapInfo.put("TaskLimit", new Object[]
                 {
-                "The maximum number of concurrently executing tasks for virtual-thread pools (VDP). For platform-thread pools this attribute returns -1; the operational cap is exposed via ThreadCountMax instead. A value of 0 indicates an unbounded VDP.",
+                "The optional aggregate limit on concurrently executing ordinary tasks for a virtual-thread pool. It is independent of the targeted ReadOnlyTaskLimit and MailboxDrainerLimit gates. Zero means no aggregate limit; -1 means not applicable to a platform-thread pool.",
                 "getTaskLimit",
                 "setTaskLimit",
                 "I",
@@ -1119,7 +1205,7 @@ public class ServiceMBean
             {
             mapInfo.put("ThreadCountMax", new Object[]
                 {
-                "The maximum live worker thread count for platform-thread pools. For VDP, virtual threads are not capped by this value; use TaskLimit for the active-task cap.",
+                "The maximum live worker thread count for platform-thread pools. VDP virtual threads are not capped by this value; use TaskLimit, ReadOnlyTaskLimit, and MailboxDrainerLimit for VDP admission controls.",
                 "getThreadCountMax",
                 "setThreadCountMax",
                 "I",
@@ -1438,6 +1524,26 @@ public class ServiceMBean
     public String getDaemonPoolType()
         {
         return __m_DaemonPoolType;
+        }
+
+    /**
+     * Return the number of keyed-mailbox drainers currently admitted by VDP.
+     *
+     * @descriptor rest.collector=sum,metrics.value=_default
+     */
+    public int getMailboxDrainerActiveCount()
+        {
+        return __m_MailboxDrainerActiveCount;
+        }
+
+    /**
+     * Return the targeted keyed-mailbox drainer admission limit.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public int getMailboxDrainerLimit()
+        {
+        return __m_MailboxDrainerLimit;
         }
     
     // Accessor for the property "BackupCount"
@@ -2134,6 +2240,27 @@ public class ServiceMBean
         return __m_PoolSaturation;
         }
 
+    /**
+     * Return the number of read-only VDP tasks currently holding a targeted
+     * admission permit.
+     *
+     * @descriptor rest.collector=sum,metrics.value=_default
+     */
+    public int getReadOnlyTaskActiveCount()
+        {
+        return __m_ReadOnlyTaskActiveCount;
+        }
+
+    /**
+     * Return the targeted read-only task admission limit.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    public int getReadOnlyTaskLimit()
+        {
+        return __m_ReadOnlyTaskLimit;
+        }
+
     // Accessor for the property "TaskAverageDuration"
     /**
      * Getter for property TaskAverageDuration.<p>
@@ -2150,8 +2277,8 @@ public class ServiceMBean
     /**
      * Getter for property TaskBacklog.<p>
     * The size of the backlog queue that holds tasks scheduled to be executed
-    * by one of the service workers. For VDP this includes virtual threads
-    * parked behind TaskLimit.
+    * by one of the service workers. For VDP this includes tasks waiting behind
+    * aggregate and targeted admission gates.
     * 
     * @descriptor rest.collector=sum,metrics.value=_default
      */
@@ -2163,7 +2290,8 @@ public class ServiceMBean
     // Accessor for the property "TaskLimit"
     /**
      * Getter for property TaskLimit.<p>
-    * The maximum number of concurrently executing tasks for VDP-backed services.
+    * The optional aggregate limit on concurrently executing tasks for
+    * VDP-backed services.
     *
     * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -2320,8 +2448,8 @@ public class ServiceMBean
     /**
      * Getter for property ThreadCountMax.<p>
     * The maximum live worker thread count for platform-thread pools. For VDP,
-    * virtual threads are not capped by this value; use TaskLimit for the
-    * active-task cap.
+    * virtual threads are not capped by this value; use the VDP admission-limit
+    * attributes instead.
     * 
     * @descriptor rest.collector=set
      */
@@ -2624,7 +2752,8 @@ public class ServiceMBean
     // Accessor for the property "TaskLimit"
     /**
      * Setter for property TaskLimit.<p>
-    * The maximum number of concurrently executing tasks for VDP-backed services.
+    * The optional aggregate limit on concurrently executing tasks for
+    * VDP-backed services.
     *
     * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -2649,8 +2778,8 @@ public class ServiceMBean
     // Accessor for the property "ThreadCountMax"
     /**
      * Setter for property ThreadCountMax.<p>
-    * The maximum live worker thread count for platform-thread pools. For VDP,
-    * use TaskLimit instead.
+     * The maximum live worker thread count for platform-thread pools. For VDP,
+    * use the VDP admission-limit attributes instead.
     * 
     * @descriptor rest.collector=set
      */

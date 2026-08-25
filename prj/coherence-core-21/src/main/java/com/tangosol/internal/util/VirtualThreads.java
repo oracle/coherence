@@ -84,7 +84,12 @@ public class VirtualThreads
      */
     public static Thread makeThread(ThreadGroup group, Runnable runnable, String sName)
         {
-        Thread.Builder.OfVirtual builder = Thread.ofVirtual();
+        // Service work must not inherit arbitrary request/transport-thread
+        // context. Apart from matching the isolation of long-lived daemon
+        // workers, disabling inheritance avoids cloning the submitter's
+        // inheritable-thread-local map for every short-lived virtual thread.
+        Thread.Builder.OfVirtual builder = Thread.ofVirtual()
+                .inheritInheritableThreadLocals(false);
         if (sName != null)
             {
             builder.name(sName);
