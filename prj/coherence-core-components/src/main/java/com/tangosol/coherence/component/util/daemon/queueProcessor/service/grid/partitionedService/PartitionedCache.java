@@ -157,8 +157,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import javax.security.auth.Subject;
 
@@ -4192,6 +4194,28 @@ public class PartitionedCache
         
         PartitionSet partMask = msgRequest.getRequestMaskSafe();
         Filter       filter   = msgRequest.getFilter();
+
+        com.tangosol.util.InvocableMap.EntryAggregator agent;
+        try
+            {
+            agent = msgRequest.deserializeAggregator();
+            }
+        catch (Throwable e)
+            {
+            msgResponse.setException(tagException(e));
+            processChanges(msgResponse);
+            msgRequest.setProcessedPartitions(new PartitionSet(getPartitionCount()));
+            return;
+            }
+
+        if (agent instanceof com.tangosol.util.InvocableMap.StreamingAggregator
+                && ((com.tangosol.util.InvocableMap.StreamingAggregator) agent).isByPartition()
+                && ((com.tangosol.util.InvocableMap.StreamingAggregator) agent).isParallel())
+            {
+            onPartitionedStreamingAggregateRequest(msgRequest, storage, partMask, filter,
+                    (com.tangosol.util.InvocableMap.StreamingAggregator) agent);
+            return;
+            }
         
         PartitionSet                       partReject = pinOwnedPartitions(partMask);
         PartitionedCache.InvocationContext ctxInvoke  = null;
@@ -4201,8 +4225,6 @@ public class PartitionedCache
             ctxInvoke = ensureInvocationContext(partMask);
             ctxInvoke.markReadOnlyRequest();
 
-            com.tangosol.util.InvocableMap.EntryAggregator agent = msgRequest.deserializeAggregator();
-        
             ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
                 Storage.BinaryEntry.ACCESS_READ_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_AGGREGATE);
         
@@ -4248,6 +4270,472 @@ public class PartitionedCache
             releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
             }
         }
+
+    /**
+     * Execute an eligible streaming aggregation progressively by partition on
+     * a bounded set of daemon-pool lanes. Each partition gets an independent
+     * supplied aggregator; the final lane combines the partial results and
+     * sends the existing single member response.
+     */
+    protected void onPartitionedStreamingAggregateRequest(AggregateFilterRequest msgRequest,
+            Storage storage, PartitionSet partMask, Filter filter,
+            com.tangosol.util.InvocableMap.StreamingAggregator agent)
+        {
+        PartitionedAggregateContext context = null;
+
+        try
+            {
+            // Preserve the existing one authorization check per logical
+            // request. Each lane receives the granted state in its own
+            // thread-local InvocationContext below.
+            storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
+                    com.tangosol.net.security.StorageAccessAuthorizer.REASON_AGGREGATE);
+
+            int[] anPartition = new int[partMask.cardinality()];
+            int   iPartition  = 0;
+            for (int nPartition = partMask.next(0); nPartition >= 0;
+                    nPartition = partMask.next(nPartition + 1))
+                {
+                anPartition[iPartition++] = nPartition;
+                }
+
+            // The original daemon-pool wrapper records per-partition service
+            // statistics when this handler returns. Publish the mask before
+            // scheduling continuations so partition MBean counters remain
+            // populated. Lane zero drains work until only in-flight partition
+            // steps remain, so its elapsed time differs from logical
+            // completion by at most one partition step.
+            msgRequest.setProcessedPartitions(new PartitionSet(partMask));
+
+            // Script filters retain thread-bound language state. They still
+            // use partition streaming, but remain on the request worker.
+            int cLanes = filter instanceof com.tangosol.util.filter.ScriptFilter
+                         ? 1
+                         : reservePartitionedWorkLanes(anPartition.length);
+
+            context = new PartitionedAggregateContext(this, msgRequest, storage,
+                    filter, agent, anPartition, cLanes, cLanes - 1,
+                    msgRequest.getRequestTimeout());
+
+            int cScheduled = 0;
+            try
+                {
+                for (; cScheduled < cLanes - 1; cScheduled++)
+                    {
+                    getDaemonPool().add(new PartitionedAggregateJob(context));
+                    }
+                }
+            catch (Throwable e)
+                {
+                context.removeUnscheduledLanes(cLanes - 1 - cScheduled);
+                context.fail(e);
+                }
+
+            runPartitionedAggregateLane(context);
+            }
+        catch (Throwable e)
+            {
+            if (context == null)
+                {
+                PartialValueResponse msgResponse = instantiatePartitionedAggregateResponse(msgRequest);
+                msgResponse.setException(tagException(e));
+                processChanges(msgResponse);
+                msgRequest.setProcessedPartitions(new PartitionSet(getPartitionCount()));
+                }
+            else
+                {
+                context.fail(e);
+                }
+            }
+        }
+
+    /**
+     * Drain partition aggregation steps on one daemon-pool lane.
+     */
+    protected void runPartitionedAggregateLane(PartitionedAggregateContext context)
+        {
+        try
+            {
+            while (!context.isTerminal())
+                {
+                context.checkTimeoutRemaining();
+
+                int iPartition = context.claimPartitionIndex();
+                if (iPartition < 0)
+                    {
+                    break;
+                    }
+
+                int     nPartition = context.getPartition(iPartition);
+                boolean fEntered   = pinOwnedPartition(nPartition);
+                if (!fEntered)
+                    {
+                    context.addRejectedPartition(nPartition);
+                    continue;
+                    }
+
+                PartitionSet       part      = new PartitionSet(getPartitionCount(), nPartition);
+                InvocationContext  ctxInvoke = null;
+                Throwable          eFailure  = null;
+
+                try
+                    {
+                    ctxInvoke = ensureInvocationContext(nPartition);
+                    ctxInvoke.markReadOnlyRequest();
+                    ctxInvoke.prepareGrantedAccess(context.getRequest().getRequestContext(),
+                            context.getStorage(), Storage.BinaryEntry.ACCESS_READ_ANY,
+                            com.tangosol.net.security.StorageAccessAuthorizer.REASON_AGGREGATE);
+
+                    com.tangosol.util.InvocableMap.StreamingAggregator agentPartition =
+                            context.getAgent().supply();
+                    Object oPartial = context.getStorage().aggregatePartition(
+                            context.getFilter(), agentPartition, part);
+
+                    context.setPartialResult(iPartition, nPartition, oPartial);
+                    }
+                catch (Throwable e)
+                    {
+                    eFailure = e;
+                    context.fail(e);
+                    }
+                finally
+                    {
+                    GuardSupport.reset();
+
+                    try
+                        {
+                        processChanges();
+                        }
+                    catch (RuntimeException | Error e)
+                        {
+                        eFailure = addCleanupFailure(eFailure, e);
+                        context.fail(eFailure);
+                        }
+
+                    try
+                        {
+                        releaseInvocationContextAndUnpin(ctxInvoke, part,
+                                /*fUnpin*/ true, eFailure);
+                        }
+                    catch (RuntimeException | Error e)
+                        {
+                        context.fail(e);
+                        }
+                    }
+                }
+            }
+        catch (Throwable e)
+            {
+            context.fail(e);
+            }
+        finally
+            {
+            finishPartitionedAggregateLane(context);
+            }
+        }
+
+    /**
+     * Complete one aggregation lane. The last lane combines partition
+     * partials, publishes the existing response, and releases the shared lane
+     * reservation.
+     */
+    protected void finishPartitionedAggregateLane(PartitionedAggregateContext context)
+        {
+        if (!context.finishLane())
+            {
+            return;
+            }
+
+        try
+            {
+            PartialValueResponse msgResponse =
+                    instantiatePartitionedAggregateResponse(context.getRequest());
+            Throwable eFailure = context.getFailure();
+
+            if (eFailure == null)
+                {
+                try
+                    {
+                    Object oResult = context.combinePartialResults();
+                    msgResponse.setResult(convertPartitionedAggregateResult(oResult));
+                    }
+                catch (Throwable e)
+                    {
+                    context.fail(e);
+                    eFailure = e;
+                    }
+                }
+
+            if (eFailure != null)
+                {
+                msgResponse.setException(tagException(eFailure));
+                }
+
+            msgResponse.setRejectPartitions(context.getRejectedPartitions());
+            processChanges(msgResponse);
+            }
+        finally
+            {
+            context.getRequest().setProcessedPartitions(context.getProcessedPartitions());
+            releasePartitionedWorkLanes(context.getReservedLaneCount());
+            }
+        }
+
+    /**
+     * Convert a member-local aggregation result to its wire representation.
+     */
+    protected Object convertPartitionedAggregateResult(Object oResult)
+        {
+        return getBackingMapContext().getValueToInternalConverter().convert(oResult);
+        }
+
+    /**
+     * Instantiate the existing aggregate response type.
+     */
+    protected PartialValueResponse instantiatePartitionedAggregateResponse(
+            AggregateFilterRequest msgRequest)
+        {
+        PartialValueResponse msgResponse =
+                (PartialValueResponse) instantiateMessage("PartialValueResponse");
+        msgResponse.respondTo(msgRequest);
+        return msgResponse;
+        }
+
+    /**
+     * Shared request state for a bounded partition-streamed aggregation.
+     */
+    protected static class PartitionedAggregateContext
+        {
+        protected PartitionedAggregateContext(PartitionedCache service,
+                AggregateFilterRequest request, Storage storage, Filter filter,
+                com.tangosol.util.InvocableMap.StreamingAggregator agent,
+                int[] anPartition, int cLanes, int cReservedLanes, long ldtTimeout)
+            {
+            f_service        = service;
+            f_request        = request;
+            f_storage        = storage;
+            f_filter         = filter;
+            f_agent          = agent;
+            f_anPartition    = anPartition;
+            f_aPartial       = new AtomicReferenceArray<>(anPartition.length);
+            f_cReservedLanes = cReservedLanes;
+            f_ldtTimeout     = ldtTimeout;
+            f_partsProcessed = new PartitionSet(service.getPartitionCount());
+            f_partsRejected  = new PartitionSet(service.getPartitionCount());
+            f_cActiveLanes   = new AtomicInteger(cLanes);
+            }
+
+        protected void addRejectedPartition(int nPartition)
+            {
+            synchronized (f_partsRejected)
+                {
+                f_partsRejected.add(nPartition);
+                }
+            }
+
+        protected int claimPartitionIndex()
+            {
+            int iPartition = f_iPartition.getAndIncrement();
+            return iPartition < f_anPartition.length ? iPartition : -1;
+            }
+
+        protected Object combinePartialResults()
+            {
+            for (int i = 0, c = f_aPartial.length(); i < c; i++)
+                {
+                PartitionedAggregatePartial partial = f_aPartial.get(i);
+                if (partial != null)
+                    {
+                    f_agent.combine(partial.getResult());
+                    }
+                }
+            return f_agent.getPartialResult();
+            }
+
+        protected void checkTimeoutRemaining()
+            {
+            if (f_ldtTimeout != Long.MAX_VALUE
+                    && f_ldtTimeout - Base.getSafeTimeMillis() <= 0L)
+                {
+                throw new RequestTimeoutException();
+                }
+            }
+
+        protected boolean fail(Throwable e)
+            {
+            return f_failure.compareAndSet(null, e);
+            }
+
+        protected boolean finishLane()
+            {
+            return f_cActiveLanes.decrementAndGet() == 0;
+            }
+
+        protected com.tangosol.util.InvocableMap.StreamingAggregator getAgent()
+            {
+            return f_agent;
+            }
+
+        protected Throwable getFailure()
+            {
+            return f_failure.get();
+            }
+
+        protected Filter getFilter()
+            {
+            return f_filter;
+            }
+
+        protected int getPartition(int iPartition)
+            {
+            return f_anPartition[iPartition];
+            }
+
+        protected PartitionSet getProcessedPartitions()
+            {
+            synchronized (f_partsProcessed)
+                {
+                return new PartitionSet(f_partsProcessed);
+                }
+            }
+
+        protected PartitionSet getRejectedPartitions()
+            {
+            synchronized (f_partsRejected)
+                {
+                return new PartitionSet(f_partsRejected);
+                }
+            }
+
+        protected AggregateFilterRequest getRequest()
+            {
+            return f_request;
+            }
+
+        protected int getReservedLaneCount()
+            {
+            return f_cReservedLanes;
+            }
+
+        protected PartitionedCache getService()
+            {
+            return f_service;
+            }
+
+        protected Storage getStorage()
+            {
+            return f_storage;
+            }
+
+        protected boolean isTerminal()
+            {
+            return f_failure.get() != null;
+            }
+
+        protected void removeUnscheduledLanes(int cLanes)
+            {
+            if (cLanes > 0)
+                {
+                f_cActiveLanes.addAndGet(-cLanes);
+                }
+            }
+
+        protected void setPartialResult(int iPartition, int nPartition, Object oResult)
+            {
+            f_aPartial.set(iPartition, new PartitionedAggregatePartial(oResult));
+            synchronized (f_partsProcessed)
+                {
+                f_partsProcessed.add(nPartition);
+                }
+            }
+
+        private final PartitionedCache f_service;
+        private final AggregateFilterRequest f_request;
+        private final Storage f_storage;
+        private final Filter f_filter;
+        private final com.tangosol.util.InvocableMap.StreamingAggregator f_agent;
+        private final int[] f_anPartition;
+        private final AtomicReferenceArray<PartitionedAggregatePartial> f_aPartial;
+        private final int f_cReservedLanes;
+        private final long f_ldtTimeout;
+        private final PartitionSet f_partsProcessed;
+        private final PartitionSet f_partsRejected;
+        private final AtomicInteger f_iPartition = new AtomicInteger();
+        private final AtomicInteger f_cActiveLanes;
+        private final AtomicReference<Throwable> f_failure = new AtomicReference<>();
+        }
+
+    /**
+     * Wrapper that distinguishes a valid {@code null} partial result from a
+     * partition that was rejected or never completed.
+     */
+    protected static class PartitionedAggregatePartial
+        {
+        protected PartitionedAggregatePartial(Object oResult)
+            {
+            f_oResult = oResult;
+            }
+
+        protected Object getResult()
+            {
+            return f_oResult;
+            }
+
+        private final Object f_oResult;
+        }
+
+    /**
+     * A long-lived daemon-pool lane that drains multiple aggregate
+     * partitions.
+     */
+    protected static class PartitionedAggregateJob
+            implements PriorityTask, Runnable
+        {
+        protected PartitionedAggregateJob(PartitionedAggregateContext context)
+            {
+            f_context = context;
+            }
+
+        @Override
+        public long getExecutionTimeoutMillis()
+            {
+            return f_context.getRequest().getExecutionTimeoutMillis();
+            }
+
+        @Override
+        public long getRequestTimeoutMillis()
+            {
+            return f_context.getRequest().getRequestTimeoutMillis();
+            }
+
+        @Override
+        public int getSchedulingPriority()
+            {
+            return PriorityTask.SCHEDULE_STANDARD;
+            }
+
+        @Override
+        public void run()
+            {
+            if (f_fClaimed.compareAndSet(false, true))
+                {
+                f_context.getService().runPartitionedAggregateLane(f_context);
+                }
+            }
+
+        @Override
+        public void runCanceled(boolean fAbandoned)
+            {
+            if (f_fClaimed.compareAndSet(false, true))
+                {
+                f_context.fail(new RequestTimeoutException());
+                f_context.getService().finishPartitionedAggregateLane(f_context);
+                }
+            }
+
+        private final PartitionedAggregateContext f_context;
+        private final AtomicBoolean f_fClaimed = new AtomicBoolean();
+        }
     
     /**
      * Called on the service thread only.
@@ -4285,7 +4773,7 @@ public class PartitionedCache
                     {
                     Long LId = (Long) iter.next();
                     long lId = LId.longValue();
-        
+
                     if (getKnownStorage(lId) == null)
                         {
                         if (mapGraveYard.containsKey(LId))
@@ -4350,18 +4838,18 @@ public class PartitionedCache
                 {
                 java.util.Map.Entry entry       = (java.util.Map.Entry) iter.next();
                 long  lCacheIdCur = ((Long) entry.getKey()).longValue();
-        
+
                 Storage storage = getKnownStorage(lCacheIdCur);
-        
+
                 if (storage != null)
                     {
                     VersionedPartitions versions       = (VersionedPartitions) entry.getValue();
                     StorageVersion      storageVersion = storage.getVersion();
-        
+
                     for (com.tangosol.net.partition.VersionedPartitions.VersionedIterator iterPart = versions.iterator(); iterPart.hasNext(); )
                         {
                         long lVersion = iterPart.nextVersion();
-        
+
                         storageVersion.resetSubmitted(iterPart.getPartition(), lVersion);
                         }
                     }
@@ -4406,7 +4894,7 @@ public class PartitionedCache
                 PersistentStore   store      = (storage.isPersistent() && isBackupPersistence())
                                                    ? ctrl.getPersistentBackupStore()
                                                    : null;
-        
+
                 if (partsSkip != null && partsSkip.contains(nPartition))
                     {
                     continue;
@@ -4434,7 +4922,7 @@ public class PartitionedCache
                 }
             }
         }
-    
+
     public void onBackupListenerRequest(PartitionedCache.BackupListenerRequest msgRequest)
         {
         long                                        lExtentId = msgRequest.getCacheId();
@@ -4515,7 +5003,7 @@ public class PartitionedCache
                 }
             }
         }
-    
+
     /**
      * Called on the service thread only.
      */
@@ -4528,7 +5016,7 @@ public class PartitionedCache
         // import java.util.Collections;
         // import java.util.Map;
         // import java.util.Set;
-        
+
         if (isOwnershipEnabled())
             {
             long     lCacheId    = msgRequest.getCacheId();
@@ -4541,7 +5029,7 @@ public class PartitionedCache
             com.tangosol.coherence.component.net.RequestContext  ctx         = msgRequest.getRequestContext();
             int      iPartition  = msgRequest.getPartition();
             long     lVersion    = msgRequest.getMapEventVersion();
-        
+
             if (storage == null)
                 {
                 if (getStorageGraveyard().containsKey(Long.valueOf(lCacheId)))
@@ -4562,7 +5050,7 @@ public class PartitionedCache
                 boolean fResult     = msgRequest.getResult() != null;
                 boolean fEvent      = oEvent != null;
                 Binary  binValueOld = null;
-        
+
                 // intern the binary key
                 binKey = storage.getCanonicalKey(binKey);
                 if (binValue == null)
@@ -4584,7 +5072,7 @@ public class PartitionedCache
                         // delta application failed; return immediately
                         return;
                         }
-        
+
                     if (fEvent || fResult || !storage.isPreferPutAllBackup())
                         {
                         binValueOld = doBackupPut(mapBackup, binKey, binValue);
@@ -4601,18 +5089,18 @@ public class PartitionedCache
                     // persist backup, done asynchronously
                     persistBackup(iPartition, lCacheId, binKey, binValue, fRemove);
                     }
-        
+
                 // register the result for the key
                 registerSingleResult(ctx, binKey,
                     Storage.decompressResult(msgRequest.getResult(), binValueOld, binValue));
-        
+
                 if (fEvent)
                     {
                     // register the events
                     registerEvent(PartitionedCache.MapEvent.decompressEventHolder(
                         oEvent, lCacheId, binKey, binValueOld, binValue), memberOwner);
                     }
-        
+
                 // maintain the latest version, so if we do become primary we can maintain
                 // the property of montonically increasing version numbers from the
                 // perspective of MapListeners
@@ -4627,7 +5115,7 @@ public class PartitionedCache
             _assert(getServiceState() >= SERVICE_STOPPING);
             }
         }
-    
+
     /**
      * Called on the service or a daemon pool thread.
      */
@@ -4641,17 +5129,17 @@ public class PartitionedCache
         // import com.tangosol.util.Base;
         // import com.tangosol.util.LongArray;
         // import java.util.Map;
-        
+
         PartitionedCache.PartialValueResponse msgResponse =
             (PartitionedCache.PartialValueResponse) instantiateMessage("PartialValueResponse");
         msgResponse.respondTo(msgRequest);
-        
+
         Storage storage = validateRequestForStorage(msgRequest, msgResponse, false);
         if (storage == null)
             {
             return;
             }
-        
+
         PartitionSet                       partMask   = msgRequest.getRequestMaskSafe();
         PartitionSet                       partReject = pinOwnedPartitions(partMask);
         PartitionedCache.InvocationContext ctxInvoke  = null;
@@ -4663,15 +5151,15 @@ public class PartitionedCache
             // clear acquires a global lock thus key-based locks
             // (ctxInvoke.lockEntry()) can be avoided
             ctxInvoke.lockStorage(storage);
-        
+
             // Note: lockAll() does not mark any entries as 'managed', with
             //       changes being automatically published by Storage, however
             //       entries are marked as 'managed' if interceptors
             //       or triggers are present
-        
+
             ctxInvoke.prepareAccess(msgRequest.getRequestContext(), storage,
                 Storage.BinaryEntry.ACCESS_WRITE_ANY, com.tangosol.net.security.StorageAccessAuthorizer.REASON_CLEAR);
-        
+
             if (msgRequest.isTruncate())
                 {
                 Storage  storageNew = storage.truncate();
@@ -4680,7 +5168,7 @@ public class PartitionedCache
                     {
                     laStorage.set(storageNew.getCacheId(), storageNew);
                     }
-        
+
                 // update service config map to notify every member of the truncation
                 if (getThisMember() == getOwnershipSenior(/*fIncludeLeaving*/ true))
                     {
@@ -4689,10 +5177,10 @@ public class PartitionedCache
                     XmlElement xmlCacheInfo = (XmlElement) ((XmlElement) mapConfig.get(sCacheName)).clone();
                     XmlValue   xmlAttr      = xmlCacheInfo.
                                               getAttribute(PartitionedCache.ServiceConfig.TRUNCATE_TIME_ATTRIBUTE);
-        
+
                     xmlCacheInfo.addAttribute(PartitionedCache.ServiceConfig.TRUNCATE_TIME_ATTRIBUTE)
                         .setInt(xmlAttr == null ? 1 : xmlAttr.getInt() + 1);
-        
+
                     mapConfig.put(sCacheName, xmlCacheInfo);
                     }
                 }
@@ -4705,14 +5193,14 @@ public class PartitionedCache
             {
             msgResponse.setException(tagException(e));
             }
-        
+
         try
             {
             // COH-22088: if the thread was interrupted due to the guardian we must reset
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
             GuardSupport.reset();
-        
+
             processChanges(/*ctx*/ null, /*job*/ null, -1L,
                 ctxInvoke == null ? null : ctxInvoke.getEntryStatuses(), instantiateBatchContext(msgResponse));
             }
@@ -4723,7 +5211,7 @@ public class PartitionedCache
             releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ false);
             }
         }
-    
+
     /**
      * Called on the service or a daemon pool thread.
      */
@@ -4734,18 +5222,18 @@ public class PartitionedCache
         // import com.tangosol.util.Binary;
         // import java.util.Map;
         // import java.util.Set;
-        
+
         PartitionedCache.PartialValueResponse msgResponse =
             (PartitionedCache.PartialValueResponse) instantiateMessage("PartialValueResponse");
         msgResponse.respondTo(msgRequest);
         msgResponse.setResult(Boolean.TRUE);
-        
+
         Storage storage = validateRequestForStorage(msgRequest, msgResponse, false);
         if (storage == null)
             {
             return;
             }
-        
+
         Set          setKeys     = msgRequest.getKeySetSafe();
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.PinningIterator pinner  = createPinningIterator(setKeys);
         PartitionSet partsPinned = pinner.getPinnedPartitions();
@@ -5539,6 +6027,13 @@ public class PartitionedCache
         }
 
     private long m_lOldestSUIDtemp = -1;
+
+    /**
+     * Number of additional daemon-pool lanes currently reserved by
+     * partition-streamed query and aggregation work. The worker executing the
+     * original request is not included in this count.
+     */
+    private final AtomicInteger m_cPartitionedWorkLanes = new AtomicInteger();
     
     /**
      * Called on the service thread only.
@@ -7412,7 +7907,7 @@ public class PartitionedCache
             if (partsMask.intersects(partsResult))
                 {
                 partsMask.remove(partsResult);
-        
+
                 // keys from some partitions were already updated; partsMask
                 // holds those partitions that remain to be processed
                 // Note: mapPrev here is empty, as putAll() carries no actual result
@@ -7422,7 +7917,7 @@ public class PartitionedCache
                     post(msgResponse);
                     return;
                     }
-        
+
                 // remove the keys from previously updated partitions
                 for (Iterator iter = setKeys.iterator(); iter.hasNext(); )
                     {
@@ -7432,18 +7927,18 @@ public class PartitionedCache
                         iter.remove();
                         }
                     }
-        
+
                 _assert(!setKeys.isEmpty());
                 }
             }
-        
+
         // Note 1: it is necessary to hold all key locks while sending
         //         the bulk backup  (see COH-3304).
         //
         // TODO: since we must lock all of the keys due to COH-3304,
         //       we should call into the backing-map's putAll() method
         //
-        
+
         int             cEntries = 0;
         int             cSize    = map.size();
         Binary[]        aKeys    = new Binary[cSize];
@@ -7514,14 +8009,14 @@ public class PartitionedCache
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
             GuardSupport.reset();
-        
+
             // register a result for the updated partitions (putAll() uses an empty map as a placeholder)
             registerMultiResult(context, partsPinned, Collections.emptyMap());
-        
+
             // even if there was an exception, we need to backup the changes
             processChanges(context, null, msgRequest.getCacheId(), ctxInvoke.getEntryStatuses(),
                              instantiateBatchContext(msgResponse));
-        
+
             msgRequest.setProcessedPartitions(partsPinned);
             }
         finally
@@ -7529,7 +8024,7 @@ public class PartitionedCache
             releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
             }
         }
-    
+
     /**
      * Called on the service or a daemon pool thread.
      */
@@ -7545,26 +8040,26 @@ public class PartitionedCache
 
         PartitionedCache.Response msgResponse = (PartitionedCache.Response) instantiateMessage("Response");
         msgResponse.respondTo(msgRequest);
-        
+
         Storage storage = validateRequestForStorage(msgRequest, msgResponse, false);
         if (storage == null)
             {
             return;
             }
-        
+
         Binary  binKey  = msgRequest.getKey();
         com.tangosol.coherence.component.net.RequestContext context = msgRequest.getRequestContext();
         if (postPriorResult(context, binKey, msgResponse))
             {
             return;
             }
-        
+
         boolean      fReturn    = msgRequest.isReturnRequired();
         Storage.EntryStatus status     = null;
         Binary       binValue   = msgRequest.getValue();
         int          nPartition = getKeyPartition(binKey);
         boolean      fEntered   = pinOwnedPartition(nPartition);
-        
+
         if (!fEntered)
             {
             // the partition is closed or unowned; force the client to retry
@@ -7572,9 +8067,9 @@ public class PartitionedCache
             post(msgResponse);
             return;
             }
-        
+
         PartitionedCache.InvocationContext ctxInvoke = null;
-        
+
         try
             {
             ctxInvoke = ensureInvocationContext(nPartition);
@@ -7601,17 +8096,17 @@ public class PartitionedCache
                         authorizer.checkWrite(status.getBinaryEntry(),
                             getStorageAccessSubject(context, storage), com.tangosol.net.security.StorageAccessAuthorizer.REASON_PUT);
                         }
-        
+
                     storage.put(ctxInvoke, status, binValue, msgRequest.getExpiryDelay(), !fReturn);
-        
+
                     Binary binResult = status.getResult();
                     msgResponse.setValue(fReturn ? binResult : null);
-        
+
                     // register the result
                     registerSingleResult(context, binKey, binResult);
-        
+
                     msgRequest.setProcessedPartition(nPartition);
-        
+
                     break; // user-space request complete
                     }
                 catch (LockContentionException e)
@@ -7632,7 +8127,7 @@ public class PartitionedCache
                 // the client will re-try the operation
                 return;
                 }
-        
+
             onPartialCommit(msgResponse, e);
             }
         catch (Throwable e)
@@ -7646,7 +8141,7 @@ public class PartitionedCache
             //            (heartbeat and clear the interrupt bit) to avoid an exception when
             //            invoking an interruptible method
             GuardSupport.reset();
-        
+
             try
                 {
                 Collection colEntryStatus = ctxInvoke.getEntryStatuses();
@@ -7670,7 +8165,7 @@ public class PartitionedCache
                 }
             }
         }
-    
+
     /**
      * Called on the service or a daemon pool thread.
      */
@@ -7703,6 +8198,14 @@ public class PartitionedCache
         boolean      fFirst   = true;
 
         flushOOBEvents();
+
+        if (fPartitioned && !(filter instanceof LimitFilter)
+                && !(filter instanceof com.tangosol.util.filter.ScriptFilter))
+            {
+            onPartitionedStreamingQueryRequest((PartitionedQueryRequest) msgRequest,
+                    storage, partMask, filter, fKeySet);
+            return;
+            }
 
         PartitionSet                        partReject = pinOwnedPartitions(partMask);
         PartitionedCache.InvocationContext  ctxInvoke  = null;
@@ -7774,7 +8277,7 @@ public class PartitionedCache
             GuardSupport.reset();
 
             processChanges();
-        
+
             msgRequest.setProcessedPartitions(partMask);
             }
         finally
@@ -7782,7 +8285,661 @@ public class PartitionedCache
             releaseInvocationContextAndUnpin(ctxInvoke, partMask, /*fUnpin*/ true);
             }
         }
-    
+
+    /**
+     * Execute an eligible partitioned query progressively using a bounded set
+     * of daemon-pool lanes. The current request worker is lane zero and remains
+     * productive; additional lanes drain the same partition cursor rather than
+     * creating one queued task per partition.
+     *
+     * @param msgRequest  the partitioned query request
+     * @param storage     the cache storage
+     * @param partMask    the requested partitions
+     * @param filter      the query filter
+     * @param fKeySet     {@code true} for a keys-only query
+     */
+    protected void onPartitionedStreamingQueryRequest(PartitionedQueryRequest msgRequest,
+            Storage storage, PartitionSet partMask, Filter filter, boolean fKeySet)
+        {
+        PartitionedQueryContext context = null;
+
+        try
+            {
+            storage.checkAccess(msgRequest.getRequestContext(), Storage.BinaryEntry.ACCESS_READ_ANY,
+                    fKeySet ? com.tangosol.net.security.StorageAccessAuthorizer.REASON_KEYSET
+                            : com.tangosol.net.security.StorageAccessAuthorizer.REASON_ENTRYSET);
+
+            int[] anPartition = new int[partMask.cardinality()];
+            int   iPartition  = 0;
+            for (int nPartition = partMask.next(0); nPartition >= 0;
+                    nPartition = partMask.next(nPartition + 1))
+                {
+                anPartition[iPartition++] = nPartition;
+                }
+
+
+            // Preserve the original request wrapper's partition statistics;
+            // see the equivalent aggregate path for the timing rationale.
+            msgRequest.setProcessedPartitions(new PartitionSet(partMask));
+
+            if (anPartition.length == 0)
+                {
+                QueryResponse msgResponse = instantiatePartitionedQueryResponse(msgRequest);
+                msgResponse.setKeysOnly(fKeySet);
+                msgResponse.setResult(new Object[0]);
+                msgResponse.setSize(0);
+                msgResponse.setResponsePartitions(new PartitionSet(getPartitionCount()));
+                post(msgResponse);
+                msgRequest.setProcessedPartitions(new PartitionSet(getPartitionCount()));
+                return;
+                }
+
+            int cLanes = reservePartitionedWorkLanes(anPartition.length);
+            context = new PartitionedQueryContext(this, msgRequest, storage,
+                    storage.beginPartitionedQuery(filter,
+                            fKeySet ? Storage.QUERY_KEYS : Storage.QUERY_ENTRIES,
+                            getPartitionCount()),
+                    anPartition, fKeySet, cLanes, cLanes - 1,
+                    msgRequest.getRequestTimeout());
+
+            int cScheduled = 0;
+            try
+                {
+                for (; cScheduled < cLanes - 1; cScheduled++)
+                    {
+                    getDaemonPool().add(new PartitionedQueryJob(context));
+                    }
+                }
+            catch (Throwable e)
+                {
+                context.removeUnscheduledLanes(cLanes - 1 - cScheduled);
+                failPartitionedQuery(context, e);
+                }
+
+            runPartitionedQueryLane(context);
+            }
+        catch (Throwable e)
+            {
+            if (context == null)
+                {
+                QueryResponse msgResponse = instantiatePartitionedQueryResponse(msgRequest);
+                msgResponse.setException(tagException(e));
+                post(msgResponse);
+                msgRequest.setProcessedPartitions(new PartitionSet(getPartitionCount()));
+                }
+            else
+                {
+                failPartitionedQuery(context, e);
+                }
+            }
+        }
+
+    /**
+     * Run one lane of a partition-streamed query.
+     *
+     * @param context  the shared query context
+     */
+    protected void runPartitionedQueryLane(PartitionedQueryContext context)
+        {
+        List<QueryResult>                    listResult = new ArrayList<>();
+        PartitionSet                        partsBatch = new PartitionSet(getPartitionCount());
+        PartitionedCache.InvocationContext  ctxInvoke = null;
+        long                                cbBatch = 0L;
+
+        try
+            {
+            while (!context.isTerminal())
+                {
+                context.checkTimeoutRemaining();
+
+                int nPartition = context.claimPartition();
+                if (nPartition < 0)
+                    {
+                    break;
+                    }
+
+                boolean fEntered = pinOwnedPartition(nPartition);
+                if (!fEntered)
+                    {
+                    postPartitionedQueryRejection(context, nPartition);
+                    continue;
+                    }
+
+                if (ctxInvoke == null)
+                    {
+                    ctxInvoke = ensureInvocationContext(nPartition);
+                    ctxInvoke.markReadOnlyRequest();
+                    }
+                else
+                    {
+                    ctxInvoke.getPrePinnedPartitions().add(nPartition);
+                    }
+
+                partsBatch.add(nPartition);
+
+                PartitionSet part   = new PartitionSet(getPartitionCount(), nPartition);
+                QueryResult result = context.getStorage().queryPartition(context.getExecution(), part);
+
+                listResult.add(result);
+                cbBatch += Math.max(0L, result.getSize());
+
+                if (context.claimFirstResponse()
+                        || cbBatch >= getMaxPartialResponseSize().getByteCount())
+                    {
+                    postPartitionedQueryBatch(context, listResult, partsBatch);
+                    try
+                        {
+                        Throwable eCleanup = releasePartitionedQueryBatch(
+                                ctxInvoke, partsBatch, null);
+                        if (eCleanup != null)
+                            {
+                            failPartitionedQuery(context, eCleanup);
+                            }
+                        }
+                    finally
+                        {
+                        // The release helper always attempts both context
+                        // cleanup and unpinning. Clear the lane state even if
+                        // either cleanup step reports a failure, so the outer
+                        // finally block cannot release the same batch twice.
+                        listResult = new ArrayList<>();
+                        partsBatch = new PartitionSet(getPartitionCount());
+                        ctxInvoke  = null;
+                        cbBatch    = 0L;
+                        }
+                    }
+                }
+
+            if (!listResult.isEmpty() && !context.isTerminal())
+                {
+                postPartitionedQueryBatch(context, listResult, partsBatch);
+                }
+            }
+        catch (Throwable e)
+            {
+            failPartitionedQuery(context, e);
+            }
+        finally
+            {
+            try
+                {
+                if (ctxInvoke != null)
+                    {
+                    Throwable eCleanup = releasePartitionedQueryBatch(
+                            ctxInvoke, partsBatch, context.getFailure());
+                    if (eCleanup != null && context.getFailure() == null)
+                        {
+                        failPartitionedQuery(context, eCleanup);
+                        }
+                    }
+                }
+            finally
+                {
+                // Lane accounting must survive cleanup failures; otherwise a
+                // failed unpin could strand the request and its shared permit.
+                finishPartitionedQueryLane(context);
+                }
+            }
+        }
+
+    /**
+     * Post one response batch while all represented partitions remain pinned.
+     *
+     * @param context     the shared query context
+     * @param listResult  the partition results in this batch
+     * @param parts       the exact partitions represented by the batch
+     */
+    protected void postPartitionedQueryBatch(PartitionedQueryContext context,
+            List<QueryResult> listResult, PartitionSet parts)
+        {
+        synchronized (context.getResponseLock())
+            {
+            if (context.isTerminal())
+                {
+                return;
+                }
+
+            QueryResult result = listResult.size() == 1
+                                 ? listResult.get(0)
+                                 : new QueryResult(listResult.toArray(QueryResult[]::new));
+
+            QueryResponse msgResponse = instantiatePartitionedQueryResponse(context.getRequest());
+            msgResponse.setKeysOnly(context.isKeysOnly());
+            msgResponse.setResult(result.getResults());
+            msgResponse.setSize(result.getCount());
+            msgResponse.setResponsePartitions(new PartitionSet(parts));
+            post(msgResponse);
+
+            context.addProcessedPartitions(parts);
+            }
+        }
+
+    /**
+     * Post an ownership rejection for one claimed partition.
+     *
+     * @param context     the shared query context
+     * @param nPartition  the rejected partition
+     */
+    protected void postPartitionedQueryRejection(PartitionedQueryContext context, int nPartition)
+        {
+        synchronized (context.getResponseLock())
+            {
+            if (context.isTerminal())
+                {
+                return;
+                }
+
+            PartitionSet part = new PartitionSet(getPartitionCount(), nPartition);
+            QueryResponse msgResponse = instantiatePartitionedQueryResponse(context.getRequest());
+            msgResponse.setKeysOnly(context.isKeysOnly());
+            msgResponse.setResult(new Object[0]);
+            msgResponse.setSize(0);
+            msgResponse.setRejectPartitions(part);
+            msgResponse.setResponsePartitions(new PartitionSet(getPartitionCount()));
+            post(msgResponse);
+            }
+        }
+
+    /**
+     * Release a response batch's invocation context and partition pins.
+     *
+     * @param ctxInvoke  the lane invocation context
+     * @param parts      the pinned batch partitions
+     * @param eFailure   an existing operation failure, or {@code null}
+     *
+     * @return the operation or cleanup failure, or {@code null}
+     */
+    protected Throwable releasePartitionedQueryBatch(InvocationContext ctxInvoke,
+            PartitionSet parts, Throwable eFailure)
+        {
+        // COH-22088: reset an interrupt raised by the guardian before invoking
+        // cleanup paths that may use interruptible operations.
+        GuardSupport.reset();
+
+        try
+            {
+            processChanges();
+            }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = addCleanupFailure(eFailure, e);
+            }
+
+        try
+            {
+            releaseInvocationContextAndUnpin(ctxInvoke, parts, /*fUnpin*/ true, eFailure);
+            }
+        catch (RuntimeException | Error e)
+            {
+            eFailure = addCleanupFailure(eFailure, e);
+            }
+
+        return eFailure;
+        }
+
+    /**
+     * Establish the first terminal failure and send at most one exception
+     * response for the logical query.
+     *
+     * @param context  the shared query context
+     * @param e        the failure
+     */
+    protected void failPartitionedQuery(PartitionedQueryContext context, Throwable e)
+        {
+        synchronized (context.getResponseLock())
+            {
+            if (context.fail(e))
+                {
+                QueryResponse msgResponse = instantiatePartitionedQueryResponse(context.getRequest());
+                msgResponse.setException(tagException(e));
+                try
+                    {
+                    post(msgResponse);
+                    }
+                catch (Throwable ePost)
+                    {
+                    e.addSuppressed(ePost);
+                    }
+                }
+            }
+        }
+
+    /**
+     * Complete one query lane and, for the last lane, publish request-level
+     * statistics and release the shared service lane budget.
+     *
+     * @param context  the shared query context
+     */
+    protected void finishPartitionedQueryLane(PartitionedQueryContext context)
+        {
+        if (context.finishLane())
+            {
+            try
+                {
+                if (!context.isTerminal())
+                    {
+                    context.getStorage().completePartitionedQuery(context.getExecution());
+                    }
+                }
+            finally
+                {
+                context.getRequest().setProcessedPartitions(context.getProcessedPartitions());
+                releasePartitionedWorkLanes(context.getReservedLaneCount());
+                }
+            }
+        }
+
+    /**
+     * Select and reserve a conservative number of daemon-pool query lanes.
+     * The current request worker always supplies one lane; only additional
+     * lanes consume the shared budget.
+     *
+     * @param cPartitions  the requested partition count
+     *
+     * @return the total lane count, including the current worker
+     */
+    protected int reservePartitionedWorkLanes(int cPartitions)
+        {
+        com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
+
+        if (cPartitions <= 1 || !pool.isStarted())
+            {
+            return 1;
+            }
+
+        boolean fVirtual = pool instanceof
+                com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool;
+
+        // A platform backlog is a poor proxy for capacity because several
+        // synchronized requests create one while fixed workers are still
+        // available. For VDP it is useful admission feedback: adding helper
+        // virtual threads while logical requests are already queued only
+        // increases scheduling and allocation overhead for cheap partitions.
+        if (fVirtual && pool.getBacklog() > 0)
+            {
+            return 1;
+            }
+
+        int     cDaemons   = pool.getDaemonCount();
+        int     cBudget    = Math.max(1, cDaemons / 2);
+        boolean fFairShare = !fVirtual;
+        int     cWanted    = calculatePartitionedWorkLaneCount(cPartitions,
+                cDaemons, pool.getActiveDaemonCount(), fFairShare);
+
+        while (cWanted > 0)
+            {
+            int cReserved = m_cPartitionedWorkLanes.get();
+            int cAcquire  = Math.min(cWanted, cBudget - cReserved);
+            if (cAcquire <= 0)
+                {
+                break;
+                }
+            if (m_cPartitionedWorkLanes.compareAndSet(cReserved, cReserved + cAcquire))
+                {
+                return cAcquire + 1;
+                }
+            }
+
+        return 1;
+        }
+
+    /**
+     * Calculate the additional partition-work lanes one request should try
+     * to reserve from the shared service budget.
+     *
+     * @param cPartitions  the requested partition count
+     * @param cDaemons     the current daemon count
+     * @param cActive      the current active daemon count
+     *
+     * @param fFairShare   {@code true} to divide the shared budget by active
+     *                     fixed-pool workers
+     *
+     * @return the desired number of additional lanes
+     */
+    protected int calculatePartitionedWorkLaneCount(int cPartitions,
+            int cDaemons, int cActive, boolean fFairShare)
+        {
+        cActive = Math.max(1, cActive);
+
+        int cIdle   = Math.max(0, cDaemons - cActive);
+        int cBudget = Math.max(1, cDaemons / 2);
+
+        // A non-zero service backlog is expected when several partitioned
+        // requests arrive together; treating it as a reason to suppress all
+        // helper lanes serializes precisely the requests that benefit most
+        // from partition streaming. Instead, divide the shared lane budget
+        // by the work already active in the pool. This retains up to four
+        // lanes for an isolated request while giving concurrent requests a
+        // bounded fair share rather than allowing the first few to consume
+        // the entire reservation.
+        // VirtualDaemonPool's active count describes transient logical task
+        // executions, not occupancy of a fixed worker pool. It therefore
+        // must not be used as a fair-share denominator. VDP still obeys the
+        // same hard service-wide reservation and currently-idle limits.
+        int cFair = fFairShare ? Math.max(1, cBudget / cActive) : 3;
+        return Math.min(Math.min(Math.max(0, cPartitions - 1), 3),
+                Math.min(cIdle, cFair));
+        }
+
+    /**
+     * Release additional query lanes previously reserved by a request.
+     *
+     * @param cLanes  the number of additional lanes
+     */
+    protected void releasePartitionedWorkLanes(int cLanes)
+        {
+        if (cLanes > 0)
+            {
+            m_cPartitionedWorkLanes.addAndGet(-cLanes);
+            }
+        }
+
+    /**
+     * Instantiate a response for a partition-streamed query.
+     *
+     * @param msgRequest  the query request to respond to
+     *
+     * @return a new partitioned query response
+     */
+    protected QueryResponse instantiatePartitionedQueryResponse(PartitionedQueryRequest msgRequest)
+        {
+        QueryResponse msgResponse = (QueryResponse) instantiateMessage("PartitionedQueryResponse");
+        msgResponse.respondTo(msgRequest);
+        return msgResponse;
+        }
+
+    /**
+     * Shared state for a bounded partition-streamed query.
+     */
+    protected static class PartitionedQueryContext
+        {
+        protected PartitionedQueryContext(PartitionedCache service,
+                PartitionedQueryRequest request, Storage storage,
+                Storage.PartitionedQueryExecution execution, int[] anPartition,
+                boolean fKeysOnly, int cLanes, int cReservedLanes, long ldtTimeout)
+            {
+            f_service        = service;
+            f_request        = request;
+            f_storage        = storage;
+            f_execution      = execution;
+            f_anPartition    = anPartition;
+            f_fKeysOnly      = fKeysOnly;
+            f_cReservedLanes = cReservedLanes;
+            f_ldtTimeout     = ldtTimeout;
+            f_partsProcessed = new PartitionSet(service.getPartitionCount());
+            f_cActiveLanes   = new AtomicInteger(cLanes);
+            }
+
+        protected void addProcessedPartitions(PartitionSet parts)
+            {
+            synchronized (f_partsProcessed)
+                {
+                f_partsProcessed.add(parts);
+                }
+            }
+
+        protected int claimPartition()
+            {
+            int iPartition = f_iPartition.getAndIncrement();
+            return iPartition < f_anPartition.length ? f_anPartition[iPartition] : -1;
+            }
+
+        protected boolean claimFirstResponse()
+            {
+            return f_fFirstResponse.compareAndSet(false, true);
+            }
+
+        protected void checkTimeoutRemaining()
+            {
+            if (f_ldtTimeout != Long.MAX_VALUE
+                    && f_ldtTimeout - Base.getSafeTimeMillis() <= 0L)
+                {
+                throw new RequestTimeoutException();
+                }
+            }
+
+        protected boolean fail(Throwable e)
+            {
+            return f_failure.compareAndSet(null, e);
+            }
+
+        protected boolean finishLane()
+            {
+            return f_cActiveLanes.decrementAndGet() == 0;
+            }
+
+        protected Storage.PartitionedQueryExecution getExecution()
+            {
+            return f_execution;
+            }
+
+        protected Throwable getFailure()
+            {
+            return f_failure.get();
+            }
+
+        protected PartitionSet getProcessedPartitions()
+            {
+            synchronized (f_partsProcessed)
+                {
+                return new PartitionSet(f_partsProcessed);
+                }
+            }
+
+        protected PartitionedQueryRequest getRequest()
+            {
+            return f_request;
+            }
+
+        protected Object getResponseLock()
+            {
+            return f_oResponseLock;
+            }
+
+        protected int getReservedLaneCount()
+            {
+            return f_cReservedLanes;
+            }
+
+        protected PartitionedCache getService()
+            {
+            return f_service;
+            }
+
+        protected Storage getStorage()
+            {
+            return f_storage;
+            }
+
+        protected boolean isKeysOnly()
+            {
+            return f_fKeysOnly;
+            }
+
+        protected boolean isTerminal()
+            {
+            return f_failure.get() != null;
+            }
+
+        protected void removeUnscheduledLanes(int cLanes)
+            {
+            if (cLanes > 0)
+                {
+                f_cActiveLanes.addAndGet(-cLanes);
+                }
+            }
+
+        private final PartitionedCache                  f_service;
+        private final PartitionedQueryRequest           f_request;
+        private final Storage                           f_storage;
+        private final Storage.PartitionedQueryExecution f_execution;
+        private final int[]                             f_anPartition;
+        private final boolean                           f_fKeysOnly;
+        private final int                               f_cReservedLanes;
+        private final long                              f_ldtTimeout;
+        private final PartitionSet                      f_partsProcessed;
+        private final Object                            f_oResponseLock = new Object();
+        private final AtomicInteger                     f_iPartition = new AtomicInteger();
+        private final AtomicInteger                     f_cActiveLanes;
+        private final AtomicBoolean                     f_fFirstResponse = new AtomicBoolean();
+        private final AtomicReference<Throwable>        f_failure = new AtomicReference<>();
+        }
+
+    /**
+     * A long-lived daemon-pool lane that drains multiple query partitions.
+     */
+    protected static class PartitionedQueryJob
+            implements PriorityTask, Runnable
+        {
+        protected PartitionedQueryJob(PartitionedQueryContext context)
+            {
+            f_context = context;
+            }
+
+        @Override
+        public long getExecutionTimeoutMillis()
+            {
+            return f_context.getRequest().getExecutionTimeoutMillis();
+            }
+
+        @Override
+        public long getRequestTimeoutMillis()
+            {
+            return f_context.getRequest().getRequestTimeoutMillis();
+            }
+
+        @Override
+        public int getSchedulingPriority()
+            {
+            // Always use a normal pool daemon. An immediate priority would
+            // create a short-lived non-pooled thread in DaemonPool.add().
+            return PriorityTask.SCHEDULE_STANDARD;
+            }
+
+        @Override
+        public void run()
+            {
+            if (f_fClaimed.compareAndSet(false, true))
+                {
+                f_context.getService().runPartitionedQueryLane(f_context);
+                }
+            }
+
+        @Override
+        public void runCanceled(boolean fAbandoned)
+            {
+            if (f_fClaimed.compareAndSet(false, true))
+                {
+                PartitionedCache service = f_context.getService();
+                service.failPartitionedQuery(f_context, new RequestTimeoutException());
+                service.finishPartitionedQueryLane(f_context);
+                }
+            }
+
+        private final PartitionedQueryContext f_context;
+        private final AtomicBoolean            f_fClaimed = new AtomicBoolean();
+        }
+
     /**
      * Called on the service thread only.
      */
@@ -24832,6 +25989,25 @@ public class PartitionedCache
                     getService().verifySubjectProofRequired(context, storage);
                     }
             
+                setAccessSubject(context == null ? null : context.getSubject());
+                setAccessStorage(storage);
+                setAccessReason(nReason);
+                setAccessGranted(nAccessRequired);
+                }
+            }
+
+        /**
+         * Initialize this thread-local invocation context after the logical
+         * request has already passed its StorageAccessAuthorizer check. This
+         * allows partition-streamed lanes to preserve a single authorization
+         * check per request while giving every lane the access state required
+         * by BinaryEntry.
+         */
+        protected void prepareGrantedAccess(com.tangosol.coherence.component.net.RequestContext context,
+                Storage storage, int nAccessRequired, int nReason)
+            {
+            if (storage.getAccessAuthorizer() != null)
+                {
                 setAccessSubject(context == null ? null : context.getSubject());
                 setAccessStorage(storage);
                 setAccessReason(nReason);

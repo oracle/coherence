@@ -124,6 +124,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.RecursiveTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import javax.security.auth.Subject;
 
 
@@ -1438,6 +1440,30 @@ public class Storage
 
         agent.accumulate(createStreamer(setKeys, agent));
 
+        return agent.getPartialResult();
+        }
+
+    /**
+     * Aggregate one partition as a step in a daemon-driven partition stream.
+     * The supplied aggregator is request-local and is never shared with
+     * another lane.
+     *
+     * @param filter  the filter to evaluate
+     * @param agent   the partition-local streaming aggregator
+     * @param parts   a set containing exactly one partition
+     *
+     * @return the partition's partial aggregation result
+     */
+    public Object aggregatePartition(com.tangosol.util.Filter filter,
+            com.tangosol.util.InvocableMap.StreamingAggregator agent,
+            com.tangosol.net.partition.PartitionSet parts)
+        {
+        if (parts.cardinality() != 1)
+            {
+            throw new IllegalArgumentException("A streamed aggregation step must contain exactly one partition");
+            }
+
+        agent.accumulate(createStreamer(filter, agent, parts));
         return agent.getPartialResult();
         }
 
@@ -8306,6 +8332,135 @@ public class Storage
         private final int f_nQueryType;
         private final PartitionSet f_parts;
         private final long f_lIdxVersion;
+        }
+
+    /**
+     * Request-scoped state for a partition-streamed query.
+     * <p>
+     * A single committed index version is captured when this execution is
+     * created and reused by every partition. Query statistics are accumulated
+     * across partitions and published once when the logical query completes.
+     * The counters are thread-safe so the same execution can be used by the
+     * bounded multi-lane coordinator without changing its consistency or
+     * statistics semantics.
+     */
+    public static class PartitionedQueryExecution
+        {
+        private PartitionedQueryExecution(Filter filter, int nQueryType, int cPartitions,
+                long lIdxVersion, long ldtStart)
+            {
+            f_filter         = filter;
+            f_nQueryType     = nQueryType;
+            f_partsProcessed = new PartitionSet(cPartitions);
+            f_lIdxVersion    = lIdxVersion;
+            f_ldtStart       = ldtStart;
+            }
+
+        private void addResult(PartitionSet parts, int cTotal, QueryResult result)
+            {
+            f_cTotal.addAndGet(cTotal);
+            f_cScanned.addAndGet(result.getScannedCount());
+            f_cResults.addAndGet(result.getCount());
+
+            if (!result.isOptimized())
+                {
+                f_fOptimized.set(false);
+                }
+
+            synchronized (f_partsProcessed)
+                {
+                f_partsProcessed.add(parts);
+                }
+            }
+
+        private PartitionSet getProcessedPartitions()
+            {
+            synchronized (f_partsProcessed)
+                {
+                return new PartitionSet(f_partsProcessed);
+                }
+            }
+
+        private final Filter        f_filter;
+        private final int           f_nQueryType;
+        private final PartitionSet  f_partsProcessed;
+        private final long          f_lIdxVersion;
+        private final long          f_ldtStart;
+        private final AtomicInteger f_cTotal     = new AtomicInteger();
+        private final AtomicInteger f_cScanned   = new AtomicInteger();
+        private final AtomicInteger f_cResults   = new AtomicInteger();
+        private final AtomicBoolean f_fOptimized = new AtomicBoolean(true);
+        private final AtomicBoolean f_fCompleted = new AtomicBoolean();
+        }
+
+    /**
+     * Start a partition-streamed query execution.
+     *
+     * @param filter       the query filter
+     * @param nQueryType   one of the {@code QUERY_*} values
+     * @param cPartitions  the service partition count
+     *
+     * @return the request-scoped query execution
+     */
+    public PartitionedQueryExecution beginPartitionedQuery(Filter filter, int nQueryType, int cPartitions)
+        {
+        if (AlwaysFilter.INSTANCE.equals(filter))
+            {
+            filter = null;
+            }
+
+        long lIdxVersion = nQueryType == QUERY_KEYS ? -1 : getVersion().getCommittedVersion();
+        return new PartitionedQueryExecution(filter, nQueryType, cPartitions,
+                lIdxVersion, Base.getSafeTimeMillis());
+        }
+
+    /**
+     * Query one partition as part of a partition-streamed query execution.
+     *
+     * @param execution  the request-scoped query execution
+     * @param parts      a set containing exactly one partition
+     *
+     * @return the result for the supplied partition
+     */
+    public QueryResult queryPartition(PartitionedQueryExecution execution, PartitionSet parts)
+        {
+        if (parts.cardinality() != 1)
+            {
+            throw new IllegalArgumentException("A streamed query step must contain exactly one partition");
+            }
+        if (execution.f_fCompleted.get())
+            {
+            throw new IllegalStateException("The partitioned query execution is already complete");
+            }
+
+        int         nQueryType = execution.f_nQueryType;
+        int         cTotal     = calculateSize(parts, false);
+        QueryResult result     = queryInternal(execution.f_filter,
+                nQueryType == QUERY_INVOKE ? QUERY_KEYS : nQueryType,
+                parts, execution.f_lIdxVersion);
+
+        execution.addResult(parts, cTotal, result);
+        return result;
+        }
+
+    /**
+     * Complete a partition-streamed query and publish its statistics once.
+     *
+     * @param execution  the request-scoped query execution
+     */
+    public void completePartitionedQuery(PartitionedQueryExecution execution)
+        {
+        if (execution.f_fCompleted.compareAndSet(false, true))
+            {
+            PartitionSet parts = execution.getProcessedPartitions();
+            if (!parts.isEmpty())
+                {
+                updateQueryStatistics(execution.f_filter, execution.f_fOptimized.get(),
+                        execution.f_ldtStart, execution.f_cTotal.get(),
+                        execution.f_cScanned.get(), execution.f_cResults.get(),
+                        execution.f_nQueryType, parts);
+                }
+            }
         }
 
     /**
