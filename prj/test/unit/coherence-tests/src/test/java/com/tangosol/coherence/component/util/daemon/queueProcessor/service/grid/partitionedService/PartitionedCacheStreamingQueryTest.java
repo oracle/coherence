@@ -42,7 +42,7 @@ import static org.mockito.Mockito.when;
  * Unit tests for partition-streamed query coordination.
  *
  * @author Aleks Seovic  2026.08.18
- * @since 26.1
+ * @since 26.07
  */
 public class PartitionedCacheStreamingQueryTest
     {

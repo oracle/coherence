@@ -27,7 +27,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  * Unit tests for partition-streamed query execution state.
  *
  * @author Aleks Seovic  2026.08.18
- * @since 26.1
+ * @since 26.07
  */
 public class StoragePartitionedQueryExecutionTest
     {
