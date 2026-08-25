@@ -4460,10 +4460,11 @@ public class PartitionedCache
             return 0;
             }
 
-        // Script filters retain thread-bound language state. A hard
-        // BY_PARTITION contract still runs each partition independently on the
-        // request worker, while an adaptive request stays member-local.
-        if (filter instanceof com.tangosol.util.filter.ScriptFilter)
+        // Script filters and aggregators retain thread-bound language state. A
+        // hard BY_PARTITION contract still runs each partition independently
+        // on the request worker, while an adaptive request stays member-local.
+        if (filter instanceof com.tangosol.util.filter.ScriptFilter
+                || agent instanceof com.tangosol.util.aggregator.ScriptAggregator)
             {
             return fByPartition ? 1 : 0;
             }

@@ -22,6 +22,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.aggregator.ScriptAggregator;
 import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.Test;
@@ -113,6 +114,23 @@ public class PartitionedCacheStreamingQueryTest
         service.setReservedWorkLanes(4);
         service.setAdaptivePartitioningSupported(false);
         assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+        }
+
+    @Test
+    public void shouldKeepScriptAggregatorOnRequestWorker()
+        {
+        TestService service = new TestService(new TestStorage(), Set.of());
+
+        service.setReservedWorkLanes(4);
+
+        ScriptAggregator agent = new ScriptAggregator("js", "test",
+                InvocableMap.StreamingAggregator.PARALLEL);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+
+        agent = new ScriptAggregator("js", "test",
+                InvocableMap.StreamingAggregator.PARALLEL
+                | InvocableMap.StreamingAggregator.BY_PARTITION);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(1));
         }
 
     @Test
