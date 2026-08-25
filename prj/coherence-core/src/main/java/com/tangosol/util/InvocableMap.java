@@ -1110,47 +1110,48 @@ public interface InvocableMap<K, V>
         /**
          * A flag specifying that this aggregator should be executed in parallel.
          * <p>
-         * An additional hint can be provided by combining this flag with {@link
-         * #BY_PARTITION} flag, which would suggest to further parallelize the
-         * server side aggregation by splitting it per-partitions. In the absence
-         * of this flag, Coherence is free to decide which strategy to use based
-         * on the internal metrics.
+         * The execution granularity can be specified by combining this flag
+         * with either {@link #BY_MEMBER} or {@link #BY_PARTITION}, which are
+         * mutually exclusive. If neither is specified, Coherence is free to
+         * choose member or partition granularity using current service
+         * pressure and other internal metrics.
          */
         public static int PARALLEL        = 0x00000001;
 
         /**
          * A flag specifying that this aggregator should be executed serially.
          * <p>
-         * An additional hint can be provided by combining this flag with either
-         * {@link #BY_MEMBER} or {@link #BY_PARTITION} flag, which are mutually
-         * exclusive. In the absence of either, Coherence is free to decide which
-         * strategy to use based on the internal metrics.
+         * The execution granularity can be specified by combining this flag
+         * with either {@link #BY_MEMBER} or {@link #BY_PARTITION}, which are
+         * mutually exclusive. If neither is specified, Coherence is free to
+         * choose member or partition granularity using current service
+         * pressure and other internal metrics.
          */
         public static int SERIAL          = 0x00000002;
 
         /**
-         * A flag specifying that it might be beneficial to execute this aggregator
-         * member-by-member.
+         * A flag requiring this aggregator to execute member-by-member.
          * <p>
-         * This can be beneficial when there is a high chance for the aggregation
-         * to compute the result based solely on the one member worth set of entries.
+         * Each storage member processes its complete local entry set as one
+         * partial aggregation. Coherence will not subdivide that work by
+         * partition, even when the aggregator is {@link #PARALLEL}.
          * <p>
-         * Note: this flag is meaningful only for {@link #SERIAL serial execution}.
+         * This flag is mutually exclusive with {@link #BY_PARTITION}.
          */
         public static int BY_MEMBER       = 0x00000004;
 
         /**
-         * A flag specifying that it might be beneficial to execute this aggregator
-         * partition-by-partition. This implies that the entries from each partition
-         * will be processed independently and a partial result will be created
-         * for each partition.
+         * A flag requiring this aggregator to execute partition-by-partition.
+         * The entries from each partition are processed independently and an
+         * independent partial result is created for every partition represented
+         * by the request.
          * <p>
-         * This can be beneficial when accumulation of individual entries is
-         * computationally intensive and would benefit from additional parallelization
-         * within each storage-enabled member. In this case, the partial results
-         * for all the partitions on a given member will be combined into a single
-         * partial result, which will then be sent back to the client for further
-         * aggregation.
+         * A storage member combines its partition partials into one member
+         * partial before sending it to the caller. The guarantee is about
+         * aggregation granularity; it does not require partitions to execute
+         * concurrently when the service is under pressure.
+         * <p>
+         * This flag is mutually exclusive with {@link #BY_MEMBER}.
          */
         public static int BY_PARTITION    = 0x00000008;
 

@@ -4131,7 +4131,14 @@ public class PartitionedCache
             Object oResult;
             if (agent instanceof com.tangosol.util.InvocableMap.StreamingAggregator)
                 {
-                oResult = storage.aggregateByStreaming(setKeysPinned, (com.tangosol.util.InvocableMap.StreamingAggregator) agent);
+                com.tangosol.util.InvocableMap.StreamingAggregator agentStreaming =
+                        (com.tangosol.util.InvocableMap.StreamingAggregator) agent;
+                int nGranularity = validateStreamingAggregationGranularity(agentStreaming);
+
+                oResult = nGranularity
+                            == com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION
+                          ? aggregateKeysByPartition(storage, setKeysPinned, agentStreaming)
+                          : storage.aggregateByStreaming(setKeysPinned, agentStreaming);
                 }
             else
                 {
@@ -4165,6 +4172,33 @@ public class PartitionedCache
             releaseInvocationContextAndUnpin(ctxInvoke, partsPinned, /*fUnpin*/ true);
             }
         }
+
+    /**
+     * Aggregate an explicit key set independently by partition.
+     * <p>
+     * Aggregate-all requests are already distributed concurrently to storage
+     * members. Splitting the member-local keys here preserves that member
+     * concurrency while enforcing the {@code BY_PARTITION} contract that each
+     * partition produces an independent partial result.
+     */
+    protected Object aggregateKeysByPartition(Storage storage, Set setKeys,
+            com.tangosol.util.InvocableMap.StreamingAggregator agent)
+        {
+        Map mapByPartition = splitKeysByPartition(setKeys.iterator());
+
+        for (Iterator iter = mapByPartition.values().iterator(); iter.hasNext(); )
+            {
+            Set setPartition = (Set) iter.next();
+            com.tangosol.util.InvocableMap.StreamingAggregator agentPartition = agent.supply();
+
+            if (!agent.combine(storage.aggregateByStreaming(setPartition, agentPartition)))
+                {
+                break;
+                }
+            }
+
+        return agent.getPartialResult();
+        }
     
     /**
      * Called on the service or a daemon pool thread.
@@ -4196,9 +4230,17 @@ public class PartitionedCache
         Filter       filter   = msgRequest.getFilter();
 
         com.tangosol.util.InvocableMap.EntryAggregator agent;
+        int                                             cPartitionedLanes = 0;
         try
             {
             agent = msgRequest.deserializeAggregator();
+
+            if (agent instanceof com.tangosol.util.InvocableMap.StreamingAggregator)
+                {
+                cPartitionedLanes = selectPartitionedStreamingAggregateLanes(
+                        (com.tangosol.util.InvocableMap.StreamingAggregator) agent,
+                        filter, partMask.cardinality());
+                }
             }
         catch (Throwable e)
             {
@@ -4208,12 +4250,11 @@ public class PartitionedCache
             return;
             }
 
-        if (agent instanceof com.tangosol.util.InvocableMap.StreamingAggregator
-                && ((com.tangosol.util.InvocableMap.StreamingAggregator) agent).isByPartition()
-                && ((com.tangosol.util.InvocableMap.StreamingAggregator) agent).isParallel())
+        if (cPartitionedLanes > 0)
             {
             onPartitionedStreamingAggregateRequest(msgRequest, storage, partMask, filter,
-                    (com.tangosol.util.InvocableMap.StreamingAggregator) agent);
+                    (com.tangosol.util.InvocableMap.StreamingAggregator) agent,
+                    cPartitionedLanes);
             return;
             }
         
@@ -4281,10 +4322,36 @@ public class PartitionedCache
             Storage storage, PartitionSet partMask, Filter filter,
             com.tangosol.util.InvocableMap.StreamingAggregator agent)
         {
+        int cLanes = filter instanceof com.tangosol.util.filter.ScriptFilter
+                     ? 1
+                     : reservePartitionedWorkLanes(partMask.cardinality());
+
+        onPartitionedStreamingAggregateRequest(msgRequest, storage, partMask,
+                filter, agent, cLanes);
+        }
+
+    /**
+     * Execute a streaming aggregation progressively by partition using an
+     * already selected and reserved number of lanes.
+     */
+    protected void onPartitionedStreamingAggregateRequest(AggregateFilterRequest msgRequest,
+            Storage storage, PartitionSet partMask, Filter filter,
+            com.tangosol.util.InvocableMap.StreamingAggregator agent, int cLanes)
+        {
         PartitionedAggregateContext context = null;
+        int                         cReserved = Math.max(0, cLanes - 1);
 
         try
             {
+            // Preserve the common-case optimization from
+            // Storage.aggregateByStreaming(). The partition-streamed path
+            // bypasses that method and must normalize AlwaysFilter before
+            // each lane constructs its partition streamer.
+            if (AlwaysFilter.INSTANCE.equals(filter))
+                {
+                filter = null;
+                }
+
             // Preserve the existing one authorization check per logical
             // request. Each lane receives the granted state in its own
             // thread-local InvocationContext below.
@@ -4307,14 +4374,8 @@ public class PartitionedCache
             // completion by at most one partition step.
             msgRequest.setProcessedPartitions(new PartitionSet(partMask));
 
-            // Script filters retain thread-bound language state. They still
-            // use partition streaming, but remain on the request worker.
-            int cLanes = filter instanceof com.tangosol.util.filter.ScriptFilter
-                         ? 1
-                         : reservePartitionedWorkLanes(anPartition.length);
-
             context = new PartitionedAggregateContext(this, msgRequest, storage,
-                    filter, agent, anPartition, cLanes, cLanes - 1,
+                    filter, agent, anPartition, cLanes, cReserved,
                     msgRequest.getRequestTimeout());
 
             int cScheduled = 0;
@@ -4337,6 +4398,8 @@ public class PartitionedCache
             {
             if (context == null)
                 {
+                releasePartitionedWorkLanes(cReserved);
+
                 PartialValueResponse msgResponse = instantiatePartitionedAggregateResponse(msgRequest);
                 msgResponse.setException(tagException(e));
                 processChanges(msgResponse);
@@ -4347,6 +4410,117 @@ public class PartitionedCache
                 context.fail(e);
                 }
             }
+        }
+
+    /**
+     * Select partition aggregation when required by the aggregator contract,
+     * or adaptively when an unqualified parallel aggregator can acquire at
+     * least one helper lane.
+     *
+     * @param agent        the streaming aggregator
+     * @param filter       the aggregation filter
+     * @param cPartitions  the requested partition count
+     *
+     * @return zero for member-local execution, or the reserved partition lane
+     *         count including the current worker
+     */
+    protected int selectPartitionedStreamingAggregateLanes(
+            com.tangosol.util.InvocableMap.StreamingAggregator agent,
+            Filter filter, int cPartitions)
+        {
+        int nCharacteristics = agent.characteristics();
+        int nGranularity     = validateStreamingAggregationGranularity(agent);
+
+        if (nGranularity == com.tangosol.util.InvocableMap.StreamingAggregator.BY_MEMBER
+                || ((nCharacteristics & com.tangosol.util.InvocableMap.StreamingAggregator.PARALLEL) == 0
+                    && nGranularity != com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION))
+            {
+            return 0;
+            }
+
+        boolean fByPartition = nGranularity
+                == com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION;
+
+        // VDP's targeted read-only admission already exposes useful member
+        // concurrency, and the qualification showed no benefit from adding
+        // partition partials. A hard BY_PARTITION contract still takes the
+        // partition path.
+        if (!fByPartition && !isAdaptivePartitionedStreamingAggregationSupported())
+            {
+            return 0;
+            }
+
+        // A small transient backlog is expected when several requests fan out
+        // together and does not mean the fixed pool is saturated. Sustained
+        // queued work approaching a quarter of the pool does: at that point
+        // additional partition partials consume workers without increasing
+        // useful member throughput. Hard BY_PARTITION remains unconditional.
+        if (!fByPartition && !isAdaptivePartitionedStreamingAggregationBeneficial())
+            {
+            return 0;
+            }
+
+        // Script filters retain thread-bound language state. A hard
+        // BY_PARTITION contract still runs each partition independently on the
+        // request worker, while an adaptive request stays member-local.
+        if (filter instanceof com.tangosol.util.filter.ScriptFilter)
+            {
+            return fByPartition ? 1 : 0;
+            }
+
+        int cLanes = reservePartitionedWorkLanes(cPartitions);
+        return fByPartition || cLanes > 1 ? Math.max(1, cLanes) : 0;
+        }
+
+    /**
+     * Validate and return the execution granularity requested by a streaming
+     * aggregator.
+     *
+     * @return zero, {@code BY_MEMBER}, or {@code BY_PARTITION}
+     */
+    protected int validateStreamingAggregationGranularity(
+            com.tangosol.util.InvocableMap.StreamingAggregator agent)
+        {
+        int nGranularity = agent.characteristics()
+                & (com.tangosol.util.InvocableMap.StreamingAggregator.BY_MEMBER
+                   | com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION);
+
+        if (nGranularity == (com.tangosol.util.InvocableMap.StreamingAggregator.BY_MEMBER
+                             | com.tangosol.util.InvocableMap.StreamingAggregator.BY_PARTITION))
+            {
+            throw new IllegalArgumentException(
+                    "StreamingAggregator cannot specify both BY_MEMBER and BY_PARTITION");
+            }
+
+        return nGranularity;
+        }
+
+    /**
+     * Return whether unqualified parallel aggregators may use adaptive
+     * partition fan-out for the configured daemon-pool implementation.
+     */
+    protected boolean isAdaptivePartitionedStreamingAggregationSupported()
+        {
+        return !(getDaemonPool() instanceof
+                com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool);
+        }
+
+    /**
+     * Return whether current service pressure still leaves enough capacity
+     * for optional partition fan-out to be useful.
+     * <p>
+     * The threshold deliberately tolerates a short queue: helper jobs from a
+     * few synchronized requests may be queued briefly even while fixed workers
+     * are available. Once queued work reaches one quarter of the pool, the
+     * service is at or near its latency knee and an unqualified aggregator is
+     * better served by one member-local partial.
+     */
+    protected boolean isAdaptivePartitionedStreamingAggregationBeneficial()
+        {
+        com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
+
+        return pool.isStarted()
+                && pool.getBacklog() < Math.max(1, pool.getDaemonCount() / 4);
         }
 
     /**

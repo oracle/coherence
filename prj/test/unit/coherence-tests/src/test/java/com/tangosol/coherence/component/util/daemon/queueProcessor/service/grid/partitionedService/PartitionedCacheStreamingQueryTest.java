@@ -22,6 +22,7 @@ import com.tangosol.util.Binary;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.filter.AlwaysFilter;
 
 import org.junit.Test;
 
@@ -29,12 +30,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -62,6 +65,100 @@ public class PartitionedCacheStreamingQueryTest
         // idle limit still bound additional lanes.
         assertThat(service.calculatePartitionedWorkLaneCount(257, 16, 8, false), is(3));
         assertThat(service.calculatePartitionedWorkLaneCount(257, 16, 16, false), is(0));
+        }
+
+    @Test
+    public void shouldHonorExplicitStreamingAggregationGranularity()
+        {
+        TestService service = new TestService(new TestStorage(), Set.of());
+        InvocableMap.StreamingAggregator agent = mock(InvocableMap.StreamingAggregator.class);
+
+        service.setReservedWorkLanes(4);
+
+        when(agent.characteristics()).thenReturn(
+                InvocableMap.StreamingAggregator.PARALLEL
+                | InvocableMap.StreamingAggregator.BY_MEMBER);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+
+        service.setReservedWorkLanes(1);
+        service.setAdaptivePartitioningBeneficial(false);
+        when(agent.characteristics()).thenReturn(
+                InvocableMap.StreamingAggregator.PARALLEL
+                | InvocableMap.StreamingAggregator.BY_PARTITION);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(1));
+
+        when(agent.characteristics()).thenReturn(
+                InvocableMap.StreamingAggregator.SERIAL
+                | InvocableMap.StreamingAggregator.BY_PARTITION);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(1));
+        }
+
+    @Test
+    public void shouldAdaptUnqualifiedParallelAggregationToAvailableLanes()
+        {
+        TestService service = new TestService(new TestStorage(), Set.of());
+        InvocableMap.StreamingAggregator agent = mock(InvocableMap.StreamingAggregator.class);
+        when(agent.characteristics()).thenReturn(InvocableMap.StreamingAggregator.PARALLEL);
+
+        service.setReservedWorkLanes(4);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(4));
+
+        service.setAdaptivePartitioningBeneficial(false);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+
+        service.setAdaptivePartitioningBeneficial(true);
+        service.setReservedWorkLanes(1);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+
+        service.setReservedWorkLanes(4);
+        service.setAdaptivePartitioningSupported(false);
+        assertThat(service.selectPartitionedStreamingAggregateLanes(agent, null, 17), is(0));
+        }
+
+    @Test
+    public void shouldRejectConflictingStreamingAggregationGranularity()
+        {
+        TestService service = new TestService(new TestStorage(), Set.of());
+        InvocableMap.StreamingAggregator agent = mock(InvocableMap.StreamingAggregator.class);
+        when(agent.characteristics()).thenReturn(
+                InvocableMap.StreamingAggregator.PARALLEL
+                | InvocableMap.StreamingAggregator.BY_MEMBER
+                | InvocableMap.StreamingAggregator.BY_PARTITION);
+
+        assertThrows(IllegalArgumentException.class,
+                () -> service.selectPartitionedStreamingAggregateLanes(agent, null, 17));
+        }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldAggregateExplicitKeysIndependentlyByPartition()
+        {
+        TestStorage storage = new TestStorage();
+        TestService service = new TestService(storage, Set.of());
+        Set<Binary> setKeys = new HashSet<>();
+
+        for (int i = 0; i < 20; i++)
+            {
+            setKeys.add(ExternalizableHelper.toBinary("key-" + i));
+            }
+
+        AtomicInteger nCombined = new AtomicInteger();
+        InvocableMap.StreamingAggregator agent = mock(InvocableMap.StreamingAggregator.class);
+        when(agent.supply()).thenReturn(mock(InvocableMap.StreamingAggregator.class));
+        when(agent.combine(org.mockito.ArgumentMatchers.any())).thenAnswer(invocation ->
+            {
+            nCombined.addAndGet((Integer) invocation.getArgument(0));
+            return true;
+            });
+        when(agent.getPartialResult()).thenAnswer(invocation -> nCombined.get());
+
+        Object oResult = service.aggregateKeysByPartition(storage, setKeys, agent);
+        Map<Integer, Set<Binary>> mapExpected = service.splitKeysByPartition(setKeys.iterator());
+
+        assertThat(oResult, is(setKeys.size()));
+        assertThat(storage.getAggregatedKeySets().size(), is(mapExpected.size()));
+        assertThat(new HashSet<>(storage.getAggregatedKeySets()),
+                is(new HashSet<>(mapExpected.values())));
         }
 
     @Test
@@ -227,6 +324,23 @@ public class PartitionedCacheStreamingQueryTest
 
     @Test
     @SuppressWarnings("unchecked")
+    public void shouldOptimizeAlwaysFilterForPartitionedAggregation()
+        {
+        TestStorage storage = new TestStorage();
+        TestService service = new TestService(storage, Set.of(1, 3));
+        PartitionedCache.AggregateFilterRequest request = aggregateRequest(service);
+
+        InvocableMap.StreamingAggregator agent = mock(InvocableMap.StreamingAggregator.class);
+        when(agent.supply()).thenReturn(mock(InvocableMap.StreamingAggregator.class));
+
+        service.onPartitionedStreamingAggregateRequest(request, storage,
+                partitions(17, 1, 3), AlwaysFilter.INSTANCE, agent);
+
+        assertThat(storage.getAggregatedFilters(), is(Collections.nCopies(2, null)));
+        }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void shouldReturnOneAggregateFailureAndReleaseEveryPin()
         {
         TestStorage storage = new TestStorage();
@@ -297,7 +411,19 @@ public class PartitionedCacheStreamingQueryTest
         @Override
         protected int reservePartitionedWorkLanes(int cPartitions)
             {
-            return 1;
+            return m_cReservedWorkLanes;
+            }
+
+        @Override
+        protected boolean isAdaptivePartitionedStreamingAggregationSupported()
+            {
+            return m_fAdaptivePartitioningSupported;
+            }
+
+        @Override
+        protected boolean isAdaptivePartitionedStreamingAggregationBeneficial()
+            {
+            return m_fAdaptivePartitioningBeneficial;
             }
 
         @Override
@@ -405,6 +531,21 @@ public class PartitionedCacheStreamingQueryTest
             m_eProcessChanges = e;
             }
 
+        void setReservedWorkLanes(int cLanes)
+            {
+            m_cReservedWorkLanes = cLanes;
+            }
+
+        void setAdaptivePartitioningSupported(boolean fSupported)
+            {
+            m_fAdaptivePartitioningSupported = fSupported;
+            }
+
+        void setAdaptivePartitioningBeneficial(boolean fBeneficial)
+            {
+            m_fAdaptivePartitioningBeneficial = fBeneficial;
+            }
+
         private final TestStorage         f_storage;
         private final Set<Integer>        f_setOwned = new HashSet<>();
         private final List<Integer>       f_listPinned = Collections.synchronizedList(new ArrayList<>());
@@ -414,6 +555,9 @@ public class PartitionedCacheStreamingQueryTest
         private final List<PartialValueResponse> f_listAggregateResponse =
                 Collections.synchronizedList(new ArrayList<>());
         private final AtomicInteger       m_cProcessChanges = new AtomicInteger();
+        private boolean                   m_fAdaptivePartitioningSupported = true;
+        private boolean                   m_fAdaptivePartitioningBeneficial = true;
+        private int                       m_cReservedWorkLanes = 1;
         private RuntimeException          m_eProcessChanges;
         }
 
@@ -481,6 +625,7 @@ public class PartitionedCacheStreamingQueryTest
             {
             int nPartition = parts.next(0);
             f_listAggregated.add(nPartition);
+            f_listAggregateFilter.add(filter);
 
             if (nPartition == m_nFailPartition)
                 {
@@ -488,6 +633,14 @@ public class PartitionedCacheStreamingQueryTest
                 }
 
             return nPartition;
+            }
+
+        @Override
+        public Object aggregateByStreaming(Set setKeys,
+                InvocableMap.StreamingAggregator agent)
+            {
+            f_listAggregatedKeySet.add(new HashSet<>(setKeys));
+            return setKeys.size();
             }
 
         @Override
@@ -528,9 +681,21 @@ public class PartitionedCacheStreamingQueryTest
             return f_listAggregated;
             }
 
+        List<Set> getAggregatedKeySets()
+            {
+            return f_listAggregatedKeySet;
+            }
+
+        List<Filter> getAggregatedFilters()
+            {
+            return f_listAggregateFilter;
+            }
+
         private final StorageVersion f_version = new StorageVersion();
         private final List<Integer>  f_listQueried = Collections.synchronizedList(new ArrayList<>());
         private final List<Integer>  f_listAggregated = Collections.synchronizedList(new ArrayList<>());
+        private final List<Set>      f_listAggregatedKeySet = Collections.synchronizedList(new ArrayList<>());
+        private final List<Filter>   f_listAggregateFilter = Collections.synchronizedList(new ArrayList<>());
         private int                  m_cAccessChecks;
         private int                  m_cStatisticsUpdates;
         private int                  m_nFailPartition = -1;
