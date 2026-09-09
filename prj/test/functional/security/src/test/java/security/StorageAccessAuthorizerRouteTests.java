@@ -73,10 +73,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 import javax.security.auth.Subject;
 import common.AbstractFunctionalTest;
 
@@ -721,10 +717,7 @@ public class StorageAccessAuthorizerRouteTests
         CoherenceClusterMember storageTwo = null;
         try
             {
-            Instant start = Instant.now().minusSeconds(TimeUnit.DAYS.toSeconds(1)).plusSeconds(20);
-            String startDate = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
-                    .withZone(ZoneId.systemDefault()).format(start);
-            createShortLivedCredential("peer-proof-client", shortStore, shortCert, startDate);
+            createShortLivedCredential("peer-proof-client", shortStore, shortCert, "-1d+20S");
             Files.write(authorities, concatenate(Files.readAllBytes(shortCert), Files.readAllBytes(s_serverCert),
                     Files.readAllBytes(s_serverTwoCert)));
 
