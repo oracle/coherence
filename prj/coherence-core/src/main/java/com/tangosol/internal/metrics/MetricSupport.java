@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -261,19 +261,20 @@ public class MetricSupport
      * @param sMBeanName  the name of the MBean
      * @param proxy       the {@link MBeanServerProxy} to use to obtain MBean information
      */
-    private synchronized void registerInternal(String sMBeanName, MBeanServerProxy proxy)
+    private void registerInternal(String sMBeanName, MBeanServerProxy proxy)
         {
-        if (f_setRegistered.contains(sMBeanName))
+        synchronized (this)
             {
-            return;
+            if (f_setRegistered.contains(sMBeanName))
+                {
+                return;
+                }
             }
 
         if (sMBeanName.startsWith("type=Platform") && sMBeanName.contains("subType=MemoryPool"))
             {
             ensureMemoryMetrics(f_listRegistry);
             }
-
-        f_setRegistered.add(sMBeanName);
 
         MBeanInfo mBeanInfo = proxy.getMBeanInfo(sMBeanName);
         if (mBeanInfo == null)
@@ -284,21 +285,33 @@ public class MetricSupport
             }
 
         Set<MBeanMetric> setMetric = getMetrics(sMBeanName, mBeanInfo, proxy);
-        if (setMetric.size() > 0)
+        synchronized (this)
             {
-            f_mapMetric.put(createObjectName(sMBeanName), setMetric);
-            for (MetricsRegistryAdapter adapter : f_listRegistry)
+            // Another thread may have completed the same registration while
+            // this thread obtained MBean metadata without holding our lock.
+            if (f_setRegistered.contains(sMBeanName))
                 {
-                for (MBeanMetric metric : setMetric)
+                return;
+                }
+
+            f_setRegistered.add(sMBeanName);
+
+            if (setMetric.size() > 0)
+                {
+                f_mapMetric.put(createObjectName(sMBeanName), setMetric);
+                for (MetricsRegistryAdapter adapter : f_listRegistry)
                     {
-                    try
+                    for (MBeanMetric metric : setMetric)
                         {
-                        adapter.register(metric);
-                        }
-                    catch (Throwable t)
-                        {
-                        CacheFactory.log("Caught exception registering metric "
-                                + metric.getIdentifier() + " with " + adapter + ": " + t.getLocalizedMessage());
+                        try
+                            {
+                            adapter.register(metric);
+                            }
+                        catch (Throwable t)
+                            {
+                            CacheFactory.log("Caught exception registering metric "
+                                    + metric.getIdentifier() + " with " + adapter + ": " + t.getLocalizedMessage());
+                            }
                         }
                     }
                 }
@@ -959,13 +972,16 @@ public class MetricSupport
      *
      * @param listRegistry  the metric registries to register the metrics with
      */
-    private synchronized void ensureMemoryMetrics(List<MetricsRegistryAdapter> listRegistry)
+    private void ensureMemoryMetrics(List<MetricsRegistryAdapter> listRegistry)
         {
-        if (f_fMemoryRegistered || listRegistry == null || listRegistry.isEmpty())
+        synchronized (this)
             {
-            return;
+            if (f_fMemoryRegistered || listRegistry == null || listRegistry.isEmpty())
+                {
+                return;
+                }
+            f_fMemoryRegistered = true;
             }
-        f_fMemoryRegistered = true;
 
         try
             {
