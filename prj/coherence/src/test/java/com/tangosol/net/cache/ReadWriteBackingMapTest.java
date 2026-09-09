@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.net.cache;
 
@@ -41,7 +41,9 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.number.IsCloseTo.closeTo;
 
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -171,6 +173,117 @@ public class ReadWriteBackingMapTest
             // changed state by this test must be reset
             ((ConfigurableCacheMap) m_mapInternal).setEvictionApprover(null);
             }
+        }
+
+    @Test
+    public void shouldReportWriteBehindRemoveSizeConsistently()
+        {
+        m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+        m_mapInternal.put(m_key2, m_value2);
+
+        assertSize(m_readWriteBackingMap, 1);
+        assertThat(m_readWriteBackingMap.getPendingRemoves(), is(Collections.singleton(m_key1)));
+        }
+
+    @Test
+    public void shouldNotReportNegativeWriteBehindRemoveSize()
+        {
+        ObservableMap mapInternalPrev = m_mapInternal;
+        try
+            {
+            m_mapInternal = new ObservableHashMap()
+                {
+                @Override
+                public int size()
+                    {
+                    return 0;
+                    }
+                };
+            m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+            m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+
+            assertSize(m_readWriteBackingMap, 0);
+            }
+        finally
+            {
+            m_mapInternal = mapInternalPrev;
+            }
+        }
+
+    @Test
+    public void shouldTrackPendingRemovesFromTombstoneTransitions()
+        {
+        m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+        assertThat(m_readWriteBackingMap.getPendingRemoves(), is(Collections.singleton(m_key1)));
+
+        m_mapInternal.put(m_key1, m_value1);
+        assertThat(m_readWriteBackingMap.getPendingRemoves(), is(Collections.emptySet()));
+
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+        m_mapInternal.remove(m_key1);
+        assertThat(m_readWriteBackingMap.getPendingRemoves(), is(Collections.emptySet()));
+        }
+
+    @Test
+    public void shouldInitializePendingRemovesFromInternalTombstones()
+        {
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+        m_mapInternal.put(m_key2, m_value2);
+
+        m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+
+        assertSize(m_readWriteBackingMap, 1);
+        assertThat(m_readWriteBackingMap.getPendingRemoves(), is(Collections.singleton(m_key1)));
+        }
+
+    @Test
+    public void shouldSuppressReadThroughForInternalTombstones()
+        {
+        m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+
+        assertThat(m_readWriteBackingMap.containsKey(m_key1), is(false));
+        assertThat(m_readWriteBackingMap.get(m_key1), is((Object) null));
+        assertThat(m_readWriteBackingMap.getAll(Collections.singleton(m_key1)), is(Collections.emptyMap()));
+        verify(m_storeBinary, never()).load(any());
+        verify(m_storeBinary, never()).loadAll(anySet());
+        }
+
+    @Test
+    public void shouldDistinguishNullValueFromAbsentKeyForContainsKey()
+        {
+        ObservableMap mapInternalPrev = m_mapInternal;
+        try
+            {
+            m_mapInternal = new ObservableHashMap();
+            m_readWriteBackingMap = createReadWriteBackingMap(false, 0, 0.0d);
+            m_mapInternal.put(m_key1, null);
+
+            assertThat(m_readWriteBackingMap.containsKey(m_key1), is(true));
+            assertThat(m_readWriteBackingMap.containsKey(m_key2), is(false));
+            }
+        finally
+            {
+            m_mapInternal = mapInternalPrev;
+            }
+        }
+
+    @Test
+    public void shouldReturnImmutablePendingRemoves()
+        {
+        m_readWriteBackingMap = createReadWriteBackingMap(false, 500, 0.5d, m_storeBinary, true);
+        m_mapInternal.put(m_key1, ReadWriteBackingMap.BIN_ERASE_PENDING);
+
+        Set setPendingRemoves = m_readWriteBackingMap.getPendingRemoves();
+
+        assertThrows(UnsupportedOperationException.class, () -> setPendingRemoves.add(m_key2));
+        assertThrows(UnsupportedOperationException.class, () -> setPendingRemoves.remove(m_key1));
+        assertThrows(UnsupportedOperationException.class, setPendingRemoves::clear);
+        assertThat(m_mapInternal.get(m_key1), is(ReadWriteBackingMap.BIN_ERASE_PENDING));
         }
 
     @Test
@@ -353,6 +466,14 @@ public class ReadWriteBackingMapTest
         return entry.getExpiryMillis();
         }
 
+    protected void assertSize(ReadWriteBackingMap map, int cExpected)
+        {
+        assertThat(map.size(), is(cExpected));
+        assertThat(map.keySet().size(), is(cExpected));
+        assertThat(map.entrySet().size(), is(cExpected));
+        assertThat(map.values().size(), is(cExpected));
+        }
+
     protected ReadWriteBackingMap createReadWriteBackingMap(boolean fReadOnly, int cWriteBehindSeconds,
                 double dflRefreshAheadFactor)
         {
@@ -362,8 +483,15 @@ public class ReadWriteBackingMapTest
     protected ReadWriteBackingMap createReadWriteBackingMap(boolean fReadOnly, int cWriteBehindSeconds,
                 double dflRefreshAheadFactor, BinaryEntryStore store)
         {
+        return createReadWriteBackingMap(fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, store,
+                ReadWriteBackingMap.RWBM_WB_REMOVE_DEFAULT);
+        }
+
+    protected ReadWriteBackingMap createReadWriteBackingMap(boolean fReadOnly, int cWriteBehindSeconds,
+                double dflRefreshAheadFactor, BinaryEntryStore store, boolean fWriteBehindRemove)
+        {
         return new ReadWriteBackingMap(m_ctxService, m_mapInternal, m_mapMisses, store,
-                                       fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor)
+                                       fReadOnly, cWriteBehindSeconds, dflRefreshAheadFactor, fWriteBehindRemove)
             {
             @Override
             protected ConcurrentMap instantiateControlMap()
