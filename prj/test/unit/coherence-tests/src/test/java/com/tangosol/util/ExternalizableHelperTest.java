@@ -13,6 +13,7 @@ import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
 import com.tangosol.io.internal.DefaultObjectInputFilter;
 
 import com.tangosol.io.pof.PofBufferReader;
@@ -47,6 +48,7 @@ import java.io.DataOutput;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InvalidClassException;
+import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
@@ -1409,6 +1411,40 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             }
         }
 
+    @Test
+    public void testExceptionBridgeArrayLengthBoundary()
+        {
+        assertExceptionBridgeArrayLengthBoundary(BridgeObjectInputFilter.exception());
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.exception()));
+            }
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.exception()));
+            }
+        }
+
+    private static void assertExceptionBridgeArrayLengthBoundary(ObjectInputFilter filter)
+        {
+        long       cLimit   = BridgeObjectInputFilter.MAX_EXCEPTION_ARRAY_LENGTH;
+        Class<?>[] aClasses = {Object[].class, StackTraceElement[].class,
+                RuntimeException[].class, int[].class};
+
+        for (Class<?> clz : aClasses)
+            {
+            assertEquals(clz.getName(), ObjectInputFilter.Status.ALLOWED,
+                    filter.checkInput(new TestFilterInfo(clz, cLimit)));
+            assertEquals(clz.getName(), ObjectInputFilter.Status.REJECTED,
+                    filter.checkInput(new TestFilterInfo(clz, cLimit + 1L)));
+            assertEquals(clz.getName(), ObjectInputFilter.Status.ALLOWED,
+                    filter.checkInput(new TestFilterInfo(clz, -1L)));
+            }
+        }
+
     private static boolean hasCause(Throwable t, Class<? extends Throwable> clz)
         {
         while (t != null)
@@ -1440,6 +1476,50 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             {
             CoherenceModeHelper.reset();
             }
+        }
+
+    private static class TestFilterInfo
+            implements ObjectInputFilter.FilterInfo
+        {
+        private TestFilterInfo(Class<?> clzSerial, long cArrayLength)
+            {
+            f_clzSerial   = clzSerial;
+            f_cArrayLength = cArrayLength;
+            }
+
+        @Override
+        public Class<?> serialClass()
+            {
+            return f_clzSerial;
+            }
+
+        @Override
+        public long arrayLength()
+            {
+            return f_cArrayLength;
+            }
+
+        @Override
+        public long depth()
+            {
+            return 0L;
+            }
+
+        @Override
+        public long references()
+            {
+            return 0L;
+            }
+
+        @Override
+        public long streamBytes()
+            {
+            return 0L;
+            }
+
+        private final Class<?> f_clzSerial;
+
+        private final long f_cArrayLength;
         }
 
     private interface ThrowingRunnable
