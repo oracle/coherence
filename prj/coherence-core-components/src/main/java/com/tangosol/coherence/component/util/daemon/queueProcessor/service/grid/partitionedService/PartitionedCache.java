@@ -61,6 +61,7 @@ import com.tangosol.internal.net.security.SubjectProofPayload;
 import com.tangosol.internal.net.security.SubjectProofVerification;
 import com.tangosol.internal.net.security.SubjectProofVerifier;
 import com.tangosol.internal.util.QueryResult;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.Serializer;
@@ -10561,7 +10562,10 @@ public class PartitionedCache
             visitor.setStorageArrayPrev(laStoragePrev);
             visitor.setPartition(iPartition);
         
-            storeFrom.iterate(com.tangosol.persistence.CachePersistenceHelper.instantiatePersistenceVisitor(visitor));
+            try (RemoteInstallGate.TopicReplayScope ignored = RemoteInstallGate.beginTopicReplayPass())
+                {
+                storeFrom.iterate(com.tangosol.persistence.CachePersistenceHelper.instantiatePersistenceVisitor(visitor));
+                }
         
             cRecovered = visitor.getStatsEntriesRecovered();
         

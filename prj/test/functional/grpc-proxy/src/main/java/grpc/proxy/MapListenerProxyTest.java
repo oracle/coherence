@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,6 +10,8 @@ package grpc.proxy;
 import com.google.protobuf.ByteString;
 
 import com.oracle.coherence.grpc.BinaryHelper;
+import com.oracle.coherence.grpc.ErrorsHelper;
+import com.oracle.coherence.grpc.GrpcSerializerPolicy;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerErrorResponse;
 import com.oracle.coherence.grpc.MapListenerRequest;
@@ -22,10 +24,16 @@ import com.oracle.coherence.grpc.proxy.ConfigurableCacheFactorySuppliers;
 import com.oracle.coherence.grpc.proxy.MapListenerProxy;
 import com.oracle.coherence.grpc.proxy.NamedCacheService;
 import com.oracle.coherence.grpc.proxy.NamedCacheServiceImpl;
+import com.oracle.coherence.testing.util.CoherenceModeHelper;
+
+import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.util.security.SecurityConfig;
 
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.NamedSerializerFactory;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 
@@ -40,6 +48,7 @@ import com.tangosol.net.cache.CacheEvent;
 import com.tangosol.net.cache.WrapperNamedCache;
 
 import com.tangosol.net.grpc.GrpcDependencies;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 import com.tangosol.util.Base;
 import com.tangosol.util.Binary;
 import com.tangosol.util.Converter;
@@ -52,11 +61,13 @@ import com.tangosol.util.MapListenerSupport;
 import com.tangosol.util.MapTrigger;
 import com.tangosol.util.MapTriggerListener;
 import com.tangosol.util.NullImplementation;
+import com.tangosol.util.OperationReason;
 import com.tangosol.util.ResourceRegistry;
 import com.tangosol.util.SimpleResourceRegistry;
 
 import com.tangosol.util.filter.EqualsFilter;
 import com.tangosol.util.filter.InKeySetFilter;
+import com.tangosol.util.function.Remote;
 
 import io.grpc.Status;
 
@@ -64,8 +75,11 @@ import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,6 +97,7 @@ import static org.hamcrest.CoreMatchers.sameInstance;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.same;
@@ -127,6 +142,14 @@ class MapListenerProxyTest
     @BeforeEach
     void setupEach()
         {
+        m_sModeOld         = System.getProperty(CoherenceMode.PROP_COHERENCE_MODE);
+        m_sSecurityModeOld = System.getProperty(CoherenceMode.PROP_SECURITY_MODE);
+        m_sSerializerAllowlistOld = System.getProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS);
+        System.setProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS, JAVA_FORMAT);
+        resetPolicyState();
+        PlainFilter.INVOCATIONS.set(0);
+        PlainTrigger.INVOCATIONS.set(0);
+
         m_testCCF       = mock(ConfigurableCacheFactory.class);
         CacheStub cache = createCache(TEST_CACHE_NAME);
         s_namedCache    = cache.getMockCache();
@@ -135,6 +158,15 @@ class MapListenerProxyTest
         when(m_testCCF.getScopeName()).thenReturn(GrpcDependencies.DEFAULT_SCOPE);
 
         m_ccfSupplier = ConfigurableCacheFactorySuppliers.fixed(m_testCCF);
+        }
+
+    @AfterEach
+    void cleanupEach()
+        {
+        CoherenceModeHelper.restore(m_sModeOld);
+        CoherenceModeHelper.restoreSecurityMode(m_sSecurityModeOld);
+        restoreProperty(GrpcSerializerPolicy.PROP_ALLOWED_SERIALIZERS, m_sSerializerAllowlistOld);
+        resetPolicyState();
         }
 
     // ----- test methods ---------------------------------------------------
@@ -163,6 +195,183 @@ class MapListenerProxyTest
         assertThat(error.getMessage(), endsWith(INVALID_CACHE_NAME_MESSAGE));
         assertThat(error.getCode(),    is(Status.Code.INVALID_ARGUMENT.value()));
         assertThat(error.getUid(),     is(request.getUid()));
+        }
+
+    @Test
+    public void shouldRejectPlainFilterBeforeV0Subscribe()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.addFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new PlainFilter(), SERIALIZER), 1L,
+                false, false, ByteString.EMPTY);
+
+        proxy.onNext(request);
+
+        assertListenerError(observer, request, Status.Code.PERMISSION_DENIED);
+        verify(s_namedCache, never()).addMapListener(any(MapListener.class), any(PlainFilter.class), anyBoolean());
+        assertThat(PlainFilter.INVOCATIONS.get(), is(0));
+        }
+
+    @Test
+    public void shouldRejectPlainFilterBeforeV0Unsubscribe()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.removeFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new PlainFilter(), SERIALIZER), 1L,
+                false, false, BinaryHelper.toByteString(new AnnotatedTrigger(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerError(observer, request, Status.Code.PERMISSION_DENIED);
+        verify(s_namedCache, never()).removeMapListener(any(MapListener.class), any(PlainFilter.class));
+        assertThat(PlainFilter.INVOCATIONS.get(), is(0));
+        }
+
+    @Test
+    public void shouldRejectPlainTriggerForV0KeyListener()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.addKeyMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+                false, false, BinaryHelper.toByteString(new PlainTrigger(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerError(observer, request, Status.Code.PERMISSION_DENIED);
+        verify(s_namedCache, never()).addMapListener(any(MapListener.class), eq(ONE), anyBoolean());
+        assertThat(PlainTrigger.INVOCATIONS.get(), is(0));
+        }
+
+    @Test
+    public void shouldRejectPlainTriggerForV0FilterListenerUnsubscribe()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.removeFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new AnnotatedFilter(), SERIALIZER), 1L,
+                false, false, BinaryHelper.toByteString(new PlainTrigger(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerError(observer, request, Status.Code.PERMISSION_DENIED);
+        verify(s_namedCache, never()).removeMapListener(any(MapListener.class), any(AnnotatedFilter.class));
+        assertThat(PlainTrigger.INVOCATIONS.get(), is(0));
+        }
+
+    @Test
+    public void shouldAllowAnnotatedFilterAndXmlTriggerAtV0Boundary()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.addFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new AnnotatedFilter(), SERIALIZER), 1L,
+                false, false, BinaryHelper.toByteString(new MapTriggerStub(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerResponse(observer, request, MapListenerResponse.ResponseTypeCase.SUBSCRIBED);
+        verify(s_namedCache).addMapListener(any(MapListener.class), any(AnnotatedFilter.class), eq(false));
+        }
+
+    @Test
+    public void shouldAllowXmlFilterAndAnnotatedTriggerAtV0Boundary()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.removeFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new XmlAllowedFilter(), SERIALIZER), 1L,
+                false, false, BinaryHelper.toByteString(new AnnotatedTrigger(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerResponse(observer, request, MapListenerResponse.ResponseTypeCase.UNSUBSCRIBED);
+        verify(s_namedCache).removeMapListener(any(MapListener.class), any(XmlAllowedFilter.class));
+        }
+
+    @Test
+    public void shouldShadowEachV0FilterAndTriggerOnceInCompatibilityMode()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_COMPATIBILITY);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest                      request  = Requests.addFilterMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT,
+                BinaryHelper.toByteString(new PlainFilter(), SERIALIZER), 1L,
+                false, false, BinaryHelper.toByteString(new PlainTrigger(), SERIALIZER));
+
+        proxy.onNext(request);
+
+        assertListenerResponse(observer, request, MapListenerResponse.ResponseTypeCase.SUBSCRIBED);
+        verify(s_namedCache).addMapListener(any(MapListener.class), any(PlainFilter.class), eq(false));
+        assertThat(SerializationTelemetry.snapshot().get(wouldRejectKey(
+                PlainFilter.class, OperationReason.EVALUATE_FILTER)), is(1L));
+        assertThat(SerializationTelemetry.snapshot().get(wouldRejectKey(
+                PlainTrigger.class, OperationReason.TRIGGER)), is(1L));
+        }
+
+    @Test
+    public void shouldLeaveV0InitAndKeyOnlyRequestUnaffectedInHardenedMode()
+        {
+        setMode(CoherenceMode.SECURITY_MODE_HARDENED);
+        TestStreamObserver<MapListenerResponse> observer = new TestStreamObserver<>();
+        MapListenerProxy                        proxy    = newProxy(observer);
+        MapListenerRequest init = Requests.initListenerChannel(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT).toBuilder()
+                .setTrigger(BinaryHelper.toByteString(new PlainTrigger(), SERIALIZER))
+                .build();
+        MapListenerRequest key = Requests.addKeyMapListener(
+                GrpcDependencies.DEFAULT_SCOPE, TEST_CACHE_NAME, JAVA_FORMAT, s_bytes1,
+                false, false, ByteString.EMPTY);
+
+        proxy.onNext(init);
+        proxy.onNext(key);
+
+        observer.awaitCount(2).assertValueCount(2).assertNoErrors().assertNotComplete();
+        assertThat(observer.valueAt(0).getResponseTypeCase(), is(MapListenerResponse.ResponseTypeCase.SUBSCRIBED));
+        assertThat(observer.valueAt(1).getResponseTypeCase(), is(MapListenerResponse.ResponseTypeCase.SUBSCRIBED));
+        verify(s_namedCache).addMapListener(any(MapListener.class), eq(ONE), eq(false));
+        assertThat(SerializationTelemetry.snapshot().keySet().stream()
+                .noneMatch(s -> s.startsWith("coh.executable.policy_check")), is(true));
+        }
+
+    @Test
+    public void shouldApplySafeDisclosureToMapListenerPayloadErrors()
+        {
+        TestMapListenerProxy proxy = new TestMapListenerProxy(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE);
+        MapListenerErrorResponse error = proxy.error("listener-security-wrapped",
+                new CompletionException(new SecurityException("secret denial detail")));
+
+        assertThat(error.getUid(), is("listener-security-wrapped"));
+        assertThat(error.getCode(), is(Status.Code.PERMISSION_DENIED.value()));
+        assertThat(error.getMessage(), is(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE));
+        assertThat(error.getStackCount(), is(0));
+        }
+
+    @Test
+    public void shouldPreserveDiagnosticMapListenerPayloadErrors()
+        {
+        TestMapListenerProxy proxy = new TestMapListenerProxy(GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        MapListenerErrorResponse error = proxy.error("listener-security-direct",
+                new SecurityException("denied"));
+
+        assertThat(error.getUid(), is("listener-security-direct"));
+        assertThat(error.getCode(), is(Status.Code.PERMISSION_DENIED.value()));
+        assertThat(error.getMessage(), is("denied"));
+        assertThat(error.getStackCount() > 0, is(true));
         }
 
     @Test
@@ -1222,6 +1431,85 @@ class MapListenerProxyTest
 
     // ----- helper methods -------------------------------------------------
 
+    private MapListenerProxy newProxy(TestStreamObserver<MapListenerResponse> observer)
+        {
+        NamedCacheService.DefaultDependencies deps = new NamedCacheService.DefaultDependencies();
+        deps.setConfigurableCacheFactorySupplier(m_ccfSupplier);
+        deps.setSerializerFactory(s_serializerProducer);
+        return new MapListenerProxy(new NamedCacheServiceImpl(deps), observer);
+        }
+
+    private static void assertListenerError(TestStreamObserver<MapListenerResponse> observer,
+            MapListenerRequest request, Status.Code code)
+        {
+        assertListenerResponse(observer, request, MapListenerResponse.ResponseTypeCase.ERROR);
+        assertThat(observer.valueAt(0).getError().getCode(), is(code.value()));
+        }
+
+    private static void assertListenerResponse(TestStreamObserver<MapListenerResponse> observer,
+            MapListenerRequest request, MapListenerResponse.ResponseTypeCase type)
+        {
+        observer.awaitCount(1).assertValueCount(1).assertNoErrors().assertNotComplete();
+        MapListenerResponse response = observer.valueAt(0);
+        assertThat(response.getResponseTypeCase(), is(type));
+        switch (type)
+            {
+            case ERROR:
+                assertThat(response.getError().getUid(), is(request.getUid()));
+                break;
+            case SUBSCRIBED:
+                assertThat(response.getSubscribed().getUid(), is(request.getUid()));
+                break;
+            case UNSUBSCRIBED:
+                assertThat(response.getUnsubscribed().getUid(), is(request.getUid()));
+                break;
+            default:
+                throw new AssertionError("unsupported listener response type " + type);
+            }
+        }
+
+    private static void setMode(String sSecurityMode)
+        {
+        CoherenceModeHelper.restore("dev");
+        CoherenceModeHelper.restoreSecurityMode(sSecurityMode);
+        resetPolicyState();
+        }
+
+    private static void resetPolicyState()
+        {
+        CoherenceModeHelper.reset();
+        SerializationTelemetry.resetForTesting();
+        try
+            {
+            java.lang.reflect.Method method = SecurityConfig.class.getDeclaredMethod("resetForTesting");
+            method.setAccessible(true);
+            method.invoke(null);
+            }
+        catch (ReflectiveOperationException e)
+            {
+            throw new AssertionError(e);
+            }
+        }
+
+    private static String wouldRejectKey(Class<?> clz, OperationReason reason)
+        {
+        return "coh.executable.policy_check{result=would_reject,class=" + clz.getName()
+                + ",reason=" + reason.name()
+                + ",role=" + SerializationRole.GRPC.name() + "}";
+        }
+
+    private static void restoreProperty(String sName, String sValue)
+        {
+        if (sValue == null)
+            {
+            System.clearProperty(sName);
+            }
+        else
+            {
+            System.setProperty(sName, sValue);
+            }
+        }
+
     protected <K, V> CacheStub<K, V> createCache(String sName)
         {
         return new CacheStub<>(sName);
@@ -1300,6 +1588,62 @@ class MapListenerProxyTest
 
     // ----- MapTrigger Stub ------------------------------------------------
 
+    @Remote.Executable
+    protected static class AnnotatedFilter
+            implements Filter<Object>, Serializable
+        {
+        @Override
+        public boolean evaluate(Object value)
+            {
+            return true;
+            }
+        }
+
+    protected static class XmlAllowedFilter
+            implements Filter<Object>, Serializable
+        {
+        @Override
+        public boolean evaluate(Object value)
+            {
+            return true;
+            }
+        }
+
+    protected static class PlainFilter
+            implements Filter<Object>, Serializable
+        {
+        @Override
+        public boolean evaluate(Object value)
+            {
+            INVOCATIONS.incrementAndGet();
+            return true;
+            }
+
+        private static final AtomicInteger INVOCATIONS = new AtomicInteger();
+        }
+
+    @Remote.Executable
+    protected static class AnnotatedTrigger
+            implements MapTrigger<Object, Object>, Serializable
+        {
+        @Override
+        public void process(Entry<Object, Object> entry)
+            {
+            }
+        }
+
+    protected static class PlainTrigger
+            implements MapTrigger<Object, Object>, Serializable
+        {
+        @Override
+        public void process(Entry<Object, Object> entry)
+            {
+            INVOCATIONS.incrementAndGet();
+            }
+
+        private static final AtomicInteger INVOCATIONS = new AtomicInteger();
+        }
+
     protected static class MapTriggerStub
             implements MapTrigger, Serializable
         {
@@ -1307,6 +1651,21 @@ class MapListenerProxyTest
         @Override
         public void process(Entry entry)
             {
+            }
+        }
+
+    protected static class TestMapListenerProxy
+            extends MapListenerProxy
+        {
+        TestMapListenerProxy(String sErrorDisclosure)
+            {
+            super(null, new TestStreamObserver<>(), sErrorDisclosure);
+            }
+
+        @Override
+        public MapListenerErrorResponse error(String uid, Throwable t)
+            {
+            return super.error(uid, t);
             }
         }
 
@@ -1365,4 +1724,10 @@ class MapListenerProxyTest
     protected static ByteString s_inKeySetFilterBytes;
 
     protected ConfigurableCacheFactory m_testCCF;
+
+    private String m_sModeOld;
+
+    private String m_sSecurityModeOld;
+
+    private String m_sSerializerAllowlistOld;
     }

@@ -85,7 +85,7 @@ public final class ErrorsHelper
             }
         else
             {
-            return Status.INTERNAL.withCause(t)
+            return fallbackStatus(cause).withCause(t)
                     .withDescription(fSafe ? SAFE_INTERNAL_ERROR_MESSAGE : t.getMessage())
                     .asRuntimeException(fSafe ? new Metadata() : getErrorMetadata(t));
             }
@@ -129,7 +129,7 @@ public final class ErrorsHelper
             }
         else
             {
-            status = Status.INTERNAL;
+            status = fallbackStatus(cause);
             }
         return status.withCause(t)
                 .withDescription(fSafe ? bound(description) : description)
@@ -229,6 +229,20 @@ public final class ErrorsHelper
     private static boolean isStatusException(Throwable t)
         {
         return t instanceof StatusRuntimeException || t instanceof StatusException;
+        }
+
+    private static Status fallbackStatus(Throwable cause)
+        {
+        Throwable current = cause;
+        while (current != null)
+            {
+            if (current instanceof SecurityException)
+                {
+                return Status.PERMISSION_DENIED;
+                }
+            current = current.getCause();
+            }
+        return Status.INTERNAL;
         }
 
     private static Metadata getErrorMetadata(Throwable t)

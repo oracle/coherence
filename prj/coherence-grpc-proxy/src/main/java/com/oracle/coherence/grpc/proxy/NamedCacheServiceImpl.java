@@ -515,7 +515,7 @@ public class NamedCacheServiceImpl
     @Override
     public StreamObserver<MapListenerRequest> events(StreamObserver<MapListenerResponse> observer)
         {
-        return new MapListenerProxy(this, observer);
+        return new MapListenerProxy(this, observer, f_dependencies.getErrorDisclosure().orElse(null));
         }
 
     // ----- get ------------------------------------------------------------

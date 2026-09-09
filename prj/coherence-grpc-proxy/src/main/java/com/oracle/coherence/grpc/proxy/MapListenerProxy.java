@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,6 +14,7 @@ import com.oracle.coherence.grpc.BinaryHelper;
 import com.oracle.coherence.grpc.CacheDestroyedResponse;
 import com.oracle.coherence.grpc.CacheRequestHolder;
 import com.oracle.coherence.grpc.CacheTruncatedResponse;
+import com.oracle.coherence.grpc.ErrorsHelper;
 import com.oracle.coherence.grpc.MapEventResponse;
 import com.oracle.coherence.grpc.MapListenerErrorResponse;
 import com.oracle.coherence.grpc.MapListenerRequest;
@@ -25,11 +26,14 @@ import com.oracle.coherence.grpc.SafeStreamObserver;
 import com.tangosol.coherence.component.net.message.MapEventMessage;
 
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.internal.util.security.RemoteInstallGate;
 
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationRole;
 
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.cache.CacheEvent;
+import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Binary;
@@ -80,8 +84,26 @@ public class MapListenerProxy
     @SuppressWarnings("unchecked")
     public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer)
         {
+        this(service, observer, GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_DIAGNOSTIC);
+        }
+
+    /**
+     * Create a {@link MapListenerProxy} to handle a {@link com.tangosol.util.MapListener}
+     * subscription to a cache.
+     *
+     * @param service           the {@link NamedCacheService} to proxy
+     * @param observer          the {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent}
+     *                          instances to
+     * @param sErrorDisclosure  the error-disclosure policy
+     */
+    @SuppressWarnings("unchecked")
+    public MapListenerProxy(NamedCacheService service, StreamObserver<MapListenerResponse> observer,
+                            String sErrorDisclosure)
+        {
         f_service              = service;
-        f_observer             = (SafeStreamObserver<MapListenerResponse>) SafeStreamObserver.ensureSafeObserver(observer);
+        f_sErrorDisclosure     = GrpcDiagnosticsPolicy.normalizeErrorDisclosure(sErrorDisclosure);
+        f_observer             = (SafeStreamObserver<MapListenerResponse>)
+                SafeStreamObserver.ensureSafeObserver(observer, f_sErrorDisclosure);
         f_mapFilter            = new SegmentedConcurrentMap();
         f_mapKeys              = new SegmentedConcurrentMap();
         f_setKeys              = new HashSet<>();
@@ -261,6 +283,11 @@ public class MapListenerProxy
     protected void onKeyRequest(MapListenerRequest request, MapTrigger<?, ?> trigger)
         {
         Object key = m_holder.deserializeRequest(request.getKey());
+        if (trigger != null)
+            {
+            RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.GRPC, null);
+            }
+
         if (trigger == null)
             {
             if (request.getSubscribe())
@@ -299,6 +326,7 @@ public class MapListenerProxy
         if (trigger == null)
             {
             Filter<Binary> filter = f_service.ensureFilter(request.getFilter(), m_holder.getSerializer());
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
             if (request.getSubscribe())
                 {
                 addListener(filter, request.getFilterId(), request.getLite(), request.getPriming());
@@ -312,6 +340,8 @@ public class MapListenerProxy
             {
             NamedCache  cache    = m_holder.getNonPassThruCache();
             Filter      filter   = f_service.getFilter(request.getFilter(), m_holder.getSerializer());
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+            RemoteInstallGate.enforceMapTriggerInstall(trigger, SerializationRole.GRPC, null);
             MapListener listener = new MapTriggerListener(trigger);
             if (request.getSubscribe())
                 {
@@ -772,9 +802,10 @@ public class MapListenerProxy
      */
     protected MapListenerErrorResponse error(String uid, Throwable t)
         {
+        boolean fSafe = GrpcDiagnosticsPolicy.isErrorDisclosureSafe(f_sErrorDisclosure);
         MapListenerErrorResponse.Builder builder = MapListenerErrorResponse.newBuilder()
                 .setUid(uid)
-                .setMessage(String.valueOf(t.getMessage()));
+                .setMessage(fSafe ? safeMessage(t) : String.valueOf(t.getMessage()));
 
         if (t instanceof StatusException)
             {
@@ -794,15 +825,32 @@ public class MapListenerProxy
             }
         else
             {
-            builder.setCode(Status.Code.INTERNAL.value());
+            builder.setCode(ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(t, f_sErrorDisclosure)
+                    .getStatus().getCode().value());
             }
 
-        for (StackTraceElement element : t.getStackTrace())
+        if (!fSafe)
             {
-            builder.addStack(element.toString());
+            for (StackTraceElement element : t.getStackTrace())
+                {
+                builder.addStack(element.toString());
+                }
             }
 
         return builder.build();
+        }
+
+    /**
+     * Return a non-sensitive description for a listener-stream failure.
+     *
+     * @param t  the failure
+     *
+     * @return a non-sensitive description
+     */
+    private String safeMessage(Throwable t)
+        {
+        return ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(t, f_sErrorDisclosure)
+                .getStatus().getDescription();
         }
 
     // ----- inner class: DeactivationListener ------------------------------
@@ -1063,6 +1111,11 @@ public class MapListenerProxy
      * The {@link StreamObserver} to stream {@link com.tangosol.util.MapEvent} instances to.
      */
     protected final SafeStreamObserver<MapListenerResponse> f_observer;
+
+    /**
+     * The configured error-disclosure policy.
+     */
+    protected final String f_sErrorDisclosure;
 
     /**
      * The map of {@link Filter Filters} that this {@link MapListenerProxy} was registered with.

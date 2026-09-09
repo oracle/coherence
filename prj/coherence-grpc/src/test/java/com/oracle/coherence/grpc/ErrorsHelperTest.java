@@ -11,6 +11,7 @@ import com.tangosol.net.grpc.GrpcDiagnosticsPolicy;
 import com.tangosol.util.Converter;
 
 import io.grpc.Status;
+import io.grpc.StatusException;
 import io.grpc.StatusRuntimeException;
 
 import java.lang.reflect.Constructor;
@@ -21,6 +22,7 @@ import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,6 +61,79 @@ class ErrorsHelperTest
 
         assertEquals(Status.INVALID_ARGUMENT.getCode(), result.getStatus().getCode());
         assertEquals("invalid request format", result.getStatus().getDescription());
+        }
+
+    @Test
+    void shouldPreserveStatusExceptionWrappedByCompletionException()
+        {
+        StatusException rejected = Status.FAILED_PRECONDITION
+                .withDescription("operation precondition failed")
+                .asException();
+
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeException(new CompletionException(rejected));
+
+        assertEquals(Status.FAILED_PRECONDITION.getCode(), result.getStatus().getCode());
+        assertEquals("operation precondition failed", result.getStatus().getDescription());
+        }
+
+    @Test
+    void shouldMapSecurityExceptionToPermissionDeniedInDiagnosticMode()
+        {
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeException(
+                new SecurityException("remote executable denied"));
+
+        assertEquals(Status.PERMISSION_DENIED.getCode(), result.getStatus().getCode());
+        assertEquals("remote executable denied", result.getStatus().getDescription());
+        assertTrue(ErrorsHelper.getRemoteStack(result).orElse("").contains("SecurityException"));
+        }
+
+    @Test
+    void shouldMapDescribedSecurityExceptionToPermissionDeniedInDiagnosticMode()
+        {
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeException(
+                new SecurityException("remote executable denied"), "cache operation denied");
+
+        assertEquals(Status.PERMISSION_DENIED.getCode(), result.getStatus().getCode());
+        assertEquals("cache operation denied", result.getStatus().getDescription());
+        assertTrue(ErrorsHelper.getRemoteStack(result).orElse("").contains("SecurityException"));
+        }
+
+    @Test
+    void shouldMapWrappedSecurityExceptionToPermissionDeniedInDiagnosticMode()
+        {
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeException(
+                new CompletionException(new SecurityException("remote executable denied")));
+
+        assertEquals(Status.PERMISSION_DENIED.getCode(), result.getStatus().getCode());
+        assertTrue(result.getStatus().getDescription().contains("remote executable denied"));
+        assertTrue(ErrorsHelper.getRemoteStack(result).orElse("").contains("SecurityException"));
+        }
+
+    @Test
+    void shouldSanitizeSecurityExceptionInSafeMode()
+        {
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeExceptionWithPolicy(
+                new SecurityException("secret policy detail"), GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE);
+
+        assertEquals(Status.PERMISSION_DENIED.getCode(), result.getStatus().getCode());
+        assertEquals(ErrorsHelper.SAFE_INTERNAL_ERROR_MESSAGE, result.getStatus().getDescription());
+        assertFalse(result.getStatus().getDescription().contains("secret policy detail"));
+        assertTrue(ErrorsHelper.getRemoteStack(result).isEmpty());
+        }
+
+    @Test
+    void shouldSanitizeDescribedSecurityExceptionInSafeMode()
+        {
+        String sDescription = "bounded safe description ".repeat(50);
+
+        StatusRuntimeException result = ErrorsHelper.ensureStatusRuntimeException(
+                new SecurityException("secret policy detail"), sDescription,
+                GrpcDiagnosticsPolicy.ERROR_DISCLOSURE_SAFE);
+
+        assertEquals(Status.PERMISSION_DENIED.getCode(), result.getStatus().getCode());
+        assertEquals(sDescription.substring(0, 1000), result.getStatus().getDescription());
+        assertFalse(result.getStatus().getDescription().contains("secret policy detail"));
+        assertTrue(ErrorsHelper.getRemoteStack(result).isEmpty());
         }
 
     @Test

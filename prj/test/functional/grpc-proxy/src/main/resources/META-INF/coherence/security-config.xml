@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2026, Oracle and/or its affiliates.
+
+  Licensed under the Universal Permissive License v 1.0 as shown at
+  https://oss.oracle.com/licenses/upl.
+-->
+<security-config xmlns="http://xmlns.oracle.com/coherence/coherence-security-config"
+                 version="1.0">
+  <allowed-classes>
+    <class name="grpc.proxy.MapListenerProxyTest$AnnotatedFilter" source="manual"/>
+    <class name="grpc.proxy.MapListenerProxyTest$AnnotatedTrigger" source="manual"/>
+    <class name="grpc.proxy.MapListenerProxyTest$MapTriggerStub" source="manual" executable="true"/>
+    <class name="grpc.proxy.MapListenerProxyTest$PlainFilter" source="manual"/>
+    <class name="grpc.proxy.MapListenerProxyTest$PlainTrigger" source="manual"/>
+    <class name="grpc.proxy.MapListenerProxyTest$XmlAllowedFilter" source="manual" executable="true"/>
+  </allowed-classes>
+</security-config>
