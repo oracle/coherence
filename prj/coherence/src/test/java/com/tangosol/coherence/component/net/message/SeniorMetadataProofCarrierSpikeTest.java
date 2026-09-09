@@ -31,6 +31,7 @@ import java.util.Arrays;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -73,14 +74,14 @@ public class SeniorMetadataProofCarrierSpikeTest
         }
 
     @Test
-    public void shouldPreserveLegacyHeartbeatBytesForBroadcastOrIncompatibleRecipients()
+    public void shouldWriteHeartbeatProofForCompatibleBroadcastButNotIncompatibleRecipients()
             throws Exception
         {
         TestClusterService service      = new TestClusterService();
         Binary             binBroadcast = writeLegacyHeartbeat(heartbeat(service, true, false, true));
         Binary             binDirected  = writeLegacyHeartbeat(heartbeat(service, true, true, false));
 
-        assertEquals(binBroadcast, writeHeartbeat(service, true, false, true));
+        assertNotEquals(binBroadcast, writeHeartbeat(service, true, false, true));
         assertEquals(binDirected, writeHeartbeat(service, true, true, false));
         }
 
@@ -89,10 +90,12 @@ public class SeniorMetadataProofCarrierSpikeTest
             throws Exception
         {
         TestClusterService service      = new TestClusterService();
-        Binary             binBroadcast = writeLegacyHeartbeat(heartbeat(service, true, false, true));
+        ClusterService$SeniorMemberHeartbeat heartbeatUnknown = heartbeat(service, true, false, true);
+        heartbeatUnknown.setMemberSet(new MemberSet());
+        Binary             binBroadcast = writeLegacyHeartbeat(heartbeatUnknown);
         Binary             binDirected  = writeLegacyHeartbeat(heartbeat(service, true, true, true, true));
 
-        assertEquals(binBroadcast, writeHeartbeat(service, true, false, true));
+        assertEquals(binBroadcast, writeMessageBody(heartbeatUnknown));
         assertEquals(binDirected, writeHeartbeat(service, true, true, true, true));
         }
 

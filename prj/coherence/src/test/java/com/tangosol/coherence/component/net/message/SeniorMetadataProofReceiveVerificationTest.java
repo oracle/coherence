@@ -32,9 +32,9 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -171,6 +171,24 @@ public class SeniorMetadataProofReceiveVerificationTest
         }
 
     @Test
+    public void shouldAcceptForwardedFanOutProofAtOriginalDelegateInProd()
+            throws Exception
+        {
+        setMode("prod");
+        setProofRequired(true);
+
+        byte[] abProof = seniorPanicProof(1, 2, 3, false);
+
+        ReceiveClusterService junior = new ReceiveClusterService(true, 2, 3, false, 2, 3, 4);
+        ClusterService$SeniorMemberKill forwarded = delegatedKill(junior, abProof, 3, 2);
+        forwarded.onReceived();
+
+        assertEquals(1, junior.getStopRunningCount());
+        assertEquals(0, junior.getWouldRejectCount());
+        assertEquals(0, junior.getDebugAllowCount());
+        }
+
+    @Test
     public void shouldRejectInvalidDelegatedKillProofsInProd()
             throws Exception
         {
@@ -183,7 +201,8 @@ public class SeniorMetadataProofReceiveVerificationTest
         assertDelegatedKillRejects(seniorPanicProof(1, 4, 3, false), "payload_mismatch");
         assertDelegatedKillRejects(seniorPanicProof(1, 2, 4, false), "payload_mismatch");
         ReceiveClusterService wrongTarget = new ReceiveClusterService(true, 3, 1, false);
-        assertRejectsWith(wrongTarget, delegatedKill(wrongTarget, abValid, 2, 4), "payload_mismatch");
+        delegatedKill(wrongTarget, abValid, 2, 4).onReceived();
+        assertEquals(0, wrongTarget.getStopRunningCount());
 
         ReceiveClusterService expired = new ReceiveClusterService(true, 3, 1, false);
         expired.setVerificationTimeMillis(Long.MAX_VALUE);
@@ -216,7 +235,9 @@ public class SeniorMetadataProofReceiveVerificationTest
                 memberId(5), memberId(3), SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN, 2_000L),
                 3, 4, 4, "delegated");
         assertForwardedKillRejects(abValid, 5, 4, 4, "delegated");
-        assertForwardedKillRejects(abValid, 3, 5, 4, "delegated");
+        ReceiveClusterService otherTarget = new ReceiveClusterService(true, 4, 3, false, 2, 3, 4, 5);
+        delegatedKill(otherTarget, abValid, 3, 5).onReceived();
+        assertEquals(0, otherTarget.getStopRunningCount());
         assertForwardedKillRejects(rewritePanicProof(abValid, signer, memberId(1), memberId(1), memberId(1),
                 memberId(2), memberId(5), SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN, 2_000L),
                 3, 4, 4, "delegated");
@@ -337,9 +358,7 @@ public class SeniorMetadataProofReceiveVerificationTest
         ReceiveClusterService service   = new ReceiveClusterService(true, false);
         ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service);
 
-        SecurityException e = assertThrows(SecurityException.class, heartbeat::onReceived);
-
-        assertTrue(e.getMessage().contains("missing"));
+        heartbeat.onReceived();
         assertEquals(0, service.getValidateSeniorBroadcastCount());
         }
 
@@ -353,9 +372,7 @@ public class SeniorMetadataProofReceiveVerificationTest
         ReceiveClusterService service = new ReceiveClusterService(true, false);
         ClusterService$SeniorMemberKill kill = kill(service);
 
-        SecurityException e = assertThrows(SecurityException.class, kill::onReceived);
-
-        assertTrue(e.getMessage().contains("missing"));
+        kill.onReceived();
         assertEquals(0, service.getRunningCheckCount());
         }
 
@@ -369,9 +386,7 @@ public class SeniorMetadataProofReceiveVerificationTest
         ReceiveClusterService service = new ReceiveClusterService(true, false);
         ClusterService$SeniorMemberPanic panic = panic(service);
 
-        SecurityException e = assertThrows(SecurityException.class, panic::onReceived);
-
-        assertTrue(e.getMessage().contains("missing"));
+        panic.onReceived();
         assertEquals(0, service.getRunningCheckCount());
         }
 
@@ -449,9 +464,7 @@ public class SeniorMetadataProofReceiveVerificationTest
 
     private static void assertRejectsWith(ReceiveClusterService service, Message msg, String sExpected)
         {
-        SecurityException e = assertThrows(SecurityException.class, () -> service.verify(msg));
-
-        assertTrue(e.getMessage().contains(sExpected));
+        assertFalse("expected senior proof rejection for " + sExpected, service.verify(msg));
         }
 
     private static void assertDelegatedKillRejects(byte[] abProof, String sExpected)

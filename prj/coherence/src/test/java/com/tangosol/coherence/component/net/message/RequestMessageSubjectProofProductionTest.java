@@ -138,6 +138,38 @@ public class RequestMessageSubjectProofProductionTest
         assertArrayEquals(abProof, result.getRequestContext().getSubjectProof());
         }
 
+    @Test
+    public void shouldReplaceLocallyProducedProofWhenRequestScopeChanges()
+            throws Exception
+        {
+        TestPartitionedCache service = enabledService();
+        RequestMessage       request = requestWithSubject(service);
+
+        writeBodyAndExtensions(service, request);
+        byte[] abFirst = request.getRequestContext().getSubjectProof();
+
+        service.setServiceName("OtherDistributedCache");
+        writeBodyAndExtensions(service, request);
+
+        byte[] abSecond = request.getRequestContext().getSubjectProof();
+        assertTrue(!MessageDigest.isEqual(abFirst, abSecond));
+        assertEquals("OtherDistributedCache", SubjectProof.fromByteArray(abSecond).getPayload().getServiceName());
+        }
+
+    @Test
+    public void shouldBindProofToCacheNameCapturedAtRequestOrigin()
+            throws Exception
+        {
+        TestPartitionedCache service = enabledService();
+        RequestMessage       request = requestWithSubject(service);
+        request.getRequestContext().setSubjectProofCacheName("origin-cache");
+
+        writeBodyAndExtensions(service, request);
+
+        SubjectProof proof = SubjectProof.fromByteArray(request.getRequestContext().getSubjectProof());
+        assertEquals("origin-cache", proof.getPayload().getCacheName());
+        }
+
     private static RequestMessage requestWithSubject(TestPartitionedCache service)
             throws Exception
         {

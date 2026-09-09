@@ -10,6 +10,7 @@ import com.tangosol.coherence.component.net.Member;
 import com.tangosol.coherence.component.net.MemberSet;
 import com.tangosol.coherence.component.net.Message;
 import com.tangosol.coherence.component.net.memberSet.SingleMemberSet;
+import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService$SeniorMemberHeartbeat;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ClusterService$SeniorMemberKill;
@@ -145,6 +146,52 @@ public class SeniorMetadataProofPolicyTest
         }
 
     @Test
+    public void shouldNotReportOptionalIncompatibleRecipients()
+            throws Exception
+        {
+        setProofRequired(false);
+        PolicyClusterService service = new PolicyClusterService(true, true);
+        ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+
+        service.setRecipientsCompatible(false);
+        writeHeartbeat(heartbeat);
+        writeHeartbeat(heartbeat);
+
+        assertNull(heartbeat.getSeniorMetadataProof());
+        assertEquals(0, service.getIncompatibleRecipientsCount());
+        }
+
+    @Test
+    public void shouldReportRequiredIncompatibleRecipientStateOnce()
+            throws Exception
+        {
+        setProofRequired(true);
+        PolicyClusterService service = new PolicyClusterService(true, true);
+        ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+
+        service.setRecipientsCompatible(false);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(1, service.getIncompatibleRecipientsCount());
+
+        Member memberThree = member(3);
+        MemberSet setRecipients = new MemberSet();
+        setRecipients.add(member(2));
+        setRecipients.add(memberThree);
+        heartbeat.setToMemberSet(setRecipients);
+        heartbeat.getMemberSet().add(memberThree);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(2, service.getIncompatibleRecipientsCount());
+
+        service.setRecipientsCompatible(true);
+        writeHeartbeat(heartbeat);
+
+        service.setRecipientsCompatible(false);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals(3, service.getIncompatibleRecipientsCount());
+        }
+
+    @Test
     public void shouldRejectProofRequiredDisabledProvider()
             throws Exception
         {
@@ -264,6 +311,59 @@ public class SeniorMetadataProofPolicyTest
         assertEquals(0, hardened.getDebugAllowCount());
         }
 
+    @Test
+    public void shouldBoundPendingCapabilityAndRecoverAcrossMultipleRecipients() throws Exception
+        {
+        setProofRequired(true);
+        CapabilityClusterService service = new CapabilityClusterService();
+        ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+        Member memberThree = member(3);
+        MemberSet recipients = new MemberSet();
+        recipients.add(member(2));
+        recipients.add(memberThree);
+        heartbeat.setToMemberSet(recipients);
+        heartbeat.getMemberSet().add(memberThree);
+
+        service.addRecipient(memberThree, ClusterService.VERSION_BARRIER, false);
+        service.setCapabilityTime(1_000L);
+        assertTrue(service.isCapabilityPending(heartbeat));
+
+        service.removeRecipient(2);
+        Member memberFour = member(4);
+        recipients.remove(2);
+        recipients.add(memberFour);
+        heartbeat.getMemberSet().add(memberFour);
+        service.addRecipient(memberFour, ClusterService.VERSION_BARRIER, false);
+        service.setCapabilityTime(1_005L);
+        assertTrue(service.isCapabilityPending(heartbeat));
+
+        service.setCapabilityTime(1_011L);
+        assertFalse(service.isCapabilityPending(heartbeat));
+        service.setRecipientsCompatible(false);
+        java.io.IOException failure = assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        assertEquals("senior metadata proof required: incompatible recipient set", failure.getMessage());
+
+        service.setRecipientVersion(3, "26.1.0", true);
+        service.setRecipientVersion(4, "26.1.0", true);
+        service.setRecipientsCompatible(true);
+        assertFalse(service.isCapabilityPending(heartbeat));
+        writeHeartbeat(heartbeat);
+        assertNotNull(heartbeat.getSeniorMetadataProof());
+        }
+
+    @Test
+    public void shouldTreatJoinedVersionBarrierAsActualIncompatibleMember() throws Exception
+        {
+        setProofRequired(true);
+        CapabilityClusterService service = new CapabilityClusterService();
+        ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, true);
+        service.setRecipientVersion(2, ClusterService.VERSION_BARRIER, true);
+
+        assertFalse(service.isCapabilityPending(heartbeat));
+        service.setRecipientsCompatible(false);
+        assertThrows(java.io.IOException.class, () -> writeHeartbeat(heartbeat));
+        }
+
     private static ClusterService$SeniorMemberHeartbeat heartbeat(PolicyClusterService service, boolean fDirected)
             throws Exception
         {
@@ -291,6 +391,7 @@ public class SeniorMetadataProofPolicyTest
         {
         ClusterService$SeniorMemberHeartbeat heartbeat = heartbeat(service, false);
         heartbeat.setToMember(null);
+        heartbeat.setMemberSet(new MemberSet());
         return heartbeat;
         }
 
@@ -402,6 +503,11 @@ public class SeniorMetadataProofPolicyTest
             return m_cDebugAllow;
             }
 
+        int getIncompatibleRecipientsCount()
+            {
+            return m_cIncompatibleRecipients;
+            }
+
         String getLastWouldRejectReason()
             {
             return m_sLastWouldRejectReason;
@@ -426,10 +532,83 @@ public class SeniorMetadataProofPolicyTest
             m_sLastDebugAllowReason = sReason;
             }
 
+        @Override
+        protected void onSeniorMetadataProofIncompatibleRecipients(Message msg, String sRecipients)
+            {
+            m_cIncompatibleRecipients++;
+            }
+
         private int    m_cWouldReject;
         private int    m_cDebugAllow;
+        private int    m_cIncompatibleRecipients;
         private String m_sLastWouldRejectReason;
         private String m_sLastDebugAllowReason;
+        }
+
+    public static class CapabilityClusterService
+            extends PolicyClusterService
+        {
+        CapabilityClusterService() throws Exception
+            {
+            super(true, true);
+            f_setMembers.add(member(1));
+            f_setMembers.add(member(2));
+            f_setMembers.setThisMember((Member) f_setMembers.getMember(1));
+            f_setMembers.setServiceVersion(1, "26.1.0");
+            f_setMembers.setServiceJoined(1);
+            f_setMembers.setServiceVersion(2, ClusterService.VERSION_BARRIER);
+            }
+
+        @Override
+        public MasterMemberSet getClusterMemberSet()
+            {
+            return f_setMembers == null ? super.getClusterMemberSet() : f_setMembers;
+            }
+
+        @Override
+        protected long getSeniorMetadataCapabilityTimeMillis()
+            {
+            return m_lCapabilityTime;
+            }
+
+        @Override
+        protected long getSeniorMetadataCapabilityPendingMillis()
+            {
+            return 10L;
+            }
+
+        boolean isCapabilityPending(Message msg)
+            {
+            return isSeniorMetadataProofCapabilityPending(msg);
+            }
+
+        void setCapabilityTime(long lTime)
+            {
+            m_lCapabilityTime = lTime;
+            }
+
+        void setRecipientVersion(int nId, String sVersion, boolean fJoined)
+            {
+            f_setMembers.setServiceVersion(nId, sVersion);
+            if (fJoined)
+                {
+                f_setMembers.setServiceJoined(nId);
+                }
+            }
+
+        void addRecipient(Member member, String sVersion, boolean fJoined)
+            {
+            f_setMembers.add(member);
+            setRecipientVersion(member.getId(), sVersion, fJoined);
+            }
+
+        void removeRecipient(int nId)
+            {
+            f_setMembers.remove(nId);
+            }
+
+        private final MasterMemberSet f_setMembers = new MasterMemberSet();
+        private long m_lCapabilityTime;
         }
 
     private static final String PROP_SENIOR_METADATA_PROOF_REQUIRED =

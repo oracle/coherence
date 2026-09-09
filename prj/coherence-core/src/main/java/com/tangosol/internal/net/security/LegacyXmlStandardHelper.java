@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.security;
 
@@ -18,6 +18,7 @@ import com.tangosol.config.xml.DefaultProcessingContext;
 import com.tangosol.config.xml.DocumentProcessor;
 
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.PasswordProvider;
 
 import com.tangosol.net.security.AccessController;
@@ -56,7 +57,22 @@ public class LegacyXmlStandardHelper
      */
     public static DefaultStandardDependencies fromXml(XmlElement xml, DefaultStandardDependencies deps)
         {
-        LegacyXmlSecurityHelper.fromXml(xml, deps);
+        return fromXml(xml, deps, null);
+        }
+
+    /**
+     * Populate the security dependencies, including the bounded PEER proof path.
+     *
+     * @param xml          the {@code <security-config>} XML element
+     * @param deps         the dependencies to populate
+     * @param depsCluster  the cluster dependencies
+     *
+     * @return the populated dependencies
+     */
+    public static DefaultStandardDependencies fromXml(XmlElement xml, DefaultStandardDependencies deps,
+            ClusterDependencies depsCluster)
+        {
+        LegacyXmlSecurityHelper.fromXml(xml, deps, depsCluster);
 
         if (deps.isEnabled())
             {

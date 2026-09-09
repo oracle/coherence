@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -12,6 +12,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+import java.net.URI;
+
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 /**
@@ -21,6 +28,61 @@ import java.util.StringTokenizer;
  */
 public class Files
     {
+    /**
+     * Return a {@link Path} for a native file-system path or a local
+     * {@code file:} URI.
+     * <p>
+     * Absolute native paths are recognized before URI parsing so that a
+     * Windows drive letter is not mistaken for a URI scheme. Plain relative
+     * paths are also supported. A URI must use the {@code file} scheme and
+     * must not have an authority, query, or fragment.
+     * <p>
+     * This method does not impose locality restrictions on native paths. In
+     * particular, a native UNC path may be returned on Windows; callers that
+     * require local storage must enforce that policy separately.
+     *
+     * @param sPath  a native path or local {@code file:} URI
+     *
+     * @return the corresponding path
+     *
+     * @throws NullPointerException     if {@code sPath} is {@code null}
+     * @throws IllegalArgumentException if {@code sPath} is invalid or uses an
+     *                                  unsupported URI form
+     */
+    public static Path toPath(String sPath)
+        {
+        Objects.requireNonNull(sPath, "path");
+
+        Path pathNative = null;
+        try
+            {
+            pathNative = Paths.get(sPath);
+            }
+        catch (InvalidPathException ignored)
+            {
+            }
+
+        if (pathNative != null && pathNative.isAbsolute())
+            {
+            return pathNative;
+            }
+
+        URI    uri     = URI.create(sPath);
+        String sScheme = uri.getScheme();
+        if (sScheme == null || sScheme.isEmpty())
+            {
+            return pathNative == null ? Paths.get(sPath) : pathNative;
+            }
+
+        if (!"file".equalsIgnoreCase(sScheme) || uri.getAuthority() != null
+                || uri.getQuery() != null || uri.getFragment() != null)
+            {
+            throw new IllegalArgumentException("path must be a native path or local file URI");
+            }
+
+        return Paths.get(uri);
+        }
+
     /**
      * Return true if the specified file or path appears to be on a locally mounted filesystem.
      *

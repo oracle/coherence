@@ -66,13 +66,22 @@ public final class SubjectProofVerifier
             }
 
         SubjectProofPayload payload = proof.getPayload();
-        if (payload.getExpiresAtMillis() < lNowMillis)
+        ProofTimePolicy.Status timeStatus = ProofTimePolicy.validate(payload.getIssuedAtMillis(),
+                payload.getExpiresAtMillis(), lNowMillis);
+        if (timeStatus != ProofTimePolicy.Status.VALID)
             {
-            return SubjectProofVerification.failed(SubjectProofVerification.Status.EXPIRED, "expired");
+            SubjectProofVerification.Status status = timeStatus == ProofTimePolicy.Status.NOT_YET_VALID
+                    ? SubjectProofVerification.Status.NOT_YET_VALID : SubjectProofVerification.Status.EXPIRED;
+            String sDetail = timeStatus == ProofTimePolicy.Status.INVALID_VALIDITY_WINDOW
+                    ? "invalid-validity-window" : timeStatus == ProofTimePolicy.Status.NOT_YET_VALID
+                    ? "future-issued" : "expired";
+            return SubjectProofVerification.failed(status, sDetail);
             }
-        if (!payload.matchesScope(expectedPayload))
+        String sScopeMismatch = payload.scopeMismatch(expectedPayload);
+        if (!sScopeMismatch.isEmpty())
             {
-            return SubjectProofVerification.failed(SubjectProofVerification.Status.PAYLOAD_MISMATCH, "payload");
+            return SubjectProofVerification.failed(SubjectProofVerification.Status.PAYLOAD_MISMATCH,
+                    "scope-" + sScopeMismatch);
             }
         if (!payload.matchesPrincipals(expectedPayload))
             {
@@ -98,7 +107,9 @@ public final class SubjectProofVerifier
             {
             SubjectProofVerification.Status status = result == null
                     ? SubjectProofVerification.Status.MALFORMED : result.getStatus();
-            throw new SecurityException("subject proof verification failed: " + status);
+            String sDetail = result == null ? "" : result.getDetail();
+            throw new SecurityException("subject proof verification failed: " + status
+                    + (sDetail.isEmpty() ? "" : ": " + sDetail));
             }
         }
 
