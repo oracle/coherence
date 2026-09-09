@@ -3786,7 +3786,7 @@ public class PofBufferReader
                 try
                     {
                     ser = ctx.getPofSerializer(nType);
-                    SerializationTelemetry.recordPofCheck("allowed", "registered-type", nType);
+                    SerializationTelemetry.recordRegisteredPofType(nType);
                     }
                 catch (IllegalArgumentException e)
                     {
