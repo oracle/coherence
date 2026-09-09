@@ -29,6 +29,8 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.Provider;
+import java.security.Security;
 import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -1225,10 +1227,29 @@ public class X509PeerProofProvider
         @Override
         public KeyStore load(String sType, byte[] bytes, char[] password) throws Exception
             {
-            KeyStore store = KeyStore.getInstance(sType, JCA_KEYSTORE_PROVIDER);
+            KeyStore store = KeyStore.getInstance(sType, keyStoreProvider(sType));
             store.load(new ByteArrayInputStream(bytes), password);
             return store;
             }
+        }
+
+    /** Select only the built-in platform key-store implementations supported by this profile. */
+    static String keyStoreProvider(String sType)
+        {
+        Provider provider = Security.getProvider(JCA_KEYSTORE_PROVIDER);
+        if (provider != null && provider.getService("KeyStore", sType) != null)
+            {
+            return JCA_KEYSTORE_PROVIDER;
+            }
+        if ("PKCS12".equalsIgnoreCase(sType))
+            {
+            Provider legacy = Security.getProvider(JCA_LEGACY_PKCS12_PROVIDER);
+            if (legacy != null && legacy.getService("KeyStore", "PKCS12") != null)
+                {
+                return JCA_LEGACY_PKCS12_PROVIDER;
+                }
+            }
+        return JCA_KEYSTORE_PROVIDER;
         }
 
     /** Pre-parser bounds for the JKS binary grammar. */
@@ -2545,6 +2566,7 @@ public class X509PeerProofProvider
     private static final String PEM_BEGIN = "-----BEGIN CERTIFICATE-----";
     private static final String PEM_END = "-----END CERTIFICATE-----";
     private static final String JCA_KEYSTORE_PROVIDER = "SUN";
+    private static final String JCA_LEGACY_PKCS12_PROVIDER = "SunJSSE";
     private static final String JCA_CERTIFICATE_PROVIDER = "SUN";
     private static final char[] HEX = "0123456789ABCDEF".toCharArray();
 

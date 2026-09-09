@@ -14,6 +14,7 @@ import com.tangosol.net.PasswordProvider;
 
 import org.junit.AfterClass;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -104,6 +105,16 @@ public class X509PeerProofProviderTest
             provider.close();
             }
         s_providers.clear();
+        }
+
+    @Test
+    public void shouldSelectOnlyTheSupportedBuiltInKeyStoreProviders()
+        {
+        assertEquals("SUN", X509PeerProofProvider.keyStoreProvider("JKS"));
+        String provider = X509PeerProofProvider.keyStoreProvider("PKCS12");
+        assertTrue("SUN".equals(provider) || "SunJSSE".equals(provider));
+        assertNotNull(java.security.Security.getProvider(provider));
+        assertNotNull(java.security.Security.getProvider(provider).getService("KeyStore", "PKCS12"));
         }
 
     @Test
@@ -888,6 +899,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldCancelMaximumCredentialWorkAtEverySupportedPosition() throws Exception
         {
+        requireModernPkcs12();
         List<Credential> authorities = new ArrayList<>(Arrays.asList(s_memberOne, s_memberTwo,
                 s_memberOneNew, s_memberOneNewTwo, s_memberThree, s_memberFour, s_memberFourNew));
         authorities.addAll(s_complexityCredentials);
@@ -1147,7 +1159,7 @@ public class X509PeerProofProviderTest
                 service("Management", "Invocation", "four", "one", "two", "three", "four"),
                 serviceWithRecipients("SubjectOne", "DistributedCache", "two",
                         Arrays.asList("one", "two"), Collections.singleton("two")),
-                serviceWithRecipients("SubjectTwo", "FederatedCache", "three",
+                serviceWithRecipients("SubjectTwo", "DistributedCache", "three",
                         Arrays.asList("one", "three"), Collections.singleton("three")),
                 service("SeniorOnly", "Invocation", "four", "three", "four"));
         PeerProofReadiness.Topology topology = PeerProofReadiness.Topology.of(members, services);
@@ -1189,7 +1201,7 @@ public class X509PeerProofProviderTest
                 service("Management", "Invocation", "four", "one", "two", "three", "four"),
                 serviceWithRecipients("SubjectOne", "DistributedCache", "one",
                         Arrays.asList("one", "two"), Collections.singleton("two")),
-                serviceWithRecipients("SubjectTwo", "FederatedCache", "three",
+                serviceWithRecipients("SubjectTwo", "DistributedCache", "three",
                         Arrays.asList("one", "three", "four"), Arrays.asList("three", "four")),
                 service("SeniorOnly", "Invocation", "four", "three", "four"));
         PeerProofReadiness.Topology changed = PeerProofReadiness.Topology.of(members, changedServices);
@@ -1201,7 +1213,7 @@ public class X509PeerProofProviderTest
                 service("Management", "Invocation", "four", "one", "two", "three", "four"),
                 serviceWithRecipients("SubjectOne", "DistributedCache", "two",
                         Arrays.asList("one", "two"), Arrays.asList("one", "two")),
-                serviceWithRecipients("SubjectTwo", "FederatedCache", "three",
+                serviceWithRecipients("SubjectTwo", "DistributedCache", "three",
                         Arrays.asList("one", "three"), Collections.singleton("three")),
                 service("SeniorOnly", "Invocation", "four", "three", "four"));
         PeerProofReadiness.Topology recipientChanged = PeerProofReadiness.Topology.of(members, changedRecipients);
@@ -1272,10 +1284,10 @@ public class X509PeerProofProviderTest
         assertValidationFailure(noPassword, "named PasswordProvider");
 
         PeerProofDependencies protectedAuthority = new PeerProofDependencies()
-                .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType("PKCS12")
+                .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType(BASE_STORE_TYPE)
                 .setIdentityAlias(ALIAS).setIdentityPasswordProvider(() -> PASSWORD.toCharArray())
                 .setSubjectAuthorityStore(new PeerProofDependencies.AuthorityStore(
-                        s_memberOne.f_store.toString(), "PKCS12", null))
+                        s_memberOne.f_store.toString(), BASE_STORE_TYPE, null))
                 .addSeniorCertificateUrl(s_memberOne.f_cert.toString());
         assertValidationFailure(protectedAuthority, "named PasswordProvider");
         }
@@ -1285,7 +1297,7 @@ public class X509PeerProofProviderTest
         {
         Path subjectStore = boundedStore("late-subject.jks", "JKS",
                 Collections.singletonList(s_memberOne), false);
-        Path seniorStore = boundedStore("late-senior.p12", "PKCS12",
+        Path seniorStore = boundedStore("late-senior" + BASE_STORE_SUFFIX, BASE_STORE_TYPE,
                 Collections.singletonList(s_memberOne), false);
 
         for (PasswordPosition position : PasswordPosition.values())
@@ -1317,7 +1329,7 @@ public class X509PeerProofProviderTest
         {
         Path subjectStore = boundedStore("close-subject.jks", "JKS",
                 Collections.singletonList(s_memberOne), false);
-        Path seniorStore = boundedStore("close-senior.p12", "PKCS12",
+        Path seniorStore = boundedStore("close-senior" + BASE_STORE_SUFFIX, BASE_STORE_TYPE,
                 Collections.singletonList(s_memberOne), false);
 
         for (PasswordPosition position : PasswordPosition.values())
@@ -1371,6 +1383,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldEnforceApprovedCredentialComplexityForJksPkcs12AndPem() throws Exception
         {
+        requireModernPkcs12();
         List<Credential> authorities = new ArrayList<>(Arrays.asList(s_memberOne, s_memberTwo,
                 s_memberOneNew, s_memberOneNewTwo, s_memberThree, s_memberFour, s_memberFourNew));
         authorities.addAll(s_complexityCredentials);
@@ -1449,7 +1462,7 @@ public class X509PeerProofProviderTest
             Path overAliases = boundedStore("too-many-aliases." + type.toLowerCase(), type,
                     tooManyAuthorities, false);
             PeerProofDependencies overAliasDeps = new PeerProofDependencies()
-                    .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType("PKCS12")
+                    .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType(BASE_STORE_TYPE)
                     .setIdentityAlias(ALIAS).setIdentityPasswordProvider(() -> PASSWORD.toCharArray())
                     .setSubjectAuthorityStore(new PeerProofDependencies.AuthorityStore(
                             overAliases.toString(), type, () -> PASSWORD.toCharArray()))
@@ -1505,7 +1518,7 @@ public class X509PeerProofProviderTest
         assertTrue(plainProvider.isReady());
 
         PeerProofDependencies fileUris = new PeerProofDependencies()
-                .setIdentityStoreUrl(s_memberOne.f_store.toUri().toString()).setIdentityStoreType("PKCS12")
+                .setIdentityStoreUrl(s_memberOne.f_store.toUri().toString()).setIdentityStoreType(BASE_STORE_TYPE)
                 .setIdentityAlias(ALIAS).setIdentityPasswordProvider(() -> PASSWORD.toCharArray())
                 .addSubjectCertificateUrl(s_memberOne.f_cert.toUri().toString())
                 .addSeniorCertificateUrl(s_memberOne.f_cert.toUri().toString());
@@ -1611,6 +1624,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldInspectRealPkcs12AuthenticatedSafeBeforeJca() throws Exception
         {
+        requireModernPkcs12();
         int cMaximum = X509PeerProofProvider.MAX_PBE_ITERATIONS;
         Path exact = pkcs12WithIterations("p75-exact", cMaximum, cMaximum, cMaximum);
         Path overMac = pkcs12WithIterations("p75-over-mac", cMaximum + 1, cMaximum, cMaximum);
@@ -1665,6 +1679,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldValidateEveryPkcs12AlgorithmParameterBeforeJca() throws Exception
         {
+        requireModernPkcs12();
         List<PfxParameterCase> cases = pfxParameterCases();
         byte[] validStore = Files.readAllBytes(s_memberOne.f_store);
         for (PasswordPosition position : PasswordPosition.values())
@@ -1715,6 +1730,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldLoadEveryApprovedPkcs12FamilyWithSun() throws Exception
         {
+        requireModernPkcs12();
         List<PfxPlatformFamily> families = pkcs12PlatformFamilies();
         for (PfxPlatformFamily family : families)
             {
@@ -1764,6 +1780,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldAdmitAbsentBagAttributesThroughStructuralGate() throws Exception
         {
+        requireModernPkcs12();
         Path canonical = pkcs12PlatformFamily("p77-absent-attribute-canonical",
                 "PBEWithHmacSHA256AndAES_256", "HmacPBESHA256");
         Path absent = omitVisibleBagAttributes("p77-absent-bag-attributes.p12", canonical);
@@ -1801,6 +1818,7 @@ public class X509PeerProofProviderTest
     @Test
     public void shouldRejectEveryUnsupportedPkcs12StructureBeforeJca() throws Exception
         {
+        requireModernPkcs12();
         Path canonical = pkcs12PlatformFamily("p77-structural-canonical",
                 "PBEWithHmacSHA256AndAES_256", "HmacPBESHA256");
         List<PfxStructureCase> cases = pfxStructureCases(canonical);
@@ -2076,7 +2094,7 @@ public class X509PeerProofProviderTest
     private static PeerProofDependencies dependencies(Credential identity, Path subject, Path senior)
         {
         return new PeerProofDependencies()
-                .setIdentityStoreUrl(identity.f_store.toString()).setIdentityStoreType("PKCS12")
+                .setIdentityStoreUrl(identity.f_store.toString()).setIdentityStoreType(BASE_STORE_TYPE)
                 .setIdentityAlias(ALIAS).setIdentityPasswordProvider(() -> PASSWORD.toCharArray())
                 .addSubjectCertificateUrl(subject.toString()).addSeniorCertificateUrl(senior.toString());
         }
@@ -2085,12 +2103,12 @@ public class X509PeerProofProviderTest
             PasswordProvider identityPassword, PasswordProvider subjectPassword, PasswordProvider seniorPassword)
         {
         return new PeerProofDependencies()
-                .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType("PKCS12")
+                .setIdentityStoreUrl(s_memberOne.f_store.toString()).setIdentityStoreType(BASE_STORE_TYPE)
                 .setIdentityAlias(ALIAS).setIdentityPasswordProvider(identityPassword)
                 .setSubjectAuthorityStore(new PeerProofDependencies.AuthorityStore(
                         subject.toString(), "JKS", subjectPassword))
                 .setSeniorAuthorityStore(new PeerProofDependencies.AuthorityStore(
-                        senior.toString(), "PKCS12", seniorPassword));
+                        senior.toString(), BASE_STORE_TYPE, seniorPassword));
         }
 
     private static PeerProofDependencies storeDependencies(Path identity, String identityType,
@@ -2119,7 +2137,7 @@ public class X509PeerProofProviderTest
                 break;
             case SENIOR:
                 deps.setSeniorAuthorityStore(new PeerProofDependencies.AuthorityStore(
-                        senior.toString(), "PKCS12", password));
+                        senior.toString(), BASE_STORE_TYPE, password));
                 break;
             default:
                 throw new AssertionError(position);
@@ -2984,7 +3002,7 @@ public class X509PeerProofProviderTest
 
     private static Credential credentialForMember(String label, String name, String... extensions) throws Exception
         {
-        Path store = s_dir.resolve(label + ".p12");
+        Path store = s_dir.resolve(label + BASE_STORE_SUFFIX);
         Path cert  = s_dir.resolve(label + ".pem");
         List<String> args = new ArrayList<>(Arrays.asList("-genkeypair", "-alias", ALIAS,
                 "-keyalg", "RSA", "-keysize", "2048", "-validity", "365", "-dname", "CN=" + name,
@@ -2994,18 +3012,18 @@ public class X509PeerProofProviderTest
             args.add("-ext");
             args.add(extension);
             }
-        Collections.addAll(args, "-keystore", store.toString(), "-storetype", "PKCS12",
+        Collections.addAll(args, "-keystore", store.toString(), "-storetype", BASE_STORE_TYPE,
                 "-storepass", PASSWORD, "-keypass", PASSWORD, "-noprompt");
         keytool(args.toArray(new String[0]));
         keytool("-exportcert", "-rfc", "-alias", ALIAS, "-keystore", store.toString(),
-                "-storetype", "PKCS12", "-storepass", PASSWORD, "-file", cert.toString());
+                "-storetype", BASE_STORE_TYPE, "-storepass", PASSWORD, "-file", cert.toString());
         return new Credential(name, store, cert);
         }
 
     private static Path boundedStore(String name, String type, List<Credential> credentials,
             boolean identity) throws Exception
         {
-        java.security.KeyStore source = java.security.KeyStore.getInstance("PKCS12");
+        java.security.KeyStore source = java.security.KeyStore.getInstance(BASE_STORE_TYPE);
         try (InputStream in = Files.newInputStream(s_memberOne.f_store))
             {
             source.load(in, PASSWORD.toCharArray());
@@ -3055,7 +3073,7 @@ public class X509PeerProofProviderTest
     private static Path identityStore(String name, String type,
             java.security.cert.Certificate[] chain, char[] password) throws Exception
         {
-        java.security.KeyStore source = java.security.KeyStore.getInstance("PKCS12");
+        java.security.KeyStore source = java.security.KeyStore.getInstance(BASE_STORE_TYPE);
         try (InputStream in = Files.newInputStream(s_memberOne.f_store))
             {
             source.load(in, PASSWORD.toCharArray());
@@ -3248,15 +3266,15 @@ public class X509PeerProofProviderTest
 
     private static Credential expiredCredential(String name) throws Exception
         {
-        Path store = s_dir.resolve(name + ".p12");
+        Path store = s_dir.resolve(name + BASE_STORE_SUFFIX);
         Path cert = s_dir.resolve(name + ".pem");
         keytool("-genkeypair", "-alias", ALIAS, "-keyalg", "RSA", "-keysize", "2048",
                 "-startdate", "2020/01/01 00:00:00", "-validity", "1", "-dname", "CN=" + name,
                 "-ext", "SAN=uri:" + X509PeerProofProvider.issuerId(name), "-ext", "KU=digitalSignature",
-                "-keystore", store.toString(), "-storetype", "PKCS12", "-storepass", PASSWORD,
+                "-keystore", store.toString(), "-storetype", BASE_STORE_TYPE, "-storepass", PASSWORD,
                 "-keypass", PASSWORD, "-noprompt");
         keytool("-exportcert", "-rfc", "-alias", ALIAS, "-keystore", store.toString(),
-                "-storetype", "PKCS12", "-storepass", PASSWORD, "-file", cert.toString());
+                "-storetype", BASE_STORE_TYPE, "-storepass", PASSWORD, "-file", cert.toString());
         return new Credential(name, store, cert);
         }
 
@@ -3979,8 +3997,18 @@ public class X509PeerProofProviderTest
         return new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
         }
 
+    private static void requireModernPkcs12()
+        {
+        Assume.assumeTrue("runtime keytool cannot emit the approved SHA-2 PKCS12 profile",
+                MODERN_PKCS12);
+        }
+
     private static final String PASSWORD = "changeit";
     private static final String ALIAS = "peer-signing";
+    private static final boolean MODERN_PKCS12 = java.security.Security.getProvider("SUN") != null
+            && java.security.Security.getProvider("SUN").getService("KeyStore", "PKCS12") != null;
+    private static final String BASE_STORE_TYPE = MODERN_PKCS12 ? "PKCS12" : "JKS";
+    private static final String BASE_STORE_SUFFIX = MODERN_PKCS12 ? ".p12" : ".jks";
     private static Path s_dir;
     private static Credential s_memberOne;
     private static Credential s_memberTwo;

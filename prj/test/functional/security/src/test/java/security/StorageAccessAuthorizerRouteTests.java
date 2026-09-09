@@ -127,6 +127,7 @@ public class StorageAccessAuthorizerRouteTests
         System.setProperty("coherence.distributed.localstorage", "false");
         System.setProperty("coherence.security.mode", "hardened");
         System.setProperty("peer.proof.identity.store", s_clientStore.toString());
+        System.setProperty("peer.proof.identity.type", PEER_STORE_TYPE);
         System.setProperty("peer.proof.authorities", s_authorities.toString());
         System.setProperty("peer.proof.password.file", s_passwordFile.toString());
         System.setProperty("coherence.security.peer.senior-metadata-proof.required", "true");
@@ -143,6 +144,7 @@ public class StorageAccessAuthorizerRouteTests
         props.setProperty("coherence.distributed.localstorage", "true");
         props.setProperty("coherence.security.mode", "hardened");
         props.setProperty("peer.proof.identity.store", s_serverStore.toString());
+        props.setProperty("peer.proof.identity.type", PEER_STORE_TYPE);
         props.setProperty("peer.proof.authorities", s_memberAuthorities.toString());
         props.setProperty("peer.proof.password.file", s_passwordFile.toString());
         props.setProperty("coherence.security.peer.senior-metadata-proof.required", "true");
@@ -758,7 +760,7 @@ public class StorageAccessAuthorizerRouteTests
             assertThat(client.invoke(new IsolatedProofPut("authorized-peer-proof-lkg", "key", "still-valid")),
                     is("still-valid"));
 
-            KeyStore store = KeyStore.getInstance("PKCS12");
+            KeyStore store = KeyStore.getInstance(PEER_STORE_TYPE);
             try (java.io.InputStream in = Files.newInputStream(shortStore))
                 {
                 store.load(in, PEER_PASSWORD.toCharArray());
@@ -935,6 +937,7 @@ public class StorageAccessAuthorizerRouteTests
         props.setProperty("coherence.mode", runtimeMode);
         props.setProperty("coherence.security.mode", securityMode);
         props.setProperty("peer.proof.identity.store", identity.toString());
+        props.setProperty("peer.proof.identity.type", PEER_STORE_TYPE);
         props.setProperty("peer.proof.authorities", authorities.toString());
         props.setProperty("peer.proof.password.file", s_passwordFile.toString());
         props.setProperty("coherence.security.peer.senior-metadata-proof.required", Boolean.toString(required));
@@ -1501,6 +1504,7 @@ public class StorageAccessAuthorizerRouteTests
         props.setProperty("coherence.distributed.localstorage", "false");
         props.setProperty("coherence.security.mode", "hardened");
         props.setProperty("peer.proof.identity.store", s_optionalStore.toString());
+        props.setProperty("peer.proof.identity.type", PEER_STORE_TYPE);
         props.setProperty("peer.proof.authorities", s_authorities.toString());
         props.setProperty("peer.proof.password.file", s_passwordFile.toString());
         props.setProperty("coherence.security.peer.senior-metadata-proof.required", "true");
@@ -1663,11 +1667,11 @@ public class StorageAccessAuthorizerRouteTests
     private static void createPeerProofCredentials() throws Exception
         {
         s_credentialDir = Files.createTempDirectory("peer-proof-functional-");
-        s_clientStore = s_credentialDir.resolve("client.p12");
-        s_serverStore = s_credentialDir.resolve("server.p12");
-        s_serverTwoStore = s_credentialDir.resolve("server-two.p12");
-        s_serverNewStore = s_credentialDir.resolve("server-new.p12");
-        s_serverTwoNewStore = s_credentialDir.resolve("server-two-new.p12");
+        s_clientStore = s_credentialDir.resolve("client" + PEER_STORE_SUFFIX);
+        s_serverStore = s_credentialDir.resolve("server" + PEER_STORE_SUFFIX);
+        s_serverTwoStore = s_credentialDir.resolve("server-two" + PEER_STORE_SUFFIX);
+        s_serverNewStore = s_credentialDir.resolve("server-new" + PEER_STORE_SUFFIX);
+        s_serverTwoNewStore = s_credentialDir.resolve("server-two-new" + PEER_STORE_SUFFIX);
         s_clientCert = s_credentialDir.resolve("client.pem");
         s_serverCert = s_credentialDir.resolve("server.pem");
         s_serverTwoCert = s_credentialDir.resolve("server-two.pem");
@@ -1677,24 +1681,24 @@ public class StorageAccessAuthorizerRouteTests
         s_memberAuthorities = s_credentialDir.resolve("member-authorities.pem");
         s_memberTwoAuthorities = s_credentialDir.resolve("member-two-authorities.pem");
         s_passwordFile = s_credentialDir.resolve("password.txt");
-        s_clientOldStore = s_credentialDir.resolve("client-old.p12");
-        s_clientNewStore = s_credentialDir.resolve("client-new.p12");
+        s_clientOldStore = s_credentialDir.resolve("client-old" + PEER_STORE_SUFFIX);
+        s_clientNewStore = s_credentialDir.resolve("client-new" + PEER_STORE_SUFFIX);
         s_clientNewCert = s_credentialDir.resolve("client-new.pem");
-        s_untrustedStore = s_credentialDir.resolve("untrusted.p12");
+        s_untrustedStore = s_credentialDir.resolve("untrusted" + PEER_STORE_SUFFIX);
         s_untrustedCert = s_credentialDir.resolve("untrusted.pem");
-        s_wrongSanStore = s_credentialDir.resolve("wrong-san.p12");
+        s_wrongSanStore = s_credentialDir.resolve("wrong-san" + PEER_STORE_SUFFIX);
         s_wrongSanCert = s_credentialDir.resolve("wrong-san.pem");
-        s_retiredStore = s_credentialDir.resolve("retired.p12");
+        s_retiredStore = s_credentialDir.resolve("retired" + PEER_STORE_SUFFIX);
         s_retiredCert = s_credentialDir.resolve("retired.pem");
-        s_optionalStore = s_credentialDir.resolve("optional.p12");
+        s_optionalStore = s_credentialDir.resolve("optional" + PEER_STORE_SUFFIX);
         s_optionalCert = s_credentialDir.resolve("optional.pem");
-        s_caStore = s_credentialDir.resolve("ca.p12");
+        s_caStore = s_credentialDir.resolve("ca" + PEER_STORE_SUFFIX);
         s_caCert = s_credentialDir.resolve("ca.pem");
-        s_noKeyUsageStore = s_credentialDir.resolve("no-key-usage.p12");
+        s_noKeyUsageStore = s_credentialDir.resolve("no-key-usage" + PEER_STORE_SUFFIX);
         s_noKeyUsageCert = s_credentialDir.resolve("no-key-usage.pem");
-        s_falseKeyUsageStore = s_credentialDir.resolve("false-key-usage.p12");
+        s_falseKeyUsageStore = s_credentialDir.resolve("false-key-usage" + PEER_STORE_SUFFIX);
         s_falseKeyUsageCert = s_credentialDir.resolve("false-key-usage.pem");
-        s_expiredStore = s_credentialDir.resolve("expired.p12");
+        s_expiredStore = s_credentialDir.resolve("expired" + PEER_STORE_SUFFIX);
         s_expiredCert = s_credentialDir.resolve("expired.pem");
         writeString(s_passwordFile, PEER_PASSWORD);
         createCredential("peer-proof-client", s_clientStore, s_clientCert);
@@ -1731,11 +1735,11 @@ public class StorageAccessAuthorizerRouteTests
             args.add("-ext");
             args.add(extension);
             }
-        args.addAll(Arrays.asList("-keystore", store.toString(), "-storetype", "PKCS12",
+        args.addAll(Arrays.asList("-keystore", store.toString(), "-storetype", PEER_STORE_TYPE,
                 "-storepass", PEER_PASSWORD, "-keypass", PEER_PASSWORD, "-noprompt"));
         keytool(args.toArray(new String[0]));
         keytool("-exportcert", "-rfc", "-alias", "peer-signing", "-keystore", store.toString(),
-                "-storetype", "PKCS12", "-storepass", PEER_PASSWORD, "-file", cert.toString());
+                "-storetype", PEER_STORE_TYPE, "-storepass", PEER_PASSWORD, "-file", cert.toString());
         }
 
     private static void createExpiredCredential(String sMember, Path store, Path cert) throws Exception
@@ -1743,10 +1747,10 @@ public class StorageAccessAuthorizerRouteTests
         keytool("-genkeypair", "-alias", "peer-signing", "-keyalg", "RSA", "-keysize", "2048",
                 "-startdate", "2020/01/01 00:00:00", "-validity", "1", "-dname", "CN=" + sMember,
                 "-ext", "SAN=uri:" + X509PeerProofProvider.issuerId(sMember),
-                "-ext", "KU=digitalSignature", "-keystore", store.toString(), "-storetype", "PKCS12",
+                "-ext", "KU=digitalSignature", "-keystore", store.toString(), "-storetype", PEER_STORE_TYPE,
                 "-storepass", PEER_PASSWORD, "-keypass", PEER_PASSWORD, "-noprompt");
         keytool("-exportcert", "-rfc", "-alias", "peer-signing", "-keystore", store.toString(),
-                "-storetype", "PKCS12", "-storepass", PEER_PASSWORD, "-file", cert.toString());
+                "-storetype", PEER_STORE_TYPE, "-storepass", PEER_PASSWORD, "-file", cert.toString());
         }
 
     private static void createShortLivedCredential(String sMember, Path store, Path cert, String startDate) throws Exception
@@ -1754,10 +1758,10 @@ public class StorageAccessAuthorizerRouteTests
         keytool("-genkeypair", "-alias", "peer-signing", "-keyalg", "RSA", "-keysize", "2048",
                 "-startdate", startDate, "-validity", "1", "-dname", "CN=" + sMember,
                 "-ext", "SAN=uri:" + X509PeerProofProvider.issuerId(sMember),
-                "-ext", "KU=digitalSignature", "-keystore", store.toString(), "-storetype", "PKCS12",
+                "-ext", "KU=digitalSignature", "-keystore", store.toString(), "-storetype", PEER_STORE_TYPE,
                 "-storepass", PEER_PASSWORD, "-keypass", PEER_PASSWORD, "-noprompt");
         keytool("-exportcert", "-rfc", "-alias", "peer-signing", "-keystore", store.toString(),
-                "-storetype", "PKCS12", "-storepass", PEER_PASSWORD, "-file", cert.toString());
+                "-storetype", PEER_STORE_TYPE, "-storepass", PEER_PASSWORD, "-file", cert.toString());
         }
 
     private static void keytool(String... args) throws Exception
@@ -2238,7 +2242,7 @@ public class StorageAccessAuthorizerRouteTests
                         : f_fault == ProofFault.WRONG_SAN ? s_wrongSanStore
                         : f_fault == ProofFault.RETIRED_KEY ? s_retiredStore
                         : f_fault == ProofFault.ROTATED_OLD_KEY ? s_clientOldStore : s_clientStore;
-                KeyStore keyStore = KeyStore.getInstance("PKCS12");
+                KeyStore keyStore = KeyStore.getInstance(PEER_STORE_TYPE);
                 try (java.io.InputStream in = Files.newInputStream(store))
                     {
                     keyStore.load(in, PEER_PASSWORD.toCharArray());
@@ -2330,7 +2334,7 @@ public class StorageAccessAuthorizerRouteTests
                     }
                 if (f_fault == ProofFault.SENIOR_CLAIM)
                     {
-                    KeyStore keyStore = KeyStore.getInstance("PKCS12");
+                    KeyStore keyStore = KeyStore.getInstance(PEER_STORE_TYPE);
                     Path identity = Paths.get(System.getProperty("peer.proof.identity.store"));
                     try (java.io.InputStream in = Files.newInputStream(identity))
                         {
@@ -2456,6 +2460,10 @@ public class StorageAccessAuthorizerRouteTests
     private static final int PERFORMANCE_OPERATIONS = 1_200;
 
     private static final String PEER_PASSWORD = "changeit";
+    private static final boolean MODERN_PKCS12 = java.security.Security.getProvider("SUN") != null
+            && java.security.Security.getProvider("SUN").getService("KeyStore", "PKCS12") != null;
+    private static final String PEER_STORE_TYPE = MODERN_PKCS12 ? "PKCS12" : "JKS";
+    private static final String PEER_STORE_SUFFIX = MODERN_PKCS12 ? ".p12" : ".jks";
     private static Path s_credentialDir;
     private static Path s_clientStore;
     private static Path s_serverStore;

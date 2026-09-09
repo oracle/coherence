@@ -35,7 +35,7 @@
       <identity>
         <key-store>
           <url system-property="peer.proof.identity.store">not-set</url>
-          <type>PKCS12</type>
+          <type system-property="peer.proof.identity.type">PKCS12</type>
           <password-provider><name>peer-proof-pass</name></password-provider>
         </key-store>
         <alias>peer-signing</alias>

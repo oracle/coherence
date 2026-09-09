@@ -21,7 +21,7 @@
       <provider>x509-signature-v1</provider>
       <identity><key-store>
         <url system-property="peer.proof.identity.store">not-set</url>
-        <type>PKCS12</type>
+        <type system-property="peer.proof.identity.type">PKCS12</type>
         <password-provider><name>peer-proof-pass</name></password-provider>
       </key-store><alias>peer-signing</alias></identity>
       <subject-authorities><cert system-property="peer.proof.authorities">not-set</cert></subject-authorities>
