@@ -305,6 +305,64 @@ public class ReporterSecurityTest
         }
 
     @Test
+    public void shouldAllowReportPathWhenConfiguredReportFileDoesNotExistInHardenedMode()
+            throws Exception
+        {
+        File dir        = createTempDir();
+        File fileConfig = new File(dir, "missing-report-group.xml");
+        File fileReport = createReportFile(dir, "report.xml");
+        System.setProperty(PROP_REPORT_CONFIG, fileConfig.getAbsolutePath());
+
+        assertThat(fileConfig.exists(), is(false));
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            URL url = ReporterSecurity.resolveTrustedReportUrl(fileReport.getAbsolutePath(),
+                    ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct");
+
+            assertThat(url.toExternalForm(), is(fileReport.getCanonicalFile().toURI().toURL().toExternalForm()));
+            }
+        }
+
+    @Test
+    public void shouldUseConfiguredReportSymlinkTargetAsApprovedRootInHardenedMode()
+            throws Exception
+        {
+        File dir            = createTempDir();
+        File dirLink        = new File(dir, "link-root");
+        File dirTarget      = new File(dir, "target-root");
+        File fileConfig     = createReportFile(dirTarget, "reports.xml");
+        File fileReport     = createReportFile(dirTarget, "report.xml");
+        File fileOutside    = createReportFile(dirLink, "outside.xml");
+        File fileConfigLink = new File(dirLink, "reports.xml");
+
+        try
+            {
+            Files.createSymbolicLink(fileConfigLink.toPath(), fileConfig.toPath());
+            }
+        catch (IOException | UnsupportedOperationException e)
+            {
+            Assume.assumeNoException(e);
+            }
+
+        System.setProperty(PROP_REPORT_CONFIG, fileConfigLink.getAbsolutePath());
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            URL urlConfig = ReporterSecurity.resolveTrustedReportUrl(fileConfigLink.getAbsolutePath(),
+                    ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct");
+            URL urlReport = ReporterSecurity.resolveTrustedReportUrl(fileReport.getAbsolutePath(),
+                    ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct");
+
+            assertThat(urlConfig.toExternalForm(), is(fileConfig.getCanonicalFile().toURI().toURL().toExternalForm()));
+            assertThat(urlReport.toExternalForm(), is(fileReport.getCanonicalFile().toURI().toURL().toExternalForm()));
+            assertThrows(ReporterSecurity.ReporterSecurityException.class,
+                    () -> ReporterSecurity.resolveTrustedReportUrl(fileOutside.getAbsolutePath(),
+                            ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct"));
+            }
+        }
+
+    @Test
     public void shouldRejectAbsoluteReportPathOutsideApprovedRootInHardenedMode()
             throws Exception
         {
@@ -345,6 +403,19 @@ public class ReporterSecurityTest
     public void shouldRejectAbsoluteReportPathSymlinkOutsideApprovedRootInHardenedMode()
             throws Exception
         {
+        assertRejectReportPathSymlinkOutsideApprovedRoot(false);
+        }
+
+    @Test
+    public void shouldRejectFileUriSymlinkOutsideApprovedRootInHardenedMode()
+            throws Exception
+        {
+        assertRejectReportPathSymlinkOutsideApprovedRoot(true);
+        }
+
+    private void assertRejectReportPathSymlinkOutsideApprovedRoot(boolean fFileUri)
+            throws Exception
+        {
         File dir         = createTempDir();
         File dirApproved = new File(dir, "approved");
         File fileConfig  = createReportFile(dirApproved, "reports.xml");
@@ -363,11 +434,10 @@ public class ReporterSecurityTest
 
         try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
             {
+            String sName = fFileUri ? fileLink.toURI().toString() : fileLink.getAbsolutePath();
+
             assertThrows(ReporterSecurity.ReporterSecurityException.class,
-                    () -> ReporterSecurity.resolveTrustedReportUrl(fileLink.getAbsolutePath(),
-                            ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct"));
-            assertThrows(ReporterSecurity.ReporterSecurityException.class,
-                    () -> ReporterSecurity.resolveTrustedReportUrl(fileLink.toURI().toString(),
+                    () -> ReporterSecurity.resolveTrustedReportUrl(sName,
                             ReporterSecurityTest.class.getClassLoader(), "setConfigFile", "jmx-direct"));
             }
         }
