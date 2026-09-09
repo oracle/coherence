@@ -21,7 +21,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -49,14 +48,13 @@ public class PagedTopicSubscriptionsBackingMap
     @Override
     public synchronized void clear()
         {
-        f_setReplayDedup.clear();
         super.clear();
         }
 
     @Override
     public Object put(Object key, Object value, long cMillis)
         {
-        enforceReplay(resolveSubscription(value), f_setReplayDedup);
+        enforceReplay(resolveSubscription(value));
         return super.put(key, value, cMillis);
         }
 
@@ -73,7 +71,7 @@ public class PagedTopicSubscriptionsBackingMap
 
         for (Subscription subscription : mapResolved.values())
             {
-            enforceReplay(subscription, f_setReplayDedup);
+            enforceReplay(subscription);
             }
 
         super.putAll(map);
@@ -88,7 +86,7 @@ public class PagedTopicSubscriptionsBackingMap
         return (Subscription) f_convValue.convert(value);
         }
 
-    private void enforceReplay(Subscription subscription, Set<String> setDedup)
+    private void enforceReplay(Subscription subscription)
         {
         if (subscription == null || SerializationRole.current() != SerializationRole.PERSISTENCE)
             {
@@ -97,11 +95,9 @@ public class PagedTopicSubscriptionsBackingMap
 
         Filter       filter    = subscription.getFilter();
         Function     converter = subscription.getConverter();
-        RemoteInstallGate.enforceTopicSubscriberReplay(filter, converter, SerializationRole.PERSISTENCE, null,
-                setDedup);
+        RemoteInstallGate.enforceTopicSubscriberReplay(filter, converter, SerializationRole.PERSISTENCE, null);
         }
 
     private final Converter f_convValue;
 
-    private final Set<String> f_setReplayDedup = ConcurrentHashMap.newKeySet();
     }

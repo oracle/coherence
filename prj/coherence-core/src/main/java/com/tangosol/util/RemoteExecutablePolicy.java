@@ -67,7 +67,7 @@ public abstract class RemoteExecutablePolicy
     public boolean isExecutable(Class<?> clz)
         {
         return clz != null
-                && (isAnnotatedExecutable(clz) || SecurityConfig.current().isExecutable(clz.getName()));
+                && (s_fAnnotatedExecutable.get(clz) || SecurityConfig.current().isExecutable(clz.getName()));
         }
 
     /**
@@ -162,6 +162,19 @@ public abstract class RemoteExecutablePolicy
     private static final int ASM_SKIP_FRAMES = 4;
 
     // ----- data members ---------------------------------------------------
+
+    /**
+     * Class-loader-safe cache of the immutable annotation classification.
+     * Security configuration classification intentionally remains live.
+     */
+    private static final ClassValue<Boolean> s_fAnnotatedExecutable = new ClassValue<Boolean>()
+        {
+        @Override
+        protected Boolean computeValue(Class<?> clz)
+            {
+            return isAnnotatedExecutable(clz);
+            }
+        };
 
     private static volatile RemoteExecutablePolicy s_policy;
     }
