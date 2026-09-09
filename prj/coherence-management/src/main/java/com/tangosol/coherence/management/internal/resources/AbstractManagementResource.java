@@ -11,6 +11,8 @@ import com.tangosol.coherence.management.internal.Converter;
 import com.tangosol.coherence.management.internal.EntityMBeanResponse;
 import com.tangosol.coherence.management.internal.MBeanResponse;
 
+import com.tangosol.internal.net.management.DiagnosticCommandPolicy;
+
 import com.tangosol.net.CacheFactory;
 
 import com.tangosol.net.management.MBeanAccessor;
@@ -1381,21 +1383,7 @@ public abstract class AbstractManagementResource
      */
     protected static boolean isJfrDiagnosticCommand(String sCmd)
         {
-        if (sCmd == null)
-            {
-            return false;
-            }
-
-        switch (sCmd)
-            {
-            case "jfrStart":
-            case "jfrStop":
-            case "jfrDump":
-            case "jfrCheck":
-                return true;
-            default:
-                return false;
-            }
+        return DiagnosticCommandPolicy.isRestOperationAllowed(sCmd);
         }
 
     /**
