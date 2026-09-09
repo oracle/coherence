@@ -15,11 +15,16 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 
+import java.lang.reflect.Field;
+
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
 import java.nio.file.Files;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.management.ObjectName;
 
@@ -213,6 +218,39 @@ public class ReporterSecurityTest
             {
             assertThat(ReporterSecurity.validateOutputPath(outside.getAbsolutePath(), "test"),
                     is(outside.getCanonicalPath()));
+            }
+        }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldLogCompatibilityWarningOncePerCategory()
+            throws Exception
+        {
+        Field field = ReporterSecurity.class.getDeclaredField("LOGGED_COMPATIBILITY_WARNINGS");
+        field.setAccessible(true);
+
+        Set<Object> setWarnings      = (Set<Object>) field.get(null);
+        Set<Object> setWarningsSaved = new HashSet<>(setWarnings);
+        setWarnings.clear();
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            ReporterSecurity.validateObjectNamePattern("java.lang:type=Memory", "test");
+            assertThat(setWarnings.size(), is(1));
+
+            ReporterSecurity.validateObjectNamePattern("com.sun.management:type=DiagnosticCommand", "test");
+            assertThat(setWarnings.size(), is(1));
+
+            ReporterSecurity.validateObjectNamePattern("*:type=Memory", "test");
+            assertThat(setWarnings.size(), is(2));
+
+            ReporterSecurity.validateObjectNamePattern("*:type=Threading", "test");
+            assertThat(setWarnings.size(), is(2));
+            }
+        finally
+            {
+            setWarnings.clear();
+            setWarnings.addAll(setWarningsSaved);
             }
         }
 
