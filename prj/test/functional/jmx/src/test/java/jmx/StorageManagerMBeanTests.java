@@ -49,6 +49,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -335,6 +336,9 @@ public class StorageManagerMBeanTests
 
             for (ObjectName name : setObjectNames)
                 {
+                Eventually.assertDeferred(() -> getAttribute(server, name, "MaxQueryDescription"),
+                        notNullValue());
+
                 String sAttributeDescription = (String) server.getAttribute(name, "MaxQueryDescription");
 
                 CacheFactory.log("MaxQueryDescription: " + sAttributeDescription);
@@ -345,6 +349,22 @@ public class StorageManagerMBeanTests
                 assertTrue(sAttributeDescription.length() < cSize);
                 }
 
+            }
+        catch (Exception e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+        }
+
+    /**
+     * Return an MBean attribute value, converting checked management failures
+     * so the read can be retried by an eventual assertion.
+     */
+    protected Object getAttribute(MBeanServer server, ObjectName name, String sAttribute)
+        {
+        try
+            {
+            return server.getAttribute(name, sAttribute);
             }
         catch (Exception e)
             {
