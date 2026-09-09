@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.common.util;
 
@@ -161,6 +161,33 @@ public class DurationTest
                 Assert.fail("Unexpected exception for [" + actual + "]");
                 }
             }
+        }
+
+    /**
+     * Ensure explicit magnitude accumulation rejects overflow.
+     */
+    @Test
+    public void testExplicitMagnitudeAccumulationOverflow()
+        {
+        try
+            {
+            new Duration("81018.51851851852d 1944444.4444444445h 74148192.62244251m");
+            Assert.fail("Expected explicit magnitude accumulation overflow");
+            }
+        catch (IllegalArgumentException e)
+            {
+            // expected
+            }
+        }
+
+    /**
+     * Ensure representable explicit magnitude components retain their value.
+     */
+    @Test
+    public void testRepresentableExplicitMagnitudeAccumulation()
+        {
+        Assert.assertEquals(93784005006007L,
+                new Duration("1d 2h 3m 4s 5ms 6us 7ns").getNanos());
         }
 
     // ----- constants --------------------------------------------------

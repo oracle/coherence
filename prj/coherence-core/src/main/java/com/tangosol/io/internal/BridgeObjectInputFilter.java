@@ -20,6 +20,11 @@ import java.util.Set;
 
 /**
  * Expected-type filters for product-owned Java serialization bridge fields.
+ * These filters narrow but never widen the global
+ * {@link DefaultObjectInputFilter} baseline and must be composed at the use
+ * site with {@link DefaultObjectInputFilter#create(Object)} or the
+ * local helper equivalent. New bridge categories should use a named factory
+ * method here or in {@link SerializationBridgeFilters}.
  *
  * @author Aleks Seovic  2026.05.15
  * @since 26.04

@@ -50,6 +50,8 @@ import static org.mockito.Mockito.when;
 public class StandardTest
     {
 
+    private static final String PROP_VALID_SUBJECT_EXPIRY = "coherence.security.subject.validation.ttl";
+
     @Test
     public void shouldValidate() throws Exception
         {
@@ -90,12 +92,97 @@ public class StandardTest
         }
 
     @Test
-    public void shouldUseDocumentedValidSubjectsExpiry() throws Exception
+    public void shouldUseDefaultValidSubjectsExpiry() throws Exception
         {
-        Standard   standard = createStandard(new AccessControllerStub(), new Subject(), "DistributedService");
-        LocalCache cache    = (LocalCache) getField(standard, "__m_ValidSubjects");
+        assertValidSubjectsExpiry(null, 10000);
+        }
 
-        assertEquals(10000, cache.getExpiryDelay());
+    @Test
+    public void shouldUseMillisecondValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("2500", 2500);
+        }
+
+    @Test
+    public void shouldUseDurationValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("3s", 3000);
+        }
+
+    @Test
+    public void shouldUseMultiComponentValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("1m 1s", 61000);
+        }
+
+    @Test
+    public void shouldUseDefaultForMalformedValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("not-a-duration", 10000);
+        }
+
+    @Test
+    public void shouldUseDefaultForNonPositiveValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("0", 10000);
+        assertValidSubjectsExpiry("-1", 10000);
+        }
+
+    @Test
+    public void shouldUseDefaultForOverflowingValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry(Long.toString((long) Integer.MAX_VALUE + 1), 10000);
+        }
+
+    @Test
+    public void shouldUseMaximumValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry(Integer.toString(Integer.MAX_VALUE), Integer.MAX_VALUE);
+        }
+
+    @Test
+    public void shouldUseDefaultForSubMillisecondExcessOverMaximumValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry(Integer.MAX_VALUE + "ms 1ns", 10000);
+        }
+
+    @Test
+    public void shouldUseDefaultForMultiComponentOverflowingValidSubjectsExpiry() throws Exception
+        {
+        assertValidSubjectsExpiry("81018.51851851852d 1944444.4444444445h 74148192.62244251m", 10000);
+        }
+
+    private void assertValidSubjectsExpiry(String sValue, int cExpected) throws Exception
+        {
+        String sPrevious = System.getProperty(PROP_VALID_SUBJECT_EXPIRY);
+
+        try
+            {
+            if (sValue == null)
+                {
+                System.clearProperty(PROP_VALID_SUBJECT_EXPIRY);
+                }
+            else
+                {
+                System.setProperty(PROP_VALID_SUBJECT_EXPIRY, sValue);
+                }
+
+            Standard   standard = new Standard();
+            LocalCache cache    = (LocalCache) getField(standard, "__m_ValidSubjects");
+
+            assertEquals(cExpected, cache.getExpiryDelay());
+            }
+        finally
+            {
+            if (sPrevious == null)
+                {
+                System.clearProperty(PROP_VALID_SUBJECT_EXPIRY);
+                }
+            else
+                {
+                System.setProperty(PROP_VALID_SUBJECT_EXPIRY, sPrevious);
+                }
+            }
         }
 
     @Test
