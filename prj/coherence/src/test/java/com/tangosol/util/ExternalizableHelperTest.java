@@ -13,6 +13,8 @@ import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.DefaultSerializer;
 import com.tangosol.io.ReadBuffer;
 import com.tangosol.io.WriteBuffer;
+import com.tangosol.io.internal.BridgeObjectInputFilter;
+import com.tangosol.io.internal.DefaultObjectInputFilter;
 
 import com.tangosol.io.pof.PofBufferReader;
 import com.tangosol.io.pof.PofBufferWriter;
@@ -49,7 +51,9 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -861,6 +865,23 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         }
 
     @Test
+    public void testExceptionBridgeArrayLengthBoundary()
+        {
+        assertExceptionBridgeArrayLengthBoundary(BridgeObjectInputFilter.exception());
+
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.exception()));
+            }
+        try (CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityHardened())
+            {
+            assertExceptionBridgeArrayLengthBoundary(
+                    DefaultObjectInputFilter.create(BridgeObjectInputFilter.exception()));
+            }
+        }
+
+    @Test
     public void testSerializableSerializerBridgeRejectsDeniedInnerOisPayload() throws IOException
         {
         ByteArrayWriteBuffer wb     = new ByteArrayWriteBuffer(0);
@@ -1417,6 +1438,45 @@ public class ExternalizableHelperTest extends ExternalizableHelper
         return false;
         }
 
+    private static void assertExceptionBridgeArrayLengthBoundary(Object filter)
+        {
+        long       cLimit   = BridgeObjectInputFilter.MAX_EXCEPTION_ARRAY_LENGTH;
+        Class<?>[] aClasses = {Object[].class, StackTraceElement[].class,
+                RuntimeException[].class, int[].class};
+
+        for (Class<?> clz : aClasses)
+            {
+            assertEquals(clz.getName(), "ALLOWED",
+                    filterStatus(filter, new TestFilterInfo(clz, cLimit)));
+            assertEquals(clz.getName(), "REJECTED",
+                    filterStatus(filter, new TestFilterInfo(clz, cLimit + 1L)));
+            assertEquals(clz.getName(), "ALLOWED",
+                    filterStatus(filter, new TestFilterInfo(clz, -1L)));
+            }
+        }
+
+    private static String filterStatus(Object filter, TestFilterInfo filterInfo)
+        {
+        Class<?> clzFilter = getClass("java.io.ObjectInputFilter");
+        Class<?> clzInfo   = getClass("java.io.ObjectInputFilter$FilterInfo");
+        if (clzFilter == null)
+            {
+            clzFilter = getClass("sun.misc.ObjectInputFilter");
+            clzInfo   = getClass("sun.misc.ObjectInputFilter$FilterInfo");
+            }
+
+        try
+            {
+            Method method = clzFilter.getMethod("checkInput", clzInfo);
+            Object status = method.invoke(filter, filterInfo.proxy(clzInfo));
+            return ((Enum) status).name();
+            }
+        catch (Exception e)
+            {
+            throw new AssertionError(e);
+            }
+        }
+
     private static Binary fmtXmlSerializable(String sClass, String sXml) throws IOException
         {
         ByteArrayWriteBuffer     wb  = new ByteArrayWriteBuffer(0);
@@ -1450,6 +1510,58 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             {
             CoherenceModeHelper.reset();
             }
+        }
+
+    private static class TestFilterInfo
+            implements InvocationHandler
+        {
+        private TestFilterInfo(Class<?> clzSerial, long cArrayLength)
+            {
+            f_clzSerial    = clzSerial;
+            f_cArrayLength = cArrayLength;
+            }
+
+        private Object proxy(Class<?> clzInfo)
+            {
+            return Proxy.newProxyInstance(clzInfo.getClassLoader(),
+                    new Class<?>[] {clzInfo}, this);
+            }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args)
+            {
+            String sName = method.getName();
+            if ("serialClass".equals(sName))
+                {
+                return f_clzSerial;
+                }
+            if ("arrayLength".equals(sName))
+                {
+                return f_cArrayLength;
+                }
+            if ("depth".equals(sName) || "references".equals(sName)
+                    || "streamBytes".equals(sName))
+                {
+                return 0L;
+                }
+            if ("toString".equals(sName))
+                {
+                return getClass().getName();
+                }
+            if ("hashCode".equals(sName))
+                {
+                return System.identityHashCode(this);
+                }
+            if ("equals".equals(sName))
+                {
+                return proxy == args[0];
+                }
+            return null;
+            }
+
+        private final Class<?> f_clzSerial;
+
+        private final long f_cArrayLength;
         }
 
     private interface ThrowingRunnable

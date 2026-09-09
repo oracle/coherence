@@ -84,8 +84,22 @@ public final class BridgeObjectInputFilter
      */
     private BridgeObjectInputFilter(String sReason, Set<String> setAllowed)
         {
-        f_sReason    = sReason;
-        f_setAllowed = setAllowed;
+        this(sReason, setAllowed, -1L);
+        }
+
+    /**
+     * Construct a bridge filter.
+     *
+     * @param sReason          the telemetry rejection reason
+     * @param setAllowed       the exact allowed class names
+     * @param cMaxArrayLength  the maximum admitted array length, or a negative
+     *                         value for no bridge-local limit
+     */
+    private BridgeObjectInputFilter(String sReason, Set<String> setAllowed, long cMaxArrayLength)
+        {
+        f_sReason         = sReason;
+        f_setAllowed      = setAllowed;
+        f_cMaxArrayLength = cMaxArrayLength;
         }
 
     // ----- InvocationHandler interface -----------------------------------
@@ -96,7 +110,8 @@ public final class BridgeObjectInputFilter
         String sName = method.getName();
         if ("checkInput".equals(sName))
             {
-            Class<?> clz = serialClass(args[0]);
+            Object   filterInfo = args[0];
+            Class<?> clz        = serialClass(filterInfo);
             if (clz == null)
                 {
                 return status("UNDECIDED");
@@ -104,6 +119,17 @@ public final class BridgeObjectInputFilter
 
             if (isAllowed(clz))
                 {
+                long cLength = arrayLength(filterInfo);
+                if (clz.isArray()
+                        && f_cMaxArrayLength >= 0
+                        && cLength >= 0
+                        && cLength > f_cMaxArrayLength)
+                    {
+                    SerializationTelemetry.recordFilterCheck(
+                            "rejected", "bridge-exception-array-length-rejected", clz, null);
+                    return status("REJECTED");
+                    }
+
                 return status("ALLOWED");
                 }
 
@@ -139,7 +165,9 @@ public final class BridgeObjectInputFilter
         if (clz.isArray())
             {
             Class<?> clzComponent = clz.getComponentType();
-            return clzComponent.isPrimitive() || isAllowed(clzComponent);
+            return f_setAllowed.contains(clz.getName())
+                    || clzComponent.isPrimitive()
+                    || isAllowed(clzComponent);
             }
 
         return clz.isPrimitive() || f_setAllowed.contains(clz.getName());
@@ -202,6 +230,20 @@ public final class BridgeObjectInputFilter
     private static Class<?> serialClass(Object filterInfo) throws Exception
         {
         return (Class<?>) METHOD_SERIAL_CLASS.invoke(filterInfo);
+        }
+
+    /**
+     * Return the array length from an ObjectInputFilter.FilterInfo proxy.
+     *
+     * @param filterInfo  the filter info
+     *
+     * @return the array length, or a negative value if unknown
+     *
+     * @throws Exception if the array length cannot be read
+     */
+    private static long arrayLength(Object filterInfo) throws Exception
+        {
+        return (Long) METHOD_ARRAY_LENGTH.invoke(filterInfo);
         }
 
     /**
@@ -305,12 +347,35 @@ public final class BridgeObjectInputFilter
             }
         }
 
+    /**
+     * Return the arrayLength method for the current runtime FilterInfo type.
+     *
+     * @return the arrayLength method
+     */
+    private static Method arrayLengthMethod()
+        {
+        try
+            {
+            return CLZ_FILTER_INFO == null ? null : CLZ_FILTER_INFO.getMethod("arrayLength");
+            }
+        catch (NoSuchMethodException e)
+            {
+            throw new IllegalStateException(e);
+            }
+        }
+
     // ----- constants ------------------------------------------------------
+
+    /**
+     * Maximum array length accepted by exception bridge filters.
+     */
+    public static final int MAX_EXCEPTION_ARRAY_LENGTH = 16_384;
 
     /**
      * Java serialization classes needed by ordinary exception state.
      */
     private static final Set<String> EXCEPTION_INFRASTRUCTURE = allowed(
+            Object[].class.getName(),
             "java.lang.StackTraceElement",
             "java.util.ArrayList",
             "java.util.Collections$EmptyList",
@@ -372,7 +437,8 @@ public final class BridgeObjectInputFilter
      */
     private static final BridgeObjectInputFilter EXCEPTION_FILTER =
             new BridgeObjectInputFilter("bridge-exception-type-rejected",
-                    allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE));
+                    allowed(EXCEPTION_TYPES, EXCEPTION_INFRASTRUCTURE),
+                    MAX_EXCEPTION_ARRAY_LENGTH);
 
     /**
      * Management publish bridge filter singleton.
@@ -413,6 +479,11 @@ public final class BridgeObjectInputFilter
      */
     private static final Method METHOD_SERIAL_CLASS = serialClassMethod();
 
+    /**
+     * The FilterInfo.arrayLength method.
+     */
+    private static final Method METHOD_ARRAY_LENGTH = arrayLengthMethod();
+
     // ----- data members ---------------------------------------------------
 
     /**
@@ -424,6 +495,11 @@ public final class BridgeObjectInputFilter
      * Exact allowed class names.
      */
     private final Set<String> f_setAllowed;
+
+    /**
+     * Maximum admitted array length, or a negative value for no limit.
+     */
+    private final long f_cMaxArrayLength;
 
     /**
      * This handler's ObjectInputFilter proxy.
