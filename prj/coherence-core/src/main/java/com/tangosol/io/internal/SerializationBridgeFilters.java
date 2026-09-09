@@ -21,8 +21,12 @@ import java.util.Collection;
 import java.util.Set;
 
 /**
- * Narrow bridge filters for Java-serialized payloads embedded in otherwise
- * trusted protocol handshakes.
+ * Expected-type filters for product-owned Java serialization bridge fields in
+ * otherwise trusted protocol handshakes. These filters narrow but never widen
+ * the global {@link DefaultObjectInputFilter} baseline and compose at the use
+ * site through {@link DefaultObjectInputFilter#create(ObjectInputFilter)} or
+ * the local helper equivalent. See {@link BridgeObjectInputFilter} for the
+ * other named bridge categories.
  *
  * @author OpenAI  2026.05.16
  * @since 26.05

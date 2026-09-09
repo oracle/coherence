@@ -9,7 +9,12 @@ package com.tangosol.io.internal;
 import java.io.ObjectInputFilter;
 
 /**
- * Coherence default {@link ObjectInputFilter}.
+ * Coherence global default {@link ObjectInputFilter} baseline. Product-owned
+ * Java serialization bridge fields use expected-type filters from
+ * {@link BridgeObjectInputFilter} or {@link SerializationBridgeFilters}; those
+ * filters must intersect with this baseline through
+ * {@link #create(ObjectInputFilter)} or the local helper equivalent, so they
+ * narrow but never widen it.
  *
  * @author Aleks Seovic  2026.04.29
  * @since 26.04
