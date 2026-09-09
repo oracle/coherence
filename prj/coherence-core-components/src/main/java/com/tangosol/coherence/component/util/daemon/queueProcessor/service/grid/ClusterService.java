@@ -4359,7 +4359,14 @@ public class ClusterService
                 msg.setMemberSet(setMember);
                 msg.setWkaEnabled(isWkaEnabled());
                 msg.setLastJoinTime(setMember.getLastJoinTime());
-                send(msg);
+                if (isSeniorMetadataProofCapabilityPending(msg))
+                    {
+                    _trace("Deferring required senior metadata heartbeat while recipient capability is pending", 3);
+                    }
+                else
+                    {
+                    send(msg);
+                    }
         
                 checkPendingJoinPolls();
                 }

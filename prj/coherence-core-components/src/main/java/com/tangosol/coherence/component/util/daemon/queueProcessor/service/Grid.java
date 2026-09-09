@@ -52,6 +52,9 @@ import com.tangosol.internal.net.security.SeniorMetadataProofPayload;
 import com.tangosol.internal.net.security.SeniorMetadataProofProvider;
 import com.tangosol.internal.net.security.SeniorMetadataProofProviders;
 import com.tangosol.internal.net.security.SeniorMetadataProofVerification;
+import com.tangosol.internal.net.security.PeerProofProvider;
+import com.tangosol.internal.net.security.ProofTimePolicy;
+import com.tangosol.internal.net.security.X509PeerProofProvider;
 import com.tangosol.internal.net.security.SubjectProofPayload;
 import com.tangosol.internal.net.security.SubjectProofProvider;
 import com.tangosol.internal.net.security.SubjectProofProviders;
@@ -62,6 +65,7 @@ import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.internal.util.MessagePublisher;
 import com.tangosol.internal.util.NullMessagePublisher;
+import com.tangosol.internal.util.VersionHelper;
 import com.tangosol.io.SizeEstimatingBufferOutput;
 import com.tangosol.io.WrapperBufferInput;
 import com.tangosol.io.WrapperBufferOutput;
@@ -116,6 +120,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntPredicate;
 import javax.management.Notification;
 import javax.security.auth.Subject;
@@ -229,11 +234,17 @@ public abstract class Grid
      */
     protected static final long SENIOR_METADATA_PROOF_DEFAULT_VALIDITY_MILLIS = 5 * 60 * 1000L;
 
+    /** Default sender-side subject-proof validity window. */
+    protected static final long SUBJECT_PROOF_DEFAULT_VALIDITY_MILLIS = 5 * 60 * 1000L;
+
     /**
      * System property that enables proof-required senior-metadata policy.
      */
     protected static final String PROP_SENIOR_METADATA_PROOF_REQUIRED =
             "coherence.security.peer.senior-metadata-proof.required";
+
+    /** Maximum time a pre-join compatibility placeholder may defer required proof. */
+    protected static final long SENIOR_METADATA_CAPABILITY_PENDING_MILLIS = 30_000L;
 
     // ---- Fields declarations ----
     
@@ -247,6 +258,15 @@ public abstract class Grid
      * only permissible exception).
      */
     private boolean __m_AcceptingOthers;
+
+    /** First observation time, or {@link Long#MIN_VALUE} after bounded expiry, by pending member id. */
+    private final Map<Integer, Long> m_mapSeniorMetadataCapabilityPending = new ConcurrentHashMap<>();
+
+    /** First pending observation for the current required-operation window. */
+    private final AtomicLong m_atlSeniorMetadataCapabilityPendingSince = new AtomicLong(Long.MIN_VALUE);
+
+    /** Last incompatible senior-metadata recipient-capability state reported. */
+    private final AtomicReference<String> m_atomicSeniorMetadataIncompatibleState = new AtomicReference<>();
     
     /**
      * Property ActionPolicy
@@ -1111,7 +1131,9 @@ public abstract class Grid
         {
         // import com.tangosol.net.MemberEvent;
         // import com.tangosol.util.Listeners;
-        
+
+        com.tangosol.internal.net.security.PeerProofReadiness.recordTopologyChange();
+
         Listeners listeners = getMemberListeners();
         if (!listeners.isEmpty())
             {
@@ -4767,6 +4789,14 @@ public abstract class Grid
      */
     public boolean verifySeniorMetadataProofBeforeMutation(Message msg)
         {
+        if (msg instanceof ClusterService.SeniorMemberKill
+                && !isSeniorMetadataKillForThisMember((ClusterService.SeniorMemberKill) msg))
+            {
+            // An undirected discovery kill is visible to every member, but
+            // only its explicit target can act on it.
+            return true;
+            }
+
         if (!isSeniorMetadataExtensionMessage(msg) || !isSeniorMetadataProofRequired(msg))
             {
             return true;
@@ -4781,7 +4811,8 @@ public abstract class Grid
         String sReason = getSeniorMetadataProofVerificationReason(result);
         if (isSeniorMetadataProofEnforced(msg))
             {
-            throw new SecurityException("senior metadata proof rejected: " + sReason);
+            _trace("Senior metadata proof rejected for " + msg.get_Name() + ": " + sReason, 1);
+            return false;
             }
 
         if (!CoherenceMode.isSecurityHardeningEnabled())
@@ -4789,6 +4820,17 @@ public abstract class Grid
             onSeniorMetadataProofWouldReject(msg, sReason);
             }
         return true;
+        }
+
+    /**
+     * Return true iff this member is the explicit target of a senior kill.
+     */
+    protected boolean isSeniorMetadataKillForThisMember(ClusterService.SeniorMemberKill msg)
+        {
+        Member memberThis   = getThisMember();
+        Member memberTarget = msg.getToMember();
+        return memberThis != null && memberTarget != null
+                && memberThis.getUid32().equals(memberTarget.getUid32());
         }
 
     /**
@@ -4840,7 +4882,7 @@ public abstract class Grid
         {
         return new SeniorMetadataProofPayload(SeniorMetadataProofPayload.PAYLOAD_VERSION,
                 getExpectedSeniorMetadataProofMessageKind(msg, payloadSigned),
-                getSeniorMetadataProofAlgorithmId(), getSeniorMetadataProofKeyId(),
+                payloadSigned.getAlgorithmId(), payloadSigned.getKeyId(),
                 getSeniorMetadataProofIssuerId(msg), getSeniorMetadataProofClusterName(),
                 getSeniorMetadataProofServiceName(), getServiceId(), msg.getMessageType(),
                 getSeniorMetadataProofSenderId(msg), getSeniorMetadataProofSeniorId(msg),
@@ -4959,7 +5001,6 @@ public abstract class Grid
                 && !sTarget.isEmpty()
                 && !sDelegate.equals(sSenior)
                 && !sDelegate.equals(sSender)
-                && !sDelegate.equals(sTarget)
                 && isKnownSeniorMetadataProofMemberId(sDelegate)
                 && payloadSigned.getCulpritId().equals(sSender)
                 && (sThis.isEmpty() || sThis.equals(sTarget));
@@ -5003,7 +5044,7 @@ public abstract class Grid
         boolean fForwarded = isDelegatedDoomedSeniorForwardedKillProof(msg, payloadSigned);
         return new SeniorMetadataProofPayload(SeniorMetadataProofPayload.PAYLOAD_VERSION,
                 SeniorMetadataProofPayload.MESSAGE_KIND_PANIC_TOKEN,
-                getSeniorMetadataProofAlgorithmId(), getSeniorMetadataProofKeyId(), payloadSigned.getIssuerId(),
+                payloadSigned.getAlgorithmId(), payloadSigned.getKeyId(), payloadSigned.getIssuerId(),
                 getSeniorMetadataProofClusterName(), getSeniorMetadataProofServiceName(), getServiceId(), 41,
                 payloadSigned.getSenderId(), payloadSigned.getSeniorId(),
                 fForwarded ? payloadSigned.getTargetId()
@@ -5113,8 +5154,13 @@ public abstract class Grid
      */
     protected byte[] ensureSubjectProof(RequestMessage msg, RequestContext ctx)
         {
-        byte[] ab = ctx.getSubjectProof();
-        if (ab != null && ab.length > 0)
+        byte[]              ab             = ctx.getSubjectProof();
+        SubjectProofPayload payloadCurrent = ctx.getSubjectProofPayload();
+        SubjectProofPayload payloadRequired = createSubjectProofPayload(msg, ctx);
+        if (ab != null && ab.length > 0
+                && (payloadCurrent == null
+                    || payloadCurrent.matchesScope(payloadRequired)
+                        && payloadCurrent.matchesPrincipals(payloadRequired)))
             {
             return ab;
             }
@@ -5131,10 +5177,11 @@ public abstract class Grid
             return null;
             }
 
-        ab = provider.createProof(createSubjectProofPayload(msg, ctx));
+        ab = provider.createProof(payloadRequired);
         if (ab != null && ab.length > 0)
             {
             ctx.setSubjectProof(ab);
+            ctx.setSubjectProofPayload(payloadRequired);
             ctx.setSubjectProofSenderId(getSubjectProofIssuerId());
             }
         return ab;
@@ -5146,7 +5193,8 @@ public abstract class Grid
      */
     protected SubjectProofProvider getSubjectProofProvider()
         {
-        return SubjectProofProviders.disabled();
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? SubjectProofProviders.disabled() : provider;
         }
 
     /**
@@ -5154,7 +5202,7 @@ public abstract class Grid
      */
     protected SubjectProofPayload createSubjectProofPayload(RequestMessage msg, RequestContext ctx)
         {
-        return createSubjectProofPayload(ctx, getSubjectProofCacheName(msg), msg);
+        return createSubjectProofPayload(ctx, getSubjectProofCacheName(msg, ctx), msg);
         }
 
     /**
@@ -5201,7 +5249,8 @@ public abstract class Grid
      */
     protected String getSubjectProofAlgorithmId()
         {
-        return "";
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? "" : provider.getAlgorithmId();
         }
 
     /**
@@ -5209,7 +5258,8 @@ public abstract class Grid
      */
     protected String getSubjectProofKeyId()
         {
-        return "";
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? "" : provider.getKeyId();
         }
 
     /**
@@ -5217,7 +5267,8 @@ public abstract class Grid
      */
     protected String getSubjectProofIssuerId()
         {
-        return getSubjectProofMemberId(getThisMember());
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? getSubjectProofMemberId(getThisMember()) : provider.getIssuerId();
         }
 
     /**
@@ -5261,6 +5312,16 @@ public abstract class Grid
         }
 
     /**
+     * Return the proof cache target, preferring the name captured at the
+     * request origin before the distributed cache-id mapping is published.
+     */
+    protected String getSubjectProofCacheName(RequestMessage msg, RequestContext ctx)
+        {
+        String sCacheName = ctx == null ? null : ctx.getSubjectProofCacheName();
+        return sCacheName == null || sCacheName.isEmpty() ? getSubjectProofCacheName(msg) : sCacheName;
+        }
+
+    /**
      * Return the subject-proof nonce.
      */
     protected long getSubjectProofNonce(RequestMessage msg, RequestContext ctx)
@@ -5289,6 +5350,12 @@ public abstract class Grid
      */
     protected String getSubjectProofMemberId(Member member)
         {
+        PeerProofProvider provider = Security.getPeerProofProvider();
+        if (provider != null && provider.isEnabled() && member != null)
+            {
+            String sName = member.getMemberName();
+            return sName == null || sName.isEmpty() ? "" : X509PeerProofProvider.issuerId(sName);
+            }
         return member == null || member.getUuid() == null ? "" : "member-uuid:" + member.getUuid();
         }
 
@@ -5305,7 +5372,7 @@ public abstract class Grid
      */
     protected long getSubjectProofExpiresAtMillis(RequestMessage msg, RequestContext ctx, long lIssuedAtMillis)
         {
-        return lIssuedAtMillis;
+        return ProofTimePolicy.addSaturated(lIssuedAtMillis, SUBJECT_PROOF_DEFAULT_VALIDITY_MILLIS);
         }
 
     /**
@@ -5367,17 +5434,32 @@ public abstract class Grid
     protected void writeSeniorMetadataExtensionsInternal(Message msg, com.tangosol.io.WriteBuffer.BufferOutput output)
             throws IOException
         {
+        // Refresh identity/capability observations even when the recipient
+        // gate rejects before proof creation, so the bounded cluster status
+        // reports the actual incompatible member instead of stale readiness.
+        getConfiguredPeerProofProvider();
         MemberSet setMembers = getSeniorMetadataProofRecipients(msg);
         if (setMembers == null)
             {
+            clearSeniorMetadataProofIncompatibleRecipients();
             handleSeniorMetadataProofUnavailable(msg, "unknown recipient set");
             return;
             }
         if (!isVersionCompatible(setMembers, Message::isSeniorMetadataProofV1Compatible))
             {
+            if (isSeniorMetadataProofRequired(msg))
+                {
+                reportSeniorMetadataProofIncompatibleRecipients(msg, setMembers);
+                }
+            else
+                {
+                clearSeniorMetadataProofIncompatibleRecipients();
+                }
             handleSeniorMetadataProofUnavailable(msg, "incompatible recipient set");
             return;
             }
+
+        clearSeniorMetadataProofIncompatibleRecipients();
 
         byte[] ab = ensureSeniorMetadataProof(msg);
         if (ab == null || ab.length == 0)
@@ -5399,9 +5481,203 @@ public abstract class Grid
         if (setMembers == null && msg instanceof DiscoveryMessage)
             {
             Member memberTo = ((DiscoveryMessage) msg).getToMember();
-            return memberTo == null ? null : SingleMemberSet.instantiate(memberTo);
+            if (memberTo != null)
+                {
+                return SingleMemberSet.instantiate(memberTo);
+                }
+
+            // A senior heartbeat is broadcast at the transport layer, but its
+            // body already carries the exact senior-known live member set.
+            // That snapshot is the bounded recipient/capability set for the
+            // proof decision; treating it as unknown makes required proof
+            // terminate every multi-member senior on its first heartbeat.
+            if (msg instanceof ClusterService.SeniorMemberHeartbeat)
+                {
+                MemberSet setKnown = ((ClusterService.SeniorMemberHeartbeat) msg).getMemberSet();
+                if (setKnown == null || setKnown.isEmpty())
+                    {
+                    return null;
+                    }
+
+                MemberSet setRecipients = new MemberSet();
+                setRecipients.addAll(setKnown);
+                Member memberThis = getThisMember();
+                if (memberThis != null)
+                    {
+                    setRecipients.remove(memberThis.getId());
+                    }
+                return setRecipients;
+                }
             }
         return setMembers;
+        }
+
+    /**
+     * Return a bounded recipient/version description for proof diagnostics.
+     */
+    protected String describeSeniorMetadataProofRecipients(MemberSet setMembers)
+        {
+        StringBuilder   sb        = new StringBuilder();
+        MasterMemberSet setMaster = getClusterMemberSet();
+        int[]           anMember  = setMembers.toIdArray();
+        int             cMember   = Math.min(anMember.length, 16);
+
+        for (int i = 0; i < cMember; ++i)
+            {
+            if (i > 0)
+                {
+                sb.append(',');
+                }
+            int nId      = anMember[i];
+            int nVersion = setMaster == null ? 0 : setMaster.getServiceVersionInt(nId);
+            sb.append(nId).append('=').append(VersionHelper.toVersionString(nVersion, true));
+            }
+        if (anMember.length > cMember)
+            {
+            sb.append(",...");
+            }
+        return sb.toString();
+        }
+
+    /**
+     * Report an incompatible senior-metadata recipient-capability state once.
+     */
+    protected void reportSeniorMetadataProofIncompatibleRecipients(Message msg, MemberSet setMembers)
+        {
+        String sState = getSeniorMetadataProofRecipientCapabilityState(setMembers);
+        String sPrior = m_atomicSeniorMetadataIncompatibleState.getAndSet(sState);
+        if (!sState.equals(sPrior))
+            {
+            onSeniorMetadataProofIncompatibleRecipients(msg,
+                    describeSeniorMetadataProofRecipients(setMembers));
+            }
+        }
+
+    /**
+     * Return the exact recipient-capability state used for diagnostic
+     * suppression.
+     */
+    protected String getSeniorMetadataProofRecipientCapabilityState(MemberSet setMembers)
+        {
+        StringBuilder   sb        = new StringBuilder();
+        MasterMemberSet setMaster = getClusterMemberSet();
+
+        for (int nId : setMembers.toIdArray())
+            {
+            int nVersion = setMaster == null ? 0 : setMaster.getServiceVersionInt(nId);
+            sb.append(nId).append('=').append(nVersion).append(';');
+            }
+        return sb.toString();
+        }
+
+    /**
+     * Emit an incompatible senior-metadata recipient-capability diagnostic.
+     */
+    protected void onSeniorMetadataProofIncompatibleRecipients(Message msg, String sRecipients)
+        {
+        _trace("Senior metadata proof cannot be emitted for recipient capabilities: " + sRecipients, 1);
+        }
+
+    /**
+     * Clear the incompatible senior-metadata recipient-capability state.
+     */
+    protected void clearSeniorMetadataProofIncompatibleRecipients()
+        {
+        m_atomicSeniorMetadataIncompatibleState.set(null);
+        }
+
+    /**
+     * Return true when required proof must wait for the existing welcome
+     * exchange to replace its compatibility-barrier placeholder with the
+     * recipient's actual version.
+     */
+    protected boolean isSeniorMetadataProofCapabilityPending(Message msg)
+        {
+        if (!isSeniorMetadataProofRequired(msg))
+            {
+            clearSeniorMetadataCapabilityPending();
+            return false;
+            }
+
+        MemberSet setMembers = getSeniorMetadataProofRecipients(msg);
+        if (setMembers == null || setMembers.isEmpty())
+            {
+            clearSeniorMetadataCapabilityPending();
+            return false;
+            }
+
+        MasterMemberSet setMaster       = getClusterMemberSet();
+        if (setMaster == null)
+            {
+            clearSeniorMetadataCapabilityPending();
+            return false;
+            }
+        int             nVersionBarrier = ServiceMemberSet.parseVersion(ClusterService.VERSION_BARRIER);
+        int[]           anMember        = setMembers.toIdArray();
+        Set<Integer>     setRecipients  = new java.util.HashSet<>();
+        long             lNow           = getSeniorMetadataCapabilityTimeMillis();
+        long             cPendingMillis = getSeniorMetadataCapabilityPendingMillis();
+        Set<Integer>     setPending     = new java.util.HashSet<>();
+        for (int nMember : anMember)
+            {
+            setRecipients.add(nMember);
+            if (setMaster.getServiceVersionInt(nMember) == nVersionBarrier
+                    && !setMaster.isServiceJoined(nMember) && !setMaster.isServiceJoining(nMember))
+                {
+                setPending.add(nMember);
+                }
+            else
+                {
+                m_mapSeniorMetadataCapabilityPending.remove(nMember);
+                }
+            }
+        m_mapSeniorMetadataCapabilityPending.keySet().retainAll(setRecipients);
+        if (setPending.isEmpty())
+            {
+            m_atlSeniorMetadataCapabilityPendingSince.set(Long.MIN_VALUE);
+            return false;
+            }
+
+        long lFirst = m_atlSeniorMetadataCapabilityPendingSince.get();
+        if (lFirst == Long.MIN_VALUE)
+            {
+            m_atlSeniorMetadataCapabilityPendingSince.compareAndSet(Long.MIN_VALUE, lNow);
+            lFirst = m_atlSeniorMetadataCapabilityPendingSince.get();
+            }
+
+        boolean fPending = lNow - lFirst < cPendingMillis;
+        for (int nMember : setPending)
+            {
+            if (fPending)
+                {
+                m_mapSeniorMetadataCapabilityPending.putIfAbsent(nMember, lFirst);
+                }
+            else if (!Long.valueOf(Long.MIN_VALUE).equals(
+                    m_mapSeniorMetadataCapabilityPending.put(nMember, Long.MIN_VALUE)))
+                {
+                _trace("Senior metadata proof capability placeholder expired for member " + nMember, 1);
+                }
+            }
+        return fPending;
+        }
+
+    /** Clear the shared required-operation capability window. */
+    private void clearSeniorMetadataCapabilityPending()
+        {
+        m_mapSeniorMetadataCapabilityPending.clear();
+        m_atlSeniorMetadataCapabilityPendingSince.set(Long.MIN_VALUE);
+        }
+
+    /** Return the monotonic time used for bounded capability pending state. */
+    protected long getSeniorMetadataCapabilityTimeMillis()
+        {
+        return Base.getSafeTimeMillis();
+        }
+
+    /** Return the bounded capability pending interval. */
+    protected long getSeniorMetadataCapabilityPendingMillis()
+        {
+        return SENIOR_METADATA_CAPABILITY_PENDING_MILLIS;
         }
 
     /**
@@ -5491,7 +5767,8 @@ public abstract class Grid
      */
     protected SeniorMetadataProofProvider getSeniorMetadataProofProvider()
         {
-        return SeniorMetadataProofProviders.disabled();
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? SeniorMetadataProofProviders.disabled() : provider;
         }
 
     /**
@@ -5599,7 +5876,8 @@ public abstract class Grid
      */
     protected String getSeniorMetadataProofAlgorithmId()
         {
-        return "";
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? "" : provider.getAlgorithmId();
         }
 
     /**
@@ -5607,7 +5885,8 @@ public abstract class Grid
      */
     protected String getSeniorMetadataProofKeyId()
         {
-        return "";
+        PeerProofProvider provider = getConfiguredPeerProofProvider();
+        return provider == null ? "" : provider.getKeyId();
         }
 
     /**
@@ -5664,14 +5943,34 @@ public abstract class Grid
         {
         if (msg instanceof DiscoveryMessage)
             {
-            return getSeniorMetadataProofMemberId(((DiscoveryMessage) msg).getToMember());
+            Member memberTarget = ((DiscoveryMessage) msg).getToMember();
+            if (memberTarget != null)
+                {
+                return getSeniorMetadataProofMemberId(memberTarget);
+                }
             }
 
         MemberSet setMembers = msg.getToMemberSet();
         if (setMembers != null && setMembers.size() == 1)
             {
-            Iterator iter = setMembers.iterator();
-            return iter.hasNext() ? getSeniorMetadataProofMemberId((Member) iter.next()) : "";
+            int[] anMember = setMembers.toIdArray();
+            if (anMember.length == 1)
+                {
+                Member memberTarget = null;
+                try
+                    {
+                    memberTarget = setMembers.getMember(anMember[0]);
+                    }
+                catch (UnsupportedOperationException ignored)
+                    {
+                    }
+                if (memberTarget == null)
+                    {
+                    MasterMemberSet setMaster = getClusterMemberSet();
+                    memberTarget = setMaster == null ? null : setMaster.getMember(anMember[0]);
+                    }
+                return getSeniorMetadataProofMemberId(memberTarget);
+                }
             }
         return "";
         }
@@ -5830,7 +6129,7 @@ public abstract class Grid
      */
     protected long getSeniorMetadataProofExpiresAtMillis(Message msg, long lIssuedAtMillis)
         {
-        return lIssuedAtMillis + SENIOR_METADATA_PROOF_DEFAULT_VALIDITY_MILLIS;
+        return ProofTimePolicy.addSaturated(lIssuedAtMillis, SENIOR_METADATA_PROOF_DEFAULT_VALIDITY_MILLIS);
         }
 
     /**
@@ -5851,11 +6150,77 @@ public abstract class Grid
             {
             return "";
             }
+        PeerProofProvider provider = Security.getPeerProofProvider();
+        if (provider != null && provider.isEnabled())
+            {
+            String sName = member.getMemberName();
+            return sName == null || sName.isEmpty() ? "" : X509PeerProofProvider.issuerId(sName);
+            }
         if (member.getUuid() != null)
             {
             return "member-uuid:" + member.getUuid();
             }
         return member.getUid32() == null ? "" : "member-uid32:" + member.getUid32();
+        }
+
+    /**
+     * Return and refresh the member-bound product PEER proof provider.
+     */
+    protected PeerProofProvider getConfiguredPeerProofProvider()
+        {
+        PeerProofProvider provider = Security.getPeerProofProvider();
+        if (provider == null)
+            {
+            return null;
+            }
+
+        Member memberThis = getThisMember();
+        provider.setLocalMemberName(memberThis == null ? "" : memberThis.getMemberName());
+
+        List<String> listNames = new LinkedList<>();
+        MasterMemberSet setMembers = getClusterMemberSet();
+        if (setMembers != null)
+            {
+            for (Iterator iter = setMembers.iterator(); iter.hasNext(); )
+                {
+                Member member = (Member) iter.next();
+                listNames.add(member == null ? "" : member.getMemberName());
+                }
+            }
+        else if (memberThis != null)
+            {
+            listNames.add(memberThis.getMemberName());
+            }
+        provider.observeMemberNames(listNames);
+        int cMembers = 0;
+        int cCompatible = 0;
+        int cPending = 0;
+        if (setMembers != null)
+            {
+            int nBarrier = ServiceMemberSet.parseVersion(ClusterService.VERSION_BARRIER);
+            for (Iterator iter = setMembers.iterator(); iter.hasNext(); )
+                {
+                Member member = (Member) iter.next();
+                if (member == null || member.equals(memberThis))
+                    {
+                    continue;
+                    }
+                cMembers++;
+                int nId = member.getId();
+                if (Message.isSeniorMetadataProofV1Compatible(setMembers.getServiceVersionInt(nId)))
+                    {
+                    cCompatible++;
+                    }
+                else if (setMembers.getServiceVersionInt(nId) == nBarrier
+                        && !setMembers.isServiceJoined(nId) && !setMembers.isServiceJoining(nId)
+                        && !Long.valueOf(Long.MIN_VALUE).equals(m_mapSeniorMetadataCapabilityPending.get(nId)))
+                    {
+                    cPending++;
+                    }
+                }
+            }
+        provider.observeSeniorCapabilities(cMembers, cCompatible, cPending);
+        return provider;
         }
 
     /**

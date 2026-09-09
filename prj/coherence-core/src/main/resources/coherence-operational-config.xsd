@@ -229,10 +229,53 @@
                 <xsd:element ref="identity-transformer" minOccurs="0" />
                 <xsd:element ref="subject-scope" minOccurs="0" />
                 <xsd:element ref="authorizer" minOccurs="0" />
+                <xsd:element ref="peer-proof" minOccurs="0" />
             </xsd:sequence>
             <xsd:attribute name="xml-override" use="optional" />
         </xsd:complexType>
     </xsd:element>
+
+    <xsd:element name="peer-proof">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configures the bounded built-in X.509 provider used for PEER
+                subject and senior-metadata proofs. Secrets may only be
+                referenced through named password-provider elements.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="provider" type="coherence-string-type" />
+                <xsd:element name="identity">
+                    <xsd:complexType>
+                        <xsd:sequence>
+                            <xsd:element name="key-store" type="peer-proof-key-store-type" />
+                            <xsd:element name="alias" type="coherence-string-type" />
+                        </xsd:sequence>
+                    </xsd:complexType>
+                </xsd:element>
+                <xsd:element name="subject-authorities" type="peer-proof-authorities-type" />
+                <xsd:element name="senior-authorities" type="peer-proof-authorities-type" />
+                <xsd:element name="algorithm" type="coherence-string-type" />
+                <xsd:element name="refresh-period" type="coherence-string-type" />
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="peer-proof-key-store-type">
+        <xsd:sequence>
+            <xsd:element name="url" type="coherence-string-type" />
+            <xsd:element name="type" type="coherence-string-type" />
+            <xsd:element ref="password-provider" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="peer-proof-authorities-type">
+        <xsd:choice>
+            <xsd:element name="cert" type="coherence-string-type" minOccurs="1" maxOccurs="unbounded" />
+            <xsd:element name="key-store" type="peer-proof-key-store-type" />
+        </xsd:choice>
+    </xsd:complexType>
 
     <xsd:element name="license-config">
         <xsd:annotation>

@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.coherence.component.net.security.Standard;
 import com.tangosol.internal.net.security.DefaultSecurityDependencies;
 import com.tangosol.internal.net.security.DefaultStandardDependencies;
 import com.tangosol.internal.net.security.LegacyXmlStandardHelper;
+import com.tangosol.internal.net.security.PeerProofProvider;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.ClusterDependencies;
 import com.tangosol.net.ClusterPermission;
@@ -113,6 +114,9 @@ public abstract class Security
      * Indicates if the security configuration specifies subject scoping.
      */
     private static transient boolean __s_SubjectScoped;
+
+    /** Product PEER proof provider; null means unconfigured. */
+    private static transient PeerProofProvider __s_PeerProofProvider;
     private static com.tangosol.util.ListMap __mapChildren;
     
     // Static initializer
@@ -357,6 +361,29 @@ public abstract class Security
         {
         return __s_Authorizer;
         }
+
+    /** Return the configured product PEER proof provider. */
+    public static PeerProofProvider getPeerProofProvider()
+        {
+        Security.getInstance();
+        return __s_PeerProofProvider;
+        }
+
+    /**
+     * Close and detach the process-wide PEER proof provider.  The security
+     * configuration is made eligible for reconstruction on a later cluster
+     * start so a closed provider can never be reused.
+     */
+    public static synchronized void closePeerProofProvider()
+        {
+        PeerProofProvider provider = __s_PeerProofProvider;
+        __s_PeerProofProvider = null;
+        if (provider != null)
+            {
+            provider.close();
+            }
+        setConfigured(false);
+        }
     
     // Accessor for the property "IdentityAsserter"
     /**
@@ -476,6 +503,18 @@ public abstract class Security
         
         setAuthorizer(deps.getAuthorizer());
         setSubjectScoped(deps.isSubjectScoped());
+        setPeerProofProvider(deps.getPeerProofProvider());
+        }
+
+    /** Set the configured product PEER proof provider. */
+    protected static synchronized void setPeerProofProvider(PeerProofProvider provider)
+        {
+        PeerProofProvider previous = __s_PeerProofProvider;
+        __s_PeerProofProvider = provider;
+        if (previous != null && previous != provider)
+            {
+            previous.close();
+            }
         }
     
     /**
@@ -932,6 +971,7 @@ public abstract class Security
                 {
                 _trace("Failed to configure the Security module", 1);
                 _trace(e);
+                throw e;
                 }
             
             return null;

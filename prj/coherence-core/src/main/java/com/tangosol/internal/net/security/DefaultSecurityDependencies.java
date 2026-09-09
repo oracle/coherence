@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.security;
 
@@ -46,6 +46,7 @@ public class DefaultSecurityDependencies
             m_identityTransformer = deps.getIdentityTransformer();
             m_authorizer          = deps.getAuthorizer();
             m_sModel              = deps.getModel();
+            m_peerProofProvider   = deps.getPeerProofProvider();
             }
         }
 
@@ -185,6 +186,18 @@ public class DefaultSecurityDependencies
         return this;
         }
 
+    @Override
+    public PeerProofProvider getPeerProofProvider()
+        {
+        return m_peerProofProvider;
+        }
+
+    public DefaultSecurityDependencies setPeerProofProvider(PeerProofProvider provider)
+        {
+        m_peerProofProvider = provider;
+        return this;
+        }
+
     // ----- DefaultSecurityDependencies methods ----------------------------
 
     /**
@@ -277,4 +290,7 @@ public class DefaultSecurityDependencies
      * The security model.
      */
     private String m_sModel = DEFAULT_MODEL;
+
+    /** Product PEER proof provider, when configured. */
+    private PeerProofProvider m_peerProofProvider;
     }
