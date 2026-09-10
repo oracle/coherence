@@ -72,6 +72,7 @@ import java.io.IOException;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -94,6 +95,8 @@ public class TopicsRecoveryTests
         {
         String sAddress = "127.0.0.1";
 
+        m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
+
         System.setProperty(Logging.PROPERTY_LEVEL, "8");
         System.setProperty(CacheConfig.PROPERTY, CACHE_CONFIG);
         System.setProperty(LocalStorage.PROPERTY, "false");
@@ -101,7 +104,9 @@ public class TopicsRecoveryTests
         System.setProperty("coherence.localhost", sAddress);
         System.setProperty("test.unicast.address", sAddress);
         System.setProperty("test.unicast.port", "0");
+        System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
         System.setProperty("coherence.ttl", "0");
+        System.setProperty("coherence.cluster", CLUSTER_NAME);
         }
 
     @AfterClass
@@ -114,11 +119,6 @@ public class TopicsRecoveryTests
     public void setupTest() throws Exception
         {
         System.err.println(">>>> Starting setup for test " + m_testName.getMethodName());
-        m_nClusterPort = LocalPlatform.get().getAvailablePorts().next();
-
-        System.setProperty("test.multicast.port", String.valueOf(m_nClusterPort));
-        m_sClusterName = "TopicsRecoveryTests-" + m_cCluster.getAndIncrement();
-        System.setProperty("coherence.cluster", m_sClusterName);
 
         CoherenceConfiguration config = CoherenceConfiguration.builder()
                 .withSession(SessionConfiguration.defaultSession())
@@ -159,7 +159,7 @@ public class TopicsRecoveryTests
 
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                    ClusterName.of(m_sClusterName),
+                    ClusterName.of(CLUSTER_NAME),
                     WellKnownAddress.loopback(),
                     LocalHost.loopback(),
                     SystemProperty.of("test.multicast.port", m_nClusterPort),
@@ -230,7 +230,7 @@ public class TopicsRecoveryTests
             String              sMsg         = "foo";
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                    ClusterName.of(m_sClusterName),
+                    ClusterName.of(CLUSTER_NAME),
                     WellKnownAddress.loopback(),
                     LocalHost.loopback(),
                     LocalStorage.enabled(),
@@ -319,7 +319,7 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                    ClusterName.of(m_sClusterName),
+                    ClusterName.of(CLUSTER_NAME),
                     WellKnownAddress.loopback(),
                     LocalHost.loopback(),
                     LocalStorage.enabled(),
@@ -421,7 +421,7 @@ public class TopicsRecoveryTests
             String                      sMsg         = Base.getRandomString(cbMessage, cbMessage, true);
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                    ClusterName.of(m_sClusterName),
+                    ClusterName.of(CLUSTER_NAME),
                     WellKnownAddress.loopback(),
                     LocalHost.loopback(),
                     SystemProperty.of("test.multicast.port", m_nClusterPort),
@@ -516,7 +516,7 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon   = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                    ClusterName.of(m_sClusterName),
+                    ClusterName.of(CLUSTER_NAME),
                     WellKnownAddress.loopback(),
                     LocalHost.loopback(),
                     LocalStorage.enabled(),
@@ -571,7 +571,7 @@ public class TopicsRecoveryTests
             TaskDaemon          daemon     = new TaskDaemon("test-daemon");
 
             try (CoherenceClusterMember member = platform.launch(CoherenceClusterMember.class,
-                        ClusterName.of(m_sClusterName),
+                        ClusterName.of(CLUSTER_NAME),
                         WellKnownAddress.loopback(),
                         LocalHost.loopback(),
                         LocalStorage.enabled(),
@@ -925,6 +925,9 @@ public class TopicsRecoveryTests
 
     public static final String TOPIC_SERVICE = "PartitionedTopic";
 
+    public static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
+            "TopicsRecoveryTests-" + UUID.randomUUID());
+
     private static final AtomicInteger s_count = new AtomicInteger();
 
     // ----- data members ---------------------------------------------------
@@ -944,9 +947,5 @@ public class TopicsRecoveryTests
 
     private static Session s_session;
 
-    private final AtomicInteger m_cCluster = new AtomicInteger();
-
     public static int m_nClusterPort;
-
-    private String m_sClusterName;
     }
