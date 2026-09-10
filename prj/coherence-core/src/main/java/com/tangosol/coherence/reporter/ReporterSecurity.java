@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -204,7 +205,8 @@ public final class ReporterSecurity
                     }
                 }
 
-            file = file.getCanonicalFile();
+            // resolve links before containment so Windows reparse points cannot bypass the approved root
+            file = file.toPath().toRealPath().toFile();
             if (!isUnderAny(file, getApprovedReportFileRoots()))
                 {
                 if (!CoherenceMode.isSecurityHardeningEnabled())
@@ -754,10 +756,21 @@ public final class ReporterSecurity
 
                 if (file != null)
                     {
-                    File parent = file.getCanonicalFile().getParentFile();
-                    if (parent != null)
+                    Path pathConfig = file.toPath();
+                    Path pathParent;
+                    try
                         {
-                        setRoots.add(parent.getCanonicalFile());
+                        pathParent = pathConfig.toRealPath().getParent();
+                        }
+                    catch (NoSuchFileException e)
+                        {
+                        // the configured report-group file may not have been created yet
+                        pathParent = pathConfig.toAbsolutePath().normalize().getParent();
+                        pathParent = pathParent == null ? null : pathParent.toRealPath();
+                        }
+                    if (pathParent != null)
+                        {
+                        setRoots.add(pathParent.toFile());
                         }
                     }
                 }
