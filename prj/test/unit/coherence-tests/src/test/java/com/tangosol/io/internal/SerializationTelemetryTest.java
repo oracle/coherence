@@ -19,6 +19,7 @@ import com.tangosol.util.OperationReason;
 
 import java.security.Principal;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -116,6 +117,103 @@ public class SerializationTelemetryTest
             {
             assertEquals(1L, ((DynamicMBean) oBean).getAttribute("Count"));
             }
+        }
+
+    @Test
+    public void testRegisteredPofTypeFastPathPreservesCounterTuple() throws JMException
+        {
+        RecordingRegistry registry = new RecordingRegistry();
+        SerializationTelemetry.register(registry);
+
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.GRPC))
+            {
+            SerializationTelemetry.recordPofCheck("allowed", "registered-type", 123);
+            SerializationTelemetry.recordRegisteredPofType(123);
+            }
+
+        String sKey = "coh.serialization.pof_check{result=allowed,reason=registered-type,mode="
+                + mode() + ",type_id=123,route=GRPC}";
+        assertEquals(Long.valueOf(2), SerializationTelemetry.snapshot().get(sKey));
+
+        Object oBean = findMBean(registry.serializationGateBeans(), "metric=pof_check", "route=GRPC",
+                "mode=" + mode(), "result=allowed", "reason=registered-type", "type_id=123");
+        assertEquals(2L, ((DynamicMBean) oBean).getAttribute("Count"));
+        }
+
+    @Test
+    public void testRegisteredPofTypeFastPathCountsConcurrently() throws Exception
+        {
+        RecordingRegistry registry = new RecordingRegistry();
+        SerializationTelemetry.register(registry);
+
+        try (SerializationRole.Scope ignored = SerializationRole.setAndClose(SerializationRole.CLUSTER))
+            {
+            SerializationTelemetry.recordRegisteredPofType(1000);
+            }
+
+        int                   cThreads   = 8;
+        int                   cIteration = 10_000;
+        CountDownLatch        latchStart = new CountDownLatch(1);
+        ExecutorService       executor   = Executors.newFixedThreadPool(cThreads);
+        Collection<Future<?>> colFuture  = new ArrayList<>(cThreads);
+
+        try
+            {
+            for (int i = 0; i < cThreads; i++)
+                {
+                colFuture.add(executor.submit(() ->
+                    {
+                    try (SerializationRole.Scope ignored =
+                                 SerializationRole.setAndClose(SerializationRole.CLUSTER))
+                        {
+                        latchStart.await();
+                        for (int j = 0; j < cIteration; j++)
+                            {
+                            SerializationTelemetry.recordRegisteredPofType(1000);
+                            }
+                        }
+                    return null;
+                    }));
+                }
+
+            latchStart.countDown();
+            for (Future<?> future : colFuture)
+                {
+                future.get(10, TimeUnit.SECONDS);
+                }
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
+
+        long   cExpected = 1L + (long) cThreads * cIteration;
+        String sKey      = "coh.serialization.pof_check{result=allowed,reason=registered-type,mode="
+                + mode() + ",type_id=1000,route=CLUSTER}";
+        assertEquals(Long.valueOf(cExpected), SerializationTelemetry.snapshot().get(sKey));
+
+        Object oBean = findMBean(registry.serializationGateBeans(), "metric=pof_check", "route=CLUSTER",
+                "mode=" + mode(), "result=allowed", "reason=registered-type", "type_id=1000");
+        assertEquals(cExpected, ((DynamicMBean) oBean).getAttribute("Count"));
+        }
+
+    @Test
+    public void testResetClearsRegisteredPofTypeFastPath() throws JMException
+        {
+        RecordingRegistry registryFirst = new RecordingRegistry();
+        SerializationTelemetry.register(registryFirst);
+        SerializationTelemetry.recordRegisteredPofType(1000);
+        SerializationTelemetry.resetForTesting();
+
+        RecordingRegistry registrySecond = new RecordingRegistry();
+        SerializationTelemetry.register(registrySecond);
+        SerializationTelemetry.recordRegisteredPofType(1000);
+
+        String sKey = "coh.serialization.pof_check{result=allowed,reason=registered-type,mode="
+                + mode() + ",type_id=1000,route=UNCLASSIFIED}";
+        assertEquals(Long.valueOf(1), SerializationTelemetry.snapshot().get(sKey));
+        assertTrue(registryFirst.serializationGateBeans().isEmpty());
+        assertEquals(1, registrySecond.serializationGateBeans().size());
         }
 
     @Test
