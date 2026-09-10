@@ -2744,7 +2744,7 @@
                 <xsd:element ref="receive-buffer-size" minOccurs="0" />
                 <xsd:element ref="send-buffer-size" minOccurs="0" />
                 <xsd:element ref="listen-backlog" minOccurs="0" />
-                <xsd:element ref="connection-pipeline-count" minOccurs="0" />
+                <xsd:element ref="pipeline-count" minOccurs="0" />
                 <xsd:element ref="linger-timeout" minOccurs="0" />
                 <xsd:element ref="authorized-hosts" minOccurs="0" />
                 <xsd:element ref="suspect-protocol-enabled" minOccurs="0" />
@@ -2893,20 +2893,22 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="connection-pipeline-count" type="coherence-positiveInteger-type">
+    <xsd:element name="pipeline-count" type="coherence-nonNegativeInteger-type">
         <xsd:annotation>
             <xsd:documentation>
-                The connection-pipeline-count element specifies the number of
+                The pipeline-count element specifies the number of
                 connection-affine TCP selector and decode pipelines used by a
                 proxy service. Each accepted connection remains assigned to one
                 pipeline, preserving its wire order while allowing independent
                 connections to be decoded concurrently.
 
-                When omitted, a proxy derives a topology-aware value from the
-                available processor count. Standalone TCP acceptors retain a
-                single pipeline.
+                A value of zero selects automatic topology, one preserves the
+                legacy single pipeline, and a value greater than one specifies
+                an exact fixed pipeline count. When omitted, a grid proxy uses
+                automatic topology. Standalone TCP acceptors retain a single
+                pipeline.
 
-                Valid values are positive integers.
+                Valid values are integers from zero through 256.
 
                 Used in: tcp-acceptor
             </xsd:documentation>

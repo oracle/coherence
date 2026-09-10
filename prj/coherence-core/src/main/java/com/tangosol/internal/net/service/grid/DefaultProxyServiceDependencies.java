@@ -173,15 +173,9 @@ public class DefaultProxyServiceDependencies
                     (DefaultTcpAcceptorDependencies) depsAcceptor;
             if (!depsTcp.isConnectionPipelineCountConfigured())
                 {
-                // An explicitly disabled request pool historically executes
-                // every request on the single acceptor service thread. Do not
-                // introduce implicit execution concurrency through decode
-                // lanes unless the user also explicitly requests pipelines.
-                depsTcp.setDefaultConnectionPipelineCount(
-                        isWorkerThreadCountConfigured() && getWorkerThreadCount() == 0
-                                ? 1
-                                : Math.min(3, Math.max(1,
-                                        Runtime.getRuntime().availableProcessors() / 4)));
+                // Maintenance releases preserve the historical single-pipeline
+                // topology unless automatic or fixed striping is explicit.
+                depsTcp.setDefaultConnectionPipelineCount(1);
                 }
             }
 

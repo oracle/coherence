@@ -1584,6 +1584,25 @@ public abstract class Peer
         {
         return 1;
         }
+
+    /**
+     * Return the number of currently active connection-affine pipelines.
+     * Non-TCP peers retain the single manager-thread pipeline.
+     */
+    protected int getConnectionPipelineCountActive()
+        {
+        return 1;
+        }
+
+    /**
+     * Return true when decoded frames use dedicated connection-affine lanes.
+     * Automatic mode returns true even while only pipeline zero is active, so
+     * an established connection never changes decode owner after growth.
+     */
+    protected boolean isConnectionPipelineEnabled()
+        {
+        return false;
+        }
     
     // Accessor for the property "StatsBytesSent"
     /**
@@ -2491,7 +2510,7 @@ public abstract class Peer
         if (!(this instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor)
                 || !(getParentService() instanceof
                      com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService)
-                || getConnectionPipelineCount() <= 1)
+                || !isConnectionPipelineEnabled())
             {
             return false;
             }
@@ -2509,7 +2528,8 @@ public abstract class Peer
         message.setConnection(connection);
         message.setReadBuffer(rb);
 
-        ProxyDecodeLane[] aLane = ensureProxyDecodeLanes();
+        ProxyDecodeLane[] aLane = ensureProxyDecodeLanes(Math.max(
+                getConnectionPipelineCountActive(), iLane + 1));
         aLane[iLane].add(message);
         return true;
         }
@@ -2519,26 +2539,93 @@ public abstract class Peer
      */
     protected ProxyDecodeLane[] ensureProxyDecodeLanes()
         {
+        return ensureProxyDecodeLanes(getConnectionPipelineCountActive());
+        }
+
+    /**
+     * Lazily create or monotonically extend the long-lived decode lanes.
+     * Existing lane instances are retained so assigned connections never
+     * change owners.
+     *
+     * @param cLane  the required active lane count
+     */
+    protected ProxyDecodeLane[] ensureProxyDecodeLanes(int cLane)
+        {
         ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
-        if (aLane == null)
+        if (aLane == null || aLane.length < cLane)
             {
             synchronized (this)
                 {
                 aLane = __m_ProxyDecodeLanes;
-                if (aLane == null)
+                int cExisting = aLane == null ? 0 : aLane.length;
+                if (cExisting < cLane)
                     {
-                    int cLane = getConnectionPipelineCount();
-                    aLane = new ProxyDecodeLane[cLane];
-                    for (int i = 0; i < cLane; i++)
+                    ProxyDecodeLane[] aExpanded = new ProxyDecodeLane[cLane];
+                    if (cExisting > 0)
                         {
-                        aLane[i] = new ProxyDecodeLane(i);
+                        System.arraycopy(aLane, 0, aExpanded, 0, cExisting);
                         }
-                    __m_ProxyDecodeLanes = aLane;
-                    _trace("Extend proxy connection-affine pipelines active: " + cLane, 3);
+                    for (int i = cExisting; i < cLane; i++)
+                        {
+                        aExpanded[i] = new ProxyDecodeLane(i);
+                        }
+                    __m_ProxyDecodeLanes = aLane = aExpanded;
+                    _trace("Extend proxy connection-affine pipelines active: " + cLane,
+                            cExisting == 0 ? 3 : 5);
                     }
                 }
             }
         return aLane;
+        }
+
+    /**
+     * Return the current queued-frame count for a decode lane.
+     */
+    protected int getProxyPipelineBacklog(int iLane)
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        return aLane == null || iLane < 0 || iLane >= aLane.length
+                ? 0 : aLane[iLane].getBacklog();
+        }
+
+    /**
+     * Return the reset-independent busy time for a decode lane.
+     */
+    protected long getProxyPipelineCpu(int iLane)
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        return aLane == null || iLane < 0 || iLane >= aLane.length
+                ? 0L : aLane[iLane].getStatsCpu();
+        }
+
+    /**
+     * Return the reset-independent decoded byte count for a decode lane.
+     */
+    protected long getProxyPipelineBytesReceived(int iLane)
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        return aLane == null || iLane < 0 || iLane >= aLane.length
+                ? 0L : aLane[iLane].getStatsBytesReceived();
+        }
+
+    /**
+     * Return the reset-independent decoded message count for a decode lane.
+     */
+    protected long getProxyPipelineReceived(int iLane)
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        return aLane == null || iLane < 0 || iLane >= aLane.length
+                ? 0L : aLane[iLane].getStatsReceived();
+        }
+
+    /**
+     * Return the creation time of a decode lane.
+     */
+    protected long getProxyPipelineStartTime(int iLane)
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        return aLane == null || iLane < 0 || iLane >= aLane.length
+                ? 0L : aLane[iLane].getStartTime();
         }
 
     /**
@@ -2666,6 +2753,7 @@ public abstract class Peer
             // installs it as the daemon notifier before the thread starts.
             onInit();
             setThreadName(Peer.this.getServiceName() + ":Pipeline-" + iLane);
+            m_ldtStart = com.tangosol.util.Base.getSafeTimeMillis();
             start();
             }
 
@@ -2742,6 +2830,16 @@ public abstract class Peer
             return m_cStatsCpu;
             }
 
+        protected int getBacklog()
+            {
+            return getQueue().size();
+            }
+
+        protected long getStartTime()
+            {
+            return m_ldtStart;
+            }
+
         protected void onExit()
             {
             Peer.MessageFactory.EncodedMessage message;
@@ -2763,6 +2861,7 @@ public abstract class Peer
         private volatile long m_cStatsReceived;
         private volatile long m_cbStatsReceived;
         private volatile long m_cStatsCpu;
+        private final long m_ldtStart;
         }
     
     // From interface: com.tangosol.net.messaging.Channel$Receiver

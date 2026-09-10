@@ -213,8 +213,31 @@ public class TcpAcceptor
      */
     private transient volatile TcpAcceptor.TcpProcessor[] __m_IoProcessors;
 
-    private transient java.util.concurrent.atomic.AtomicInteger __m_IoProcessorNext =
-            new java.util.concurrent.atomic.AtomicInteger();
+    /**
+     * Reset-independent decode-lane CPU samples used by automatic topology.
+     */
+    private transient long[] __m_PipelineCpuSample;
+
+    /**
+     * Reset-independent decode-lane byte samples used by automatic topology.
+     */
+    private transient long[] __m_PipelineBytesSample;
+
+    /**
+     * Reset-independent decode-lane message samples used by automatic topology.
+     */
+    private transient long[] __m_PipelineMessagesSample;
+
+    /**
+     * Timestamp associated with PipelineCpuSample.
+     */
+    private transient long __m_PipelineSampleTime;
+
+    /**
+     * Rotating tie-breaker used before newly accepted connections have
+     * published enough load to distinguish otherwise identical pipelines.
+     */
+    private transient int __m_NextPipelineIndex;
 
     /**
      * Configured count of connection-affine selector/decode pipelines.
@@ -816,7 +839,7 @@ public class TcpAcceptor
                 aProcessor = __m_IoProcessors;
                 if (aProcessor == null)
                     {
-                    int cProcessor = getConnectionPipelineCount();
+                    int cProcessor = getConnectionPipelineCountInitial();
                     aProcessor = new TcpAcceptor.TcpProcessor[cProcessor];
                     aProcessor[0] = getProcessor();
                     for (int i = 1; i < cProcessor; i++)
@@ -845,22 +868,250 @@ public class TcpAcceptor
     protected TcpAcceptor.TcpProcessor selectIoProcessor(TcpAcceptor.TcpConnection connection)
         {
         TcpAcceptor.TcpProcessor[] aProcessor = ensureIoProcessors();
-        java.util.concurrent.atomic.AtomicInteger counter = __m_IoProcessorNext;
-        if (counter == null)
+        int cConnections = getConnectionSet().size()
+                + getConnectionPendingSet().size();
+        long[][] aaLoad  = collectPipelineLoad(aProcessor.length);
+        long[]   aQueue  = aaLoad[0];
+        long[]   aBusy   = aaLoad[1];
+        long[]   aTraffic = aaLoad[2];
+        long[]   aCount  = aaLoad[3];
+
+        boolean fPressured = true;
+        long    cQueueMax  = 0L;
+        long    nBusyMax   = 0L;
+        for (int i = 0; i < aProcessor.length; i++)
             {
-            synchronized (this)
+            cQueueMax = Math.max(cQueueMax, aQueue[i]);
+            nBusyMax  = Math.max(nBusyMax, aBusy[i]);
+            if (aQueue[i] == 0L && aBusy[i] < 750L)
                 {
-                if (__m_IoProcessorNext == null)
-                    {
-                    __m_IoProcessorNext = new java.util.concurrent.atomic.AtomicInteger();
-                    }
-                counter = __m_IoProcessorNext;
+                fPressured = false;
                 }
             }
-        int iProcessor = Math.floorMod(counter.getAndIncrement(), aProcessor.length);
+
+        if (shouldGrowConnectionPipelines(aProcessor.length,
+                getConnectionPipelineCountLimit(), cConnections + 1, fPressured))
+            {
+            int cOld = aProcessor.length;
+            aProcessor = growIoProcessors();
+            if (aProcessor.length > cOld)
+                {
+                _trace("Extend proxy automatic pipeline growth: " + cOld + " -> "
+                        + aProcessor.length + ", connections=" + cConnections
+                        + ", maxBacklog=" + cQueueMax + ", maxBusy="
+                        + (nBusyMax / 10.0) + "%, ceiling="
+                        + getConnectionPipelineCountLimit(), 5);
+                aaLoad   = collectPipelineLoad(aProcessor.length);
+                aQueue   = aaLoad[0];
+                aBusy    = aaLoad[1];
+                aTraffic = aaLoad[2];
+                aCount   = aaLoad[3];
+                }
+            }
+
+        int iProcessor = selectLeastLoadedPipeline(aQueue, aBusy, aTraffic,
+                aCount, __m_NextPipelineIndex);
+        __m_NextPipelineIndex = (iProcessor + 1) % aProcessor.length;
         connection.setPipelineIndex(iProcessor);
         _trace("Extend proxy connection assigned to pipeline " + iProcessor, 5);
         return aProcessor[iProcessor];
+        }
+
+    /**
+     * Add one selector/decode pipeline without changing any existing owner.
+     */
+    protected synchronized TcpAcceptor.TcpProcessor[] growIoProcessors()
+        {
+        TcpAcceptor.TcpProcessor[] aProcessor = ensureIoProcessors();
+        int cOld   = aProcessor.length;
+        int cLimit = getConnectionPipelineCountLimit();
+        if (!isConnectionPipelineAutomatic() || cOld >= cLimit)
+            {
+            return aProcessor;
+            }
+
+        TcpAcceptor.TcpProcessor processor =
+                new TcpAcceptor.TcpProcessor("TcpProcessor-" + cOld, this, true);
+        processor.setAcceptingConnections(false);
+        processor.onInit();
+
+        // The new decode owner and selector are running before the expanded
+        // processor array becomes visible to connection assignment.
+        ensureProxyDecodeLanes(cOld + 1);
+        getProcessor().ensureServerSocketChannel();
+        processor.start();
+
+        TcpAcceptor.TcpProcessor[] aExpanded =
+                new TcpAcceptor.TcpProcessor[cOld + 1];
+        System.arraycopy(aProcessor, 0, aExpanded, 0, cOld);
+        aExpanded[cOld] = processor;
+        __m_IoProcessors = aExpanded;
+        return aExpanded;
+        }
+
+    /**
+     * Collect reset-independent per-pipeline load used only when a new
+     * connection needs an owner.
+     */
+    protected synchronized long[][] collectPipelineLoad(int cPipeline)
+        {
+        long[][] aaActivity = samplePipelineActivity(cPipeline);
+        long[] aQueue   = new long[cPipeline];
+        long[] aBusy    = aaActivity[0];
+        long[] aTraffic = aaActivity[1];
+        long[] aCount   = new long[cPipeline];
+
+        collectPipelineConnectionLoad(getConnectionSet(), cPipeline,
+                aQueue, aCount);
+        collectPipelineConnectionLoad(getConnectionPendingSet(), cPipeline,
+                aQueue, aCount);
+
+        for (int i = 0; i < cPipeline; i++)
+            {
+            aQueue[i] = saturatedAdd(aQueue[i], getProxyPipelineBacklog(i));
+            }
+        return new long[][] {aQueue, aBusy, aTraffic, aCount};
+        }
+
+    /**
+     * Add live or handshake-pending connection load to the pipeline sample.
+     */
+    protected void collectPipelineConnectionLoad(java.util.Set setConnection,
+            int cPipeline, long[] aQueue, long[] aCount)
+        {
+        for (Object o : setConnection)
+            {
+            if (o instanceof TcpAcceptor.TcpConnection)
+                {
+                TcpAcceptor.TcpConnection connection = (TcpAcceptor.TcpConnection) o;
+                int iPipeline = connection.getPipelineIndex();
+                if (iPipeline >= 0 && iPipeline < cPipeline)
+                    {
+                    ++aCount[iPipeline];
+                    aQueue[iPipeline] = saturatedAdd(aQueue[iPipeline],
+                            connection.getOutgoingQueue().size()
+                                    + (connection.getOutgoingMessage() == null ? 0L : 1L));
+                    }
+                }
+            }
+        }
+
+    /**
+     * Sample recent decode-owner busy time in tenths of a percent.
+     */
+    protected long[][] samplePipelineActivity(int cPipeline)
+        {
+        long   ldtNow  = com.tangosol.util.Base.getSafeTimeMillis();
+        long   ldtPrev = __m_PipelineSampleTime;
+        long[] aCpuPrev = __m_PipelineCpuSample;
+        long[] aBytesPrev = __m_PipelineBytesSample;
+        long[] aMessagesPrev = __m_PipelineMessagesSample;
+        long[] aBusy   = new long[cPipeline];
+        long[] aTraffic = new long[cPipeline];
+        long[] aCpuNext = new long[cPipeline];
+        long[] aBytesNext = new long[cPipeline];
+        long[] aMessagesNext = new long[cPipeline];
+
+        for (int i = 0; i < cPipeline; i++)
+            {
+            long cCpu     = getProxyPipelineCpu(i);
+            long cb       = getProxyPipelineBytesReceived(i);
+            long cMessage = getProxyPipelineReceived(i);
+            aCpuNext[i]      = cCpu;
+            aBytesNext[i]    = cb;
+            aMessagesNext[i] = cMessage;
+            long cMillis;
+            long cCpuDelta;
+            long cbDelta;
+            long cMessageDelta;
+            if (aCpuPrev != null && aBytesPrev != null && aMessagesPrev != null
+                    && i < aCpuPrev.length && i < aBytesPrev.length
+                    && i < aMessagesPrev.length && ldtPrev > 0L)
+                {
+                cMillis   = Math.max(1L, ldtNow - ldtPrev);
+                cCpuDelta = Math.max(0L, cCpu - aCpuPrev[i]);
+                cbDelta = Math.max(0L, cb - aBytesPrev[i]);
+                cMessageDelta = Math.max(0L, cMessage - aMessagesPrev[i]);
+                }
+            else
+                {
+                cMillis   = Math.max(1L, ldtNow - getProxyPipelineStartTime(i));
+                cCpuDelta = cCpu;
+                cbDelta = cb;
+                cMessageDelta = cMessage;
+                }
+            aBusy[i] = Math.min(1000L, cCpuDelta > Long.MAX_VALUE / 1000L
+                    ? cCpuDelta / cMillis * 1000L
+                    : cCpuDelta * 1000L / cMillis);
+            long cbRate = cbDelta > Long.MAX_VALUE / 1000L
+                    ? cbDelta / cMillis * 1000L : cbDelta * 1000L / cMillis;
+            long cMessageRate = cMessageDelta > Long.MAX_VALUE / 1000L
+                    ? cMessageDelta / cMillis * 1000L
+                    : cMessageDelta * 1000L / cMillis;
+            aTraffic[i] = saturatedAdd(cbRate,
+                    cMessageRate > Long.MAX_VALUE / 256L
+                            ? Long.MAX_VALUE : cMessageRate * 256L);
+            }
+
+        __m_PipelineCpuSample = aCpuNext;
+        __m_PipelineBytesSample = aBytesNext;
+        __m_PipelineMessagesSample = aMessagesNext;
+        __m_PipelineSampleTime = ldtNow;
+        return new long[][] {aBusy, aTraffic};
+        }
+
+    /**
+     * Return true when automatic topology should add one pipeline.
+     */
+    protected boolean shouldGrowConnectionPipelines(int cActive, int cLimit,
+            int cProjectedConnections, boolean fPressured)
+        {
+        return isConnectionPipelineAutomatic()
+                && cActive < cLimit
+                && (fPressured || cProjectedConnections > cActive * 8L);
+        }
+
+    /**
+     * Select the least-loaded pipeline, using connection count as the final
+     * deterministic tie-breaker before traffic history exists.
+     */
+    protected static int selectLeastLoadedPipeline(long[] aQueue, long[] aBusy,
+            long[] aTraffic, long[] aCount)
+        {
+        return selectLeastLoadedPipeline(aQueue, aBusy, aTraffic, aCount, 0);
+        }
+
+    /**
+     * Select the least-loaded pipeline, rotating otherwise exact ties so a
+     * burst of new sockets is balanced before their Channel 0 handshakes have
+     * entered the live or pending connection sets.
+     */
+    protected static int selectLeastLoadedPipeline(long[] aQueue, long[] aBusy,
+            long[] aTraffic, long[] aCount, int iStart)
+        {
+        int cPipeline = aQueue.length;
+        int iFirst = Math.floorMod(iStart, cPipeline);
+        int iBest  = iFirst;
+        for (int n = 1; n < cPipeline; n++)
+            {
+            int i = (iFirst + n) % cPipeline;
+            if (aQueue[i] < aQueue[iBest]
+                    || aQueue[i] == aQueue[iBest] && aBusy[i] < aBusy[iBest]
+                    || aQueue[i] == aQueue[iBest] && aBusy[i] == aBusy[iBest]
+                       && aTraffic[i] < aTraffic[iBest]
+                    || aQueue[i] == aQueue[iBest] && aBusy[i] == aBusy[iBest]
+                       && aTraffic[i] == aTraffic[iBest] && aCount[i] < aCount[iBest])
+                {
+                iBest = i;
+                }
+            }
+        return iBest;
+        }
+
+    protected static long saturatedAdd(long nLeft, long nRight)
+        {
+        return nRight > 0L && nLeft > Long.MAX_VALUE - nRight
+                ? Long.MAX_VALUE : nLeft + nRight;
         }
 
     /**
@@ -869,9 +1120,104 @@ public class TcpAcceptor
      */
     protected int getConnectionPipelineCount()
         {
+        return isConnectionPipelineApplicable() ? __m_ConnectionPipelineCount : 1;
+        }
+
+    /**
+     * Return the configured pipeline mode/value for management.
+     */
+    public int getPipelineCountConfigured()
+        {
+        return isConnectionPipelineApplicable()
+                ? getConnectionPipelineCount() : -1;
+        }
+
+    /**
+     * Return the currently active pipeline count for management.
+     */
+    public int getPipelineCount()
+        {
+        return isConnectionPipelineApplicable()
+                ? getConnectionPipelineCountActive() : -1;
+        }
+
+    /**
+     * Return the fixed count or automatic safety ceiling for management.
+     */
+    public int getPipelineCountLimit()
+        {
+        return isConnectionPipelineApplicable()
+                ? getConnectionPipelineCountLimit() : -1;
+        }
+
+    protected boolean isConnectionPipelineApplicable()
+        {
         return getParentService() instanceof
-                com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService
-                ? __m_ConnectionPipelineCount : 1;
+                com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
+        }
+
+    protected boolean isConnectionPipelineAutomatic()
+        {
+        return getConnectionPipelineCount() == 0;
+        }
+
+    @Override
+    protected boolean isConnectionPipelineEnabled()
+        {
+        int cConfigured = getConnectionPipelineCount();
+        return cConfigured > 1
+                || cConfigured == 0 && isProxyRequestDaemonPoolEnabled();
+        }
+
+    /**
+     * Return true when the proxy request pool provides execution concurrency.
+     * An explicit fixed pipeline count greater than one remains authoritative,
+     * but automatic topology must preserve the historical single-threaded
+     * semantics of {@code thread-count=0}.
+     */
+    protected boolean isProxyRequestDaemonPoolEnabled()
+        {
+        com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
+        return pool != null && pool.getDaemonCount() > 0;
+        }
+
+    @Override
+    protected int getConnectionPipelineCountActive()
+        {
+        TcpAcceptor.TcpProcessor[] aProcessor = __m_IoProcessors;
+        return aProcessor == null ? getConnectionPipelineCountInitial()
+                : aProcessor.length;
+        }
+
+    protected int getConnectionPipelineCountInitial()
+        {
+        int cConfigured = getConnectionPipelineCount();
+        return cConfigured == 0 && isConnectionPipelineEnabled()
+                ? calculateAutomaticPipelineInitial(
+                        Runtime.getRuntime().availableProcessors())
+                : Math.max(1, cConfigured);
+        }
+
+    protected int getConnectionPipelineCountLimit()
+        {
+        int cConfigured = getConnectionPipelineCount();
+        return cConfigured == 0 && isConnectionPipelineEnabled()
+                ? calculateAutomaticPipelineLimit(
+                        Runtime.getRuntime().availableProcessors())
+                : Math.max(1, cConfigured);
+        }
+
+    protected static int calculateAutomaticPipelineInitial(int cProcessors)
+        {
+        return Math.min(3, Math.max(1, Math.max(1, cProcessors) / 4));
+        }
+
+    protected static int calculateAutomaticPipelineLimit(int cProcessors)
+        {
+        int cInitial = calculateAutomaticPipelineInitial(cProcessors);
+        int cCpu     = Math.max(1, cProcessors);
+        int cLimit   = cCpu / 2 + cCpu % 2;
+        return Math.min(256, Math.max(cInitial, cLimit));
         }
 
     protected void setConnectionPipelineCount(int cPipelines)
@@ -1204,9 +1550,9 @@ public class TcpAcceptor
 
         beginProxyDecodeLaneStartup();
         TcpAcceptor.TcpProcessor[] aProcessor = ensureIoProcessors();
-        if (aProcessor.length > 1)
+        if (isConnectionPipelineEnabled())
             {
-            ensureProxyDecodeLanes();
+            ensureProxyDecodeLanes(aProcessor.length);
             }
         // Materialize the provider-bearing server channel on this service
         // thread before selector-only processors start concurrently.

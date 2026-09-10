@@ -7,6 +7,8 @@
 
 package com.tangosol.coherence.component.util;
 
+import com.tangosol.coherence.component.net.management.model.localModel.ConnectionManagerModel;
+
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
@@ -192,7 +194,6 @@ public class DaemonPoolSizingComponentTest
     public void shouldDeriveProxyPipelineAndWorkerDefaultsFromAvailableProcessors()
         {
         int cProcessors = Runtime.getRuntime().availableProcessors();
-        int cPipelines  = Math.min(3, Math.max(1, cProcessors / 4));
 
         DefaultTcpAcceptorDependencies standalone = new DefaultTcpAcceptorDependencies();
         assertThat(standalone.getConnectionPipelineCount(), is(1));
@@ -202,7 +203,7 @@ public class DaemonPoolSizingComponentTest
         deps.validate();
 
         TcpAcceptorDependencies tcp = (TcpAcceptorDependencies) deps.getAcceptorDependencies();
-        assertThat(tcp.getConnectionPipelineCount(), is(cPipelines));
+        assertThat(tcp.getConnectionPipelineCount(), is(1));
         assertThat(deps.getWorkerThreadCountMin(),
                 is(cProcessors > Integer.MAX_VALUE / 2
                         ? Integer.MAX_VALUE : cProcessors * 2));
@@ -231,6 +232,231 @@ public class DaemonPoolSizingComponentTest
         assertThat(((TcpAcceptorDependencies) disabled.getAcceptorDependencies())
                 .getConnectionPipelineCount(), is(1));
         assertThat(disabled.getWorkerThreadCount(), is(0));
+        }
+
+    @Test
+    public void shouldSizeAndGrowAutomaticProxyPipelinesConservatively()
+        {
+        class TestTcpAcceptor extends TcpAcceptor
+            {
+            TestTcpAcceptor()
+                {
+                super(null, null, false);
+                }
+
+            @Override
+            protected boolean isConnectionPipelineApplicable()
+                {
+                return true;
+                }
+
+            @Override
+            protected boolean isProxyRequestDaemonPoolEnabled()
+                {
+                return true;
+                }
+
+            int initial(int cProcessors)
+                {
+                return calculateAutomaticPipelineInitial(cProcessors);
+                }
+
+            int limit(int cProcessors)
+                {
+                return calculateAutomaticPipelineLimit(cProcessors);
+                }
+
+            boolean grow(int cActive, int cLimit, int cConnections,
+                    boolean fPressured)
+                {
+                return shouldGrowConnectionPipelines(cActive, cLimit,
+                        cConnections, fPressured);
+                }
+
+            @Override
+            protected boolean isConnectionPipelineAutomatic()
+                {
+                return true;
+                }
+            }
+
+        TestTcpAcceptor acceptor = new TestTcpAcceptor();
+        assertThat(acceptor.initial(4), is(1));
+        assertThat(acceptor.initial(16), is(3));
+        assertThat(acceptor.initial(64), is(3));
+        assertThat(acceptor.limit(4), is(2));
+        assertThat(acceptor.limit(16), is(8));
+        assertThat(acceptor.limit(64), is(32));
+
+        assertThat(acceptor.grow(3, 8, 24, false), is(false));
+        assertThat(acceptor.grow(3, 8, 25, false), is(true));
+        assertThat(acceptor.grow(3, 8, 4, true), is(true));
+        assertThat(acceptor.grow(8, 8, 100, true), is(false));
+        }
+
+    @Test
+    public void shouldPreserveSingleThreadedProxySemanticsInAutomaticMode()
+        {
+        class TestTcpAcceptor extends TcpAcceptor
+            {
+            TestTcpAcceptor(int cConfigured)
+                {
+                super(null, null, false);
+                setConnectionPipelineCount(cConfigured);
+                }
+
+            @Override
+            protected boolean isConnectionPipelineApplicable()
+                {
+                return true;
+                }
+
+            @Override
+            protected boolean isProxyRequestDaemonPoolEnabled()
+                {
+                return false;
+                }
+
+            int initial()
+                {
+                return getConnectionPipelineCountInitial();
+                }
+
+            int limit()
+                {
+                return getConnectionPipelineCountLimit();
+                }
+
+            boolean enabled()
+                {
+                return isConnectionPipelineEnabled();
+                }
+            }
+
+        TestTcpAcceptor automatic = new TestTcpAcceptor(0);
+        assertThat(automatic.enabled(), is(false));
+        assertThat(automatic.initial(), is(1));
+        assertThat(automatic.limit(), is(1));
+        assertThat(automatic.getPipelineCountConfigured(), is(0));
+
+        TestTcpAcceptor fixed = new TestTcpAcceptor(3);
+        assertThat(fixed.enabled(), is(true));
+        assertThat(fixed.initial(), is(3));
+        assertThat(fixed.limit(), is(3));
+        }
+
+    @Test
+    public void shouldPlaceNewProxyConnectionsOnLeastLoadedPipeline()
+        {
+        class TestTcpAcceptor extends TcpAcceptor
+            {
+            TestTcpAcceptor()
+                {
+                super(null, null, false);
+                }
+
+            int select(long[] aQueue, long[] aBusy, long[] aTraffic, long[] aCount)
+                {
+                return selectLeastLoadedPipeline(aQueue, aBusy, aTraffic, aCount);
+                }
+
+            int select(long[] aQueue, long[] aBusy, long[] aTraffic,
+                    long[] aCount, int iStart)
+                {
+                return selectLeastLoadedPipeline(aQueue, aBusy, aTraffic,
+                        aCount, iStart);
+                }
+            }
+
+        TestTcpAcceptor acceptor = new TestTcpAcceptor();
+        assertThat(acceptor.select(new long[] {0, 0, 0}, new long[] {0, 0, 0},
+                new long[] {0, 0, 0}, new long[] {2, 1, 1}), is(1));
+        assertThat(acceptor.select(new long[] {1, 0, 0}, new long[] {0, 700, 200},
+                new long[] {0, 10, 100}, new long[] {0, 0, 0}), is(2));
+        assertThat(acceptor.select(new long[] {0, 0}, new long[] {100, 100},
+                new long[] {1000, 500}, new long[] {1, 4}), is(1));
+        assertThat(acceptor.select(new long[] {0, 0, 0}, new long[] {0, 0, 0},
+                new long[] {0, 0, 0}, new long[] {0, 0, 0}, 2), is(2));
+        }
+
+    @Test
+    public void shouldGrowProxyDecodeLanesWithoutReplacingExistingOwners()
+        {
+        class TestTcpAcceptor extends TcpAcceptor
+            {
+            TestTcpAcceptor()
+                {
+                super(null, null, false);
+                }
+
+            Object[] ensureLanes(int cLane)
+                {
+                return ensureProxyDecodeLanes(cLane);
+                }
+
+            void shutdownLanes()
+                {
+                beginProxyDecodeLaneShutdown();
+                shutdownProxyDecodeLanes();
+                }
+            }
+
+        TestTcpAcceptor acceptor = new TestTcpAcceptor();
+        try
+            {
+            Object[] aOne   = acceptor.ensureLanes(1);
+            Object[] aThree = acceptor.ensureLanes(3);
+            Object[] aTwo   = acceptor.ensureLanes(2);
+
+            assertThat(aOne.length, is(1));
+            assertThat(aThree.length, is(3));
+            assertThat(aTwo.length, is(3));
+            assertThat(aThree[0], org.hamcrest.CoreMatchers.sameInstance(aOne[0]));
+            assertThat(aTwo[0], org.hamcrest.CoreMatchers.sameInstance(aOne[0]));
+            assertThat(aTwo[1], org.hamcrest.CoreMatchers.sameInstance(aThree[1]));
+            assertThat(aTwo[2], org.hamcrest.CoreMatchers.sameInstance(aThree[2]));
+            }
+        finally
+            {
+            acceptor.shutdownLanes();
+            }
+        }
+
+    @Test
+    public void shouldExposeProxyPipelineTopologyThroughConnectionManagerModel()
+        {
+        TcpAcceptor acceptor = new TcpAcceptor(null, null, false)
+            {
+            @Override
+            protected boolean isConnectionPipelineApplicable()
+                {
+                return true;
+                }
+
+            @Override
+            protected int getConnectionPipelineCount()
+                {
+                return 0;
+                }
+
+            @Override
+            protected int getConnectionPipelineCountActive()
+                {
+                return 3;
+                }
+
+            @Override
+            protected int getConnectionPipelineCountLimit()
+                {
+                return 8;
+                }
+            };
+
+        ConnectionManagerModel model = new ConnectionManagerModel();
+        model.set_Acceptor(acceptor);
+        assertThat(model.getPipelineCountConfigured(), is(0));
+        assertThat(model.getPipelineCount(), is(3));
+        assertThat(model.getPipelineCountLimit(), is(8));
         }
 
     @Test

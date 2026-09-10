@@ -293,7 +293,7 @@ public class DefaultTcpAcceptorDependencies
      *
      * @param cPipelines  the pipeline count
      */
-    @Injectable("connection-pipeline-count")
+    @Injectable("pipeline-count")
     public void setConnectionPipelineCount(int cPipelines)
         {
         m_fConnectionPipelinesConfigured = true;
@@ -539,7 +539,7 @@ public class DefaultTcpAcceptorDependencies
         {
         super.validate();
 
-        Base.checkRange(getConnectionPipelineCount(), 1, 256,
+        Base.checkRange(getConnectionPipelineCount(), 0, 256,
                 "ConnectionPipelineCount");
 
         return this;
@@ -809,14 +809,14 @@ public class DefaultTcpAcceptorDependencies
     private int m_cListenBacklog;
 
     /**
-     * The number of connection-affine processing pipelines. A standalone TCP
-     * acceptor retains one pipeline; ProxyService may supply a contextual
-     * default before validation.
+     * The number of connection-affine processing pipelines. Zero selects
+     * automatic topology for a ProxyService; a standalone TCP acceptor retains
+     * one pipeline.
      */
     private int m_cConnectionPipelines = 1;
 
     /**
-     * True when connection-pipeline-count was explicitly configured.
+     * True when pipeline-count was explicitly configured.
      */
     private boolean m_fConnectionPipelinesConfigured;
 

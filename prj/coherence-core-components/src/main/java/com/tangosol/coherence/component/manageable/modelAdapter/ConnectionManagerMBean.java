@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -260,6 +260,42 @@ public class ConnectionManagerMBean
                 "metrics.value=_default",
                 });
             }
+
+        // property PipelineCount
+            {
+            mapInfo.put("PipelineCount", new Object[]
+                {
+                "The number of currently active connection-affine processing pipelines, or -1 when not applicable.",
+                "getPipelineCount",
+                null,
+                "I",
+                "metrics.value=_default",
+                });
+            }
+
+        // property PipelineCountConfigured
+            {
+            mapInfo.put("PipelineCountConfigured", new Object[]
+                {
+                "The configured pipeline count; zero denotes automatic mode, or -1 when not applicable.",
+                "getPipelineCountConfigured",
+                null,
+                "I",
+                null,
+                });
+            }
+
+        // property PipelineCountLimit
+            {
+            mapInfo.put("PipelineCountLimit", new Object[]
+                {
+                "The automatic safety ceiling or exact fixed pipeline count, or -1 when not applicable.",
+                "getPipelineCountLimit",
+                null,
+                "I",
+                null,
+                });
+            }
         
         // property Protocol
             {
@@ -479,6 +515,41 @@ public class ConnectionManagerMBean
     * @descriptor metrics.value=_default
      */
     public int getConnectionCount()
+        {
+        return 0;
+        }
+
+    // Accessor for the property "PipelineCount"
+    /**
+     * Getter for property PipelineCount.<p>
+     * The number of currently active connection-affine processing pipelines,
+     * or -1 when not applicable.
+     *
+     * @descriptor metrics.value=_default
+     */
+    public int getPipelineCount()
+        {
+        return 0;
+        }
+
+    // Accessor for the property "PipelineCountConfigured"
+    /**
+     * Getter for property PipelineCountConfigured.<p>
+     * The configured pipeline count; zero denotes automatic mode, or -1 when
+     * not applicable.
+     */
+    public int getPipelineCountConfigured()
+        {
+        return 0;
+        }
+
+    // Accessor for the property "PipelineCountLimit"
+    /**
+     * Getter for property PipelineCountLimit.<p>
+     * The automatic safety ceiling or exact fixed pipeline count, or -1 when
+     * not applicable.
+     */
+    public int getPipelineCountLimit()
         {
         return 0;
         }
