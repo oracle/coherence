@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.atomic.LongAdder;
 
 import javax.management.NotCompliantMBeanException;
@@ -94,6 +95,12 @@ public final class SerializationTelemetry
      */
     public static void recordPofCheck(String sResult, String sReason, int nTypeId)
         {
+        if (RESULT_ALLOWED.equals(sResult) && REASON_REGISTERED_TYPE.equals(sReason))
+            {
+            recordRegisteredPofType(nTypeId);
+            return;
+            }
+
         SerializationRole role = SerializationRole.current();
         String            sMode = modeTag();
         record(METRIC_POF_CHECK, sResult, sReason, role, TAG_TYPE_ID, String.valueOf(nTypeId),
@@ -107,6 +114,23 @@ public final class SerializationTelemetry
             {
             logRejection("pof", role.name(), currentSubject(), null, sReason);
             }
+        }
+
+    /**
+     * Record an allowed registered POF type check.
+     * <p>
+     * This is the steady-state POF deserialization path. It avoids rebuilding
+     * metric keys and contending on a shared map for every nested user type,
+     * while retaining the same counter and MBean tuple as
+     * {@link #recordPofCheck(String, String, int)}.
+     *
+     * @param nTypeId  the registered POF type id
+     */
+    public static void recordRegisteredPofType(int nTypeId)
+        {
+        SerializationRole role = SerializationRole.current();
+        CoherenceMode     mode = CoherenceMode.current();
+        ensurePofCounterSlot(nTypeId).increment(role, mode);
         }
 
     /**
@@ -305,6 +329,8 @@ public final class SerializationTelemetry
 
         COUNTERS.clear();
         MBEANS.clear();
+        s_aPofCounterSlot = EMPTY_POF_COUNTER_SLOTS;
+        s_registry        = null;
         F_OVERFLOW_LOGGED.set(false);
         }
 
@@ -370,10 +396,19 @@ public final class SerializationTelemetry
 
     private static void incrementMBeanCounter(CounterKey key)
         {
+        CounterRegistration registration = ensureMBeanCounter(key);
+        if (registration != null)
+            {
+            registration.increment();
+            }
+        }
+
+    private static CounterRegistration ensureMBeanCounter(CounterKey key)
+        {
         Registry registry = s_registry;
         if (registry == null)
             {
-            return;
+            return null;
             }
 
         CounterRegistration registration = MBEANS.get(key);
@@ -427,7 +462,76 @@ public final class SerializationTelemetry
                 }
             }
 
-        registration.increment();
+        return registration;
+        }
+
+    private static PofCounterSlot ensurePofCounterSlot(int nTypeId)
+        {
+        PofCounterSlot[] aSlot = s_aPofCounterSlot;
+        int              iSlot = findPofCounterSlot(aSlot, nTypeId);
+        if (iSlot >= 0)
+            {
+            return aSlot[iSlot];
+            }
+
+        synchronized (POF_COUNTER_SLOT_LOCK)
+            {
+            aSlot = s_aPofCounterSlot;
+            iSlot = findPofCounterSlot(aSlot, nTypeId);
+            if (iSlot >= 0)
+                {
+                return aSlot[iSlot];
+                }
+
+            int              iInsert = -iSlot - 1;
+            PofCounterSlot[] aNew    = new PofCounterSlot[aSlot.length + 1];
+            System.arraycopy(aSlot, 0, aNew, 0, iInsert);
+            System.arraycopy(aSlot, iInsert, aNew, iInsert + 1, aSlot.length - iInsert);
+
+            PofCounterSlot slot = new PofCounterSlot(nTypeId);
+            aNew[iInsert]       = slot;
+            s_aPofCounterSlot   = aNew;
+            return slot;
+            }
+        }
+
+    private static int findPofCounterSlot(PofCounterSlot[] aSlot, int nTypeId)
+        {
+        int iLow  = 0;
+        int iHigh = aSlot.length - 1;
+        while (iLow <= iHigh)
+            {
+            int iMid       = (iLow + iHigh) >>> 1;
+            int nTypeIdMid = aSlot[iMid].getTypeId();
+            if (nTypeIdMid < nTypeId)
+                {
+                iLow = iMid + 1;
+                }
+            else if (nTypeIdMid > nTypeId)
+                {
+                iHigh = iMid - 1;
+                }
+            else
+                {
+                return iMid;
+                }
+            }
+        return -(iLow + 1);
+        }
+
+    private static PofCounter createPofCounter(int nTypeId, SerializationRole role, CoherenceMode mode)
+        {
+        String    sMode   = modeTag(mode);
+        LongAdder counter = COUNTERS.computeIfAbsent(metricKey(METRIC_PREFIX + METRIC_POF_CHECK,
+                        "result", RESULT_ALLOWED,
+                        "reason", REASON_REGISTERED_TYPE,
+                        "mode", sMode,
+                        "type_id", String.valueOf(nTypeId),
+                        "route", role.name()),
+                s -> new LongAdder());
+
+        return new PofCounter(counter, new CounterKey(METRIC_POF_CHECK, RESULT_ALLOWED,
+                REASON_REGISTERED_TYPE, role, sMode, TAG_TYPE_ID, String.valueOf(nTypeId)));
         }
 
     private static void registerCounter(Registry registry, CounterKey key, CounterRegistration registration)
@@ -488,7 +592,12 @@ public final class SerializationTelemetry
 
     private static String modeTag()
         {
-        return CoherenceMode.current().name().toLowerCase();
+        return modeTag(CoherenceMode.current());
+        }
+
+    private static String modeTag(CoherenceMode mode)
+        {
+        return MODE_TAGS[mode.ordinal()];
         }
 
     private static CounterKey overflowKey(String sMode)
@@ -571,6 +680,93 @@ public final class SerializationTelemetry
         private final SerializationGateCounter f_counter;
         }
 
+    // ----- inner class: PofCounterSlot ------------------------------------
+
+    /**
+     * Counters for one registered POF type, indexed by mode and route.
+     */
+    private static class PofCounterSlot
+        {
+        private PofCounterSlot(int nTypeId)
+            {
+            f_nTypeId = nTypeId;
+            }
+
+        private int getTypeId()
+            {
+            return f_nTypeId;
+            }
+
+        private void increment(SerializationRole role, CoherenceMode mode)
+            {
+            int        iCounter = mode.ordinal() * SERIALIZATION_ROLE_COUNT + role.ordinal();
+            PofCounter counter  = f_aCounter.get(iCounter);
+            if (counter == null)
+                {
+                PofCounter counterNew = createPofCounter(f_nTypeId, role, mode);
+                if (f_aCounter.compareAndSet(iCounter, null, counterNew))
+                    {
+                    counter = counterNew;
+                    }
+                else
+                    {
+                    counter = f_aCounter.get(iCounter);
+                    }
+                }
+            counter.increment();
+            }
+
+        private final int f_nTypeId;
+
+        private final AtomicReferenceArray<PofCounter> f_aCounter =
+                new AtomicReferenceArray<>(POF_COUNTERS_PER_TYPE);
+        }
+
+    // ----- inner class: PofCounter ----------------------------------------
+
+    /**
+     * Fast-path metric and MBean counters for a registered POF type tuple.
+     */
+    private static class PofCounter
+        {
+        private PofCounter(LongAdder counterMetric, CounterKey keyMBean)
+            {
+            f_counterMetric = counterMetric;
+            f_keyMBean      = keyMBean;
+            }
+
+        private void increment()
+            {
+            f_counterMetric.increment();
+
+            if (s_registry == null)
+                {
+                return;
+                }
+
+            CounterRegistration registration = m_registration;
+            if (registration == null)
+                {
+                registration = ensureMBeanCounter(f_keyMBean);
+                if (registration != null && registration.getName() != null)
+                    {
+                    m_registration = registration;
+                    }
+                }
+
+            if (registration != null)
+                {
+                registration.increment();
+                }
+            }
+
+        private final LongAdder f_counterMetric;
+
+        private final CounterKey f_keyMBean;
+
+        private volatile CounterRegistration m_registration;
+        }
+
     // ----- inner class: CounterKey -----------------------------------------
 
     private record CounterKey(String metric, String result, String reason, SerializationRole route, String mode,
@@ -632,6 +828,22 @@ public final class SerializationTelemetry
     private static final String TAG_FMT = "fmt";
 
     private static final String TAG_TYPE_ID = "type_id";
+
+    private static final String RESULT_ALLOWED = "allowed";
+
+    private static final String REASON_REGISTERED_TYPE = "registered-type";
+
+    private static final String[] MODE_TAGS = {"eval", "dev", "prod"};
+
+    private static final int SERIALIZATION_ROLE_COUNT = SerializationRole.values().length;
+
+    private static final int POF_COUNTERS_PER_TYPE = CoherenceMode.values().length * SERIALIZATION_ROLE_COUNT;
+
+    private static final PofCounterSlot[] EMPTY_POF_COUNTER_SLOTS = new PofCounterSlot[0];
+
+    private static final Object POF_COUNTER_SLOT_LOCK = new Object();
+
+    private static volatile PofCounterSlot[] s_aPofCounterSlot = EMPTY_POF_COUNTER_SLOTS;
 
     private static final AtomicBoolean F_OVERFLOW_LOGGED = new AtomicBoolean();
 
