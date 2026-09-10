@@ -7,6 +7,8 @@
 
 package micrometer;
 
+import com.oracle.bedrock.testsupport.deferred.Eventually;
+
 import com.oracle.coherence.micrometer.CoherenceMicrometerMetrics;
 import com.tangosol.net.DefaultCacheServer;
 import com.tangosol.net.metrics.MBeanMetric;
@@ -18,6 +20,7 @@ import io.micrometer.core.instrument.Tag;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,7 +29,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Integration test for {@link CoherenceMicrometerMetrics}
@@ -48,6 +50,12 @@ public class CoherenceMicrometerGlobalIT
     @Test
     public void shouldHaveAllMetrics()
         {
+        Eventually.assertDeferred(CoherenceMicrometerGlobalIT::meterDifferences,
+                is(Collections.<String>emptySet()));
+        }
+
+    private static Set<String> meterDifferences()
+        {
         Map<MBeanMetric.Identifier, CoherenceMicrometerMetrics.Holder> metrics = CoherenceMicrometerMetrics.INSTANCE.getMetrics();
         List<Meter> meters = Metrics.globalRegistry.getMeters();
 
@@ -60,7 +68,14 @@ public class CoherenceMicrometerGlobalIT
                 .map(meter -> meterKey(meter.getId()))
                 .collect(Collectors.toSet());
 
-        assertThat(setActual, is(setExpected));
+        Set<String> setDifferences = new TreeSet<>(setExpected);
+        setDifferences.removeAll(setActual);
+
+        Set<String> setUnexpected = new TreeSet<>(setActual);
+        setUnexpected.removeAll(setExpected);
+        setDifferences.addAll(setUnexpected);
+
+        return setDifferences;
         }
 
     private static String meterKey(CoherenceMicrometerMetrics.Holder holder)
