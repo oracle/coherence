@@ -173,7 +173,7 @@ public class Connection
      * The send time of the last outstanding PingRequest or 0 if a PingRequest
      * is not outstanding.
      */
-    private transient long __m_PingLastMillis;
+    private volatile transient long __m_PingLastMillis;
     
     /**
      * Property StatsBytesReceived
@@ -1446,17 +1446,21 @@ public class Connection
             Channel channel0 = (Channel) getChannel(0);
             com.tangosol.net.messaging.Protocol.MessageFactory factory  = channel0.getMessageFactory();
             com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer.MessageFactory.PingRequest request  = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer.MessageFactory.PingRequest) factory.createMessage(com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer.MessageFactory.PingRequest.TYPE_ID);
-        
+
+            // publish the outstanding ping before sending it; an acceptor pipeline
+            // can process the response concurrently before send() returns
+            setPingLastMillis(Base.getSafeTimeMillis());
+
             try
                 {
                 channel0.send(request);
                 }
             catch (RuntimeException e)
                 {
+                setPingLastMillis(0L);
                 return false;
                 }
-        
-            setPingLastMillis(Base.getSafeTimeMillis());
+
             return true;
             }
         else
