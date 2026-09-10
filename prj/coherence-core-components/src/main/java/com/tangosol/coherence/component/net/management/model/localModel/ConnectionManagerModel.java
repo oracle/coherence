@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -210,6 +210,36 @@ public class ConnectionManagerModel
             {
             return -1;
             }
+        }
+
+    /**
+     * Return the number of currently active connection-affine pipelines.
+     */
+    public int getPipelineCount()
+        {
+        Acceptor acceptor = get_Acceptor();
+        return acceptor instanceof TcpAcceptor
+                ? ((TcpAcceptor) acceptor).getPipelineCount() : -1;
+        }
+
+    /**
+     * Return the configured pipeline count; zero denotes automatic mode.
+     */
+    public int getPipelineCountConfigured()
+        {
+        Acceptor acceptor = get_Acceptor();
+        return acceptor instanceof TcpAcceptor
+                ? ((TcpAcceptor) acceptor).getPipelineCountConfigured() : -1;
+        }
+
+    /**
+     * Return the automatic safety ceiling or exact fixed pipeline count.
+     */
+    public int getPipelineCountLimit()
+        {
+        Acceptor acceptor = get_Acceptor();
+        return acceptor instanceof TcpAcceptor
+                ? ((TcpAcceptor) acceptor).getPipelineCountLimit() : -1;
         }
     
     // Accessor for the property "HostIP"
@@ -860,6 +890,22 @@ public class ConnectionManagerModel
             mapSnapshot.put("TotalErrorCount", Long.valueOf(-1L));
             mapSnapshot.put("TotalRequestCount", Long.valueOf(-1L));
             }
+
+        if (com.tangosol.util.ExternalizableHelper.isVersionCompatible(in, 26, 1, 0, 0, 0))
+            {
+            mapSnapshot.put("PipelineCount", Integer.valueOf(
+                    com.tangosol.util.ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("PipelineCountConfigured", Integer.valueOf(
+                    com.tangosol.util.ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("PipelineCountLimit", Integer.valueOf(
+                    com.tangosol.util.ExternalizableHelper.readInt(in)));
+            }
+        else
+            {
+            mapSnapshot.put("PipelineCount", Integer.valueOf(-1));
+            mapSnapshot.put("PipelineCountConfigured", Integer.valueOf(-1));
+            mapSnapshot.put("PipelineCountLimit", Integer.valueOf(-1));
+            }
         }
     
     public void resetStatistics()
@@ -949,6 +995,13 @@ public class ConnectionManagerModel
             out.writeFloat(getRequestsPerSecond());
             com.tangosol.util.ExternalizableHelper.writeLong(out, getTotalErrorCount());
             com.tangosol.util.ExternalizableHelper.writeLong(out, getTotalRequestCount());
+            }
+
+        if (com.tangosol.util.ExternalizableHelper.isVersionCompatible(out, 26, 1, 0, 0, 0))
+            {
+            com.tangosol.util.ExternalizableHelper.writeInt(out, getPipelineCount());
+            com.tangosol.util.ExternalizableHelper.writeInt(out, getPipelineCountConfigured());
+            com.tangosol.util.ExternalizableHelper.writeInt(out, getPipelineCountLimit());
             }
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -54,6 +55,24 @@ public class TcpAcceptorDependenciesTest
         deps2.validate();
         }
 
+    @Test
+    public void shouldValidatePipelineCountRange()
+        {
+        DefaultTcpAcceptorDependencies deps = new DefaultTcpAcceptorDependencies();
+
+        deps.setConnectionPipelineCount(-1);
+        assertThrows(IllegalArgumentException.class, deps::validate);
+
+        deps.setConnectionPipelineCount(257);
+        assertThrows(IllegalArgumentException.class, deps::validate);
+
+        deps.setConnectionPipelineCount(0);
+        deps.validate();
+
+        deps.setConnectionPipelineCount(256);
+        deps.validate();
+        }
+
     // ----- helpers --------------------------------------------------------
 
     /**
@@ -74,6 +93,7 @@ public class TcpAcceptorDependenciesTest
         assertEquals(deps1.getDefaultNominalMessages(),      deps2.getDefaultNominalMessages());
         assertEquals(deps1.getDefaultSuspectBytes(),         deps2.getDefaultSuspectBytes());
         assertEquals(deps1.getDefaultSuspectMessages(),      deps2.getDefaultSuspectMessages());
+        assertEquals(deps1.getConnectionPipelineCount(),     deps2.getConnectionPipelineCount());
         assertEquals(deps1.getListenBacklog(),               deps2.getListenBacklog());
         assertEquals(deps1.getLocalAddressProviderBuilder(), deps2.getLocalAddressProviderBuilder());
         assertEquals(deps1.getOutgoingBufferPoolConfig(),    deps2.getOutgoingBufferPoolConfig());
@@ -117,6 +137,9 @@ public class TcpAcceptorDependenciesTest
 
         deps.setDefaultSuspectMessages(n = random.nextInt(1000));
         assertEquals(n, deps.getDefaultSuspectMessages());
+
+        deps.setConnectionPipelineCount(n = random.nextInt(257));
+        assertEquals(n, deps.getConnectionPipelineCount());
 
         deps.setListenBacklog(n = random.nextInt(1000));
         assertEquals(n, deps.getListenBacklog());

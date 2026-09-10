@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -114,8 +114,8 @@ public class LegacyXmlTcpAcceptorHelper
         deps.setListenBacklog(xmlCat.getSafeElement("listen-backlog").getInt(
                 deps.getListenBacklog()));
 
-        // <connection-pipeline-count>
-        XmlElement xmlPipelines = xmlCat.getElement("connection-pipeline-count");
+        // <pipeline-count>
+        XmlElement xmlPipelines = xmlCat.getElement("pipeline-count");
         if (xmlPipelines != null && !XmlHelper.isEmpty(xmlPipelines))
             {
             deps.setConnectionPipelineCount(xmlPipelines.getInt());

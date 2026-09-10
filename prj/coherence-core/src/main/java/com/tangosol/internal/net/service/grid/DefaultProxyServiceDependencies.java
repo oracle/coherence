@@ -202,8 +202,7 @@ public class DefaultProxyServiceDependencies
                 depsTcp.setDefaultConnectionPipelineCount(
                         isWorkerThreadCountConfigured() && getWorkerThreadCount() == 0
                                 ? 1
-                                : Math.min(3, Math.max(1,
-                                        Runtime.getRuntime().availableProcessors() / 4)));
+                                : 0);
                 }
             }
 
