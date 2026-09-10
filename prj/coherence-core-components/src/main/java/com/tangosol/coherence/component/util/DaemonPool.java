@@ -6373,10 +6373,11 @@ public class DaemonPool
             }
 
         /**
-         * Evaluate an active above-CPU worker probe.
+         * Evaluate an active worker-count probe or start a downward probe
+         * after a stable workload-shape change.
          *
-         * @return the new pool size, or the current size when no probe was
-         *         rejected
+         * @return the new pool size, or the current size when no probe
+         *         adjustment is required
          */
         protected int evaluateWorkloadProbe()
             {
@@ -6391,8 +6392,8 @@ public class DaemonPool
                 {
                 getDaemonPool().recordWorkloadGrowthDecision(decision.getReason(), false);
                 }
-            return decision.getAction() == DaemonPoolGrowthPolicy.Decision.Action.REVERT
-                    ? shrinkDaemonPool(decision.getReason())
+            return decision.getAction() == DaemonPoolGrowthPolicy.Decision.Action.RESIZE
+                    ? resizeDaemonPool(decision.getDelta(), decision.getReason())
                     : getDaemonCount();
             }
 
@@ -6716,7 +6717,7 @@ public class DaemonPool
 
                     m_sampleWorkload = new DaemonPoolGrowthPolicy.Sample(ldtNow, cThreads,
                             pool.getDaemonCountMin(), pool.getDaemonCountMax(), cProcessors,
-                            cBacklog, cAssociation, dflCpuRatio, dflTP,
+                            dflActive, cBacklog, cAssociation, dflCpuRatio, dflTP,
                             pool.getDaemonPoolSizingRole());
                     pool.recordWorkloadSample(dflCpuRatio, cProcessors, cBacklog, cAssociation);
                     }
@@ -6747,7 +6748,7 @@ public class DaemonPool
                 setActiveCountAverage(dflActive);
 
                 int cProbe = evaluateWorkloadProbe();
-                if (cProbe < cThreads)
+                if (cProbe != cThreads)
                     {
                     cNew    = cProbe;
                     cResize = cNew - cThreads;
@@ -7236,8 +7237,8 @@ public class DaemonPool
         
         /**
          * Resize the DaemonPool by a random amount.
-        * 
-        * @return the new size of the pool
+         *
+         * @return the new size of the pool
          */
         protected int shakeDaemonPool()
             {
@@ -7247,8 +7248,28 @@ public class DaemonPool
             int cRange = 2*cDelta + 1;
             int cShake = Base.getRandom().nextInt(cRange) - cDelta;
 
-            return cShake > 0
-                    ? growDaemonPool(cShake, "the pool being shaken")
+            return resizeShakenPool(cShake);
+            }
+
+        /**
+         * Apply one random shake adjustment.
+         *
+         * @param cShake  the signed shake delta
+         *
+         * @return the resulting worker count
+         */
+        protected int resizeShakenPool(int cShake)
+            {
+            if (cShake > 0)
+                {
+                return growDaemonPool(cShake, "the pool being shaken");
+                }
+
+            // Workload-aware contraction is a measured throughput probe. A
+            // random negative shake must not bypass that policy and destroy
+            // the stable worker window needed to discover blocking capacity.
+            return getDaemonPool().isWorkloadAwareResizeEnabled()
+                    ? getDaemonCount()
                     : resizeDaemonPool(cShake, "the pool being shaken");
             }
         
@@ -7259,6 +7280,14 @@ public class DaemonPool
          */
         protected int shrinkDaemonPool(String sReason)
             {
+            // The workload-aware policy owns downward movement. Its lower
+            // probes compare throughput before retaining a smaller window;
+            // allowing the legacy heuristic to remove a worker here would
+            // bypass that proof and continually destabilize blocking pools.
+            if (getDaemonPool().isWorkloadAwareResizeEnabled())
+                {
+                return getDaemonCount();
+                }
             return resizeDaemonPool(-1, sReason);
             }
         

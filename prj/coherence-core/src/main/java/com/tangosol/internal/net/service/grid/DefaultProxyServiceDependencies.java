@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -50,8 +50,12 @@ public class DefaultProxyServiceDependencies
 
         if (deps == null)
             {
-            // by default, use a dynamic thread pool
-            setWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
+            // A proxy worker blocks while its request is serviced by another
+            // member. Start the dynamic pool at the first useful I/O window;
+            // measured probes remain responsible for growth beyond it.
+            int cProcessors = Math.max(1, Runtime.getRuntime().availableProcessors());
+            setWorkerThreadCountMin(cProcessors > Integer.MAX_VALUE / 2
+                    ? Integer.MAX_VALUE : cProcessors * 2);
             }
         else
             {

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
 
@@ -62,6 +62,17 @@ public class ProxyServiceDependenciesTest
         DefaultProxyServiceDependencies deps2 = new DefaultProxyServiceDependencies(deps1);
         assertCloneEquals(deps1, deps2);
         deps2.validate();
+        }
+
+    @Test
+    public void shouldDefaultDynamicWorkersToFirstBlockingIoWindow()
+        {
+        DefaultProxyServiceDependencies deps = new DefaultProxyServiceDependencies();
+        int cProcessors = Math.max(1, Runtime.getRuntime().availableProcessors());
+
+        assertEquals(cProcessors > Integer.MAX_VALUE / 2
+                        ? Integer.MAX_VALUE : cProcessors * 2,
+                deps.getWorkerThreadCountMin());
         }
 
     /**
