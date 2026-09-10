@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -272,6 +272,47 @@ public abstract class AbstractTaskCoordinator<T>
         else
             {
             ExecutorTrace.log("Skipped closing subscribers as the coordinator is already closed");
+            }
+        }
+
+    /**
+     * Closes this coordinator exceptionally and notifies all current subscribers.
+     *
+     * @param throwable  the reason the coordinator can no longer produce a result
+     */
+    protected void close(Throwable throwable)
+        {
+        if (f_closed.compareAndSet(false, true))
+            {
+            m_lastValue = Result.throwable(throwable);
+
+            Runnable closeSubscribersRunnable = () ->
+                {
+                for (Task.Subscriber<? super T> subscriber : m_setSubscribers)
+                    {
+                    try
+                        {
+                        subscriber.onError(throwable);
+                        }
+                    catch (Throwable ignored)
+                        {
+                        // nothing can be done when the subscriber can't handle an error
+                        }
+                    finally
+                        {
+                        m_setSubscribers.remove(subscriber);
+                        }
+                    }
+                };
+
+            try
+                {
+                f_executorService.submit(closeSubscribersRunnable);
+                }
+            catch (RejectedExecutionException e)
+                {
+                closeSubscribersRunnable.run();
+                }
             }
         }
 
