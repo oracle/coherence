@@ -25,7 +25,7 @@ import static org.junit.Assert.assertSame;
  * Unit tests for serializer-local default limit-policy caching.
  *
  * @author Aleks Seovic  2026.08.26
- * @since 26.1
+ * @since 26.10
  */
 public class SerializerLimitPolicyCachingTest
     {
