@@ -6,11 +6,15 @@
  */
 package com.tangosol.coherence.reporter;
 
+import com.oracle.coherence.common.base.Logger;
+
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import org.mockito.MockedStatic;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +30,9 @@ import javax.management.ObjectName;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
 
 /**
  * Unit tests for {@link ReporterSecurity}.
@@ -213,6 +220,23 @@ public class ReporterSecurityTest
             {
             assertThat(ReporterSecurity.validateOutputPath(outside.getAbsolutePath(), "test"),
                     is(outside.getCanonicalPath()));
+            }
+        }
+
+    @Test
+    public void shouldLogCompatibilityWarningOncePerCategory()
+            throws Exception
+        {
+        try (MockedStatic<Logger> logger = mockStatic(Logger.class);
+             CoherenceModeHelper.ModeScope ignored = CoherenceModeHelper.securityCompatibility())
+            {
+            ReporterSecurity.validateObjectNamePattern("java.lang:type=Memory", "test");
+            ReporterSecurity.validateObjectNamePattern("com.sun.management:type=DiagnosticCommand", "test");
+            ReporterSecurity.validateObjectNamePattern("*:type=Memory", "test");
+            ReporterSecurity.validateObjectNamePattern("*:type=Threading", "test");
+
+            logger.verify(() -> Logger.warn(contains("reason=object-name-not-allowed")), times(1));
+            logger.verify(() -> Logger.warn(contains("reason=object-name-pattern-too-broad")), times(1));
             }
         }
 
