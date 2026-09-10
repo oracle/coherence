@@ -22,7 +22,7 @@ import java.util.Locale;
  * short CPU-bound work close to its initial CPU-derived window.</p>
  *
  * @author Aleks Seovic  2026.08.29
- * @since 26.07
+ * @since 26.10
  */
 public class AdaptiveConcurrencyPolicy
     {
