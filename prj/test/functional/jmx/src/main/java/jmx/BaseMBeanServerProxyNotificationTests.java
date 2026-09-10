@@ -8,6 +8,7 @@ package jmx;
 
 import com.oracle.bedrock.io.FileHelper;
 
+import com.oracle.bedrock.Option;
 import com.oracle.bedrock.OptionsByType;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
@@ -73,7 +74,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 public abstract class BaseMBeanServerProxyNotificationTests
     {
-    protected static CoherenceCluster startCluster(String sClusterName, int cMember) throws Exception
+    protected static CoherenceCluster startCluster(String sClusterName, int cMember, Option... aOption) throws Exception
         {
         File folderOut = new File(AbstractTestInfrastructure.ensureOutputDir(JmxTests.PROJECT), sClusterName);
 
@@ -89,6 +90,8 @@ public abstract class BaseMBeanServerProxyNotificationTests
                                                  Headless.enabled(),
                                                  IPv4Preferred.autoDetect(),
                                                  FileWriterApplicationConsole.builder(folderOut.getCanonicalPath(), null));
+
+        options.addAll(aOption);
 
         BedrockInvocationProperties.inherit(options);
 
