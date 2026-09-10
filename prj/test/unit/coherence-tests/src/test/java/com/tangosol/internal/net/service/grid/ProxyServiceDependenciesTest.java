@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.grid;
 
@@ -62,6 +62,17 @@ public class ProxyServiceDependenciesTest
         DefaultProxyServiceDependencies deps2 = new DefaultProxyServiceDependencies(deps1);
         assertCloneEquals(deps1, deps2);
         deps2.validate();
+        }
+
+    @Test
+    public void shouldDefaultDynamicWorkersToFirstBlockingIoWindow()
+        {
+        DefaultProxyServiceDependencies deps = new DefaultProxyServiceDependencies();
+        int cProcessors = Math.max(1, Runtime.getRuntime().availableProcessors());
+
+        assertEquals(cProcessors > Integer.MAX_VALUE / 2
+                        ? Integer.MAX_VALUE : cProcessors * 2,
+                deps.getWorkerThreadCountMin());
         }
 
     /**
@@ -183,6 +194,7 @@ public class ProxyServiceDependenciesTest
               "<tcp-delay-enabled>" + flag + "</tcp-delay-enabled>" +
               "<reuse-address>false</reuse-address>" +
               "<send-buffer-size>128kb </send-buffer-size>" +
+              "<connection-pipeline-count>5</connection-pipeline-count>" +
               "<suspect-protocol-enabled>" + flag + "</suspect-protocol-enabled>" +
               "<suspect-buffer-size>   129kb </suspect-buffer-size>" +
               "<suspect-buffer-length> 5000  </suspect-buffer-length>" +
@@ -225,6 +237,7 @@ public class ProxyServiceDependenciesTest
         // test TcpAcceptor
         TcpAcceptorDependencies depsAcceptor = (TcpAcceptorDependencies) deps.getAcceptorDependencies();
         assertEquals(depsAcceptor.getConnectionLimit(), 16);
+        assertEquals(depsAcceptor.getConnectionPipelineCount(), 5);
 
         // note: the send buffer size is in SocketOptions and there is no way to get it.
         System.out.println(" *** SocketOptions ** " + depsAcceptor.getSocketOptions().toString());

@@ -127,10 +127,13 @@ using `<thread-count-min>` and `<thread-count-max>` on the service scheme.
 
 If a service leaves `<thread-count-max>` unconfigured, Coherence now treats the
 historical unbounded default as a request for a _derived_ platform-thread
-maximum rather than a literal infinite cap. The derived value is computed once
-at pool bootstrap from JVM sizing (`Xmx` and thread stack size) and is further
-bounded by a built-in hard ceiling of `2048` threads per pool. Explicit finite
-`thread-count-max` values still win exactly as configured.
+maximum rather than a literal infinite cap. A process-wide coordinator derives
+a safe platform-worker budget from available processors, heap, estimated
+thread-stack cost, process/cgroup memory and Linux VMA headroom where
+available. It distributes that budget across all automatic pools by role, so
+two services cannot independently assume the same native-thread capacity is
+available. Explicit finite `thread-count-max` values still win exactly as
+configured.
 
 === Distributed Cache Service Example
 
@@ -163,14 +166,14 @@ capacity.
   your steady-state load. Setting it too low will cause the pool to grow
   on every burst; setting it too high prevents the pool from shrinking
   when traffic is quiet.
-- Set `thread-count-max` based on available CPU and expected peak load.
-  The pool will not exceed this value, so a maximum that is too low can
-  cap throughput during bursts.
+- Set `thread-count-max` when the deployment needs an explicit service-level
+  ceiling. The pool will not exceed this value, so a maximum that is too low
+  can cap throughput during bursts.
 - If you do not set `thread-count-max`, Coherence derives a safe
   platform-thread maximum automatically. That default is meant as a
-  guardrail, not as a throughput-optimized sizing choice, so production
-  services with well-understood workloads should still set an explicit
-  maximum.
+  resource-safe guardrail. Workload-aware resizing still finds the useful
+  operating point below that maximum, so an explicit maximum is optional
+  unless the deployment requires one.
 - Using `system-property` attributes lets you override the bounds per
   deployment without re-packaging cache configuration.
 
@@ -194,6 +197,92 @@ deployments: either `<thread-count>` for a fixed-size pool, or
 `<thread-count-min>` / `<thread-count-max>` for dynamic resizing within
 bounds.
 ====
+
+== Workload-Aware Growth
+
+Available processors are the normal concurrency knee, not a universal hard
+cap. Tiny in-memory cache tasks are usually CPU-bound near that point, while a
+proxy, persistent store, read/write-through backing map, database call, or
+remote service can leave workers blocked off CPU and benefit from more
+threads.
+
+Above the CPU knee, Coherence samples worker CPU time versus active wall time,
+association width, queue pressure, and completed-task throughput. When the
+evidence shows useful blocking concurrency, it probes toward:
+
+----
+ceil(available processors / worker CPU-to-active-wall ratio)
+----
+
+The probe is bounded by association width, the resize request, and the
+configured or coordinator-derived maximum. A proxy pool without usable CPU
+evidence uses geometric probing. Growth may use a 50% step until the first
+`2 x CPU` I/O window, then narrows to 25% so it does not jump across a nearby
+throughput or latency knee.
+
+Runnable queue depth is not the only pressure signal. A proxy poll,
+persistence operation, read/write-through backing map, database call, or
+remote-service call can occupy every worker while leaving the executable queue
+empty. When at least 75% of the workers remain active and their CPU-to-active-
+wall ratio is low, Coherence applies the same stable, bounded growth probe even
+without runnable backlog. Association-limited work is still held rather than
+grown. Worker occupancy is an upward pressure signal, but it is not proof that
+the resulting concurrency remains efficient; occupied proxy workers may all be
+waiting on downstream responses beyond that service's latency knee.
+
+Before any above-knee probe, the controller requires five consecutive
+same-size throughput samples within 10% of one another. The stable average,
+not a startup or queue-drain ramp, becomes the baseline. The entire added
+batch must then improve average throughput by at least 2% over two samples and
+by at least 10% of the relative concurrency added. Thus a 50% worker increase
+must deliver roughly 5% more throughput. Otherwise it is removed and recorded
+as a learned upper bound for the stable traffic shape. Coherence reopens that
+bound after a material throughput/shape change, a different base window, or
+an external resize rather than periodically imposing the same latency cost. A
+30-second cooldown still protects the immediate transition. This avoids the
+old failure modes at both extremes: a one-worker crawl for I/O-bound traffic
+and unbounded growth for queued CPU-bound microtasks.
+
+After Coherence retains an upward batch, it requires a fresh stable same-size
+baseline before another upward probe. The two samples that admitted one batch
+cannot immediately admit the next. This hysteresis prevents noisy remote-client
+traffic from ratcheting several apparently successful probes together faster
+than a bad worker window can be reverted.
+
+The same stable reference supports contraction and empirical knee discovery.
+Coherence does not continually counter-probe an unchanged production window,
+because even a rejected smaller window would temporarily affect live
+requests. Above the CPU minimum, a material same-size throughput decrease or
+less than 50% worker occupancy initiates a measured half-size probe, and an
+accepted lower step continues by halving until it brackets the knee. A
+throughput increase updates the reference and never initiates contraction; it
+may simply reflect additional offered work. This lets a proxy, persistence,
+backing-map, database, or remote-service pool shed concurrency that keeps
+workers busy but merely moves queueing into a downstream service. The smaller
+window is preferred when throughput is within 2% of the upper reference. The
+marginal-benefit test already applied to upward probes protects an unchanged
+workload from needless overgrowth.
+
+The tolerance applies to the complete descent rather than independently to
+each step. A changed workload first establishes its current throughput as a
+new reference because different operations have inherently different rates.
+Every continuing lower probe is compared with that original upper-window
+reference, preventing several individually small losses from accumulating
+into a material regression. A failed probe restores the preceding worker
+count and records that lower bound so the same stable workload does not
+oscillate. Upward pressure or another changed workload can still re-evaluate
+the knee.
+
+A default proxy platform pool starts at `2 x available processors`; a proxy
+virtual pool uses its blocking-I/O role's `4 x CPU` admission window. Other
+platform service pools start at their CPU allocation. This role-aware starting point avoids spending the first sustained
+remote-client traffic interval climbing out of a CPU-oriented window; measured
+probes still decide whether the pool should grow or contract. Explicit worker
+bounds remain authoritative.
+
+Resize decisions and their reasons are logged at diagnostic level 5. The
+timeline identifies pressure, CPU ratio, target, retained/rejected probes, and
+contraction without requiring per-task production metrics.
 
 == Tuning the Resizing Behavior
 
@@ -446,6 +535,8 @@ that range based on observed throughput and utilization:
 - grow when throughput increases
 - shrink one thread at a time when utilization is sustained low
 - wait out short-lived throughput drops after a grow step
+- probe above the CPU knee in measured batches only when workers are blocked,
+  and retain the whole batch only when throughput improves
 - probe at the maximum size when the workload keeps threads saturated
 - adapt its own schedule to the pace of the workload
 

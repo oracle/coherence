@@ -1749,6 +1749,32 @@ public class ServiceModel
         }
 
     /**
+     * Return the current adaptive direct-task concurrency limit for a
+     * VDP-backed service, or {@code -1} for a platform pool.
+     */
+    public int getDirectTaskLimit()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getDirectTaskLimit()
+                : -1;
+        }
+
+    /**
+     * Return the number of currently admitted direct tasks for a VDP-backed
+     * service, or {@code -1} for a platform pool.
+     */
+    public int getDirectTaskActiveCount()
+        {
+        DaemonPool pool = get_DaemonPool();
+        return pool instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool
+                ? ((com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool) pool)
+                        .getDirectTaskActiveCount()
+                : -1;
+        }
+
+    /**
      * Return the maximum number of concurrently admitted keyed-mailbox
      * drainers for a VDP-backed service, or {@code -1} for a platform pool.
      */
@@ -2677,6 +2703,8 @@ public class ServiceModel
         mapSnapshot.put("MailboxDrainerActiveCount", Integer.valueOf(-1));
         mapSnapshot.put("ReadOnlyTaskLimit", Integer.valueOf(-1));
         mapSnapshot.put("ReadOnlyTaskActiveCount", Integer.valueOf(-1));
+        mapSnapshot.put("DirectTaskLimit", Integer.valueOf(-1));
+        mapSnapshot.put("DirectTaskActiveCount", Integer.valueOf(-1));
 
         if (ExternalizableHelper.isVersionCompatible(in, 15, 1, 2, 0, 0))
             {
@@ -2689,6 +2717,8 @@ public class ServiceModel
                 mapSnapshot.put("MailboxDrainerActiveCount", Integer.valueOf(ExternalizableHelper.readInt(in)));
                 mapSnapshot.put("ReadOnlyTaskLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
                 mapSnapshot.put("ReadOnlyTaskActiveCount", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("DirectTaskLimit", Integer.valueOf(ExternalizableHelper.readInt(in)));
+                mapSnapshot.put("DirectTaskActiveCount", Integer.valueOf(ExternalizableHelper.readInt(in)));
                 }
             catch (java.io.EOFException ignored)
                 {
@@ -3178,6 +3208,8 @@ public class ServiceModel
             ExternalizableHelper.writeInt(out, getMailboxDrainerActiveCount());
             ExternalizableHelper.writeInt(out, getReadOnlyTaskLimit());
             ExternalizableHelper.writeInt(out, getReadOnlyTaskActiveCount());
+            ExternalizableHelper.writeInt(out, getDirectTaskLimit());
+            ExternalizableHelper.writeInt(out, getDirectTaskActiveCount());
             }
         }
     }

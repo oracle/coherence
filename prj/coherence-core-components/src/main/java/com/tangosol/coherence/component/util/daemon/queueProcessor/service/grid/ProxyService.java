@@ -1476,9 +1476,32 @@ public class ProxyService
         invocationServiceProxy.setDependencies(proxyDeps
             .getInvocationServiceProxyDependencies());
         
+        // The ProxyService owns the request worker-pool configuration, but
+        // decoded Extend requests are dispatched by the child Acceptor. Make
+        // the Acceptor use the same configured pool type and virtual-task
+        // limit; otherwise a virtual ProxyService silently leaves request
+        // execution on the Acceptor's default platform pool.
+        com.tangosol.internal.net.service.peer.acceptor.AcceptorDependencies acceptorDeps =
+                proxyDeps.getAcceptorDependencies();
+        if (acceptorDeps instanceof com.tangosol.internal.net.service.DefaultServiceDependencies)
+            {
+            com.tangosol.internal.net.service.DefaultServiceDependencies serviceDeps =
+                    (com.tangosol.internal.net.service.DefaultServiceDependencies) acceptorDeps;
+            if (proxyDeps.isDaemonPoolConfigured())
+                {
+                serviceDeps.setDaemonPoolType(proxyDeps.getDaemonPoolType());
+                }
+            if (proxyDeps.isTaskLimitConfigured()
+                    || proxyDeps.getDaemonPoolType() == com.tangosol.net.DaemonPoolType.VIRTUAL
+                       && proxyDeps.getTaskLimit() > 0)
+                {
+                serviceDeps.setTaskLimit(proxyDeps.getTaskLimit());
+                }
+            }
+
         // create, set, and configure the Acceptor
         ConnectionAcceptor acceptor =
-            Acceptor.createAcceptor(proxyDeps.getAcceptorDependencies(), ctx);    
+            Acceptor.createAcceptor(acceptorDeps, ctx);
         setAcceptor(acceptor);  
         if (acceptor instanceof Acceptor)
             {
@@ -1493,19 +1516,24 @@ public class ProxyService
             //           an HttpAcceptor since it doesn't use its DaemonPool.
             if (!(acceptor instanceof HttpAcceptor))
                 {
-                com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor.DaemonPool pool = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor.DaemonPool) acceptorImpl.getDaemonPool();
-        
-                int cThreads = proxyDeps.getWorkerThreadCountMin();
-                if (cThreads > 0)
+                com.tangosol.coherence.component.util.DaemonPool pool = acceptorImpl.getDaemonPool();
+
+                int     cThreads = proxyDeps.getWorkerThreadCountMin();
+                boolean fVirtual = pool instanceof
+                        com.tangosol.coherence.component.util.daemon.queueProcessor.Service.VirtualDaemonPool;
+                if (fVirtual || cThreads > 0)
                     {
-                    pool.setDaemonCount(cThreads);
-                    pool.setDaemonCountMax(proxyDeps.getWorkerThreadCountMax());
-                    pool.setDaemonCountMin(cThreads);
+                    if (!fVirtual)
+                        {
+                        pool.setDaemonCount(cThreads);
+                        pool.setDaemonCountMax(proxyDeps.getWorkerThreadCountMax());
+                        pool.setDaemonCountMin(cThreads);
+                        pool.setThreadPriority(proxyDeps.getWorkerThreadPriority());
+                        }
                     pool.setDaemonPoolSizingRole(DaemonPoolSizing.Role.BLOCKING_IO);
                     pool.setHungThreshold(proxyDeps.getTaskHungThresholdMillis());
                     pool.setName(sAcceptorServiceName);
                     pool.setTaskTimeout(proxyDeps.getTaskTimeoutMillis());
-                    pool.setThreadPriority(proxyDeps.getWorkerThreadPriority());
                     cacheServiceProxy.setDaemonPool(pool);
                     topicServiceProxy.setDaemonPool(pool);
                     invocationServiceProxy.setDaemonPool(pool);

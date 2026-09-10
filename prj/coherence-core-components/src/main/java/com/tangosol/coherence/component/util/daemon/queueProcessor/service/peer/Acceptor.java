@@ -303,7 +303,7 @@ public abstract class Acceptor
      */
     public com.tangosol.coherence.component.util.DaemonPool getDaemonPool()
         {
-        return (Acceptor.DaemonPool) _findChild("DaemonPool");
+        return super.getDaemonPool();
         }
     
     // Declared at the super level

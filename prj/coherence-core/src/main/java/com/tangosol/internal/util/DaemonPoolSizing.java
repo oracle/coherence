@@ -84,12 +84,22 @@ public final class DaemonPoolSizing
             f_nProcessorMultiple = nProcessorMultiple;
             }
 
-        int getWeightFactor()
+        /**
+         * Return the role's relative initial-sizing weight.
+         *
+         * @return the initial-sizing weight
+         */
+        public int getWeightFactor()
             {
             return f_nWeightFactor;
             }
 
-        int getProcessorMultiple()
+        /**
+         * Return the role's maximum processor multiple.
+         *
+         * @return the maximum processor multiple
+         */
+        public int getProcessorMultiple()
             {
             return f_nProcessorMultiple;
             }
