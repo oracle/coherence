@@ -27,6 +27,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for {@link FutureSubscriber} completion waits.
+ *
+ * @author Aleks Seovic  2026.09.02
+ * @since 26.10
  */
 public class FutureSubscriberTest
     {
