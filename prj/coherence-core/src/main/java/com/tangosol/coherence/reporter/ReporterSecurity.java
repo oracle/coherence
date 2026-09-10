@@ -8,6 +8,8 @@ package com.tangosol.coherence.reporter;
 
 import com.oracle.coherence.common.base.Logger;
 
+import com.tangosol.coherence.config.Config;
+
 import com.tangosol.internal.util.CoherenceMode;
 
 import com.tangosol.run.xml.XmlDocument;
@@ -105,6 +107,19 @@ public final class ReporterSecurity
 
     /**
      * Validate a Reporter resource name before generic resource loading.
+     * <pre>
+     * resource name
+     *   |
+     *   +-- native absolute path ----------------------+
+     *   |                                              |
+     *   +-- no scheme --> trusted classpath?           |
+     *   |                  +-- yes --> return URL      |
+     *   |                  \-- no ---------------------+
+     *   |                                              |
+     *   +-- file: URI ---------------------------------+--> canonicalize --> validate against approved roots --> convert to URL
+     *   |
+     *   \-- other URI --> remote resource allowlist
+     * </pre>
      *
      * @param sName       the report resource name
      * @param loader      the class loader
@@ -120,43 +135,76 @@ public final class ReporterSecurity
             reject(sScope, sOperation, "reporter-resource-allowlist", "empty-resource", sName);
             }
 
-        if (containsControl(sName) || sName.indexOf('\\') >= 0 || sName.indexOf('%') >= 0)
+        boolean fNativeAbsolute  = isNativeAbsolutePath(sName);
+        boolean fWindowsAbsolute = File.separatorChar == '\\' && isWindowsAbsolutePath(sName);
+        boolean fNetworkPath     = sName.startsWith("//") || sName.startsWith("\\\\");
+
+        if (containsControl(sName) || sName.indexOf('%') >= 0
+                || fNetworkPath || (sName.indexOf('\\') >= 0 && !fWindowsAbsolute))
             {
             reject(sScope, sOperation, "reporter-resource-allowlist", "unsafe-resource-name", sName);
             }
 
-        URI uri;
-        try
+        URI uri = null;
+        // native absolute paths use filesystem syntax and may contain characters
+        // that are not valid URI syntax, so only parse non-native paths as URIs
+        if (!fNativeAbsolute)
             {
-            uri = new URI(sName);
-            }
-        catch (URISyntaxException e)
-            {
-            reject(sScope, sOperation, "reporter-resource-allowlist", "invalid-resource-uri", sName);
-            return null;
-            }
-
-        String sScheme = uri.getScheme();
-        if (sScheme == null)
-            {
-            validateRelativePathName(sName, sScope, sOperation, "reporter-resource-allowlist");
-            return resolveRelativeReportResource(sName, loader, sOperation, sScope);
-            }
-
-        if (!"file".equalsIgnoreCase(sScheme))
-            {
-            return resolveRemoteReportUrl(uri, sName, sOperation, sScope);
-            }
-
-        String sHost = uri.getHost();
-        if (sHost != null && !sHost.isEmpty() && !"localhost".equalsIgnoreCase(sHost))
-            {
-            reject(sScope, sOperation, "reporter-resource-allowlist", "unsupported-file-host", sName);
+            try
+                {
+                uri = new URI(sName);
+                }
+            catch (URISyntaxException e)
+                {
+                reject(sScope, sOperation, "reporter-resource-allowlist", "invalid-resource-uri", sName);
+                return null;
+                }
             }
 
         try
             {
-            File file = Paths.get(uri).toFile().getCanonicalFile();
+            File file;
+            if (fNativeAbsolute)
+                {
+                file = new File(sName);
+                }
+            else
+                {
+                String sScheme = uri.getScheme();
+                if (sScheme == null)
+                    {
+                    validateNoSchemeResourceName(sName, sScope, sOperation, "reporter-resource-allowlist");
+
+                    URL url = resolveClasspathReportResource(sName, loader, sOperation, sScope);
+                    if (url != null)
+                        {
+                        return url;
+                        }
+
+                    // no classpath resource was found, so treat the name as a filesystem path
+                    file = new File(sName);
+                    }
+                else if (!"file".equalsIgnoreCase(sScheme))
+                    {
+                    return resolveRemoteReportUrl(uri, sName, sOperation, sScope);
+                    }
+                else
+                    {
+                    String sHost = uri.getHost();
+                    String sPath = uri.getPath();
+                    if (sHost != null && !sHost.isEmpty() && !"localhost".equalsIgnoreCase(sHost))
+                        {
+                        reject(sScope, sOperation, "reporter-resource-allowlist", "unsupported-file-host", sName);
+                        }
+                    if (sPath != null && sPath.startsWith("//"))
+                        {
+                        reject(sScope, sOperation, "reporter-resource-allowlist", "unsafe-resource-name", sName);
+                        }
+                    file = Paths.get(uri).toFile();
+                    }
+                }
+
+            file = file.getCanonicalFile();
             if (!isUnderAny(file, getApprovedReportFileRoots()))
                 {
                 if (!CoherenceMode.isSecurityHardeningEnabled())
@@ -455,7 +503,17 @@ public final class ReporterSecurity
 
     // ----- helper methods -------------------------------------------------
 
-    private static URL resolveRelativeReportResource(String sName, ClassLoader loader, String sOperation, String sScope)
+    /**
+     * Resolve a caller-supplied name without a URI scheme from the classpath.
+     *
+     * @param sName       the resource name
+     * @param loader      the class loader
+     * @param sOperation  the Reporter operation
+     * @param sScope      the caller scope
+     *
+     * @return the trusted classpath resource, or {@code null} if it was not found
+     */
+    private static URL resolveClasspathReportResource(String sName, ClassLoader loader, String sOperation, String sScope)
         {
         URL url = Resources.findResource(sName, loader, null);
         if (url != null)
@@ -468,26 +526,6 @@ public final class ReporterSecurity
 
             reject(sScope, sOperation, "reporter-resource-allowlist", "unsupported-resource-protocol", sName);
             }
-
-        try
-            {
-            File file = new File(sName).getCanonicalFile();
-            if (file.exists() && isUnderAny(file, getApprovedReportFileRoots()))
-                {
-                return file.toURI().toURL();
-                }
-            if (file.exists() && !CoherenceMode.isSecurityHardeningEnabled())
-                {
-                shadow(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
-                return file.toURI().toURL();
-                }
-            }
-        catch (IOException | RuntimeException e)
-            {
-            reject(sScope, sOperation, "reporter-resource-allowlist", "invalid-file-resource", sName);
-            }
-
-        reject(sScope, sOperation, "reporter-resource-allowlist", "file-outside-root", sName);
         return null;
         }
 
@@ -588,32 +626,44 @@ public final class ReporterSecurity
         return "https".equalsIgnoreCase(sScheme) ? 443 : 80;
         }
 
-    private static void validateRelativePathName(String sName, String sScope, String sOperation, String sGate)
+    /**
+     * Validate a caller-supplied resource name that has no URI scheme and is
+     * not a native absolute path.
+     *
+     * @param sName       the resource name
+     * @param sScope      the caller scope
+     * @param sOperation  the Reporter operation
+     * @param sGate       the security gate
+     */
+    private static void validateNoSchemeResourceName(String sName, String sScope, String sOperation, String sGate)
         {
         if (sName.startsWith("/") || sName.startsWith(".") || sName.contains("//"))
             {
             reject(sScope, sOperation, sGate, "unsafe-relative-path", sName);
             }
 
+        Path path;
         try
             {
-            Path path = Paths.get(sName).normalize();
-            if (path.isAbsolute())
-                {
-                reject(sScope, sOperation, sGate, "absolute-path", sName);
-                }
-
-            for (Path part : path)
-                {
-                if ("..".equals(part.toString()))
-                    {
-                    reject(sScope, sOperation, sGate, "path-traversal", sName);
-                    }
-                }
+            path = Paths.get(sName);
             }
         catch (RuntimeException e)
             {
             reject(sScope, sOperation, sGate, "invalid-path", sName);
+            return;
+            }
+
+        if (path.isAbsolute())
+            {
+            reject(sScope, sOperation, sGate, "absolute-path", sName);
+            }
+
+        for (Path part : path)
+            {
+            if ("..".equals(part.toString()))
+                {
+                reject(sScope, sOperation, sGate, "path-traversal", sName);
+                }
             }
         }
 
@@ -665,7 +715,7 @@ public final class ReporterSecurity
     private static File getApprovedOutputRoot()
             throws IOException
         {
-        String sRoot = System.getProperty("coherence.reporter.output.directory", ".");
+        String sRoot = Config.getProperty("coherence.reporter.output.directory", ".");
         return new File(sRoot == null || sRoot.trim().isEmpty() ? "." : sRoot).getCanonicalFile();
         }
 
@@ -673,26 +723,33 @@ public final class ReporterSecurity
             throws IOException
         {
         Set<File> setRoots = new HashSet<>();
-        String    sConfig  = System.getProperty("coherence.management.report.configuration");
+        String    sConfig  = Config.getProperty("coherence.management.report.configuration");
 
         if (sConfig != null && !sConfig.trim().isEmpty())
             {
             try
                 {
-                URI    uri    = new URI(sConfig);
-                String sScheme = uri.getScheme();
-                File   file;
-                if (sScheme == null)
+                File file;
+                if (isNativeAbsolutePath(sConfig))
                     {
                     file = new File(sConfig);
                     }
-                else if ("file".equalsIgnoreCase(sScheme))
-                    {
-                    file = Paths.get(uri).toFile();
-                    }
                 else
                     {
-                    file = null;
+                    URI    uri     = new URI(sConfig);
+                    String sScheme = uri.getScheme();
+                    if (sScheme == null)
+                        {
+                        file = new File(sConfig);
+                        }
+                    else if ("file".equalsIgnoreCase(sScheme))
+                        {
+                        file = Paths.get(uri).toFile();
+                        }
+                    else
+                        {
+                        file = null;
+                        }
                     }
 
                 if (file != null)
@@ -724,6 +781,18 @@ public final class ReporterSecurity
                 }
             }
         return false;
+        }
+
+    /**
+     * Return whether a path is absolute according to the native filesystem.
+     *
+     * @param sPath  the path
+     *
+     * @return {@code true} if the path is native and absolute
+     */
+    private static boolean isNativeAbsolutePath(String sPath)
+        {
+        return new File(sPath).isAbsolute();
         }
 
     private static boolean isUnder(File file, File root)
