@@ -2607,7 +2607,7 @@ public abstract class Peer
             }
         catch (Throwable e)
             {
-            onMessageDecodeException(e, in, connection, true);
+            onMessageDecodeException(e, rb.getBufferInput(), connection, true);
             return;
             }
         finally
