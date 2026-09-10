@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -682,8 +682,10 @@ public class SimpleMapIndex
                 holder.set(key);
                 }
 
-            setKeys.add(oKey);
-            onMappingAdded(oExtracted, setKeys.size());
+            if (setKeys.add(oKey))
+                {
+                onMappingAdded(oExtracted, setKeys.size());
+                }
 
             return setKeys;
             });
@@ -765,8 +767,10 @@ public class SimpleMapIndex
                     }
                 }
 
-            setKeys.add(oKey);
-            onMappingAdded(oExtracted, setKeys.size());
+            if (setKeys.add(oKey))
+                {
+                onMappingAdded(oExtracted, setKeys.size());
+                }
             }
 
         if (fCandidate && (fScanForward || setCandidateKeys != null))
@@ -886,16 +890,20 @@ public class SimpleMapIndex
             }
         else
             {
-            Object oExtracted = null;
-            setKeys.remove(oKey);
+            boolean fInflated = !(setKeys instanceof InflatableCollection)
+                    || ((InflatableCollection) setKeys).isInflated();
 
-            if (setKeys.isEmpty())
+            if (setKeys.remove(oKey))
                 {
-                oExtracted = oIxValue;
-                mapIndex.remove(oExtracted);
-                }
+                Object oExtracted = null;
+                if (setKeys.isEmpty())
+                    {
+                    oExtracted = oIxValue;
+                    mapIndex.remove(oExtracted);
+                    }
 
-            onMappingRemoved(oExtracted);
+                onMappingRemoved(oExtracted, fInflated);
+                }
             }
         }
 
@@ -1001,6 +1009,23 @@ public class SimpleMapIndex
                     : calc.calculateUnits(null, oValue) +
                         IndexCalculator.SET_OVERHEAD + IndexCalculator.INFLATION_OVERHEAD);
         setUnits(getUnits() - cb);
+        }
+
+    /**
+    * Decrease the size of the index by the estimated size of the specified
+    * removed value, taking into account whether its key set was inflated.
+    *
+    * @param oValue     the value being removed from the index
+    * @param fInflated  {@code true} if the key set was inflated
+    */
+    protected void onMappingRemoved(Object oValue, boolean fInflated)
+        {
+        onMappingRemoved(oValue);
+
+        if (oValue != null && !fInflated)
+            {
+            setUnits(getUnits() + IndexCalculator.INFLATION_OVERHEAD);
+            }
         }
 
     /**

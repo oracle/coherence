@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,13 +14,15 @@ import com.tangosol.util.extractor.IdentityExtractor;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashMap;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -449,6 +451,80 @@ public class SimpleMapIndexTest
         throws Exception
         {
         insertUpdateWithCollection(true);
+        }
+
+    /**
+    * Test that updating a Collection does not account for inverse mappings
+    * that already exist.
+    */
+    @Test
+    public void testUnitsAfterRepeatedCollectionUpdates()
+        {
+        SimpleMapIndex index = new SimpleMapIndex(new IdentityExtractor(), false, null, null);
+        List<Integer>  list  = new ArrayList<>();
+
+        for (int i = 0; i < 50; i++)
+            {
+            list.add(i);
+            }
+
+        list.add(50);
+        index.insert(new SimpleMapEntry("key", list));
+
+        for (int i = 0; i < 100; i++)
+            {
+            list = new ArrayList<>(list.subList(0, 50));
+            list.add(50 + i % 2);
+            index.update(new SimpleMapEntry("key", list));
+            }
+
+        SimpleMapIndex indexRebuilt = new SimpleMapIndex(new IdentityExtractor(), false, null, null);
+        indexRebuilt.insert(new SimpleMapEntry("key", list));
+
+        assertEquals(indexRebuilt.getIndexContents(), index.getIndexContents());
+        assertEquals(indexRebuilt.getUnits(), index.getUnits());
+        }
+
+    /**
+    * Test that inserting and deleting singleton inverse mappings restores the
+    * original footprint.
+    */
+    @Test
+    public void testUnitsAfterSingletonMappingChurn()
+        {
+        SimpleMapIndex index   = new SimpleMapIndex(new IdentityExtractor(), false, null, null);
+        long           cbUnits = index.getUnits();
+
+        for (int i = 0; i < 20; i++)
+            {
+            SimpleMapEntry entry = new SimpleMapEntry("key-" + i, "value-" + i);
+            index.insert(entry);
+            index.delete(entry);
+            }
+
+        assertTrue(index.getIndexContents().isEmpty());
+        assertEquals(cbUnits, index.getUnits());
+        }
+
+    /**
+    * Test that removing an inflated inverse mapping restores the original
+    * footprint after the key set shrinks back through the singleton state.
+    */
+    @Test
+    public void testUnitsAfterInflatedMappingRemoved()
+        {
+        SimpleMapIndex index   = new SimpleMapIndex(new IdentityExtractor(), false, null, null);
+        long           cbUnits = index.getUnits();
+        SimpleMapEntry entry1  = new SimpleMapEntry("key-1", "value");
+        SimpleMapEntry entry2  = new SimpleMapEntry("key-2", "value");
+
+        index.insert(entry1);
+        index.insert(entry2);
+        index.delete(entry1);
+        index.delete(entry2);
+
+        assertTrue(index.getIndexContents().isEmpty());
+        assertEquals(cbUnits, index.getUnits());
         }
 
     /**
