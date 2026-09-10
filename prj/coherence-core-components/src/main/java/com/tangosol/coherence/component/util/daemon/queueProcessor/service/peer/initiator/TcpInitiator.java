@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1698,12 +1698,11 @@ public class TcpInitiator
                 {
                 // COH-1253:
                 // wrap the Socket input/output streams with buffered input/output streams
-                // with internal buffers large enough to hold a packed integer; this
-                // avoids multiple system calls while writing/reading the message size
+                // with internal buffers large enough to amortize socket system calls
                 setDataInputStream(new DataInputStream(
-                        new BufferedInputStream(socket.getInputStream(), 5)));
+                        new BufferedInputStream(socket.getInputStream(), 8192)));
                 setDataOutputStream(new DataOutputStream(
-                        new BufferedOutputStream(socket.getOutputStream(), 5)));
+                        new BufferedOutputStream(socket.getOutputStream(), 8192)));
                 }
             catch (IOException e)
                 {
