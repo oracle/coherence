@@ -13,6 +13,8 @@ import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 import com.tangosol.internal.util.PartitionedCacheComponent;
 
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
+
 import com.tangosol.io.FileHelper;
 import com.tangosol.io.ReadBuffer;
 
@@ -44,6 +46,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -368,6 +371,67 @@ public class JournalBackingMapTest
         verify(service).ensureOpenBackupPersistentStore(9);
         verify(service, never()).getPersistentStore(9);
         verify(service, never()).ensureOpenPersistentStore(9);
+        }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testStoreIsSealedOnlyOnceAcrossMutations()
+        {
+        PersistentStore<ReadBuffer> store   = mock(PersistentStore.class);
+        PartitionedCache            service = mock(PartitionedCache.class);
+        Object                      token   = new Object();
+
+        when(service.ensureOpenPersistentStore(7)).thenReturn(store);
+        when(service.getPartitionCount()).thenReturn(257);
+        when(store.isOpen()).thenReturn(true);
+        when(store.begin()).thenReturn(token);
+
+        JournalBackingMap map = new JournalBackingMap();
+        map.setPartitionedCacheService(service);
+        map.setPartition(7);
+        map.setExtentId(1L);
+
+        map.put(new Binary(new byte[] {7, 1}), new Binary(new byte[] {71}));
+        map.put(new Binary(new byte[] {7, 2}), new Binary(new byte[] {72}));
+
+        verify(store).begin();
+        verify(store).commit(token);
+        verify(store, times(3)).store(
+                org.mockito.ArgumentMatchers.eq(CachePersistenceHelper.META_EXTENT),
+                org.mockito.ArgumentMatchers.any(Binary.class),
+                org.mockito.ArgumentMatchers.any(Binary.class),
+                org.mockito.ArgumentMatchers.same(token));
+        }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testStoreReplacementRequiresNewSeal()
+        {
+        PersistentStore<ReadBuffer> storeOne = mock(PersistentStore.class);
+        PersistentStore<ReadBuffer> storeTwo = mock(PersistentStore.class);
+        PartitionedCache            service  = mock(PartitionedCache.class);
+        Object                      tokenOne = new Object();
+        Object                      tokenTwo = new Object();
+
+        when(service.ensureOpenPersistentStore(7)).thenReturn(storeOne, storeTwo);
+        when(service.getPartitionCount()).thenReturn(257);
+        when(storeOne.isOpen()).thenReturn(true);
+        when(storeOne.begin()).thenReturn(tokenOne);
+        when(storeTwo.isOpen()).thenReturn(true);
+        when(storeTwo.begin()).thenReturn(tokenTwo);
+
+        JournalBackingMap map = new JournalBackingMap();
+        map.setPartitionedCacheService(service);
+        map.setPartition(7);
+        map.setExtentId(1L);
+
+        map.put(new Binary(new byte[] {7, 1}), new Binary(new byte[] {71}));
+        map.put(new Binary(new byte[] {7, 2}), new Binary(new byte[] {72}));
+
+        verify(storeOne).begin();
+        verify(storeOne).commit(tokenOne);
+        verify(storeTwo).begin();
+        verify(storeTwo).commit(tokenTwo);
         }
 
     @Test

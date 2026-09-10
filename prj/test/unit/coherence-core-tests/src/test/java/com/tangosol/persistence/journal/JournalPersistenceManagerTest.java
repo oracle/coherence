@@ -106,6 +106,32 @@ public class JournalPersistenceManagerTest
         }
 
     /**
+     * Verify journal-store emptiness is determined from persisted extent
+     * metadata rather than the physical store directory contents.
+     */
+    @Test
+    public void testIsEmptyUsesPersistedExtentMetadata()
+        {
+        AbstractPersistenceManager manager = m_manager;
+
+        AbstractPersistentStore store = (AbstractPersistentStore) manager.open(TEST_STORE_ID, null);
+
+        // Opening a store writes generic metadata, but it still represents an
+        // empty partition until an extent is created.
+        assertTrue(manager.isEmpty(TEST_STORE_ID));
+
+        manager.close(TEST_STORE_ID);
+        assertTrue(manager.isEmpty(TEST_STORE_ID));
+
+        store = (AbstractPersistentStore) manager.open(TEST_STORE_ID, null);
+        store.ensureExtent(1L);
+        assertFalse(manager.isEmpty(TEST_STORE_ID));
+
+        manager.close(TEST_STORE_ID);
+        assertFalse(manager.isEmpty(TEST_STORE_ID));
+        }
+
+    /**
      * Verify createSnapshot writes expected journal store files.
      *
      * @throws IOException on test failure

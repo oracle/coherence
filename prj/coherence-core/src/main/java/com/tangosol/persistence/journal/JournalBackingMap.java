@@ -185,6 +185,7 @@ public class JournalBackingMap
         {
         m_store = store;
         m_fMetadataEnsured = false;
+        m_fStoreSealed = false;
         }
 
     public PersistentStore<ReadBuffer> getStore()
@@ -296,6 +297,7 @@ public class JournalBackingMap
                 if (store != m_store)
                     {
                     m_fMetadataEnsured = false;
+                    m_fStoreSealed = false;
                     }
                 m_store = store;
                 }
@@ -336,9 +338,16 @@ public class JournalBackingMap
     private void sealStore(PersistentStore<ReadBuffer> store)
         {
         PartitionedCacheComponent service = m_service;
-        if (store != null && service instanceof PartitionedService)
+        if (store != null && service instanceof PartitionedService && !m_fStoreSealed)
             {
-            CachePersistenceHelper.seal(store, (PartitionedService) service, null);
+            synchronized (this)
+                {
+                if (!m_fStoreSealed)
+                    {
+                    CachePersistenceHelper.seal(store, (PartitionedService) service, null);
+                    m_fStoreSealed = true;
+                    }
+                }
             }
         }
 
@@ -393,5 +402,13 @@ public class JournalBackingMap
      * {@code true} once cache metadata has been written to the current store.
      */
     private volatile boolean m_fMetadataEnsured;
+
+    /**
+     * {@code true} once the current store has been sealed by this map.
+     * A seal marks the initialized store, not an individual mutation, so it
+     * remains valid across subsequent journal commits. The flag is reset
+     * whenever store resolution selects a different store.
+     */
+    private volatile boolean m_fStoreSealed;
 
     }

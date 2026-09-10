@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,6 +16,7 @@ import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.UID;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 
@@ -307,6 +308,43 @@ public class GUIDHelperTest
         assertTrue(mapAvail.get(aMembers[4]).contains(5));
         assertTrue(mapAvail.get(aMembers[5]).isEmpty());
         assertTrue(mapAvail.get(aMembers[6]).isFull());
+        }
+
+    @Test
+    public void shouldConstrainRecoveryToMembersThatSeeTheSelectedStore()
+        {
+        Member memberOne = getMockMember(1);
+        Member memberTwo = getMockMember(2);
+        long   ldt       = 1341890565000L;
+
+        String sNonEmpty = GUIDHelper.generateGUID(0, 1, ldt, memberOne);
+        String sEmpty    = GUIDHelper.generateGUID(0, 1, ldt, memberTwo);
+        String sShared   = GUIDHelper.generateGUID(1, 1, ldt, memberOne);
+
+        GUIDHelper.GUIDResolver resolver = new GUIDHelper.GUIDResolver(2);
+        resolver.registerStoreInfo(memberOne, new PersistentStoreInfo[]
+            {
+            new PersistentStoreInfo(sNonEmpty, false),
+            new PersistentStoreInfo(sShared, false)
+            });
+        resolver.registerStoreInfo(memberTwo, new PersistentStoreInfo[]
+            {
+            new PersistentStoreInfo(sEmpty, true),
+            new PersistentStoreInfo(sShared, false)
+            });
+
+        Map<Member, PartitionSet> mapAvailable = resolver.resolve();
+
+        assertEquals(sNonEmpty, resolver.getNewestGUID(0));
+        assertTrue(mapAvailable.get(memberOne).contains(0));
+        assertFalse(mapAvailable.get(memberTwo).contains(0));
+
+        // A shared store remains recoverable by every member that can see it.
+        assertTrue(mapAvailable.get(memberOne).contains(1));
+        assertTrue(mapAvailable.get(memberTwo).contains(1));
+
+        assertEquals(Collections.singletonList(sEmpty),
+                resolver.getInvalidGUIDs().get(memberTwo));
         }
 
     // ----- helpers --------------------------------------------------------
