@@ -91,7 +91,12 @@ public class DaemonPoolGrowthPolicy
         {
         if (m_cProbeThreads == 0)
             {
+            if (m_cRecoveryThreads > 0 && sample.getThreadCount() >= m_cRecoveryThreads)
+                {
+                clearRecoveryWindow();
+                }
             recordBaseline(sample);
+            recordOffCpuSaturation(sample);
             int cMinimum = Math.max(sample.getMinimumThreadCount(),
                     Math.min(sample.getProcessorCount(), sample.getMaximumThreadCount()));
             if (shouldProbeLower(sample, cMinimum))
@@ -105,6 +110,14 @@ public class DaemonPoolGrowthPolicy
                 if (cTarget >= sample.getThreadCount())
                     {
                     cTarget = cCurrent - 1;
+                    }
+                if (fUnderOccupied)
+                    {
+                    rememberRecoveryWindow(cCurrent);
+                    }
+                else if (fShapeChanged)
+                    {
+                    clearRecoveryWindow();
                     }
                 if (fShapeChanged)
                     {
@@ -175,9 +188,48 @@ public class DaemonPoolGrowthPolicy
             clearBaseline();
             clearReference();
             clearUpperRejection();
+            clearRecoveryWindow();
             recordBaseline(sample);
             return Decision.none();
             }
+
+        if (m_fProbeDownward && isOffCpuSaturated(sample))
+            {
+            int    cPrevious           = m_cProbePrevious;
+            int    cProbeDelta         = m_cProbeThreads - cPrevious;
+            double dflPreviousThroughput = m_dflProbePreviousThroughput;
+
+            clearProbe();
+            setBaseline(cPrevious, dflPreviousThroughput);
+            setLowerRejection(cPrevious, dflPreviousThroughput);
+            clearOffCpuSaturation();
+            m_fSeekLower = false;
+            return Decision.resize(-cProbeDelta,
+                    "the lower-worker probe created off-CPU saturation");
+            }
+
+        // A traffic pause is not evidence that the probed worker count lost
+        // throughput.  In particular, a probe started near the end of a
+        // benchmark phase used to consume the following idle samples and be
+        // rejected as a -100% result.  Pause the evaluation across a brief
+        // idle gap and require a complete set of fresh active samples when
+        // work resumes.  If the pool remains idle, abandon the probe without
+        // learning an upper rejection so normal idle contraction can resume.
+        if (isIdle(sample))
+            {
+            m_cProbeSampleCount       = 0;
+            m_dflProbeThroughputTotal = 0.0d;
+            if (++m_cProbeIdleSampleCount < f_cProbeSamples)
+                {
+                return Decision.hold("the worker-count probe is paused across an idle workload");
+                }
+
+            clearProbe();
+            clearBaseline();
+            clearOffCpuSaturation();
+            return Decision.none("the worker-count probe was abandoned across an idle workload");
+            }
+        m_cProbeIdleSampleCount = 0;
 
         m_dflProbeThroughputTotal += sample.getThroughput();
         if (++m_cProbeSampleCount < f_cProbeSamples)
@@ -220,6 +272,11 @@ public class DaemonPoolGrowthPolicy
                 clearBaseline();
                 recordBaseline(sample);
                 setReference(sample.getThreadCount(), dflAverage);
+                if (m_cRecoveryThreads > 0
+                        && sample.getThreadCount() >= m_cRecoveryThreads)
+                    {
+                    clearRecoveryWindow();
+                    }
                 }
             clearLowerRejection();
             m_fSeekLower = fDownward
@@ -239,7 +296,8 @@ public class DaemonPoolGrowthPolicy
         else
             {
             setReference(cPrevious, dflBaseline);
-            setUpperRejection(cPrevious, cPrevious + cProbeDelta, dflPreviousThroughput);
+            setUpperRejection(cPrevious, cPrevious + cProbeDelta,
+                    dflPreviousThroughput, sample.getBacklog());
             m_ldtProbeRejected = sample.getTimestamp();
             }
         return Decision.resize(-cProbeDelta,
@@ -300,13 +358,38 @@ public class DaemonPoolGrowthPolicy
             return Decision.hold("no blocking evidence above the CPU allocation");
             }
 
+        boolean fSustainedSaturation = hasSustainedOffCpuSaturation(sample);
+        if (m_cRecoveryThreads > cThreads && fSustainedSaturation)
+            {
+            int cTarget = Math.min(sample.getMaximumThreadCount(), m_cRecoveryThreads);
+            int cDelta  = cTarget - cThreads;
+            if (cDelta > 0)
+                {
+                clearOffCpuSaturation();
+                return Decision.grow(cDelta, false,
+                        "sustained off-CPU saturation restored a recently proven worker window");
+                }
+            }
+
+        // A rejected probe describes the workload shape under which it was
+        // measured, not an eternal ceiling. A materially larger queued
+        // pressure means the demand shape has changed even when noisy remote
+        // throughput cannot establish five adjacent stable samples.
+        if (fSustainedSaturation && isUpperRejectionPressureChanged(sample))
+            {
+            clearUpperRejection();
+            m_ldtProbeRejected = Long.MIN_VALUE;
+            }
+
         if (sample.getTimestamp() < m_ldtProbeRejected + f_cProbeCooldownMillis)
             {
             return Decision.hold("the above-CPU worker probe cooldown");
             }
 
-        if (m_cBaselineConcurrency != cThreads
+        if (!fSustainedSaturation
+                && (m_cBaselineConcurrency != cThreads
                 || m_cBaselineSampleCount < f_cBaselineSamples)
+           )
             {
             return Decision.hold("waiting for a stable throughput baseline");
             }
@@ -339,9 +422,14 @@ public class DaemonPoolGrowthPolicy
         // transient ramp cannot leap over a nearby throughput/latency knee.
         int cFastCeiling = cProcessors > Integer.MAX_VALUE / 2
                 ? Integer.MAX_VALUE : cProcessors * 2;
-        boolean fFastStep = cThreads < cFastCeiling;
-        int cStep = Math.max(1, cThreads / (fFastStep ? 2 : 4));
-        if (fFastStep)
+        boolean fBelowFastCeiling = cThreads < cFastCeiling;
+        // A sustained saturated ramp has enough evidence to advance faster
+        // than the normal quarter-pool probe, but retain a narrower batch
+        // than the below-knee half-pool step so it cannot leap across a
+        // nearby latency knee in one decision.
+        int cDivisor = fBelowFastCeiling ? 2 : fSustainedSaturation ? 3 : 4;
+        int cStep = Math.max(1, cThreads / cDivisor);
+        if (fBelowFastCeiling)
             {
             cTarget = Math.min(cTarget, cFastCeiling);
             }
@@ -378,6 +466,7 @@ public class DaemonPoolGrowthPolicy
                 ? m_dflBaselineAverage : sample.getThroughput();
         startProbe(sample.getThreadCount(), cThreadCount, dflBaseline,
                 dflBaseline, false);
+        clearOffCpuSaturation();
         }
 
     /**
@@ -398,6 +487,7 @@ public class DaemonPoolGrowthPolicy
         m_cProbeThreads           = 0;
         m_cProbePrevious          = 0;
         m_cProbeSampleCount       = 0;
+        m_cProbeIdleSampleCount   = 0;
         m_dflProbeBaseline        = 0.0d;
         m_dflProbePreviousThroughput = 0.0d;
         m_dflProbeThroughputTotal = 0.0d;
@@ -425,6 +515,7 @@ public class DaemonPoolGrowthPolicy
         clearBaseline();
         clearReference();
         clearUpperRejection();
+        clearRecoveryWindow();
         }
 
     private boolean shouldProbeLower(Sample sample, int cMinimum)
@@ -436,7 +527,7 @@ public class DaemonPoolGrowthPolicy
             }
         if (m_fSeekLower)
             {
-            return true;
+            return sample.getBacklog() <= 0;
             }
         if (m_cLowerRejectedConcurrency == sample.getThreadCount()
                 && m_dflLowerRejectedThroughput > 0.0d
@@ -461,6 +552,79 @@ public class DaemonPoolGrowthPolicy
         {
         return sample.getBacklog() <= 0
                 && sample.getActiveCount() < sample.getThreadCount() * 0.50d;
+        }
+
+    private boolean isIdle(Sample sample)
+        {
+        return sample.getThroughput() <= 0.0d
+                && sample.getActiveCount() <= 0.0d
+                && sample.getBacklog() <= 0;
+        }
+
+    private boolean isOffCpuSaturated(Sample sample)
+        {
+        int cThreads = sample.getThreadCount();
+        if (sample.getBacklog() <= 0
+                || sample.getActiveCount() < cThreads * 0.90d)
+            {
+            return false;
+            }
+
+        int cAssociations = sample.getActiveAssociationCount();
+        if (cAssociations > 0 && cAssociations <= cThreads)
+            {
+            return false;
+            }
+
+        double dflCpuRatio = sample.getWorkerCpuRatio();
+        return dflCpuRatio < f_dflCpuThreshold
+                && (dflCpuRatio >= 0.0d
+                    || sample.getRole() == DaemonPoolSizing.Role.BLOCKING_IO);
+        }
+
+    private void rememberRecoveryWindow(int cThreads)
+        {
+        m_cRecoveryThreads = Math.max(m_cRecoveryThreads, cThreads);
+        clearOffCpuSaturation();
+        }
+
+    private void recordOffCpuSaturation(Sample sample)
+        {
+        int cThreads = sample.getThreadCount();
+        if (!isOffCpuSaturated(sample))
+            {
+            clearOffCpuSaturation();
+            return;
+            }
+
+        if (m_cOffCpuSaturationThreads != cThreads)
+            {
+            m_cOffCpuSaturationThreads     = cThreads;
+            m_cOffCpuSaturationSampleCount = 1;
+            }
+        else
+            {
+            m_cOffCpuSaturationSampleCount = Math.min(OFF_CPU_SATURATION_SAMPLES,
+                    m_cOffCpuSaturationSampleCount + 1);
+            }
+        }
+
+    private boolean hasSustainedOffCpuSaturation(Sample sample)
+        {
+        return m_cOffCpuSaturationThreads == sample.getThreadCount()
+                && m_cOffCpuSaturationSampleCount >= OFF_CPU_SATURATION_SAMPLES;
+        }
+
+    private void clearOffCpuSaturation()
+        {
+        m_cOffCpuSaturationThreads     = 0;
+        m_cOffCpuSaturationSampleCount = 0;
+        }
+
+    private void clearRecoveryWindow()
+        {
+        m_cRecoveryThreads = 0;
+        clearOffCpuSaturation();
         }
 
     private boolean shouldProbeBlockedWork(Sample sample, int cMinimum)
@@ -571,11 +735,27 @@ public class DaemonPoolGrowthPolicy
                     < m_dflUpperRejectedThroughput * f_dflWorkloadChange;
         }
 
-    private void setUpperRejection(int cThreads, int cTarget, double dflThroughput)
+    private boolean isUpperRejectionPressureChanged(Sample sample)
+        {
+        if (m_cUpperRejectedConcurrency != sample.getThreadCount()
+                || m_cUpperRejectedTarget <= 0)
+            {
+            return false;
+            }
+
+        int cRejected = Math.max(0, m_cUpperRejectedBacklog);
+        int cThreshold = Math.max(cRejected + Math.max(1, sample.getThreadCount()),
+                Math.max(1, cRejected) * 2);
+        return sample.getBacklog() >= cThreshold;
+        }
+
+    private void setUpperRejection(int cThreads, int cTarget, double dflThroughput,
+            int cBacklog)
         {
         m_cUpperRejectedConcurrency = cThreads;
         m_cUpperRejectedTarget      = cTarget;
         m_dflUpperRejectedThroughput = dflThroughput;
+        m_cUpperRejectedBacklog      = Math.max(0, cBacklog);
         }
 
     private void clearUpperRejection()
@@ -583,6 +763,7 @@ public class DaemonPoolGrowthPolicy
         m_cUpperRejectedConcurrency = 0;
         m_cUpperRejectedTarget      = 0;
         m_dflUpperRejectedThroughput = 0.0d;
+        m_cUpperRejectedBacklog      = 0;
         }
 
     private void setLowerRejection(int cThreads, double dflThroughput)
@@ -720,9 +901,13 @@ public class DaemonPoolGrowthPolicy
     private final double f_dflWorkloadChange;
     private final double f_dflProbeEfficiency;
 
+    /** Queued/saturated observations needed to act without a stable throughput baseline. */
+    private static final int OFF_CPU_SATURATION_SAMPLES = 3;
+
     private int    m_cProbeThreads;
     private int    m_cProbePrevious;
     private int    m_cProbeSampleCount;
+    private int    m_cProbeIdleSampleCount;
     private double m_dflProbeBaseline;
     private double m_dflProbePreviousThroughput;
     private double m_dflProbeThroughputTotal;
@@ -735,9 +920,13 @@ public class DaemonPoolGrowthPolicy
     private double m_dflReferenceThroughput;
     private int    m_cUpperRejectedConcurrency;
     private int    m_cUpperRejectedTarget;
+    private int    m_cUpperRejectedBacklog;
     private double m_dflUpperRejectedThroughput;
     private int    m_cLowerRejectedConcurrency;
     private double m_dflLowerRejectedThroughput;
     private boolean m_fProbeDownward;
     private boolean m_fSeekLower;
+    private int     m_cRecoveryThreads;
+    private int     m_cOffCpuSaturationThreads;
+    private int     m_cOffCpuSaturationSampleCount;
     }
