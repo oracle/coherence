@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net.service.peer.acceptor;
 
@@ -88,6 +88,20 @@ public interface TcpAcceptorDependencies
      * @return the incoming buffer pool configuration
      */
     public BufferPoolConfig getIncomingBufferPoolConfig();
+
+    /**
+     * Return the number of connection-affine processing pipelines used by a
+     * TCP proxy acceptor. Each accepted connection is owned by exactly one
+     * pipeline for its lifetime.
+     *
+     * @return the connection pipeline count
+     *
+     * @since 14.1.2.0.9
+     */
+    default int getConnectionPipelineCount()
+        {
+        return 1;
+        }
 
     /**
      * Return the listen backlog.

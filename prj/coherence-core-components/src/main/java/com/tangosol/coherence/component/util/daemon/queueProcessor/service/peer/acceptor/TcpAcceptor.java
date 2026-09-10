@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -205,6 +205,21 @@ public class TcpAcceptor
      * The TCP/IP I/O processor daemon.
      */
     private transient TcpAcceptor.TcpProcessor __m_Processor;
+
+    /**
+     * Connection-affine I/O processors. Processor zero owns the listening
+     * socket; accepted connections are distributed across all processors for
+     * their lifetime.
+     */
+    private transient volatile TcpAcceptor.TcpProcessor[] __m_IoProcessors;
+
+    private transient java.util.concurrent.atomic.AtomicInteger __m_IoProcessorNext =
+            new java.util.concurrent.atomic.AtomicInteger();
+
+    /**
+     * Configured count of connection-affine selector/decode pipelines.
+     */
+    private int __m_ConnectionPipelineCount = 1;
     
     /**
      * Property SocketOptions
@@ -785,6 +800,84 @@ public class TcpAcceptor
             }
         return processor;
         }
+
+    /**
+     * Return the fixed I/O processor set, creating selector-only processors
+     * after this component has already completed normal generated-child
+     * initialization.
+     */
+    protected TcpAcceptor.TcpProcessor[] ensureIoProcessors()
+        {
+        TcpAcceptor.TcpProcessor[] aProcessor = __m_IoProcessors;
+        if (aProcessor == null)
+            {
+            synchronized (this)
+                {
+                aProcessor = __m_IoProcessors;
+                if (aProcessor == null)
+                    {
+                    int cProcessor = getConnectionPipelineCount();
+                    aProcessor = new TcpAcceptor.TcpProcessor[cProcessor];
+                    aProcessor[0] = getProcessor();
+                    for (int i = 1; i < cProcessor; i++)
+                        {
+                        TcpAcceptor.TcpProcessor processor =
+                                new TcpAcceptor.TcpProcessor("TcpProcessor-" + i, this, true);
+                        processor.setAcceptingConnections(false);
+                        processor.onInit();
+                        aProcessor[i] = processor;
+                        }
+                    __m_IoProcessors = aProcessor;
+                    if (cProcessor > 1)
+                        {
+                        _trace("Extend proxy connection-affine I/O processors active: "
+                                + cProcessor, 3);
+                        }
+                    }
+                }
+            }
+        return aProcessor;
+        }
+
+    /**
+     * Select one stable owner for a newly accepted connection.
+     */
+    protected TcpAcceptor.TcpProcessor selectIoProcessor(TcpAcceptor.TcpConnection connection)
+        {
+        TcpAcceptor.TcpProcessor[] aProcessor = ensureIoProcessors();
+        java.util.concurrent.atomic.AtomicInteger counter = __m_IoProcessorNext;
+        if (counter == null)
+            {
+            synchronized (this)
+                {
+                if (__m_IoProcessorNext == null)
+                    {
+                    __m_IoProcessorNext = new java.util.concurrent.atomic.AtomicInteger();
+                    }
+                counter = __m_IoProcessorNext;
+                }
+            }
+        int iProcessor = Math.floorMod(counter.getAndIncrement(), aProcessor.length);
+        connection.setPipelineIndex(iProcessor);
+        _trace("Extend proxy connection assigned to pipeline " + iProcessor, 5);
+        return aProcessor[iProcessor];
+        }
+
+    /**
+     * Return the connection pipeline count. Only a grid ProxyService enables
+     * the striped path; NameService and other TCP acceptor users retain one.
+     */
+    protected int getConnectionPipelineCount()
+        {
+        return getParentService() instanceof
+                com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService
+                ? __m_ConnectionPipelineCount : 1;
+        }
+
+    protected void setConnectionPipelineCount(int cPipelines)
+        {
+        __m_ConnectionPipelineCount = cPipelines;
+        }
     
     // Accessor for the property "SocketOptions"
     /**
@@ -934,8 +1027,11 @@ public class TcpAcceptor
             return;
             }
         
-        getConnectionReleaseQueue().add(connection);
-        getProcessor().wakeup();
+        TcpAcceptor.TcpConnection tcpConnection =
+                (TcpAcceptor.TcpConnection) connection;
+        TcpAcceptor.TcpProcessor processor = tcpConnection.getIoProcessor();
+        (processor == null ? getProcessor() : processor)
+                .scheduleRelease(tcpConnection);
         }
     
     // Declared at the super level
@@ -955,8 +1051,11 @@ public class TcpAcceptor
             return;
             }
         
-        getConnectionReleaseQueue().add(connection);
-        getProcessor().wakeup();
+        TcpAcceptor.TcpConnection tcpConnection =
+                (TcpAcceptor.TcpConnection) connection;
+        TcpAcceptor.TcpProcessor processor = tcpConnection.getIoProcessor();
+        (processor == null ? getProcessor() : processor)
+                .scheduleRelease(tcpConnection);
         }
     
     // Declared at the super level
@@ -999,6 +1098,7 @@ public class TcpAcceptor
         setDefaultSuspectBytes(tcpDeps.getDefaultSuspectBytes());
         setDefaultSuspectLength(tcpDeps.getDefaultSuspectMessages());
         setListenBacklog(tcpDeps.getListenBacklog());
+        setConnectionPipelineCount(tcpDeps.getConnectionPipelineCount());
         setSocketOptions(tcpDeps.getSocketOptions());
         setSocketProvider(tcpDeps.getSocketProviderBuilder().realize(null, null, null));
         setSuspectProtocolEnabled(tcpDeps.isSuspectProtocolEnabled());
@@ -1021,8 +1121,32 @@ public class TcpAcceptor
      */
     protected void onExit()
         {
+        beginProxyDecodeLaneShutdown();
+
+        TcpAcceptor.TcpProcessor[] aProcessor = __m_IoProcessors;
+        if (aProcessor == null)
+            {
+            getProcessor().stop();
+            }
+        else
+            {
+            for (TcpAcceptor.TcpProcessor processor : aProcessor)
+                {
+                processor.stop();
+                }
+            for (TcpAcceptor.TcpProcessor processor : aProcessor)
+                {
+                if (!processor.join(30000L))
+                    {
+                    _trace("Timed out waiting for Extend proxy I/O processor "
+                            + processor.getThreadName() + " to stop", 2);
+                    }
+                }
+            }
+        // No selector can publish another frame after this point. The Peer
+        // exit path can now drain/release and stop the decode lanes without a
+        // late producer recreating a lane during shutdown.
         super.onExit();
-        getProcessor().stop();
         }
     
     // Declared at the super level
@@ -1077,12 +1201,25 @@ public class TcpAcceptor
     protected void onServiceStarting()
         {
         super.onServiceStarting();
-        
-        TcpAcceptor.TcpProcessor processor = getProcessor();
-        processor.start();
+
+        beginProxyDecodeLaneStartup();
+        TcpAcceptor.TcpProcessor[] aProcessor = ensureIoProcessors();
+        if (aProcessor.length > 1)
+            {
+            ensureProxyDecodeLanes();
+            }
+        // Materialize the provider-bearing server channel on this service
+        // thread before selector-only processors start concurrently.
+        getProcessor().ensureServerSocketChannel();
+        // Start selector-only processors first so the listening processor can
+        // immediately assign the first accepted connection to any lane.
+        for (int i = aProcessor.length - 1; i >= 0; i--)
+            {
+            aProcessor[i].start();
+            }
         
         _trace("TcpAcceptor now listening for connections on "
-                + getSocketProvider().getAddressString(processor.getServerSocket()), 3);
+                + getSocketProvider().getAddressString(getProcessor().getServerSocket()), 3);
         }
     
     // Declared at the super level
@@ -3093,6 +3230,17 @@ public class TcpAcceptor
             extends    com.tangosol.coherence.component.net.extend.connection.TcpConnection
         {
         // ---- Fields declarations ----
+
+        /**
+         * The selector processor that exclusively owns this connection's
+         * read, write, interest-op and release state.
+         */
+        private transient TcpAcceptor.TcpProcessor __m_IoProcessor;
+
+        /**
+         * Stable index of the connection-owned I/O and decode pipeline.
+         */
+        private int __m_PipelineIndex;
         
         /**
          * Property ClusterName
@@ -4470,6 +4618,26 @@ public class TcpAcceptor
         * 
         * @throws ConnectionException on fatal Connection error
          */
+        public TcpAcceptor.TcpProcessor getIoProcessor()
+            {
+            return __m_IoProcessor;
+            }
+
+        public void setIoProcessor(TcpAcceptor.TcpProcessor processor)
+            {
+            __m_IoProcessor = processor;
+            }
+
+        public int getPipelineIndex()
+            {
+            return __m_PipelineIndex;
+            }
+
+        public void setPipelineIndex(int iPipeline)
+            {
+            __m_PipelineIndex = iPipeline;
+            }
+
         public void send(com.tangosol.io.WriteBuffer wb)
                 throws com.tangosol.net.messaging.ConnectionException
             {
@@ -4514,8 +4682,9 @@ public class TcpAcceptor
             
                 if (fFlush)
                     {
-                    acceptor.getConnectionFlushQueue().add(this);
-                    acceptor.getProcessor().wakeup();
+                    TcpAcceptor.TcpProcessor processor = getIoProcessor();
+                    (processor == null ? acceptor.getProcessor() : processor)
+                            .scheduleFlush(this);
                     }
             
                 if (acceptor.isSuspectProtocolEnabled())
@@ -5026,6 +5195,22 @@ public class TcpAcceptor
          * A direct reference to the TcpAcceptor module.
          */
         private transient TcpAcceptor __m_Acceptor;
+
+        /**
+         * True only for processor zero, which owns the listening socket.
+         * Other processors own established connections only.
+         */
+        private boolean __m_AcceptingConnections = true;
+
+        /**
+         * MPSC queues whose sole consumer is this selector processor.  Keeping
+         * key mutation and release on the connection owner avoids publishing
+         * SelectionKey state across independent selectors.
+         */
+        private final com.tangosol.coherence.component.util.Queue __m_LocalFlushQueue =
+                new com.tangosol.coherence.component.util.queue.SingleConsumerQueue();
+        private final com.tangosol.coherence.component.util.Queue __m_LocalReleaseQueue =
+                new com.tangosol.coherence.component.util.queue.SingleConsumerQueue();
         
         /**
          * Property Selector
@@ -5199,7 +5384,7 @@ public class TcpAcceptor
             // import java.nio.channels.CancelledKeyException;
             // import java.nio.channels.SelectionKey;
             
-            com.tangosol.coherence.component.util.Queue queue = getAcceptor().getConnectionFlushQueue();
+            com.tangosol.coherence.component.util.Queue queue = __m_LocalFlushQueue;
             for (TcpAcceptor.TcpConnection connection = (TcpAcceptor.TcpConnection) queue.removeNoWait();
                  connection != null;
                  connection = (TcpAcceptor.TcpConnection) queue.removeNoWait())
@@ -5218,6 +5403,18 @@ public class TcpAcceptor
                     }
                 }
             }
+
+        public void scheduleFlush(TcpAcceptor.TcpConnection connection)
+            {
+            __m_LocalFlushQueue.add(connection);
+            wakeup();
+            }
+
+        public void scheduleRelease(TcpAcceptor.TcpConnection connection)
+            {
+            __m_LocalReleaseQueue.add(connection);
+            wakeup();
+            }
         
         // Accessor for the property "Acceptor"
         /**
@@ -5232,6 +5429,16 @@ public class TcpAcceptor
                 setAcceptor(acceptor = (TcpAcceptor) get_Module());
                 }
             return acceptor;
+            }
+
+        public boolean isAcceptingConnections()
+            {
+            return __m_AcceptingConnections;
+            }
+
+        protected void setAcceptingConnections(boolean fAccept)
+            {
+            __m_AcceptingConnections = fAccept;
             }
         
         // Accessor for the property "Selector"
@@ -5382,29 +5589,28 @@ public class TcpAcceptor
                 return;
                 }
             
-            // register interest in OP_READ for the new SocketChannel
-            SelectionKey keyConnection;
-            try
-                {
-                keyConnection = channel.register(getSelector(),
-                        SelectionKey.OP_READ);
-                }
-            catch (ClosedChannelException e)
-                {
-                TcpUtil.close(socket);
-                TcpUtil.close(channel);
-                return;
-                }
-            
-            // open a new TcpConnection
+            // Instantiate before cross-selector registration.  Unlike the
+            // original single-selector path, the target selector is already
+            // running and could otherwise observe a readable key before its
+            // attachment and connection state have been published.
+            SelectionKey keyConnection = null;
             TcpAcceptor.TcpConnection connection;
             try
                 {
                 connection = (TcpAcceptor.TcpConnection) acceptor.instantiateConnection();
-                connection.setSelectionKey(keyConnection);
                 connection.setSocket(socket);
                 connection.setSocketChannel(channel);
+
+                TcpAcceptor.TcpProcessor processor = acceptor.selectIoProcessor(connection);
+                Selector selector = processor.getSelector();
+                connection.setIoProcessor(processor);
+                selector.wakeup();
+                keyConnection = channel.register(selector, 0, connection);
+                connection.setSelectionKey(keyConnection);
                 connection.open();
+
+                keyConnection.interestOps(SelectionKey.OP_READ);
+                selector.wakeup();
                 }
             catch (Throwable e)
                 {
@@ -5414,9 +5620,6 @@ public class TcpAcceptor
                 TcpUtil.close(channel);
                 return;
                 }
-            
-            // attach the Connection to the SelectionKey
-            keyConnection.attach(connection);
             }
         
         // Declared at the super level
@@ -5442,12 +5645,21 @@ public class TcpAcceptor
             
             super.onEnter();
             
-            ServerSocketChannel channel = ensureServerSocketChannel();
+            ServerSocketChannel channel = isAcceptingConnections()
+                    ? ensureServerSocketChannel() : null;
             Selector            selector;
             try
                 {
-                setSelector(selector = channel.provider().openSelector());
-                channel.register(selector, SelectionKey.OP_ACCEPT);
+                // Every socket registered by every lane originates from the
+                // acceptor's SocketProvider.  Its channel provider must also
+                // create the selector (not necessarily the JDK default).
+                java.nio.channels.ServerSocketChannel channelProvider =
+                        getAcceptor().getProcessor().ensureServerSocketChannel();
+                setSelector(selector = channelProvider.provider().openSelector());
+                if (channel != null)
+                    {
+                    channel.register(selector, SelectionKey.OP_ACCEPT);
+                    }
                 }
             catch (Throwable t) // IOException, NullPointerException
                 {
@@ -5513,9 +5725,12 @@ public class TcpAcceptor
             // import java.nio.channels.Selector;
             // import java.util.Iterator;
             
-            TcpUtil.cancel(getServerSocketKey());
-            TcpUtil.close(getServerSocketChannel());
-            TcpUtil.close(getServerSocket());
+            if (isAcceptingConnections())
+                {
+                TcpUtil.cancel(getServerSocketKey());
+                TcpUtil.close(getServerSocketChannel());
+                TcpUtil.close(getServerSocket());
+                }
             
             // release all Connections
             Selector selector = getSelector();
@@ -5530,7 +5745,7 @@ public class TcpAcceptor
                     Object o = key.attachment();
                     if (o instanceof TcpAcceptor.TcpConnection)
                         {
-                        getAcceptor().getConnectionReleaseQueue().add(o);
+                        scheduleRelease((TcpAcceptor.TcpConnection) o);
                         }
                     else
                         {
@@ -5567,7 +5782,7 @@ public class TcpAcceptor
                     {
                     Blocking.select(selector, 500L);
                     onSelect(selector.selectedKeys());
-            
+
                     flushConnections();
                     releaseConnections();
                     }
@@ -6208,7 +6423,7 @@ public class TcpAcceptor
             TcpAcceptor acceptor = getAcceptor();
             TcpAcceptor.BufferPool poolIn   = acceptor.getBufferPoolIn();
             TcpAcceptor.BufferPool poolOut  = acceptor.getBufferPoolOut();
-            com.tangosol.coherence.component.util.Queue       queue    = acceptor.getConnectionReleaseQueue();
+            com.tangosol.coherence.component.util.Queue       queue    = __m_LocalReleaseQueue;
             
             for (TcpAcceptor.TcpConnection connection = (TcpAcceptor.TcpConnection) queue.removeNoWait();
                  connection != null;

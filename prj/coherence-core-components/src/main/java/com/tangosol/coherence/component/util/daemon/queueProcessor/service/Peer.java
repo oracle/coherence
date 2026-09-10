@@ -74,6 +74,28 @@ public abstract class Peer
         implements com.tangosol.net.messaging.Channel.Receiver,
                    com.tangosol.net.messaging.ConnectionManager
     {
+    /**
+     * Connection-affine decode pipelines used by a striped TCP proxy
+     * acceptor.
+     */
+    private transient volatile ProxyDecodeLane[] __m_ProxyDecodeLanes;
+
+    /**
+     * True once shutdown has closed the pipeline input side. This prevents a
+     * late selector producer from recreating decode lanes after a timed-out
+     * selector join.
+     */
+    private transient volatile boolean __m_ProxyDecodeLanesStopping;
+
+    /**
+     * Best-effort reset baselines for the lane-local management counters.
+     * Each lane has one writer and publishes once per drained batch, avoiding
+     * an atomic counter update on every small proxy request.
+     */
+    private transient volatile long __m_ProxyPipelineReceivedBase;
+    private transient volatile long __m_ProxyPipelineBytesReceivedBase;
+    private transient volatile long __m_ProxyPipelineCpuBase;
+
     // ---- Fields declarations ----
     
     /**
@@ -1434,7 +1456,133 @@ public abstract class Peer
      */
     public long getStatsBytesReceived()
         {
-        return __m_StatsBytesReceived;
+        return __m_StatsBytesReceived + Math.max(0L,
+                getProxyPipelineBytesReceived() - __m_ProxyPipelineBytesReceivedBase);
+        }
+
+    // Declared at the super level
+    public long getStatsCpu()
+        {
+        return super.getStatsCpu() + Math.max(0L,
+                getProxyPipelineCpu() - __m_ProxyPipelineCpuBase);
+        }
+
+    // Declared at the super level
+    public long getStatsReceived()
+        {
+        return super.getStatsReceived() + Math.max(0L,
+                getProxyPipelineReceived() - __m_ProxyPipelineReceivedBase);
+        }
+
+    /** Return the absolute message count published by all decode lanes. */
+    protected long getProxyPipelineReceived()
+        {
+        long cReceived = 0L;
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane != null)
+            {
+            for (ProxyDecodeLane lane : aLane)
+                {
+                cReceived += lane.getStatsReceived();
+                }
+            }
+        return cReceived;
+        }
+
+    /** Return the absolute byte count published by all decode lanes. */
+    protected long getProxyPipelineBytesReceived()
+        {
+        long cbReceived = 0L;
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane != null)
+            {
+            for (ProxyDecodeLane lane : aLane)
+                {
+                cbReceived += lane.getStatsBytesReceived();
+                }
+            }
+        return cbReceived;
+        }
+
+    /** Return the absolute CPU time published by all decode lanes. */
+    protected long getProxyPipelineCpu()
+        {
+        long cCpu = 0L;
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane != null)
+            {
+            for (ProxyDecodeLane lane : aLane)
+                {
+                cCpu += lane.getStatsCpu();
+                }
+            }
+        return cCpu;
+        }
+
+    /**
+     * Return true when the caller is a manager service thread. Acceptor
+     * pipeline implementations extend this authority to their durable owner
+     * threads; ordinary callers remain false.
+     */
+    public boolean isServiceThread()
+        {
+        Thread thread = Thread.currentThread();
+        if (thread == getThread())
+            {
+            return true;
+            }
+
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane != null)
+            {
+            for (ProxyDecodeLane lane : aLane)
+                {
+                if (thread == lane.getThread())
+                    {
+                    return true;
+                    }
+                }
+            }
+        return false;
+        }
+
+    /**
+     * Return true when the caller has service-thread authority for the
+     * supplied connection. The ordinary Peer thread owns every connection;
+     * a pipeline thread owns only connections assigned to that same lane.
+     *
+     * @param connection  the connection
+     *
+     * @return true if the caller may perform service-thread-only lifecycle
+     *         work for the connection
+     */
+    public boolean isServiceThread(com.tangosol.coherence.component.net.extend.Connection connection)
+        {
+        Thread thread = Thread.currentThread();
+        if (thread == getThread())
+            {
+            return true;
+            }
+
+        if (connection instanceof
+                com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor.TcpConnection)
+            {
+            ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+            int iLane = ((com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor.TcpConnection)
+                    connection).getPipelineIndex();
+            return aLane != null && iLane >= 0 && iLane < aLane.length
+                    && thread == aLane[iLane].getThread();
+            }
+        return false;
+        }
+
+    /**
+     * Return the number of connection-affine pipelines owned by this peer.
+     * Non-TCP peers retain the single manager-thread pipeline.
+     */
+    protected int getConnectionPipelineCount()
+        {
+        return 1;
         }
     
     // Accessor for the property "StatsBytesSent"
@@ -1744,6 +1892,8 @@ public abstract class Peer
      */
     protected void onExit()
         {
+        shutdownProxyDecodeLanes();
+
         super.onExit();
         
         get_Connection().closeInternal(false, null, -1L);
@@ -1934,8 +2084,8 @@ public abstract class Peer
         // import java.io.IOException;
         
         long       ldtStart  = Base.getSafeTimeMillis();
-        long       cMessage  = getStatsReceived();
-        long       cbReceive = getStatsBytesReceived();
+        long       cMessage  = super.getStatsReceived();
+        long       cbReceive = __m_StatsBytesReceived;
         com.tangosol.coherence.component.util.DaemonPool pool      = getDaemonPool();
         
         while (!isExiting())
@@ -2051,7 +2201,7 @@ public abstract class Peer
         
         setStatsReceived(cMessage);
         setStatsBytesReceived(cbReceive);
-        setStatsCpu(getStatsCpu() + (ldtNow - ldtStart));
+        setStatsCpu(super.getStatsCpu() + (ldtNow - ldtStart));
         
         super.onNotify();
         }
@@ -2306,6 +2456,11 @@ public abstract class Peer
             {
             return;
             }
+
+        if (tryPostProxyDecodeLane(rb, connection, factory0))
+            {
+            return;
+            }
         
         Peer.MessageFactory.EncodedMessage message = (Peer.MessageFactory.EncodedMessage)
                 factory0.createMessage(Peer.MessageFactory.EncodedMessage.TYPE_ID);
@@ -2315,6 +2470,299 @@ public abstract class Peer
         message.setReadBuffer(rb);
         
         post(message);
+        }
+
+    /**
+     * Route every frame for an acceptor connection to one durable pipeline.
+     * Channel 0 and ordinary data messages deliberately share the same FIFO.
+     */
+    protected boolean tryPostProxyDecodeLane(com.tangosol.io.ReadBuffer rb,
+            com.tangosol.coherence.component.net.extend.Connection connection,
+            com.tangosol.net.messaging.Protocol.MessageFactory factory0)
+        {
+        if (!(connection instanceof
+                com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor.TcpConnection))
+            {
+            return false;
+            }
+
+        int iLane = ((com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor.TcpConnection)
+                connection).getPipelineIndex();
+        if (!(this instanceof com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor)
+                || !(getParentService() instanceof
+                     com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService)
+                || getConnectionPipelineCount() <= 1)
+            {
+            return false;
+            }
+
+        if (__m_ProxyDecodeLanesStopping)
+            {
+            releaseReadBuffer(rb);
+            return true;
+            }
+
+        Peer.MessageFactory.EncodedMessage message =
+                (Peer.MessageFactory.EncodedMessage) factory0.createMessage(
+                        Peer.MessageFactory.EncodedMessage.TYPE_ID);
+        message.setChannel(get_Channel());
+        message.setConnection(connection);
+        message.setReadBuffer(rb);
+
+        ProxyDecodeLane[] aLane = ensureProxyDecodeLanes();
+        aLane[iLane].add(message);
+        return true;
+        }
+
+    /**
+     * Lazily create the fixed, long-lived decode lanes.
+     */
+    protected ProxyDecodeLane[] ensureProxyDecodeLanes()
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane == null)
+            {
+            synchronized (this)
+                {
+                aLane = __m_ProxyDecodeLanes;
+                if (aLane == null)
+                    {
+                    int cLane = getConnectionPipelineCount();
+                    aLane = new ProxyDecodeLane[cLane];
+                    for (int i = 0; i < cLane; i++)
+                        {
+                        aLane[i] = new ProxyDecodeLane(i);
+                        }
+                    __m_ProxyDecodeLanes = aLane;
+                    _trace("Extend proxy connection-affine pipelines active: " + cLane, 3);
+                    }
+                }
+            }
+        return aLane;
+        }
+
+    /**
+     * Prevent selector threads from publishing new frames during shutdown.
+     */
+    protected void beginProxyDecodeLaneShutdown()
+        {
+        __m_ProxyDecodeLanesStopping = true;
+        }
+
+    /**
+     * Open the pipeline input side before selector threads start.
+     */
+    protected void beginProxyDecodeLaneStartup()
+        {
+        __m_ProxyDecodeLanesStopping = false;
+        }
+
+    /**
+     * Stop and join decode lanes during Peer shutdown. Each lane releases any
+     * encoded buffers that remain after its last completed notification.
+     */
+    protected void shutdownProxyDecodeLanes()
+        {
+        ProxyDecodeLane[] aLane = __m_ProxyDecodeLanes;
+        if (aLane != null)
+            {
+            for (ProxyDecodeLane lane : aLane)
+                {
+                lane.stop();
+                }
+            for (ProxyDecodeLane lane : aLane)
+                {
+                if (!lane.join(30000L))
+                    {
+                    _trace("Timed out waiting for Extend proxy decode lane "
+                            + lane.getThreadName() + " to stop", 2);
+                    }
+                }
+            __m_ProxyDecodeLanes = null;
+            }
+        }
+
+    /**
+     * Decode and dispatch one external request from a durable lane.
+     */
+    protected void decodeAndDispatchProxyMessage(Peer.MessageFactory.EncodedMessage messageImpl)
+        {
+        com.tangosol.io.ReadBuffer rb = messageImpl.getReadBuffer();
+        if (rb == null || rb.length() == 0)
+            {
+            return;
+            }
+
+        com.tangosol.coherence.component.net.extend.Connection connection =
+                messageImpl.getConnection();
+        int cb = rb.length();
+        connection.setStatsBytesReceived(connection.getStatsBytesReceived() + cb);
+        com.tangosol.net.messaging.Message message;
+        com.tangosol.io.ReadBuffer.BufferInput in = rb.getBufferInput();
+        try
+            {
+            message = decodeMessage(in, connection, true);
+            }
+        catch (Throwable e)
+            {
+            onMessageDecodeException(e, rb.getBufferInput(), connection, true);
+            return;
+            }
+        finally
+            {
+            releaseReadBuffer(rb);
+            }
+
+        if (message == null)
+            {
+            return;
+            }
+
+        if ((isDEBUG() || connection.isMessagingDebug()) && _isTraceEnabled(6))
+            {
+            _trace("Received: " + message, 6);
+            }
+
+        com.tangosol.coherence.component.net.extend.Channel channel =
+                (com.tangosol.coherence.component.net.extend.Channel) message.getChannel();
+        if (channel == null || !channel.isOpen())
+            {
+            return;
+            }
+        connection = (com.tangosol.coherence.component.net.extend.Connection) channel.getConnection();
+        if (connection == null || !connection.isOpen())
+            {
+            return;
+            }
+
+        connection.setStatsReceived(connection.getStatsReceived() + 1);
+
+        com.tangosol.coherence.component.util.DaemonPool pool = getDaemonPool();
+        if (this == channel.getReceiver() || !pool.isStarted() || message.isExecuteInOrder())
+            {
+            channel.receive(message);
+            }
+        else
+            {
+            pool.add(message);
+            }
+        }
+
+    /**
+     * One long-lived, batching decode lane. Each connection has a stable lane,
+     * preserving wire order without scheduling a daemon task for every frame.
+     */
+    protected class ProxyDecodeLane
+            extends com.tangosol.coherence.component.util.daemon.QueueProcessor
+        {
+        protected ProxyDecodeLane(int iLane)
+            {
+            super("Pipeline-" + iLane, Peer.this, true);
+            // This dynamically-created component has a non-null parent, so
+            // Component.set_Constructed() does not deliver onInit().  Static
+            // children get that notification from their parent's onInit(),
+            // but these lanes are created after the Peer is already running.
+            // Deliver it explicitly so QueueProcessor creates its Queue and
+            // installs it as the daemon notifier before the thread starts.
+            onInit();
+            setThreadName(Peer.this.getServiceName() + ":Pipeline-" + iLane);
+            start();
+            }
+
+        /**
+         * The generated QueueProcessor default is the legacy lock/condition
+         * queue.  A proxy pipeline has many selector producers and exactly one
+         * consumer, so use the product's MPSC single-consumer queue instead.
+         */
+        protected com.tangosol.coherence.component.util.Queue instantiateQueue()
+            {
+            return new com.tangosol.coherence.component.util.queue.SingleConsumerQueue();
+            }
+
+        public void add(Peer.MessageFactory.EncodedMessage message)
+            {
+            getQueue().add(message);
+            }
+
+        protected void onNotify()
+            {
+            long ldtStart = com.tangosol.util.Base.getSafeTimeMillis();
+            long cReceived  = m_cStatsReceived;
+            long cbReceived = m_cbStatsReceived;
+            try
+                {
+                Peer.MessageFactory.EncodedMessage message;
+                while ((message = (Peer.MessageFactory.EncodedMessage) getQueue().removeNoWait()) != null)
+                    {
+                    if ((++m_cMessage & 0x1FFL) == 0)
+                        {
+                        heartbeat();
+                        }
+
+                    com.tangosol.io.ReadBuffer rb = message.getReadBuffer();
+                    int cb = rb == null ? 0 : rb.length();
+                    if (cb > 0)
+                        {
+                        ++cReceived;
+                        cbReceived += cb;
+                        }
+
+                    try
+                        {
+                        decodeAndDispatchProxyMessage(message);
+                        }
+                    catch (Throwable e)
+                        {
+                        Peer.this.onException(e);
+                        break;
+                        }
+                    }
+                }
+            finally
+                {
+                m_cStatsReceived  = cReceived;
+                m_cbStatsReceived = cbReceived;
+                m_cStatsCpu      += com.tangosol.util.Base.getSafeTimeMillis() - ldtStart;
+                }
+            super.onNotify();
+            }
+
+        protected long getStatsReceived()
+            {
+            return m_cStatsReceived;
+            }
+
+        protected long getStatsBytesReceived()
+            {
+            return m_cbStatsReceived;
+            }
+
+        protected long getStatsCpu()
+            {
+            return m_cStatsCpu;
+            }
+
+        protected void onExit()
+            {
+            Peer.MessageFactory.EncodedMessage message;
+            while ((message = (Peer.MessageFactory.EncodedMessage) getQueue().removeNoWait()) != null)
+                {
+                com.tangosol.io.ReadBuffer rb = message.getReadBuffer();
+                if (rb != null)
+                    {
+                    releaseReadBuffer(rb);
+                    }
+                }
+            super.onExit();
+            }
+
+        /** Number of frames processed by this lane, used for heartbeats. */
+        private long m_cMessage;
+
+        /** Management snapshots; written once per drained batch. */
+        private volatile long m_cStatsReceived;
+        private volatile long m_cbStatsReceived;
+        private volatile long m_cStatsCpu;
         }
     
     // From interface: com.tangosol.net.messaging.Channel$Receiver
@@ -2402,6 +2850,9 @@ public abstract class Peer
      */
     public void resetStats()
         {
+        __m_ProxyPipelineReceivedBase      = getProxyPipelineReceived();
+        __m_ProxyPipelineBytesReceivedBase = getProxyPipelineBytesReceived();
+        __m_ProxyPipelineCpuBase           = getProxyPipelineCpu();
         setStatsBytesReceived(0L);
         setStatsBytesSent(0L);
         setStatsSent(0L);

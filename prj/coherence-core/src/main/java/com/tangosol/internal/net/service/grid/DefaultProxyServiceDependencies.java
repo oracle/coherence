@@ -166,6 +166,25 @@ public class DefaultProxyServiceDependencies
     @Override
     public DefaultProxyServiceDependencies validate()
         {
+        AcceptorDependencies depsAcceptor = getAcceptorDependencies();
+        if (depsAcceptor instanceof DefaultTcpAcceptorDependencies)
+            {
+            DefaultTcpAcceptorDependencies depsTcp =
+                    (DefaultTcpAcceptorDependencies) depsAcceptor;
+            if (!depsTcp.isConnectionPipelineCountConfigured())
+                {
+                // An explicitly disabled request pool historically executes
+                // every request on the single acceptor service thread. Do not
+                // introduce implicit execution concurrency through decode
+                // lanes unless the user also explicitly requests pipelines.
+                depsTcp.setDefaultConnectionPipelineCount(
+                        isWorkerThreadCountConfigured() && getWorkerThreadCount() == 0
+                                ? 1
+                                : Math.min(3, Math.max(1,
+                                        Runtime.getRuntime().availableProcessors() / 4)));
+                }
+            }
+
         super.validate();
 
         Base.checkNotNull(getAcceptorDependencies(), "Acceptor");

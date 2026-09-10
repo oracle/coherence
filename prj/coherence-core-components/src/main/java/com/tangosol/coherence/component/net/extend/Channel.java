@@ -420,7 +420,8 @@ public class Channel
                 }
         
             com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = getConnectionManager();
-            if (Thread.currentThread() == manager.getThread())
+            if (manager.isServiceThread((com.tangosol.coherence.component.net.extend.Connection)
+                    getConnection()))
                 {
                 closeInternal(fNotify, e, 0L);
                 }
@@ -1669,7 +1670,7 @@ public class Channel
         // import com.tangosol.net.messaging.Response;
         
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = getConnectionManager();
-        _assert(manager.getThread() != Thread.currentThread(),
+        _assert(!manager.isServiceThread(),
                 "request() is a blocking call and cannot be called on the service thread");
         
         // block until the service is ready

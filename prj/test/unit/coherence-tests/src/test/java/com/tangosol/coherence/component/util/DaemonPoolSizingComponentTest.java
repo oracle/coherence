@@ -8,8 +8,10 @@
 package com.tangosol.coherence.component.util;
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.Service;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.ProxyService;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.Acceptor;
+import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.TcpAcceptor;
 
 import com.tangosol.coherence.config.builder.LocalAddressProviderBuilder;
 
@@ -18,11 +20,14 @@ import com.tangosol.internal.net.service.extend.proxy.DefaultCacheServiceProxyDe
 import com.tangosol.internal.net.service.extend.proxy.DefaultInvocationServiceProxyDependencies;
 import com.tangosol.internal.net.service.grid.DefaultProxyServiceDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
+import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
 import com.tangosol.internal.util.DaemonPoolSizing;
 import com.tangosol.internal.util.Daemons;
 import com.tangosol.internal.util.DefaultDaemonPoolDependencies;
 
 import com.tangosol.net.OperationalContext;
+
+import java.lang.reflect.Method;
 
 import org.junit.Test;
 
@@ -184,6 +189,121 @@ public class DaemonPoolSizingComponentTest
         }
 
     @Test
+    public void shouldDeriveProxyPipelineAndWorkerDefaultsFromAvailableProcessors()
+        {
+        int cProcessors = Runtime.getRuntime().availableProcessors();
+        int cPipelines  = Math.min(3, Math.max(1, cProcessors / 4));
+
+        DefaultTcpAcceptorDependencies standalone = new DefaultTcpAcceptorDependencies();
+        assertThat(standalone.getConnectionPipelineCount(), is(1));
+        assertThat(standalone.isConnectionPipelineCountConfigured(), is(false));
+
+        DefaultProxyServiceDependencies deps = new DefaultProxyServiceDependencies();
+        deps.validate();
+
+        TcpAcceptorDependencies tcp = (TcpAcceptorDependencies) deps.getAcceptorDependencies();
+        assertThat(tcp.getConnectionPipelineCount(), is(cPipelines));
+        assertThat(deps.getWorkerThreadCountMin(),
+                is(cProcessors > Integer.MAX_VALUE / 2
+                        ? Integer.MAX_VALUE : cProcessors * 2));
+        assertThat(deps.getWorkerThreadCountMax(), is(Integer.MAX_VALUE));
+        }
+
+    @Test
+    public void shouldPreserveExplicitProxyPipelineAndWorkerConfiguration()
+        {
+        DefaultProxyServiceDependencies deps = new DefaultProxyServiceDependencies();
+        DefaultTcpAcceptorDependencies tcp =
+                (DefaultTcpAcceptorDependencies) deps.getAcceptorDependencies();
+        tcp.setConnectionPipelineCount(5);
+        deps.setWorkerThreadCountMin(7);
+        deps.setWorkerThreadCountMax(11);
+        deps.validate();
+
+        assertThat(tcp.getConnectionPipelineCount(), is(5));
+        assertThat(tcp.isConnectionPipelineCountConfigured(), is(true));
+        assertThat(deps.getWorkerThreadCountMin(), is(7));
+        assertThat(deps.getWorkerThreadCountMax(), is(11));
+
+        DefaultProxyServiceDependencies disabled = new DefaultProxyServiceDependencies();
+        disabled.setWorkerThreadCount(0);
+        disabled.validate();
+        assertThat(((TcpAcceptorDependencies) disabled.getAcceptorDependencies())
+                .getConnectionPipelineCount(), is(1));
+        assertThat(disabled.getWorkerThreadCount(), is(0));
+        }
+
+    @Test
+    public void shouldAggregateAndResetProxyPipelineStatistics()
+            throws Exception
+        {
+        Acceptor.DaemonPool pool = new Acceptor.DaemonPool(null, null, false)
+            {
+            @Override
+            public void resetStats()
+                {
+                }
+            };
+
+        class TestTcpAcceptor extends TcpAcceptor
+            {
+            TestTcpAcceptor()
+                {
+                super(null, null, false);
+                }
+
+            @Override
+            public Acceptor.DaemonPool getDaemonPool()
+                {
+                return pool;
+                }
+
+            @Override
+            protected long getProxyPipelineReceived()
+                {
+                return m_cReceived;
+                }
+
+            @Override
+            protected long getProxyPipelineBytesReceived()
+                {
+                return m_cbReceived;
+                }
+
+            @Override
+            protected long getProxyPipelineCpu()
+                {
+                return m_cCpu;
+                }
+
+            long m_cReceived  = 7L;
+            long m_cbReceived = 29L;
+            long m_cCpu       = 13L;
+            }
+
+        TestTcpAcceptor acceptor = new TestTcpAcceptor();
+        invokeLongSetter(acceptor, "setStatsReceived", 11L);
+        invokeLongSetter(acceptor, "setStatsBytesReceived", 101L);
+        invokeLongSetter(acceptor, "setStatsCpu", 17L);
+
+        assertThat(acceptor.getStatsReceived(), is(18L));
+        assertThat(acceptor.getStatsBytesReceived(), is(130L));
+        assertThat(acceptor.getStatsCpu(), is(30L));
+
+        acceptor.resetStats();
+        assertThat(acceptor.getStatsReceived(), is(0L));
+        assertThat(acceptor.getStatsBytesReceived(), is(0L));
+        assertThat(acceptor.getStatsCpu(), is(0L));
+
+        acceptor.m_cReceived += 3L;
+        acceptor.m_cbReceived += 5L;
+        acceptor.m_cCpu += 2L;
+        assertThat(acceptor.getStatsReceived(), is(3L));
+        assertThat(acceptor.getStatsBytesReceived(), is(5L));
+        assertThat(acceptor.getStatsCpu(), is(2L));
+        }
+
+    @Test
     public void shouldStartServiceWorkerPoolWithWakeupNudge()
         {
         TestService service = new TestService("DaemonPoolSizingServiceComponentTest");
@@ -201,6 +321,30 @@ public class DaemonPoolSizingComponentTest
             pool.stop();
             pool.join(5000L);
             }
+        }
+
+    private static void invokeLongSetter(Peer peer, String sMethod, long nValue)
+            throws Exception
+        {
+        Class<?> clz = Peer.class;
+        Method method = null;
+        while (clz != null && method == null)
+            {
+            try
+                {
+                method = clz.getDeclaredMethod(sMethod, long.class);
+                }
+            catch (NoSuchMethodException ignored)
+                {
+                clz = clz.getSuperclass();
+                }
+            }
+        if (method == null)
+            {
+            throw new NoSuchMethodException(sMethod);
+            }
+        method.setAccessible(true);
+        method.invoke(peer, nValue);
         }
 
     private static Acceptor.DaemonPool createProxyAcceptorDaemonPool(int cMin, Integer cMax)
