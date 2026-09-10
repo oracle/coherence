@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -380,7 +380,6 @@ public class ReadWriteBackingMap
             boolean fWriteBehindRemove)
         {
         m_ctxService = ctxService;
-        m_setPendingRemoves = null;
 
         configureInternalCache(mapInternal);
 
@@ -901,12 +900,8 @@ public class ReadWriteBackingMap
     */
     public boolean containsKey(Object oKey)
         {
-        if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
-            {
-            return false;
-            }
-
-        return getInternalCache().containsKey(oKey);
+        Map mapInternal = getInternalCache();
+        return mapInternal.containsKey(oKey) && !isErasePending(mapInternal.get(oKey));
         }
 
     /**
@@ -945,13 +940,14 @@ public class ReadWriteBackingMap
                 return null;
                 }
 
-            // check the pending removes key set
-            if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
+            Object oValue = getFromInternalCache(oKey);
+
+            // a pending erase is logically absent, but must not be loaded from
+            // the CacheStore until the write-behind erase completes
+            if (isErasePending(oValue))
                 {
                 return null;
                 }
-
-            Object oValue = getFromInternalCache(oKey);
 
             // if the value wasn't found in the in-memory cache; if it's owned
             // ("get" is not caused by a re-distribution), load the value from
@@ -1056,11 +1052,6 @@ public class ReadWriteBackingMap
                 if (mapMisses != null)
                     {
                     mapMisses.remove(oKey);
-                    }
-
-                if (isWriteBehindRemove())
-                    {
-                    getPendingRemoves().remove(oKey);
                     }
 
                 cancelOutstandingReads(oKey);
@@ -1218,7 +1209,6 @@ public class ReadWriteBackingMap
                             // set the value to BIN_ERASE_PENDING
                             queue.add(instantiateEntry(oKey, BIN_ERASE_PENDING, oValue, 0L), 0L);
                             getInternalCache().put(oKey, BIN_ERASE_PENDING);
-                            getPendingRemoves().add(oKey);
                             fQueued = true;
                             }
                         else
@@ -1252,8 +1242,7 @@ public class ReadWriteBackingMap
     */
     public int size()
         {
-        int cPendingRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
-        return getInternalCache().size() - cPendingRemoves;
+        return Math.max(0, getInternalCache().size() - getErasePendingCount());
         }
 
     /**
@@ -1371,14 +1360,13 @@ public class ReadWriteBackingMap
                     continue;
                     }
 
-                if (isWriteBehindRemove() && getPendingRemoves().contains(oKey))
+                Object oValue = getFromInternalCache(oKey);
+                if (isErasePending(oValue))
                     {
-                    // known to be pending remove; skip
+                    // a pending erase is logically absent and must not be loaded
                     continue;
                     }
-
-                Object oValue = getFromInternalCache(oKey);
-                if (oValue == null)
+                else if (oValue == null)
                     {
                     // add the key to the set of keys that should be loaded
                     setLoad.add(oKey);
@@ -1703,6 +1691,12 @@ public class ReadWriteBackingMap
                 }
             else
                 {
+                Object oValue = entry.getValue();
+                if (isErasePending(oValue))
+                    {
+                    return oValue;
+                    }
+
                 // if the entry is ripe for an asynchronous load and the
                 // refresh-ahead thread is not currently loading the key,
                 // add the key to the refresh-ahead queue
@@ -1720,7 +1714,7 @@ public class ReadWriteBackingMap
                             }
                         }
                     }
-                return entry.getValue();
+                return oValue;
                 }
             }
         return getCachedOrPending(oKey);
@@ -1767,7 +1761,6 @@ public class ReadWriteBackingMap
         ConcurrentMap mapControl  = getControlMap();
         Map           mapMisses   = getMissesCache();
         Map           mapInternal = getInternalCache();
-        Set           setRemoves  = getPendingRemoves();
 
         mapControl.lock(oKey, -1L);
         try
@@ -1776,11 +1769,6 @@ public class ReadWriteBackingMap
             if (mapMisses != null)
                 {
                 mapMisses.remove(oKey);
-                }
-
-            if (isWriteBehindRemove() && !setRemoves.isEmpty())
-                {
-                setRemoves.remove(oKey);
                 }
 
             cancelOutstandingReads(oKey);
@@ -2026,8 +2014,7 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            int cPendingRemoves = getPendingRemoves() == null ? 0 : getPendingRemoves().size();
-            return ReadWriteBackingMap.this.size() - cPendingRemoves;
+            return ReadWriteBackingMap.this.size();
             }
 
         /**
@@ -2253,8 +2240,7 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            int cPendinRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
-            return ReadWriteBackingMap.this.getInternalCache().keySet().size() - cPendinRemoves;
+            return ReadWriteBackingMap.this.size();
             }
 
         /**
@@ -2409,8 +2395,7 @@ public class ReadWriteBackingMap
         */
         public int size()
             {
-            int cPendinRemoves = isWriteBehindRemove() ? getPendingRemoves().size() : 0;
-            return ReadWriteBackingMap.this.size() - cPendinRemoves;
+            return ReadWriteBackingMap.this.size();
             }
 
         /**
@@ -2633,6 +2618,7 @@ public class ReadWriteBackingMap
         m_mapControl       = instantiateControlMap();
         m_listenerInternal = instantiateInternalListener();
         mapInternal.addMapListener(getInternalListener());
+        initializeErasePendingCount();
         }
 
     /**
@@ -2647,16 +2633,76 @@ public class ReadWriteBackingMap
         }
 
     /**
-     * Get the pending removes key set for the CacheStore used by this
-     * backing map.
-     *
-     * @return the key set of pending removes for the CacheStore
-     *
-     * @since 12.2.1.4.18
-     */
+    * Get an immutable view of keys whose internal values are pending-erase
+    * tombstones.
+    *
+    * @return an immutable view of pending-remove keys
+    *
+    * @since 12.2.1.4.18
+    *
+    * @deprecated the pending-remove state is an implementation detail; this
+    *             method is retained for compatibility and may be removed in
+    *             a later release
+    */
+    @Deprecated
     public Set getPendingRemoves()
         {
-        return m_setPendingRemoves;
+        return f_setPendingRemoves;
+        }
+
+    /**
+    * Return the number of pending-erase tombstones in the internal cache.
+    *
+    * @return the number of pending-erase tombstones
+    */
+    private int getErasePendingCount()
+        {
+        return f_cErasePending.get();
+        }
+
+    /**
+    * Determine whether a value is a pending-erase tombstone.
+    *
+    * @param oValue  the value to test
+    *
+    * @return {@code true} if the value is a pending-erase tombstone
+    */
+    private boolean isErasePending(Object oValue)
+        {
+        return BIN_ERASE_PENDING.equals(oValue);
+        }
+
+    /**
+    * Initialize the pending-erase tombstone count from the internal cache.
+    */
+    private void initializeErasePendingCount()
+        {
+        int cErasePending = 0;
+        for (Object oValue : getInternalCache().values())
+            {
+            if (isErasePending(oValue))
+                {
+                ++cErasePending;
+                }
+            }
+        f_cErasePending.set(cErasePending);
+        }
+
+    /**
+    * Update the pending-erase tombstone count for an internal cache change.
+    *
+    * @param oValueOld  the value before the change
+    * @param oValueNew  the value after the change
+    */
+    private void updateErasePendingCount(Object oValueOld, Object oValueNew)
+        {
+        boolean fOldErasePending = isErasePending(oValueOld);
+        boolean fNewErasePending = isErasePending(oValueNew);
+
+        if (fOldErasePending != fNewErasePending)
+            {
+            f_cErasePending.addAndGet(fNewErasePending ? 1 : -1);
+            }
         }
 
     /**
@@ -2703,6 +2749,40 @@ public class ReadWriteBackingMap
         return map;
         }
 
+    // ----- inner class: PendingRemovesSet --------------------------------
+
+    /**
+     * An immutable compatibility view of pending-remove keys derived from the
+     * tombstones in the internal cache.
+     * This class can be removed when {@link #getPendingRemoves()} is removed.
+     */
+    private class PendingRemovesSet
+            extends AbstractSet
+        {
+        public Iterator iterator()
+            {
+            Set setKeys = new HashSet();
+            for (Object o : getInternalCache().entrySet())
+                {
+                Map.Entry entry = (Map.Entry) o;
+                if (isErasePending(entry.getValue()))
+                    {
+                    setKeys.add(entry.getKey());
+                    }
+                }
+            return setKeys.iterator();
+            }
+
+        public int size()
+            {
+            return getErasePendingCount();
+            }
+
+        public boolean contains(Object oKey)
+            {
+            return isErasePending(getInternalCache().get(oKey));
+            }
+        }
 
     // ----- inner class: InternalMapListener -------------------------------
 
@@ -2745,6 +2825,8 @@ public class ReadWriteBackingMap
         */
         public void entryInserted(MapEvent evt)
             {
+            updateErasePendingCount(evt.getOldValue(), evt.getNewValue());
+
             // notify any listeners listening to this backing map
             dispatch(evt);
             }
@@ -2754,6 +2836,8 @@ public class ReadWriteBackingMap
         */
         public void entryUpdated(MapEvent evt)
             {
+            updateErasePendingCount(evt.getOldValue(), evt.getNewValue());
+
             // notify any listeners listening to this backing map
             dispatch(evt);
             }
@@ -2763,6 +2847,10 @@ public class ReadWriteBackingMap
         */
         public void entryDeleted(MapEvent evt)
             {
+            // MapEvent represents updates to BIN_ERASE_PENDING as deletes, so
+            // use the values rather than the event identifier for accounting
+            updateErasePendingCount(evt.getOldValue(), evt.getNewValue());
+
             if (isWriteBehind())
                 {
                 // most commonly, the installed eviction approver would not allow
@@ -4785,11 +4873,6 @@ public class ReadWriteBackingMap
             m_daemonWrite = instantiateWriteThread();
             m_daemonWrite.start();
 
-            if (isWriteBehindRemove())
-                {
-                m_setPendingRemoves = new SafeHashSet();
-                }
-
             setWriteBehindSeconds(cWriteBehindSeconds);
 
             ConfigurableCacheMap mapInternal = getInternalConfigurableCache();
@@ -5744,7 +5827,6 @@ public class ReadWriteBackingMap
                     {
                     Binary binKey = binEntry.getBinaryKey();
                     getInternalCache().remove(binKey);
-                    getPendingRemoves().remove(binKey);
                     }
                 }
             catch (RuntimeException e)
@@ -5792,7 +5874,6 @@ public class ReadWriteBackingMap
                     for (ReadWriteBackingMap.Entry entry : (Set<ReadWriteBackingMap.Entry>) setAll)
                         {
                         getInternalCache().remove(entry.getBinaryKey());
-                        getPendingRemoves().remove(entry.getBinaryKey());
                         }
                     }
                 }
@@ -5822,7 +5903,6 @@ public class ReadWriteBackingMap
                     if (!setBinEntries.contains(entry))
                         {
                         getInternalCache().remove(entry.getBinaryKey());
-                        getPendingRemoves().remove(entry.getBinaryKey());
                         }
                     }
                 }
@@ -8261,6 +8341,16 @@ public class ReadWriteBackingMap
         };
 
     /**
+    * The number of pending-erase tombstones in the internal cache.
+    */
+    private final AtomicInteger f_cErasePending = new AtomicInteger();
+
+    /**
+    * An immutable compatibility view of pending-remove keys.
+    */
+    private final Set f_setPendingRemoves = Collections.unmodifiableSet(new PendingRemovesSet());
+
+    /**
     * The context information provided by the CacheService.
     */
     private BackingMapManagerContext m_ctxService;
@@ -8279,13 +8369,6 @@ public class ReadWriteBackingMap
     * The Map used to cache CacheLoader (or CacheStore) misses.
     */
     private Map              m_mapMisses;
-
-    /**
-     * The Set used to keep track of CacheStore pending removes.
-     *
-     * @since 12.2.1.4.18
-     */
-    private Set              m_setPendingRemoves;
 
     /**
     * The concurrency control map for this backing map.
