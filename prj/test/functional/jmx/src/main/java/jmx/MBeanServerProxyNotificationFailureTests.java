@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,10 +10,21 @@ import com.oracle.bedrock.runtime.Application;
 import com.oracle.bedrock.runtime.coherence.CoherenceCluster;
 
 import com.oracle.bedrock.runtime.coherence.CoherenceClusterMember;
+
+import com.oracle.bedrock.options.Timeout;
+
+import com.oracle.bedrock.runtime.concurrent.RemoteCallable;
+
+import com.oracle.bedrock.runtime.java.options.SystemProperty;
 import com.oracle.bedrock.testsupport.deferred.Eventually;
 
 import com.tangosol.coherence.component.net.management.Connector;
 import com.tangosol.coherence.component.net.management.gateway.Remote;
+
+import com.tangosol.internal.net.metrics.MetricsHttpHelper;
+
+import com.tangosol.io.SerializationRole;
+import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.net.CacheFactory;
 
@@ -23,11 +34,16 @@ import com.tangosol.net.management.Registry;
 import org.junit.After;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static com.oracle.bedrock.deferred.DeferredHelper.invoking;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThan;
 
@@ -37,6 +53,9 @@ import static org.hamcrest.Matchers.greaterThan;
 public class MBeanServerProxyNotificationFailureTests
         extends BaseMBeanServerProxyNotificationTests
     {
+    private static final String CLUSTER_NAME =
+            System.getProperty("coherence.cluster", "MBeanServerProxyNotificationFailure");
+
     @After
     public void cleanupTest()
         {
@@ -46,7 +65,7 @@ public class MBeanServerProxyNotificationFailureTests
     @Test
     public void shouldStillReceiveNotificationsWhenManagementSeniorFailsOver() throws Exception
         {
-        String sClusterName = m_testName.getMethodName();
+        String sClusterName = CLUSTER_NAME;
         int    nClusterSize = 3;
 
         try (CoherenceCluster cluster = startCluster(sClusterName, 3))
@@ -98,6 +117,45 @@ public class MBeanServerProxyNotificationFailureTests
             }
         }
 
+    /**
+     * Regression test for COH-33830. A rolling restart must not deadlock a new
+     * management senior while POF deserialization telemetry is registering
+     * metrics on that member.
+     */
+    @Test
+    public void shouldRemainLiveWhenManagementSeniorRestartsDuringPofTelemetryRegistration() throws Exception
+        {
+        String sClusterName = CLUSTER_NAME;
+        int    nClusterSize = 3;
+
+        try (CoherenceCluster cluster = startCluster(sClusterName, nClusterSize,
+                SystemProperty.of("coherence.management", "dynamic"),
+                SystemProperty.of(MetricsHttpHelper.PROP_METRICS_ENABLED, true),
+                SystemProperty.of("coherence.metrics.http.port", 0)))
+            {
+            Registry         registry = ensureRegistry(sClusterName, nClusterSize);
+            MBeanServerProxy proxy    = registry.getMBeanServerProxy();
+            int              nSenior  = findMBeanServerMember(proxy);
+            List<Future<Boolean>> listTelemetry = new ArrayList<>();
+
+            cluster.stream()
+                    .filter(member -> member.getLocalMemberId() != nSenior)
+                    .forEach(member -> listTelemetry.add(member.submit(new GeneratePofTelemetry(15))));
+
+            cluster.filter(member -> member.getLocalMemberId() == nSenior)
+                    .relaunch(Timeout.after(2, TimeUnit.MINUTES));
+
+            Eventually.assertThat(invoking(this).getClusterSize(), is(nClusterSize + 1));
+            Eventually.assertThat(invoking(this).findMBeanServerMemberSafely(proxy), is(not(nSenior)));
+
+            for (Future<Boolean> future : listTelemetry)
+                {
+                assertThat("POF telemetry registration did not complete during management failover",
+                           future.get(1, TimeUnit.MINUTES), is(true));
+                }
+            }
+        }
+
     // must be public - used in Eventually.assertThat
     public int getClusterSize()
         {
@@ -134,6 +192,19 @@ public class MBeanServerProxyNotificationFailureTests
         return connector.getDynamicSenior().getId();
         }
 
+    // must be public - used in Eventually.assertThat
+    public int findMBeanServerMemberSafely(MBeanServerProxy proxy)
+        {
+        try
+            {
+            return findMBeanServerMember(proxy);
+            }
+        catch (Throwable ignored)
+            {
+            return -1;
+            }
+        }
+
     /**
      * Find a cluster member that is not running the MBeanServer.
      *
@@ -168,5 +239,49 @@ public class MBeanServerProxyNotificationFailureTests
             }
 
         return count;
+        }
+
+    // ----- inner class: GeneratePofTelemetry -----------------------------
+
+    /**
+     * Repeatedly creates the same telemetry registrations made by
+     * {@code PofBufferReader} on its registered-type deserialization path.
+     */
+    public static class GeneratePofTelemetry
+            implements RemoteCallable<Boolean>
+        {
+        public GeneratePofTelemetry(int cSeconds)
+            {
+            f_cSeconds = cSeconds;
+            }
+
+        @Override
+        public Boolean call()
+            {
+            Registry registry = CacheFactory.ensureCluster().getManagement();
+            long     ldtStop  = System.nanoTime() + TimeUnit.SECONDS.toNanos(f_cSeconds);
+
+            do
+                {
+                SerializationTelemetry.resetForTesting();
+                SerializationTelemetry.register(registry);
+
+                try (SerializationRole.Scope ignored =
+                             SerializationRole.setAndClose(SerializationRole.CLUSTER))
+                    {
+                    for (int nTypeId = 100_000; nTypeId < 100_032; nTypeId++)
+                        {
+                        SerializationTelemetry.recordRegisteredPofType(nTypeId);
+                        }
+                    }
+
+                Thread.yield();
+                }
+            while (System.nanoTime() < ldtStop);
+
+            return true;
+            }
+
+        private final int f_cSeconds;
         }
     }
