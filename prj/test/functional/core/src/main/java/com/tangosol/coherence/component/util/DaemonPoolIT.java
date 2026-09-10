@@ -162,7 +162,8 @@ public class DaemonPoolIT
         CompletableFuture.runAsync(resizeTask);
 
         System.err.println("Waiting for ResizeTask to resize pool");
-        latchNotify.await();
+        assertTrue("expected ResizeTask to enter the legacy resize path",
+                latchNotify.await(10, TimeUnit.SECONDS));
         System.err.println("ResizeTask is resizing pool, calling shutdown");
         pool.shutdown();
         System.err.println("Pool is shutdown");
@@ -561,32 +562,38 @@ public class DaemonPoolIT
         pool.setWorkloadProcessorCount(5);
         pool.setBacklog(100);
         pool.setActiveAssociationCount(20);
-        pool.setWorkerCpuNanos(500000000L);
         configureRun(resizeTask, pool, 5, 0L, 0L, 1000.0d, 0, 500L, 5);
         resizeTask.setLastWorkerCpuNanos(0L);
-        pool.setStatsTaskCount(1000L);
-        pool.setStatsActiveMillis(5000L);
 
-        resizeTask.run();
-        assertThat(pool.getDaemonCount(), is(6));
+        for (int i = 1; i <= 5; i++)
+            {
+            resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
+            resizeTask.setLastWorkerCpuSampleMillis(Base.getSafeTimeMillis() - 1000L);
+            pool.setWorkerCpuNanos(i * 500000000L);
+            pool.setStatsTaskCount(i * 1000L);
+            pool.setStatsActiveMillis(i * 5000L);
+
+            resizeTask.run();
+            assertThat(pool.getDaemonCount(), is(i < 5 ? 5 : 7));
+            }
 
         resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
-        pool.setActiveDaemonCount(6);
-        pool.setWorkerCpuNanos(1100000000L);
-        pool.setStatsTaskCount(2000L);
-        pool.setStatsActiveMillis(11000L);
+        pool.setActiveDaemonCount(7);
+        pool.setWorkerCpuNanos(3200000000L);
+        pool.setStatsTaskCount(6000L);
+        pool.setStatsActiveMillis(32000L);
         resizeTask.run();
-        assertThat(pool.getDaemonCount(), is(6));
+        assertThat(pool.getDaemonCount(), is(7));
 
         resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
-        pool.setWorkerCpuNanos(1700000000L);
-        pool.setStatsTaskCount(3000L);
-        pool.setStatsActiveMillis(17000L);
+        pool.setWorkerCpuNanos(3900000000L);
+        pool.setStatsTaskCount(7000L);
+        pool.setStatsActiveMillis(39000L);
         resizeTask.run();
 
         assertThat(pool.getDaemonCount(), is(5));
         assertTrue(pool.getLastWorkloadGrowthDecision()
-                .startsWith("the above-CPU worker probe improved throughput by only"));
+                .startsWith("the worker-count probe improved throughput by only"));
         }
 
     @Test
@@ -827,6 +834,12 @@ public class DaemonPoolIT
             extends DaemonPool
         {
         @Override
+        public boolean isWorkloadAwareResizeEnabled()
+            {
+            return false;
+            }
+
+        @Override
         public synchronized void setDaemonCount(int cThreads)
             {
             if (m_latchNotify != null)
@@ -837,7 +850,10 @@ public class DaemonPoolIT
                 {
                 try
                     {
-                    m_latchWait.await();
+                    if (!m_latchWait.await(10, TimeUnit.SECONDS))
+                        {
+                        throw new AssertionError("timed out waiting for the resize test latch");
+                        }
                     }
                 catch (InterruptedException e)
                     {
