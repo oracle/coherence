@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2016, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2016, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.oracle.coherence.concurrent.executor.subscribers.internal;
@@ -121,9 +121,9 @@ public class FutureSubscriber<T>
     public T get()
             throws InterruptedException, ExecutionException
         {
-        if (!hasResult())
+        synchronized (this)
             {
-            synchronized (this)
+            while (!isDone())
                 {
                 wait();
                 }
@@ -144,16 +144,19 @@ public class FutureSubscriber<T>
     public T get(long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException
         {
-        if (timeout > 0 && !hasResult())
-            {
-            synchronized (this)
-                {
-                wait(unit.toMillis(timeout));
-                }
+        long cNanos = unit.toNanos(timeout);
+        long ldtEnd = System.nanoTime() + cNanos;
 
-            if (!hasResult())
+        synchronized (this)
+            {
+            while (!isDone())
                 {
-                throw new TimeoutException("Timed out before the task is completed.");
+                if (cNanos <= 0)
+                    {
+                    throw new TimeoutException("Timed out before the task is completed.");
+                    }
+                TimeUnit.NANOSECONDS.timedWait(this, cNanos);
+                cNanos = ldtEnd - System.nanoTime();
                 }
             }
 
@@ -222,7 +225,7 @@ public class FutureSubscriber<T>
     /**
      * The result.
      */
-    protected Result<T> m_result;
+    protected volatile Result<T> m_result;
 
     /**
      * Subscription.
