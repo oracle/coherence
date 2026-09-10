@@ -194,6 +194,7 @@ public class ProxyServiceDependenciesTest
               "<tcp-delay-enabled>" + flag + "</tcp-delay-enabled>" +
               "<reuse-address>false</reuse-address>" +
               "<send-buffer-size>128kb </send-buffer-size>" +
+              "<connection-pipeline-count>5</connection-pipeline-count>" +
               "<suspect-protocol-enabled>" + flag + "</suspect-protocol-enabled>" +
               "<suspect-buffer-size>   129kb </suspect-buffer-size>" +
               "<suspect-buffer-length> 5000  </suspect-buffer-length>" +
@@ -236,6 +237,7 @@ public class ProxyServiceDependenciesTest
         // test TcpAcceptor
         TcpAcceptorDependencies depsAcceptor = (TcpAcceptorDependencies) deps.getAcceptorDependencies();
         assertEquals(depsAcceptor.getConnectionLimit(), 16);
+        assertEquals(depsAcceptor.getConnectionPipelineCount(), 5);
 
         // note: the send buffer size is in SocketOptions and there is no way to get it.
         System.out.println(" *** SocketOptions ** " + depsAcceptor.getSocketOptions().toString());

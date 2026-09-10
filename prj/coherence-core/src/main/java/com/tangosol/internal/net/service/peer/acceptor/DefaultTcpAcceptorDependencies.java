@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -76,6 +76,10 @@ public class DefaultTcpAcceptorDependencies
             m_cbDefaultSuspectBytes    = deps.getDefaultSuspectBytes();
             m_cDefaultSuspectMessages  = deps.getDefaultSuspectMessages();
             m_bufferPoolConfigIncoming = deps.getIncomingBufferPoolConfig();
+            m_cConnectionPipelines     = deps.getConnectionPipelineCount();
+            m_fConnectionPipelinesConfigured = !(deps instanceof DefaultTcpAcceptorDependencies)
+                    || ((DefaultTcpAcceptorDependencies) deps)
+                            .isConnectionPipelineCountConfigured();
             m_cListenBacklog           = deps.getListenBacklog();
             m_bufferPoolConfigOutgoing = deps.getOutgoingBufferPoolConfig();
             m_socketOptions            = deps.getSocketOptions();
@@ -273,6 +277,48 @@ public class DefaultTcpAcceptorDependencies
     public int getListenBacklog()
         {
         return m_cListenBacklog;
+        }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public int getConnectionPipelineCount()
+        {
+        return m_cConnectionPipelines;
+        }
+
+    /**
+     * Set the number of connection-affine processing pipelines.
+     *
+     * @param cPipelines  the pipeline count
+     */
+    @Injectable("connection-pipeline-count")
+    public void setConnectionPipelineCount(int cPipelines)
+        {
+        m_fConnectionPipelinesConfigured = true;
+        m_cConnectionPipelines           = cPipelines;
+        }
+
+    /**
+     * Return true if the pipeline count was explicitly configured.
+     *
+     * @return true if explicitly configured
+     */
+    public boolean isConnectionPipelineCountConfigured()
+        {
+        return m_fConnectionPipelinesConfigured;
+        }
+
+    /**
+     * Set the contextual default without treating it as explicit user
+     * configuration.
+     *
+     * @param cPipelines  the default pipeline count
+     */
+    public void setDefaultConnectionPipelineCount(int cPipelines)
+        {
+        m_cConnectionPipelines = cPipelines;
         }
 
     /**
@@ -493,6 +539,9 @@ public class DefaultTcpAcceptorDependencies
         {
         super.validate();
 
+        Base.checkRange(getConnectionPipelineCount(), 1, 256,
+                "ConnectionPipelineCount");
+
         return this;
         }
 
@@ -519,7 +568,8 @@ public class DefaultTcpAcceptorDependencies
                + ", DefaultNominalBytes=" + getDefaultNominalBytes() + ", DefaultNominalMessages="
                + getDefaultNominalMessages() + ", DefaultSuspectBytes=" + getDefaultSuspectBytes()
                + ", DefaultSuspectMessages=" + getDefaultSuspectMessages() + ", IncomingBufferPoolConfig="
-               + getIncomingBufferPoolConfig() + ", ListenBacklog=" + getListenBacklog() + ", LocalAddressProvider="
+               + getIncomingBufferPoolConfig() + ", ConnectionPipelineCount=" + getConnectionPipelineCount()
+               + ", ListenBacklog=" + getListenBacklog() + ", LocalAddressProvider="
                + getLocalAddressProviderBuilder() + ", OutgoingBufferPoolConfig=" + getOutgoingBufferPoolConfig()
                + ", SocketOptions=" + getSocketOptions() + ", SocketProviderBuilder=" + getSocketProviderBuilder()
                + ", SuspectProtocolEnabled=" + isSuspectProtocolEnabled() + "}";
@@ -757,6 +807,18 @@ public class DefaultTcpAcceptorDependencies
      * The listen backlog in connections.
      */
     private int m_cListenBacklog;
+
+    /**
+     * The number of connection-affine processing pipelines. A standalone TCP
+     * acceptor retains one pipeline; ProxyService may supply a contextual
+     * default before validation.
+     */
+    private int m_cConnectionPipelines = 1;
+
+    /**
+     * True when connection-pipeline-count was explicitly configured.
+     */
+    private boolean m_fConnectionPipelinesConfigured;
 
     /**
      * The SocketOptions.

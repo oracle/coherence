@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -529,7 +529,7 @@ public class Connection
             setPendingCloses(getPendingCloses() + 1);
 
             com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) getConnectionManager();
-            if (Thread.currentThread() == manager.getThread())
+            if (manager.isServiceThread(this))
                 {
                 closeInternal(fNotify, e, 0L);
                 }
@@ -658,7 +658,7 @@ public class Connection
         // import Component.Util.Daemon.QueueProcessor.Service.Peer as com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer;
         
         com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer manager = (com.tangosol.coherence.component.util.daemon.queueProcessor.service.Peer) getConnectionManager();
-        if (Thread.currentThread() == manager.getThread())
+        if (manager.isServiceThread(this))
             {
             return createChannelInternal(protocol,
                     manager.ensureSerializer(loader),
