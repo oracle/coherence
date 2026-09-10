@@ -57,9 +57,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.UUID;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executor;
@@ -2713,7 +2716,7 @@ public abstract class AbstractTaskExecutorServiceTests
 
         public boolean isLogTaskCalled()
             {
-            return s_fLogTaskCalled;
+            return s_setCompleted.contains(m_sId);
             }
 
         // ----- Task.CompletionRunnable interface --------------------------
@@ -2721,7 +2724,7 @@ public abstract class AbstractTaskExecutorServiceTests
         @Override
         public void accept(String result)
             {
-            s_fLogTaskCalled = true;
+            s_setCompleted.add(m_sId);
             System.out.println("Task has completed with result: " + result);
             }
 
@@ -2729,12 +2732,12 @@ public abstract class AbstractTaskExecutorServiceTests
 
         public void readExternal(DataInput in) throws IOException
             {
-            s_fLogTaskCalled = in.readBoolean();
+            m_sId = ExternalizableHelper.readSafeUTF(in);
             }
 
         public void writeExternal(DataOutput out) throws IOException
             {
-            out.writeBoolean(s_fLogTaskCalled);
+            ExternalizableHelper.writeSafeUTF(out, m_sId);
             }
 
         // ----- PortableObject interface -----------------------------------
@@ -2742,18 +2745,27 @@ public abstract class AbstractTaskExecutorServiceTests
         @Override
         public void readExternal(PofReader in) throws IOException
             {
-            s_fLogTaskCalled = in.readBoolean(0);
+            m_sId = in.readString(0);
             }
 
         @Override
         public void writeExternal(PofWriter out) throws IOException
             {
-            out.writeBoolean(0, s_fLogTaskCalled);
+            out.writeString(0, m_sId);
             }
 
         // ----- data members -----------------------------------------------
 
-        static boolean s_fLogTaskCalled;
+        /**
+         * The identity shared by all serialized copies of this completion
+         * callback.
+         */
+        private String m_sId = UUID.randomUUID().toString();
+
+        /**
+         * The identities of callbacks invoked in this test JVM.
+         */
+        private static final Set<String> s_setCompleted = ConcurrentHashMap.newKeySet();
         }
 
     // ----- data members ---------------------------------------------------
