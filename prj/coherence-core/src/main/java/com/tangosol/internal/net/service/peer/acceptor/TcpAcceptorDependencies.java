@@ -91,8 +91,9 @@ public interface TcpAcceptorDependencies
 
     /**
      * Return the number of connection-affine processing pipelines used by a
-     * TCP proxy acceptor. Each accepted connection is owned by exactly one
-     * pipeline for its lifetime.
+     * TCP proxy acceptor. Zero selects automatic topology and values from 2
+     * through 256 select an exact fixed topology. Each accepted connection is
+     * owned by exactly one pipeline for its lifetime.
      *
      * @return the connection pipeline count
      *

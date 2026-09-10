@@ -114,8 +114,8 @@ public class LegacyXmlTcpAcceptorHelper
         deps.setListenBacklog(xmlCat.getSafeElement("listen-backlog").getInt(
                 deps.getListenBacklog()));
 
-        // <connection-pipeline-count>
-        XmlElement xmlPipelines = xmlCat.getElement("connection-pipeline-count");
+        // <pipeline-count>
+        XmlElement xmlPipelines = xmlCat.getElement("pipeline-count");
         if (xmlPipelines != null && !XmlHelper.isEmpty(xmlPipelines))
             {
             deps.setConnectionPipelineCount(xmlPipelines.getInt());
