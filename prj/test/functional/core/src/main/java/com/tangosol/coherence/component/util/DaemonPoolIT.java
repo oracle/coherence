@@ -565,7 +565,9 @@ public class DaemonPoolIT
         configureRun(resizeTask, pool, 5, 0L, 0L, 1000.0d, 0, 500L, 5);
         resizeTask.setLastWorkerCpuNanos(0L);
 
-        for (int i = 1; i <= 5; i++)
+        // Sustained off-CPU saturation now starts the probe after three
+        // samples without waiting for the five-sample throughput baseline.
+        for (int i = 1; i <= 3; i++)
             {
             resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
             resizeTask.setLastWorkerCpuSampleMillis(Base.getSafeTimeMillis() - 1000L);
@@ -574,24 +576,22 @@ public class DaemonPoolIT
             pool.setStatsActiveMillis(i * 5000L);
 
             resizeTask.run();
-            assertThat(pool.getDaemonCount(), is(i < 5 ? 5 : 7));
+            assertThat(pool.getDaemonCount(), is(i < 3 ? 5 : 7));
             }
 
-        resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
         pool.setActiveDaemonCount(7);
-        pool.setWorkerCpuNanos(3200000000L);
-        pool.setStatsTaskCount(6000L);
-        pool.setStatsActiveMillis(32000L);
-        resizeTask.run();
-        assertThat(pool.getDaemonCount(), is(7));
+        for (int i = 4; i <= 5; i++)
+            {
+            resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
+            resizeTask.setLastWorkerCpuSampleMillis(Base.getSafeTimeMillis() - 1000L);
+            pool.setWorkerCpuNanos(i * 500000000L);
+            pool.setStatsTaskCount(i * 1000L);
+            pool.setStatsActiveMillis(i * 5000L);
 
-        resizeTask.setLastRunMillis(Base.getSafeTimeMillis() - 1000L);
-        pool.setWorkerCpuNanos(3900000000L);
-        pool.setStatsTaskCount(7000L);
-        pool.setStatsActiveMillis(39000L);
-        resizeTask.run();
+            resizeTask.run();
+            assertThat(pool.getDaemonCount(), is(i < 5 ? 7 : 5));
+            }
 
-        assertThat(pool.getDaemonCount(), is(5));
         assertTrue(pool.getLastWorkloadGrowthDecision()
                 .startsWith("the worker-count probe improved throughput by only"));
         }
