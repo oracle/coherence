@@ -911,13 +911,13 @@ public class QuorumTests
     */
     private void testClusterQuorum(ServerConfig... aConfig)
         {
-        CacheFactory.shutdown();
-
         // the operational override sets the timeout quorum to 3, which means
         // that a third server should no be "disconnected" if it times out;
         // also, and the publisher timeout is set to 5 seconds
         Properties propsThis = aConfig[0].Props; // this node
         System.getProperties().putAll(propsThis);
+
+        CacheFactory.shutdown();
 
         SafeCluster clusterSafe = (SafeCluster) CacheFactory.ensureCluster();
         assertEquals("Invalid operational override",
