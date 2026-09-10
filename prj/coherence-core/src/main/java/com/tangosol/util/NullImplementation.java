@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -24,6 +24,7 @@ import com.tangosol.io.DeltaCompressor;
 import com.tangosol.io.ExternalizableLite;
 import com.tangosol.io.OutputStreaming;
 import com.tangosol.io.ReadBuffer;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
 
 import com.tangosol.io.pof.PofContext;
@@ -1678,6 +1679,25 @@ public class NullImplementation
             {
             throw new UnsupportedOperationException();
             }
+
+        @Override
+        public SerializationLimitPolicy getLimitPolicy()
+            {
+            SerializationLimitPolicy policy = m_policyLimits;
+            if (policy == null)
+                {
+                policy = PofContext.super.getLimitPolicy();
+                m_policyLimits = policy;
+                }
+            return policy;
+            }
+
+        // ----- data members ------------------------------------------
+
+        /**
+         * The deserialization limit policy.
+         */
+        private volatile SerializationLimitPolicy m_policyLimits;
 
         // ----- constants ----------------------------------------------
 
