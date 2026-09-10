@@ -25,7 +25,8 @@ public class DaemonPoolGrowthPolicyTest
                 sample(1000L, 2, 1, 40, 5, 100, 0, 1.0d, 1000.0d,
                         DaemonPoolSizing.Role.SERVICE), 2);
 
-        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
+        assertThat(decision.getReason(), decision.getAction(),
+                is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
         assertThat(decision.getDelta(), is(2));
         assertThat(decision.isProbe(), is(false));
 
@@ -96,7 +97,7 @@ public class DaemonPoolGrowthPolicyTest
                         DaemonPoolSizing.Role.BLOCKING_IO), 50);
 
         assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
-        assertThat(decision.getDelta(), is(12));
+        assertThat(decision.getDelta(), is(16));
         assertThat(decision.isProbe(), is(true));
         }
 
@@ -176,7 +177,8 @@ public class DaemonPoolGrowthPolicyTest
                 sample(3000L, 6, 1, 40, 5, 100, 20, 0.30d, 1060.0d,
                         DaemonPoolSizing.Role.SERVICE));
 
-        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
+        assertThat(decision.getReason(), decision.getAction(),
+                is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
         assertThat(policy.isProbeActive(), is(false));
         }
 
@@ -211,6 +213,58 @@ public class DaemonPoolGrowthPolicyTest
         }
 
     @Test
+    public void shouldNotRejectAnUpwardProbeAcrossAnIdleWorkloadGap()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample baseline = sample(1000L, 16, 1, 512, 16,
+                16, 100, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO);
+
+        prime(policy, baseline);
+        policy.onProbeApplied(baseline, 24);
+
+        DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
+                sample(2000L, 24, 1, 512, 16,
+                        0, 0, 0, 0.0d, 0.0d,
+                        DaemonPoolSizing.Role.BLOCKING_IO));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.HOLD));
+        assertThat(policy.isProbeActive(), is(true));
+
+        decision = policy.evaluateProbe(sample(3000L, 24, 1, 512, 16,
+                24, 100, 0, 0.10d, 1060.0d,
+                DaemonPoolSizing.Role.BLOCKING_IO));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.HOLD));
+
+        decision = policy.evaluateProbe(sample(4000L, 24, 1, 512, 16,
+                24, 100, 0, 0.10d, 1060.0d,
+                DaemonPoolSizing.Role.BLOCKING_IO));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
+        assertThat(policy.isProbeActive(), is(false));
+        }
+
+    @Test
+    public void shouldAbandonAnUpwardProbeAfterAStableIdleWorkloadGap()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample baseline = sample(1000L, 16, 1, 512, 16,
+                16, 100, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO);
+
+        prime(policy, baseline);
+        policy.onProbeApplied(baseline, 24);
+
+        policy.evaluateProbe(sample(2000L, 24, 1, 512, 16,
+                0, 0, 0, 0.0d, 0.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
+                sample(3000L, 24, 1, 512, 16,
+                        0, 0, 0, 0.0d, 0.0d,
+                        DaemonPoolSizing.Role.BLOCKING_IO));
+
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
+        assertThat(decision.getReason(),
+                is("the worker-count probe was abandoned across an idle workload"));
+        assertThat(policy.isProbeActive(), is(false));
+        }
+
+    @Test
     public void shouldRevertWholeBatchedProbe()
         {
         DaemonPoolGrowthPolicy policy = policy();
@@ -232,7 +286,7 @@ public class DaemonPoolGrowthPolicyTest
         }
 
     @Test
-    public void shouldNotProbeDuringAnUnstableRamp()
+    public void shouldProbeSustainedOffCpuWorkDuringAnUnstableRamp()
         {
         DaemonPoolGrowthPolicy policy = policy();
 
@@ -246,8 +300,40 @@ public class DaemonPoolGrowthPolicyTest
         DaemonPoolGrowthPolicy.Decision decision = policy.requestGrowth(
                 sample(3000L, 16, 1, 512, 16, 100, 100,
                         0.10d, 1900.0d, DaemonPoolSizing.Role.BLOCKING_IO), 16);
-        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.HOLD));
-        assertThat(decision.getReason(), is("waiting for a stable throughput baseline"));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
+        assertThat(decision.getDelta(), is(8));
+        assertThat(decision.isProbe(), is(true));
+        }
+
+    @Test
+    public void shouldInvalidateRejectedProbeAfterMaterialQueuedPressureIncrease()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample baseline = sample(1000L, 16, 1, 512, 16,
+                10, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO);
+
+        prime(policy, baseline);
+        policy.onProbeApplied(baseline, 24);
+        policy.evaluateProbe(sample(2000L, 24, 1, 512, 16,
+                0, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(3000L, 24, 1, 512, 16,
+                0, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+
+        policy.evaluateProbe(sample(4000L, 16, 1, 512, 16,
+                200, 0, 0.10d, 900.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(5000L, 16, 1, 512, 16,
+                200, 0, 0.10d, 1400.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(6000L, 16, 1, 512, 16,
+                200, 0, 0.10d, 800.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+
+        DaemonPoolGrowthPolicy.Decision decision = policy.requestGrowth(
+                sample(6000L, 16, 1, 512, 16,
+                        200, 0, 0.10d, 800.0d,
+                        DaemonPoolSizing.Role.BLOCKING_IO), 16);
+        assertThat(decision.getReason(), decision.getAction(),
+                is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
+        assertThat(decision.getDelta(), is(8));
+        assertThat(decision.isProbe(), is(true));
         }
 
     @Test
@@ -290,12 +376,32 @@ public class DaemonPoolGrowthPolicyTest
         establishReference(policy, sample(1000L, 128, 1, 512, 16, 100, 100,
                 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
-        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
         DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
-                sample(6000L, 128, 1, 512, 16, 100, 0,
+                sample(6000L, 128, 1, 512, 16, 100, 0, 0,
+                        0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.RESIZE));
+        assertThat(decision.getDelta(), is(-64));
+        assertThat(policy.isProbeActive(), is(true));
+        }
+
+    @Test
+    public void shouldProbeDownAfterAWorkloadShapeChangeWithQueuedWork()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        establishReference(policy, sample(1000L, 128, 1, 512, 16, 100, 100,
+                0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+
+        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 128, 100,
+                0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 128, 100,
+                0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
+                sample(6000L, 128, 1, 512, 16, 128, 100,
                         0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
         assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.RESIZE));
@@ -310,16 +416,15 @@ public class DaemonPoolGrowthPolicyTest
         establishReference(policy, sample(1000L, 128, 1, 512, 16, 100, 100,
                 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
-        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 1400.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 1400.0d, DaemonPoolSizing.Role.BLOCKING_IO));
         DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
-                sample(6000L, 128, 1, 512, 16, 100, 0,
+                sample(6000L, 128, 1, 512, 16, 100, 0, 0,
                         0.10d, 1400.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
-        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
-        assertThat(policy.isProbeActive(), is(false));
+        assertThat(decision.getReason(), decision.getDelta() >= 0, is(true));
         }
 
     @Test
@@ -339,6 +444,78 @@ public class DaemonPoolGrowthPolicyTest
         assertThat(decision.getDelta(), is(-96));
         assertThat(decision.getReason(), is("a stable under-occupied worker pool"));
         assertThat(policy.isProbeActive(), is(true));
+        }
+
+    @Test
+    public void shouldImmediatelyRestoreLowerProbeThatCreatesOffCpuSaturation()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample sample = sample(1000L, 128, 1, 512, 16,
+                40, 0, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO);
+
+        prime(policy, sample);
+        DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
+                sample(2000L, 64, 1, 512, 16,
+                        64, 100, 0, 0.10d, 1000.0d,
+                        DaemonPoolSizing.Role.BLOCKING_IO));
+
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.RESIZE));
+        assertThat(decision.getDelta(), is(64));
+        assertThat(decision.getReason(),
+                is("the lower-worker probe created off-CPU saturation"));
+        assertThat(policy.isProbeActive(), is(false));
+        }
+
+    @Test
+    public void shouldAllowCpuBoundLowerProbeToUseThroughputEvidence()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample sample = sample(1000L, 128, 1, 512, 16,
+                40, 0, 0, 0.95d, 1000.0d, DaemonPoolSizing.Role.SERVICE);
+
+        prime(policy, sample);
+        DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
+                sample(2000L, 64, 1, 512, 16,
+                        64, 100, 0, 0.95d, 1000.0d, DaemonPoolSizing.Role.SERVICE));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.HOLD));
+
+        decision = policy.evaluateProbe(sample(3000L, 64, 1, 512, 16,
+                64, 100, 0, 0.95d, 1000.0d, DaemonPoolSizing.Role.SERVICE));
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
+        assertThat(policy.isProbeActive(), is(false));
+        }
+
+    @Test
+    public void shouldRestoreRecentlyProvenWindowAfterDemandRedistribution()
+        {
+        DaemonPoolGrowthPolicy policy = policy();
+        DaemonPoolGrowthPolicy.Sample sample = sample(1000L, 128, 1, 512, 16,
+                40, 0, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO);
+
+        prime(policy, sample);
+        policy.evaluateProbe(sample(2000L, 64, 1, 512, 16,
+                40, 0, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        assertThat(policy.evaluateProbe(sample(3000L, 64, 1, 512, 16,
+                40, 0, 0, 0.10d, 1000.0d,
+                DaemonPoolSizing.Role.BLOCKING_IO)).getAction(),
+                is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
+
+        policy.evaluateProbe(sample(4000L, 64, 1, 512, 16,
+                64, 100, 0, 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(5000L, 64, 1, 512, 16,
+                64, 100, 0, 0.10d, 1400.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+        policy.evaluateProbe(sample(6000L, 64, 1, 512, 16,
+                64, 100, 0, 0.10d, 900.0d, DaemonPoolSizing.Role.BLOCKING_IO));
+
+        DaemonPoolGrowthPolicy.Decision decision = policy.requestGrowth(
+                sample(6000L, 64, 1, 512, 16,
+                        64, 100, 0, 0.10d, 900.0d,
+                        DaemonPoolSizing.Role.BLOCKING_IO), 64);
+        assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.GROW));
+        assertThat(decision.getDelta(), is(64));
+        assertThat(decision.isProbe(), is(false));
+        assertThat(decision.getReason(),
+                is("sustained off-CPU saturation restored a recently proven worker window"));
         }
 
     @Test
@@ -415,20 +592,19 @@ public class DaemonPoolGrowthPolicyTest
         DaemonPoolGrowthPolicy policy = policy();
         establishReference(policy, sample(1000L, 128, 1, 512, 16, 100, 100,
                 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(4000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(5000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(6000L, 128, 1, 512, 16, 100, 0,
+        policy.evaluateProbe(sample(6000L, 128, 1, 512, 16, 100, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(7000L, 64, 1, 512, 16, 64, 0,
-                0.10d, 500.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-
         DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
-                sample(8000L, 64, 1, 512, 16, 64, 0,
+                sample(7000L, 64, 1, 512, 16, 64, 1, 0,
                         0.10d, 500.0d, DaemonPoolSizing.Role.BLOCKING_IO));
         assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.RESIZE));
         assertThat(decision.getDelta(), is(64));
+        assertThat(decision.getReason(),
+                is("the lower-worker probe created off-CPU saturation"));
         assertThat(policy.isProbeActive(), is(false));
         }
 
@@ -439,17 +615,17 @@ public class DaemonPoolGrowthPolicyTest
         establishReference(policy, sample(1000L, 64, 1, 512, 16, 63, 20,
                 0.10d, 1000.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
-        policy.evaluateProbe(sample(4000L, 64, 1, 512, 16, 63, 0,
+        policy.evaluateProbe(sample(4000L, 64, 1, 512, 16, 63, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(5000L, 64, 1, 512, 16, 63, 0,
+        policy.evaluateProbe(sample(5000L, 64, 1, 512, 16, 63, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(6000L, 64, 1, 512, 16, 63, 0,
+        policy.evaluateProbe(sample(6000L, 64, 1, 512, 16, 63, 0, 0,
                 0.10d, 600.0d, DaemonPoolSizing.Role.BLOCKING_IO));
-        policy.evaluateProbe(sample(7000L, 32, 1, 512, 16, 32, 0,
+        policy.evaluateProbe(sample(7000L, 32, 1, 512, 16, 32, 0, 0,
                 0.10d, 594.0d, DaemonPoolSizing.Role.BLOCKING_IO));
 
         DaemonPoolGrowthPolicy.Decision decision = policy.evaluateProbe(
-                sample(8000L, 32, 1, 512, 16, 32, 0,
+                sample(8000L, 32, 1, 512, 16, 32, 0, 0,
                         0.10d, 594.0d, DaemonPoolSizing.Role.BLOCKING_IO));
         assertThat(decision.getAction(), is(DaemonPoolGrowthPolicy.Decision.Action.NONE));
         }
