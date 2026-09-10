@@ -969,11 +969,12 @@ public class JmxTests
     @Test
     public void testLogClusterNodeState() throws Exception
         {
+        System.setProperty("test.log", "jdk");
+
         CacheFactory.shutdown();
 
         System.setProperty("coherence.management","all");
         System.setProperty("coherence.management.remote","true");
-        System.setProperty("test.log", "jdk");
 
         Logger     logger     = m_logger = Logger.getLogger("Coherence");
         LogHandler logHandler = new LogHandler();
@@ -999,6 +1000,7 @@ public class JmxTests
         finally
             {
             logHandler.m_enabled = false;
+            logger.removeHandler(logHandler);
 
             System.clearProperty("coherence.management");
             System.clearProperty("coherence.management.remote");
@@ -1062,6 +1064,8 @@ public class JmxTests
     @Test
     public void testLogClusterNodeStateWithExtendedMBeanName() throws Exception
         {
+        System.setProperty("test.log", "jdk");
+
         CacheFactory.shutdown();
 
         System.setProperty("coherence.distributed.localstorage","true");
@@ -1069,7 +1073,6 @@ public class JmxTests
         System.setProperty("coherence.management.remote","true");
         System.setProperty("coherence.management.extendedmbeanname", "true");
         System.setProperty("coherence.member", "grid-storage 1");
-        System.setProperty("test.log","jdk");
 
         Logger     logger     = m_logger = Logger.getLogger("Coherence");
         LogHandler logHandler = new LogHandler();
@@ -1098,6 +1101,7 @@ public class JmxTests
         finally
             {
             logHandler.m_enabled = false;
+            logger.removeHandler(logHandler);
 
             System.clearProperty("coherence.distributed.localstorage");
             System.clearProperty("coherence.management");
