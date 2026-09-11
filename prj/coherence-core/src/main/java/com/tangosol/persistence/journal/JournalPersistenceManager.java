@@ -57,6 +57,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -286,6 +287,64 @@ public class JournalPersistenceManager
     protected JournalPersistentStore instantiatePersistentStore(String sId)
         {
         return new JournalPersistentStore(sId);
+        }
+
+    /**
+     * {@inheritDoc}
+     *
+     * A journal store that contains no extents is represented by a store
+     * directory containing only the generic persistence metadata. Therefore,
+     * directory emptiness is not sufficient to identify an empty journal
+     * store, particularly after an abrupt process termination.
+     */
+    @Override
+    public boolean isEmpty(String sId)
+        {
+        sId = validatePersistentStoreId(sId);
+
+        File   dirStore   = new File(f_dirData, sId);
+        File   fileExtents = new File(dirStore, EXTENTS_FILENAME);
+        File[] aFile      = dirStore.listFiles();
+
+        if (aFile == null || aFile.length == 0)
+            {
+            return true;
+            }
+
+        boolean fNoExtents;
+        if (!fileExtents.isFile())
+            {
+            fNoExtents = true;
+            }
+        else
+            {
+            try (DataInputStream in = new DataInputStream(
+                    new BufferedInputStream(new FileInputStream(fileExtents))))
+                {
+                fNoExtents = in.readInt() == 0;
+                }
+            catch (IOException e)
+                {
+                // The normal open path will report corrupt extent metadata
+                // with the appropriate persistence context.
+                return false;
+                }
+            }
+
+        if (!fNoExtents)
+            {
+            return false;
+            }
+
+        try
+            {
+            Properties prop = readMetadata(dirStore);
+            return isMetadataComplete(prop) && isMetadataCompatible(prop);
+            }
+        catch (IOException e)
+            {
+            return false;
+            }
         }
 
     /**

@@ -1189,9 +1189,11 @@ public abstract class AbstractPersistenceManager<PS extends AbstractPersistentSt
         @Override
         public boolean isOpen()
             {
-            File[] aFile = f_dirStore.listFiles();
-
-            return aFile != null && aFile.length > 0 && isReady();
+            // The store lifecycle state is authoritative. Probing the store
+            // directory here used to turn every isOpen() call into a directory
+            // scan, which is especially expensive for journal-backed maps that
+            // resolve a persistent store for every cache operation.
+            return isReady();
             }
 
         /**

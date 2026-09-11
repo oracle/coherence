@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -736,9 +736,22 @@ public class GUIDHelper
                 for (int i = 0, c = aStoreInfo.length; i < c; i++)
                     {
                     PersistentStoreInfo storeInfo = aStoreInfo[i];
-                    if (!setPrevGUIDs.contains(storeInfo.getId()))
+                    int                 iPart     = getPartition(storeInfo.getId());
+                    PersistentStoreInfo infoNewest = iPart < cPartitions
+                            ? aStoreNewest[iPart]
+                            : null;
+
+                    // Recovery requests carry the globally selected GUID, so a
+                    // member is eligible only when that exact store is visible
+                    // to it. Merely having another store for the same partition
+                    // and version is insufficient: local journal managers can
+                    // contain distinct GUIDs, including an empty store created
+                    // before the partition's first mutation.
+                    if (!setPrevGUIDs.contains(storeInfo.getId()) &&
+                        infoNewest != null &&
+                        equals(storeInfo.getId(), infoNewest.getId()))
                         {
-                        parts.add(getPartition(storeInfo.getId()));
+                        parts.add(iPart);
                         }
                     }
 
