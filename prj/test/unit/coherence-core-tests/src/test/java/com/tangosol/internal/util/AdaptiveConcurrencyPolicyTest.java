@@ -13,6 +13,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests for {@link AdaptiveConcurrencyPolicy}.
+ *
+ * @author Aleks Seovic  2026.08.30
+ * @since 26.10
  */
 public class AdaptiveConcurrencyPolicyTest
     {
