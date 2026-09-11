@@ -95,7 +95,12 @@ public final class DefaultSerializer
     public SerializationLimitPolicy getLimitPolicy()
         {
         SerializationLimitPolicy policy = m_policyLimits;
-        return policy == null ? Serializer.super.getLimitPolicy() : policy;
+        if (policy == null)
+            {
+            policy = Serializer.super.getLimitPolicy();
+            m_policyLimits = policy;
+            }
+        return policy;
         }
 
     @Override
@@ -149,5 +154,5 @@ public final class DefaultSerializer
     /**
      * The optional serializer container limit policy.
      */
-    private SerializationLimitPolicy m_policyLimits;
+    private volatile SerializationLimitPolicy m_policyLimits;
     }

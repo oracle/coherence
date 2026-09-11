@@ -111,7 +111,12 @@ public class SimplePofContext
     public SerializationLimitPolicy getLimitPolicy()
         {
         SerializationLimitPolicy policy = m_policyLimits;
-        return policy == null ? PofContext.super.getLimitPolicy() : policy;
+        if (policy == null)
+            {
+            policy = PofContext.super.getLimitPolicy();
+            m_policyLimits = policy;
+            }
+        return policy;
         }
 
     @Override
@@ -501,5 +506,5 @@ public class SimplePofContext
     /**
      * The optional serializer container limit policy.
      */
-    protected SerializationLimitPolicy m_policyLimits;
+    protected volatile SerializationLimitPolicy m_policyLimits;
     }

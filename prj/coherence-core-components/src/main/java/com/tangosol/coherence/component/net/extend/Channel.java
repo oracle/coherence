@@ -18,6 +18,7 @@ import com.tangosol.internal.tracing.Span;
 import com.tangosol.internal.tracing.SpanContext;
 import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.io.Serializer;
+import com.tangosol.io.SerializationLimitPolicy;
 import com.tangosol.io.WriteBuffer;
 import com.tangosol.io.pof.PofBufferReader;
 import com.tangosol.io.pof.PofBufferWriter;
@@ -1153,6 +1154,13 @@ public class Channel
     public com.tangosol.io.Serializer getSerializer()
         {
         return __m_Serializer;
+        }
+
+    // From interface: com.tangosol.io.pof.PofContext
+    @Override
+    public SerializationLimitPolicy getLimitPolicy()
+        {
+        return getSerializer().getLimitPolicy();
         }
     
     // From interface: com.tangosol.net.messaging.Channel
