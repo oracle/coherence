@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -1510,70 +1510,15 @@ public abstract class AbstractTaskExecutorServiceTests
 
         ScheduledFuture<?> result1 = executorService.schedule(new MyRunnable("hello"), 30, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result1).isDone(), Matchers.is(false), within(25, TimeUnit.SECONDS));
-        Eventually.assertDeferred(() ->
-                {
-                try
-                    {
-                    return result1.get();
-                    }
-                catch (InterruptedException | ExecutionException e)
-                    {
-                    e.printStackTrace();
-                    throw new RuntimeException(new Exception (e));
-                    }
-                },
-                is(true));
+        assertThat(awaitScheduledResult(result1), is(true));
 
         ScheduledFuture<?> result2 = executorService.schedule(new MyCallable(5, "MyCallable result"), 20, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result2).isDone(), Matchers.is(false), within(18, TimeUnit.SECONDS));
-        Eventually.assertDeferred(() ->
-                {
-                try
-                    {
-                    return result2.get();
-                    }
-                catch (InterruptedException | ExecutionException e)
-                    {
-                    e.printStackTrace();
-                    throw new RuntimeException(new Exception (e));
-                    }
-                },
-                is("MyCallable result"));
-
-        try
-            {
-            assertEquals(result2.get(), "MyCallable result");
-            }
-        catch (Throwable t)
-            {
-            throw Base.ensureRuntimeException(t);
-            }
+        assertThat(awaitScheduledResult(result2), is("MyCallable result"));
 
         ScheduledFuture<?> result3 = executorService.schedule(new MyCallable(5), 20, TimeUnit.SECONDS);
         Repetitively.assertThat(invoking(result3).isDone(), Matchers.is(false), within(18, TimeUnit.SECONDS));
-        Eventually.assertDeferred(() ->
-                {
-                try
-                    {
-                    return result3.get();
-                    }
-                catch (InterruptedException | ExecutionException e)
-                    {
-                    e.printStackTrace();
-                    throw new RuntimeException(new Exception (e));
-                    }
-                },
-                is("This is the result"));
-
-
-        try
-            {
-            assertEquals(result3.get(), "This is the result");
-            }
-        catch (Throwable t)
-            {
-            throw Base.ensureRuntimeException(t);
-            }
+        assertThat(awaitScheduledResult(result3), is("This is the result"));
 
         ScheduledFuture<?> result = executorService.scheduleAtFixedRate(new MyRunnable("counter"), 15, 10, TimeUnit.SECONDS);
         assertThat(result.getDelay(TimeUnit.SECONDS), is(15L));
@@ -1585,6 +1530,33 @@ public abstract class AbstractTaskExecutorServiceTests
         Base.sleep(30000);
         result.cancel(true);
         Eventually.assertDeferred(result::isCancelled, is(true));
+        }
+
+    /**
+     * Wait for a scheduled result without placing an unbounded blocking call
+     * inside an {@link Eventually} supplier.
+     *
+     * @param future  the scheduled result
+     * @param <T>     the result type
+     *
+     * @return the completed result
+     */
+    protected <T> T awaitScheduledResult(ScheduledFuture<T> future)
+        {
+        Eventually.assertDeferred(future::isDone, is(true));
+        try
+            {
+            return future.get(1, TimeUnit.MINUTES);
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            throw Base.ensureRuntimeException(e);
+            }
+        catch (ExecutionException | TimeoutException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
         }
 
     public void shouldCallRunnableAfterTaskComplete()

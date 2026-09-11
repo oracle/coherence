@@ -20,6 +20,8 @@ import com.tangosol.internal.tracing.TracingHelper;
 import com.tangosol.net.CacheService;
 import com.tangosol.net.MemberEvent;
 import com.tangosol.net.MemberListener;
+import com.tangosol.net.NamedCache;
+import com.tangosol.net.ServiceInfo;
 
 import com.tangosol.util.MapEvent;
 import com.tangosol.util.MapListener;
@@ -68,10 +70,11 @@ public class ClusteredTaskCoordinator<T>
 
         f_cacheService = service;
         f_subject      = manager.getSubject();
+        m_nResultVersion = manager.getResultVersion();
 
         // TODO - only add map listener if there is at least one subscriber
         Caches.tasks(service).addMapListener(this, getTaskId(), false);
-        f_memberListener = new ClusteredMemberListener(this, service);
+        f_memberListener = new ClusteredMemberListener(service);
         addMemberListener(f_memberListener);
         }
 
@@ -93,6 +96,7 @@ public class ClusteredTaskCoordinator<T>
         f_cacheService = service;
         m_properties   = properties;
         f_subject      = manager.getSubject();
+        m_nResultVersion = manager.getResultVersion();
 
         if (subscribers != null)
             {
@@ -106,7 +110,7 @@ public class ClusteredTaskCoordinator<T>
 
         // TODO - only add map listener if there is at least one subscriber
         Caches.tasks(getCacheService()).addMapListener(this, getTaskId(), false);
-        f_memberListener = new ClusteredMemberListener(this, service);
+        f_memberListener = new ClusteredMemberListener(service);
         addMemberListener(f_memberListener);
 
         // attempt to add the task to the cluster
@@ -235,12 +239,69 @@ public class ClusteredTaskCoordinator<T>
         {
         ExecutorTrace.entering(this.getClass(), "entryUpdated",() -> mapEvent);
 
-        ClusteredTaskManager<?, ?, T> oldManager = (ClusteredTaskManager) mapEvent.getOldValue();
-        ClusteredTaskManager<?, ?, T> manager    = (ClusteredTaskManager) mapEvent.getNewValue();
+        processTaskUpdate((ClusteredTaskManager<?, ?, T>) mapEvent.getNewValue());
+
+        ExecutorTrace.exiting(this.getClass(), "entryUpdated");
+        }
+
+    @Override
+    public void entryDeleted(MapEvent mapEvent)
+        {
+        ExecutorTrace.log(() -> String.format("Task [%s] has been removed.", getTaskId()));
+
+        if (!isDone())
+            {
+            closeExceptionally(new IllegalStateException("Task [" + getTaskId()
+                    + "] was removed before its completion could be observed."));
+            }
+        else
+            {
+            removeMapListener();
+            }
+        }
+
+    // ----- public methods -------------------------------------------------
+
+    /**
+     * Adds the specified {@link MemberListener}.
+     *
+     * @param listener  the {@link MemberListener} to add
+     */
+    public void addMemberListener(MemberListener listener)
+        {
+        getCacheService().addMemberListener(listener);
+        }
+
+    /**
+     * Removes the specified {@link MemberListener}.
+     *
+     * @param listener  the {@link MemberListener} to remove
+     */
+    public void removeMemberListener(MemberListener listener)
+        {
+        getCacheService().removeMemberListener(listener);
+        }
+
+    // ----- helper methods -------------------------------------------------
+
+    /**
+     * Reconcile the latest task state, including results that may have been
+     * produced while an Extend connection was unavailable.
+     *
+     * @param manager  the latest task state
+     */
+    protected synchronized void processTaskUpdate(ClusteredTaskManager<?, ?, T> manager)
+        {
+        if (isDone())
+            {
+            return;
+            }
 
         int latestResultVersion = manager.getResultVersion();
-        if (oldManager.getResultVersion() != latestResultVersion)
+        if (latestResultVersion > m_nResultVersion)
             {
+            m_nResultVersion = latestResultVersion;
+
             // remember this option as the last, so we can publish it to new subscribers
             Result<T> lastResult = m_lastValue = manager.getLastResult();
 
@@ -281,42 +342,72 @@ public class ClusteredTaskCoordinator<T>
             // we no longer require the map listener
             removeMapListener();
             }
-
-        ExecutorTrace.exiting(this.getClass(), "entryUpdated");
         }
 
-    @Override
-    public void entryDeleted(MapEvent mapEvent)
+    /**
+     * Close this coordinator when a task can no longer be recovered.
+     *
+     * @param throwable  the recovery failure
+     */
+    protected synchronized void closeExceptionally(Throwable throwable)
         {
-        ExecutorTrace.log(() -> String.format("Task [%s] has been removed.", getTaskId()));
-
-        // we no longer require the map listener
+        super.close(throwable);
+        removeMemberListener(f_memberListener);
         removeMapListener();
         }
 
-    // ----- public methods -------------------------------------------------
-
     /**
-     * Adds the specified {@link MemberListener}.
+     * Reinstall the task listener after a remote-service topology change and
+     * reconcile the state that may have changed while the listener was absent.
      *
-     * @param listener  the {@link MemberListener} to add
      */
-    public void addMemberListener(MemberListener listener)
+    protected void recover()
         {
-        getCacheService().addMemberListener(listener);
+        if (isDone())
+            {
+            return;
+            }
+
+        try
+            {
+            NamedCache tasks = Caches.tasks(getCacheService());
+            tasks.addMapListener(this, getTaskId(), false);
+
+            ClusteredTaskManager<?, ?, T> manager =
+                    (ClusteredTaskManager<?, ?, T>) tasks.get(getTaskId());
+            if (manager == null)
+                {
+                closeExceptionally(new IllegalStateException("Task [" + getTaskId()
+                        + "] is no longer available after reconnecting."));
+                }
+            else
+                {
+                processTaskUpdate(manager);
+                }
+            }
+        catch (RuntimeException e)
+            {
+            Logger.fine(() -> String.format("MapListener for Task [%s] could not be recovered: %s",
+                                            getTaskId(), e));
+            }
         }
 
     /**
-     * Removes the specified {@link MemberListener}.
+     * Schedule recovery after a remote-service topology change.
      *
-     * @param listener  the {@link MemberListener} to remove
      */
-    public void removeMemberListener(MemberListener listener)
+    protected void scheduleRecovery()
         {
-        getCacheService().removeMemberListener(listener);
+        try
+            {
+            f_executorService.submit(this::recover);
+            }
+        catch (RejectedExecutionException e)
+            {
+            Logger.fine(() -> String.format("MapListener recovery for Task [%s] could not be scheduled.",
+                                            getTaskId()));
+            }
         }
-
-    // ----- helper methods -------------------------------------------------
 
     /**
      * Return the underlying {@link CacheService} for the executor service.
@@ -366,13 +457,11 @@ public class ClusteredTaskCoordinator<T>
         /**
          * Constructs a new {@code ClusteredMemberListener}.
          *
-         * @param coordinator  the {@link ClusteredTaskCoordinator} to monitor
-         * @param service      the associated executor {@link CacheService}
+         * @param service  the associated executor {@link CacheService}
          */
-        ClusteredMemberListener(ClusteredTaskCoordinator coordinator, CacheService service)
+        ClusteredMemberListener(CacheService service)
             {
-            f_coordinator = coordinator;
-            f_service     = service;
+            f_service = service;
             }
 
         // ----- MemberListener interface -----------------------------------
@@ -386,37 +475,21 @@ public class ClusteredTaskCoordinator<T>
         @Override
         public void memberLeft(MemberEvent event)
             {
-            // no-op
+            ServiceInfo info  = f_service.getInfo();
+            String      sType = info == null ? null : info.getServiceType();
+            if (CacheService.TYPE_REMOTE.equals(sType) || CacheService.TYPE_REMOTE_GRPC.equals(sType))
+                {
+                scheduleRecovery();
+                }
             }
 
         @Override
         public void memberJoined(MemberEvent event)
             {
-            // create a Runnable to add the MapListener
-            Runnable addMapListenerRunnable = () ->
-                {
-                Caches.tasks(getCacheService()).get(getTaskId());
-                Caches.tasks(getCacheService()).addMapListener(f_coordinator, getTaskId(), false);
-                };
-
-            try
-                {
-                // attempt to perform the adding asynchronously
-                f_executorService.submit(addMapListenerRunnable);
-                }
-            catch (RejectedExecutionException e)
-                {
-                Logger.fine(() -> String.format("MapListener for Task [%s] could not be added asynchronously.",
-                                                getTaskId()));
-                }
+            scheduleRecovery();
             }
 
         // ----- data members -----------------------------------------------
-
-        /**
-         * The {@link ClusteredTaskCoordinator}.
-         */
-        protected final ClusteredTaskCoordinator f_coordinator;
 
         /**
          * The {@link CacheService}.
@@ -430,6 +503,11 @@ public class ClusteredTaskCoordinator<T>
      * The sharable {@link Task.Properties} for this task.
      */
     protected Task.Properties m_properties;
+
+    /**
+     * The latest task result version delivered to subscribers.
+     */
+    protected int m_nResultVersion;
 
     /**
      * The member listener for cluster member.
