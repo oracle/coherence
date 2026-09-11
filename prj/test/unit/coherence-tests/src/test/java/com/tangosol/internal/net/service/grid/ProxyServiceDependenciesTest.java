@@ -194,7 +194,7 @@ public class ProxyServiceDependenciesTest
               "<tcp-delay-enabled>" + flag + "</tcp-delay-enabled>" +
               "<reuse-address>false</reuse-address>" +
               "<send-buffer-size>128kb </send-buffer-size>" +
-              "<connection-pipeline-count>5</connection-pipeline-count>" +
+              "<pipeline-count>5</pipeline-count>" +
               "<suspect-protocol-enabled>" + flag + "</suspect-protocol-enabled>" +
               "<suspect-buffer-size>   129kb </suspect-buffer-size>" +
               "<suspect-buffer-length> 5000  </suspect-buffer-length>" +
