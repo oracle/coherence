@@ -40,6 +40,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for task-state reconciliation after remote cache-service reconnects.
+ *
+ * @author Aleks Seovic  2026.09.02
+ * @since 26.10
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClusteredTaskCoordinatorTest

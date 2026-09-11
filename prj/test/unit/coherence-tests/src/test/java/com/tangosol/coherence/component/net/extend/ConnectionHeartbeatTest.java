@@ -25,6 +25,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for concurrent Extend connection heartbeat handling.
+ *
+ * @author Aleks Seovic  2026.09.02
+ * @since 26.10
  */
 public class ConnectionHeartbeatTest
     {
