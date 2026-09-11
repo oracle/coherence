@@ -16,6 +16,7 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
+import com.tangosol.internal.util.DaemonPoolSizing;
 import com.tangosol.internal.util.VirtualThreads;
 
 import com.tangosol.net.DaemonPoolType;
@@ -266,11 +267,12 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
-    public void shouldReshapeSemaphoreOnTaskLimitIncrease()
+    public void shouldRaiseTaskLimitCeilingWithoutForcingAdaptiveTarget()
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(8);
+        TestVirtualDaemonPool pool = createControlledPool(8);
+        m_pool = pool;
         m_pool.start();
 
         AtomicInteger active    = new AtomicInteger();
@@ -281,11 +283,14 @@ public class VirtualDaemonPoolComponentTest
             {
             addAll(tasks);
             assertEventually(() -> m_pool.getActiveDaemonCount() == 8);
+            assertThat(pool.getAvailableTaskPermits(), is(0));
 
             m_pool.setTaskLimit(64);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 64);
-            assertThat(maxActive.get(), is(64));
+            assertThat(m_pool.getTaskLimit(), is(64));
+            assertThat(m_pool.getDirectTaskLimit(), is(8));
+            assertThat(pool.getAvailableTaskPermits(), is(56));
+            assertThat(maxActive.get(), is(8));
             }
         finally
             {
@@ -309,13 +314,16 @@ public class VirtualDaemonPoolComponentTest
         try
             {
             addAll(tasks);
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 64);
+            int cInitial = Math.min(64,
+                    Math.max(1, Runtime.getRuntime().availableProcessors() * 2));
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cInitial);
 
             m_pool.setTaskLimit(8);
 
-            assertTrue(releaseStartedExceptFirst(tasks, 8) >= 56);
+            assertThat(m_pool.getDirectTaskLimit(), is(8));
+            assertTrue(releaseStartedExceptFirst(tasks, 8) >= cInitial - 8);
             assertEventually(() -> m_pool.getActiveDaemonCount() <= 8);
-            assertThat(maxActive.get(), is(64));
+            assertThat(maxActive.get(), is(cInitial));
             assertNoInterrupted(tasks);
             }
         finally
@@ -326,11 +334,12 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
-    public void shouldReshapeSemaphoreOnTaskLimitToUnbounded()
+    public void shouldRemoveTaskLimitCeilingWithoutRemovingAdaptiveAdmission()
             throws Exception
         {
         m_pool.stop();
-        m_pool = createPool(8);
+        TestVirtualDaemonPool pool = createControlledPool(8);
+        m_pool = pool;
         m_pool.start();
 
         AtomicInteger active    = new AtomicInteger();
@@ -341,11 +350,14 @@ public class VirtualDaemonPoolComponentTest
             {
             addAll(tasks);
             assertEventually(() -> m_pool.getActiveDaemonCount() == 8);
+            assertEventually(() -> maxActive.get() == 8);
 
             m_pool.setTaskLimit(0);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 80);
-            assertThat(maxActive.get(), is(80));
+            assertThat(m_pool.getTaskLimit(), is(0));
+            assertThat(pool.getAvailableTaskPermits(), is(Integer.MAX_VALUE));
+            assertThat(m_pool.getDirectTaskLimit(), is(8));
+            assertThat(maxActive.get(), is(8));
             }
         finally
             {
@@ -392,11 +404,13 @@ public class VirtualDaemonPoolComponentTest
 
         assertThat(model.getDaemonPoolType(), is("VIRTUAL"));
         assertThat(model.getTaskLimit(), is(10));
+        assertThat(model.getDirectTaskLimit(), is(10));
+        assertThat(model.getDirectTaskActiveCount(), is(0));
         assertThat(model.getMailboxDrainerLimit(),
-                is(Math.max(1, Runtime.getRuntime().availableProcessors() * 2)));
+                is(10));
         assertThat(model.getMailboxDrainerActiveCount(), is(0));
         assertThat(model.getReadOnlyTaskLimit(),
-                is(Math.max(1, Runtime.getRuntime().availableProcessors() * 2)));
+                is(10));
         assertThat(model.getReadOnlyTaskActiveCount(), is(0));
         }
 
@@ -412,6 +426,8 @@ public class VirtualDaemonPoolComponentTest
 
             assertThat(model.getDaemonPoolType(), is("PLATFORM"));
             assertThat(model.getTaskLimit(), is(-1));
+            assertThat(model.getDirectTaskLimit(), is(-1));
+            assertThat(model.getDirectTaskActiveCount(), is(-1));
             assertThat(model.getMailboxDrainerLimit(), is(-1));
             assertThat(model.getMailboxDrainerActiveCount(), is(-1));
             assertThat(model.getReadOnlyTaskLimit(), is(-1));
@@ -523,6 +539,46 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
+    public void shouldReportAdaptiveDirectAdmissionSaturation()
+            throws Exception
+        {
+        TestServiceModel model  = new TestServiceModel("DirectAdmissionMBeanTest", m_pool);
+        AtomicInteger    active = new AtomicInteger();
+        AtomicInteger    max    = new AtomicInteger();
+        int              cLimit = m_pool.getDirectTaskLimit();
+        BlockingTask[]   tasks  = createBlockingTasks(cLimit, null, active, max);
+
+        try
+            {
+            addAll(tasks);
+
+            assertEventually(() -> m_pool.getActiveDaemonCount() == cLimit);
+            assertThat(model.getDirectTaskLimit(), is(cLimit));
+            assertThat(model.getDirectTaskActiveCount(), is(cLimit));
+            assertThat(model.getPoolSaturation(), is(1.0d));
+            }
+        finally
+            {
+            releaseAll(tasks);
+            awaitAllDone(tasks);
+            }
+        }
+
+    @Test
+    public void shouldApplyLowerTaskLimitToEveryAdaptiveDomain()
+        {
+        assertTrue(m_pool.getDirectTaskLimit() > 1);
+        assertTrue(m_pool.getReadOnlyTaskLimit() > 1);
+        assertTrue(m_pool.getMailboxDrainerLimit() > 1);
+
+        m_pool.setTaskLimit(1);
+
+        assertThat(m_pool.getDirectTaskLimit(), is(1));
+        assertThat(m_pool.getReadOnlyTaskLimit(), is(1));
+        assertThat(m_pool.getMailboxDrainerLimit(), is(1));
+        }
+
+    @Test
     public void shouldReportNegativeOneForPoolSaturationWhenPoolNotStarted()
         {
         Service.VirtualDaemonPool pool  = createPool(10);
@@ -547,7 +603,8 @@ public class VirtualDaemonPoolComponentTest
             {
             addAll(tasks);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 64);
+            assertEventually(() -> m_pool.getActiveDaemonCount()
+                    == m_pool.getDirectTaskLimit());
             assertEventually(() -> m_pool.getDaemonCount() == 200);
             }
         finally
@@ -591,7 +648,8 @@ public class VirtualDaemonPoolComponentTest
             {
             addAll(tasks);
 
-            assertEventually(() -> m_pool.getActiveDaemonCount() == 64);
+            assertEventually(() -> m_pool.getActiveDaemonCount()
+                    == m_pool.getDirectTaskLimit());
             assertEventually(() -> m_pool.getBacklog() >= 100);
             }
         finally
@@ -1223,6 +1281,24 @@ public class VirtualDaemonPoolComponentTest
         }
 
     @Test
+    public void shouldUseBlockingIoRoleWeightForInitialAdaptiveAdmission()
+        {
+        m_pool.stop();
+
+        TestVirtualDaemonPool pool = createControlledPool(0);
+        pool.setDaemonPoolSizingRole(DaemonPoolSizing.Role.BLOCKING_IO);
+        m_pool = pool;
+        m_pool.start();
+
+        int cExpected = Math.max(1, Runtime.getRuntime().availableProcessors() * 4);
+        assertThat(pool.getDirectTaskLimit(), is(cExpected));
+        assertThat(pool.getReadOnlyTaskLimitForTest(), is(cExpected));
+        assertThat(pool.getMailboxDrainerLimitForTest(), is(cExpected));
+        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(cExpected));
+        assertThat(pool.getAvailableMailboxDrainerPermitsForTest(), is(cExpected));
+        }
+
+    @Test
     public void shouldHonorConfiguredReadOnlyTaskLimitAfterComponentRegistrationReset()
         {
         String sProperty = "coherence.daemonpool.virtual.readOnlyTaskLimit";
@@ -1318,9 +1394,8 @@ public class VirtualDaemonPoolComponentTest
         m_pool.add(taskSecond);
         assertFalse(taskSecond.awaitStarted(200));
 
-        // The read-only gate is deliberately narrower than the pool-wide
-        // TaskLimit, so unrelated and potentially blocking direct work keeps
-        // the scalability benefit of virtual threads.
+        // Read-only and ordinary direct work use independent adaptive domains,
+        // so saturation in one does not consume the other's permits.
         m_pool.add(taskDirect);
         assertTrue(taskDirect.awaitStarted());
         taskDirect.release();
@@ -1333,7 +1408,10 @@ public class VirtualDaemonPoolComponentTest
         assertTrue(taskSecond.awaitDone());
 
         assertThat(readMax.get(), is(1));
-        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(1));
+        // The task's completion latch is released by the task body, while the
+        // admission permit is returned by the surrounding wrapper finally
+        // block.  Wait for wrapper cleanup instead of racing that finalizer.
+        assertEventually(() -> pool.getAvailableReadOnlyTaskPermitsForTest() == 1);
         }
 
     @Test
@@ -1373,7 +1451,7 @@ public class VirtualDaemonPoolComponentTest
         assertTrue(taskSecond.awaitDone());
 
         assertThat(readMax.get(), is(1));
-        assertThat(pool.getAvailableReadOnlyTaskPermitsForTest(), is(1));
+        assertEventually(() -> pool.getAvailableReadOnlyTaskPermitsForTest() == 1);
         }
 
     @Test
@@ -1420,7 +1498,7 @@ public class VirtualDaemonPoolComponentTest
         assertTrue(taskSecond.awaitDone());
 
         assertThat(mailboxMax.get(), is(1));
-        assertThat(pool.getAvailableMailboxDrainerPermitsForTest(), is(1));
+        assertEventually(() -> pool.getAvailableMailboxDrainerPermitsForTest() == 1);
         }
 
     @Test

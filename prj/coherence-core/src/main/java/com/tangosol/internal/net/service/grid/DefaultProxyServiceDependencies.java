@@ -51,8 +51,12 @@ public class DefaultProxyServiceDependencies
 
         if (deps == null)
             {
-            // by default, use a dynamic thread pool
-            setDefaultWorkerThreadCountMin(Runtime.getRuntime().availableProcessors());
+            // A proxy worker blocks while its request is serviced by another
+            // member. Start the dynamic pool at the first useful I/O window;
+            // measured probes remain responsible for growth beyond it.
+            int cProcessors = Math.max(1, Runtime.getRuntime().availableProcessors());
+            setDefaultWorkerThreadCountMin(cProcessors > Integer.MAX_VALUE / 2
+                    ? Integer.MAX_VALUE : cProcessors * 2);
             }
         else
             {
@@ -184,6 +188,25 @@ public class DefaultProxyServiceDependencies
     @Override
     public DefaultProxyServiceDependencies validate()
         {
+        AcceptorDependencies depsAcceptor = getAcceptorDependencies();
+        if (depsAcceptor instanceof DefaultTcpAcceptorDependencies)
+            {
+            DefaultTcpAcceptorDependencies depsTcp =
+                    (DefaultTcpAcceptorDependencies) depsAcceptor;
+            if (!depsTcp.isConnectionPipelineCountConfigured())
+                {
+                // An explicitly disabled request pool historically executes
+                // every request on the single acceptor service thread. Do not
+                // introduce implicit execution concurrency through decode
+                // lanes unless the user also explicitly requests pipelines.
+                depsTcp.setDefaultConnectionPipelineCount(
+                        isWorkerThreadCountConfigured() && getWorkerThreadCount() == 0
+                                ? 1
+                                : Math.min(3, Math.max(1,
+                                        Runtime.getRuntime().availableProcessors() / 4)));
+                }
+            }
+
         super.validate();
 
         Base.checkNotNull(getAcceptorDependencies(), "Acceptor");

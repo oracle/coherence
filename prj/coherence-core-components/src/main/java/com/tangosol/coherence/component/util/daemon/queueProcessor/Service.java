@@ -18,6 +18,7 @@ import com.oracle.coherence.common.base.Continuation;
 import com.oracle.coherence.common.base.SingleWaiterCooperativeNotifier;
 import com.tangosol.coherence.config.Config;
 import com.tangosol.internal.net.service.DefaultServiceDependencies;
+import com.tangosol.internal.util.AdaptiveConcurrencyPolicy;
 import com.tangosol.internal.util.DaemonPoolSizing;
 import com.tangosol.internal.util.VirtualThreads;
 import com.tangosol.internal.tracing.Scope;
@@ -1210,10 +1211,10 @@ public abstract class Service
         
         validateDaemonPoolConfiguration(deps);
 
-        int cThreads = deps.getWorkerThreadCountMin();
-        if (cThreads > 0)
+        int     cThreads = deps.getWorkerThreadCountMin();
+        boolean fVirtual = shouldUseVirtualDaemonPool(deps);
+        if (cThreads > 0 || fVirtual)
             {
-            boolean fVirtual     = shouldUseVirtualDaemonPool(deps);
             String  sServiceName = getServiceName();
             com.tangosol.coherence.component.util.DaemonPool pool = ensureDaemonPool(fVirtual);
             if (this instanceof com.tangosol.net.Guardian)
@@ -1316,9 +1317,7 @@ public abstract class Service
      */
     protected int resolveTaskLimit(com.tangosol.net.ServiceDependencies deps)
         {
-        return deps.isTaskLimitConfigured()
-               ? deps.getTaskLimit()
-               : 0;
+        return deps.getTaskLimit();
         }
 
     /**
@@ -3596,6 +3595,28 @@ public abstract class Service
         private transient java.util.concurrent.atomic.AtomicInteger __m_BacklogCount;
 
         /**
+         * Periodic controller for adaptive VDP admission domains.
+         */
+        private transient AdmissionController __m_AdmissionController;
+
+        /**
+         * Adaptive state for direct, read-only, and keyed-mailbox work.
+         */
+        private transient AdmissionState __m_DirectAdmissionState;
+        private transient AdmissionState __m_ReadOnlyAdmissionState;
+        private transient AdmissionState __m_MailboxAdmissionState;
+
+        /**
+         * Current adaptive limit for ordinary direct tasks.
+         */
+        private volatile int __m_DirectTaskLimit;
+
+        /**
+         * Permits for ordinary direct tasks.
+         */
+        private transient java.util.concurrent.Semaphore __m_DirectTaskPermits;
+
+        /**
          * Property KeyedMailboxes
          *
          * The active keyed mailboxes for associated work.
@@ -3892,6 +3913,21 @@ public abstract class Service
             return __m_BacklogCount;
             }
 
+        protected AdmissionState getDirectAdmissionState()
+            {
+            return __m_DirectAdmissionState;
+            }
+
+        protected AdmissionState getReadOnlyAdmissionState()
+            {
+            return __m_ReadOnlyAdmissionState;
+            }
+
+        protected AdmissionState getMailboxAdmissionState()
+            {
+            return __m_MailboxAdmissionState;
+            }
+
         // Declared at the super level
         /**
          * The number of active task executions.
@@ -3980,6 +4016,30 @@ public abstract class Service
             }
 
         /**
+         * Return the current adaptive direct-task concurrency limit.
+         */
+        public int getDirectTaskLimit()
+            {
+            return __m_DirectTaskLimit;
+            }
+
+        /**
+         * Return the number of direct tasks currently admitted.
+         */
+        public int getDirectTaskActiveCount()
+            {
+            return getPermitUsage(getDirectTaskLimit(), getDirectTaskPermits());
+            }
+
+        /**
+         * Return the direct-task admission permits.
+         */
+        protected java.util.concurrent.Semaphore getDirectTaskPermits()
+            {
+            return __m_DirectTaskPermits;
+            }
+
+        /**
          * Return the number of keyed-mailbox drainers currently admitted for
          * execution, or zero when the targeted limit is disabled.
          */
@@ -4064,8 +4124,8 @@ public abstract class Service
 
         /**
          * Return the highest utilization of any configured VDP admission
-         * domain. The aggregate TaskLimit, read-only task limit, and keyed
-         * mailbox-drainer limit are independent and compose by taking the
+         * domain. The aggregate TaskLimit and the direct, read-only, and keyed
+         * mailbox-drainer limits are independent and compose by taking the
          * maximum utilization rather than by adding their limits.
          *
          * @return a value in {@code [0.0, 1.0]}, or {@code -1.0} if no
@@ -4077,6 +4137,8 @@ public abstract class Service
 
             dflSaturation = Math.max(dflSaturation,
                     getPermitSaturation(getTaskLimit(), getTaskPermits()));
+            dflSaturation = Math.max(dflSaturation,
+                    getPermitSaturation(getDirectTaskLimit(), getDirectTaskPermits()));
             dflSaturation = Math.max(dflSaturation,
                     getPermitSaturation(getReadOnlyTaskLimit(), getReadOnlyTaskPermits()));
             dflSaturation = Math.max(dflSaturation,
@@ -4184,13 +4246,13 @@ public abstract class Service
             else if (oAssoc == null)
                 {
                 recordTaskType(wrapper, "direct");
-                startVirtualTask(formatTaskRole('D', wrapper), () -> runTask(wrapper, null, "direct"));
+                startVirtualTask(formatTaskRole('D', wrapper), () -> runDirectTask(wrapper, null, "direct"));
                 }
             else if (oAssoc == com.oracle.coherence.common.util.AssociationPile.ASSOCIATION_ALL)
                 {
                 recordTaskType(wrapper, "all");
                 startVirtualTask(formatTaskRole('A', wrapper),
-                        () -> runTask(wrapper, getAssociatedBarrier().writeLock(), "all"));
+                        () -> runDirectTask(wrapper, getAssociatedBarrier().writeLock(), "all"));
                 }
             else if (fReadOnly)
                 {
@@ -4254,22 +4316,15 @@ public abstract class Service
          */
         protected boolean acquireReadOnlyTaskPermit()
             {
-            java.util.concurrent.Semaphore permits = getReadOnlyTaskPermits();
-            if (permits == null)
-                {
-                return true;
-                }
+            return acquireAdmissionPermit(getReadOnlyTaskPermits(), getReadOnlyAdmissionState());
+            }
 
-            try
-                {
-                permits.acquire();
-                return true;
-                }
-            catch (InterruptedException e)
-                {
-                Thread.currentThread().interrupt();
-                return false;
-                }
+        /**
+         * Acquire an ordinary direct-task admission permit.
+         */
+        protected boolean acquireDirectTaskPermit()
+            {
+            return acquireAdmissionPermit(getDirectTaskPermits(), getDirectAdmissionState());
             }
 
         /**
@@ -4277,17 +4332,30 @@ public abstract class Service
          */
         protected boolean acquireMailboxDrainerPermit()
             {
-            java.util.concurrent.Semaphore permits = getMailboxDrainerPermits();
+            return acquireAdmissionPermit(getMailboxDrainerPermits(), getMailboxAdmissionState());
+            }
+
+        /**
+         * Acquire a permit from one adaptive admission domain.
+         */
+        protected boolean acquireAdmissionPermit(java.util.concurrent.Semaphore permits,
+                AdmissionState state)
+            {
             if (permits == null)
                 {
                 return true;
                 }
 
-            java.util.concurrent.atomic.AtomicInteger cWaiters = getMailboxDrainerWaiterCount();
-            cWaiters.incrementAndGet();
+            boolean fWaiting = false;
             try
                 {
-                permits.acquire();
+                if (!permits.tryAcquire())
+                    {
+                    state.getWaiters().incrementAndGet();
+                    fWaiting = true;
+                    permits.acquire();
+                    }
+                state.onAcquire();
                 return true;
                 }
             catch (InterruptedException e)
@@ -4297,7 +4365,10 @@ public abstract class Service
                 }
             finally
                 {
-                cWaiters.decrementAndGet();
+                if (fWaiting)
+                    {
+                    state.getWaiters().decrementAndGet();
+                    }
                 }
             }
 
@@ -4469,6 +4540,21 @@ public abstract class Service
             java.util.concurrent.Semaphore permits = getReadOnlyTaskPermits();
             if (permits != null)
                 {
+                getReadOnlyAdmissionState().onRelease();
+                permits.release();
+                evaluateServiceBacklog();
+                }
+            }
+
+        /**
+         * Release an ordinary direct-task admission permit.
+         */
+        protected void releaseDirectTaskPermit()
+            {
+            java.util.concurrent.Semaphore permits = getDirectTaskPermits();
+            if (permits != null)
+                {
+                getDirectAdmissionState().onRelease();
                 permits.release();
                 evaluateServiceBacklog();
                 }
@@ -4482,6 +4568,7 @@ public abstract class Service
             java.util.concurrent.Semaphore permits = getMailboxDrainerPermits();
             if (permits != null)
                 {
+                getMailboxAdmissionState().onRelease();
                 permits.release();
                 evaluateServiceBacklog();
                 }
@@ -4539,7 +4626,14 @@ public abstract class Service
                         thread.setName(sIdleName + ':' + formatTaskRole(wrapper));
 
                         getBacklogCount().decrementAndGet();
-                        runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+                        try
+                            {
+                            runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+                            }
+                        finally
+                            {
+                            getMailboxAdmissionState().onCompletion();
+                            }
 
                         // Recovery interrupts the mailbox drainer VT to unblock the
                         // current wrapper. Clear that status before polling the next
@@ -4577,7 +4671,14 @@ public abstract class Service
                 {
                 if (fPermit)
                     {
-                    runTask(wrapper, lock, "direct");
+                    try
+                        {
+                        runTask(wrapper, lock, "direct");
+                        }
+                    finally
+                        {
+                        getReadOnlyAdmissionState().onCompletion();
+                        }
                     }
                 }
             finally
@@ -4613,7 +4714,14 @@ public abstract class Service
                     thread.setName(sIdleName + ':' + formatTaskRole(wrapper));
 
                     getBacklogCount().decrementAndGet();
-                    runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+                    try
+                        {
+                        runTask(wrapper, getAssociatedBarrier().readLock(), "mailbox");
+                        }
+                    finally
+                        {
+                        getMailboxAdmissionState().onCompletion();
+                        }
 
                     // Recovery interrupts the mailbox drainer VT to unblock the
                     // current wrapper. Clear that status before polling the next
@@ -4629,6 +4737,36 @@ public abstract class Service
                 flushCooperativeNotifiersAfterMailboxDrain();
                 mailbox.getDraining().set(false);
                 reconcileMailboxAfterDrain(oAssoc, mailbox);
+                }
+            }
+
+        /**
+         * Run an ordinary direct task under its adaptive admission window.
+         */
+        protected void runDirectTask(com.tangosol.coherence.component.util.DaemonPool.WrapperTask wrapper,
+                java.util.concurrent.locks.Lock lock, String sDispatch)
+            {
+            boolean fPermit = acquireDirectTaskPermit();
+            try
+                {
+                if (fPermit)
+                    {
+                    try
+                        {
+                        runTask(wrapper, lock, sDispatch);
+                        }
+                    finally
+                        {
+                        getDirectAdmissionState().onCompletion();
+                        }
+                    }
+                }
+            finally
+                {
+                if (fPermit)
+                    {
+                    releaseDirectTaskPermit();
+                    }
                 }
             }
 
@@ -4895,6 +5033,38 @@ public abstract class Service
                     ((ReducibleSemaphore) permits).reduce(-cDelta);
                     }
                 }
+
+            // TaskLimit is the outer operator ceiling. Adaptive domains may
+            // discover lower useful limits, but their reported targets must
+            // never remain above a newly lowered hard ceiling.
+            int cMaximum = getAdaptiveAdmissionMaximum();
+            AdmissionState state = getDirectAdmissionState();
+            if (state != null && state.isAdaptive())
+                {
+                state.getPolicy().reset();
+                if (getDirectTaskLimit() > cMaximum)
+                    {
+                    resizeAdmission(state, getDirectTaskLimit(), cMaximum);
+                    }
+                }
+            state = getReadOnlyAdmissionState();
+            if (state != null && state.isAdaptive())
+                {
+                state.getPolicy().reset();
+                if (getReadOnlyTaskLimit() > cMaximum)
+                    {
+                    resizeAdmission(state, getReadOnlyTaskLimit(), cMaximum);
+                    }
+                }
+            state = getMailboxAdmissionState();
+            if (state != null && state.isAdaptive())
+                {
+                state.getPolicy().reset();
+                if (getMailboxDrainerLimit() > cMaximum)
+                    {
+                    resizeAdmission(state, getMailboxDrainerLimit(), cMaximum);
+                    }
+                }
             }
 
         /**
@@ -4937,6 +5107,26 @@ public abstract class Service
             __m_BacklogCount = counter;
             }
 
+        protected void setDirectAdmissionState(AdmissionState state)
+            {
+            __m_DirectAdmissionState = state;
+            }
+
+        protected void setReadOnlyAdmissionState(AdmissionState state)
+            {
+            __m_ReadOnlyAdmissionState = state;
+            }
+
+        protected void setMailboxAdmissionState(AdmissionState state)
+            {
+            __m_MailboxAdmissionState = state;
+            }
+
+        protected void setAdmissionController(AdmissionController controller)
+            {
+            __m_AdmissionController = controller;
+            }
+
         /**
          * Set the keyed-mailbox map.
          */
@@ -4951,6 +5141,16 @@ public abstract class Service
         protected void setMailboxDrainerLimit(int cDrainers)
             {
             __m_MailboxDrainerLimit = cDrainers;
+            }
+
+        protected void setDirectTaskLimit(int cTasks)
+            {
+            __m_DirectTaskLimit = cTasks;
+            }
+
+        protected void setDirectTaskPermits(java.util.concurrent.Semaphore permits)
+            {
+            __m_DirectTaskPermits = permits;
             }
 
         /**
@@ -5049,6 +5249,146 @@ public abstract class Service
             __m_Threads = setThreads;
             }
 
+        /**
+         * Return the role-weighted CPU-derived initial target for adaptive
+         * admission.
+         */
+        protected int getAdaptiveAdmissionMinimum()
+            {
+            DaemonPoolSizing.Role role = getDaemonPoolSizingRole();
+            long cMinimum = (long) Math.max(1, Runtime.getRuntime().availableProcessors())
+                    * Math.max(1, role.getWeightFactor());
+            int cTaskMax = getTaskLimit();
+            if (cTaskMax > 0)
+                {
+                cMinimum = Math.min(cMinimum, cTaskMax);
+                }
+            return (int) Math.min(Integer.MAX_VALUE, Math.max(1L, cMinimum));
+            }
+
+        /**
+         * Return the role-derived exploratory ceiling for adaptive admission.
+         * An explicit TaskLimit remains the authoritative outer ceiling.
+         */
+        protected int getAdaptiveAdmissionMaximum()
+            {
+            long cMaximum = (long) Math.max(1, Runtime.getRuntime().availableProcessors())
+                    * getDaemonPoolSizingRole().getProcessorMultiple();
+            int  cTaskMax = getTaskLimit();
+            if (cTaskMax > 0)
+                {
+                cMaximum = Math.min(cMaximum, cTaskMax);
+                }
+            return (int) Math.max(getAdaptiveAdmissionMinimum(),
+                    Math.min(Integer.MAX_VALUE, cMaximum));
+            }
+
+        /**
+         * Evaluate all adaptive admission domains.
+         */
+        protected void evaluateAdaptiveAdmission(long ldtNow)
+            {
+            evaluateAdaptiveAdmission(getDirectAdmissionState(), getDirectTaskLimit(), ldtNow);
+            evaluateAdaptiveAdmission(getReadOnlyAdmissionState(), getReadOnlyTaskLimit(), ldtNow);
+            evaluateAdaptiveAdmission(getMailboxAdmissionState(), getMailboxDrainerLimit(), ldtNow);
+            }
+
+        /**
+         * Evaluate one adaptive admission domain.
+         */
+        protected void evaluateAdaptiveAdmission(AdmissionState state, int cCurrent, long ldtNow)
+            {
+            if (state == null || !state.isAdaptive() || cCurrent <= 0)
+                {
+                return;
+                }
+
+            int cMinimum = Math.min(getAdaptiveAdmissionMinimum(), getAdaptiveAdmissionMaximum());
+            int cMaximum = getAdaptiveAdmissionMaximum();
+            AdaptiveConcurrencyPolicy.Sample sample = state.sample(ldtNow, cCurrent,
+                    cMinimum, cMaximum,
+                    getDaemonPoolSizingRole() == DaemonPoolSizing.Role.BLOCKING_IO);
+            AdaptiveConcurrencyPolicy.Decision decision = state.getPolicy().evaluate(sample);
+
+            if (decision.getAction() == AdaptiveConcurrencyPolicy.Decision.Action.RESIZE)
+                {
+                int cTarget = Math.max(cMinimum, Math.min(cMaximum, decision.getTarget()));
+                resizeAdmission(state, cCurrent, cTarget);
+                _trace("VirtualDaemonPool \"" + getName() + "\": " + state.getName()
+                        + " admission " + cCurrent + " -> " + cTarget
+                        + " [active=" + sample.getActiveConcurrency()
+                        + ", queued=" + sample.getBacklog()
+                        + ", throughput=" + String.format(java.util.Locale.ROOT, "%.1f", sample.getThroughput())
+                        + ", probe=" + decision.isProbe() + "] due to " + decision.getReason(), 5);
+                }
+            else if (decision.getReason() != null)
+                {
+                _trace("VirtualDaemonPool \"" + getName() + "\": holding "
+                        + state.getName() + " admission at " + cCurrent
+                        + " due to " + decision.getReason(), 5);
+                }
+            }
+
+        /**
+         * Resize one live admission semaphore.
+         */
+        protected void resizeAdmission(AdmissionState state, int cOld, int cNew)
+            {
+            if (cOld == cNew)
+                {
+                return;
+                }
+
+            java.util.concurrent.Semaphore permits;
+            if (state == getDirectAdmissionState())
+                {
+                permits = resizePermits(getDirectTaskPermits(), cOld, cNew);
+                setDirectTaskLimit(cNew);
+                setDirectTaskPermits(permits);
+                }
+            else if (state == getReadOnlyAdmissionState())
+                {
+                permits = resizePermits(getReadOnlyTaskPermits(), cOld, cNew);
+                setReadOnlyTaskLimit(cNew);
+                setReadOnlyTaskPermits(permits);
+                }
+            else
+                {
+                permits = resizePermits(getMailboxDrainerPermits(), cOld, cNew);
+                setMailboxDrainerLimit(cNew);
+                setMailboxDrainerPermits(permits);
+                }
+            evaluateServiceBacklog();
+            }
+
+        /**
+         * Resize a live semaphore without interrupting current holders.
+         */
+        protected java.util.concurrent.Semaphore resizePermits(
+                java.util.concurrent.Semaphore permits, int cOld, int cNew)
+            {
+            if (permits == null)
+                {
+                return cNew > 0 ? new ReducibleSemaphore(cNew) : null;
+                }
+            if (cNew <= 0)
+                {
+                permits.release(Math.max(0, cOld - permits.availablePermits()));
+                return null;
+                }
+
+            int cDelta = cNew - cOld;
+            if (cDelta > 0)
+                {
+                permits.release(cDelta);
+                }
+            else if (cDelta < 0)
+                {
+                ((ReducibleSemaphore) permits).reduce(-cDelta);
+                }
+            return permits;
+            }
+
         // Declared at the super level
         public synchronized void start()
             {
@@ -5088,7 +5428,7 @@ public abstract class Service
                         "coherence.daemonpool.virtual.benchmark.taskStats", false);
                 setTaskTypeStatsEnabled(fTaskTypeStats);
                 setTaskTypeStats(fTaskTypeStats ? new java.util.concurrent.ConcurrentHashMap() : null);
-                int cDefault                 = Math.max(1, Runtime.getRuntime().availableProcessors() * 2);
+                int cDefault                 = getAdaptiveAdmissionMinimum();
                 int cMailboxConfigured       = Config.getInteger(
                         "coherence.daemonpool.virtual.mailboxDrainerLimit", Integer.MIN_VALUE);
                 int cMailboxDrainerLimit     = cMailboxConfigured == Integer.MIN_VALUE
@@ -5097,6 +5437,10 @@ public abstract class Service
                         "coherence.daemonpool.virtual.readOnlyTaskLimit", Integer.MIN_VALUE);
                 int cReadOnlyTaskLimit       = cConfigured == Integer.MIN_VALUE
                         ? getReadOnlyTaskLimit() : Math.max(0, cConfigured);
+                boolean fReadOnlyAdaptive    = cConfigured == Integer.MIN_VALUE
+                        && cReadOnlyTaskLimit <= 0;
+                boolean fMailboxAdaptive     = cMailboxConfigured == Integer.MIN_VALUE
+                        && cMailboxDrainerLimit <= 0;
 
                 // A dynamically registered child component can restore newly
                 // added primitive properties to their generated-model default
@@ -5113,12 +5457,22 @@ public abstract class Service
                     }
                 setMailboxDrainerLimit(cMailboxDrainerLimit);
                 setMailboxDrainerPermits(cMailboxDrainerLimit > 0
-                        ? new java.util.concurrent.Semaphore(cMailboxDrainerLimit)
+                        ? new ReducibleSemaphore(cMailboxDrainerLimit)
                         : null);
                 setReadOnlyTaskLimit(cReadOnlyTaskLimit);
                 setReadOnlyTaskPermits(cReadOnlyTaskLimit > 0
-                        ? new java.util.concurrent.Semaphore(cReadOnlyTaskLimit)
+                        ? new ReducibleSemaphore(cReadOnlyTaskLimit)
                         : null);
+                int cDirectTaskLimit = getAdaptiveAdmissionMinimum();
+                setDirectTaskLimit(cDirectTaskLimit);
+                setDirectTaskPermits(new ReducibleSemaphore(cDirectTaskLimit));
+
+                setDirectAdmissionState(new AdmissionState("direct", true,
+                        new java.util.concurrent.atomic.AtomicInteger()));
+                setReadOnlyAdmissionState(new AdmissionState("read-only", fReadOnlyAdaptive,
+                        new java.util.concurrent.atomic.AtomicInteger()));
+                setMailboxAdmissionState(new AdmissionState("mailbox-drainer", fMailboxAdaptive,
+                        getMailboxDrainerWaiterCount()));
                 if (fTaskTypeStats)
                     {
                     java.util.concurrent.Semaphore permits = getReadOnlyTaskPermits();
@@ -5139,12 +5493,21 @@ public abstract class Service
                 setResizeTask(null);
                 setStarted(true);
 
+                long cAdmissionPeriod = Math.max(250L, Config.getLong(
+                        "coherence.daemonpool.admission.sample.period", 1000L));
+                AdmissionController controller = new AdmissionController(this, cAdmissionPeriod);
+                setAdmissionController(controller);
+                schedule(controller, cAdmissionPeriod);
+
                 _trace("Started VirtualDaemonPool \"" + getName()
                     + "\": [TaskLimit=" + (getTaskLimit() > 0 ? String.valueOf(getTaskLimit()) : "unlimited")
+                    + ", DirectTaskLimit=" + getDirectTaskLimit() + " (adaptive)"
                     + ", MailboxDrainerLimit=" + (getMailboxDrainerLimit() > 0
                             ? String.valueOf(getMailboxDrainerLimit()) : "unlimited")
+                    + (fMailboxAdaptive ? " (adaptive)" : " (fixed)")
                     + ", ReadOnlyTaskLimit=" + (getReadOnlyTaskLimit() > 0
                             ? String.valueOf(getReadOnlyTaskLimit()) : "unlimited")
+                    + (fReadOnlyAdaptive ? " (adaptive)" : " (fixed)")
                     + ", FlushPolicy=" + flushPolicyName(getCooperativeNotifierFlushPolicy())
                     + ']', 4);
                 }
@@ -5247,6 +5610,133 @@ public abstract class Service
                 _trace(sSetter + '(' + cDaemons + ") has no effect on virtual-thread pool \""
                         + getName() + "\"; use setTaskLimit instead.", 2);
                 }
+            }
+
+        /**
+         * Runtime measurements for one independently tuned admission domain.
+         */
+        protected static class AdmissionState
+            {
+            protected AdmissionState(String sName, boolean fAdaptive,
+                    java.util.concurrent.atomic.AtomicInteger cWaiters)
+                {
+                f_sName      = sName;
+                f_fAdaptive  = fAdaptive;
+                f_cWaiters   = cWaiters;
+                f_ldtSample  = Base.getSafeTimeMillis();
+                }
+
+            protected String getName()
+                {
+                return f_sName;
+                }
+
+            protected boolean isAdaptive()
+                {
+                return f_fAdaptive;
+                }
+
+            protected AdaptiveConcurrencyPolicy getPolicy()
+                {
+                return f_policy;
+                }
+
+            protected java.util.concurrent.atomic.AtomicInteger getWaiters()
+                {
+                return f_cWaiters;
+                }
+
+            protected void onAcquire()
+                {
+                int cActive = f_cActive.incrementAndGet();
+                f_cPeak.accumulateAndGet(cActive, Math::max);
+                }
+
+            protected void onRelease()
+                {
+                f_cActive.decrementAndGet();
+                }
+
+            protected void onCompletion()
+                {
+                f_cCompleted.incrementAndGet();
+                }
+
+            protected AdaptiveConcurrencyPolicy.Sample sample(long ldtNow, int cCurrent,
+                    int cMinimum, int cMaximum, boolean fFirstWindowFloor)
+                {
+                long cCompleted = f_cCompleted.get();
+                long cMillis    = Math.max(1L, ldtNow - f_ldtSample);
+                long cDelta     = Math.max(0L, cCompleted - f_cCompletedSample);
+                int  cActive    = f_cActive.get();
+                int  cPeak      = Math.max(cActive, f_cPeak.getAndSet(cActive));
+
+                f_cCompletedSample = cCompleted;
+                f_ldtSample         = ldtNow;
+
+                return new AdaptiveConcurrencyPolicy.Sample(ldtNow, cCurrent,
+                        cMinimum, cMaximum, cPeak, f_cWaiters.get(),
+                        cDelta * 1000.0d / cMillis, fFirstWindowFloor);
+                }
+
+            private final String f_sName;
+            private final boolean f_fAdaptive;
+            private final AdaptiveConcurrencyPolicy f_policy = new AdaptiveConcurrencyPolicy();
+            private final java.util.concurrent.atomic.AtomicInteger f_cWaiters;
+            private final java.util.concurrent.atomic.AtomicInteger f_cActive =
+                    new java.util.concurrent.atomic.AtomicInteger();
+            private final java.util.concurrent.atomic.AtomicInteger f_cPeak =
+                    new java.util.concurrent.atomic.AtomicInteger();
+            private final java.util.concurrent.atomic.AtomicLong f_cCompleted =
+                    new java.util.concurrent.atomic.AtomicLong();
+
+            private volatile long f_ldtSample;
+            private volatile long f_cCompletedSample;
+            }
+
+        /**
+         * Periodic VDP admission controller. It runs on the shared timer
+         * thread, never inside the pool it controls.
+         */
+        protected static class AdmissionController
+                implements Runnable, com.tangosol.coherence.component.util.DaemonPool.NonBlockingTask
+            {
+            protected AdmissionController(VirtualDaemonPool pool, long cPeriod)
+                {
+                f_pool    = pool;
+                f_cPeriod = cPeriod;
+                }
+
+            @Override
+            public void run()
+                {
+                VirtualDaemonPool pool = f_pool;
+                if (!pool.isStarted())
+                    {
+                    return;
+                    }
+
+                try
+                    {
+                    pool.evaluateAdaptiveAdmission(Base.getSafeTimeMillis());
+                    }
+                catch (Throwable t)
+                    {
+                    pool._trace("VirtualDaemonPool \"" + pool.getName()
+                            + "\" admission controller failed; retaining current limits", 1);
+                    pool._trace(t);
+                    }
+                finally
+                    {
+                    if (pool.isStarted())
+                        {
+                        pool.schedule(this, f_cPeriod);
+                        }
+                    }
+                }
+
+            private final VirtualDaemonPool f_pool;
+            private final long f_cPeriod;
             }
 
         /**

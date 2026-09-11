@@ -33,6 +33,24 @@ public class ServiceMBean
     private transient String __m_DaemonPoolType;
 
     /**
+     * Property DirectTaskActiveCount
+     *
+     * The number of ordinary direct VDP tasks currently admitted.
+     *
+     * @descriptor rest.collector=sum,metrics.value=_default
+     */
+    private transient int __m_DirectTaskActiveCount;
+
+    /**
+     * Property DirectTaskLimit
+     *
+     * The current adaptive direct-task concurrency limit.
+     *
+     * @descriptor rest.collector=set,metrics.value=_default
+     */
+    private transient int __m_DirectTaskLimit;
+
+    /**
      * Property MailboxDrainerActiveCount
      *
      * The number of keyed-mailbox drainers currently admitted by VDP.
@@ -44,7 +62,8 @@ public class ServiceMBean
     /**
      * Property MailboxDrainerLimit
      *
-     * The maximum number of concurrently admitted keyed-mailbox drainers.
+     * The current adaptive or explicitly fixed number of concurrently
+     * admitted keyed-mailbox drainers.
      *
      * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -53,7 +72,7 @@ public class ServiceMBean
     /**
      * Property PoolSaturation
      *
-     * Fraction of the active-concurrency cap currently in use.
+     * Highest fraction of any enabled admission domain currently in use.
      *
      * @descriptor rest.collector=avg,metrics.value=_default
      */
@@ -72,7 +91,8 @@ public class ServiceMBean
     /**
      * Property ReadOnlyTaskLimit
      *
-     * The maximum number of concurrently admitted read-only VDP tasks.
+     * The current adaptive or explicitly fixed number of concurrently
+     * admitted read-only VDP tasks.
      *
      * @descriptor rest.collector=set,metrics.value=_default
      */
@@ -276,11 +296,35 @@ public class ServiceMBean
                 });
             }
 
+        // property DirectTaskActiveCount
+            {
+            mapInfo.put("DirectTaskActiveCount", new Object[]
+                {
+                "The number of ordinary direct tasks currently admitted for execution by a virtual-thread pool. Returns -1 for a platform-thread pool.",
+                "getDirectTaskActiveCount",
+                null,
+                "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property DirectTaskLimit
+            {
+            mapInfo.put("DirectTaskLimit", new Object[]
+                {
+                "The current adaptive concurrency limit for ordinary direct tasks in a virtual-thread pool. Returns -1 for a platform-thread pool.",
+                "getDirectTaskLimit",
+                null,
+                "I",
+                "rest.collector=set,metrics.value=_default",
+                });
+            }
+
         // property MailboxDrainerLimit
             {
             mapInfo.put("MailboxDrainerLimit", new Object[]
                 {
-                "The targeted limit on concurrently admitted keyed-mailbox drainers for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
+                "The current adaptive or explicitly fixed limit on concurrently admitted keyed-mailbox drainers for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
                 "getMailboxDrainerLimit",
                 null,
                 "I",
@@ -868,7 +912,7 @@ public class ServiceMBean
             {
             mapInfo.put("ReadOnlyTaskLimit", new Object[]
                 {
-                "The targeted limit on concurrently admitted read-only tasks for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
+                "The current adaptive or explicitly fixed limit on concurrently admitted read-only tasks for a virtual-thread pool. Zero means this targeted gate is disabled; -1 means not applicable to a platform-thread pool.",
                 "getReadOnlyTaskLimit",
                 null,
                 "I",
@@ -1524,6 +1568,22 @@ public class ServiceMBean
     public String getDaemonPoolType()
         {
         return __m_DaemonPoolType;
+        }
+
+    /**
+     * Return the number of currently admitted ordinary direct VDP tasks.
+     */
+    public int getDirectTaskActiveCount()
+        {
+        return __m_DirectTaskActiveCount;
+        }
+
+    /**
+     * Return the current adaptive ordinary direct-task limit.
+     */
+    public int getDirectTaskLimit()
+        {
+        return __m_DirectTaskLimit;
         }
 
     /**

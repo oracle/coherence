@@ -14,10 +14,7 @@ service worker pool implementation that runs cache service tasks on Java
 virtual threads instead of platform threads.
 
 It is a user-facing guide intended for developers and operators who want
-to enable VDP for one or more services in a Coherence cluster. The
-internal design is documented separately in
-`design/features/daemon-pool/design/virtual-threads.md` in the source
-tree.
+to enable VDP for one or more services in a Coherence cluster.
 
 == Overview
 
@@ -59,9 +56,7 @@ Virtual thread support requires Java 21 or later. VDP is not available
 when a member runs on an earlier Java version.
 
 Java 24 or later is preferred for new VDP deployments because JEP 491
-removes `synchronized` carrier-thread pinning. See
-`design/features/daemon-pool/design/virtual-threads.md` in the source
-tree for the detailed pinning analysis.
+removes `synchronized` carrier-thread pinning.
 
 == Choosing a Pool Type
 
@@ -74,18 +69,53 @@ Pick the pool type per service, based on what the service does.
 | Mostly CPU-bound work, no significant blocking
 | Legacy `platform` pool (default)
 
+| Small members with very short, non-blocking tasks, such as in-memory GETs
+| Legacy `platform` pool (default)
+
 | Significant I/O — persistence, network, CacheLoader/CacheStore
 | `virtual`
 
 | Hot-key contention with mutations on a small set of keys
 | `virtual`
 
-| Mixed workload with long synchronous client calls (Extend / gRPC proxy)
+| A few shared Extend / gRPC proxies serving short in-memory requests
+| Legacy `platform` pool (default)
+
+| Proxy work with significant blocking or substantial synchronous task bodies
 | `virtual`
 
 | Internal infrastructure pools (common daemon, guardian)
 | Legacy `platform` pool (default)
 |===
+
+Evaluate member size as well as total cluster capacity when choosing a pool.
+VDP incurs a small virtual-thread creation and scheduling cost for each task.
+That cost is readily amortized by blocking or more substantial work, but it
+can dominate microsecond-scale tasks on members with very few available
+processors. In a representative qualification with the same 24 storage CPUs arranged as
+twelve 2-CPU members, the platform pool substantially outperformed VDP for
+short, non-mutating GETs at every tested concurrency. This does not imply that
+VDP is unsuitable for all small members; it means that horizontally spreading
+a fixed CPU budget across many small JVMs is not equivalent to running VDP on
+fewer, larger JVMs.
+
+As a practical starting point, prefer the platform pool for latency-sensitive,
+non-blocking services on very small members. Consider VDP when the service has
+meaningful blocking, hot-key serialization, mixed work, or sufficiently
+substantial task bodies to amortize virtual-thread scheduling. Qualify the
+choice using the intended per-member processor count and workload rather than
+cluster-wide CPU alone.
+
+Apply the same rule to proxy services rather than assuming that a remote
+protocol automatically benefits from virtual threads. In representative Extend tests,
+PDP retained the better result for inexpensive GETs, while VDP materially
+improved the blocking mutation paths once adaptive admission bounded in-flight
+proxy polls. When each of eight client JVMs hosted its own loopback proxy, PDP
+and VDP were effectively equal end to end because distributing the proxies
+removed concentration. Choose VDP when the proxy path actually blocks or has
+enough work to amortize virtual-thread scheduling; retain PDP for the shortest
+latency-sensitive read path unless representative qualification says
+otherwise.
 
 VDP is an architectural choice, not a tunable. Switching a service's
 pool type changes its concurrency model and should be tested before it
@@ -160,11 +190,41 @@ does not override `<daemon-pool>` in its cache-config scheme.
 
 == Admission Cap with `<task-limit>`
 
-`<task-limit>` is an optional aggregate policy, not VDP's default CPU
-guardrail. VDP already applies independent processor-relative limits to
-read-only tasks and keyed-mailbox drainers, the two high-cardinality
-microtask domains that need bounded admission. Those targeted limits
-default to twice the JVM's available processor count.
+`<task-limit>` is an optional aggregate policy, not VDP's automatic
+concurrency target. VDP already applies independent adaptive admission to
+ordinary direct tasks, read-only tasks, and keyed-mailbox drainers. Each
+domain starts at a role-derived window: four times the JVM's available
+processor count for blocking-I/O pools such as proxies, twice the processor
+count for ordinary service pools, and the processor count for auxiliary
+pools. At that deliberately conservative starting window, three saturated,
+queued observations during the same live workload start the bootstrap probe even when uneven traffic
+does not produce a stable operation-rate baseline. Later probes require a
+stable same-size throughput baseline. The controller probes higher concurrency
+only while queued demand exists and the additional
+concurrency improves completed-task throughput proportionally to the
+concurrency added. It reaches the first I/O window quickly, then narrows
+growth steps and requires stronger proportional benefit so it stops at the
+throughput/latency knee. It reverts an unhelpful probe and remembers that upper
+bound for the stable traffic shape, reopening it only after a material shape
+change or external reshape rather than periodically repeating the latency
+cost. For a known blocking-I/O role, the first useful window is retained once
+sustained saturation establishes that the conservative starting window is
+insufficient. Member-local throughput can move with load balancing and is not
+a reliable measure of cluster-wide benefit at that boundary; all later growth
+remains measured. Idle intervals retain a proven admission window because unused permits
+consume no workers or task state; this avoids making each new burst rediscover
+the same concurrency. A stable workload-shape change initiates a measured
+downward probe only when admitted work saturates the current window and queues
+behind the gate. An idle or under-filled window is retained because changing
+the operation type or offered rate is not evidence that free permits are
+costly. The smaller window wins only when the saturated workload maintains or
+improves throughput. Downward probes can contract a larger inherited window
+toward, but never below, the first useful I/O window (twice the role-derived
+starting window). This retains the first measured bootstrap capacity and
+prevents ordinary per-member traffic variance from leaving equivalent members
+at different low admission limits. Direct, read-only, and mailbox domains adapt
+independently, allowing an I/O-bound proxy or backing store to discover more
+concurrency without imposing the same target on short CPU-bound cache tasks.
 
 For most workloads no additional aggregate cap is needed and
 `<task-limit>` should be left unset (or set to `0`).
@@ -187,10 +247,12 @@ are released. They yield the carrier thread while blocked, so the
 backpressure is cheap.
 
 The aggregate cap applies to ordinary task bodies, not to tasks merely
-queued in mailboxes. It composes with the targeted read-only and mailbox-
-drainer limits: a task must obtain each permit applicable to its dispatch
-path. The aggregate default intentionally remains unlimited so blocking
-and mixed workloads are not constrained by a CPU-oriented default.
+queued in mailboxes. It composes with the adaptive direct, read-only, and
+mailbox-drainer limits: a task must obtain each permit applicable to its
+dispatch path. A non-zero value is also the authoritative ceiling for every
+adaptive domain. The aggregate default intentionally remains unlimited so
+the controller can discover the useful concurrency for blocking and mixed
+workloads.
 
 == Element Compatibility Rules
 
@@ -223,7 +285,7 @@ For example, a service configured with
 `<thread-count-max>32</thread-count-max>` fails to start with a message
 identifying both the offending element and the chosen pool type. Fix
 the configuration by removing the legacy element and relying on
-VDP's targeted defaults; add `<task-limit>` only when an aggregate cap
+VDP's adaptive admission; add `<task-limit>` only when an aggregate cap
 is required. Alternatively, remove `<daemon-pool>` and revert to the
 platform pool.
 
@@ -411,9 +473,19 @@ attributes instead of overloading existing ones.
 | `-1` — not applicable; use `ThreadCountMax`
 | Optional aggregate active-task cap; `0` means disabled
 
+| `DirectTaskLimit`
+| `-1`
+| Current adaptive ordinary-direct admission target; starts at the pool
+  role's processor multiple
+
+| `DirectTaskActiveCount`
+| `-1`
+| Direct-task permits currently held
+
 | `ReadOnlyTaskLimit`
 | `-1`
-| Targeted read-only admission limit; defaults to `2 x availableProcessors`
+| Current adaptive read-only admission target; starts at the pool role's
+  processor multiple
 
 | `ReadOnlyTaskActiveCount`
 | `-1`
@@ -421,7 +493,8 @@ attributes instead of overloading existing ones.
 
 | `MailboxDrainerLimit`
 | `-1`
-| Targeted keyed-mailbox drainer limit; defaults to `2 x availableProcessors`
+| Current adaptive keyed-mailbox drainer target; starts at the pool role's
+  processor multiple
 
 | `MailboxDrainerActiveCount`
 | `-1`
@@ -433,8 +506,8 @@ attributes instead of overloading existing ones.
 
 | `PoolSaturation`
 | `ActiveDaemonCount / ThreadCountMax`, or `-1.0` when undefined
-| Highest utilization of the enabled aggregate, read-only, and mailbox-
-  drainer admission domains
+| Highest utilization of the enabled aggregate, direct, read-only, and
+  mailbox-drainer admission domains
 |===
 
 `ThreadCount` continues to mean "live thread count" for both pool
@@ -461,31 +534,34 @@ backlog exceeds the service threshold.
 | Alert when `PoolSaturation` approaches `1.0`
 
 | Use `ThreadCountMax` as the concurrency cap
-| Inspect `TaskLimit`, `ReadOnlyTaskLimit`, and `MailboxDrainerLimit` when
-  `DaemonPoolType` is `VIRTUAL`
+| Inspect `TaskLimit`, `DirectTaskLimit`, `ReadOnlyTaskLimit`, and
+  `MailboxDrainerLimit` when `DaemonPoolType` is `VIRTUAL`
 
 | Treat `TaskBacklog` as queued worker tasks
 | Treat `TaskBacklog` as queued tasks plus parked virtual threads
 
 | Resize with `ThreadCount`, `ThreadCountMin`, or `ThreadCountMax`
-| Adjust optional aggregate `TaskLimit`; targeted limits are startup policy;
-  thread-count setters are ignored with a warning
+| Set optional aggregate `TaskLimit` only for an operator/downstream ceiling;
+  targeted limits adapt automatically; thread-count setters are ignored with
+  a warning
 |===
 
 === Troubleshooting
 
-- `PoolSaturation` stays near `1.0` — raise `<task-limit>` if the
-  member has capacity, or audit downstream blocking if tasks are parked
-  on external resources.
+- `PoolSaturation` stays near `1.0` — inspect the per-domain active/limit
+  pairs and diagnostic-level-5 admission decisions. A targeted domain may be
+  testing a larger window or deliberately holding at the last useful one.
+  Raise `<task-limit>` only when that explicit operator ceiling is the
+  saturated domain and the protected downstream resource has capacity.
 - Many parked virtual threads appear in thread dumps — this is expected
-  when `<task-limit>` is set and demand exceeds the active-task cap; it
-  is not by itself a thread leak.
+  when demand exceeds an adaptive or aggregate admission window; it is not by
+  itself a thread leak.
 - `TaskBacklog` is high while `ActiveDaemonCount` is low — producers are
   outpacing the service's ability to admit or run work; review flow
   control thresholds and downstream latency.
-- `PoolSaturation` is `-1.0` — saturation is undefined, usually because
-  VDP is unbounded (`<task-limit>` unset or `0`); this is expected, not
-  an error.
+- `PoolSaturation` is `-1.0` — the pool is not started or the attribute is
+  not applicable. A running VDP always has direct adaptive admission, even
+  when `<task-limit>` is unset.
 - A `WARN` log mentions `<thread-count>` mixed with
   `<thread-count-min>` or `<thread-count-max>` — choose one sizing form:
   fixed `<thread-count>` or dynamic min/max bounds.
