@@ -667,7 +667,8 @@ public class MetricsSupportTests
                                     "Coherence.ConnectionManager.UnauthorizedConnectionAttempts",
                                     "Coherence.ConnectionManager.OutgoingByteBacklog",
                                     "Coherence.ConnectionManager.OutgoingMessageBacklog",
-                                    "Coherence.ConnectionManager.ConnectionCount");
+                                    "Coherence.ConnectionManager.ConnectionCount",
+                                    "Coherence.ConnectionManager.PipelineCount");
         }
 
     @Test
