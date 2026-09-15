@@ -54,7 +54,7 @@ public class MBeanServerProxyNotificationFailureTests
         extends BaseMBeanServerProxyNotificationTests
     {
     private static final String CLUSTER_NAME = System.getProperty("coherence.cluster",
-            "MBeanServerProxyNotificationFailure-" + UUID.randomUUID());
+            "MBeanServerProxyNotificationFailure");
 
     @After
     public void cleanupTest()
