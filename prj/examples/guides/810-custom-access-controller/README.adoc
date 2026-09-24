@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Certificate-Based Security
 :description: Coherence Guides
@@ -27,9 +27,8 @@ use a trust store to verify that the caller's certificate has been signed by a t
 
 
 // Do not change this part.
-// If your example requires Java 11+ change the 1.8 below to 11
 === What You Need
-:java_version: 11
+:java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.
@@ -1243,6 +1242,5 @@ certificates, and key stores when the test runs. This test requires OpenSSL to b
 This example has shown how it is possible to use certificate base security with Coherence to secure both cluster
 members and Extend clients. It should be possible to use this example as a starting point for other custom
 access controller implementations.
-
 
 

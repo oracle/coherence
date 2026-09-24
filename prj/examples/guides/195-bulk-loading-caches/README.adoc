@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Bulk Loading Caches
 :description: Bulk loading data into caches
@@ -21,7 +21,7 @@ The example in this guide builds a simple application that uses different techni
 
 // Do not change this part.
 === What You Need
-:java_version: 17
+:java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

@@ -103,8 +103,8 @@
     -->
     <docker.base.image.name.amd>gcr.io/distroless/java-base-debian12</docker.base.image.name.amd>
     <docker.base.image.name.arm>gcr.io/distroless/java-base-debian12</docker.base.image.name.arm>
-    <docker.base.image.name.amd.17>gcr.io/distroless/java17-debian12</docker.base.image.name.amd.17>
-    <docker.base.image.name.arm.17>gcr.io/distroless/java17-debian12</docker.base.image.name.arm.17>
+    <docker.base.image.name.amd.21>gcr.io/distroless/java21-debian12</docker.base.image.name.amd.21>
+    <docker.base.image.name.arm.21>gcr.io/distroless/java21-debian12</docker.base.image.name.arm.21>
     <graalvm.base.image.name.amd>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.amd>
     <graalvm.base.image.name.arm>container-registry.oracle.com/graalvm/jdk:${graalvm.image.tag}</graalvm.base.image.name.arm>
     <graalvm.image.skip>false</graalvm.image.skip>
@@ -113,7 +113,7 @@
     (this URL does not have the O/S and architecture specific part on the end of the URL, that is created by the build script)
      -->
     <java.base.url>https://java.oraclecloud.com/java/25/latest/jdk-25</java.base.url>
-    <java.17.url>https://java.oraclecloud.com/java/17/latest/jdk-17</java.17.url>
+    <java.21.url>https://java.oraclecloud.com/java/21/latest/jdk-21</java.21.url>
     <!-- default ports configured in the image -->
     <docker.port.grpc>1408</docker.port.grpc>
     <docker.port.extend>20000</docker.port.extend>
@@ -123,8 +123,8 @@
     <docker.port.health>6676</docker.port.health>
 
     <!-- tool versions -->
-    <java.version>17</java.version>
-    <java.version.release>17</java.version.release> <!-- maven-compiler-plugin "release" version -->
+    <java.version>21</java.version>
+    <java.version.release>21</java.version.release> <!-- maven-compiler-plugin "release" version -->
     <maven.version>3.6.0</maven.version>
 
     <!--

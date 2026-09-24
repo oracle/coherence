@@ -28,7 +28,7 @@
         <version.lib.langchain4j-document-parser-apache-tika>1.1.0-beta7</version.lib.langchain4j-document-parser-apache-tika>
         <version.lib.tinylog>2.6.2</version.lib.tinylog>
 
-        <java.version>17</java.version>
+        <java.version>21</java.version>
 
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>

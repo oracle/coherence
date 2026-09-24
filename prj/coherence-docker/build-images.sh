@@ -376,42 +376,42 @@ else
   fi
 fi
 
-if [ "${AMD_BASE_IMAGE_17}" != "" ]
+if [ "${AMD_BASE_IMAGE_21}" != "" ]
 then
-  # Build the amd64 Java 17 image
-  common_image amd64 linux "${AMD_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-amd64" "${JAVA_17_URL}" "${JDK_17_DOWNLOAD_TOKEN}"
+  # Build the amd64 Java 21 image
+  common_image amd64 linux "${AMD_BASE_IMAGE_21}" "${IMAGE_NAME}-java21-amd64" "${JAVA_21_URL}" "${JDK_21_DOWNLOAD_TOKEN}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "amd64" ]
   then
-    buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java17"
-    echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java17 to Docker daemon"
+    buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java21"
+    echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java21 to Docker daemon"
   else
-    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java17"
+    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java21"
     if [ "${PODMAN_IMPORT}" == "true" ]
     then
       TAR_NAME="${BASEDIR}/target/coherence-image.tar"
-      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java17"
-      podman import "${TAR_NAME}" "${IMAGE_NAME}-java17"
+      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java21"
+      podman import "${TAR_NAME}" "${IMAGE_NAME}-java21"
     fi
   fi
 fi
 
-if [ "${ARM_BASE_IMAGE_17}" != "" ]
+if [ "${ARM_BASE_IMAGE_21}" != "" ]
 then
-  # Build the arm64 Java 17 image
-  common_image arm64 linux "${ARM_BASE_IMAGE_17}" "${IMAGE_NAME}-java17-arm64" "${JAVA_17_URL}" "${JDK_17_DOWNLOAD_TOKEN}"
+  # Build the arm64 Java 21 image
+  common_image arm64 linux "${ARM_BASE_IMAGE_21}" "${IMAGE_NAME}-java21-arm64" "${JAVA_21_URL}" "${JDK_21_DOWNLOAD_TOKEN}"
 
   if [ "${NO_DAEMON}" != "true" ] && [ "${IMAGE_ARCH}" == "arm64" ]
   then
-    buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java17"
-    echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java17 to Docker daemon"
+    buildah push -f v2s2 "coherence:${IMAGE_ARCH}" "docker-daemon:${IMAGE_NAME}-java21"
+    echo "Pushed linux/${IMAGE_ARCH} image ${IMAGE_NAME}-java21 to Docker daemon"
   else
-    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java17"
+    buildah tag "coherence:${IMAGE_ARCH}" "${IMAGE_NAME}-java21"
     if [ "${PODMAN_IMPORT}" == "true" ]
     then
       TAR_NAME="${BASEDIR}/target/coherence-image.tar"
-      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java17"
-      podman import "${TAR_NAME}" "${IMAGE_NAME}-java17"
+      buildah push -f v2s2 -q "coherence:${IMAGE_ARCH}" "oci-archive:${TAR_NAME}:${IMAGE_NAME}-java21"
+      podman import "${TAR_NAME}" "${IMAGE_NAME}-java21"
     fi
   fi
 fi

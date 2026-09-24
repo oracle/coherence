@@ -23,8 +23,8 @@ def junitVersion = requireBuildProperty('junitVersion')
 def hamcrestVersion = requireBuildProperty('hamcrestVersion')
 
 java {
-    targetCompatibility = 17
-    sourceCompatibility = 17
+    targetCompatibility = 21
+    sourceCompatibility = 21
 }
 
 repositories {

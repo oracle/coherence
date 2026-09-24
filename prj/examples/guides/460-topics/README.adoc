@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -46,7 +46,7 @@ NOTE: We do not cover all features in Coherence Topics, so if you wish to read m
 // Do not change this part.
 [#what-you-need]
 === What You Need
-:java_version: 17
+:java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 ==== Building the Example Code
@@ -293,7 +293,7 @@ You will notice output similar to the following:
 ----
 Oracle Coherence Version 20.12 Build demo
  Grid Edition: Development mode
-Copyright (c) 2000, 2021, Oracle and/or its affiliates. All rights reserved.
+Copyright (c) 2000, 2026, Oracle and/or its affiliates. All rights reserved.
 
 User: Tim
 Commands:

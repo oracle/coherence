@@ -57,7 +57,7 @@ You will review the requirements for running `active` persistence with sftp arch
 // Do not change this part.
 [#what-you-need]
 === What You Need
-:java_version: 17 or above
+:java_version: 21
 :duration: 20-30
 include::../../internal/includes/what-you-need.adoc[tag=text]
 

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+    Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -144,7 +144,7 @@ SessionConfiguration.builder()
 The example application is a web-server that gets data to service requests from a specific Coherence cluster depending on a header value in the http request. This demonstrates a simple stateless multi-tenant web-server, where the tenant's data is segregated into different Coherence clusters. The information about a tenant's connection details are held in a meta-data cache in a separate admin cluster.
 
 === What You Need
-:java_version: 17
+:java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 // Do not change this part unless you have more complex build instructions.

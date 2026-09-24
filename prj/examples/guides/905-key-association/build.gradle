@@ -34,7 +34,9 @@ def hamcrestVersion = pomProperty('hamcrest.version')
 def junitVersion = pomProperty('junit.jupiter.version')
 def junitPlatformVersion = junitVersion.replaceFirst(/^5\./, '1.')
 
-sourceCompatibility = '17'
+java {
+	sourceCompatibility = JavaVersion.VERSION_21
+}
 
 repositories {
 	mavenCentral()

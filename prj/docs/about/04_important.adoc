@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2025 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2026 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
     https://oss.oracle.com/licenses/upl.
@@ -11,7 +11,7 @@
 == Java Development Kit Requirements
 
 Coherence CE {version-coherence} requires a minimum of version
-17 of the Java Development Kit (JDK).
+21 of the Java Development Kit (JDK).
 
 === Concerning Java Platform Module (JPMS) Options
 

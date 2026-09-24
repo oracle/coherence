@@ -232,12 +232,14 @@
                    </arguments>
                    <environmentVariables>
                      <JAVA_BASE_URL>${java.base.url}</JAVA_BASE_URL>
-                     <JAVA_17_URL>${java.17.url}</JAVA_17_URL>
+                     <JAVA_21_URL>${java.21.url}</JAVA_21_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <AMD_BASE_IMAGE_21>${docker.base.image.name.amd.21}</AMD_BASE_IMAGE_21>
+                     <ARM_BASE_IMAGE_21>${docker.base.image.name.arm.21}</ARM_BASE_IMAGE_21>
                      <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
                      <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
                      <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
@@ -254,7 +256,7 @@
                      <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
                      <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
                      <JDK_BASE_DOWNLOAD_TOKEN>${env.JDK_BASE_DOWNLOAD_TOKEN}</JDK_BASE_DOWNLOAD_TOKEN>
-                     <JDK_17_DOWNLOAD_TOKEN>${env.JDK_17_DOWNLOAD_TOKEN}</JDK_17_DOWNLOAD_TOKEN>
+                     <JDK_21_DOWNLOAD_TOKEN>${env.JDK_21_DOWNLOAD_TOKEN}</JDK_21_DOWNLOAD_TOKEN>
                      <PROJECT_URL>${project.url}</PROJECT_URL>
                      <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
                      <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
@@ -285,7 +287,7 @@
               <skipTests>false</skipTests>
               <useModulePath>false</useModulePath>
               <systemProperties>
-                <test.image.names>${docker.image.name},${docker.image.name}-graal</test.image.names>
+                <test.image.names>${docker.image.name},${docker.image.name}-java21,${docker.image.name}-graal</test.image.names>
                 <graal.image.names>${docker.image.name}-graal</graal.image.names>
                 <port.grpc>${docker.port.grpc}</port.grpc>
                 <port.extend>${docker.port.extend}</port.extend>
@@ -305,7 +307,7 @@
               <systemProperties>
                 <skip>false</skip>
                 <skipTests>false</skipTests>
-                <test.image.names>${docker.image.name},${docker.image.name}-graal</test.image.names>
+                <test.image.names>${docker.image.name},${docker.image.name}-java21,${docker.image.name}-graal</test.image.names>
                 <graal.image.names>${docker.image.name}-graal</graal.image.names>
                 <port.grpc>${docker.port.grpc}</port.grpc>
                 <port.extend>${docker.port.extend}</port.extend>
@@ -388,12 +390,14 @@
                    </arguments>
                    <environmentVariables>
                      <JAVA_BASE_URL>${java.base.url}</JAVA_BASE_URL>
-                     <JAVA_17_URL>${java.17.url}</JAVA_17_URL>
+                     <JAVA_21_URL>${java.21.url}</JAVA_21_URL>
                      <COHERENCE_VERSION>${project.version}</COHERENCE_VERSION>
                      <IMAGE_NAME>${docker.image.name}</IMAGE_NAME>
                      <IMAGE_ARCH>${docker.image.arch}</IMAGE_ARCH>
                      <AMD_BASE_IMAGE>${docker.base.image.name.amd}</AMD_BASE_IMAGE>
                      <ARM_BASE_IMAGE>${docker.base.image.name.arm}</ARM_BASE_IMAGE>
+                     <AMD_BASE_IMAGE_21>${docker.base.image.name.amd.21}</AMD_BASE_IMAGE_21>
+                     <ARM_BASE_IMAGE_21>${docker.base.image.name.arm.21}</ARM_BASE_IMAGE_21>
                      <GRAAL_AMD_BASE_IMAGE>${graalvm.base.image.name.amd}</GRAAL_AMD_BASE_IMAGE>
                      <GRAAL_ARM_BASE_IMAGE>${graalvm.base.image.name.arm}</GRAAL_ARM_BASE_IMAGE>
                      <NO_GRAAL>${graalvm.image.skip}</NO_GRAAL>
@@ -410,7 +414,7 @@
                      <DOCKER_HUB_USERNAME>${env.DOCKER_HUB_USERNAME}</DOCKER_HUB_USERNAME>
                      <DOCKER_HUB_PASSWORD>${env.DOCKER_HUB_PASSWORD}</DOCKER_HUB_PASSWORD>
                      <JDK_BASE_DOWNLOAD_TOKEN>${env.JDK_BASE_DOWNLOAD_TOKEN}</JDK_BASE_DOWNLOAD_TOKEN>
-                     <JDK_17_DOWNLOAD_TOKEN>${env.JDK_17_DOWNLOAD_TOKEN}</JDK_17_DOWNLOAD_TOKEN>
+                     <JDK_21_DOWNLOAD_TOKEN>${env.JDK_21_DOWNLOAD_TOKEN}</JDK_21_DOWNLOAD_TOKEN>
                      <PROJECT_URL>${project.url}</PROJECT_URL>
                      <PROJECT_VENDOR>${project.organization.name}</PROJECT_VENDOR>
                      <PROJECT_DESCRIPTION>${project.description}</PROJECT_DESCRIPTION>
@@ -453,4 +457,3 @@
     </profile>
   </profiles>
 </project>
-

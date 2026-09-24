@@ -1,9 +1,9 @@
-# Copyright (c) 2022, Oracle and/or its affiliates.
+# Copyright (c) 2022, 2026, Oracle and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # https://oss.oracle.com/licenses/upl.
 #
-FROM gcr.io/distroless/java17-debian11
+FROM gcr.io/distroless/java21-debian12
 
 # Configure the image's health check command
 # Health checks will only work with Coherence 22.06 and later

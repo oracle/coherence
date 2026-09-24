@@ -12,7 +12,7 @@ A library that integrates Oracle Coherence with Apache Lucene to provide distrib
 
 ### Prerequisites
 
-- Java 17 or later
+- Java 21 or later
 - Oracle Coherence CE 25.09 or later
 - Apache Lucene 10.x
 

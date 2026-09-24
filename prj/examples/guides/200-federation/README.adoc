@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
-    Copyright (c) 2022, 2025 Oracle and/or its affiliates.
+    Copyright (c) 2022, 2026 Oracle and/or its affiliates.
 
     Licensed under the Universal Permissive License v 1.0 as shown at
-    http://oss.oracle.com/licenses/upl.
+    https://oss.oracle.com/licenses/upl.
 ///////////////////////////////////////////////////////////////////////////////
 = Federation
 :description: Coherence Tutorials
@@ -86,7 +86,7 @@ NOTE: If you wish to know more about Coherence Federation, please see the
 // Do not change this part.
 [#what-you-need]
 === What You Need
-:java_version: 17
+:java_version: 21
 include::../../internal/includes/what-you-need.adoc[tag=text]
 
 [#installing-coherence]

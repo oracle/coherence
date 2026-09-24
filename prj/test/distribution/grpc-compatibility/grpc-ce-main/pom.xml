@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -31,7 +31,7 @@
         <!-- This is the groupId of the version server being tested against, not the current version being built -->
         <coherence.compatability.groupId>com.oracle.coherence.ce</coherence.compatability.groupId>
 
-        <coherence.compatability.minJavaVersion>17</coherence.compatability.minJavaVersion>
+        <coherence.compatability.minJavaVersion>21</coherence.compatability.minJavaVersion>
         <coherence.compatability.maxJavaVersion/>
     </properties>
 

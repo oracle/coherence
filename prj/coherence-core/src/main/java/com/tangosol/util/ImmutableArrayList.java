@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -158,6 +158,64 @@ public class ImmutableArrayList
     public Spliterator spliterator()
         {
         return super.spliterator();
+        }
+
+    @Override
+    public void addFirst(Object o)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public void addLast(Object o)
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public Object getFirst()
+        {
+        return first();
+        }
+
+    @Override
+    public Object getLast()
+        {
+        return last();
+        }
+
+    @Override
+    public Object removeFirst()
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    @Override
+    public Object removeLast()
+        {
+        throw new UnsupportedOperationException();
+        }
+
+    /**
+    * Override the Java 21 SequencedCollection default to resolve the
+    * conflicting default implementations inherited from List and SortedSet.
+    */
+    @Override
+    public ImmutableArrayList reversed()
+        {
+        int c = m_c;
+        if (c <= 1)
+            {
+            return this;
+            }
+
+        Object[] aoReversed = new Object[c];
+        for (int i = 0, of = m_of; i < c; ++i)
+            {
+            aoReversed[i] = m_ao[of + c - 1 - i];
+            }
+
+        return new ImmutableArrayList(aoReversed);
         }
 
     /**
@@ -1020,6 +1078,12 @@ public class ImmutableArrayList
 
 
     // ----- data members ---------------------------------------------------
+
+    /**
+    * Preserve Java serialization compatibility with releases that predate
+    * the Java 21 SequencedCollection method implementations.
+    */
+    private static final long serialVersionUID = -9122290596452231372L;
 
     /**
     * The Object array.
