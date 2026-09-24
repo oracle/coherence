@@ -160,7 +160,7 @@
             <phase>prepare-package</phase>
             <configuration>
               <executable>${gradle.executable}</executable>
-              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} "-Dmaven.repo.local=${settings.localRepository}" -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -x test -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
@@ -172,7 +172,7 @@
             <configuration>
               <skip>${gradle.skip.test}</skip>
               <executable>${gradle.executable}</executable>
-              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
+              <commandlineArgs>${gradle.proxy.arg1} ${gradle.proxy.arg2} ${gradle.proxy.arg3} "-Dmaven.repo.local=${settings.localRepository}" -Pgroup=${project.groupId} -Pversion=${project.version} -PjavaVersion=${java.version.release} -PjunitVersion=${gradle.junit.version} -PhamcrestVersion=${gradle.hamcrest.version} -DartifactId=${project.artifactId} clean build -S</commandlineArgs>
             </configuration>
             <goals>
               <goal>exec</goal>
