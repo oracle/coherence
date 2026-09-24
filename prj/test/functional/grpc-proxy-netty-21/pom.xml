@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -24,13 +24,8 @@
     <module.name>netty.grpc.proxy.java21.testing</module.name>
     <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
     <test.server.classpath>${project.build.directory}/server</test.server.classpath>
-    <is.not.java.21>false</is.not.java.21>
 
     <coherence.graalvm.native.loadAllClasses>grpc.proxy,netty.grpc.proxy</coherence.graalvm.native.loadAllClasses>
-
-    <java.version>21</java.version>
-    <java.version.release>21</java.version.release>
-
 
     <skip.native.build>true</skip.native.build>
     <skip.native.tests>true</skip.native.tests>
@@ -115,18 +110,7 @@
     <profile>
       <id>stage8</id>
       <properties>
-        <skipTests>${is.not.java.21}</skipTests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>NotJava21</id>
-      <activation>
-        <jdk>(,20]</jdk>
-      </activation>
-      <properties>
-        <is.not.java.21>true</is.not.java.21>
-        <skipTests>true</skipTests>
+        <skipTests>false</skipTests>
       </properties>
     </profile>
   </profiles>

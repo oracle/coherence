@@ -22,11 +22,6 @@
   <packaging>pom</packaging>
 
   <properties>
-    <java.version>21</java.version>
-    <java.version.release>21</java.version.release>
-    <!-- force Helidon 4 usage, regardless of JDK version -->
-    <helidon.version>${helidon.version.4}</helidon.version>
-    
     <useModulePath>false</useModulePath>
   </properties>
 
@@ -134,19 +129,4 @@
 
     </plugins>
   </build>
-
-  <!-- skip tests if running on Java 17, as Coherence RAG requires Java 21+ -->
-  <profiles>
-    <profile>
-       <id>java17</id>
-       <activation>
-         <jdk>(,20]</jdk>
-       </activation>
-       <properties>
-         <skipTests>true</skipTests>
-         <gradle.skip.test>true</gradle.skip.test>
-       </properties>
-     </profile>
-  </profiles>
-
 </project>

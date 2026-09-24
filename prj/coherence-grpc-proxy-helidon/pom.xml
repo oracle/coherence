@@ -21,9 +21,6 @@
 
   <properties>
     <module.name>com.oracle.coherence.grpc.proxy.helidon</module.name>
-
-    <java.version>21</java.version>
-    <java.version.release>21</java.version.release>
     <!--  this module should be published -->
     <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
@@ -102,15 +99,4 @@
     </plugins>
   </build>
 
-  <profiles>
-    <profile>
-      <id>NotJava21</id>
-      <activation>
-        <jdk>(,20]</jdk>
-      </activation>
-      <properties>
-        <skipTests>true</skipTests>
-      </properties>
-    </profile>
-  </profiles>
 </project>

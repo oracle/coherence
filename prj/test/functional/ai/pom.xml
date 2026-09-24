@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -75,17 +75,6 @@
         <skipTests>false</skipTests>
         <skip.native.build>false</skip.native.build>
         <skip.native.tests>false</skip.native.tests>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>NotJava21</id>
-      <activation>
-        <jdk>(,20]</jdk>
-      </activation>
-      <properties>
-        <is.not.java.21>true</is.not.java.21>
-        <skipTests>true</skipTests>
       </properties>
     </profile>
   </profiles>

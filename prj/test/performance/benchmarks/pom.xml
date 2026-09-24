@@ -23,7 +23,6 @@
   <name>Coherence Benchmarks</name>
 
   <properties>
-    <java.version.release>21</java.version.release>
     <jmh.version>1.37</jmh.version>
   </properties>
 
