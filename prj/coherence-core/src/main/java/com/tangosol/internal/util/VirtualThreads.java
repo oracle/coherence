@@ -6,23 +6,16 @@
  */
 package com.tangosol.internal.util;
 
-import com.tangosol.util.Base;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.ThreadFactory;
+import com.tangosol.net.security.SecurityHelper;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 
 /**
  * Helper class for virtual threads functionality.
- * <p>
- * The main purpose of this class is to isolate the code that uses virtual threads
- * (Loom) APIs, in order to simplify multi-release JAR creation.
  *
  * @author Aleks Seovic  2023.06.08
  * @since 23.09
@@ -42,14 +35,13 @@ public class VirtualThreads
      *
      * @return a new executor that creates a new Thread for each task
      *
-     * @throws NullPointerException          if threadFactory is null
-     * @throws UnsupportedOperationException if not running on Java 21 or later
-     * 
+     * @throws NullPointerException if threadFactory is null
+     *
      * @since 25.09
      */
     public static ExecutorService newThreadPerTaskExecutor(ThreadFactory threadFactory)
         {
-        throw new UnsupportedOperationException("ThreadPerTaskExecutor is not supported. Upgrade to Java 21 or later.");
+        return Executors.newThreadPerTaskExecutor(threadFactory);
         }
 
     /**
@@ -62,27 +54,36 @@ public class VirtualThreads
      *
      * @return a new executor that creates a new virtual Thread for each task
      *
-     * @throws UnsupportedOperationException if not running on Java 21 or later
-     *
      * @since 21
      */
     public static ExecutorService newVirtualThreadPerTaskExecutor()
         {
-        throw new UnsupportedOperationException("VirtualThreadPerTaskExecutor is not supported. Upgrade to Java 21 or later.");
+        ThreadFactory factory = Thread.ofVirtual().factory();
+        return newThreadPerTaskExecutor(factory);
         }
 
     /**
      * Create a virtual thread with the specified runnable, and name.
      *
-     * @param group     (optional) the thread's thread group
-     * @param runnable  (optional) the thread's runnable
+     * @param group     (ignored) the thread's thread group
+     * @param runnable  the thread's runnable
      * @param sName     (optional) the thread's name
      *
      * @return a new thread using the specified parameters
      */
     public static Thread makeThread(ThreadGroup group, Runnable runnable, String sName)
         {
-        return Base.makeThread(group, runnable, sName);
+        // Service work must not inherit arbitrary request/transport-thread
+        // context. Apart from matching the isolation of long-lived daemon
+        // workers, disabling inheritance avoids cloning the submitter's
+        // inheritable-thread-local map for every short-lived virtual thread.
+        Thread.Builder.OfVirtual builder = Thread.ofVirtual()
+                .inheritInheritableThreadLocals(false);
+        if (sName != null)
+            {
+            builder.name(sName);
+            }
+        return builder.unstarted(runnable);
         }
 
     /**
@@ -93,7 +94,31 @@ public class VirtualThreads
      */
     public static boolean isSupported()
         {
-        return false;
+        // NOTE:  virtual threads will not be used if the security manager
+        //        is enabled.  The following from the javadocs of
+        //        java.lang.Thread explains why:
+        //              Creating a platform thread captures the caller
+        //              context to limit the permissions of the new thread
+        //              when it executes code that performs a privileged
+        //              action. The captured caller context is the new
+        //              thread's "Inherited AccessControlContext".
+        //              Creating a virtual thread does not capture the
+        //              caller context; virtual threads have no permissions
+        //              when executing code that performs a privileged
+        //              action.
+        return !SecurityHelper.hasSecurityManager();
+        }
+
+    /**
+     * Returns a new virtual thread per-task executor.
+     *
+     * @param factory  retained for source compatibility; ignored
+     *
+     * @return a new virtual thread per-task executor
+     */
+    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
+        {
+        return Executors.newVirtualThreadPerTaskExecutor();
         }
 
     /**
@@ -108,20 +133,6 @@ public class VirtualThreads
      */
     public static boolean isVirtual(Thread thread)
         {
-        return false;
-        }
-
-    /**
-     * Returns either a new virtual thread per-task executor on Java 21 or higher
-     * or a single threaded executor if lower than Java 21.
-     *
-     * @param factory  the {@link ThreadFactory} to use if not on Java 21
-     *
-     * @return either a new virtual thread per-task executor on Java 21 or higher
-     *         or a single threaded executor if lower than Java 21.
-     */
-    public static Executor newMaybeVirtualThreadExecutor(ThreadFactory factory)
-        {
-        return Executors.newSingleThreadExecutor(factory);
+        return thread.isVirtual();
         }
     }

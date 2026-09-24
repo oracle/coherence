@@ -15,9 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for the Java 21 virtual-thread implementation.
- *
- * @author Aleks Seovic  2023.06.20
- * @since 26.07
  */
 class VirtualThreadsTest
     {

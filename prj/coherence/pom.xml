@@ -30,7 +30,7 @@
     </dependency>
 
     <!--
-      The order of the following two dependencies matters for testing.
+      The order of the following dependencies matters for testing.
 
       Having the latest, version-specific Java code first ensures it is used
       instead of legacy, version-agnostic code that's in the main JAR.
@@ -38,11 +38,6 @@
     <dependency>
       <groupId>${coherence.group.id}</groupId>
       <artifactId>coherence-core-24</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>${coherence.group.id}</groupId>
-      <artifactId>coherence-core-21</artifactId>
       <version>${project.version}</version>
     </dependency>
 
@@ -318,11 +313,6 @@
         <directory>../coherence-core-24/target/classes</directory>
         <targetPath>META-INF/versions/24</targetPath>
       </resource>
-      <!-- include the coherence-core-21 build output in MR JAR format -->
-      <resource>
-        <directory>../coherence-core-21/target/classes</directory>
-        <targetPath>META-INF/versions/21</targetPath>
-      </resource>
     </resources>
 
     <plugins>
@@ -361,7 +351,6 @@
                   <include>com.sleepycat:je</include>
                   <include>${coherence.group.id}:coherence-discovery</include>
                   <include>${coherence.group.id}:coherence-core</include>
-                  <include>${coherence.group.id}:coherence-core-21</include>
                   <include>${coherence.group.id}:coherence-core-24</include>
                   <include>${coherence.group.id}:coherence-core-components</include>
                   <include>${coherence.group.id}:coherence-vector-util</include>
@@ -379,12 +368,6 @@
                     <exclude>META-INF/versions/9/module-info.class</exclude>
                     <exclude>META-INF/MANIFEST.MF</exclude>
                     <exclude>META-INF/maven/**/*</exclude>
-                  </excludes>
-                </filter>
-                <filter>
-                  <artifact>${coherence.group.id}:coherence-core-21</artifact>
-                  <excludes>
-                    <exclude>**/*</exclude>
                   </excludes>
                 </filter>
                 <filter>

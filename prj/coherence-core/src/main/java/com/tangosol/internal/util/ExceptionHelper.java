@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -10,11 +10,7 @@ package com.tangosol.internal.util;
 import java.io.InvalidObjectException;
 
 /**
- * Helper class for InvalidObjectException creation.
- * <p>
- * The main purpose of this class is to isolate the code that throws
- * {@link InvalidObjectException(String, Exception)} (added in JDK 19),
- * in order to simplify multi-release JAR creation.
+ * Helper class for {@link InvalidObjectException} creation.
  *
  * @author joe fialli  2023.07.28
  * @since 23.09
@@ -31,9 +27,6 @@ public class ExceptionHelper
      */
     public static InvalidObjectException createInvalidObjectException(String message, Exception e)
         {
-        InvalidObjectException ioe = new InvalidObjectException(message);
-
-        ioe.initCause(e);
-        return ioe;
+        return new InvalidObjectException(message, e);
         }
     }
