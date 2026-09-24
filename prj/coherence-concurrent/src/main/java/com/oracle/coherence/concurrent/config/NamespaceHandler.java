@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -11,6 +11,7 @@ import com.oracle.coherence.concurrent.config.processors.CustomExecutorProcessor
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.ThreadFactoryProcessor;
+import com.oracle.coherence.concurrent.config.processors.VirtualPerTaskProcessor;
 import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
 
 import com.tangosol.config.xml.AbstractNamespaceHandler;
@@ -38,6 +39,7 @@ public class NamespaceHandler
         registerProcessor(SingleProcessor.class);
         registerProcessor(ThreadFactoryProcessor.class);
         registerProcessor(WorkStealingProcessor.class);
+        registerProcessor(VirtualPerTaskProcessor.class);
         registerProcessor(CustomExecutorProcessor.class);
         }
     }

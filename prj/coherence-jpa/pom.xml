@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+  Copyright (c) 2000, 2026, Oracle and/or its affiliates.
 
   Licensed under the Universal Permissive License v 1.0 as shown at
   https://oss.oracle.com/licenses/upl.
@@ -41,26 +41,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>compile-java21</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <release>21</release>
-              <compileSourceRoots>
-                <compileSourceRoot>${project.basedir}/src/main/java21</compileSourceRoot>
-              </compileSourceRoots>
-              <multiReleaseOutput>true</multiReleaseOutput>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
       <!-- flatten POM to remove build-specific content -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
