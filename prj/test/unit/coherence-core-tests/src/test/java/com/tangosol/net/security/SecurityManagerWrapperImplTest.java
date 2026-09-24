@@ -22,6 +22,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Regression tests for {@link SecurityManagerWrapperImpl} and
  * {@link DoAsAction}.
+ *
+ * @author Patrick Fry  2026.09.21
+ * @since 26.10
  */
 class SecurityManagerWrapperImplTest
     {
