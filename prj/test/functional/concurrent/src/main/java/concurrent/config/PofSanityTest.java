@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,28 +8,30 @@ package concurrent.config;
 
 import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.io.pof.PofContext;
-import com.tangosol.io.pof.PofReader;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.run.xml.XmlDocument;
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
 
-import java.io.File;
-
 import java.lang.reflect.Modifier;
 
 import java.net.URL;
-import java.net.URLDecoder;
 
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import java.util.jar.JarFile;
+
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,6 +104,11 @@ public class PofSanityTest
         Collection<Class<? extends PortableObject>> colPortableTypes  = getPortableTypes();
         Set<String>                                 setPofConfigTypes = loadPofConfiguration();
 
+        if (colPortableTypes.isEmpty())
+            {
+            fail("No PortableObjects were found in package " + PORTABLE_TYPE_PACKAGE);
+            }
+
         List<String> listNotFound = new ArrayList<>();
         for (Class<? extends PortableObject> aClass : colPortableTypes)
             {
@@ -169,58 +176,85 @@ public class PofSanityTest
     protected static Collection<Class<? extends PortableObject>> getPortableTypes()
             throws Exception
         {
-        char             chSep          = File.separatorChar;
-        List<File>       listDirs       = new ArrayList<>();
-        String           sPackageAsPath = PofSanityTest.PORTABLE_TYPE_PACKAGE.replace('.', chSep);
-        ClassLoader      loader         = PofReader.class.getClassLoader();
-        Enumeration<URL> enumResources  = loader.getResources(sPackageAsPath);
+        ClassLoader loader    = PofSanityTest.class.getClassLoader();
+        Class<?>    clzAnchor = Class.forName(PORTABLE_TYPE_PACKAGE + ".function.Predicates", false, loader);
+        URL         url       = clzAnchor.getProtectionDomain().getCodeSource().getLocation();
 
-        while (enumResources.hasMoreElements())
+        List<String> listClassNames = getClassNames(url);
+        List<Class<? extends PortableObject>> listClasses = new ArrayList<>();
+
+        for (String sClassName : listClassNames)
             {
-            listDirs.add(new File(URLDecoder.decode(enumResources.nextElement().getPath(), StandardCharsets.UTF_8)));
-            }
+            Class<?> clz = Class.forName(sClassName, false, loader);
 
-        final ArrayList<Class<? extends PortableObject>> listClasses = new ArrayList<>();
-
-        final String sClassSuffix    = ".class";
-        final int    cClassSuffixLen = sClassSuffix.length();
-
-        while (!listDirs.isEmpty())
-            {
-            File fileDir = listDirs.remove(0);
-            if (fileDir.exists())
+            if (isValidPortableType(clz))
                 {
-                File[] aFiles = fileDir.listFiles();
-
-                for (File file : aFiles != null ? aFiles : new File[0])
-                    {
-                    if (file.isDirectory())
-                        {
-                        listDirs.add(new File(file.getPath()));
-                        continue;
-                        }
-
-                    if ((file.getName().endsWith(".class")))
-                        {
-                        String sName          = file.getName();
-                        String sPath          = fileDir.getPath();
-                        int    cNameLen       = sName.length();
-                        int    cIndex         = sPath.indexOf(sPackageAsPath);
-                        String sPackagePrefix = sPath.substring(cIndex).replace(chSep, '.');
-                        String className      = sPackagePrefix + '.' + sName.substring(0, cNameLen - cClassSuffixLen);
-
-                        Class<?> clz = Class.forName(className, false, loader);
-
-                        if (isValidPortableType(clz))
-                            {
-                            //noinspection unchecked
-                            listClasses.add((Class<? extends PortableObject>) clz);
-                            }
-                        }
-                    }
+                //noinspection unchecked
+                listClasses.add((Class<? extends PortableObject>) clz);
                 }
             }
+
         return listClasses;
+        }
+
+    /**
+     * Return the class names in {@link #PORTABLE_TYPE_PACKAGE} from a class directory or JAR.
+     *
+     * @param url  the product artifact location
+     *
+     * @return the class names in the portable type package
+     *
+     * @throws Exception if the artifact cannot be scanned
+     */
+    protected static List<String> getClassNames(URL url)
+            throws Exception
+        {
+        Path         pathArtifact = Paths.get(url.toURI());
+        String       sPackagePath = PORTABLE_TYPE_PACKAGE.replace('.', '/');
+        List<String> listClasses  = new ArrayList<>();
+
+        if (Files.isDirectory(pathArtifact))
+            {
+            Path pathPackage = pathArtifact.resolve(sPackagePath);
+            try (Stream<Path> stream = Files.walk(pathPackage))
+                {
+                stream.filter(Files::isRegularFile)
+                        .map(pathArtifact::relativize)
+                        .map(Path::toString)
+                        .filter(sName -> sName.endsWith(CLASS_SUFFIX))
+                        .map(PofSanityTest::toClassName)
+                        .forEach(listClasses::add);
+                }
+            }
+        else
+            {
+            try (JarFile fileJar = new JarFile(pathArtifact.toFile()))
+                {
+                fileJar.stream()
+                        .filter(entry -> !entry.isDirectory())
+                        .map(entry -> entry.getName())
+                        .filter(sName -> sName.startsWith(sPackagePath + '/'))
+                        .filter(sName -> sName.endsWith(CLASS_SUFFIX))
+                        .map(PofSanityTest::toClassName)
+                        .forEach(listClasses::add);
+                }
+            }
+
+        return listClasses;
+        }
+
+    /**
+     * Convert a class-file path into its binary class name.
+     *
+     * @param sPath  the class-file path
+     *
+     * @return the binary class name
+     */
+    protected static String toClassName(String sPath)
+        {
+        return sPath.substring(0, sPath.length() - CLASS_SUFFIX.length())
+                .replace('/', '.')
+                .replace('\\', '.');
         }
 
     /**
@@ -250,6 +284,11 @@ public class PofSanityTest
      * Package to scan {@link PortableObject} classes.
      */
     protected static final String PORTABLE_TYPE_PACKAGE = "com.oracle.coherence.concurrent.executor";
+
+    /**
+     * The suffix used by class files.
+     */
+    protected static final String CLASS_SUFFIX = ".class";
 
     // ----- data members ---------------------------------------------------
 

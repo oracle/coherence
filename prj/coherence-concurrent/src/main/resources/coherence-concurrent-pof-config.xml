@@ -394,5 +394,10 @@
       <class-name>com.oracle.coherence.concurrent.executor.options.CloseExecutor</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>898</type-id>
+      <class-name>com.oracle.coherence.concurrent.executor.function.Predicates$AndPredicate</class-name>
+    </user-type>
+
   </user-type-list>
 </pof-config>
