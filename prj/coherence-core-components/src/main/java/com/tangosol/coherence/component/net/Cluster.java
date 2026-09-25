@@ -3599,8 +3599,10 @@ public class Cluster
                     }
         
                 // allow for all services to cleanup for up to shutdown timeout duration
-                long    cMillisMax   = getShutdownTimeout();
-                boolean fInterrupted = false;
+                long    cMillisShutdown  = getShutdownTimeout();
+                long    ldtShutdownStart = Base.getSafeTimeMillis();
+                long    cMillisMax       = cMillisShutdown;
+                boolean fInterrupted     = false;
                 for (Iterator iter = listThreads.iterator(); cMillisMax > 0 && iter.hasNext();)
                     {
                     Thread  thread = (Thread) iter.next();
@@ -3628,7 +3630,6 @@ public class Cluster
                 // no guarentee, and with persistence you must either use graceful shutdown or kill -9
                 Thread threadCluster = daemonClusterService.getThread();
                 cMillisMax = 2 * getDependencies().getClusterHeartbeatDelayMillis();
-                fInterrupted = false;
                 daemonClusterService.stop();
                 if (threadCluster != null && threadCluster != threadThis && cMillisMax > 0)
                     {
@@ -3642,6 +3643,34 @@ public class Cluster
                         }            
                     }
         
+                // discovery peers are stopped by ClusterService.onExit; wait for their
+                // exit callbacks before Coherence.shutdown clears the global configuration
+                // only wait once ClusterService has exited, including when it initiated stop
+                if (threadCluster == null || !threadCluster.isAlive())
+                    {
+                    Service[] aDiscovery =
+                        {
+                        getNameService().getAcceptor(),
+                        (Service) getNameServiceBridge().getInitiator()
+                        };
+                    for (Service service : aDiscovery)
+                        {
+                        cMillisMax = cMillisShutdown - (Base.getSafeTimeMillis() - ldtShutdownStart);
+                        Thread thread = service == null ? null : service.getThread();
+                        if (thread != null && thread != threadThis && cMillisMax > 0 && !fInterrupted)
+                            {
+                            try
+                                {
+                                thread.join(cMillisMax);
+                                }
+                            catch (InterruptedException e)
+                                {
+                                fInterrupted = true;
+                                }
+                            }
+                        }
+                    }
+
                 if (fInterrupted)
                     {
                     threadThis.interrupt();
