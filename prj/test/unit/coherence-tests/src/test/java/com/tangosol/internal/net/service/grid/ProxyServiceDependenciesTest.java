@@ -20,6 +20,7 @@ import com.tangosol.internal.net.service.extend.proxy.InvocationServiceProxyDepe
 import com.tangosol.internal.net.service.peer.acceptor.AcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.DefaultTcpAcceptorDependencies;
 import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies;
+import com.tangosol.internal.net.service.peer.acceptor.TcpAcceptorDependencies.BufferPoolConfig;
 
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.Cluster;
@@ -204,9 +205,13 @@ public class ProxyServiceDependenciesTest
               "<limit-buffer-length>   7000  </limit-buffer-length>" +
               "<incoming-buffer-pool>" +
                 "<buffer-size>10k</buffer-size>" +
+                "<buffer-type>heap</buffer-type>" +
+                "<capacity>-1</capacity>" +
               "</incoming-buffer-pool>" +
               "<outgoing-buffer-pool>" +
-                "<buffer-size>10k</buffer-size>" +
+                "<buffer-size>12k</buffer-size>" +
+                "<buffer-type>direct</buffer-type>" +
+                "<capacity>13</capacity>" +
               "</outgoing-buffer-pool>" +
             "</tcp-acceptor>" +
             "<connection-limit>16</connection-limit>" +
@@ -256,7 +261,11 @@ public class ProxyServiceDependenciesTest
         assertEquals(depsAcceptor.getDefaultLimitMessages(),   7000);
 
         assertEquals(depsAcceptor.getIncomingBufferPoolConfig().getBufferSize(), 10 * 1024);
-        assertEquals(depsAcceptor.getOutgoingBufferPoolConfig().getBufferSize(), 10 * 1024);
+        assertEquals(depsAcceptor.getIncomingBufferPoolConfig().getBufferType(), BufferPoolConfig.TYPE_HEAP);
+        assertEquals(depsAcceptor.getIncomingBufferPoolConfig().getCapacity(),   -1);
+        assertEquals(depsAcceptor.getOutgoingBufferPoolConfig().getBufferSize(), 12 * 1024);
+        assertEquals(depsAcceptor.getOutgoingBufferPoolConfig().getBufferType(), BufferPoolConfig.TYPE_DIRECT);
+        assertEquals(depsAcceptor.getOutgoingBufferPoolConfig().getCapacity(),   13);
 
         // test CacheServiceProxy component config
         CacheServiceProxyDependencies depsProxy = deps.getCacheServiceProxyDependencies();

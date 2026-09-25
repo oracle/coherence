@@ -2829,6 +2829,8 @@
                 <xsd:element ref="listen-backlog" minOccurs="0" />
                 <xsd:element ref="pipeline-count" minOccurs="0" />
                 <xsd:element ref="linger-timeout" minOccurs="0" />
+                <xsd:element ref="incoming-buffer-pool" minOccurs="0" />
+                <xsd:element ref="outgoing-buffer-pool" minOccurs="0" />
                 <xsd:element ref="authorized-hosts" minOccurs="0" />
                 <xsd:element ref="suspect-protocol-enabled" minOccurs="0" />
                 <xsd:element ref="suspect-buffer-size" minOccurs="0" />
@@ -2842,6 +2844,75 @@
             </xsd:sequence>
             <xsd:anyAttribute namespace="##other" processContents="lax" />
         </xsd:complexType>
+    </xsd:element>
+
+    <xsd:complexType name="tcp-buffer-pool-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The tcp-buffer-pool-type defines the buffer allocation and retention
+                settings for a TCP acceptor buffer pool.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="buffer-size" type="coherence-decimal-memorySize-type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The buffer-size element specifies the size, in bytes, of each
+                        newly allocated buffer.
+
+                        Default value is 2KB.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="buffer-type" type="coherence-string-type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The buffer-type element specifies whether newly allocated
+                        buffers use direct or heap memory.
+
+                        Valid values are "direct" and "heap".
+
+                        Default value is "direct".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="capacity" type="coherence-integer-type" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The capacity element specifies the maximum number of buffers
+                        retained by the pool. A value of zero or less specifies no
+                        limit.
+
+                        Default value is 0.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:any namespace="##other" processContents="lax"
+                minOccurs="0" maxOccurs="unbounded" />
+        </xsd:sequence>
+        <xsd:anyAttribute namespace="##other" processContents="lax" />
+    </xsd:complexType>
+
+    <xsd:element name="incoming-buffer-pool" type="tcp-buffer-pool-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The incoming-buffer-pool element configures the buffer pool used for
+                incoming messages accepted by a TCP acceptor.
+
+                Used in: tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="outgoing-buffer-pool" type="tcp-buffer-pool-type">
+        <xsd:annotation>
+            <xsd:documentation>
+                The outgoing-buffer-pool element configures the buffer pool used for
+                outgoing messages sent by a TCP acceptor.
+
+                Used in: tcp-acceptor
+            </xsd:documentation>
+        </xsd:annotation>
     </xsd:element>
 
     <xsd:element name="memcached-acceptor">
