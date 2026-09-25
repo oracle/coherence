@@ -37,10 +37,13 @@ import com.tangosol.net.NamedCache;
 import com.tangosol.net.management.MBeanServerProxy;
 import com.tangosol.net.management.Registry;
 
+import com.tangosol.persistence.GUIDHelper;
 import com.tangosol.persistence.journal.JournalPersistenceMBeanRegistry;
 
 import java.io.File;
 import java.io.Serializable;
+
+import java.nio.file.Files;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -301,6 +304,92 @@ public class JournalBackupMapTests
         }
 
     @Test
+    public void testRecoveryFallsBackFromInvalidNewestActiveStoreToRetainedBackup()
+            throws Exception
+        {
+        File             fileActiveOne  = FileHelper.createTempDir();
+        File             fileActiveTwo  = FileHelper.createTempDir();
+        File             fileBackupOne  = FileHelper.createTempDir();
+        File             fileBackupTwo  = FileHelper.createTempDir();
+        File             fileSnapshot   = FileHelper.createTempDir();
+        File             fileTrash      = FileHelper.createTempDir();
+        String           sClusterName   = createClusterName("invalid-active-fallback");
+        PropertySnapshot snapshot       = applyClientProperties(sClusterName);
+        MemberState      stateOne       = null;
+        MemberState      stateTwo       = null;
+
+        try
+            {
+            stateOne = startMember("JournalBackupMap-Fallback-1", sClusterName,
+                    fileActiveOne, fileBackupOne, fileSnapshot, fileTrash);
+            stateTwo = startMember("JournalBackupMap-Fallback-2", sClusterName,
+                    fileActiveTwo, fileBackupTwo, fileSnapshot, fileTrash);
+
+            Map<Integer, MemberState> mapMembers = memberStateMap(stateOne, stateTwo);
+            ConfigurableCacheFactory  factory    = ensureFactory();
+            NamedCache<String, String> cache      = factory.ensureCache(CACHE_NAME, null);
+            DistributedCacheService   service    = (DistributedCacheService) cache.getCacheService();
+            PartitionedCacheComponent serviceComponent = resolveServiceComponent(service);
+
+            waitForClusterReady(service, cache, 2);
+
+            long           lExtent   = waitForCacheExtentId(serviceComponent, cache.getCacheName());
+            OwnershipState ownership = putAndWaitForBackupStoreEntry(mapMembers, cache, service,
+                    "invalid-active-fallback-key", "retained-backup-value", lExtent);
+            String         sKey      = ownership.getKey();
+            int            nPart     = ownership.getPartition();
+            MemberState    statePrimary = ownership.getPrimary();
+            MemberState    stateBackup  = ownership.getBackup();
+
+            stopCacheServer(statePrimary.getServerName());
+            Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(1));
+            AbstractRollingRestartTest.waitForNoOrphans(cache.getCacheService());
+            AbstractRollingRestartTest.waitForBalanced(cache.getCacheService());
+            assertEquals("retained-backup-value", cache.get(sKey));
+
+            stopCacheServer(stateBackup.getServerName());
+            Eventually.assertDeferred(() -> service.getOwnershipEnabledMembers().size(), is(0));
+
+            File dirActive = persistenceRoot(stateBackup.getActiveDirectory(),
+                    sClusterName, service.getInfo().getServiceName());
+            File dirBackup = persistenceRoot(stateBackup.getBackupDirectory(),
+                    sClusterName, service.getInfo().getServiceName());
+            String sActiveGUID = findNewestStoreGUID(dirActive, nPart);
+            String sBackupGUID = findNewestStoreGUID(dirBackup, nPart);
+
+            assertNotNull("expected promoted active store", sActiveGUID);
+            assertNotNull("expected retained backup store", sBackupGUID);
+
+            long   lVersion = Math.max(GUIDHelper.getVersion(sActiveGUID),
+                    GUIDHelper.getVersion(sBackupGUID)) + 1L;
+            String sInvalidGUID = String.format("%d-%x-%x-%d", nPart, lVersion,
+                    GUIDHelper.getServiceJoinTime(sBackupGUID), GUIDHelper.getMemberId(sBackupGUID));
+            File   dirInvalid = new File(dirActive, sInvalidGUID);
+
+            assertTrue(dirInvalid.mkdir());
+            Files.write(new File(dirInvalid, "incomplete-promotion").toPath(), new byte[] {1});
+
+            statePrimary.restart();
+            stateBackup.restart();
+            waitForClusterReady(service, cache, 2);
+
+            assertEquals("retained-backup-value", cache.get(sKey));
+            }
+        finally
+            {
+            stopAllApplications();
+            CacheFactory.shutdown();
+            snapshot.restore();
+            FileHelper.deleteDirSilent(fileActiveOne);
+            FileHelper.deleteDirSilent(fileActiveTwo);
+            FileHelper.deleteDirSilent(fileBackupOne);
+            FileHelper.deleteDirSilent(fileBackupTwo);
+            FileHelper.deleteDirSilent(fileSnapshot);
+            FileHelper.deleteDirSilent(fileTrash);
+            }
+        }
+
+    @Test
     public void testJournalBackupMapMBeanAggregatesActiveAndBackup()
             throws Exception
         {
@@ -393,8 +482,36 @@ public class JournalBackupMapTests
 
     private MemberState startMember(String sName, String sClusterName, File fileActive, File fileBackup, File fileSnapshot, File fileTrash)
         {
-        return new MemberState(sName, createMemberProperties(sClusterName, fileActive, fileBackup, fileSnapshot, fileTrash), fileBackup)
+        return new MemberState(sName, createMemberProperties(sClusterName, fileActive, fileBackup, fileSnapshot, fileTrash),
+                fileActive, fileBackup)
                 .restart();
+        }
+
+    private File persistenceRoot(File dirBase, String sClusterName, String sServiceName)
+        {
+        return new File(new File(dirBase, FileHelper.toFilename(sClusterName)),
+                FileHelper.toFilename(sServiceName));
+        }
+
+    private String findNewestStoreGUID(File dirPersistence, int nPartition)
+        {
+        File[] aFile = dirPersistence.listFiles(file -> file.isDirectory()
+                && GUIDHelper.validateGUID(file.getName())
+                && GUIDHelper.getPartition(file.getName()) == nPartition);
+
+        String sNewest = null;
+        if (aFile != null)
+            {
+            for (File file : aFile)
+                {
+                String sGUID = file.getName();
+                if (sNewest == null || GUIDHelper.getVersion(sGUID) > GUIDHelper.getVersion(sNewest))
+                    {
+                    sNewest = sGUID;
+                    }
+                }
+            }
+        return sNewest;
         }
 
     private Map<Integer, MemberState> memberStateMap(MemberState stateOne, MemberState stateTwo)
@@ -809,10 +926,11 @@ public class JournalBackupMapTests
 
     protected class MemberState
         {
-        protected MemberState(String sName, Properties props, File fileBackup)
+        protected MemberState(String sName, Properties props, File fileActive, File fileBackup)
             {
             m_sName      = sName;
             m_props      = props;
+            m_fileActive = fileActive;
             m_fileBackup = fileBackup;
             }
 
@@ -826,6 +944,11 @@ public class JournalBackupMapTests
         protected File getBackupDirectory()
             {
             return m_fileBackup;
+            }
+
+        protected File getActiveDirectory()
+            {
+            return m_fileActive;
             }
 
         protected int getMemberId()
@@ -846,6 +969,8 @@ public class JournalBackupMapTests
         private final String     m_sName;
 
         private final Properties m_props;
+
+        private final File       m_fileActive;
 
         private final File       m_fileBackup;
 

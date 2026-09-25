@@ -132,6 +132,73 @@ public class JournalPersistenceManagerTest
         }
 
     /**
+     * Verify a process failure before promotion publication cannot expose a
+     * partially copied store in the live persistence directory.
+     *
+     * @throws IOException on test failure
+     */
+    @Test
+    public void testInterruptedPromotionDoesNotPublishPartialStore()
+            throws IOException
+        {
+        File fileData  = FileHelper.createTempDir();
+        File fileTrash = FileHelper.createTempDir();
+        InterruptingJournalPersistenceManager manager = null;
+        JournalPersistenceManager             restart = null;
+
+        try
+            {
+            manager = new InterruptingJournalPersistenceManager(fileData, fileTrash);
+            manager.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            AbstractPersistentStore storeFrom =
+                    (AbstractPersistentStore) manager.open(TEST_FROM_STORE_ID, null);
+            Binary binKey   = new Binary(new byte[] {1});
+            Binary binValue = new Binary(new byte[] {11});
+
+            storeFrom.ensureExtent(1L);
+            storeFrom.store(1L, binKey, binValue, null);
+
+            manager.interruptBeforePublish();
+            try
+                {
+                manager.open(TEST_STORE_ID, storeFrom);
+                org.junit.Assert.fail("expected simulated process interruption");
+                }
+            catch (SimulatedProcessInterruption expected)
+                {
+                // expected
+                }
+
+            assertFalse(new File(fileData, TEST_STORE_ID).exists());
+
+            manager.release();
+            manager = null;
+
+            restart = new JournalPersistenceManager(fileData, fileTrash, null);
+            restart.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            assertThat(storeIds(restart), arrayContainingInAnyOrder(TEST_FROM_STORE_ID));
+            AbstractPersistentStore storeRestarted =
+                    (AbstractPersistentStore) restart.open(TEST_FROM_STORE_ID, null);
+            assertEquals(binValue, storeRestarted.load(1L, binKey));
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.release();
+                }
+            if (restart != null)
+                {
+                restart.release();
+                }
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDir(fileTrash);
+            }
+        }
+
+    /**
      * Verify createSnapshot writes expected journal store files.
      *
      * @throws IOException on test failure
@@ -593,6 +660,53 @@ public class JournalPersistenceManagerTest
         Field field = oTarget.getClass().getDeclaredField(sField);
         field.setAccessible(true);
         field.setBoolean(oTarget, fValue);
+        }
+
+
+    // ----- inner class: InterruptingJournalPersistenceManager -----------
+
+    /**
+     * Journal manager that simulates a hard process stop after staging has
+     * completed but before the atomic publication point.
+     */
+    private static class InterruptingJournalPersistenceManager
+            extends JournalPersistenceManager
+        {
+        private InterruptingJournalPersistenceManager(File fileData, File fileTrash)
+                throws IOException
+            {
+            super(fileData, fileTrash, null);
+            }
+
+        private void interruptBeforePublish()
+            {
+            m_fInterrupt = true;
+            }
+
+        @Override
+        protected void publishStagedStore(File dirPromotion, File dirStore)
+                throws IOException
+            {
+            if (m_fInterrupt)
+                {
+                throw new SimulatedProcessInterruption();
+                }
+            super.publishStagedStore(dirPromotion, dirStore);
+            }
+
+        private boolean m_fInterrupt;
+        }
+
+
+    // ----- inner class: SimulatedProcessInterruption --------------------
+
+    /**
+     * Error used to bypass ordinary persistence exception cleanup, matching a
+     * process halt at the publication boundary.
+     */
+    private static class SimulatedProcessInterruption
+            extends Error
+        {
         }
 
 
