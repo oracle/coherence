@@ -1,13 +1,11 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.common.net;
 
-
-import com.oracle.coherence.common.internal.net.InterruptibleChannels;
 
 import java.io.IOException;
 
@@ -253,25 +251,15 @@ public final class Sockets
         }
 
     /**
-     * Update the Socket's blocking (and possibly interruptible mode).
+     * Update the Socket's blocking mode.
      * <p>
-     * When set via this method a non-blocking socket will also be made non-interruptible if possible, and
-     * interruptible when set to blocking if possible.
-     * <p>
-     * Changing the interrupt mode on a socket may not be possible in all JVMs, especially if Java
-     * security has been enabled.  In such cases the Socket will retain its default behavior of always
-     * being interruptible.
-     * <p>
-     * The benefit of making a non-blocking Socket non-interruptible is that it prevents the socket from
-     * being arbitrarily closed when accessed from a interrupted thread.
-     * <p>
-     * Note: This is a work around for JDK-6908931
-     * Note: As of Java 9 this work around is no longer functional.
-     * </p>
-     * @param chan       the channel
-     * @param fBlocking  the blocking/interrutible mode
+     * Java no longer supports changing a channel's interruptibility, so this method only updates the
+     * blocking mode and always returns {@code false}.
      *
-     * @return true if both modes were set, false if only the blocking mode was set
+     * @param chan       the channel
+     * @param fBlocking  the blocking mode
+     *
+     * @return {@code false} to indicate that only the blocking mode was updated
      *
      * @throws java.io.IOException if an IO error occurs
      */
@@ -281,7 +269,7 @@ public final class Sockets
         synchronized (chan.blockingLock())
             {
             chan.configureBlocking(fBlocking);
-            return InterruptibleChannels.setInterruptible(chan, fBlocking);
+            return false;
             }
         }
 

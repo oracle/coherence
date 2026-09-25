@@ -7,7 +7,6 @@
 
 package com.tangosol.internal.util.invoke.lambda;
 
-import com.tangosol.internal.util.ExceptionHelper;
 import com.tangosol.internal.util.invoke.Lambdas;
 import com.tangosol.internal.util.security.LambdaBytecodeGate;
 
@@ -27,6 +26,7 @@ import jakarta.json.bind.annotation.JsonbProperty;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.InvalidObjectException;
 
 import java.io.ObjectStreamException;
 
@@ -273,7 +273,7 @@ public class StaticLambdaInfo<T>
             }
         catch (ReflectiveOperationException e)
             {
-            throw ExceptionHelper.createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e);
+            throw new InvalidObjectException("Exception resolving static lambda " + serializedLambda, e);
             }
         catch (PrivilegedActionException e)
             {
@@ -466,7 +466,7 @@ public class StaticLambdaInfo<T>
             }
         catch (ReflectiveOperationException e)
             {
-            throw new RuntimeException(ExceptionHelper.createInvalidObjectException("Exception resolving static lambda " + serializedLambda, e));
+            throw new RuntimeException(new InvalidObjectException("Exception resolving static lambda " + serializedLambda, e));
             }
         catch (PrivilegedActionException e)
             {

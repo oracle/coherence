@@ -654,7 +654,7 @@ grant codeBase "file:${oracle.coherence.lib}/../../test/functional/rest/target/-
 };
 
 grant codeBase "file:${oracle.coherence.lib}/../../test/functional/management/target/classes/-" {
-    // added for MultiClusterInSingleProcessTests
+    // permissions required by management functional tests
     permission java.net.NetPermission "getNetworkInformation";
     permission java.lang.management.ManagementPermission "monitor";
     permission java.io.FilePermission "<<ALL FILES>>", "read";

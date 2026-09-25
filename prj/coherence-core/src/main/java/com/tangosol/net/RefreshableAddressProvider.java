@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -399,8 +399,7 @@ public class RefreshableAddressProvider
     /**
     * The refresh executor.
     * <p>
-    * This will be a single threaded executor on Java 17 or a
-    * virtual thread per-task on Java 21 or higher.
+    * This is a virtual-thread-per-task executor.
     */
     protected final Executor f_daemonRefresh;
 

@@ -4,12 +4,12 @@
 # https://oss.oracle.com/licenses/upl.
 
 #
-# This script by default uses JDK 21 and set JAVA_HOME pointing to
-# that JDK version.
+# This script defaults to JDK 25 and sets JAVA_HOME to that JDK because some
+# modules require JDK 24 or newer.
 #
-# To use a newer version locally, use command: JV=<version> ./bin/cfglocal.sh
+# To use a different version locally, use command: JV=<version> ./bin/cfglocal.sh
 #
-# To run on RQ with a newer Java version, specify -j option as shown below
+# To run on RQ with a different Java version, specify -j option as shown below
 # enqueue -j <version> [-c changelist]
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"

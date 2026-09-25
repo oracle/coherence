@@ -16,13 +16,12 @@
 # see cfgcommon.sh
 
 #
-# This script by default uses JDK 20 and set JAVA_HOME pointing to
-# that JDK version.
+# This script defaults to JDK 25 and sets JAVA_HOME to that JDK.
 #
-# To use JDK 21 locally, use command: RBT_JV=21 ./bin/cfgwindows.sh
+# To use a different version locally, use command: JV=<version> ./bin/cfglocal.sh
 #
-# And to run on RQ with JDK 21, specify -j option as shown below
-# enqueue -j 21 [-c changelist]
+# To run on RQ with a different Java version, specify -j option as shown below
+# enqueue -j <version> [-c changelist]
 
 #
 # Global Variables
