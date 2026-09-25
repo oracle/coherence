@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-import com.oracle.coherence.testing.CheckJDK;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -64,7 +63,6 @@ public class SerialFilterFactoryTest
     @Test(expected = IllegalStateException.class)
     public void mustThrowIfSetObjectFilterToNull()
         {
-        CheckJDK.assumeJDKVersionEqualOrGreater(17);
         BlobExternalizableLite blob = new BlobExternalizableLite(40);
         ByteArrayWriteBuffer   baos = new ByteArrayWriteBuffer(0);
 

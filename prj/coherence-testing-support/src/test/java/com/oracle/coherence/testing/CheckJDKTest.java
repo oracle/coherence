@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.oracle.coherence.testing;
 
@@ -20,6 +20,7 @@ public class CheckJDKTest
     @Test
     public void testComputeVersionFromJavaHome()
         {
+        // these are parsing fixtures only; the referenced paths do not need to exist
         String[] asJdkHome =
                 {
                     "/Library/Java/JavaVirtualMachines/1.5.0.jdk/Contents/Home",
@@ -33,10 +34,12 @@ public class CheckJDKTest
                     "/Library/Java/JavaVirtualMachines/jdk-16.jdk/Contents/Home",
                     "/Library/Java/JavaVirtualMachines/jdk-17.jdk/Contents/Home",
                     "/Library/Java/JavaVirtualMachines/jdk-18.jdk/jdk-18.jdk/Contents/Home",
-                    "/Library/Java/JavaVirtualMachines/jdk-19.jdk/jdk-19.jdk/Contents/Home"
+                    "/Library/Java/JavaVirtualMachines/jdk-19.jdk/jdk-19.jdk/Contents/Home",
+                    "/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home",
+                    "/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
                 };
 
-        int[] anExpectedVersion = {5, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19};
+        int[] anExpectedVersion = {5, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19, 21, 25};
 
         for (int i = 0; i < asJdkHome.length; i++)
             {
@@ -60,10 +63,12 @@ public class CheckJDKTest
                     "16.0",
                     "17.0",
                     "18.0",
-                    "19.0.ea"
+                    "19.0.ea",
+                    "21.0.7",
+                    "25.0.2"
                 };
 
-        int[] anExpectedVersion = {5, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19};
+        int[] anExpectedVersion = {5, 6, 7, 8, 9, 10, 11, 15, 16, 17, 18, 19, 21, 25};
 
         for (int i = 0; i < asJdkVersion.length; i++)
             {

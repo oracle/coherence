@@ -712,12 +712,9 @@ public class MetricsSupportTests
             listExpectedMetrics.add("Coherence.OS.SystemLoadAverage");
             }
 
-        if (s_bTestJdk15)
-            {
-            listExpectedMetrics.add("Coherence.OS.TotalMemorySize");
-            listExpectedMetrics.add("Coherence.OS.FreeMemorySize");
-            listExpectedMetrics.add("Coherence.OS.CpuLoad");
-            }
+        listExpectedMetrics.add("Coherence.OS.TotalMemorySize");
+        listExpectedMetrics.add("Coherence.OS.FreeMemorySize");
+        listExpectedMetrics.add("Coherence.OS.CpuLoad");
 
         assertMetricsWithoutAfterGC(adapter.getMetrics(),
                                     mapTags,
@@ -1075,11 +1072,6 @@ public class MetricsSupportTests
                           "Coherence.OS.SystemLoadAverage",
                           "Coherence.Service.TaskLimit"
                          );
-
-    /**
-     * True iff JVM is for JDK 15 or greater.
-     */
-    private static final Boolean s_bTestJdk15 = Integer.parseInt(System.getProperty("java.version").split("-|\\.")[0]) > 14;
 
     /**
      * True iff JVM is for JDK 26 or greater.

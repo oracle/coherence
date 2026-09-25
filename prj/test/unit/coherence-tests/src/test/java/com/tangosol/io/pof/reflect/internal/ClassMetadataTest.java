@@ -1,27 +1,18 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.io.pof.reflect.internal;
 
 import com.tangosol.io.pof.reflect.Codecs;
 
-import com.tangosol.io.pof.reflect.internal.InvocationStrategies.FieldInvocationStrategy;
-import com.tangosol.io.pof.reflect.internal.InvocationStrategies.MethodInvocationStrategy;
 import com.tangosol.io.pof.reflect.internal.TypeMetadata.AttributeMetadata;
 
 import org.junit.Test;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.ReflectPermission;
-
-import java.security.AccessControlException;
-import java.security.Permission;
-
-import com.oracle.coherence.testing.CheckJDK;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
@@ -152,64 +143,6 @@ public class ClassMetadataTest
         assertThat( cmd.getAttribute("d").getIndex(), is(4));
         assertThat( cmd.getAttribute("e").getIndex(), is(3));
         assertThat( cmd.getAttribute("f").getIndex(), is(5));
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPrivateField() throws NoSuchFieldException
-        {
-        // skip test from JDK 18 and on, deprecated java.security.manager defaults to disallow
-        CheckJDK.assumeJDKVersionLessThanOrEqual(17);
-
-        System.setSecurityManager(new SecurityManager()
-            {
-            @Override
-            public void checkPermission(Permission perm)
-                {
-                if (new ReflectPermission("suppressAccessChecks").equals(perm))
-                    {
-                    throw new AccessControlException("disallowed");
-                    }
-                }
-            });
-        Field field = ClassMetadataDescribable.class.getDeclaredField("m_sName");
-        try
-            {
-            new FieldInvocationStrategy<ClassMetadataDescribable,String>(field);
-            }
-        catch (IllegalArgumentException iae)
-            {
-            System.setSecurityManager(null);
-            throw iae;
-            }
-        }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPrivateMethod() throws NoSuchMethodException
-        {
-        // skip test from JDK 18 and on, deprecated java.security.manager defaults to disallow
-        CheckJDK.assumeJDKVersionLessThanOrEqual(17);
-
-        System.setSecurityManager(new SecurityManager()
-            {
-            @Override
-            public void checkPermission(Permission perm)
-                {
-                if (new ReflectPermission("suppressAccessChecks").equals(perm))
-                    {
-                    throw new AccessControlException("disallowed");
-                    }
-                }
-            });
-        Method method = ClassMetadataDescribable.class.getDeclaredMethod("getFullName");
-        try
-            {
-            new MethodInvocationStrategy<ClassMetadataDescribable,String>(method);
-            }
-        catch (IllegalArgumentException iae)
-            {
-            System.setSecurityManager(null);
-            throw iae;
-            }
         }
 
     public static class ClassMetadataDescribable

@@ -518,7 +518,7 @@ public abstract class BaseManagementInfoResourceTests
         assertThat(oListMemberIds, instanceOf(List.class));
         List listMemberIds = (List) oListMemberIds;
 
-        String   GC_PREFIX      = s_bTestJdk11 ? "g1" : "ps";
+        String   GC_PREFIX      = "g1";
         String[] arr_sMbeanName = {GC_PREFIX + "OldGen", GC_PREFIX + "SurvivorSpace"};
 
         for (String mbean : arr_sMbeanName)
@@ -1211,6 +1211,7 @@ public abstract class BaseManagementInfoResourceTests
                 .post(null);
         assertThat(response.getStatus(), is(Response.Status.OK.getStatusCode()));
 
+        // jfrDump(name=all) omits filename; supported JDKs auto-generate the dump file name
         target = getBaseTarget().path(DIAGNOSTIC_CMD).path("jfrDump")
                 .queryParam(OPTIONS, encodeValue("name=all"));
         response = target.request(MediaType.APPLICATION_JSON_TYPE).post(null);
@@ -1219,13 +1220,6 @@ public abstract class BaseManagementInfoResourceTests
         mapResult  = readEntity(target, response);
         listStatus = (List) mapResult.get("status");
         result     = (String) listStatus.get(0) + listStatus.get(1);
-
-        // for JDK11, when dump file is not provided,
-        // DiagnosticCommand generates a file name instead of throwing exception
-        if (!s_bTestJdk11)
-            {
-            assertThat(result.indexOf("Exception"), greaterThan(0));
-            }
 
         response = getBaseTarget().path(DIAGNOSTIC_CMD)
                 .path("jfrCheck")
@@ -1448,10 +1442,6 @@ public abstract class BaseManagementInfoResourceTests
 
             oName       = new ObjectName(sName);
             mBeanServer = memberOne.get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
-            if (!s_bTestJdk11)
-                {
-                mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
-                }
             }
         catch (Exception InstanceNotFoundException)
             {
@@ -1462,10 +1452,6 @@ public abstract class BaseManagementInfoResourceTests
 
                 mBeanServer = memberTwo.get(JmxFeature.class).getDeferredJMXConnector().get().getMBeanServerConnection();
                 oName       = new ObjectName(sName);
-                if (!s_bTestJdk11)
-                    {
-                    mBeanServer.invoke(oName, "vmUnlockCommercialFeatures", null, null);
-                    }
                 }
             catch (Exception e1)
                 {
@@ -6066,8 +6052,6 @@ public abstract class BaseManagementInfoResourceTests
      * The window of time the management server tries to give a consistent response.
      */
     protected static final long REMOTE_MODEL_PAUSE_DURATION = 128L + /*buffer*/ 16L;
-
-    protected static final Boolean s_bTestJdk11 = Integer.parseInt(System.getProperty("java.version").split("[-.]")[0]) > 10;
 
     /**
      * The number of attributes to check for.

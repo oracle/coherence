@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,8 +15,6 @@ import com.oracle.coherence.concurrent.config.processors.CustomExecutorProcessor
 import com.oracle.coherence.concurrent.config.processors.FixedProcessor;
 import com.oracle.coherence.concurrent.config.processors.SingleProcessor;
 import com.oracle.coherence.concurrent.config.processors.WorkStealingProcessor;
-
-import com.oracle.coherence.testing.CheckJDK;
 
 import com.tangosol.coherence.config.ParameterMacroExpressionParser;
 
@@ -270,8 +268,6 @@ public class NamespaceHandlerTest
     @Test
     void testVirtualThreadPerTask()
         {
-        CheckJDK.assumeJDKVersionEqualOrGreater(21);
-
         String sXml = """
                 <e:virtual-per-task>
                   <e:name>test8</e:name>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,9 +19,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import java.util.function.BinaryOperator;
-
-import com.oracle.coherence.testing.CheckJDK;
-
 
 /**
  * Helper to invoke ObjectInputFilter methods via reflection.
@@ -316,7 +313,6 @@ public class ObjectInputFilterHelper
             }
         catch (Exception e)
             {
-            CheckJDK.assumeJDKVersionEqualOrGreater(17);
             Logger.fine(e);
             }
         return false;
@@ -348,8 +344,6 @@ public class ObjectInputFilterHelper
                 }
             catch (Throwable t)
                 {
-                CheckJDK.assumeJDKVersionEqualOrGreater(17);
-
                 Base.err(t);
                 }
             }
@@ -382,8 +376,6 @@ public class ObjectInputFilterHelper
                 }
             catch (Throwable t)
                 {
-                CheckJDK.assumeJDKVersionEqualOrGreater(17);
-
                 Base.err(t);
                 }
             }

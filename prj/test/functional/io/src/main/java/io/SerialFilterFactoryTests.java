@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,8 +21,6 @@ import java.util.function.BinaryOperator;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.oracle.coherence.testing.CheckJDK;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -75,8 +73,6 @@ public class SerialFilterFactoryTests
     @Test
     public void testSerialFilterFactory()
         {
-        CheckJDK.assumeJDKVersionEqualOrGreater(17);
-
         // Create an application specific filter to allow data.* classes and reject all others
         Object filter = ObjectInputFilterHelper.createObjectInputFilter("data.*;!*");
 
@@ -122,8 +118,6 @@ public class SerialFilterFactoryTests
     @Test
     public void testSerialFilterFactoryWithBlockingObjectInputFilter()
         {
-        CheckJDK.assumeJDKVersionEqualOrGreater(17);
-
         // Create a filter to allow example.* classes and reject all others
         Object filter = ObjectInputFilterHelper.createObjectInputFilter("!data.*;!*");
 
@@ -164,8 +158,8 @@ public class SerialFilterFactoryTests
     /**
      * Test implementation of a SerialFilterFactory, adapted from JDK 17 ObjectInputFilter javadoc example.
      *
-     * Replaced all occurrences of ObjectInputFilter with Object since this code
-     * has to compile and run with JDK 8 and higher.
+     * Replaced all occurrences of ObjectInputFilter with Object to keep this
+     * helper decoupled from direct ObjectInputFilter references.
      * All ObjectInputFilter methods are called by reflection.
      */
     public static final class FilterInThread

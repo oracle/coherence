@@ -67,7 +67,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import com.oracle.coherence.testing.CheckJDK;
 
 import javax.management.BadAttributeValueExpException;
 
@@ -690,7 +689,6 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     @Test
     public void testConfigGetSerialFilterFactory()
         {
-        CheckJDK.assumeJDKVersionEqualOrGreater(17);
         assertNotNull(ExternalizableHelper.getConfigSerialFilterFactory());
         }
 
