@@ -37,6 +37,9 @@ import static org.mockito.Mockito.when;
 
 /**
  * Tests for continuous aggregation StorageManager metrics.
+ *
+ * @author Aleks Seovic  2026.09.15
+ * @since 26.10
  */
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ContinuousAggregationManagementTest

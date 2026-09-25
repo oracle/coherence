@@ -37,6 +37,9 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Unit tests for continuously maintained streaming aggregators.
+ *
+ * @author Aleks Seovic  2026.09.15
+ * @since 26.10
  */
 public class ContinuousAggregatorTest
     {
