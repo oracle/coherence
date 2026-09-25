@@ -52,8 +52,8 @@ platform-thread pool, and it remains fully supported.
 
 == Requirements
 
-Virtual thread support requires Java 21 or later. VDP is not available
-when a member runs on an earlier Java version.
+VDP is available on every supported Coherence runtime because Java 21 is the
+minimum supported version.
 
 Java 24 or later is preferred for new VDP deployments because JEP 491
 removes `synchronized` carrier-thread pinning.

@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2021, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.io;
@@ -726,10 +726,9 @@ public interface ReadBuffer
         * @implSpec
         * This method can set the ObjectInputFilter once.
         * <p>
-        * In Java version 17 and greater, the stream's ObjectInputFilter is set
-        * to the filter returned by invoking the
+        * The stream's ObjectInputFilter is set to the filter returned by invoking the
         * {@link ExternalizableHelper#getConfigSerialFilterFactory() JVM-wide filter factory}
-        * with the {@link #getObjectInputFilter()} current filter} and the{@code filter} parameter.
+        * with the {@link #getObjectInputFilter() current filter} and the {@code filter} parameter.
         *
         * <p>
         * It is not permitted to replace a {@code non-null} filter with a
@@ -738,8 +737,7 @@ public interface ReadBuffer
         * the value returned from the filter factory (or provided filter) must
         * be {@code non-null}.
         *
-        * @param oInputFilter  an ObjectInputFilter instance as an Object to enable
-        *                running with Java version 8 or higher, may be null
+        * @param oInputFilter  an ObjectInputFilter instance, or {@code null}
         *
         * @throws IllegalStateException if the filter factory returns {@code null}
         *       when the {@linkplain #getObjectInputFilter() current filter} is

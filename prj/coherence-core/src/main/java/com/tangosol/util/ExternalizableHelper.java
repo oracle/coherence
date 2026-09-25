@@ -6900,8 +6900,7 @@ public abstract class ExternalizableHelper
     /**
      * Return the static JVM-wide serial filter or {@code null} if not configured.
      *
-     * @return ObjectInputFilter as an Object to enable working with Java versions before 9 or
-     *         null if no filter has been configured.
+     * @return the configured ObjectInputFilter, or {@code null} if no filter has been configured
      */
     public static Object getConfigSerialFilter()
         {
@@ -6946,7 +6945,7 @@ public abstract class ExternalizableHelper
     /**
      * Return the static JVM-wide serial filter factory.
      *
-     * @return deserialization filter factory for Java version 17 and greater, null otherwise.
+     * @return the configured deserialization filter factory, or {@code null} if none is configured
      */
     public static BinaryOperator getConfigSerialFilterFactory()
         {
@@ -8159,66 +8158,33 @@ public abstract class ExternalizableHelper
         Method       methodConfigGetSerialFilter  = null;
         Method       methodConfigGetFilterFactory = null;
 
-
-        // find ObjectInputFilter class; depending on jdk version
+        // initialize ObjectInputFilter method handles
         try
             {
-            Class<?>              clzFilter       = null;
-            Class<? extends Enum> clzFilterStatus = null;
-            Class<?>              clzConfig       = null;
-            String                sFilterMethod   = null;
-            Method                methodGet       = null;
+            Class<?>              clzFilter       = ObjectInputFilter.class;
+            Class<? extends Enum> clzFilterStatus = ObjectInputFilter.Status.class;
+            Class<?>              clzConfig       = ObjectInputFilter.Config.class;
+            Method                methodGet       = ObjectInputStream.class.getDeclaredMethod("getObjectInputFilter");
 
-            if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
-                {
-                clzFilterInfo       = Class.forName("java.io.ObjectInputFilter$FilterInfo");
-                clzFilterStatus     = (Class<? extends Enum>) Class.forName("java.io.ObjectInputFilter$Status");
-                sFilterMethod       = "getObjectInputFilter";
-                clzConfig           = Class.forName("java.io.ObjectInputFilter$Config");
-                }
-            else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
-                {
-                clzFilterInfo   = Class.forName("sun.misc.ObjectInputFilter$FilterInfo");
-                clzFilterStatus = (Class<? extends Enum>) Class.forName("sun.misc.ObjectInputFilter$Status");
-                sFilterMethod   = "getInternalObjectInputFilter";
-                clzConfig       = Class.forName("sun.misc.ObjectInputFilter$Config");
-                }
+            clzFilterInfo = ObjectInputFilter.FilterInfo.class;
 
-            if (sFilterMethod != null)
-                {
-                Class clzObjectInputStream = ObjectInputStream.class;
+            methodGet.setAccessible(true);
 
-                methodGet = clzObjectInputStream.getDeclaredMethod(sFilterMethod);
-                methodGet.setAccessible(true);
+            methodConfigGetSerialFilter = clzConfig.getDeclaredMethod("getSerialFilter");
+            methodConfigGetSerialFilter.setAccessible(true);
 
-                methodConfigGetSerialFilter = clzConfig.getDeclaredMethod("getSerialFilter");
-                methodConfigGetSerialFilter.setAccessible(true);
+            methodConfigGetFilterFactory = clzConfig.getDeclaredMethod("getSerialFilterFactory");
 
-                try
-                    {
-                    methodConfigGetFilterFactory = clzConfig.getDeclaredMethod("getSerialFilterFactory");
-                    }
-                catch (NoSuchMethodException e)
-                    {
-                    // ignore when not defined in java version less than 17
-                    }
-                catch (Throwable t)
-                    {
-                    Logger.warn("Failed to find method ObjectInputFilter$Config.getSerialFilterFactory() in java version "
-                                + System.getProperty("java.version") +  " due to: " + t.getMessage());
-                    }
+            MethodType mtCheckInput = MethodType.methodType(clzFilterStatus, clzFilterInfo);
 
-                MethodType mtCheckInput = MethodType.methodType(clzFilterStatus, clzFilterInfo);
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
 
-                MethodHandles.Lookup lookup = MethodHandles.lookup();
-
-                handleGetFilter              = lookup.unreflect(methodGet);
-                handleCheckInput             = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
-                handleConfigGetSerialFilter  = lookup.unreflect(methodConfigGetSerialFilter);
-                handleConfigGetFilterFactory = methodConfigGetFilterFactory == null ? null : lookup.unreflect(methodConfigGetFilterFactory);
-                }
+            handleGetFilter              = lookup.unreflect(methodGet);
+            handleCheckInput             = lookup.findVirtual(clzFilter, "checkInput", mtCheckInput);
+            handleConfigGetSerialFilter  = lookup.unreflect(methodConfigGetSerialFilter);
+            handleConfigGetFilterFactory = lookup.unreflect(methodConfigGetFilterFactory);
             }
-        catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException e)
+        catch (NoSuchMethodException | SecurityException | IllegalAccessException e)
             {
             Logger.warn("ObjectInputFilter will not be honored due to: "
                     + e.getMessage() + '\n' + Base.printStackTrace(e));

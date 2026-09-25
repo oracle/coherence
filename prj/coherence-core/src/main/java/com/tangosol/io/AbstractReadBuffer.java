@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -238,12 +238,9 @@ public abstract class AbstractReadBuffer
         * Default constructor.
         *
         * @implSpec
-        * Initialize serial filter as it done for ObjectInputStream constructor.
-        * <p>
-        * In Java versions prior to 17, the deserialization filter is initialized to JVM-wide ObjectInputFilter.
-        * <p>
-        * In Java version 17 and greater, the deserialization filter is initialized to the filter returned
-        * by invoking {@link ExternalizableHelper#getConfigSerialFilterFactory() serial filter factory}
+        * Initialize the serial filter as the ObjectInputStream constructor does.
+        * The deserialization filter is initialized to the filter returned by invoking
+        * the {@link ExternalizableHelper#getConfigSerialFilterFactory() serial filter factory}
         * with {@code null} for the current filter and the
         * {@linkplain ExternalizableHelper#getConfigSerialFilter() static JVM-wide filter} for the requested filter.
         */
@@ -695,7 +692,7 @@ public abstract class AbstractReadBuffer
                 throw new IllegalStateException("filter can not be set more than once");
                 }
 
-            // delegate to factory to compute stream serial filter in Java version 17 and greater
+            // delegate to the factory to compute the stream serial filter
             Object oInputFilterNext = factorySerialFilter == null
                                         ? oInputFilter
                                         : factorySerialFilter.apply(oInputFilterCurrent, oInputFilter);

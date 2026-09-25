@@ -35,8 +35,6 @@ import com.tangosol.run.xml.SimpleElement;
 import data.Person;
 import data.TestXmlSerializable;
 
-import java.lang.reflect.InvocationTargetException;
-
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
@@ -53,8 +51,6 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputFilter;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-
-import java.lang.reflect.Method;
 
 import java.sql.Date;
 import java.sql.Time;
@@ -661,10 +657,7 @@ public class ExternalizableHelperTest extends ExternalizableHelper
             sFilter = fFilter
                       ? fFail ? "!data.Person" : "data.Person"
                       : null;
-            if (!setObjectInputStreamFilter(ios, sFilter))
-                {
-                return;
-                }
+            setObjectInputStreamFilter(ios, sFilter);
             ldtStart = start();
             ExternalizableHelper.readCollection(ios, setRead, null);
             }
@@ -993,49 +986,18 @@ public class ExternalizableHelperTest extends ExternalizableHelper
      * Set filter for ObjectInputStream.
      *
      * @param sFilter  filter pattern as used by JEP-290
-     *
-     * @return ture if ObjectInputFilter is supported
      */
-    public boolean setObjectInputStreamFilter(ObjectInputStream ois, String sFilter)
+    public void setObjectInputStreamFilter(ObjectInputStream ois, String sFilter)
         {
-        try
+        ObjectInputFilter filter = sFilter == null
+                                   ? null
+                                   : ObjectInputFilter.Config.createFilter(sFilter);
+
+        if (filter != null)
             {
-            Class<?> clzFilter          = null;
-            String   sSetFilterMethod   = null;
-            Method   methodSetFilter    = null;
-
-            if ((clzFilter = getClass("java.io.ObjectInputFilter")) != null)
-                {
-                sSetFilterMethod = "setObjectInputFilter";
-                }
-            else if ((clzFilter = getClass("sun.misc.ObjectInputFilter")) != null)
-                {
-                sSetFilterMethod = "setInternalObjectInputFilter";
-                }
-
-            if (sSetFilterMethod != null)
-                {
-                Object filter = sFilter != null  ? createObjectInputFilter(sFilter) : null;
-
-                if (filter != null)
-                    {
-                    Class clzObjectInputStream = ObjectInputStream.class;
-
-                    methodSetFilter = clzObjectInputStream.getDeclaredMethod(sSetFilterMethod, clzFilter);
-                    methodSetFilter.setAccessible(true);
-                    methodSetFilter.invoke(ois, filter);
-                    out("registered ObjectOutputStream filter: " + ExternalizableHelper.getObjectInputFilter(ois));
-                    }
-
-                return true;
-                }
+            ois.setObjectInputFilter(filter);
+            out("registered ObjectInputStream filter: " + ExternalizableHelper.getObjectInputFilter(ois));
             }
-        catch (Exception e)
-            {
-            out(e);
-            }
-
-        return false;
         }
 
     // ----- Inner class: ExternalizableStatsHelper ------------------------------
@@ -1362,35 +1324,12 @@ public class ExternalizableHelperTest extends ExternalizableHelper
     /**
      * Create an ObjectInputFilter from filter.
      *
-     * @return return an ObjectInputFilter as an Object to enable working with Java version 8
+     * @return an ObjectInputFilter
      *
      */
     public static Object createObjectInputFilter(String sFilter)
         {
-        Class<?> clzConfig = getClass("java.io.ObjectInputFilter$Config");
-
-        clzConfig = clzConfig == null ? getClass("sun.misc.ObjectInputFilter$Config") : clzConfig;
-
-        if (clzConfig != null)
-            {
-            try
-                {
-                Method methodConfigCreateFilter = clzConfig.getDeclaredMethod("createFilter", String.class);
-                methodConfigCreateFilter.setAccessible(true);
-
-                return methodConfigCreateFilter.invoke(null, sFilter);
-                }
-            catch (IllegalAccessException | InvocationTargetException e)
-                {
-                err("Unable to invoke createFilter on ObjectInputFilter$Config");
-                err(e);
-                }
-            catch (Throwable t)
-                {
-               err(t);
-                }
-            }
-        return null;
+        return ObjectInputFilter.Config.createFilter(sFilter);
         }
 
     private static Binary fmtXmlSerializable(String sClass, String sXml) throws IOException
