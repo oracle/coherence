@@ -63,3 +63,5 @@ task runServer(type: Exec) {
     description = "Run a Coherence Cache Server"
     commandLine "java", "-classpath", sourceSets.main.runtimeClasspath.getAsPath(), "-Dcoherence.cacheconfig=near-cache-config.xml", "com.tangosol.net.DefaultCacheServer"
 }
+
+apply from: '../../gradle/example-test-network.gradle'

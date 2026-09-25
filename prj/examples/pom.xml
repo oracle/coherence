@@ -26,6 +26,7 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>internal/template</module>
     <module>guides/050-bootstrap</module>
     <module>guides/070-coherence-extend</module>
     <module>guides/090-health-checks</module>

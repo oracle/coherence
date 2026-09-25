@@ -1,0 +1,27 @@
+/*
+ * Copyright (c) 2026, Oracle and/or its affiliates.
+ *
+ * Licensed under the Universal Permissive License v 1.0 as shown at
+ * https://oss.oracle.com/licenses/upl.
+ */
+
+import org.gradle.api.tasks.testing.Test
+
+import java.util.UUID
+
+def testRunId = UUID.randomUUID().toString()
+def testNetworkDefaults = [
+        'coherence.cluster'       : "example-${project.name}-${testRunId}",
+        'coherence.ttl'           : '0',
+        'coherence.wka'           : '127.0.0.1',
+        'coherence.localhost'     : '127.0.0.1',
+        'java.net.preferIPv4Stack': 'true'
+]
+
+tasks.withType(Test).configureEach { testTask ->
+    testNetworkDefaults.each { propertyName, defaultValue ->
+        if (!testTask.systemProperties.containsKey(propertyName)) {
+            testTask.systemProperty(propertyName, System.getProperty(propertyName, defaultValue))
+        }
+    }
+}

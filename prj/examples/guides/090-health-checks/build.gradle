@@ -59,3 +59,5 @@ test {
     useJUnitPlatform()
     forkEvery=1
 }
+
+apply from: '../../gradle/example-test-network.gradle'

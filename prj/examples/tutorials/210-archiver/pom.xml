@@ -29,6 +29,8 @@
 
     <maven.depdency.plugin.version>3.1.2</maven.depdency.plugin.version>
     <maven.exec.plugin.version>3.0.0</maven.exec.plugin.version>
+    <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
+    <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
 
     <jaxb-api.version>2.3.1</jaxb-api.version>
     <jaxb-runtime.version>2.3.8</jaxb-runtime.version>
@@ -36,6 +38,11 @@
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.build.timestamp.format>yyyyMMddHHmmssSSS</maven.build.timestamp.format>
+    <coherence.cluster>example-${project.artifactId}-${maven.build.timestamp}</coherence.cluster>
+    <coherence.ttl>0</coherence.ttl>
+    <coherence.wka>127.0.0.1</coherence.wka>
+    <coherence.localhost>127.0.0.1</coherence.localhost>
   </properties>
 
   <!-- tag::deps1[] -->
@@ -155,6 +162,34 @@
 
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${maven.failsafe.plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <coherence.cluster>${coherence.cluster}</coherence.cluster>
+            <coherence.ttl>${coherence.ttl}</coherence.ttl>
+            <coherence.wka>${coherence.wka}</coherence.wka>
+            <coherence.localhost>${coherence.localhost}</coherence.localhost>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>${maven.surefire.plugin.version}</version>
+        <configuration>
+          <systemPropertyVariables>
+            <coherence.cluster>${coherence.cluster}</coherence.cluster>
+            <coherence.ttl>${coherence.ttl}</coherence.ttl>
+            <coherence.wka>${coherence.wka}</coherence.wka>
+            <coherence.localhost>${coherence.localhost}</coherence.localhost>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>${coherence.group.id}</groupId>
         <artifactId>security-config-maven-plugin</artifactId>

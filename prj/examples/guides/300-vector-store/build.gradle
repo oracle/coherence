@@ -63,3 +63,5 @@ test {
 	useJUnitPlatform()
 	systemProperty "project.build.directory", "build"
 }
+
+apply from: '../../gradle/example-test-network.gradle'
