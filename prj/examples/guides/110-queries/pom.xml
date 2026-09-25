@@ -30,7 +30,7 @@
     <maven.failsafe.plugin.version>3.5.3</maven.failsafe.plugin.version>
     <maven.surefire.plugin.version>3.5.3</maven.surefire.plugin.version>
 
-    <assertj.version>3.22.0</assertj.version>
+    <assertj.version>3.27.7</assertj.version>
     <junit.jupiter.version>5.12.2</junit.jupiter.version>
 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
