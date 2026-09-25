@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -67,7 +67,7 @@ public class LongSum<T>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -92,5 +92,52 @@ public class LongSum<T>
             m_lResult += ((Number) o).longValue();
             m_count++;
             }
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult remove(Object o)
+        {
+        if (o != null)
+            {
+            if (m_count == 0)
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+                }
+
+            m_lResult -= ((Number) o).longValue();
+            if (--m_count == 0)
+                {
+                m_lResult = 0;
+                }
+            }
+
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult replace(
+            Object oOriginal, Object oCurrent)
+        {
+        if (oOriginal == null || oCurrent == null)
+            {
+            return super.replace(oOriginal, oCurrent);
+            }
+        if (m_count == 0)
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+            }
+
+        m_lResult -= ((Number) oOriginal).longValue();
+        m_lResult += ((Number) oCurrent).longValue();
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected boolean isReplacementRequired(Object oOriginal, Object oCurrent)
+        {
+        return true;
         }
     }

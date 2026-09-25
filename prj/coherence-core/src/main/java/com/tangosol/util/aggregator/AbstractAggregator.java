@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -19,6 +19,8 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.InvocableMapHelper;
+import com.tangosol.util.MapTrigger;
 import com.tangosol.util.Streamer;
 import com.tangosol.util.ValueExtractor;
 
@@ -96,7 +98,8 @@ public abstract class AbstractAggregator<K, V, T, E, R>
         try
             {
             AbstractAggregator aggregator = (AbstractAggregator) super.clone();
-            aggregator.m_fInit = false;
+            aggregator.m_fInit     = false;
+            aggregator.m_fParallel = false;
             return aggregator;
             }
         catch (CloneNotSupportedException e)
@@ -128,6 +131,53 @@ public abstract class AbstractAggregator<K, V, T, E, R>
         }
 
     @Override
+    public InvocableMap.StreamingAggregator.RetractionResult retract(
+            InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized(false);
+
+        if (entry instanceof MapTrigger.Entry)
+            {
+            MapTrigger.Entry entryTrigger = (MapTrigger.Entry) entry;
+            if (!entryTrigger.isOriginalPresent())
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+                }
+
+            return remove(InvocableMapHelper.extractOriginalFromEntry(
+                    getValueExtractor(), entryTrigger));
+            }
+
+        return remove(entry.extract(getValueExtractor()));
+        }
+
+    @Override
+    public InvocableMap.StreamingAggregator.RetractionResult update(
+            InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized(false);
+
+        if (entry instanceof MapTrigger.Entry)
+            {
+            MapTrigger.Entry entryTrigger = (MapTrigger.Entry) entry;
+            if (entryTrigger.isOriginalPresent() && entry.isPresent())
+                {
+                Object oOriginal = InvocableMapHelper.extractOriginalFromEntry(
+                        getValueExtractor(), entryTrigger);
+                Object oCurrent  = entry.extract(getValueExtractor());
+                if (!isReplacementRequired(oOriginal, oCurrent))
+                    {
+                    return getMaintenanceStatus();
+                    }
+
+                return replace(oOriginal, oCurrent);
+                }
+            }
+
+        return InvocableMap.StreamingAggregator.super.update(entry);
+        }
+
+    @Override
     public boolean combine(Object partialResult)
         {
         ensureInitialized(true);
@@ -139,6 +189,7 @@ public abstract class AbstractAggregator<K, V, T, E, R>
     @Override
     public Object getPartialResult()
         {
+        ensureInitialized(false);
         return finalizeResult(false);
         }
 
@@ -177,6 +228,52 @@ public abstract class AbstractAggregator<K, V, T, E, R>
     protected void processEntry(InvocableMap.Entry<? extends K, ? extends V> entry)
         {
         process(entry.extract(getValueExtractor()), false);
+        }
+
+    /**
+     * Remove one extracted value from the aggregation result.
+     *
+     * @param o  the extracted value to remove
+     *
+     * @return the state of the aggregation result after the removal
+     */
+    protected InvocableMap.StreamingAggregator.RetractionResult remove(Object o)
+        {
+        return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+        }
+
+    /**
+     * Replace one extracted value in the aggregation result.
+     *
+     * @param oOriginal  the original extracted value
+     * @param oCurrent   the current extracted value
+     *
+     * @return the state of the aggregation result after the replacement
+     */
+    protected InvocableMap.StreamingAggregator.RetractionResult replace(
+            Object oOriginal, Object oCurrent)
+        {
+        InvocableMap.StreamingAggregator.RetractionResult result = remove(oOriginal);
+        if (result == InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED)
+            {
+            return result;
+            }
+
+        process(oCurrent, false);
+        return getMaintenanceStatus();
+        }
+
+    /**
+     * Return whether an extracted value replacement needs to be applied.
+     *
+     * @param oOriginal  the original extracted value
+     * @param oCurrent   the current extracted value
+     *
+     * @return {@code true} if the replacement should be applied
+     */
+    protected boolean isReplacementRequired(Object oOriginal, Object oCurrent)
+        {
+        return !java.util.Objects.equals(oOriginal, oCurrent);
         }
 
     /**

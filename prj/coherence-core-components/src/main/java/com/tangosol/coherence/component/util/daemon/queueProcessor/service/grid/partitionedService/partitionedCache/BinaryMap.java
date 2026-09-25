@@ -331,6 +331,62 @@ public class BinaryMap
             }
         }
 
+    /**
+     * Register a continuously maintained aggregation definition.
+     */
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        sendContinuousAggregationRequest(definition, true);
+        }
+
+    /**
+     * Remove a continuously maintained aggregation definition.
+     */
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        sendContinuousAggregationRequest(definition, false);
+        }
+
+    /**
+     * Send a global continuous aggregation registration request.
+     */
+    protected void sendContinuousAggregationRequest(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            boolean fAdd)
+        {
+        PartitionedCache service = getService();
+        service.ensureContinuousAggregationCompatible();
+        com.tangosol.coherence.component.net.RequestContext context = registerRequestContext(false);
+
+        try
+            {
+            PartitionedCache.ContinuousAggregationRequest msg =
+                    (PartitionedCache.ContinuousAggregationRequest)
+                            service.instantiateMessage("ContinuousAggregationRequest");
+            msg.setRequestContext(context);
+            msg.setCacheId(getCacheId());
+            msg.setAdd(fAdd);
+            msg.setFilter(definition.getFilter());
+            msg.setAggregator(definition.getAggregator());
+
+            sendStorageRequest(msg);
+            }
+        finally
+            {
+            service.unregisterRequestContext(context);
+            }
+        }
+
+    /**
+     * Ensure that the owning service supports continuous aggregation.
+     */
+    public void ensureContinuousAggregationCompatible()
+        {
+        getService().ensureContinuousAggregationCompatible();
+        }
+
     // From interface: com.tangosol.net.NamedCache
     public void addMapListener(com.tangosol.util.MapListener listener)
         {

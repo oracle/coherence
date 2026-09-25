@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -45,6 +45,7 @@ import com.tangosol.io.SerializerFactory;
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.NamedMap;
 import com.tangosol.net.OperationalContext;
@@ -56,6 +57,7 @@ import com.tangosol.net.partition.KeyPartitioningStrategy;
 
 import com.tangosol.util.AbstractMapListener;
 import com.tangosol.util.Base;
+import com.tangosol.util.CompositeKey;
 import com.tangosol.util.Extractors;
 import com.tangosol.util.Filter;
 import com.tangosol.util.Filters;
@@ -74,6 +76,7 @@ import com.tangosol.util.extractor.UniversalExtractor;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.EqualsFilter;
+import com.tangosol.util.filter.KeyAssociatedFilter;
 import com.tangosol.util.filter.MapEventFilter;
 
 import com.tangosol.util.processor.ExtractorProcessor;
@@ -1638,6 +1641,98 @@ public abstract class AbstractGrpcClientIT
 
     @ParameterizedTest(name = "{index} serializer={0}")
     @MethodSource("serializers")
+    public void shouldMaintainContinuousAggregation(String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(isContinuousAggregationSupported(),
+                "continuous aggregation is not supported by the server version under test");
+
+        String                    cacheName = createCacheName();
+        NamedCache<Integer, Long> cache     = ensureCache(cacheName);
+        cache.clear();
+
+        NamedCache<Integer, Long> grpcClient = createClient(
+                cacheName, sSerializerName, serializer);
+        grpcClient.put(1, 10L);
+        grpcClient.put(2, 20L);
+
+        ContinuousAggregator<Integer, Long, Integer> count = grpcClient.addAggregator(new Count<>());
+        try
+            {
+            assertThat(count.aggregate(), is(2));
+
+            grpcClient.put(2, 25L);
+            grpcClient.remove(1);
+            assertThat(count.aggregate(), is(1));
+
+            grpcClient.put(3, 15L);
+
+            assertThat(count.aggregate(), is(2));
+            }
+        finally
+            {
+            grpcClient.removeAggregator(count);
+            }
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
+    public void shouldMaintainKeyAssociatedContinuousAggregation(
+            String sSerializerName, Serializer serializer)
+        {
+        Assumptions.assumeTrue(isContinuousAggregationSupported(),
+                "continuous aggregation is not supported by the server version under test");
+
+        String cacheName = createCacheName();
+        NamedCache<CompositeKey<String, Integer>, Long> cache = ensureCache(cacheName);
+        cache.clear();
+
+        NamedCache<CompositeKey<String, Integer>, Long> grpcClient = createClient(
+                cacheName, sSerializerName, serializer);
+        CompositeKey<String, Integer> keyOne   = new CompositeKey<>("customer-1", 1);
+        CompositeKey<String, Integer> keyTwo   = new CompositeKey<>("customer-1", 2);
+        CompositeKey<String, Integer> keyOther = new CompositeKey<>("customer-2", 1);
+        grpcClient.put(keyOne, 10L);
+        grpcClient.put(keyTwo, 20L);
+        grpcClient.put(keyOther, 100L);
+
+        KeyAssociatedFilter<Long> filterOne = new KeyAssociatedFilter<>(
+                AlwaysFilter.INSTANCE(), "customer-1");
+        KeyAssociatedFilter<Long> filterOther = new KeyAssociatedFilter<>(
+                AlwaysFilter.INSTANCE(), "customer-2");
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOne =
+                grpcClient.addAggregator(filterOne, new Count<>());
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOther =
+                grpcClient.addAggregator(filterOther, new Count<>());
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countAll =
+                grpcClient.addAggregator(new Count<>());
+        try
+            {
+            assertThat(countOne.aggregate(), is(2));
+            assertThat(countOther.aggregate(), is(1));
+            assertThat(countAll.invoke(keyOne, result -> result), is(2));
+
+            Map<CompositeKey<String, Integer>, Integer> results = countAll.invokeAll(
+                    Arrays.asList(keyOne, keyOther), (key, result) -> result);
+            assertThat(results.get(keyOne), is(2));
+            assertThat(results.get(keyOther), is(1));
+
+            grpcClient.put(new CompositeKey<>("customer-2", 2), 200L);
+            assertThat(countOne.aggregate(), is(2));
+            assertThat(countOther.aggregate(), is(2));
+
+            grpcClient.remove(keyTwo);
+            assertThat(countOne.aggregate(), is(1));
+            }
+        finally
+            {
+            grpcClient.removeAggregator(countAll);
+            grpcClient.removeAggregator(countOther);
+            grpcClient.removeAggregator(countOne);
+            }
+        }
+
+    @ParameterizedTest(name = "{index} serializer={0}")
+    @MethodSource("serializers")
     public void shouldCallAggregateWithFilterExpectingMapResult(String sSerializerName, Serializer serializer)
         {
         String                     cacheName = createCacheName("people");
@@ -2437,6 +2532,17 @@ public abstract class AbstractGrpcClientIT
     protected String createCacheName(String sPrefix)
         {
         return sPrefix + "-" + f_cacheId.getAndIncrement();
+        }
+
+    /**
+     * Return whether the server used by this test supports continuous
+     * aggregation.
+     *
+     * @return {@code true} if continuous aggregation tests should run
+     */
+    protected boolean isContinuousAggregationSupported()
+        {
+        return true;
         }
 
     protected abstract <K, V> NamedCache<K, V> createClient(String sCacheName, String sSerializerName, Serializer serializer);

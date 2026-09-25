@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,16 +18,32 @@ import com.oracle.coherence.common.base.Blocking;
 import com.oracle.coherence.common.util.Threads;
 import com.sun.management.OperatingSystemMXBean;
 
+import com.tangosol.coherence.component.net.extend.RemoteNamedCache;
+import com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory;
+import com.tangosol.coherence.component.util.SafeNamedCache;
+
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.NamedCache;
+
+import com.tangosol.net.cache.ContinuousQueryCache;
 
 import com.tangosol.net.partition.PartitionSet;
 
 import com.tangosol.util.Base;
+import com.tangosol.util.CompositeKey;
 import com.tangosol.util.Filter;
 
 import com.tangosol.util.filter.AlwaysFilter;
+import com.tangosol.util.filter.GreaterEqualsFilter;
+import com.tangosol.util.filter.KeyAssociatedFilter;
+import com.tangosol.util.filter.LessFilter;
 import com.tangosol.util.filter.PartitionedFilter;
+
+import com.tangosol.util.aggregator.Count;
+import com.tangosol.util.aggregator.LongSum;
+
+import com.tangosol.util.extractor.IdentityExtractor;
 
 import com.oracle.coherence.testing.TestCoh15021;
 
@@ -41,6 +57,7 @@ import java.lang.management.ManagementFactory;
 
 import java.net.Socket;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -51,6 +68,7 @@ import static org.hamcrest.CoreMatchers.is;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -147,6 +165,159 @@ public class DistExtendDirectTests
         assertEquals(cSize, cPartitionSize);
         assertEqualKeySet(setKeys, setPartitionKeys);
         assertEqualEntrySet(setEntries, setPartitionEntries);
+        }
+
+    /**
+     * Test continuous aggregation over the Extend NamedCache protocol.
+     */
+    @Test
+    public void testContinuousAggregation()
+        {
+        NamedCache<Integer, Long> cache = getNamedCache();
+        cache.clear();
+        cache.put(1, 10L);
+        cache.put(2, 20L);
+
+        ContinuousAggregator<Integer, Long, Integer> count = cache.addAggregator(new Count<>());
+        ContinuousAggregator<Integer, Long, Long> sum = cache.addAggregator(
+                new LongSum<>(IdentityExtractor.INSTANCE()));
+        try
+            {
+            assertEquals(Integer.valueOf(2), count.aggregate());
+            assertEquals(Long.valueOf(30L), sum.aggregate());
+
+            cache.put(2, 25L);
+            cache.remove(1);
+            cache.put(3, 15L);
+
+            assertEquals(Integer.valueOf(2), count.aggregate());
+            assertEquals(Long.valueOf(40L), sum.aggregate());
+            }
+        finally
+            {
+            cache.removeAggregator(sum);
+            cache.removeAggregator(count);
+            cache.clear();
+            }
+        }
+
+    /**
+     * Test continuous aggregation over a filtered CQC backed by Extend.
+     */
+    @Test
+    public void testContinuousQueryCacheAggregation()
+        {
+        NamedCache<Integer, Long> cache = getNamedCache();
+        cache.clear();
+        cache.put(1, 10L);
+        cache.put(2, 20L);
+        cache.put(3, 30L);
+        cache.put(4, 40L);
+
+        ContinuousQueryCache<Integer, Long, Long> cacheCQC =
+                new ContinuousQueryCache<>(cache,
+                        new GreaterEqualsFilter<>(IdentityExtractor.INSTANCE(), 20L));
+        ContinuousAggregator<Integer, Long, Integer> count = cacheCQC.addAggregator(
+                new LessFilter<>(IdentityExtractor.INSTANCE(), 40L), new Count<>());
+        try
+            {
+            assertEquals(Integer.valueOf(2), count.aggregate());
+
+            cache.put(3, 50L);
+            assertEquals(Integer.valueOf(1), count.aggregate());
+
+            cache.put(1, 25L);
+            assertEquals(Integer.valueOf(2), count.aggregate());
+            }
+        finally
+            {
+            cacheCQC.removeAggregator(count);
+            cacheCQC.release();
+            cache.clear();
+            }
+        }
+
+    /**
+     * Ensure a current client fails locally when the negotiated NamedCache
+     * protocol predates continuous aggregation support.
+     */
+    @Test
+    public void testContinuousAggregationRequiresProtocolVersion13()
+        {
+        NamedCache<Integer, Long> cache = getNamedCache();
+        NamedCache                actual = cache instanceof SafeNamedCache
+                ? ((SafeNamedCache) cache).getNamedCache()
+                : cache;
+        assertTrue(actual instanceof RemoteNamedCache);
+
+        NamedCacheFactory factory = (NamedCacheFactory)
+                ((RemoteNamedCache) actual).getChannel().getMessageFactory();
+        int nVersion = factory.getVersion();
+        factory.setVersion(12);
+        try
+            {
+            UnsupportedOperationException error = assertThrows(
+                    UnsupportedOperationException.class,
+                    () -> cache.addAggregator(new Count<>()));
+            assertTrue(error.getMessage().contains("protocol version 13"));
+            }
+        finally
+            {
+            factory.setVersion(nVersion);
+            }
+        }
+
+    /**
+     * Test key-associated continuous aggregation over the Extend protocol.
+     */
+    @Test
+    public void testKeyAssociatedContinuousAggregation()
+        {
+        NamedCache<CompositeKey<String, Integer>, Long> cache = getNamedCache();
+        cache.clear();
+
+        CompositeKey<String, Integer> keyOne   = new CompositeKey<>("customer-1", 1);
+        CompositeKey<String, Integer> keyTwo   = new CompositeKey<>("customer-1", 2);
+        CompositeKey<String, Integer> keyOther = new CompositeKey<>("customer-2", 1);
+        cache.put(keyOne, 10L);
+        cache.put(keyTwo, 20L);
+        cache.put(keyOther, 100L);
+
+        KeyAssociatedFilter<Long> filterOne = new KeyAssociatedFilter<>(
+                AlwaysFilter.INSTANCE(), "customer-1");
+        KeyAssociatedFilter<Long> filterOther = new KeyAssociatedFilter<>(
+                AlwaysFilter.INSTANCE(), "customer-2");
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOne =
+                cache.addAggregator(filterOne, new Count<>());
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countOther =
+                cache.addAggregator(filterOther, new Count<>());
+        ContinuousAggregator<CompositeKey<String, Integer>, Long, Integer> countAll =
+                cache.addAggregator(new Count<>());
+        try
+            {
+            assertEquals(Integer.valueOf(2), countOne.aggregate());
+            assertEquals(Integer.valueOf(1), countOther.aggregate());
+            assertEquals(Integer.valueOf(2), countAll.invoke(keyOne, result -> result));
+
+            Map<CompositeKey<String, Integer>, Integer> results = countAll.invokeAll(
+                    Arrays.asList(keyOne, keyOther), (key, result) -> result);
+            assertEquals(Integer.valueOf(2), results.get(keyOne));
+            assertEquals(Integer.valueOf(1), results.get(keyOther));
+
+            cache.put(new CompositeKey<>("customer-2", 2), 200L);
+            assertEquals(Integer.valueOf(2), countOne.aggregate());
+            assertEquals(Integer.valueOf(2), countOther.aggregate());
+
+            cache.remove(keyTwo);
+            assertEquals(Integer.valueOf(1), countOne.aggregate());
+            }
+        finally
+            {
+            cache.removeAggregator(countAll);
+            cache.removeAggregator(countOther);
+            cache.removeAggregator(countOne);
+            cache.clear();
+            }
         }
 
     /**

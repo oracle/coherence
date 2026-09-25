@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -141,6 +141,75 @@ public class CompositeAggregator<K, V>
         }
 
     @Override
+    public RetractionResult retract(InvocableMap.Entry entry)
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        RetractionResult result = RetractionResult.UPDATED;
+        for (InvocableMap.EntryAggregator aggregator : m_aAggregator)
+            {
+            RetractionResult child =
+                    ((InvocableMap.StreamingAggregator) aggregator).retract(entry);
+            if (child == RetractionResult.REBUILD_REQUIRED)
+                {
+                return child;
+                }
+            if (child == RetractionResult.STALE_BOUND)
+                {
+                result = child;
+                }
+            }
+        return result;
+        }
+
+    @Override
+    public RetractionResult update(InvocableMap.Entry entry)
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        for (InvocableMap.EntryAggregator aggregator : m_aAggregator)
+            {
+            RetractionResult result =
+                    ((InvocableMap.StreamingAggregator) aggregator).update(entry);
+            if (result == RetractionResult.REBUILD_REQUIRED)
+                {
+                return result;
+                }
+            }
+        return getMaintenanceStatus();
+        }
+
+    @Override
+    public RetractionResult getMaintenanceStatus()
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        for (InvocableMap.EntryAggregator aggregator : m_aAggregator)
+            {
+            if (((InvocableMap.StreamingAggregator) aggregator).getMaintenanceStatus()
+                    != RetractionResult.UPDATED)
+                {
+                // A composite does not have a single bound that can be used
+                // to prune the partition scan.
+                return RetractionResult.REBUILD_REQUIRED;
+                }
+            }
+        return RetractionResult.UPDATED;
+        }
+
+    @Override
     public boolean combine(Object oResultPart)
         {
         ensureInitialized();
@@ -256,7 +325,47 @@ public class CompositeAggregator<K, V>
 
         return m_fStreaming
                ? PARALLEL
+                       | (m_fContinuous ? CONTINUOUS : 0)
+                       | (m_fStateCheckpointable ? STATE_CHECKPOINTABLE : 0)
                : PARALLEL | RETAINS_ENTRIES;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized();
+        if (!m_fStateCheckpointable)
+            {
+            throw new UnsupportedOperationException("Composite aggregator state is not checkpointable");
+            }
+
+        InvocableMap.EntryAggregator[] aAggregator = m_aAggregator;
+        Object[]                       aoState      = new Object[aAggregator.length];
+        for (int i = 0; i < aAggregator.length; i++)
+            {
+            aoState[i] = ((InvocableMap.StreamingAggregator) aAggregator[i]).snapshotState();
+            }
+        return aoState;
+        }
+
+    @Override
+    public void restoreState(Object oState)
+        {
+        ensureInitialized();
+        if (!m_fStateCheckpointable)
+            {
+            throw new UnsupportedOperationException("Composite aggregator state is not checkpointable");
+            }
+        if (!(oState instanceof Object[]) || ((Object[]) oState).length != m_aAggregator.length)
+            {
+            throw new IllegalArgumentException("Invalid composite aggregation state");
+            }
+
+        Object[] aoState = (Object[]) oState;
+        for (int i = 0; i < m_aAggregator.length; i++)
+            {
+            ((InvocableMap.StreamingAggregator) m_aAggregator[i]).restoreState(aoState[i]);
+            }
         }
 
     // ----- helper methods -------------------------------------------------
@@ -272,16 +381,26 @@ public class CompositeAggregator<K, V>
             int cAggregators = aAggregator.length;
 
             boolean fStreaming = true;
+            boolean fContinuous = true;
+            boolean fStateCheckpointable = true;
             for (int i = 0; i < cAggregators; i++)
                 {
                 if (!(aAggregator[i] instanceof InvocableMap.StreamingAggregator))
                     {
                     fStreaming = false;
+                    fContinuous = false;
+                    fStateCheckpointable = false;
                     break;
                     }
+                InvocableMap.StreamingAggregator aggregator =
+                        (InvocableMap.StreamingAggregator) aAggregator[i];
+                fContinuous          &= aggregator.isContinuous();
+                fStateCheckpointable &= aggregator.isStateCheckpointable();
                 }
 
-            m_fStreaming = fStreaming;
+            m_fStreaming           = fStreaming;
+            m_fContinuous          = fContinuous;
+            m_fStateCheckpointable = fStateCheckpointable;
             if (!fStreaming)
                 {
                 m_setEntries = new HashSet();
@@ -523,6 +642,16 @@ public class CompositeAggregator<K, V>
      * Flag specifying whether streaming optimizations can be used.
      */
     protected transient boolean m_fStreaming;
+
+    /**
+     * Flag specifying whether all delegates support continuous maintenance.
+     */
+    protected transient boolean m_fContinuous;
+
+    /**
+     * Flag specifying whether all delegates support state checkpoints.
+     */
+    protected transient boolean m_fStateCheckpointable;
 
     /**
      * Flag specifying whether parallel optimizations can be used.

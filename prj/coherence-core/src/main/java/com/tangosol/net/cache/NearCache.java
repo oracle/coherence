@@ -1,11 +1,14 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net.cache;
+
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+import com.tangosol.internal.net.ContinuousAggregationSupport;
 
 import com.tangosol.io.ClassLoaderAware;
 
@@ -49,7 +52,7 @@ import java.util.function.Function;
 */
 public class NearCache<K, V>
         extends CachingMap<K, V>
-        implements NamedCache<K, V>, ClassLoaderAware
+        implements NamedCache<K, V>, ClassLoaderAware, ContinuousAggregationSupport
     {
     // ----- constructors ---------------------------------------------------
 
@@ -560,6 +563,33 @@ public class NearCache<K, V>
         return getBackCache().aggregate(filter, aggregator);
         }
 
+    // ----- ContinuousAggregationSupport interface ------------------------
+
+    @Override
+    public void registerContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().registerContinuousAggregation(definition);
+        }
+
+    @Override
+    public void removeContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().removeContinuousAggregation(definition);
+        }
+
+    @Override
+    public Object aggregateContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        return getContinuousAggregationSupport().aggregateContinuousAggregation(definition);
+        }
+
+    @Override
+    public ContinuousAggregationDefinition prepareContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        return getContinuousAggregationSupport().prepareContinuousAggregation(definition);
+        }
+
     /**
     * {@inheritDoc}
     */
@@ -573,6 +603,23 @@ public class NearCache<K, V>
         }
 
     // ----- internal helpers -----------------------------------------------
+
+    /**
+     * Return the continuous aggregation support implemented by the back
+     * cache.
+     *
+     * @return the back cache continuous aggregation support
+     */
+    protected ContinuousAggregationSupport getContinuousAggregationSupport()
+        {
+        NamedCache<K, V> cache = getBackCache();
+        if (!(cache instanceof ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation is not supported by " + cache.getClass().getName());
+            }
+        return (ContinuousAggregationSupport) cache;
+        }
 
     /**
     * Release this cache, optionally destroying it.

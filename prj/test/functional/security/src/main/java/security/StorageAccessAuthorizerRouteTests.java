@@ -14,6 +14,7 @@ import com.oracle.bedrock.testsupport.deferred.Eventually;
 import com.oracle.coherence.testing.AbstractFunctionalTest;
 
 import com.tangosol.net.NamedCache;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.CacheFactory;
 import com.tangosol.net.InvocationService;
 import com.tangosol.coherence.component.net.memberSet.actualMemberSet.serviceMemberSet.MasterMemberSet;
@@ -33,6 +34,7 @@ import com.tangosol.internal.net.security.X509PeerProofProvider;
 import com.tangosol.net.security.StorageAccessAuthorizer;
 import com.tangosol.coherence.component.util.SafeCluster;
 import com.tangosol.util.ValueUpdater;
+import com.tangosol.util.aggregator.Count;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.processor.UpdaterProcessor;
 
@@ -249,6 +251,35 @@ public class StorageAccessAuthorizerRouteTests
         cache.removeIndex(IdentityExtractor.INSTANCE);
         assertContainsEvent(StorageAccessAuthorizer.REASON_INDEX_REMOVE, "writeAny", "authorized-index", null);
 
+        cache.destroy();
+        }
+
+    @Test
+    public void shouldUseAggregateAuthorizationForContinuousAggregation()
+        {
+        NamedCache<String, String> cache = getNamedCache("authorized-continuous-aggregation");
+        cache.clear();
+        cache.put("key", "value");
+        resetAuthorizer();
+
+        ContinuousAggregator<String, String, Integer> count = cache.addAggregator(new Count<>());
+        assertContainsEvent(StorageAccessAuthorizer.REASON_AGGREGATE,
+                "readAny", "authorized-continuous-aggregation", null);
+
+        resetAuthorizer();
+        assertThat(count.aggregate(), is(1));
+        assertContainsEvent(StorageAccessAuthorizer.REASON_AGGREGATE,
+                "readAny", "authorized-continuous-aggregation", null);
+
+        resetAuthorizer();
+        assertThat(count.invoke("key", IdentityExtractor.<Integer>INSTANCE()), is(1));
+        assertContainsEvent(StorageAccessAuthorizer.REASON_INVOKE,
+                "writeAny", "authorized-continuous-aggregation", null);
+
+        resetAuthorizer();
+        cache.removeAggregator(count);
+        assertContainsEvent(StorageAccessAuthorizer.REASON_AGGREGATE,
+                "readAny", "authorized-continuous-aggregation", null);
         cache.destroy();
         }
 

@@ -60,6 +60,7 @@ import java.util.Set;
  * ...
  * (10) COH-25175  Add NoStorageMembers message support
  * (11) COH-24968  Add cache isReady support
+ * (13) Add continuous aggregation support
  * 
  * The type identifiers of the Message classes instantiated by this
  * MessageFactory are organized as follows:
@@ -108,6 +109,7 @@ import java.util.Set;
  * Other (61-70)
  *
  * (61) ReadyRequest
+ * (62) ContinuousAggregationRequest
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class NamedCacheFactory
@@ -133,6 +135,7 @@ public class NamedCacheFactory
         __mapChildren.put("ContainsAllRequest", NamedCacheFactory.ContainsAllRequest.get_CLASS());
         __mapChildren.put("ContainsKeyRequest", NamedCacheFactory.ContainsKeyRequest.get_CLASS());
         __mapChildren.put("ContainsValueRequest", NamedCacheFactory.ContainsValueRequest.get_CLASS());
+        __mapChildren.put("ContinuousAggregationRequest", NamedCacheFactory.ContinuousAggregationRequest.get_CLASS());
         __mapChildren.put("GetAllRequest", NamedCacheFactory.GetAllRequest.get_CLASS());
         __mapChildren.put("GetRequest", NamedCacheFactory.GetRequest.get_CLASS());
         __mapChildren.put("IndexRequest", NamedCacheFactory.IndexRequest.get_CLASS());
@@ -986,6 +989,157 @@ public class NamedCacheFactory
                 {
                 return this.get_Parent().get_Parent();
                 }
+            }
+        }
+
+    // ---- class: com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory$ContinuousAggregationRequest
+
+    /**
+     * Register, remove, or query a continuously maintained aggregation.
+     */
+    public static class ContinuousAggregationRequest
+            extends NamedCacheFactory.AggregateFilterRequest
+        {
+        /** Register a definition. */
+        public static final int OPERATION_REGISTER = 1;
+
+        /** Remove a definition. */
+        public static final int OPERATION_REMOVE = 2;
+
+        /** Query a definition. */
+        public static final int OPERATION_QUERY = 3;
+
+        /** The type identifier for this message. */
+        public static final int TYPE_ID = 62;
+
+        /** The requested operation. */
+        private int __m_Operation;
+
+        public ContinuousAggregationRequest()
+            {
+            this(null, null, true);
+            }
+
+        public ContinuousAggregationRequest(String sName,
+                com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        public void __init()
+            {
+            __initPrivate();
+            set_Constructed(true);
+            }
+
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new NamedCacheFactory.ContinuousAggregationRequest();
+            }
+
+        public static Class get_CLASS()
+            {
+            return NamedCacheFactory.ContinuousAggregationRequest.class;
+            }
+
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        @Override
+        public int getTypeId()
+            {
+            return TYPE_ID;
+            }
+
+        public int getOperation()
+            {
+            return __m_Operation;
+            }
+
+        public void setOperation(int nOperation)
+            {
+            __m_Operation = nOperation;
+            }
+
+        @Override
+        protected String getDescription()
+            {
+            return super.getDescription() + ", Operation=" + getOperation();
+            }
+
+        @Override
+        protected void onRun(com.tangosol.coherence.component.net.extend.message.Response response)
+            {
+            NamedCache cache = getNamedCache();
+            _assert(cache != null);
+
+            Filter filter = getFilter();
+            com.tangosol.util.InvocableMap.EntryAggregator entryAggregator = getAggregator();
+            if (!(entryAggregator instanceof com.tangosol.util.InvocableMap.StreamingAggregator))
+                {
+                throw new IllegalArgumentException("continuous aggregation requires a StreamingAggregator");
+                }
+
+            Channel channel = getChannel();
+            RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
+            RemoteInstallGate.enforceCacheAggregatorInstall(entryAggregator, SerializationRole.EXTEND_PROXY,
+                    channel == null ? null : channel.getSubject());
+
+            if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+                {
+                throw new UnsupportedOperationException(
+                        "continuous aggregation is not supported by " + cache.getClass().getName());
+                }
+
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    new com.tangosol.internal.net.ContinuousAggregationDefinition(filter,
+                            (com.tangosol.util.InvocableMap.StreamingAggregator) entryAggregator);
+            com.tangosol.internal.net.ContinuousAggregationSupport support =
+                    (com.tangosol.internal.net.ContinuousAggregationSupport) cache;
+
+            switch (getOperation())
+                {
+                case OPERATION_REGISTER:
+                    support.registerContinuousAggregation(definition);
+                    break;
+                case OPERATION_REMOVE:
+                    support.removeContinuousAggregation(definition);
+                    break;
+                case OPERATION_QUERY:
+                    response.setResult(support.aggregateContinuousAggregation(definition));
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                            "unknown continuous aggregation operation: " + getOperation());
+                }
+            }
+
+        @Override
+        public void readExternal(PofReader in)
+                throws IOException
+            {
+            super.readExternal(in);
+            setOperation(in.readInt(4));
+            }
+
+        @Override
+        public void writeExternal(PofWriter out)
+                throws IOException
+            {
+            super.writeExternal(out);
+            out.writeInt(4, getOperation());
             }
         }
 

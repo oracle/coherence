@@ -1,0 +1,455 @@
+///////////////////////////////////////////////////////////////////////////////
+    Copyright (c) 2026, Oracle and/or its affiliates.
+
+    Licensed under the Universal Permissive License v 1.0 as shown at
+    https://oss.oracle.com/licenses/upl.
+///////////////////////////////////////////////////////////////////////////////
+= Continuous Aggregation
+:toc: left
+:toclevels: 4
+:sectnums:
+
+Continuous Aggregation maintains partition-local aggregation results as cache
+entries change. Applications can obtain the current result without repeatedly
+scanning the complete data set.
+
+This guide explains when to use Continuous Aggregation, how to register and
+query an aggregation, how data affinity can narrow a query to one partition,
+and how to operate the feature safely.
+
+== Overview
+
+A normal on-demand aggregation processes the selected cache entries whenever
+the application asks for a result. This is appropriate for occasional queries,
+but repeated aggregation over a large data set can consume significant CPU and
+network capacity.
+
+Continuous Aggregation moves most of that work to the mutation path:
+
+* Each primary partition maintains a partial result for every applicable
+  registration.
+* Inserts, updates, and removals update those partition-local results.
+* A query collects the maintained partials from storage members and combines
+  them into the final result.
+* If a partial is being built or cannot be updated incrementally, Coherence
+  scans only the affected partition before returning the result.
+
+The final result is still obtained on demand. Continuous Aggregation does not
+send an event stream to the client, cache the final value in the client, or
+provide a stronger cross-partition snapshot than an ordinary aggregation.
+Every result is exact under the normal partitioned-query consistency contract.
+
+Continuous Aggregation is most useful when the same aggregation is queried
+frequently and the cost of maintaining its partial state is lower than the cost
+of repeatedly scanning the selected entries. It is less suitable for one-time
+queries or results whose retained state is close to the size of the data set.
+
+== Requirements and Compatibility
+
+Continuous Aggregation is available in Coherence Community Edition 26.10 and
+commercial Coherence 26.1.0.0.0 or later.
+
+Every storage-enabled member of the cache service must support the feature.
+Older members can join during a rolling upgrade or downgrade, but registration,
+removal, and handle queries are unavailable while the service has mixed storage
+member versions. The initiating client receives an
+`UnsupportedOperationException`; ordinary cache operations and on-demand
+aggregations remain available.
+
+The Java API is supported by in-cluster, Extend, and gRPC clients. Extend uses
+NamedCache protocol version 13 and gRPC uses NamedCache protocol version 2, so
+the client and its proxy must also be from a compatible release.
+
+== Register and Query an Aggregation
+
+The `addAggregator` methods are defined by `InvocableMap` and are available on
+`NamedMap` and `NamedCache`. They accept an existing `StreamingAggregator` and
+return a map-bound `ContinuousAggregator<K, V, R>` handle.
+
+The following example maintains the sum of the `amount` property for every bet:
+
+[source,java]
+----
+NamedMap<BetId, Bet> bets = session.getMap("bets");
+
+ValueExtractor<Bet, Long> amount = Extractors.extract("amount");
+
+ContinuousAggregator<BetId, Bet, Long> totalAmount =
+        bets.addAggregator(Aggregators.longSum(amount));
+
+long currentTotal = totalAmount.aggregate();
+----
+
+`aggregate()` is a network operation. It contacts the storage members that own
+the applicable partitions, combines their maintained partial results, and
+returns the final value. The handle itself does not contain or cache that
+value.
+
+=== Register with a Filter
+
+Pass a filter when only matching entries should contribute to the result:
+
+[source,java]
+----
+ValueExtractor<Bet, Boolean> open   = Extractors.extract("open");
+ValueExtractor<Bet, Long>    amount = Extractors.extract("amount");
+Filter<Bet>                  filter = Filters.equal(open, true);
+
+ContinuousAggregator<BetId, Bet, Long> openAmount =
+        bets.addAggregator(filter, Aggregators.longSum(amount));
+
+long currentOpenAmount = openAmount.aggregate();
+----
+
+The filter is evaluated for the initial build and whenever an entry changes.
+An update correctly handles every membership transition: non-matching to
+matching, matching to non-matching, and matching to matching.
+
+=== Cache Wrappers and Views
+
+Continuous Aggregation can be registered through a `NearCache` or a
+non-transforming `ContinuousQueryCache`. A `NearCache` delegates the
+registration to its backing cache. A `ContinuousQueryCache` combines its view
+filter with the optional registration filter so that the maintained result has
+the same semantics as an on-demand aggregation over the view.
+
+A transforming `ContinuousQueryCache` does not support Continuous Aggregation.
+The aggregator is defined for the transformed value type, while partition-local
+maintenance operates on the backing cache value type. Register the aggregation
+on the backing cache with an aggregator defined for that type instead.
+
+=== Add Recommended Indexes
+
+Use the same index practices as for on-demand filters and aggregations. Index
+the query attribute and, when supported by the aggregator, the extracted
+aggregation attribute:
+
+[source,java]
+----
+bets.addIndex(open);
+bets.addIndex(amount);
+----
+
+Indexes can substantially reduce initial-build and fallback-scan cost. They can
+also reduce ordinary on-demand aggregation cost, which should remain the
+baseline when deciding whether continuous maintenance is worthwhile. Indexes
+have their own mutation and memory cost, so add only those justified by the
+application's query workload.
+
+=== Remove a Registration
+
+Remove a registration through the map that created its handle:
+
+[source,java]
+----
+bets.removeAggregator(openAmount);
+----
+
+Removal deletes the cluster-wide definition and its partition state. The
+removed handle becomes inactive, and a subsequent call on it throws
+`IllegalStateException`.
+
+Registration has no client reference count. Registering an equal filter and
+aggregator definition is idempotent and returns a handle for the existing
+server-side registration. Removing any handle for that definition removes the
+shared registration, so applications should coordinate its lifecycle rather
+than treating duplicate handles as independent references.
+
+The filter and aggregator together form the registration identity; there is no
+user-defined name. Custom definitions must implement stable `equals` and
+`hashCode` methods based only on their serialized definition state.
+
+== Supported Aggregators
+
+The following built-in streaming aggregators support continuous maintenance:
+
+[cols="2,4", options="header"]
+|===
+|Category |Aggregators
+
+|Fixed-size additive state
+|`Count`, `LongSum`, `DoubleSum`, `BigDecimalSum`, `DoubleAverage`, and
+`BigDecimalAverage`
+
+|Extrema
+|Long, double, `BigDecimal`, and comparable minimum and maximum aggregators
+
+|Result-sensitive state
+|`DistinctValues`, `ReducerAggregator`, and `TopNAggregator`
+
+|Composed state
+|`GroupAggregator` when its child aggregator supports continuous maintenance,
+and `CompositeAggregator` when every child supports continuous maintenance
+|===
+
+`PriorityAggregator` deliberately does not advertise continuous support. Its
+timeout and scheduling controls apply to a single on-demand execution and do
+not have useful semantics for long-lived maintenance. Passing it, or any other
+aggregator that does not advertise the `CONTINUOUS` characteristic, fails fast
+with `IllegalArgumentException`.
+
+Group, distinct, reducer, Top-N, and composite results can retain state that
+grows with entry or value cardinality. Evaluate their storage-member heap cost
+as well as their query latency before using them on high-cardinality data.
+
+== Initial Build and Exact Fallback
+
+Registration schedules an initial build for each applicable primary partition.
+The build is asynchronous, so a handle can be returned before every partition
+is ready. A query during that interval remains exact: Coherence performs a
+normal aggregation for each partition whose maintained state is not ready and
+uses maintained state for the others.
+
+Most built-in aggregators can retract an old value directly. Minimum, maximum,
+and similar aggregators sometimes cannot determine the next answer after the
+last occurrence of the current extreme is removed. They retain the historical
+extreme as a certified bound. Coherence scans that partition only if another
+exact partition result cannot prove that the stale bound is irrelevant.
+
+This fallback behavior preserves availability and correctness during initial
+builds, partition movement, failover, and recovery. A rising fallback count is
+an operational signal that queries are doing more work than expected.
+
+== Data Affinity
+
+Data affinity can reduce both maintained state and query fan-out.
+
+=== Scope a Registration with `KeyAssociatedFilter`
+
+Wrap the selection filter in a `KeyAssociatedFilter` to maintain the
+registration only for the partition or partitions associated with a host key:
+
+[source,java]
+----
+BettorId bettorId = new BettorId(1234L);
+
+Filter<Bet> openBets = Filters.equal("open", true);
+Filter<Bet> bettorPartition =
+        new KeyAssociatedFilter<>(openBets, bettorId);
+
+ContinuousAggregator<BetId, Bet, Long> bettorTotal =
+        bets.addAggregator(bettorPartition,
+                Aggregators.longSum("amount"));
+
+long total = bettorTotal.aggregate();
+----
+
+The complete outer filter and host key remain part of the registration
+identity. Storage evaluates the wrapped filter against entries only in the
+associated partition set. With the default key-partitioning strategy this is
+one partition; a broad association strategy can identify several partitions,
+and `aggregate()` queries all of them.
+
+=== Query One Partition from a Cache-Wide Registration
+
+A cache-wide registration can also be projected for one associated partition.
+This is particularly useful for a grouped result whose complete value for one
+group is collocated by key association.
+
+[source,java]
+----
+ValueExtractor<Bet, Long> bettor = Extractors.extract("bettorId");
+ValueExtractor<Bet, Long> amount = Extractors.extract("amount");
+
+GroupAggregator<BetId, Bet, ?, Long, Long> grouped =
+        Aggregators.grouping(bettor, Aggregators.longSum(amount));
+
+ContinuousAggregator<BetId, Bet, Map<Long, Long>> sumByBettor =
+        bets.addAggregator(grouped);
+
+BetId anchor = BetId.anchorFor(1234L);
+long total = sumByBettor.invoke(anchor,
+        partitionResult -> partitionResult.get(1234L));
+----
+
+`invoke` routes to the owner of the anchor key's partition and applies a
+`Remote.Function` to a finalized, detached partition result. The anchor entry
+does not need to exist and is neither read nor modified.
+
+Use `invokeAll` to project several associated partitions in one operation:
+
+[source,java]
+----
+Map<BetId, Long> totals = sumByBettor.invokeAll(
+        anchorKeys,
+        (key, partitionResult) ->
+                partitionResult.get(key.getBettorId()));
+----
+
+Within one storage invocation, Coherence obtains and finalizes a partition
+result at most once and reuses it for every supplied key in that partition.
+The `Remote.Function` or `Remote.BiFunction` executes on the storage member and
+must satisfy the same serialization and remote-execution requirements as an
+entry processor.
+
+`invoke` and key-based `invokeAll` require each anchor key to identify exactly
+one partition. They reject an association that spans several partitions rather
+than returning an incomplete value. Use `aggregate()` for a broad associated
+partition set.
+
+== Access from an Entry Processor
+
+An entry processor can obtain the same exact partition result through
+`BinaryEntry`:
+
+[source,java]
+----
+Long total = bets.invoke(anchor, entry ->
+    {
+    BinaryEntry<BetId, Bet> binaryEntry = entry.asBinaryEntry();
+    Map<Long, Long> partitionResult =
+            binaryEntry.getContinuousAggregationResult(grouped);
+    return partitionResult.get(entry.getKey().getBettorId());
+    });
+----
+
+Use the overload that accepts a filter when the registration was created with
+a filter. The complete `(filter, aggregator)` pair must match an active
+registration.
+
+Advanced server-side code can call
+`BackingMapContext.getContinuousAggregationResult(partition, filter,
+aggregator)` directly. Both APIs return a finalized, detached result and never
+expose the mutable maintenance state. If the partition state is not exact,
+Coherence performs the required single-partition fallback before returning.
+
+== Lifecycle, Persistence, and Failover
+
+Continuous Aggregation definitions follow the cache lifecycle in the same way
+as index definitions:
+
+* Equal registration is idempotent.
+* `clear()` and `truncate()` retain definitions and recreate empty partition
+  results.
+* `destroy()` removes definitions with the cache.
+* Explicit removal deletes the definition and its persisted metadata.
+
+When persistence is configured, registration definitions are persistent cache
+metadata. A partition snapshot can also contain a versioned checkpoint of the
+exact maintenance state. Coherence restores a checkpoint only when its cache,
+definition, partition, ownership, and data versions match; otherwise it
+rebuilds the derived state.
+
+Planned primary transfer carries checkpointable state to the new owner. Backup
+owners do not maintain another copy of every aggregation state on each write.
+After backup promotion, the new primary rebuilds the state from the promoted
+data, while queries use exact partition fallback until the build completes.
+
+== Security
+
+Registration, removal, and full-result queries use the same aggregate
+authorization reason and remote-install policy as on-demand aggregation. An
+application that is authorized to execute an aggregator on demand does not
+need a separate Continuous Aggregation permission.
+
+Partition projections use the normal entry-processor authorization path. In a
+hardened security configuration, custom filters, extractors, aggregators, and
+projection functions must be allowed as remote executable payloads in the same
+way as their on-demand or entry-processor equivalents.
+
+== Resource Management
+
+Each registration consumes mutation CPU and storage-member heap. The default
+maximum is 256 registrations per cache. Set a positive deployment-wide limit
+with the following system property on every storage member:
+
+[source,text]
+----
+-Dcoherence.distributed.continuous.max-registrations=128
+----
+
+An equal definition does not consume another slot. A different filter or
+aggregator definition creates a separate registration. When the limit is
+reached, registration throws `IllegalStateException`.
+
+Use these practices in production:
+
+* Register stable, frequently queried definitions during application startup.
+* Add appropriate indexes before registering so initial builds and fallbacks
+  can use them.
+* Remove registrations that are no longer queried.
+* Measure mutation latency after enabling CA because maintenance runs for every
+  selected entry transition.
+* Estimate result cardinality and retained heap for group, distinct, reducer,
+  Top-N, and composite definitions.
+* Monitor fallback and rebuild counters, especially after failover or recovery.
+
+== Monitoring
+
+The cache-scoped `StorageManagerMBean` exposes the following attributes on each
+storage member:
+
+[cols="3,5", options="header"]
+|===
+|Attribute |Meaning
+
+|`ContinuousAggregationRegistrationCount`
+|Registered definitions for the cache
+
+|`ContinuousAggregationReadyPartitionCount`
+|Partition states containing exact maintained results
+
+|`ContinuousAggregationBuildingPartitionCount`
+|Partition states currently being built
+
+|`ContinuousAggregationStalePartitionCount`
+|Inexact partition states that may require a fallback scan
+
+|`ContinuousAggregationMutationCount`
+|Selected entry transitions applied since statistics were reset
+
+|`ContinuousAggregationFallbackCount`
+|Partition scans used to answer CA queries since statistics were reset
+
+|`ContinuousAggregationRebuildCount`
+|Completed partition-state builds since statistics were reset
+
+|`ContinuousAggregationDirtyCount`
+|Exact-to-inexact state transitions since statistics were reset
+|===
+
+Registration count uses a set collector across member views because the same
+definitions are distributed to storage members. Partition-state gauges and
+work counters are summed when viewed through management aggregation.
+
+During normal steady state, building and stale partition counts should return
+to zero. A sustained non-zero value or a rapidly increasing fallback count can
+indicate frequent failover, expensive non-invertible updates, or a failing
+custom definition.
+
+== Implement a Custom Continuous Aggregator
+
+Existing custom `StreamingAggregator` implementations remain valid for
+on-demand use but are not automatically eligible for continuous maintenance.
+An implementation that advertises the `CONTINUOUS` characteristic must:
+
+* Return a new, empty aggregator from `supply()`.
+* Avoid the `RETAINS_ENTRIES` characteristic and never retain live entries.
+* Return a non-destructive, serializer-compatible value from
+  `getPartialResult()`.
+* Retract an entry's old contribution in `retract()` and return
+  `REBUILD_REQUIRED` when exact incremental maintenance is not possible.
+* Handle replacement through `update()`, or rely on its default
+  retract-then-accumulate implementation.
+* Keep equality, hashing, and serialized definition state independent of
+  mutable maintenance state.
+
+Implement `snapshotState()` and `restoreState()` and advertise
+`STATE_CHECKPOINTABLE` when exact maintenance state can be transferred or
+persisted. An aggregator without that characteristic can still be registered,
+but its state is rebuilt after ownership movement or recovery.
+
+Do not advertise `CONTINUOUS` unless the implementation preserves the ordinary
+aggregation result for insert, update, removal, combine, and repeated partial
+reads. Coherence treats `REBUILD_REQUIRED` as a correctness-preserving fallback;
+it is preferable to claiming an incremental update that may be wrong.
+
+== See Also
+
+* link:{javadoc-root}com/tangosol/net/ContinuousAggregator.html[`ContinuousAggregator` API]
+* link:{javadoc-root}com/tangosol/util/InvocableMap.StreamingAggregator.html[`StreamingAggregator` API]
+* link:{javadoc-root}com/tangosol/util/Aggregators.html[`Aggregators` factory methods]
+* link:{javadoc-root}com/tangosol/util/filter/KeyAssociatedFilter.html[`KeyAssociatedFilter` API]
+* link:{javadoc-root}com/tangosol/net/BackingMapContext.html[`BackingMapContext` API]
+* link:{javadoc-root}com/tangosol/util/BinaryEntry.html[`BinaryEntry` API]
+* link:../../examples/guides/120-built-in-aggregators/README.adoc[Built-In Aggregators guide]

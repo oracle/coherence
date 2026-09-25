@@ -1345,6 +1345,181 @@ public class CachePersistenceHelper
         store.deleteExtent(getTriggerExtentId(lCacheId));
         }
 
+    // ----- continuous aggregation support -------------------------------
+
+    /**
+     * Return the extent identifier containing continuous aggregation
+     * definitions for the specified cache.
+     *
+     * @param lCacheId  the cache identifier
+     *
+     * @return the definition extent identifier
+     */
+    protected static long getContinuousAggregationExtentId(long lCacheId)
+        {
+        assert lCacheId > 0L;
+        return -lCacheId - 4;
+        }
+
+    /**
+     * Return the extent identifier containing continuous aggregation
+     * partition-state checkpoints for the specified cache.
+     *
+     * @param lCacheId  the cache identifier
+     *
+     * @return the state extent identifier
+     */
+    protected static long getContinuousAggregationStateExtentId(long lCacheId)
+        {
+        assert lCacheId > 0L;
+        return -lCacheId - 5;
+        }
+
+    /**
+     * Create a continuous aggregation definition registration key.
+     */
+    protected static ReadBuffer createContinuousAggregationRegistrationKey(
+            long lCacheId, int nFormat, Binary binDefinition)
+        {
+        WriteBuffer buf = new ByteArrayWriteBuffer(13);
+        try
+            {
+            BufferOutput out = buf.getBufferOutput();
+            out.writeByte(KEY_TYPE_CONTINUOUS_AGGREGATION);
+            out.writeLong(lCacheId);
+            out.writeInt(nFormat);
+            }
+        catch (IOException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
+        return new MultiBufferReadBuffer(new ReadBuffer[] {buf.getReadBuffer(), binDefinition});
+        }
+
+    /**
+     * Store a continuous aggregation definition registration.
+     *
+     * @param store          the persistent store
+     * @param lCacheId       the cache identifier
+     * @param nFormat        the definition format version
+     * @param binDefinition  the serialized definition
+     * @param oToken         the batch token, or {@code null}
+     */
+    public static void registerContinuousAggregation(PersistentStore<ReadBuffer> store,
+            long lCacheId, int nFormat, Binary binDefinition, Object oToken)
+        {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
+        long lExtentId = getContinuousAggregationExtentId(lCacheId);
+        store.ensureExtent(lExtentId);
+        store.store(lExtentId,
+                createContinuousAggregationRegistrationKey(lCacheId, nFormat, binDefinition),
+                BINARY_TRUE, oToken);
+        }
+
+    /**
+     * Remove a continuous aggregation definition registration.
+     *
+     * @param store          the persistent store
+     * @param lCacheId       the cache identifier
+     * @param nFormat        the definition format version
+     * @param binDefinition  the serialized definition
+     * @param oToken         the batch token, or {@code null}
+     */
+    public static void unregisterContinuousAggregation(PersistentStore<ReadBuffer> store,
+            long lCacheId, int nFormat, Binary binDefinition, Object oToken)
+        {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
+        long lExtentId = getContinuousAggregationExtentId(lCacheId);
+        store.ensureExtent(lExtentId);
+        store.erase(lExtentId,
+                createContinuousAggregationRegistrationKey(lCacheId, nFormat, binDefinition),
+                oToken);
+        }
+
+    /**
+     * Create a continuous aggregation partition-state checkpoint key.
+     */
+    protected static ReadBuffer createContinuousAggregationStateKey(long lCacheId,
+            int nFormat, int nPartition, long lOwnershipVersion, long lDataVersion,
+            Binary binDefinition)
+        {
+        WriteBuffer buf = new ByteArrayWriteBuffer(33);
+        try
+            {
+            BufferOutput out = buf.getBufferOutput();
+            out.writeByte(KEY_TYPE_CONTINUOUS_AGGREGATION_STATE);
+            out.writeLong(lCacheId);
+            out.writeInt(nFormat);
+            out.writeInt(nPartition);
+            out.writeLong(lOwnershipVersion);
+            out.writeLong(lDataVersion);
+            }
+        catch (IOException e)
+            {
+            throw Base.ensureRuntimeException(e);
+            }
+
+        return new MultiBufferReadBuffer(new ReadBuffer[] {buf.getReadBuffer(), binDefinition});
+        }
+
+    /**
+     * Store an exact continuous aggregation partition-state checkpoint.
+     *
+     * @param store              the persistent store
+     * @param lCacheId           the cache identifier
+     * @param nFormat            the state format version
+     * @param nPartition         the partition identifier
+     * @param lOwnershipVersion  the ownership version
+     * @param lDataVersion       the logical data version
+     * @param binDefinition      the serialized definition fingerprint
+     * @param binState           the serialized state envelope
+     * @param oToken             the batch token, or {@code null}
+     */
+    public static void registerContinuousAggregationState(PersistentStore<ReadBuffer> store,
+            long lCacheId, int nFormat, int nPartition, long lOwnershipVersion,
+            long lDataVersion, Binary binDefinition, Binary binState, Object oToken)
+        {
+        if (!store.isOpen())
+            {
+            return;
+            }
+
+        long lExtentId = getContinuousAggregationStateExtentId(lCacheId);
+        store.ensureExtent(lExtentId);
+        store.store(lExtentId, createContinuousAggregationStateKey(lCacheId, nFormat,
+                nPartition, lOwnershipVersion, lDataVersion, binDefinition), binState, oToken);
+        }
+
+    /**
+     * Delete every continuous aggregation state checkpoint for the specified
+     * cache from a mutable persistent store.
+     * <p>
+     * Checkpoints recovered from an immutable partition snapshot are consumed
+     * once and then removed from the active store. Otherwise later data-only
+     * persistence writes could leave an old derived-state checkpoint beside
+     * newer cache data.
+     *
+     * @param store     the persistent store
+     * @param lCacheId  the cache identifier
+     */
+    public static void deleteContinuousAggregationStates(
+            PersistentStore<ReadBuffer> store, long lCacheId)
+        {
+        if (store != null && store.isOpen())
+            {
+            store.deleteExtent(getContinuousAggregationStateExtentId(lCacheId));
+            }
+        }
+
     // ----- service resume support -----------------------------------------
 
     /**
@@ -1644,6 +1819,34 @@ public class CachePersistenceHelper
                                 Binary binTrigger = bufKey.toBinary(cbHeader, bufKey.length() - cbHeader);
 
                                 return visitorCache.visitTrigger(lCacheId, binTrigger);
+                                }
+
+                            case KEY_TYPE_CONTINUOUS_AGGREGATION:
+                                {
+                                long lCacheId = in.readLong();
+                                int  nFormat  = in.readInt();
+                                int  cbHeader = 13;
+
+                                Binary binDefinition = bufKey.toBinary(
+                                        cbHeader, bufKey.length() - cbHeader);
+                                return visitorCache.visitContinuousAggregation(
+                                        lCacheId, nFormat, binDefinition);
+                                }
+
+                            case KEY_TYPE_CONTINUOUS_AGGREGATION_STATE:
+                                {
+                                long lCacheId          = in.readLong();
+                                int  nFormat           = in.readInt();
+                                int  nPartition        = in.readInt();
+                                long lOwnershipVersion = in.readLong();
+                                long lDataVersion      = in.readLong();
+                                int  cbHeader          = 33;
+
+                                Binary binDefinition = bufKey.toBinary(
+                                        cbHeader, bufKey.length() - cbHeader);
+                                return visitorCache.visitContinuousAggregationState(
+                                        lCacheId, nFormat, nPartition, lOwnershipVersion,
+                                        lDataVersion, binDefinition, bufValue.toBinary());
                                 }
 
                             default:
@@ -2017,6 +2220,42 @@ public class CachePersistenceHelper
          * @return false to terminate the iteration
          */
         public boolean visitTrigger(long lOldCacheId, Binary binTrigger);
+
+        /**
+         * Apply the visitor to a continuous aggregation definition.
+         *
+         * @param lOldCacheId    the persisted cache identifier
+         * @param nFormat        the definition format version
+         * @param binDefinition  the serialized definition
+         *
+         * @return false to terminate the iteration
+         */
+        public default boolean visitContinuousAggregation(long lOldCacheId,
+                int nFormat, Binary binDefinition)
+            {
+            return true;
+            }
+
+        /**
+         * Apply the visitor to a continuous aggregation partition-state
+         * checkpoint.
+         *
+         * @param lOldCacheId       the persisted cache identifier
+         * @param nFormat           the state format version
+         * @param nPartition        the partition identifier
+         * @param lOwnershipVersion the ownership version
+         * @param lDataVersion      the logical data version
+         * @param binDefinition     the definition fingerprint
+         * @param binState          the serialized state envelope
+         *
+         * @return false to terminate the iteration
+         */
+        public default boolean visitContinuousAggregationState(long lOldCacheId,
+                int nFormat, int nPartition, long lOwnershipVersion, long lDataVersion,
+                Binary binDefinition, Binary binState)
+            {
+            return true;
+            }
         }
 
     // ----- constants ----------------------------------------------------
@@ -2155,6 +2394,16 @@ public class CachePersistenceHelper
      * Trigger metadata key type.
      */
     private static final byte KEY_TYPE_TRIGGER = 3;
+
+    /**
+     * Continuous aggregation definition metadata key type.
+     */
+    private static final byte KEY_TYPE_CONTINUOUS_AGGREGATION = 4;
+
+    /**
+     * Continuous aggregation partition-state metadata key type.
+     */
+    private static final byte KEY_TYPE_CONTINUOUS_AGGREGATION_STATE = 5;
 
     /**
      * The marker Binary used to seal a partition.

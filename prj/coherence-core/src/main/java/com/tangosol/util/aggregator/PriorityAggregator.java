@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -121,7 +121,7 @@ public class PriorityAggregator<K, V, P, R>
     @Override
     public int characteristics()
         {
-        return m_aggregator.characteristics();
+        return m_aggregator.characteristics() & ~(CONTINUOUS | STATE_CHECKPOINTABLE);
         }
 
 

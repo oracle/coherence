@@ -255,6 +255,8 @@
     <class name="com.tangosol.internal.management.Message$Severity" source="manual"/>
     <class name="com.tangosol.internal.metrics.MetricsHttpHandler$Format" source="manual"/>
     <class name="com.tangosol.internal.metrics.MetricsMBeanAttributeFilter" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.ContinuousAggregationProcessor" source="manual" executable="true"/>
+    <class name="com.tangosol.internal.net.ContinuousAggregationQuery" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.InetAddressRangeFilter" source="manual" executable="true"/>
     <class name="com.tangosol.internal.net.management.CacheMBeanAttribute" source="manual"/>
     <class name="com.tangosol.internal.net.management.MBeanCollectorFunction" source="manual" executable="true"/>

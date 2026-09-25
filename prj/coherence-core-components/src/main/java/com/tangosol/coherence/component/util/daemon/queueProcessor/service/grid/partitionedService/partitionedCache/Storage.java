@@ -85,6 +85,7 @@ import com.tangosol.util.SafeHashMap;
 import com.tangosol.util.SafeHashSet;
 import com.tangosol.util.SegmentedHashMap;
 import com.tangosol.util.SimpleEnumerator;
+import com.tangosol.util.SimpleMapEntry;
 import com.tangosol.util.SimpleMapIndex;
 import com.tangosol.util.Streamer;
 import com.tangosol.util.SubSet;
@@ -375,6 +376,13 @@ public class Storage
     private java.util.Map __m_IndexExtractorMap;
 
     /**
+     * Property ContinuousAggregationMap
+     *
+     * The cache-wide set of active continuous aggregation definitions.
+     */
+    private java.util.Map __m_ContinuousAggregationMap;
+
+    /**
      * Property InternBackupKeys
      *
      * Specifies whether or not to intern Backup Keys.
@@ -480,6 +488,26 @@ public class Storage
      * @volatile
      */
     private volatile java.util.Map __m_PartitionedIndexMap;
+
+    /**
+     * Property PartitionedContinuousAggregationMap
+     *
+     * A map keyed by partition whose values are maps from continuous
+     * aggregation definition to partition maintenance state.
+     */
+    private volatile java.util.Map __m_PartitionedContinuousAggregationMap;
+
+    /** Continuous aggregation maintained mutation count. */
+    private java.util.concurrent.atomic.AtomicLong __m_StatsContinuousAggregationMutations;
+
+    /** Continuous aggregation fallback scan count. */
+    private java.util.concurrent.atomic.AtomicLong __m_StatsContinuousAggregationFallbacks;
+
+    /** Continuous aggregation completed rebuild count. */
+    private java.util.concurrent.atomic.AtomicLong __m_StatsContinuousAggregationRebuilds;
+
+    /** Continuous aggregation dirty transition count. */
+    private java.util.concurrent.atomic.AtomicLong __m_StatsContinuousAggregationDirty;
 
     /**
      * Property PartitionedKeyIndex
@@ -830,14 +858,20 @@ public class Storage
             setEntryStatusMap(new java.util.concurrent.ConcurrentHashMap());
             setFilterIdMap(new com.tangosol.util.SafeHashMap());
             setIndexExtractorMap(new com.tangosol.util.SafeHashMap());
+            setContinuousAggregationMap(new java.util.concurrent.ConcurrentHashMap());
             setInternBackupKeys(false);
             setInternPrimaryKeys(false);
             setLeaseMap(new com.tangosol.util.SegmentedHashMap());
             setPartitionedIndexMap(new java.util.concurrent.ConcurrentHashMap());
+            setPartitionedContinuousAggregationMap(new java.util.concurrent.ConcurrentHashMap());
             setPendingLockRequest(new com.tangosol.util.SafeLinkedList());
             setStatsEvictions(new java.util.concurrent.atomic.AtomicLong());
             setStatsIndexingTotalMillis(new java.util.concurrent.atomic.AtomicLong());
             setStatsInserts(new java.util.concurrent.atomic.AtomicLong());
+            setStatsContinuousAggregationMutations(new java.util.concurrent.atomic.AtomicLong());
+            setStatsContinuousAggregationFallbacks(new java.util.concurrent.atomic.AtomicLong());
+            setStatsContinuousAggregationRebuilds(new java.util.concurrent.atomic.AtomicLong());
+            setStatsContinuousAggregationDirty(new java.util.concurrent.atomic.AtomicLong());
             setStatsListenerRegistrations(new java.util.concurrent.atomic.AtomicLong());
             setStatsMaxQueryThresholdMillis(30L);
             setStatsNonOptimizedQueryCount(new java.util.concurrent.atomic.AtomicLong());
@@ -1082,6 +1116,730 @@ public class Storage
                     removeIndex(context, partsMask, extractor, comparator);
                     rethrow(e);
                     }
+                }
+            }
+        }
+
+    /**
+     * Register a continuous aggregation definition and schedule initial
+     * builds for the currently owned primary partitions.
+     *
+     * @param context     the request context
+     * @param partsMask   the currently owned primary partitions
+     * @param definition  the definition to register
+     */
+    public void addContinuousAggregation(
+            com.tangosol.coherence.component.net.RequestContext context,
+            com.tangosol.net.partition.PartitionSet partsMask,
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        Map mapDefinitions = getContinuousAggregationMap();
+        checkAccess(context, BinaryEntry.ACCESS_READ_ANY,
+                com.tangosol.net.security.StorageAccessAuthorizer.REASON_AGGREGATE);
+
+        if (mapDefinitions.containsKey(definition))
+            {
+            return;
+            }
+
+        int cMax = Config.getInteger(
+                "coherence.distributed.continuous.max-registrations", 256);
+        if (mapDefinitions.size() >= cMax)
+            {
+            throw new IllegalStateException("maximum continuous aggregation registrations exceeded: " + cMax);
+            }
+
+        if (mapDefinitions.putIfAbsent(definition, Boolean.TRUE) != null)
+            {
+            return;
+            }
+
+        persistContinuousAggregationRegistration(partsMask, definition, true);
+
+        PartitionSet partsState = getContinuousAggregationPartitions(partsMask, definition);
+        if (!partsState.isEmpty())
+            {
+            ensureOldValueRequired();
+            }
+
+        for (int iPart = partsState.next(0); iPart >= 0; iPart = partsState.next(iPart + 1))
+            {
+            ensureContinuousAggregationState(iPart, definition);
+            }
+        }
+
+    /**
+     * Remove a continuous aggregation definition and all local partition
+     * state associated with it.
+     *
+     * @param context     the request context
+     * @param definition  the definition to remove
+     */
+    public void removeContinuousAggregation(
+            com.tangosol.coherence.component.net.RequestContext context,
+            com.tangosol.net.partition.PartitionSet partsMask,
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        Map mapDefinitions = getContinuousAggregationMap();
+        checkAccess(context, BinaryEntry.ACCESS_READ_ANY,
+                com.tangosol.net.security.StorageAccessAuthorizer.REASON_AGGREGATE);
+
+        if (!mapDefinitions.containsKey(definition))
+            {
+            return;
+            }
+
+        if (mapDefinitions.remove(definition) != null)
+            {
+            persistContinuousAggregationRegistration(partsMask, definition, false);
+            for (Iterator iter = getPartitionedContinuousAggregationMap().values().iterator();
+                 iter.hasNext(); )
+                {
+                ((Map) iter.next()).remove(definition);
+                }
+            }
+        }
+
+    /**
+     * Return whether this storage has any active continuous aggregations.
+     *
+     * @return {@code true} if at least one definition is registered
+     */
+    public boolean hasContinuousAggregations()
+        {
+        return !getContinuousAggregationMap().isEmpty();
+        }
+
+    /**
+     * Return whether this storage maintains any continuous aggregation state
+     * for the specified partition.
+     *
+     * @param nPartition  the partition identifier
+     *
+     * @return {@code true} if the partition has maintained state
+     */
+    public boolean hasContinuousAggregations(int nPartition)
+        {
+        Map mapPartition = (Map) getPartitionedContinuousAggregationMap()
+                .get(Integer.valueOf(nPartition));
+        return mapPartition != null && !mapPartition.isEmpty();
+        }
+
+    /**
+     * Return the number of registered continuous aggregation definitions.
+     *
+     * @return the registration count
+     */
+    public int getContinuousAggregationRegistrationCount()
+        {
+        return getContinuousAggregationMap().size();
+        }
+
+    /**
+     * Return the number of partition states in the specified status.
+     *
+     * @param status  the status to count
+     *
+     * @return the partition state count
+     */
+    public int getContinuousAggregationStateCount(
+            com.tangosol.internal.net.ContinuousAggregationState.Status status)
+        {
+        int cStates = 0;
+        for (Iterator iterPartitions = getPartitionedContinuousAggregationMap()
+                .values().iterator(); iterPartitions.hasNext(); )
+            {
+            Map mapPartition = (Map) iterPartitions.next();
+            for (Iterator iterStates = mapPartition.values().iterator(); iterStates.hasNext(); )
+                {
+                com.tangosol.internal.net.ContinuousAggregationState state =
+                        (com.tangosol.internal.net.ContinuousAggregationState) iterStates.next();
+                if (state.getStatus() == status)
+                    {
+                    ++cStates;
+                    }
+                }
+            }
+        return cStates;
+        }
+
+    /**
+     * Return the number of partition states that require an exact rebuild.
+     *
+     * @return the stale partition state count
+     */
+    public int getContinuousAggregationStaleStateCount()
+        {
+        return getContinuousAggregationStateCount(
+                    com.tangosol.internal.net.ContinuousAggregationState.Status.DIRTY)
+                + getContinuousAggregationStateCount(
+                    com.tangosol.internal.net.ContinuousAggregationState.Status.STALE_BOUND);
+        }
+
+    /**
+     * Return the active continuous aggregation definition map.
+     *
+     * @return the definition map
+     */
+    public java.util.Map getContinuousAggregationMap()
+        {
+        return __m_ContinuousAggregationMap;
+        }
+
+    /**
+     * Return the partitioned continuous aggregation state map.
+     *
+     * @return the partitioned state map
+     */
+    public java.util.Map getPartitionedContinuousAggregationMap()
+        {
+        return __m_PartitionedContinuousAggregationMap;
+        }
+
+    /**
+     * Return, creating if necessary, the continuous aggregation state map for
+     * a partition.
+     *
+     * @param nPartition  the partition identifier
+     *
+     * @return the partition state map
+     */
+    public java.util.Map getPartitionContinuousAggregationMap(int nPartition)
+        {
+        Map     mapStates    = getPartitionedContinuousAggregationMap();
+        Integer IPartition   = Integer.valueOf(nPartition);
+        Map     mapPartition = (Map) mapStates.get(IPartition);
+
+        if (mapPartition == null)
+            {
+            mapPartition = new ConcurrentHashMap();
+            Map mapExisting = (Map) mapStates.putIfAbsent(IPartition, mapPartition);
+            if (mapExisting != null)
+                {
+                mapPartition = mapExisting;
+                }
+            }
+        return mapPartition;
+        }
+
+    /**
+     * Restrict a partition mask to the partitions covered by a continuous
+     * aggregation definition.
+     * <p>
+     * Cache-wide definitions retain the complete input mask. Definitions
+     * using a {@link com.tangosol.util.filter.KeyAssociatedFilter} retain
+     * only the partitions associated with its host key. The latter is most
+     * commonly one partition, but may contain several partitions for a broad
+     * key partitioning strategy.
+     *
+     * @param partsMask   the candidate partitions
+     * @param definition  the continuous aggregation definition
+     *
+     * @return a detached partition set containing the applicable partitions
+     */
+    protected com.tangosol.net.partition.PartitionSet
+            getContinuousAggregationPartitions(
+                    com.tangosol.net.partition.PartitionSet partsMask,
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        PartitionSet parts = new PartitionSet(partsMask);
+        if (definition.isKeyAssociated())
+            {
+            parts.retain(getService().getKeyPartitioningStrategy()
+                    .getAssociatedPartitions(definition.getHostKey()));
+            }
+        return parts;
+        }
+
+    /**
+     * Return whether a definition applies to a partition.
+     */
+    protected boolean isContinuousAggregationPartition(int nPartition,
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        return !definition.isKeyAssociated()
+                || getService().getKeyPartitioningStrategy()
+                        .getAssociatedPartitions(definition.getHostKey())
+                        .contains(nPartition);
+        }
+
+    /**
+     * Ensure a state exists for a definition in a primary partition and
+     * schedule its build.
+     */
+    protected com.tangosol.internal.net.ContinuousAggregationState
+            ensureContinuousAggregationState(
+                    int nPartition,
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        if (!isContinuousAggregationPartition(nPartition, definition))
+            {
+            throw new IllegalArgumentException("continuous aggregation definition does not include partition "
+                    + nPartition + ": " + definition);
+            }
+
+        Map mapPartition = getPartitionContinuousAggregationMap(nPartition);
+        com.tangosol.internal.net.ContinuousAggregationState state =
+                (com.tangosol.internal.net.ContinuousAggregationState) mapPartition.get(definition);
+
+        if (state == null)
+            {
+            com.tangosol.internal.net.ContinuousAggregationState stateNew =
+                    new com.tangosol.internal.net.ContinuousAggregationState();
+            state = (com.tangosol.internal.net.ContinuousAggregationState)
+                    mapPartition.putIfAbsent(definition, stateNew);
+            if (state == null)
+                {
+                state = stateNew;
+                }
+            }
+
+        ((PartitionedCache) getService()).scheduleContinuousAggregationBuild(
+                this, definition, nPartition, state);
+        return state;
+        }
+
+    /**
+     * Restore an exact state checkpoint recovered with a partition snapshot.
+     * The corresponding global definition may be registered later in the
+     * recovery flow; definition equality reconnects this state when it is.
+     *
+     * @param nPartition  the recovered partition
+     * @param definition  the checkpointed definition
+     * @param oState      the decoded aggregator state
+     *
+     * @return {@code true} if the state was restored
+     */
+    public boolean restoreContinuousAggregationState(int nPartition,
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            Object oState)
+        {
+        if (!isContinuousAggregationPartition(nPartition, definition))
+            {
+            return false;
+            }
+
+        com.tangosol.internal.net.ContinuousAggregationState state =
+                new com.tangosol.internal.net.ContinuousAggregationState();
+        if (!state.restoreState(definition, oState))
+            {
+            return false;
+            }
+
+        getPartitionContinuousAggregationMap(nPartition).put(definition, state);
+        return true;
+        }
+
+    /**
+     * Create exact continuous aggregation state envelopes for a primary
+     * partition transfer.
+     *
+     * @param nPartition         the partition
+     * @param lOwnershipVersion  the transfer ownership version
+     * @param lDataVersion       the logical partition data version
+     *
+     * @return definition-to-state binary entries
+     */
+    public java.util.Map.Entry[] snapshotContinuousAggregationTransfer(
+            int nPartition, long lOwnershipVersion, long lDataVersion)
+        {
+        Map mapPartition = (Map) getPartitionedContinuousAggregationMap()
+                .get(Integer.valueOf(nPartition));
+        if (mapPartition == null || mapPartition.isEmpty())
+            {
+            return new java.util.Map.Entry[0];
+            }
+
+        Serializer serializer = getService().getSerializer();
+        List       listState  = new ArrayList(mapPartition.size());
+        for (Iterator iter = mapPartition.entrySet().iterator(); iter.hasNext(); )
+            {
+            java.util.Map.Entry entry = (java.util.Map.Entry) iter.next();
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    (com.tangosol.internal.net.ContinuousAggregationDefinition) entry.getKey();
+            com.tangosol.internal.net.ContinuousAggregationState state =
+                    (com.tangosol.internal.net.ContinuousAggregationState) entry.getValue();
+            try
+                {
+                Object oState = state.snapshotState();
+                if (oState != null)
+                    {
+                    Binary binDefinition = com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .toDefinitionBinary(definition, serializer);
+                    Binary binState = com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .toStateBinary(binDefinition, nPartition, lOwnershipVersion,
+                                    lDataVersion, oState, serializer);
+                    listState.add(new SimpleMapEntry(binDefinition, binState));
+                    }
+                }
+            catch (Throwable t)
+                {
+                _trace("Unable to transfer continuous aggregation state for partition "
+                        + nPartition + ": " + t, 3);
+                }
+            }
+        return (java.util.Map.Entry[]) listState.toArray(
+                new java.util.Map.Entry[listState.size()]);
+        }
+
+    /**
+     * Restore exact continuous aggregation states received with a primary
+     * partition transfer.
+     *
+     * @param nPartition         the partition
+     * @param aState             definition-to-state binary entries
+     * @param lOwnershipVersion  the expected transfer ownership version
+     * @param lDataVersion       the expected logical data version
+     */
+    public void restoreContinuousAggregationTransfer(int nPartition,
+            java.util.Map.Entry[] aState, long lOwnershipVersion, long lDataVersion)
+        {
+        getPartitionedContinuousAggregationMap().remove(Integer.valueOf(nPartition));
+        if (aState == null || aState.length == 0)
+            {
+            return;
+            }
+
+        Serializer serializer = getService().getSerializer();
+        for (int i = 0; i < aState.length; i++)
+            {
+            try
+                {
+                Object oKey   = aState[i].getKey();
+                Object oValue = aState[i].getValue();
+                if (!(oKey instanceof Binary) || !(oValue instanceof Binary))
+                    {
+                    throw new IllegalArgumentException("state entry is not binary");
+                    }
+
+                Binary binDefinition = (Binary) oKey;
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                        com.tangosol.internal.net.ContinuousAggregationPersistence
+                                .fromDefinitionBinary(binDefinition, serializer);
+                if (!getContinuousAggregationMap().containsKey(definition)
+                        || !isContinuousAggregationPartition(nPartition, definition))
+                    {
+                    continue;
+                    }
+
+                com.tangosol.internal.net.ContinuousAggregationPersistence.StateRecord record =
+                        com.tangosol.internal.net.ContinuousAggregationPersistence
+                                .fromStateBinary((Binary) oValue, binDefinition, nPartition,
+                                        lOwnershipVersion, lDataVersion, serializer);
+                restoreContinuousAggregationState(nPartition, definition, record.getState());
+                }
+            catch (Throwable t)
+                {
+                _trace("Ignoring invalid transferred continuous aggregation state for partition "
+                        + nPartition + ": " + t, 3);
+                }
+            }
+        }
+
+    /**
+     * Ensure every registered definition has state for a newly acquired
+     * primary partition, scheduling rebuilds for any missing state.
+     *
+     * @param nPartition  the partition
+     */
+    public void ensureContinuousAggregationPartition(int nPartition)
+        {
+        for (Iterator iter = getContinuousAggregationMap().keySet().iterator(); iter.hasNext(); )
+            {
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    (com.tangosol.internal.net.ContinuousAggregationDefinition) iter.next();
+            if (isContinuousAggregationPartition(nPartition, definition))
+                {
+                ensureOldValueRequired();
+                ensureContinuousAggregationState(nPartition, definition);
+                }
+            }
+        }
+
+    /**
+     * Drop all maintained state for a partition no longer owned as primary.
+     *
+     * @param nPartition  the partition
+     */
+    public void removeContinuousAggregationPartition(int nPartition)
+        {
+        getPartitionedContinuousAggregationMap().remove(Integer.valueOf(nPartition));
+        }
+
+    /**
+     * Build a continuous aggregation state for one partition. The caller must
+     * own and pin the partition and hold the storage-wide resource lock.
+     */
+    public void buildContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            int nPartition,
+            com.tangosol.internal.net.ContinuousAggregationState state)
+        {
+        Map mapPartition = (Map) getPartitionedContinuousAggregationMap()
+                .get(Integer.valueOf(nPartition));
+        if (!getContinuousAggregationMap().containsKey(definition)
+                || mapPartition == null || mapPartition.get(definition) != state)
+            {
+            state.failBuild(null);
+            return;
+            }
+
+        InvocableMap.StreamingAggregator aggregator = definition.getAggregator().supply();
+        PartitionSet parts = getService().instantiatePartitionSet(false);
+        parts.add(nPartition);
+        aggregator.accumulate(createStreamer(definition.getEvaluationFilter(), aggregator, parts));
+
+        if (getContinuousAggregationMap().containsKey(definition)
+                && mapPartition.get(definition) == state)
+            {
+            state.completeBuild(aggregator);
+            getStatsContinuousAggregationRebuilds().incrementAndGet();
+            }
+        else
+            {
+            state.failBuild(null);
+            }
+        }
+
+    /**
+     * Return the maintained partial result for one partition, scanning only
+     * that partition when its state is unavailable or inexact.
+     */
+    protected Object aggregateContinuousPartition(
+            Filter filter,
+            com.tangosol.internal.net.ContinuousAggregationQuery query,
+            int nPartition)
+        {
+        return getContinuousAggregationPartialResult(query.getDefinition(), nPartition);
+        }
+
+    /**
+     * Return the finalized result of a registered continuous aggregation for
+     * one partition.
+     */
+    @Override
+    public Object getContinuousAggregationResult(int nPartition, Filter filter,
+            InvocableMap.StreamingAggregator aggregator)
+        {
+        com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                new com.tangosol.internal.net.ContinuousAggregationDefinition(filter, aggregator);
+        Object partial = getContinuousAggregationPartialResult(definition, nPartition);
+
+        InvocableMap.StreamingAggregator combiner = definition.getAggregator().supply();
+        combiner.combine(partial);
+        return combiner.finalizeResult();
+        }
+
+    /**
+     * Return the maintained partial result for one partition, scanning only
+     * that partition when its state is unavailable or inexact.
+     */
+    protected Object getContinuousAggregationPartialResult(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            int nPartition)
+        {
+
+        if (!getContinuousAggregationMap().containsKey(definition))
+            {
+            throw new IllegalStateException("continuous aggregation is not registered: " + definition);
+            }
+
+        com.tangosol.internal.net.ContinuousAggregationState state =
+                ensureContinuousAggregationState(nPartition, definition);
+        if (state.isReady())
+            {
+            try
+                {
+                return state.getPartialResult();
+                }
+            catch (IllegalStateException ignored)
+                {
+                // A concurrent maintenance failure changed the state; fall
+                // through to the correct on-demand partition scan.
+                }
+            }
+
+        getStatsContinuousAggregationFallbacks().incrementAndGet();
+
+        InvocableMap.StreamingAggregator aggregator = definition.getAggregator().supply();
+        PartitionSet parts = getService().instantiatePartitionSet(false);
+        parts.add(nPartition);
+        aggregator.accumulate(createStreamer(definition.getEvaluationFilter(), aggregator, parts));
+        return aggregator.getPartialResult();
+        }
+
+    /**
+     * Combine maintained partition results for a member, scanning only stale
+     * bounded partitions that can still affect the exact member result.
+     */
+    protected Object aggregateContinuousPartitions(
+            Filter filter,
+            com.tangosol.internal.net.ContinuousAggregationQuery query,
+            PartitionSet parts)
+        {
+        com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                query.getDefinition();
+
+        if (!getContinuousAggregationMap().containsKey(definition))
+            {
+            throw new IllegalStateException("continuous aggregation is not registered: " + definition);
+            }
+
+        InvocableMap.StreamingAggregator aggregator = definition.getAggregator().supply();
+        com.tangosol.internal.net.ContinuousAggregationBound bounded =
+                aggregator instanceof com.tangosol.internal.net.ContinuousAggregationBound
+                ? (com.tangosol.internal.net.ContinuousAggregationBound) aggregator
+                : null;
+        List listStale = new ArrayList();
+
+        for (int nPartition = parts.next(0); nPartition >= 0;
+                nPartition = parts.next(nPartition + 1))
+            {
+            com.tangosol.internal.net.ContinuousAggregationState state =
+                    ensureContinuousAggregationState(nPartition, definition);
+            if (state.isReady())
+                {
+                Object  partial = null;
+                boolean fReady  = false;
+                try
+                    {
+                    partial = state.getPartialResult();
+                    fReady  = true;
+                    }
+                catch (IllegalStateException ignored)
+                    {
+                    // The state changed while the result was obtained. Its
+                    // current status is handled below.
+                    }
+                if (fReady)
+                    {
+                    if (!aggregator.combine(partial))
+                        {
+                        return aggregator.getPartialResult();
+                        }
+                    continue;
+                    }
+                }
+
+            if (bounded != null
+                    && state.getStatus()
+                       == com.tangosol.internal.net.ContinuousAggregationState.Status.STALE_BOUND)
+                {
+                try
+                    {
+                    listStale.add(new Object[] {Integer.valueOf(nPartition), state, state.getBound()});
+                    continue;
+                    }
+                catch (IllegalStateException ignored)
+                    {
+                    // A concurrent transition invalidated the bound. Scan the
+                    // partition using the normal fallback below.
+                    }
+                }
+
+            if (!aggregator.combine(scanContinuousAggregationPartition(definition, nPartition)))
+                {
+                return aggregator.getPartialResult();
+                }
+            }
+
+        if (!listStale.isEmpty())
+            {
+            final com.tangosol.internal.net.ContinuousAggregationBound boundComparator = bounded;
+            listStale.sort((left, right) -> boundComparator.compareContinuousAggregationBounds(
+                    ((Object[]) left)[2], ((Object[]) right)[2]));
+
+            Object partial = aggregator.getPartialResult();
+            for (Iterator iter = listStale.iterator(); iter.hasNext(); )
+                {
+                Object[] aoStale = (Object[]) iter.next();
+                if (partial != null && bounded.isContinuousAggregationBoundDominated(
+                        aoStale[2], partial))
+                    {
+                    continue;
+                    }
+
+                int nPartition = ((Integer) aoStale[0]).intValue();
+                boolean fContinue = aggregator.combine(
+                        scanContinuousAggregationPartition(definition, nPartition));
+                com.tangosol.internal.net.ContinuousAggregationState state =
+                        (com.tangosol.internal.net.ContinuousAggregationState) aoStale[1];
+                state.requireRebuild();
+                ((PartitionedCache) getService()).scheduleContinuousAggregationBuild(
+                        this, definition, nPartition, state);
+                if (!fContinue)
+                    {
+                    return aggregator.getPartialResult();
+                    }
+                partial = aggregator.getPartialResult();
+                }
+            }
+        return aggregator.getPartialResult();
+        }
+
+    /**
+     * Scan one partition to obtain a correct on-demand partial result.
+     */
+    protected Object scanContinuousAggregationPartition(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            int nPartition)
+        {
+        getStatsContinuousAggregationFallbacks().incrementAndGet();
+
+        InvocableMap.StreamingAggregator aggregator = definition.getAggregator().supply();
+        PartitionSet parts = getService().instantiatePartitionSet(false);
+        parts.add(nPartition);
+        aggregator.accumulate(createStreamer(definition.getEvaluationFilter(), aggregator, parts));
+        return aggregator.getPartialResult();
+        }
+
+    /**
+     * Apply a locked backing-map transition to all continuous aggregation
+     * states for the entry's partition.
+     */
+    public void updateContinuousAggregations(BinaryEntry entry)
+        {
+        Map mapPartition = (Map) getPartitionedContinuousAggregationMap()
+                .get(Integer.valueOf(entry.getKeyPartition()));
+        if (mapPartition == null || mapPartition.isEmpty())
+            {
+            return;
+            }
+
+        for (Iterator iter = mapPartition.entrySet().iterator(); iter.hasNext(); )
+            {
+            java.util.Map.Entry mapEntry = (java.util.Map.Entry) iter.next();
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    (com.tangosol.internal.net.ContinuousAggregationDefinition) mapEntry.getKey();
+            com.tangosol.internal.net.ContinuousAggregationState state =
+                    (com.tangosol.internal.net.ContinuousAggregationState) mapEntry.getValue();
+
+            try
+                {
+                com.tangosol.internal.net.ContinuousAggregationState.Status statusBefore =
+                        state.getStatus();
+                com.tangosol.internal.net.ContinuousAggregationState.Status statusAfter =
+                        state.apply(definition, entry);
+
+                getStatsContinuousAggregationMutations().incrementAndGet();
+                if (statusBefore == com.tangosol.internal.net.ContinuousAggregationState.Status.READY
+                        && statusAfter != statusBefore)
+                    {
+                    getStatsContinuousAggregationDirty().incrementAndGet();
+                    }
+                if (statusAfter == com.tangosol.internal.net.ContinuousAggregationState.Status.DIRTY
+                        || statusAfter == com.tangosol.internal.net.ContinuousAggregationState.Status.BUILDING)
+                    {
+                    ((PartitionedCache) getService()).scheduleContinuousAggregationBuild(
+                            this, definition, entry.getKeyPartition(), state);
+                    }
+                }
+            catch (Throwable t)
+                {
+                state.failBuild(t);
+                getStatsContinuousAggregationDirty().incrementAndGet();
+                ((PartitionedCache) getService()).scheduleContinuousAggregationBuild(
+                        this, definition, entry.getKeyPartition(), state);
                 }
             }
         }
@@ -1388,6 +2146,12 @@ public class Storage
             filter = null;
             }
 
+        if (agent instanceof com.tangosol.internal.net.ContinuousAggregationQuery)
+            {
+            return aggregateContinuousPartitions(filter,
+                    (com.tangosol.internal.net.ContinuousAggregationQuery) agent, partMask);
+            }
+
         Object result = null;
         if (agent.isByPartition() && agent.isParallel() && Daemons.isForkJoinPoolEnabled())
             {
@@ -1461,6 +2225,13 @@ public class Storage
         if (parts.cardinality() != 1)
             {
             throw new IllegalArgumentException("A streamed aggregation step must contain exactly one partition");
+            }
+
+        if (agent instanceof com.tangosol.internal.net.ContinuousAggregationQuery)
+            {
+            return aggregateContinuousPartition(filter,
+                    (com.tangosol.internal.net.ContinuousAggregationQuery) agent,
+                    parts.first());
             }
 
         agent.accumulate(createStreamer(filter, agent, parts));
@@ -4501,6 +5272,30 @@ public class Storage
         return __m_StatsInserts;
         }
 
+    /** Return the continuous aggregation maintained mutation counter. */
+    public java.util.concurrent.atomic.AtomicLong getStatsContinuousAggregationMutations()
+        {
+        return __m_StatsContinuousAggregationMutations;
+        }
+
+    /** Return the continuous aggregation fallback scan counter. */
+    public java.util.concurrent.atomic.AtomicLong getStatsContinuousAggregationFallbacks()
+        {
+        return __m_StatsContinuousAggregationFallbacks;
+        }
+
+    /** Return the continuous aggregation rebuild counter. */
+    public java.util.concurrent.atomic.AtomicLong getStatsContinuousAggregationRebuilds()
+        {
+        return __m_StatsContinuousAggregationRebuilds;
+        }
+
+    /** Return the continuous aggregation dirty transition counter. */
+    public java.util.concurrent.atomic.AtomicLong getStatsContinuousAggregationDirty()
+        {
+        return __m_StatsContinuousAggregationDirty;
+        }
+
     // Accessor for the property "StatsListenerRegistrations"
     /**
      * Getter for property StatsListenerRegistrations.<p>
@@ -5757,6 +6552,9 @@ public class Storage
         setBackingConfigurableCache(null);
         setPartitionAwareBackingMap(null);
         setIndexExtractorMap(NullImplementation.getMap());
+        setContinuousAggregationMap(NullImplementation.getMap());
+        getPartitionedContinuousAggregationMap().clear();
+        setPartitionedContinuousAggregationMap(NullImplementation.getMap());
         setFilterIdMap(null);
         setAdjustPartitionSize(true);
 
@@ -6356,6 +7154,8 @@ public class Storage
         PartitionedCache service = getService();
         if (fToBackup)
             {
+            removeContinuousAggregationPartition(iPartition);
+
             // locks
             moveData(iPartition, getLeaseMap(), getBackupLeaseMap(), "locks");
             firePendingLocks(iPartition);
@@ -6415,6 +7215,10 @@ public class Storage
                 {
                 persistGlobalMetadata(iPartition, /*oToken*/ null);
                 }
+
+            // Backup state is deliberately not maintained; promotion rebuilds
+            // each registered partition-local aggregation from primary data.
+            ensureContinuousAggregationPartition(iPartition);
             }
         }
 
@@ -6939,6 +7743,24 @@ public class Storage
                     }
                 }
 
+            // persist the continuous aggregation definitions
+            Map mapContinuous = getContinuousAggregationMap();
+            if (!mapContinuous.isEmpty())
+                {
+                for (Iterator iter = mapContinuous.keySet().iterator(); iter.hasNext(); )
+                    {
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                            (com.tangosol.internal.net.ContinuousAggregationDefinition) iter.next();
+                    Binary binDefinition = com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .toDefinitionBinary(definition, serializer);
+
+                    com.tangosol.persistence.CachePersistenceHelper.registerContinuousAggregation(
+                            store, getCacheId(),
+                            com.tangosol.internal.net.ContinuousAggregationPersistence.DEFINITION_FORMAT_VERSION,
+                            binDefinition, oToken);
+                    }
+                }
+
             // Note: key-listeners are persisted as part of the associated partition;
             //       global-listeners are not persisted, as their registration is managed
             //       the client (see #createWelcomeRequests).
@@ -7036,6 +7858,117 @@ public class Storage
                             }
                         }
                     }
+                }
+            }
+        }
+
+    /**
+     * Persist or remove a continuous aggregation definition from the global
+     * metadata partitions owned by this member.
+     *
+     * @param parts       the owned primary partitions
+     * @param definition  the definition
+     * @param fAdd        {@code true} to persist; {@code false} to remove
+     */
+    protected void persistContinuousAggregationRegistration(
+            com.tangosol.net.partition.PartitionSet parts,
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            boolean fAdd)
+        {
+        if (isPersistent())
+            {
+            PartitionedCache service = getService();
+            PartitionSet partsGlobal = com.tangosol.persistence.CachePersistenceHelper
+                    .getGlobalPartitions(service);
+            partsGlobal.retain(parts);
+
+            if (!partsGlobal.isEmpty())
+                {
+                Binary binDefinition = com.tangosol.internal.net.ContinuousAggregationPersistence
+                        .toDefinitionBinary(definition, service.getSerializer());
+
+                for (int iPart = partsGlobal.next(0); iPart >= 0;
+                     iPart = partsGlobal.next(iPart + 1))
+                    {
+                    PartitionedCache.PartitionControl ctrlPart =
+                            (PartitionedCache.PartitionControl) service.getPartitionControl(iPart);
+                    PersistentStore store = ctrlPart.ensureOpenPersistentStore(
+                            /*storeFrom*/ null, /*fSeal*/ true);
+
+                    if (store != null)
+                        {
+                        if (fAdd)
+                            {
+                            ctrlPart.ensurePersistentExtent(getCacheId());
+                            com.tangosol.persistence.CachePersistenceHelper
+                                    .registerContinuousAggregation(store, getCacheId(),
+                                            com.tangosol.internal.net.ContinuousAggregationPersistence
+                                                    .DEFINITION_FORMAT_VERSION,
+                                            binDefinition, /*oToken*/ null);
+                            }
+                        else
+                            {
+                            com.tangosol.persistence.CachePersistenceHelper
+                                    .unregisterContinuousAggregation(store, getCacheId(),
+                                            com.tangosol.internal.net.ContinuousAggregationPersistence
+                                                    .DEFINITION_FORMAT_VERSION,
+                                            binDefinition, /*oToken*/ null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    /**
+     * Persist an exact continuous aggregation checkpoint for one partition.
+     * Checkpoint failures are ignored because the definition is sufficient
+     * to rebuild the optional state during recovery.
+     */
+    protected void persistContinuousAggregationState(int nPartition,
+            com.oracle.coherence.persistence.PersistentStore store, Object oToken)
+        {
+        Map mapPartition = (Map) getPartitionedContinuousAggregationMap()
+                .get(Integer.valueOf(nPartition));
+        if (mapPartition == null || mapPartition.isEmpty())
+            {
+            return;
+            }
+
+        PartitionedCache service           = getService();
+        Serializer       serializer        = service.getSerializer();
+        long             lOwnershipVersion = service.getOwnershipVersion(nPartition);
+        long             lDataVersion      = getVersion().getSubmittedVersion(nPartition);
+
+        for (Iterator iter = mapPartition.entrySet().iterator(); iter.hasNext(); )
+            {
+            java.util.Map.Entry entry = (java.util.Map.Entry) iter.next();
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    (com.tangosol.internal.net.ContinuousAggregationDefinition) entry.getKey();
+            com.tangosol.internal.net.ContinuousAggregationState state =
+                    (com.tangosol.internal.net.ContinuousAggregationState) entry.getValue();
+            try
+                {
+                Object oState = state.snapshotState();
+                if (oState != null)
+                    {
+                    Binary binDefinition = com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .toDefinitionBinary(definition, serializer);
+                    Binary binState = com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .toStateBinary(binDefinition, nPartition, lOwnershipVersion,
+                                    lDataVersion, oState, serializer);
+                    com.tangosol.persistence.CachePersistenceHelper
+                            .registerContinuousAggregationState(store, getCacheId(),
+                                    com.tangosol.internal.net.ContinuousAggregationPersistence
+                                            .STATE_FORMAT_VERSION,
+                                    nPartition, lOwnershipVersion, lDataVersion,
+                                    binDefinition, binState, oToken);
+                    }
+                }
+            catch (Throwable t)
+                {
+                _trace("Unable to checkpoint continuous aggregation state for partition "
+                        + nPartition + ": " + t, 3);
                 }
             }
         }
@@ -9001,6 +9934,7 @@ public class Storage
         if (fPrimary)
             {
             releasePrimaryResources(iPartition);
+            removeContinuousAggregationPartition(iPartition);
             }
         else
             {
@@ -9402,6 +10336,11 @@ public class Storage
         getStatsClears().set(0L);
         getStatsRemoves().set(0L);
 
+        getStatsContinuousAggregationMutations().set(0L);
+        getStatsContinuousAggregationFallbacks().set(0L);
+        getStatsContinuousAggregationRebuilds().set(0L);
+        getStatsContinuousAggregationDirty().set(0L);
+
         getStatsIndexingTotalMillis().set(0L);
 
         StorageDispatcher dispatcher = (StorageDispatcher) getEventDispatcher();
@@ -9790,6 +10729,12 @@ public class Storage
         __m_IndexExtractorMap = map;
         }
 
+    /** Set the active continuous aggregation definition map. */
+    protected void setContinuousAggregationMap(java.util.Map map)
+        {
+        __m_ContinuousAggregationMap = map;
+        }
+
     // Accessor for the property "InternBackupKeys"
     /**
      * Setter for property InternBackupKeys.<p>
@@ -9941,6 +10886,12 @@ public class Storage
     protected void setPartitionedIndexMap(java.util.Map pIndexMap)
         {
         __m_PartitionedIndexMap = pIndexMap;
+        }
+
+    /** Set the partitioned continuous aggregation state map. */
+    protected void setPartitionedContinuousAggregationMap(java.util.Map map)
+        {
+        __m_PartitionedContinuousAggregationMap = map;
         }
 
     // Accessor for the property "PartitionedKeyIndex"
@@ -10096,6 +11047,30 @@ public class Storage
     protected void setStatsInserts(java.util.concurrent.atomic.AtomicLong counter)
         {
         __m_StatsInserts = counter;
+        }
+
+    /** Set the continuous aggregation maintained mutation counter. */
+    protected void setStatsContinuousAggregationMutations(java.util.concurrent.atomic.AtomicLong counter)
+        {
+        __m_StatsContinuousAggregationMutations = counter;
+        }
+
+    /** Set the continuous aggregation fallback scan counter. */
+    protected void setStatsContinuousAggregationFallbacks(java.util.concurrent.atomic.AtomicLong counter)
+        {
+        __m_StatsContinuousAggregationFallbacks = counter;
+        }
+
+    /** Set the continuous aggregation rebuild counter. */
+    protected void setStatsContinuousAggregationRebuilds(java.util.concurrent.atomic.AtomicLong counter)
+        {
+        __m_StatsContinuousAggregationRebuilds = counter;
+        }
+
+    /** Set the continuous aggregation dirty transition counter. */
+    protected void setStatsContinuousAggregationDirty(java.util.concurrent.atomic.AtomicLong counter)
+        {
+        __m_StatsContinuousAggregationDirty = counter;
         }
 
     // Accessor for the property "StatsListenerRegistrations"
@@ -10415,6 +11390,7 @@ public class Storage
             }
 
         // listeners, triggers, indexes, etc.
+        persistContinuousAggregationState(iPartition, store, oToken);
         persistGlobalMetadata(iPartition, store, oToken);
         }
 
@@ -10526,13 +11502,15 @@ public class Storage
         // import java.util.Map$Entry as java.util.Map.Entry;
         // import java.util.Set;
 
-        Map      mapExtractor = getIndexExtractorMap();
-        String   sCacheName   = getCacheName();
+        Map      mapExtractor            = getIndexExtractorMap();
+        Map      mapContinuousAggregation = getContinuousAggregationMap();
+        String   sCacheName              = getCacheName();
         PartitionedCache  service      = getService();
         Storage storageNew   = (Storage) service._newChild("Storage");
 
         storageNew.setCacheId(getCacheId());
         storageNew.setIndexExtractorMap(mapExtractor);
+        storageNew.setContinuousAggregationMap(mapContinuousAggregation);
 
         Set setTrigger = getTriggerSet();
         if (setTrigger != null)
@@ -10562,6 +11540,31 @@ public class Storage
         // including backing map and indices
 
         storageNew.ensureInitialized(sCacheName);
+
+        if (!mapContinuousAggregation.isEmpty())
+            {
+            PartitionSet partsOwned = service.calculatePartitionSet(service.getThisMember(), 0);
+            for (Iterator iterDefinitions = mapContinuousAggregation.keySet().iterator();
+                    iterDefinitions.hasNext(); )
+                {
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                        (com.tangosol.internal.net.ContinuousAggregationDefinition)
+                                iterDefinitions.next();
+                storageNew.persistContinuousAggregationRegistration(
+                        partsOwned, definition, true);
+                PartitionSet partsState = storageNew.getContinuousAggregationPartitions(
+                        partsOwned, definition);
+                if (!partsState.isEmpty())
+                    {
+                    storageNew.ensureOldValueRequired();
+                    }
+                for (int nPart = partsState.next(0); nPart >= 0;
+                        nPart = partsState.next(nPart + 1))
+                    {
+                    storageNew.ensureContinuousAggregationState(nPart, definition);
+                    }
+                }
+            }
 
         for (Iterator iter = mapExtractor.entrySet().iterator(); iter.hasNext(); )
             {

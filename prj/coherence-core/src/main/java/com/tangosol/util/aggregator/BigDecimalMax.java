@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,6 +7,8 @@
 
 package com.tangosol.util.aggregator;
 
+
+import com.tangosol.internal.net.ContinuousAggregationBound;
 
 import com.tangosol.internal.util.aggregator.BigDecimalSerializationWrapper;
 import com.tangosol.util.InvocableMap;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
 */
 public class BigDecimalMax<T>
         extends AbstractBigDecimalAggregator<T>
+        implements ContinuousAggregationBound
     {
     // ----- constructors ---------------------------------------------------
 
@@ -78,7 +81,62 @@ public class BigDecimalMax<T>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new Object[] {Integer.valueOf(m_count), m_decResult,
+                Integer.valueOf(m_cSupport)};
+        }
+
+    @Override
+    public void restoreState(Object state)
+        {
+        if (!(state instanceof Object[]) || ((Object[]) state).length != 3)
+            {
+            throw new IllegalArgumentException("invalid BigDecimal maximum state snapshot");
+            }
+        Object[] aoState  = (Object[]) state;
+        int      cValues  = ((Number) aoState[0]).intValue();
+        int      cSupport = ((Number) aoState[2]).intValue();
+        if (cValues < 0 || cSupport < 0 || cSupport > cValues
+                || cValues > 0 && !(aoState[1] instanceof BigDecimal))
+            {
+            throw new IllegalArgumentException("invalid BigDecimal maximum state values");
+            }
+        ensureInitialized(false);
+        m_count     = cValues;
+        m_decResult = (BigDecimal) aoState[1];
+        m_cSupport  = cSupport;
+        }
+
+    @Override
+    public RetractionResult getMaintenanceStatus()
+        {
+        return m_count == 0 || m_cSupport > 0
+               ? RetractionResult.UPDATED
+               : RetractionResult.STALE_BOUND;
+        }
+
+    @Override
+    public Object getContinuousAggregationBound()
+        {
+        return new BigDecimalSerializationWrapper(m_decResult);
+        }
+
+    @Override
+    public int compareContinuousAggregationBounds(Object left, Object right)
+        {
+        return asBigDecimal(right).compareTo(asBigDecimal(left));
+        }
+
+    @Override
+    public boolean isContinuousAggregationBoundDominated(Object bound, Object exactPartial)
+        {
+        return asBigDecimal(exactPartial).compareTo(asBigDecimal(bound)) >= 0;
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -101,9 +159,56 @@ public class BigDecimalMax<T>
                 }
 
             BigDecimal decResult = m_decResult;
-
-            m_decResult = decResult == null ? dec : decResult.max(dec);
+            if (decResult == null || decResult.compareTo(dec) < 0)
+                {
+                m_decResult = dec;
+                m_cSupport  = 1;
+                }
+            else if (decResult.compareTo(dec) == 0)
+                {
+                m_cSupport++;
+                }
             m_count++;
             }
         }
+
+    @Override
+    protected RetractionResult remove(Object o)
+        {
+        if (o == null)
+            {
+            return getMaintenanceStatus();
+            }
+        if (m_count == 0)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        BigDecimal dec = ensureBigDecimal((Number) o);
+        if (m_decResult.compareTo(dec) == 0 && m_cSupport > 0)
+            {
+            m_cSupport--;
+            }
+        if (--m_count == 0)
+            {
+            m_decResult = null;
+            m_cSupport  = 0;
+            }
+        return getMaintenanceStatus();
+        }
+
+    /**
+     * Convert a partial result or value to a BigDecimal.
+     */
+    private static BigDecimal asBigDecimal(Object value)
+        {
+        return value instanceof BigDecimalSerializationWrapper
+               ? ((BigDecimalSerializationWrapper) value).getBigDecimal()
+               : ensureBigDecimal((Number) value);
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /** The number of current entries equal to the retained maximum. */
+    protected transient int m_cSupport;
     }

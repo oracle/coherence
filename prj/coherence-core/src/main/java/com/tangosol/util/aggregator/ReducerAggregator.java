@@ -1,14 +1,15 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.LiteMap;
+import com.tangosol.util.MapTrigger;
 import com.tangosol.util.NullImplementation;
 import com.tangosol.util.ValueExtractor;
 
@@ -82,7 +83,28 @@ public class ReducerAggregator<K, V, T, E>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new LiteMap<>(ensureMap());
+        }
+
+    @Override
+    public void restoreState(Object oState)
+        {
+        if (!(oState instanceof Map))
+            {
+            throw new IllegalArgumentException("Expected a reduced value map");
+            }
+
+        ensureInitialized(false);
+        Map<K, E> map = ensureMap();
+        map.clear();
+        map.putAll((Map<K, E>) oState);
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -106,6 +128,51 @@ public class ReducerAggregator<K, V, T, E>
         {
         // collect partial results in a transient map
         ensureMap().put(entry.getKey(), entry.extract(getValueExtractor()));
+        }
+
+    @Override
+    public InvocableMap.StreamingAggregator.RetractionResult retract(
+            InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized(false);
+
+        if (entry instanceof MapTrigger.Entry
+                && !((MapTrigger.Entry) entry).isOriginalPresent())
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+            }
+
+        Map<K, E> map = m_map;
+        if (map == null || !map.containsKey(entry.getKey()))
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+            }
+
+        map.remove(entry.getKey());
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    public InvocableMap.StreamingAggregator.RetractionResult update(
+            InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized(false);
+
+        if (entry instanceof MapTrigger.Entry
+                && ((MapTrigger.Entry) entry).isOriginalPresent()
+                && entry.isPresent())
+            {
+            Map<K, E> map = m_map;
+            if (map == null || !map.containsKey(entry.getKey()))
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+                }
+
+            map.put(entry.getKey(), entry.extract(getValueExtractor()));
+            return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+            }
+
+        return super.update(entry);
         }
 
     /**
@@ -139,11 +206,18 @@ public class ReducerAggregator<K, V, T, E>
         {
         Map<K, E> map = m_map;
 
-        m_map = null;  // COH-1487
+        if (map == null)
+            {
+            return fFinal ? NullImplementation.getMap() : null;
+            }
 
-        return map == null
-                ? fFinal ? NullImplementation.getMap() : null
-                : map;
+        if (fFinal)
+            {
+            m_map = null;  // COH-1487
+            return map;
+            }
+
+        return new LiteMap<>(map);
         }
 
 

@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
 
+
+import com.tangosol.internal.net.ContinuousAggregationBound;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
@@ -24,6 +26,7 @@ import com.tangosol.util.ValueExtractor;
 */
 public class LongMin<T>
         extends AbstractLongAggregator<T>
+        implements ContinuousAggregationBound
     {
     // ----- constructors ---------------------------------------------------
 
@@ -68,7 +71,61 @@ public class LongMin<T>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new Object[] {Integer.valueOf(m_count), Long.valueOf(m_lResult),
+                Integer.valueOf(m_cSupport)};
+        }
+
+    @Override
+    public void restoreState(Object state)
+        {
+        if (!(state instanceof Object[]) || ((Object[]) state).length != 3)
+            {
+            throw new IllegalArgumentException("invalid long minimum state snapshot");
+            }
+        Object[] aoState  = (Object[]) state;
+        int      cValues  = ((Number) aoState[0]).intValue();
+        int      cSupport = ((Number) aoState[2]).intValue();
+        if (cValues < 0 || cSupport < 0 || cSupport > cValues)
+            {
+            throw new IllegalArgumentException("invalid long minimum state values");
+            }
+        ensureInitialized(false);
+        m_count    = cValues;
+        m_lResult  = ((Number) aoState[1]).longValue();
+        m_cSupport = cSupport;
+        }
+
+    @Override
+    public RetractionResult getMaintenanceStatus()
+        {
+        return m_count == 0 || m_cSupport > 0
+               ? RetractionResult.UPDATED
+               : RetractionResult.STALE_BOUND;
+        }
+
+    @Override
+    public Object getContinuousAggregationBound()
+        {
+        return Long.valueOf(m_lResult);
+        }
+
+    @Override
+    public int compareContinuousAggregationBounds(Object left, Object right)
+        {
+        return Long.compare(((Number) left).longValue(), ((Number) right).longValue());
+        }
+
+    @Override
+    public boolean isContinuousAggregationBoundDominated(Object bound, Object exactPartial)
+        {
+        return ((Number) exactPartial).longValue() <= ((Number) bound).longValue();
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -81,6 +138,7 @@ public class LongMin<T>
         super.init(fFinal);
 
         m_lResult = Long.MAX_VALUE;
+        m_cSupport = 0;
         }
 
     /**
@@ -90,8 +148,46 @@ public class LongMin<T>
         {
         if (o != null)
             {
-            m_lResult = Math.min(m_lResult, ((Number) o).longValue());
+            long lValue = ((Number) o).longValue();
+            if (lValue < m_lResult)
+                {
+                m_lResult  = lValue;
+                m_cSupport = 1;
+                }
+            else if (lValue == m_lResult)
+                {
+                m_cSupport++;
+                }
             m_count++;
             }
         }
+
+    @Override
+    protected RetractionResult remove(Object o)
+        {
+        if (o == null)
+            {
+            return getMaintenanceStatus();
+            }
+        if (m_count == 0)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        if (((Number) o).longValue() == m_lResult && m_cSupport > 0)
+            {
+            m_cSupport--;
+            }
+        if (--m_count == 0)
+            {
+            m_lResult  = Long.MAX_VALUE;
+            m_cSupport = 0;
+            }
+        return getMaintenanceStatus();
+        }
+
+    // ----- data members ---------------------------------------------------
+
+    /** The number of current entries equal to the retained minimum. */
+    protected transient int m_cSupport;
     }

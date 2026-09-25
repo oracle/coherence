@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -76,7 +76,7 @@ public class DoubleAverage<T>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -122,6 +122,65 @@ public class DoubleAverage<T>
                 m_dflResult += ((Number) o).doubleValue();
                 }
             }
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult remove(Object o)
+        {
+        if (o != null)
+            {
+            if (m_count == 0)
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+                }
+
+            double dfl = ((Number) o).doubleValue();
+            if (m_count > 1 && !Double.isFinite(dfl))
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+                }
+
+            m_dflResult -= dfl;
+            if (--m_count == 0)
+                {
+                m_dflResult = 0.0;
+                }
+            }
+
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult replace(
+            Object oOriginal, Object oCurrent)
+        {
+        if (oOriginal == null || oCurrent == null)
+            {
+            return super.replace(oOriginal, oCurrent);
+            }
+        if (m_count == 0)
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+            }
+
+        double dflOriginal = ((Number) oOriginal).doubleValue();
+        if (m_count > 1 && !Double.isFinite(dflOriginal))
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+            }
+
+        m_dflResult -= dflOriginal;
+        m_dflResult += ((Number) oCurrent).doubleValue();
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected boolean isReplacementRequired(Object oOriginal, Object oCurrent)
+        {
+        return true;
         }
 
     /**

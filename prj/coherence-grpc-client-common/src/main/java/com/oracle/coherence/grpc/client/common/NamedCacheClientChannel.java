@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.oracle.coherence.grpc.MaybeByteString;
 
 import com.oracle.coherence.grpc.client.common.v0.NamedCacheClientChannel_V0;
 import com.oracle.coherence.grpc.client.common.v1.NamedCacheClientChannel_V1;
+import com.oracle.coherence.grpc.messages.cache.v1.ContinuousAggregationRequest;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.CacheEvent;
@@ -142,6 +143,28 @@ public interface NamedCacheClientChannel
      * of the aggregation
      */
     CompletableFuture<BytesValue> aggregate(ByteString filter, ByteString aggregator, long nDeadline);
+
+    /**
+     * Register, remove, or query a continuously maintained aggregation.
+     *
+     * @param operation   the operation to perform
+     * @param filter      the serialized definition filter
+     * @param aggregator  the serialized streaming aggregator
+     *
+     * @return the query result, or an empty result for registration changes
+     */
+    default CompletableFuture<BytesValue> continuousAggregation(
+            ContinuousAggregationRequest.Operation operation,
+            ByteString filter, ByteString aggregator)
+        {
+        CompletableFuture<BytesValue> future = new CompletableFuture<>();
+        future.completeExceptionally(new UnsupportedOperationException(
+                "continuous aggregation requires gRPC CacheService protocol version 2"
+                + " (Coherence "
+                + com.tangosol.internal.net.ContinuousAggregationSupport
+                        .getMinimumVersionDescription() + ')'));
+        return future;
+        }
 
     /**
      * Removes all the mappings from this map.

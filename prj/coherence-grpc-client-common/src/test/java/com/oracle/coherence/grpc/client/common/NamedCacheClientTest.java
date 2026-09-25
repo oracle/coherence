@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -7,8 +7,15 @@
 
 package com.oracle.coherence.grpc.client.common;
 
+import com.google.protobuf.ByteString;
+
+import com.oracle.coherence.grpc.messages.cache.v1.ContinuousAggregationRequest;
+
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+
 import com.tangosol.net.AsyncNamedCache;
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.RequestIncompleteException;
 
 import com.tangosol.net.cache.CacheMap;
@@ -17,6 +24,8 @@ import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapListener;
 import com.tangosol.util.ValueExtractor;
+
+import com.tangosol.util.aggregator.Count;
 
 import com.tangosol.util.extractor.UniversalExtractor;
 
@@ -32,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import org.junit.jupiter.api.Test;
 
@@ -53,6 +63,7 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.same;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -94,6 +105,47 @@ class NamedCacheClientTest
 
         verify(async).addIndex(same(extractor), eq(true), same(COMPARATOR));
         assertThat(rootCause(ex), is(sameInstance(ERROR)));
+        }
+
+    @Test
+    void shouldDelegateContinuousAggregationLifecycle()
+        {
+        AsyncNamedCacheClient<String, String> async = mock(AsyncNamedCacheClient.class);
+        when(async.registerContinuousAggregation(any(ContinuousAggregationDefinition.class)))
+                .thenReturn(VOID_FUTURE);
+        when(async.aggregateContinuousAggregation(any(ContinuousAggregationDefinition.class)))
+                .thenReturn(CompletableFuture.completedFuture(42));
+        when(async.removeContinuousAggregation(any(ContinuousAggregationDefinition.class)))
+                .thenReturn(VOID_FUTURE);
+
+        NamedCacheClient<String, String> client = new NamedCacheClient<>(async);
+        ContinuousAggregator<String, String, Integer> handle = client.addAggregator(new Count<>());
+        ContinuousAggregationDefinition expected =
+                new ContinuousAggregationDefinition(null, new Count<>());
+
+        assertThat(handle.aggregate(), is(42));
+        client.removeAggregator(handle);
+
+        verify(async).registerContinuousAggregation(eq(expected));
+        verify(async).aggregateContinuousAggregation(eq(expected));
+        verify(async).removeContinuousAggregation(eq(expected));
+        }
+
+    @Test
+    void shouldFailFastWhenGrpcProtocolDoesNotImplementContinuousAggregation()
+        {
+        assertThat(com.oracle.coherence.grpc.NamedCacheProtocol.VERSION, is(2));
+
+        NamedCacheClientChannel channel = mock(
+                NamedCacheClientChannel.class, CALLS_REAL_METHODS);
+
+        CompletionException error = assertThrows(CompletionException.class,
+                () -> channel.continuousAggregation(
+                        ContinuousAggregationRequest.Operation.Register,
+                        ByteString.EMPTY, ByteString.EMPTY).join());
+
+        assertThat(rootCause(error), is(org.hamcrest.CoreMatchers.instanceOf(
+                UnsupportedOperationException.class)));
         }
 
     @Test

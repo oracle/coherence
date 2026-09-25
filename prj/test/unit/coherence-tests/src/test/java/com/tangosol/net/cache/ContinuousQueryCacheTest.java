@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,8 @@ import com.tangosol.util.comparator.SafeComparator;
 
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
+
+import com.tangosol.util.aggregator.Count;
 
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.BetweenFilter;
@@ -113,6 +115,24 @@ public class ContinuousQueryCacheTest
         testMultithreadedMap(cacheCQC);
         assertIdenticalMaps(cacheBase, cacheCQC);
         */
+        }
+
+    /**
+     * A transforming CQC exposes front values that cannot be safely consumed
+     * by a server-side aggregator operating on backing values.
+     */
+    @Test
+    public void testContinuousAggregationRejectsTransformingCqc()
+        {
+        NamedCache cacheBase = getNewCache("cqc-transforming-continuous-aggregation");
+        ContinuousQueryCache cacheCQC = new ContinuousQueryCache(cacheBase,
+                AlwaysFilter.INSTANCE, new ReflectionExtractor("toString"));
+
+        UnsupportedOperationException error = assertThrows(
+                UnsupportedOperationException.class,
+                () -> cacheCQC.addAggregator(new Count<>()));
+
+        assertTrue(error.getMessage().contains("transforming ContinuousQueryCache"));
         }
 
     /**

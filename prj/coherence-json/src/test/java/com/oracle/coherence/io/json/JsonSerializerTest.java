@@ -23,6 +23,9 @@ import com.oracle.coherence.testing.util.CoherenceModeHelper;
 import com.tangosol.io.ByteArrayWriteBuffer;
 import com.tangosol.io.SerializationRole;
 
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+import com.tangosol.internal.net.ContinuousAggregationProcessor;
+
 import com.tangosol.internal.util.processor.CacheProcessors;
 
 import com.tangosol.util.Base;
@@ -34,6 +37,7 @@ import com.tangosol.util.aggregator.BigDecimalAverage;
 import com.tangosol.util.aggregator.BigDecimalMax;
 import com.tangosol.util.aggregator.BigDecimalMin;
 import com.tangosol.util.aggregator.BigDecimalSum;
+import com.tangosol.util.aggregator.Count;
 import com.tangosol.util.comparator.SafeComparator;
 
 import com.tangosol.util.filter.AlwaysFilter;
@@ -402,6 +406,21 @@ class JsonSerializerTest
         assertThat(expected.m_map.get(1).apply("foo"), is(actual.m_map.get(1).apply("foo")));
         assertThat(((Remote.Function<Person, Integer>) map.get(2)).apply(p), is(actual.m_map.get(2).apply(p)));
         assertThat(expected.m_map.size(), is(actual.m_map.size()));
+        }
+
+    @Test
+    void shouldSerializeContinuousAggregationProcessor()
+        {
+        JsonSerializer serializer = new JsonSerializer();
+        ContinuousAggregationProcessor<Integer, Long, Integer, Integer> processor =
+                new ContinuousAggregationProcessor<>(
+                        new ContinuousAggregationDefinition(null, new Count<>()),
+                        (Remote.Function<Integer, Integer>) result -> result);
+
+        Binary binary = ExternalizableHelper.toBinary(processor, serializer);
+        Object result = ExternalizableHelper.fromBinary(binary, serializer);
+
+        assertThat(result, is(instanceOf(ContinuousAggregationProcessor.class)));
         }
 
     @Test

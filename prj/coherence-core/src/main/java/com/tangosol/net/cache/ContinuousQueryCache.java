@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,8 @@ package com.tangosol.net.cache;
 
 import com.oracle.coherence.common.base.Continuation;
 
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+import com.tangosol.internal.net.ContinuousAggregationSupport;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.internal.util.invoke.Lambdas;
@@ -114,7 +116,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("unchecked")
 public class ContinuousQueryCache<K, V_BACK, V_FRONT>
         extends AbstractKeySetBasedMap<K, V_FRONT>
-        implements NamedCache<K, V_FRONT>
+        implements NamedCache<K, V_FRONT>, ContinuousAggregationSupport
     {
     // ----- constructors ---------------------------------------------------
 
@@ -1319,6 +1321,41 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             }
         }
 
+    // ----- ContinuousAggregationSupport interface ------------------------
+
+    @Override
+    public ContinuousAggregationDefinition prepareContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        if (isTransformed())
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation cannot be performed on a transforming ContinuousQueryCache");
+            }
+
+        ContinuousAggregationDefinition prepared = new ContinuousAggregationDefinition(
+                mergeFilter((Filter) definition.getFilter()), definition.getAggregator());
+        return getContinuousAggregationSupport().prepareContinuousAggregation(prepared);
+        }
+
+    @Override
+    public void registerContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().registerContinuousAggregation(definition);
+        }
+
+    @Override
+    public void removeContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().removeContinuousAggregation(definition);
+        }
+
+    @Override
+    public Object aggregateContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        return getContinuousAggregationSupport().aggregateContinuousAggregation(definition);
+        }
+
 
     // ----- ConcurrentMap interface ----------------------------------------
 
@@ -1598,6 +1635,23 @@ public class ContinuousQueryCache<K, V_BACK, V_FRONT>
             }
 
         return filterMerged;
+        }
+
+    /**
+     * Return the continuous aggregation support implemented by the backing
+     * cache.
+     *
+     * @return the backing cache continuous aggregation support
+     */
+    protected ContinuousAggregationSupport getContinuousAggregationSupport()
+        {
+        NamedCache<K, V_BACK> cache = getCache();
+        if (!(cache instanceof ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation is not supported by " + cache.getClass().getName());
+            }
+        return (ContinuousAggregationSupport) cache;
         }
 
     /**

@@ -16,6 +16,8 @@ import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.InvocableMapHelper;
+import com.tangosol.util.MapTrigger;
 import com.tangosol.util.SortedBag;
 import com.tangosol.util.ValueExtractor;
 
@@ -29,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Objects;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 import jakarta.json.bind.annotation.JsonbTransient;
@@ -87,7 +90,40 @@ public class TopNAggregator<K, V, T, E>
         ensureInitialized();
 
         m_result.add(entry.extract(m_extractor));
+        m_cEntries++;
         return true;
+        }
+
+    @Override
+    public RetractionResult retract(InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized();
+
+        Object value;
+        if (entry instanceof MapTrigger.Entry)
+            {
+            MapTrigger.Entry triggerEntry = (MapTrigger.Entry) entry;
+            if (!triggerEntry.isOriginalPresent())
+                {
+                return RetractionResult.UPDATED;
+                }
+            value = InvocableMapHelper.extractOriginalFromEntry(m_extractor, triggerEntry);
+            }
+        else
+            {
+            value = entry.extract(m_extractor);
+            }
+
+        if (m_cEntries == 0)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        int     cEntriesBefore = m_cEntries--;
+        boolean fRetained      = m_result.remove(value);
+        return fRetained && cEntriesBefore > m_cResults
+               ? RetractionResult.REBUILD_REQUIRED
+               : RetractionResult.UPDATED;
         }
 
     @Override
@@ -96,6 +132,7 @@ public class TopNAggregator<K, V, T, E>
         ensureInitialized();
 
         m_result.merge(partialResult);
+        m_cEntries += partialResult.size();
         return true;
         }
 
@@ -103,7 +140,7 @@ public class TopNAggregator<K, V, T, E>
     public PartialResult<E> getPartialResult()
         {
         ensureInitialized();
-        return m_result;
+        return new PartialResult<E>(m_comparator, m_cResults).merge(m_result);
         }
 
     @Override
@@ -119,7 +156,62 @@ public class TopNAggregator<K, V, T, E>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized();
+        return new Object[] {Integer.valueOf(m_cEntries), getPartialResult()};
+        }
+
+    @Override
+    public void restoreState(Object oState)
+        {
+        if (!(oState instanceof Object[]) || ((Object[]) oState).length != 2
+                || !(((Object[]) oState)[0] instanceof Number)
+                || !(((Object[]) oState)[1] instanceof PartialResult))
+            {
+            throw new IllegalArgumentException("Invalid TopN aggregation state");
+            }
+
+        Object[]         aoState  = (Object[]) oState;
+        int              cEntries = ((Number) aoState[0]).intValue();
+        PartialResult<E> result   = (PartialResult<E>) aoState[1];
+        if (cEntries < 0 || cEntries < result.size())
+            {
+            throw new IllegalArgumentException("Invalid TopN entry count: " + cEntries);
+            }
+
+        m_result   = new PartialResult<E>(m_comparator, m_cResults).merge(result);
+        m_cEntries = cEntries;
+        m_fInit    = true;
+        }
+
+    // ----- Object methods -------------------------------------------------
+
+    @Override
+    public boolean equals(Object o)
+        {
+        if (this == o)
+            {
+            return true;
+            }
+        if (!(o instanceof TopNAggregator))
+            {
+            return false;
+            }
+        TopNAggregator<?, ?, ?, ?> that = (TopNAggregator<?, ?, ?, ?>) o;
+        return m_cResults == that.m_cResults
+                && Objects.equals(m_extractor, that.m_extractor)
+                && Objects.equals(m_comparator, that.m_comparator);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(m_extractor, m_comparator, m_cResults);
         }
 
     // ----- accessors ------------------------------------------------------
@@ -154,6 +246,7 @@ public class TopNAggregator<K, V, T, E>
         if (!m_fInit)
             {
             m_result = new PartialResult<>(m_comparator, m_cResults);
+            m_cEntries = 0;
             m_fInit  = true;
             }
         }
@@ -414,4 +507,9 @@ public class TopNAggregator<K, V, T, E>
      * The result accumulator.
      */
     private transient PartialResult<E> m_result;
+
+    /**
+     * The number of entries represented by this maintained result.
+     */
+    private transient int m_cEntries;
     }

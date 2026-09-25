@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,8 @@ import java.io.ObjectOutput;
 import java.io.OutputStream;
 
 import java.nio.ByteBuffer;
+
+import java.util.function.IntPredicate;
 
 /**
 * This is an imitation BufferOutput implementation that provides the
@@ -488,6 +490,20 @@ public class WrapperBufferOutput
         public boolean isVersionCompatible(int nEncodedVersion)
             {
             return f_message.isRecipientCompatible(nEncodedVersion);
+            }
+
+        /**
+        * Determine whether every recipient's encoded version satisfies the
+        * specified compatibility predicate.
+        *
+        * @param predicate  the compatibility predicate
+        *
+        * @return true iff every recipient's encoded version satisfies the
+        *         specified predicate
+        */
+        public boolean isVersionCompatible(IntPredicate predicate)
+            {
+            return f_message.isRecipientCompatible(predicate);
             }
 
         /**

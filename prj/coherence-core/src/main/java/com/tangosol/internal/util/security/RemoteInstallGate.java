@@ -10,6 +10,8 @@ import com.oracle.coherence.common.base.Logger;
 
 import com.tangosol.internal.util.CoherenceMode;
 
+import com.tangosol.internal.net.ContinuousAggregationProcessor;
+
 import com.tangosol.io.SerializationRole;
 import com.tangosol.io.internal.SerializationTelemetry;
 
@@ -376,6 +378,7 @@ public final class RemoteInstallGate
         cascadePropertyProcessor(processor, role, subject, cDepth + 1);
         cascadeUpdaterProcessor(processor, role, subject, cDepth + 1);
         cascadeProcessorCarrier(processor, role, subject, cDepth + 1);
+        cascadeContinuousAggregationProcessor(processor, role, subject, cDepth + 1);
         }
 
     private static void enforceCacheAggregatorInstall(InvocableMap.EntryAggregator<?, ?, ?> aggregator,
@@ -594,6 +597,19 @@ public final class RemoteInstallGate
                 {
                 enforceCacheProcessorInstall(nested, role, subject, cDepth);
                 }
+            }
+        }
+
+    private static void cascadeContinuousAggregationProcessor(
+            InvocableMap.EntryProcessor<?, ?, ?> processor,
+            SerializationRole role, Subject subject, int cDepth)
+        {
+        if (processor instanceof ContinuousAggregationProcessor)
+            {
+            ContinuousAggregationProcessor<?, ?, ?, ?> continuous =
+                    (ContinuousAggregationProcessor<?, ?, ?, ?>) processor;
+            enforceCacheFilterInstall(continuous.getFilter(), role, subject, cDepth);
+            enforceCacheAggregatorInstall(continuous.getAggregator(), role, subject, cDepth);
             }
         }
 

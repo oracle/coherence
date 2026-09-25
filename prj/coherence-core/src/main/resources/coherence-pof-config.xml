@@ -826,6 +826,16 @@ descriptor: pof-config.xsd.
       <class-name>com.tangosol.internal.util.stream.DoubleCollectorAggregator</class-name>
     </user-type>
 
+    <user-type>
+      <type-id>234</type-id>
+      <class-name>com.tangosol.internal.net.ContinuousAggregationQuery</class-name>
+    </user-type>
+
+    <user-type>
+      <type-id>235</type-id>
+      <class-name>com.tangosol.internal.net.ContinuousAggregationProcessor</class-name>
+    </user-type>
+
     <!-- com.tangosol.util.aggregator package (continued) (250-259) -->
 
     <user-type>

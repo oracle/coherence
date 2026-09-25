@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -41,7 +41,8 @@ import java.util.concurrent.TimeoutException;
  */
 @SuppressWarnings("rawtypes")
 public class NamedCacheClient<K, V>
-        implements NamedCache<K, V>
+        implements NamedCache<K, V>,
+                   com.tangosol.internal.net.ContinuousAggregationSupport
     {
     // ----- constructors ---------------------------------------------------
 
@@ -92,6 +93,31 @@ public class NamedCacheClient<K, V>
         {
         f_asyncClient.assertActive();
         handleCompletableFuture(f_asyncClient.addIndex(valueExtractor, sorted, comparator));
+        }
+
+    @Override
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        f_asyncClient.assertActive();
+        handleCompletableFuture(f_asyncClient.registerContinuousAggregation(definition));
+        }
+
+    @Override
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        f_asyncClient.assertActive();
+        handleCompletableFuture(f_asyncClient.removeContinuousAggregation(definition));
+        }
+
+    @Override
+    public Object aggregateContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        f_asyncClient.assertActive();
+        return handleCompletableFuture(
+                f_asyncClient.aggregateContinuousAggregation(definition));
         }
 
     @Override

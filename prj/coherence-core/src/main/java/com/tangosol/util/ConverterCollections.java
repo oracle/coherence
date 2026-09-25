@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -3203,7 +3203,8 @@ public abstract class ConverterCollections
     */
     public static class ConverterNamedCache<FK, TK, FV, TV>
             extends ConverterCacheMap<FK, TK, FV, TV>
-            implements NamedCache<TK, TV>, Serializable
+            implements NamedCache<TK, TV>, Serializable,
+                       com.tangosol.internal.net.ContinuousAggregationSupport
         {
         // ----- constructors -----------------------------------------------
 
@@ -3301,6 +3302,36 @@ public abstract class ConverterCollections
         public void truncate()
             {
             getNamedCache().truncate();
+            }
+
+        @Override
+        public void registerContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            getContinuousAggregationSupport().registerContinuousAggregation(definition);
+            }
+
+        @Override
+        public void removeContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            getContinuousAggregationSupport().removeContinuousAggregation(definition);
+            }
+
+        @Override
+        public Object aggregateContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            return ConverterInvocableMap.convertSafe(getConverterValueUp(),
+                    getContinuousAggregationSupport().aggregateContinuousAggregation(definition));
+            }
+
+        @Override
+        public com.tangosol.internal.net.ContinuousAggregationDefinition
+                prepareContinuousAggregation(
+                        com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            return getContinuousAggregationSupport().prepareContinuousAggregation(definition);
             }
 
         /**
@@ -3477,6 +3508,24 @@ public abstract class ConverterCollections
         public NamedCache<FK, FV> getNamedCache()
             {
             return (NamedCache<FK, FV>) getMap();
+            }
+
+        /**
+         * Return the continuous aggregation support implemented by the
+         * underlying cache.
+         *
+         * @return the underlying support
+         */
+        protected com.tangosol.internal.net.ContinuousAggregationSupport
+                getContinuousAggregationSupport()
+            {
+            NamedCache<FK, FV> cache = getNamedCache();
+            if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+                {
+                throw new UnsupportedOperationException(
+                        "continuous aggregation is not supported by " + cache.getClass().getName());
+                }
+            return (com.tangosol.internal.net.ContinuousAggregationSupport) cache;
             }
 
 

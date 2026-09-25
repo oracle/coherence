@@ -16,7 +16,9 @@ import com.tangosol.util.ClassHelper;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
+import com.tangosol.util.InvocableMapHelper;
 import com.tangosol.util.LiteMap;
+import com.tangosol.util.MapTrigger;
 import com.tangosol.util.ValueExtractor;
 
 import com.tangosol.util.extractor.ChainedExtractor;
@@ -29,9 +31,11 @@ import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import java.util.function.BinaryOperator;
@@ -148,6 +152,11 @@ public class GroupAggregator<K, V, T, E, R>
                         (InvocableMap.StreamingAggregator<? super K, ? super V, Object, R>)
                                 m_mapResults.computeIfAbsent(groupKey, k -> streaming(m_aggregator).supply());
                 aggregator.accumulate(entry);
+                if (m_fContinuous)
+                    {
+                    m_mapCounts.put(groupKey,
+                            Integer.valueOf(m_mapCounts.getOrDefault(groupKey, 0) + 1));
+                    }
                 }
             else
                 {
@@ -159,6 +168,114 @@ public class GroupAggregator<K, V, T, E, R>
             }
 
         return true;
+        }
+
+    @Override
+    public RetractionResult retract(InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        Object value;
+        if (entry instanceof MapTrigger.Entry)
+            {
+            MapTrigger.Entry triggerEntry = (MapTrigger.Entry) entry;
+            if (!triggerEntry.isOriginalPresent())
+                {
+                return RetractionResult.UPDATED;
+                }
+            value = InvocableMapHelper.extractOriginalFromEntry(m_extractor, triggerEntry);
+            }
+        else
+            {
+            value = entry.extract(m_extractor);
+            }
+
+        E       groupKey = (E) value;
+        Integer count    = m_mapCounts.get(groupKey);
+        Object  child    = m_mapResults.get(groupKey);
+        if (count == null || count == 0 || child == null)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        RetractionResult result = ((InvocableMap.StreamingAggregator) child).retract(entry);
+        if (result == RetractionResult.REBUILD_REQUIRED)
+            {
+            return result;
+            }
+
+        if (count == 1)
+            {
+            m_mapCounts.remove(groupKey);
+            m_mapResults.remove(groupKey);
+            return RetractionResult.UPDATED;
+            }
+
+        m_mapCounts.put(groupKey, Integer.valueOf(count - 1));
+        return result;
+        }
+
+    @Override
+    public RetractionResult update(InvocableMap.Entry<? extends K, ? extends V> entry)
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        if (entry instanceof MapTrigger.Entry)
+            {
+            MapTrigger.Entry triggerEntry = (MapTrigger.Entry) entry;
+            if (triggerEntry.isOriginalPresent() && entry.isPresent())
+                {
+                E groupOriginal = (E) InvocableMapHelper.extractOriginalFromEntry(
+                        m_extractor, triggerEntry);
+                E groupCurrent  = entry.extract(m_extractor);
+                if (Objects.equals(groupOriginal, groupCurrent))
+                    {
+                    Integer count = m_mapCounts.get(groupCurrent);
+                    Object  child = m_mapResults.get(groupCurrent);
+                    if (count == null || count == 0 || child == null)
+                        {
+                        return RetractionResult.REBUILD_REQUIRED;
+                        }
+
+                    RetractionResult result =
+                            ((InvocableMap.StreamingAggregator) child).update(entry);
+                    return result == RetractionResult.REBUILD_REQUIRED
+                           ? result : getMaintenanceStatus();
+                    }
+                }
+            }
+
+        return InvocableMap.StreamingAggregator.super.update(entry);
+        }
+
+    @Override
+    public RetractionResult getMaintenanceStatus()
+        {
+        ensureInitialized();
+        if (!m_fContinuous)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        for (Object child : m_mapResults.values())
+            {
+            if (((InvocableMap.StreamingAggregator) child).getMaintenanceStatus()
+                    != RetractionResult.UPDATED)
+                {
+                // Different groups may have unrelated bounds, so there is no
+                // single member-level bound that Storage can use.
+                return RetractionResult.REBUILD_REQUIRED;
+                }
+            }
+        return RetractionResult.UPDATED;
         }
 
     @Override
@@ -261,6 +378,79 @@ public class GroupAggregator<K, V, T, E, R>
                 : PARALLEL | RETAINS_ENTRIES; //InvocableMap.StreamingAggregator.super.characteristics();
         }
 
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized();
+        if (!m_fContinuous || !streaming(m_aggregator).isStateCheckpointable())
+            {
+            throw new UnsupportedOperationException("Group aggregator state is not checkpointable");
+            }
+
+        Map<E, Object[]> mapState = new LiteMap<>();
+        for (Map.Entry<E, Object> entry : m_mapResults.entrySet())
+            {
+            Integer count = m_mapCounts.get(entry.getKey());
+            if (count == null || count <= 0)
+                {
+                throw new IllegalStateException("Missing group entry count");
+                }
+            mapState.put(entry.getKey(), new Object[]
+                {
+                count,
+                ((InvocableMap.StreamingAggregator) entry.getValue()).snapshotState()
+                });
+            }
+        return mapState;
+        }
+
+    @Override
+    public void restoreState(Object oState)
+        {
+        if (!(oState instanceof Map))
+            {
+            throw new IllegalArgumentException("Expected a group state map");
+            }
+
+        ensureInitialized();
+        if (!m_fContinuous || !streaming(m_aggregator).isStateCheckpointable())
+            {
+            throw new UnsupportedOperationException("Group aggregator state is not checkpointable");
+            }
+
+        Map<E, Object>  mapResults = new LiteMap<>();
+        Map<E, Integer> mapCounts  = new HashMap<>();
+        for (Object oEntry : ((Map) oState).entrySet())
+            {
+            Map.Entry entry   = (Map.Entry) oEntry;
+            Object    oValue  = entry.getValue();
+            if (!(oValue instanceof Object[]) || ((Object[]) oValue).length != 2
+                    || !(((Object[]) oValue)[0] instanceof Number))
+                {
+                throw new IllegalArgumentException("Invalid group aggregation state");
+                }
+
+            Object[] aoValue = (Object[]) oValue;
+            int      count   = ((Number) aoValue[0]).intValue();
+            if (count <= 0)
+                {
+                throw new IllegalArgumentException("Invalid group entry count: " + count);
+                }
+
+            InvocableMap.StreamingAggregator child = streaming(m_aggregator).supply();
+            if (!child.isStateCheckpointable())
+                {
+                throw new UnsupportedOperationException("Group child state is not checkpointable");
+                }
+            child.restoreState(aoValue[1]);
+            mapResults.put((E) entry.getKey(), child);
+            mapCounts.put((E) entry.getKey(), Integer.valueOf(count));
+            }
+
+        m_mapResults = mapResults;
+        m_mapCounts  = mapCounts;
+        }
+
     // ----- accessors ------------------------------------------------------
 
     /**
@@ -305,6 +495,11 @@ public class GroupAggregator<K, V, T, E, R>
             m_mapResults = new LiteMap<>();
 
             m_fStreaming = m_aggregator instanceof InvocableMap.StreamingAggregator;
+            m_fContinuous = m_fStreaming && streaming(m_aggregator).isContinuous();
+            if (m_fContinuous)
+                {
+                m_mapCounts = new HashMap<>();
+                }
             if (!m_fStreaming)
                 {
                 m_fParallel = m_aggregator instanceof InvocableMap.ParallelAwareAggregator;
@@ -418,7 +613,8 @@ public class GroupAggregator<K, V, T, E, R>
             {
             GroupAggregator that = (GroupAggregator) o;
             return equals(this.m_extractor,  that.m_extractor)
-                && equals(this.m_aggregator, that.m_aggregator);
+                && equals(this.m_aggregator, that.m_aggregator)
+                && equals(this.m_filter,     that.m_filter);
             }
 
         return false;
@@ -432,7 +628,8 @@ public class GroupAggregator<K, V, T, E, R>
      */
     public int hashCode()
         {
-        return m_extractor.hashCode() + m_aggregator.hashCode();
+        return m_extractor.hashCode() + m_aggregator.hashCode()
+                + (m_filter == null ? 0 : m_filter.hashCode());
         }
 
     /**
@@ -626,6 +823,11 @@ public class GroupAggregator<K, V, T, E, R>
     protected transient boolean m_fStreaming;
 
     /**
+     * Flag specifying whether the delegate supports continuous maintenance.
+     */
+    protected transient boolean m_fContinuous;
+
+    /**
      * Flag specifying whether parallel optimizations can be used.
      */
     protected transient boolean m_fParallel;
@@ -634,4 +836,9 @@ public class GroupAggregator<K, V, T, E, R>
      * A map of partial results to aggregate.
      */
     protected transient Map<E, Object> m_mapResults;
+
+    /**
+     * The current entry count for every maintained group.
+     */
+    protected transient Map<E, Integer> m_mapCounts;
     }

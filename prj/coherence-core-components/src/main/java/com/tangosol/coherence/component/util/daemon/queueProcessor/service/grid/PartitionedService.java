@@ -5195,6 +5195,13 @@ public abstract class PartitionedService
         com.tangosol.internal.net.security.PeerProofReadiness.recordTopologyChange();
         getThisMemberConfigMap().put("ownership-enabled",
             Integer.valueOf(fOwnershipEnabled ? OWNERSHIP_PENDING : OWNERSHIP_DISABLED));
+
+        // Advertise feature support explicitly because the encoded calendar
+        // version cannot distinguish individual releases within a half-year.
+        getThisMemberConfigMap().put(
+            com.tangosol.internal.net.ContinuousAggregationSupport.MEMBER_CONFIG_KEY,
+            Integer.valueOf(com.tangosol.internal.net.ContinuousAggregationSupport
+                .MEMBER_CONFIG_VERSION));
         
         // configure the deferred backup timeout; default to packet timeout
         String sDelayMillis = Config.getProperty("coherence.distributed.deferredbackuptimeout");
@@ -5709,7 +5716,7 @@ public abstract class PartitionedService
                 PersistentStoreInfo[] aStoreInfoMerged = aBackupStoreInfo == null
                     ? aStoreInfo
                     : Base.mergeArray(aStoreInfo, aBackupStoreInfo);
-        
+
                 int  cParts      = getPartitionCount();
                 int  cGUID       = aStoreInfoMerged.length;
                 List listRecover = new ArrayList(cGUID);
@@ -5728,7 +5735,8 @@ public abstract class PartitionedService
                             }
         
                         // we only need the global partitions to facilitate the active persistence recovery
-                        if (partsGlobal.contains(iPart) &&
+                        if (!storeInfo.isEmpty() &&
+                            partsGlobal.contains(iPart) &&
                             sSnapshot == null &&
                             (aBackupStoreInfo == null ||
                              (aBackupStoreInfo != null &&
@@ -5752,7 +5760,7 @@ public abstract class PartitionedService
                     (PersistentStoreInfo[]) listRecover.toArray(new PersistentStoreInfo[listRecover.size()]));
 
                 msgResponse.setStoreInfos(resolver.getNewestStoreInfos(partsRecover));
-        
+
                 if (sSnapshot == null)
                     {
                     PartitionSet partsOwned = collectOwnedPartitions(true);
@@ -8020,9 +8028,18 @@ public abstract class PartitionedService
                     {
                     try
                         {
-                        storeTo = ctrlPart.ensureOpenPersistentStore(storeFrom, false);
+                        // An unopened recovery store represents an empty
+                        // partition.  Passing it as the source prevents the
+                        // persistence manager from submitting the target-store
+                        // open, leaving recovery blocked in ensureReady().
+                        boolean fEmpty = !storeFrom.isOpen();
+                        storeTo = ctrlPart.ensureOpenPersistentStore(
+                                fEmpty ? null : storeFrom, fEmpty);
 
-                        if (fSnapshot)
+                        // A newly opened target for an empty partition must be
+                        // sealed immediately so that it has the persistence
+                        // metadata extents expected by the recovery phase.
+                        if (!fEmpty && fSnapshot)
                             {
                             com.tangosol.persistence.CachePersistenceHelper.validateForSnapshotRecovery(
                                     storeTo, this, fSparseSnapshot);
@@ -8030,7 +8047,7 @@ public abstract class PartitionedService
                             com.tangosol.persistence.CachePersistenceHelper.unsealForSnapshotRecovery(
                                     storeTo, fSparseSnapshot);
                             }
-                        else
+                        else if (!fEmpty)
                             {
                             com.tangosol.persistence.CachePersistenceHelper.validateForActiveRecovery(storeTo, this);
 
@@ -13250,6 +13267,15 @@ public abstract class PartitionedService
                     msgRequest.setSnapshotToRecover(sSnapshot);
                     msgRequest.setGUIDs(resolverGUID.getNewestGUIDs(msgRequest.getPartsRecover()));
                     msgRequest.setPartsRecovered(partsRecovered);
+                    msgRequest.setRecoveryPartitionCount(partsRecover.cardinality());
+
+                    // RecoveryStartNanos is transient: the recipient records its own local
+                    // worker timing, while the coordinator-side request must retain the
+                    // send time for Poll.onCompletion() to report end-to-end recovery time.
+                    if (PartitionedService.PartitionRecoverRequest.isRecoveryTimingEnabled())
+                        {
+                        msgRequest.setRecoveryStartNanos(System.nanoTime());
+                        }
             
                     service.post(msgRequest);
                     }
@@ -24400,6 +24426,15 @@ public abstract class PartitionedService
         private transient long __m_RecoveryStartNanos;
 
         /**
+         * Property RecoveryPartitionCount
+         *
+         * Coordinator-side count of partitions requested for the complete
+         * recovery operation.  This is retained on each outgoing request so
+         * the last completed poll can report the aggregate result.
+         */
+        private transient int __m_RecoveryPartitionCount;
+
+        /**
          * Property RecoverJobs
          *
          * Count of partition recover jobs.
@@ -24632,6 +24667,16 @@ public abstract class PartitionedService
             return __m_RecoveryStartNanos;
             }
 
+        /**
+         * Getter for property RecoveryPartitionCount.<p>
+         * Coordinator-side count of partitions requested for the complete
+         * recovery operation.
+         */
+        public int getRecoveryPartitionCount()
+            {
+            return __m_RecoveryPartitionCount;
+            }
+
         // Accessor for the property "PersistenceManager"
         /**
          * Getter for property PersistenceManager.<p>
@@ -24818,7 +24863,9 @@ public abstract class PartitionedService
                 {
                 _trace("Persistence recovery request timings: phase=start"
                         + ", source=" + (getSnapshotToRecover() == null ? "active" : "snapshot:" + getSnapshotToRecover())
-                        + ", parts-recover=" + getPartsRecover().cardinality()
+                        // PartsRecover is coordinator-local and is not serialized to a remote recipient;
+                        // each serialized persistent GUID represents one partition to recover.
+                        + ", parts-recover=" + cGUIDs
                         + ", parts-assign=" + getPartsAssign().cardinality()
                         + ", guids=" + cGUIDs
                         + ", jobs=" + laJob.getSize()
@@ -24930,6 +24977,16 @@ public abstract class PartitionedService
         public void setRecoveryStartNanos(long cNanos)
             {
             __m_RecoveryStartNanos = cNanos;
+            }
+
+        /**
+         * Setter for property RecoveryPartitionCount.<p>
+         * Coordinator-side count of partitions requested for the complete
+         * recovery operation.
+         */
+        public void setRecoveryPartitionCount(int cPartitions)
+            {
+            __m_RecoveryPartitionCount = cPartitions;
             }
 
         // Accessor for the property "RecoverJobs"
@@ -25165,11 +25222,13 @@ public abstract class PartitionedService
                         if (PartitionedService.PartitionRecoverRequest.isRecoveryTimingEnabled())
                             {
                             long cNanos = msgRequest.getRecoveryStartNanos();
+                            int  cFailed = msgRequest.getPartsRecovered().cardinality();
                             _trace("Persistence recovery request timings: phase=complete"
                                     + ", source=" + (sSnapshot == null ? "active" : "snapshot:" + sSnapshot)
                                     + ", elapsed-ms=" + PartitionedService.PartitionRecoverRequest.formatMillis(
                                             cNanos == 0L ? 0L : System.nanoTime() - cNanos)
-                                    + ", parts-recovered=" + msgRequest.getPartsRecovered().cardinality()
+                                    + ", parts-recovered=" + Math.max(0,
+                                            msgRequest.getRecoveryPartitionCount() - cFailed)
                                     + ", parts-failed=" + service.collectOrphanPartitions().cardinality()
                                     + ", events-failed="
                                             + (msgRequest.getEventsPartsFailed() == null

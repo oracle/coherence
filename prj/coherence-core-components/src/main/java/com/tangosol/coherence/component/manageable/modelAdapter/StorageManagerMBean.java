@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -165,6 +165,86 @@ public class StorageManagerMBean
                 "getEvictionCount",
                 null,
                 "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationRegistrationCount
+            {
+            mapInfo.put("ContinuousAggregationRegistrationCount", new Object[]
+                {
+                "The number of continuous aggregation definitions registered for this cache.",
+                "getContinuousAggregationRegistrationCount", null, "I",
+                "rest.collector=set,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationReadyPartitionCount
+            {
+            mapInfo.put("ContinuousAggregationReadyPartitionCount", new Object[]
+                {
+                "The number of continuous aggregation partition states with exact results.",
+                "getContinuousAggregationReadyPartitionCount", null, "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationBuildingPartitionCount
+            {
+            mapInfo.put("ContinuousAggregationBuildingPartitionCount", new Object[]
+                {
+                "The number of continuous aggregation partition states currently being built.",
+                "getContinuousAggregationBuildingPartitionCount", null, "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationStalePartitionCount
+            {
+            mapInfo.put("ContinuousAggregationStalePartitionCount", new Object[]
+                {
+                "The number of continuous aggregation partition states that are inexact and may require a fallback scan.",
+                "getContinuousAggregationStalePartitionCount", null, "I",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationMutationCount
+            {
+            mapInfo.put("ContinuousAggregationMutationCount", new Object[]
+                {
+                "The number of entry transitions applied to continuous aggregation state since statistics were reset.",
+                "getContinuousAggregationMutationCount", null, "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationFallbackCount
+            {
+            mapInfo.put("ContinuousAggregationFallbackCount", new Object[]
+                {
+                "The number of partition scans used to answer continuous aggregation queries since statistics were reset.",
+                "getContinuousAggregationFallbackCount", null, "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationRebuildCount
+            {
+            mapInfo.put("ContinuousAggregationRebuildCount", new Object[]
+                {
+                "The number of continuous aggregation partition state builds completed since statistics were reset.",
+                "getContinuousAggregationRebuildCount", null, "J",
+                "rest.collector=sum,metrics.value=_default",
+                });
+            }
+
+        // property ContinuousAggregationDirtyCount
+            {
+            mapInfo.put("ContinuousAggregationDirtyCount", new Object[]
+                {
+                "The number of exact-to-inexact continuous aggregation state transitions since statistics were reset.",
+                "getContinuousAggregationDirtyCount", null, "J",
                 "rest.collector=sum,metrics.value=_default",
                 });
             }
@@ -559,6 +639,54 @@ public class StorageManagerMBean
     * @descriptor rest.collector=sum,metrics.value=_default
      */
     public long getEvictionCount()
+        {
+        return 0L;
+        }
+
+    /** Return the number of registered continuous aggregations. */
+    public int getContinuousAggregationRegistrationCount()
+        {
+        return 0;
+        }
+
+    /** Return the number of exact continuous aggregation partition states. */
+    public int getContinuousAggregationReadyPartitionCount()
+        {
+        return 0;
+        }
+
+    /** Return the number of continuous aggregation states being built. */
+    public int getContinuousAggregationBuildingPartitionCount()
+        {
+        return 0;
+        }
+
+    /** Return the number of inexact continuous aggregation states. */
+    public int getContinuousAggregationStalePartitionCount()
+        {
+        return 0;
+        }
+
+    /** Return the maintained-entry transition count. */
+    public long getContinuousAggregationMutationCount()
+        {
+        return 0L;
+        }
+
+    /** Return the partition fallback-scan count. */
+    public long getContinuousAggregationFallbackCount()
+        {
+        return 0L;
+        }
+
+    /** Return the completed state build count. */
+    public long getContinuousAggregationRebuildCount()
+        {
+        return 0L;
+        }
+
+    /** Return the exact-to-inexact transition count. */
+    public long getContinuousAggregationDirtyCount()
         {
         return 0L;
         }

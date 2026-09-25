@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,6 +21,7 @@ import com.tangosol.io.pof.PofWriter;
 import com.tangosol.io.pof.PortableObject;
 
 import com.tangosol.net.CacheService;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.NamedCache;
 
 import com.tangosol.net.cache.ContinuousQueryCache;
@@ -34,8 +35,12 @@ import com.tangosol.util.ObservableMap;
 import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.KeyExtractor;
 
+import com.tangosol.util.aggregator.Count;
+
 import com.tangosol.util.filter.AlwaysFilter;
 import com.tangosol.util.filter.BetweenFilter;
+import com.tangosol.util.filter.GreaterEqualsFilter;
+import com.tangosol.util.filter.LessFilter;
 
 import com.tangosol.util.processor.AbstractProcessor;
 
@@ -139,6 +144,45 @@ public class CQCTests
         }
 
     // ----- test methods ---------------------------------------------------
+
+    /**
+     * Ensure continuous aggregation is maintained over the filtered CQC
+     * view, rather than over the complete backing cache.
+     */
+    @Test
+    public void testContinuousAggregation()
+        {
+        NamedCache<String, Integer> cache = getNamedCache("dist-continuous-aggregation-cqc");
+        cache.clear();
+        cache.put("one", 1);
+        cache.put("two", 2);
+        cache.put("three", 3);
+        cache.put("four", 4);
+
+        ContinuousQueryCache<String, Integer, Integer> cacheCQC = setCQC(
+                new ContinuousQueryCache<>(cache,
+                        new GreaterEqualsFilter<>(IdentityExtractor.INSTANCE(), 2)));
+        ContinuousAggregator<String, Integer, Integer> count = cacheCQC.addAggregator(
+                new LessFilter<>(IdentityExtractor.INSTANCE(), 4), new Count<>());
+        try
+            {
+            assertEquals(Integer.valueOf(2), count.aggregate());
+
+            cache.put("three", 5);
+            assertEquals(Integer.valueOf(1), count.aggregate());
+
+            cache.put("one", 2);
+            assertEquals(Integer.valueOf(2), count.aggregate());
+
+            cache.remove("two");
+            assertEquals(Integer.valueOf(1), count.aggregate());
+            }
+        finally
+            {
+            cacheCQC.removeAggregator(count);
+            cache.clear();
+            }
+        }
 
     /**
      * Test the behavior of proxy returning events.

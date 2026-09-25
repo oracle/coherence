@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -58,6 +58,7 @@ import java.util.Set;
 public class ViewMap
         extends    com.tangosol.coherence.component.Util
         implements com.tangosol.io.ClassLoaderAware,
+                   com.tangosol.internal.net.ContinuousAggregationSupport,
                    com.tangosol.net.NamedCache
     {
     // ---- Fields declarations ----
@@ -246,6 +247,29 @@ public class ViewMap
     public void addIndex(com.tangosol.util.ValueExtractor extractor, boolean fOrdered, java.util.Comparator comparator)
         {
         ensureBinaryMap().addIndex(extractor, fOrdered, comparator);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        ensureBinaryMap().registerContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        ensureBinaryMap().removeContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public Object aggregateContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        ensureBinaryMap().ensureContinuousAggregationCompatible();
+        return aggregate(definition.getFilter(),
+                new com.tangosol.internal.net.ContinuousAggregationQuery(definition));
         }
 
     // From interface: com.tangosol.net.NamedCache

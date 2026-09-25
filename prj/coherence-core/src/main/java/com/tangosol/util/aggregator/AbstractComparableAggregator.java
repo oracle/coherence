@@ -18,6 +18,7 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import java.util.Comparator;
+import java.util.Objects;
 
 import jakarta.json.bind.annotation.JsonbProperty;
 
@@ -98,8 +99,9 @@ public abstract class AbstractComparableAggregator<T, R>
     */
     protected void init(boolean fFinal)
         {
-        m_count   = 0;
-        m_oResult = null;
+        m_count    = 0;
+        m_cSupport = 0;
+        m_oResult  = null;
         }
 
     /**
@@ -108,6 +110,36 @@ public abstract class AbstractComparableAggregator<T, R>
     protected R finalizeResult(boolean fFinal)
         {
         return m_count == 0 ? null : m_oResult;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new Object[] {Integer.valueOf(m_count), Integer.valueOf(m_cSupport), m_oResult};
+        }
+
+    @Override
+    public void restoreState(Object state)
+        {
+        if (!(state instanceof Object[]) || ((Object[]) state).length != 3)
+            {
+            throw new IllegalArgumentException("invalid comparable aggregator state snapshot");
+            }
+
+        Object[] aoState  = (Object[]) state;
+        int      cValues  = ((Number) aoState[0]).intValue();
+        int      cSupport = ((Number) aoState[1]).intValue();
+        if (cValues < 0 || cSupport < 0 || cSupport > cValues
+                || cValues == 0 && aoState[2] != null)
+            {
+            throw new IllegalArgumentException("invalid comparable aggregator state values");
+            }
+
+        ensureInitialized(false);
+        m_count    = cValues;
+        m_cSupport = cSupport;
+        m_oResult  = (R) aoState[2];
         }
 
     // ----- accessors ------------------------------------------------------
@@ -120,6 +152,22 @@ public abstract class AbstractComparableAggregator<T, R>
     public Comparator<? super R> getComparator()
         {
         return m_comparator;
+        }
+
+    // ----- Object methods ------------------------------------------------
+
+    @Override
+    public boolean equals(Object o)
+        {
+        return super.equals(o)
+                && Objects.equals(m_comparator,
+                        ((AbstractComparableAggregator<?, ?>) o).m_comparator);
+        }
+
+    @Override
+    public int hashCode()
+        {
+        return Objects.hash(super.hashCode(), m_comparator);
         }
 
 
@@ -175,6 +223,11 @@ public abstract class AbstractComparableAggregator<T, R>
     * The count of processed entries.
     */
     protected transient int m_count;
+
+    /**
+    * The number of current entries equal to the retained extremum.
+    */
+    protected transient int m_cSupport;
 
     /**
     * The running result value.

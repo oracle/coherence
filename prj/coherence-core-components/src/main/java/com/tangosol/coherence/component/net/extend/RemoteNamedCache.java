@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -65,6 +65,7 @@ import java.util.Set;
 public class RemoteNamedCache
         extends    com.tangosol.coherence.component.net.Extend
         implements com.tangosol.net.NamedCache,
+                   com.tangosol.internal.net.ContinuousAggregationSupport,
                    com.tangosol.net.cache.BinaryEntryStore,
                    com.tangosol.net.cache.CacheStore,
                    com.tangosol.net.messaging.Channel.Receiver
@@ -273,6 +274,39 @@ public class RemoteNamedCache
     public void addIndex(com.tangosol.util.ValueExtractor extractor, boolean fOrdered, java.util.Comparator comparator)
         {
         getBinaryCache().addIndex(extractor, fOrdered, comparator);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        ((com.tangosol.internal.net.ContinuousAggregationSupport) getConverterCache())
+                .registerContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        ((com.tangosol.internal.net.ContinuousAggregationSupport) getConverterCache())
+                .removeContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public Object aggregateContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        return ((com.tangosol.internal.net.ContinuousAggregationSupport) getConverterCache())
+                .aggregateContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public com.tangosol.internal.net.ContinuousAggregationDefinition
+            prepareContinuousAggregation(
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        return ((com.tangosol.internal.net.ContinuousAggregationSupport) getConverterCache())
+                .prepareContinuousAggregation(definition);
         }
     
     // From interface: com.tangosol.net.NamedCache
@@ -1194,7 +1228,8 @@ public class RemoteNamedCache
     @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
     public static class BinaryCache
             extends    com.tangosol.coherence.component.Util
-            implements com.tangosol.net.NamedCache
+            implements com.tangosol.net.NamedCache,
+                       com.tangosol.internal.net.ContinuousAggregationSupport
         {
         // ---- Fields declarations ----
         
@@ -1378,6 +1413,67 @@ public class RemoteNamedCache
             request.setOrdered(fOrdered);
             
             channel.request(request);
+            }
+
+        // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+        public void registerContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            sendContinuousAggregationRequest(
+                    definition,
+                    com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory
+                            .ContinuousAggregationRequest.OPERATION_REGISTER);
+            }
+
+        // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+        public void removeContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            sendContinuousAggregationRequest(
+                    definition,
+                    com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory
+                            .ContinuousAggregationRequest.OPERATION_REMOVE);
+            }
+
+        // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+        public Object aggregateContinuousAggregation(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+            {
+            return sendContinuousAggregationRequest(
+                    definition,
+                    com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory
+                            .ContinuousAggregationRequest.OPERATION_QUERY);
+            }
+
+        /**
+         * Send a continuous aggregation request to the cache proxy.
+         */
+        protected Object sendContinuousAggregationRequest(
+                com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+                int nOperation)
+            {
+            Channel channel = ensureChannel();
+            com.tangosol.net.messaging.Protocol.MessageFactory factory =
+                    channel.getMessageFactory();
+            if (factory.getVersion() < 13)
+                {
+                throw new UnsupportedOperationException(
+                        "continuous aggregation requires Coherence*Extend protocol version 13"
+                        + " (Coherence "
+                        + com.tangosol.internal.net.ContinuousAggregationSupport
+                                .getMinimumVersionDescription() + ')');
+                }
+
+            com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory
+                    .ContinuousAggregationRequest request =
+                    (com.tangosol.coherence.component.net.extend.messageFactory.NamedCacheFactory
+                            .ContinuousAggregationRequest) factory.createMessage(
+                                    com.tangosol.coherence.component.net.extend.messageFactory
+                                            .NamedCacheFactory.ContinuousAggregationRequest.TYPE_ID);
+            request.setOperation(nOperation);
+            request.setFilter(definition.getFilter());
+            request.setAggregator(definition.getAggregator());
+            return channel.request(request);
             }
         
         // From interface: com.tangosol.net.NamedCache

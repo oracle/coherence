@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -13,6 +13,7 @@ package com.tangosol.coherence.component.net.management.model.localModel;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache;
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.partitionedCache.Storage;
 
+import com.tangosol.internal.net.ContinuousAggregationSupport;
 import com.tangosol.internal.util.VersionHelper;
 
 import com.tangosol.net.NamedCache;
@@ -237,6 +238,77 @@ public class StorageManagerModel
         
         Storage storage = get_Storage();
         return storage == null ? -1L : storage.getStatsEvictions().get();
+        }
+
+    /**
+     * Return the number of continuous aggregation definitions registered for
+     * this cache.
+     */
+    public int getContinuousAggregationRegistrationCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? 0 : storage.getContinuousAggregationRegistrationCount();
+        }
+
+    /**
+     * Return the number of exact continuous aggregation partition states.
+     */
+    public int getContinuousAggregationReadyPartitionCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? 0 : storage.getContinuousAggregationStateCount(
+                com.tangosol.internal.net.ContinuousAggregationState.Status.READY);
+        }
+
+    /**
+     * Return the number of continuous aggregation partition states being built.
+     */
+    public int getContinuousAggregationBuildingPartitionCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? 0 : storage.getContinuousAggregationStateCount(
+                com.tangosol.internal.net.ContinuousAggregationState.Status.BUILDING);
+        }
+
+    /**
+     * Return the number of inexact continuous aggregation partition states.
+     */
+    public int getContinuousAggregationStalePartitionCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? 0 : storage.getContinuousAggregationStaleStateCount();
+        }
+
+    /** Return the number of entry transitions applied to maintained states. */
+    public long getContinuousAggregationMutationCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? -1L
+                : storage.getStatsContinuousAggregationMutations().get();
+        }
+
+    /** Return the number of partition scans used to answer CA queries. */
+    public long getContinuousAggregationFallbackCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? -1L
+                : storage.getStatsContinuousAggregationFallbacks().get();
+        }
+
+    /** Return the number of completed continuous aggregation state builds. */
+    public long getContinuousAggregationRebuildCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? -1L
+                : storage.getStatsContinuousAggregationRebuilds().get();
+        }
+
+    /** Return the number of exact-to-inexact continuous aggregation transitions. */
+    public long getContinuousAggregationDirtyCount()
+        {
+        Storage storage = get_Storage();
+        return storage == null ? -1L
+                : storage.getStatsContinuousAggregationDirty().get();
         }
     
     // Accessor for the property "IndexInfo"
@@ -742,6 +814,27 @@ public class StorageManagerModel
             {
             mapSnapshot.put("ClearCount", ExternalizableHelper.readLong(in));
             }
+
+        if (ExternalizableHelper.isVersionCompatible(in,
+                ContinuousAggregationSupport::isVersionCompatible))
+            {
+            mapSnapshot.put("ContinuousAggregationRegistrationCount",
+                    Base.makeInteger(ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("ContinuousAggregationReadyPartitionCount",
+                    Base.makeInteger(ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("ContinuousAggregationBuildingPartitionCount",
+                    Base.makeInteger(ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("ContinuousAggregationStalePartitionCount",
+                    Base.makeInteger(ExternalizableHelper.readInt(in)));
+            mapSnapshot.put("ContinuousAggregationMutationCount",
+                    Base.makeLong(ExternalizableHelper.readLong(in)));
+            mapSnapshot.put("ContinuousAggregationFallbackCount",
+                    Base.makeLong(ExternalizableHelper.readLong(in)));
+            mapSnapshot.put("ContinuousAggregationRebuildCount",
+                    Base.makeLong(ExternalizableHelper.readLong(in)));
+            mapSnapshot.put("ContinuousAggregationDirtyCount",
+                    Base.makeLong(ExternalizableHelper.readLong(in)));
+            }
         }
     
     public void resetStatistics()
@@ -955,6 +1048,19 @@ public class StorageManagerModel
             || ExternalizableHelper.isPatchCompatible(out, VersionHelper.VERSION_14_1_1_2206_7))
             {
             ExternalizableHelper.writeLong(out, getClearCount());
+            }
+
+        if (ExternalizableHelper.isVersionCompatible(out,
+                ContinuousAggregationSupport::isVersionCompatible))
+            {
+            ExternalizableHelper.writeInt(out, getContinuousAggregationRegistrationCount());
+            ExternalizableHelper.writeInt(out, getContinuousAggregationReadyPartitionCount());
+            ExternalizableHelper.writeInt(out, getContinuousAggregationBuildingPartitionCount());
+            ExternalizableHelper.writeInt(out, getContinuousAggregationStalePartitionCount());
+            ExternalizableHelper.writeLong(out, getContinuousAggregationMutationCount());
+            ExternalizableHelper.writeLong(out, getContinuousAggregationFallbackCount());
+            ExternalizableHelper.writeLong(out, getContinuousAggregationRebuildCount());
+            ExternalizableHelper.writeLong(out, getContinuousAggregationDirtyCount());
             }
         }
     }

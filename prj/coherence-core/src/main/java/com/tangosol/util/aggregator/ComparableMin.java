@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
 
+
+import com.tangosol.internal.net.ContinuousAggregationBound;
 
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.ValueExtractor;
@@ -31,6 +33,7 @@ import java.util.Comparator;
 */
 public class ComparableMin<T, R>
         extends AbstractComparableAggregator<T, R>
+        implements ContinuousAggregationBound
     {
     // ----- constructors ---------------------------------------------------
 
@@ -88,7 +91,33 @@ public class ComparableMin<T, R>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public RetractionResult getMaintenanceStatus()
+        {
+        return m_count == 0 || m_cSupport > 0
+               ? RetractionResult.UPDATED
+               : RetractionResult.STALE_BOUND;
+        }
+
+    @Override
+    public Object getContinuousAggregationBound()
+        {
+        return m_oResult;
+        }
+
+    @Override
+    public int compareContinuousAggregationBounds(Object left, Object right)
+        {
+        return SafeComparator.compareSafe(m_comparator, left, right);
+        }
+
+    @Override
+    public boolean isContinuousAggregationBoundDominated(Object bound, Object exactPartial)
+        {
+        return SafeComparator.compareSafe(m_comparator, exactPartial, bound) <= 0;
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -101,12 +130,44 @@ public class ComparableMin<T, R>
         if (o != null)
             {
             R oResult = m_oResult;
-            if (oResult == null ||
-                SafeComparator.compareSafe(m_comparator, oResult, o) > 0)
+            int nCompare = oResult == null ? 1
+                    : SafeComparator.compareSafe(m_comparator, oResult, o);
+            if (nCompare > 0)
                 {
                 m_oResult = (R) o;
+                m_cSupport = 1;
+                }
+            else if (nCompare == 0)
+                {
+                m_cSupport++;
                 }
             m_count++;
             }
+        }
+
+    @Override
+    protected RetractionResult remove(Object o)
+        {
+        if (o == null)
+            {
+            return getMaintenanceStatus();
+            }
+        if (m_count == 0)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        if (SafeComparator.compareSafe(m_comparator, m_oResult, o) == 0
+                && m_cSupport > 0)
+            {
+            m_cSupport--;
+            }
+
+        if (--m_count == 0)
+            {
+            m_oResult  = null;
+            m_cSupport = 0;
+            }
+        return getMaintenanceStatus();
         }
     }

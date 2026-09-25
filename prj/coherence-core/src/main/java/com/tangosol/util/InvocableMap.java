@@ -6,6 +6,8 @@
  */
 package com.tangosol.util;
 
+import com.tangosol.internal.net.DefaultContinuousAggregator;
+
 import com.tangosol.internal.util.invoke.Lambdas;
 
 import com.tangosol.internal.util.processor.CacheProcessors;
@@ -13,6 +15,7 @@ import com.tangosol.internal.util.processor.CacheProcessors;
 import com.tangosol.internal.util.stream.StreamSupport;
 
 import com.tangosol.net.BackingMapContext;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.GuardSupport;
 import com.tangosol.net.Guardian.GuardContext;
 
@@ -168,6 +171,92 @@ public interface InvocableMap<K, V>
      * @return the result of the aggregation
      */
     public <R> R aggregate(Filter filter, EntryAggregator<? super K, ? super V, R> aggregator);
+
+    // ----- Continuous Aggregation API ------------------------------------
+
+    /**
+     * Register an aggregator to be continuously maintained for all entries in
+     * this map.
+     * <p>
+     * Registration is idempotent. If an equal aggregator definition is
+     * already registered for all entries, this method returns a handle for the
+     * existing registration without rebuilding it. Aggregator equality and
+     * hashing must be based solely on serialized definition state.
+     *
+     * @param <R>         the type of the final aggregation result
+     * @param aggregator  the streaming aggregator to register
+     *
+     * @return a handle for obtaining the continuously maintained result
+     *
+     * @throws IllegalArgumentException if the aggregator does not advertise
+     *         continuous aggregation support
+     * @throws UnsupportedOperationException if this map implementation does
+     *         not support continuous aggregation
+     *
+     * @since 26.10
+     */
+    public default <R> ContinuousAggregator<K, V, R> addAggregator(
+            StreamingAggregator<? super K, ? super V, ?, R> aggregator)
+        {
+        return addAggregator(null, aggregator);
+        }
+
+    /**
+     * Register an aggregator to be continuously maintained for entries in
+     * this map that satisfy the specified filter.
+     * <p>
+     * The complete filter and aggregator definition is the semantic identity
+     * of the registration. Registration of an equal definition is idempotent
+     * and returns a handle for the existing registration. Both the filter and
+     * aggregator must implement stable equality and hashing based solely on
+     * their serialized definition state.
+     * <p>
+     * If {@code filter} is a
+     * {@link com.tangosol.util.filter.KeyAssociatedFilter}, the registration
+     * is maintained and queried only for the partitions associated with its
+     * host key. The outer key-associated filter, including its host key,
+     * remains part of the registration identity; only its wrapped filter is
+     * evaluated against entries on storage members.
+     *
+     * @param <R>         the type of the final aggregation result
+     * @param filter      the filter selecting entries to aggregate
+     * @param aggregator  the streaming aggregator to register
+     *
+     * @return a handle for obtaining the continuously maintained result
+     *
+     * @throws IllegalArgumentException if the aggregator does not advertise
+     *         continuous aggregation support
+     * @throws UnsupportedOperationException if this map implementation does
+     *         not support continuous aggregation
+     *
+     * @since 26.10
+     */
+    public default <R> ContinuousAggregator<K, V, R> addAggregator(
+            Filter<?> filter,
+            StreamingAggregator<? super K, ? super V, ?, R> aggregator)
+        {
+        return DefaultContinuousAggregator.create(this, filter, aggregator);
+        }
+
+    /**
+     * Remove a continuously maintained aggregation.
+     * <p>
+     * A handle is bound to the map that created it. Passing a handle created
+     * by another map is rejected. Removal is idempotent, but it removes the
+     * cluster-wide registration and therefore invalidates all handles for the
+     * same registration.
+     *
+     * @param aggregator  the continuous aggregation handle to remove
+     * @param <R>         the type of the final aggregation result
+     *
+     * @throws IllegalArgumentException if the handle belongs to another map
+     *
+     * @since 26.10
+     */
+    public default <R> void removeAggregator(ContinuousAggregator<K, V, R> aggregator)
+        {
+        DefaultContinuousAggregator.remove(this, aggregator);
+        }
 
     // ----- Map interface --------------------------------------------------
 
@@ -944,6 +1033,106 @@ public interface InvocableMap<K, V>
         public boolean accumulate(Entry<? extends K, ? extends V> entry);
 
         /**
+         * Retract the contribution of a single entry from the aggregation
+         * result.
+         * <p>
+         * When the supplied entry is a {@link MapTrigger.Entry}, an
+         * implementation should retract the entry's original value. Otherwise,
+         * it should retract the value represented by the supplied entry.
+         * <p>
+         * The default implementation cannot retract an entry and requires the
+         * caller to rebuild the aggregation result.
+         *
+         * @param entry  the entry to retract
+         *
+         * @return the state of the aggregation result after the retraction
+         */
+        public default RetractionResult retract(Entry<? extends K, ? extends V> entry)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        /**
+         * Replace the contribution of an entry that was present before and
+         * remains present after a map update.
+         * <p>
+         * The supplied entry is expected to be a {@link MapTrigger.Entry}
+         * exposing both its original and current values. The default
+         * implementation retracts the original contribution, accumulates the
+         * current contribution, and therefore preserves the semantics of an
+         * update for aggregators that do not provide a specialized
+         * implementation.
+         *
+         * @param entry  the updated entry
+         *
+         * @return the state of the aggregation result after the update
+         */
+        public default RetractionResult update(Entry<? extends K, ? extends V> entry)
+            {
+            RetractionResult result = retract(entry);
+            if (result == RetractionResult.REBUILD_REQUIRED)
+                {
+                return result;
+                }
+
+            accumulate(entry);
+            return getMaintenanceStatus();
+            }
+
+        /**
+         * Return the current maintenance status of this aggregator.
+         * <p>
+         * This method is evaluated after an update has been fully applied, so
+         * an aggregator may report {@link RetractionResult#STALE_BOUND} from
+         * {@link #retract(Entry)} and return {@link RetractionResult#UPDATED}
+         * here if accumulating the replacement value restored an exact result.
+         *
+         * @return the current maintenance status
+         */
+        public default RetractionResult getMaintenanceStatus()
+            {
+            return RetractionResult.UPDATED;
+            }
+
+        /**
+         * Return a detached, serializer-compatible snapshot of the state
+         * required to continue incremental maintenance.
+         * <p>
+         * This method is used only when {@link #STATE_CHECKPOINTABLE} is
+         * advertised. The default implementation does not support state
+         * checkpointing.
+         *
+         * @return a detached maintenance-state snapshot
+         *
+         * @throws UnsupportedOperationException if state checkpointing is not
+         *         supported
+         */
+        public default Object snapshotState()
+            {
+            throw new UnsupportedOperationException(
+                    "aggregator state is not checkpointable: " + getClass().getName());
+            }
+
+        /**
+         * Restore a maintenance-state snapshot into this empty supplied
+         * instance.
+         * <p>
+         * This method is used only when {@link #STATE_CHECKPOINTABLE} is
+         * advertised. The default implementation does not support state
+         * checkpointing.
+         *
+         * @param state  the snapshot returned by {@link #snapshotState()}
+         *
+         * @throws UnsupportedOperationException if state checkpointing is not
+         *         supported
+         */
+        public default void restoreState(Object state)
+            {
+            throw new UnsupportedOperationException(
+                    "aggregator state is not checkpointable: " + getClass().getName());
+            }
+
+        /**
          * Merge another partial result into the result.
          *
          * @param partialResult  the partial result to merge
@@ -1004,6 +1193,8 @@ public interface InvocableMap<K, V>
          * @see #ALLOW_INCONSISTENCIES
          * @see #BY_MEMBER
          * @see #BY_PARTITION
+         * @see #CONTINUOUS
+         * @see #STATE_CHECKPOINTABLE
          * @see #PARALLEL
          * @see #PRESENT_ONLY
          * @see #RETAINS_ENTRIES
@@ -1082,6 +1273,29 @@ public interface InvocableMap<K, V>
         public default boolean isAllowInconsistencies()
             {
             return (characteristics() & ALLOW_INCONSISTENCIES) != 0;
+            }
+
+        /**
+         * A convenience accessor to check if this aggregator supports the
+         * continuous aggregation lifecycle.
+         *
+         * @return {@code true} if this aggregator supports continuous
+         *         aggregation, {@code false} otherwise
+         */
+        public default boolean isContinuous()
+            {
+            return (characteristics() & CONTINUOUS) != 0;
+            }
+
+        /**
+         * Return whether this aggregator supports exact maintenance-state
+         * snapshots for transfer and persistence.
+         *
+         * @return {@code true} if this aggregator supports state checkpoints
+         */
+        public default boolean isStateCheckpointable()
+            {
+            return (characteristics() & STATE_CHECKPOINTABLE) != 0;
             }
 
         // ----- EntryAggregator interface ----------------------------------
@@ -1186,6 +1400,58 @@ public interface InvocableMap<K, V>
          *       relax this contract.
          */
         public static int ALLOW_INCONSISTENCIES = 0x00000040;
+
+        /**
+         * A flag specifying that this aggregator supports long-lived,
+         * incremental maintenance.
+         * <p>
+         * An aggregator with this characteristic must return an empty
+         * aggregator from {@link #supply()}, must not retain entries, and must
+         * return a non-destructive partial result from {@link
+         * #getPartialResult()}. It must also implement {@link #retract(Entry)}
+         * and explicitly return {@link RetractionResult#REBUILD_REQUIRED} when
+         * it cannot maintain a correct result after a removal. Its {@link
+         * Object#equals(Object)} and {@link Object#hashCode()} implementations
+         * must be based solely on serialized definition state so equivalent
+         * registrations can be identified after serialization.
+         */
+        public static int CONTINUOUS = 0x00000080;
+
+        /**
+         * A flag specifying that this aggregator can create and restore an
+         * exact maintenance-state snapshot using {@link #snapshotState()} and
+         * {@link #restoreState(Object)}.
+         * <p>
+         * This characteristic is meaningful only together with {@link
+         * #CONTINUOUS}. Snapshot and restore implementations must preserve all
+         * information required for future retractions, not merely the partial
+         * result used for distributed combination.
+         */
+        public static int STATE_CHECKPOINTABLE = 0x00000100;
+
+        /**
+         * The state of a continuously maintained aggregation result after an
+         * entry has been retracted.
+         */
+        public enum RetractionResult
+            {
+            /**
+             * The aggregation result remains exact.
+             */
+            UPDATED,
+
+            /**
+             * The exact result is unknown, but the retained result is a
+             * certified bound that may be dominated by another exact result.
+             */
+            STALE_BOUND,
+
+            /**
+             * The aggregation result can no longer be used and must be
+             * rebuilt.
+             */
+            REBUILD_REQUIRED
+            }
         }
 
     // ----- ParallelAwareAggregator interface ------------------------------

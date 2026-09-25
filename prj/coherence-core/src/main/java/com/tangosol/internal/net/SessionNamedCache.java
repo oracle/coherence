@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,7 +48,7 @@ import java.util.function.Function;
  * @author bo 2015.10.14
  */
 public class SessionNamedCache<K, V>
-        implements NamedCache<K, V>, AutoCloseable
+        implements NamedCache<K, V>, ContinuousAggregationSupport, AutoCloseable
     {
     // ----- constructors ---------------------------------------------------
 
@@ -164,6 +164,33 @@ public class SessionNamedCache<K, V>
     public AsyncNamedCache<K, V> async(AsyncNamedCache.Option... options)
         {
         return m_cache.async(options);
+        }
+
+    // ----- ContinuousAggregationSupport interface -----------------------
+
+    @Override
+    public void registerContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        continuousAggregationSupport().registerContinuousAggregation(definition);
+        }
+
+    @Override
+    public void removeContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        continuousAggregationSupport().removeContinuousAggregation(definition);
+        }
+
+    @Override
+    public Object aggregateContinuousAggregation(ContinuousAggregationDefinition definition)
+        {
+        return continuousAggregationSupport().aggregateContinuousAggregation(definition);
+        }
+
+    @Override
+    public ContinuousAggregationDefinition prepareContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        return continuousAggregationSupport().prepareContinuousAggregation(definition);
         }
 
     @Override
@@ -595,6 +622,23 @@ public class SessionNamedCache<K, V>
     ClassLoader getContextClassLoader()
         {
         return f_loader;
+        }
+
+    /**
+     * Return the continuous aggregation support implemented by the wrapped
+     * cache.
+     *
+     * @return the wrapped cache support
+     */
+    private ContinuousAggregationSupport continuousAggregationSupport()
+        {
+        NamedCache<K, V> cache = m_cache;
+        if (!(cache instanceof ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                    + cache.getClass().getName());
+            }
+        return (ContinuousAggregationSupport) cache;
         }
 
     /**

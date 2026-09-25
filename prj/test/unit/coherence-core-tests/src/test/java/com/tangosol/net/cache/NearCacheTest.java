@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,9 +8,15 @@
 package com.tangosol.net.cache;
 
 import com.oracle.coherence.testing.SystemPropertyIsolation;
+
 import com.tangosol.net.CacheFactory;
+import com.tangosol.net.ContinuousAggregator;
 import com.tangosol.net.ExtensibleConfigurableCacheFactory;
+
+import com.tangosol.util.aggregator.Count;
+
 import java.util.Set;
+
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -96,6 +102,31 @@ public class NearCacheTest
             {
             // lock held, regression test has failed
             fail("regression test for COH-26224 has failed, unable to get lock, still held by other thread");
+            }
+        }
+
+    @Test
+    public void shouldDelegateContinuousAggregationToBackCache()
+        {
+        ExtensibleConfigurableCacheFactory eccf =
+                (ExtensibleConfigurableCacheFactory) CacheFactory.getCacheFactoryBuilder()
+                        .getConfigurableCacheFactory(FILE_CFG_CACHE, null);
+        NearCache<String, Integer> cache = (NearCache<String, Integer>) eccf
+                .<String, Integer>ensureCache("near-continuous-aggregation", null);
+
+        cache.clear();
+        cache.put("one", 1);
+
+        ContinuousAggregator<String, Integer, Integer> count = cache.addAggregator(new Count<>());
+        try
+            {
+            assertEquals(Integer.valueOf(1), count.aggregate());
+            cache.put("two", 2);
+            assertEquals(Integer.valueOf(2), count.aggregate());
+            }
+        finally
+            {
+            cache.removeAggregator(count);
             }
         }
 

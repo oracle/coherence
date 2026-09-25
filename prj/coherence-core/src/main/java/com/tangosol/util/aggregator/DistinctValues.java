@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -16,7 +16,7 @@ import com.tangosol.util.Streamer;
 import com.tangosol.util.ValueExtractor;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -87,6 +87,8 @@ public class DistinctValues<K, V, T, E>
     @Override
     public boolean accumulate(Streamer<? extends InvocableMap.Entry<? extends K, ? extends V>> streamer)
         {
+        ensureInitialized(false);
+
         if (streamer.isAllInclusive())
             {
             if (streamer.hasNext())
@@ -101,7 +103,19 @@ public class DistinctValues<K, V, T, E>
                         Map mapContents = index.getIndexContents();
                         if (mapContents != null && !mapContents.isEmpty())
                             {
-                            m_set = Collections.unmodifiableSet(mapContents.keySet());
+                            Set<E> set = ensureSet();
+                            Map<E, Integer> mapCounts = ensureCounts();
+                            for (Object oEntry : mapContents.entrySet())
+                                {
+                                Map.Entry entryIndex = (Map.Entry) oEntry;
+                                E         value      = (E) entryIndex.getKey();
+                                if (value != null)
+                                    {
+                                    set.add(value);
+                                    mapCounts.put(value,
+                                            Integer.valueOf(((Collection) entryIndex.getValue()).size()));
+                                    }
+                                }
                             return false;
                             }
                         }
@@ -112,7 +126,8 @@ public class DistinctValues<K, V, T, E>
                 }
             else
                 {
-                m_set = Collections.emptySet();
+                m_set       = new LiteSet<>();
+                m_mapCounts = new HashMap<>();
                 return false;
                 }
             }
@@ -123,7 +138,39 @@ public class DistinctValues<K, V, T, E>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new HashMap<>(ensureCounts());
+        }
+
+    @Override
+    public void restoreState(Object oState)
+        {
+        if (!(oState instanceof Map))
+            {
+            throw new IllegalArgumentException("Expected a frequency map");
+            }
+
+        Map<E, Integer> mapCounts = new HashMap<>();
+        for (Object oEntry : ((Map) oState).entrySet())
+            {
+            Map.Entry entry = (Map.Entry) oEntry;
+            Object    count = entry.getValue();
+            if (!(count instanceof Number) || ((Number) count).intValue() <= 0)
+                {
+                throw new IllegalArgumentException("Invalid distinct value frequency: " + count);
+                }
+            mapCounts.put((E) entry.getKey(), Integer.valueOf(((Number) count).intValue()));
+            }
+
+        ensureInitialized(false);
+        m_mapCounts = mapCounts;
+        m_set       = new LiteSet<>(mapCounts.keySet());
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -133,11 +180,8 @@ public class DistinctValues<K, V, T, E>
     */
     protected void init(boolean fFinal)
         {
-        Set<E> set = m_set;
-        if (set != null)
-            {
-            set.clear();
-            }
+        m_set       = null;
+        m_mapCounts = fFinal ? null : new HashMap<>();
         }
 
     /**
@@ -160,8 +204,43 @@ public class DistinctValues<K, V, T, E>
                 {
                 // collect partial results
                 ensureSet().add((E) o);
+                Map<E, Integer> mapCounts = ensureCounts();
+                E               value     = (E) o;
+                mapCounts.put(value, Integer.valueOf(mapCounts.getOrDefault(value, 0) + 1));
                 }
             }
+        }
+
+    @Override
+    protected RetractionResult remove(Object o)
+        {
+        if (o == null)
+            {
+            return RetractionResult.UPDATED;
+            }
+
+        Map<E, Integer> mapCounts = m_mapCounts;
+        if (mapCounts == null)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+
+        E       value = (E) o;
+        Integer count = mapCounts.get(value);
+        if (count == null || count == 0)
+            {
+            return RetractionResult.REBUILD_REQUIRED;
+            }
+        if (count == 1)
+            {
+            mapCounts.remove(value);
+            ensureSet().remove(value);
+            }
+        else
+            {
+            mapCounts.put(value, Integer.valueOf(count - 1));
+            }
+        return RetractionResult.UPDATED;
         }
 
     /**
@@ -171,11 +250,14 @@ public class DistinctValues<K, V, T, E>
         {
         Set<E> set = m_set;
 
-        m_set = null;  // COH-1487
+        if (fFinal)
+            {
+            m_set       = null;  // COH-1487
+            m_mapCounts = null;
+            return set == null ? NullImplementation.getSet() : set;
+            }
 
-        return set == null
-                ? fFinal ? NullImplementation.getSet() : null
-                : set;
+        return set == null ? null : new LiteSet<>(set);
         }
 
 
@@ -197,6 +279,21 @@ public class DistinctValues<K, V, T, E>
         return set;
         }
 
+    /**
+    * Return the frequency map for maintained values.
+    *
+    * @return the value frequency map
+    */
+    protected Map<E, Integer> ensureCounts()
+        {
+        Map<E, Integer> mapCounts = m_mapCounts;
+        if (mapCounts == null)
+            {
+            mapCounts = m_mapCounts = new HashMap<>();
+            }
+        return mapCounts;
+        }
+
 
     // ----- data members ---------------------------------------------------
 
@@ -204,4 +301,9 @@ public class DistinctValues<K, V, T, E>
     * The resulting set of distinct values.
     */
     protected transient Set<E> m_set;
+
+    /**
+    * The number of current entries contributing each distinct value.
+    */
+    protected transient Map<E, Integer> m_mapCounts;
     }

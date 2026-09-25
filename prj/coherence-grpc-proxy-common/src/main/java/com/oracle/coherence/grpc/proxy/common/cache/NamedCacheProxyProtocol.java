@@ -15,6 +15,7 @@ import com.oracle.coherence.grpc.GrpcService;
 import com.oracle.coherence.grpc.NamedCacheProtocol;
 
 import com.oracle.coherence.grpc.messages.cache.v1.EnsureCacheRequest;
+import com.oracle.coherence.grpc.messages.cache.v1.ContinuousAggregationRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.ExecuteRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.IndexRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.KeyOrFilter;
@@ -51,6 +52,8 @@ import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.
 
 import com.tangosol.coherence.component.util.daemon.queueProcessor.service.peer.acceptor.grpcAcceptor.GrpcConnection;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+import com.tangosol.internal.net.ContinuousAggregationSupport;
 
 import com.tangosol.internal.util.collection.ConvertingNamedCache;
 import com.tangosol.internal.util.processor.BinaryProcessors;
@@ -151,6 +154,7 @@ public class NamedCacheProxyProtocol
     @Override
     protected GrpcExtendProxy<NamedCacheResponse> initInternal(GrpcService service, InitRequest request, int nVersion, UUID clientUUID)
         {
+        m_nProtocolVersion = nVersion;
         super.initInternal(service, request, nVersion, clientUUID);
         return m_proxy;
         }
@@ -202,6 +206,9 @@ public class NamedCacheProxyProtocol
                 {
                 case Aggregate:
                     onAggregate(proxy, request, observer);
+                    break;
+                case ContinuousAggregation:
+                    onContinuousAggregation(proxy, request, observer);
                     break;
                 case Clear:
                     onClear(proxy, observer);
@@ -286,6 +293,59 @@ public class NamedCacheProxyProtocol
                 default:
                     throw new IllegalArgumentException("Unrecognized request: " + requestType);
                 }
+            }
+        }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected void onContinuousAggregation(NamedCacheProxy proxy,
+            NamedCacheRequest request, StreamObserver<NamedCacheResponse> observer)
+        {
+        if (m_nProtocolVersion < 2)
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation requires gRPC CacheService protocol version 2"
+                    + " (Coherence "
+                    + ContinuousAggregationSupport.getMinimumVersionDescription() + ')');
+            }
+
+        ContinuousAggregationRequest continuous =
+                unpack(request, ContinuousAggregationRequest.class);
+        Filter<?> filter = fromByteString(continuous.getFilter());
+        Object oAggregator = fromByteString(continuous.getAggregator());
+        if (!(oAggregator instanceof InvocableMap.StreamingAggregator))
+            {
+            throw new IllegalArgumentException(
+                    "continuous aggregation requires a StreamingAggregator");
+            }
+
+        InvocableMap.StreamingAggregator aggregator =
+                (InvocableMap.StreamingAggregator) oAggregator;
+        RemoteInstallGate.enforceCacheFilterInstall(filter, SerializationRole.GRPC, null);
+        RemoteInstallGate.enforceCacheAggregatorInstall(aggregator, SerializationRole.GRPC, null);
+
+        ContinuousAggregationDefinition definition =
+                new ContinuousAggregationDefinition(filter, aggregator);
+        ContinuousAggregationSupport support = proxy;
+        switch (continuous.getOperation())
+            {
+            case Register:
+                support.registerContinuousAggregation(definition);
+                observer.onCompleted();
+                break;
+            case Remove:
+                support.removeContinuousAggregation(definition);
+                observer.onCompleted();
+                break;
+            case Query:
+                complete((Binary) support.aggregateContinuousAggregation(definition),
+                        proxy.getCacheId(), observer);
+                break;
+            case Unknown:
+            case UNRECOGNIZED:
+            default:
+                throw new IllegalArgumentException(
+                        "unknown continuous aggregation operation: "
+                        + continuous.getOperation());
             }
         }
 
@@ -1217,6 +1277,11 @@ public class NamedCacheProxyProtocol
      * An array of {@link NamedCacheProxy} instances indexed by the cache identifier.
      */
     protected final LongArray<NamedCacheProxy> m_aProxy = new SparseArray<>();
+
+    /**
+     * The negotiated CacheService protocol version.
+     */
+    protected int m_nProtocolVersion;
 
     /**
      * A flag indicating whether this proxy protocol is closed.

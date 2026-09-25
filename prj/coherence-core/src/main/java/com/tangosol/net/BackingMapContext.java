@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -8,6 +8,7 @@
 package com.tangosol.net;
 
 import com.tangosol.net.partition.PartitionSet;
+import com.tangosol.util.Filter;
 import com.tangosol.util.InvocableMap;
 import com.tangosol.util.MapIndex;
 import com.tangosol.util.ObservableMap;
@@ -100,6 +101,64 @@ public interface BackingMapContext
         PartitionSet partitions = new PartitionSet(((PartitionedService) getManagerContext().getCacheService()).getPartitionCount());
         partitions.add(nPartition);
         return getIndexMap(partitions);
+        }
+
+    /**
+     * Return the finalized result of a registered continuous aggregation for
+     * the specified partition.
+     * <p>
+     * The returned value is detached from the maintained aggregation state and
+     * may be safely inspected or transformed by the calling server-side agent.
+     * If the maintained state is not exact, the implementation must obtain an
+     * exact result before returning, typically by scanning only the specified
+     * partition.
+     *
+     * @param <R>         the type of the final aggregation result
+     * @param nPartition  the partition to query
+     * @param aggregator  the registered streaming aggregator definition
+     *
+     * @return the finalized, exact partition result
+     *
+     * @throws IllegalStateException if the aggregation is not registered
+     * @throws UnsupportedOperationException if continuous aggregation is not
+     *         supported by this context
+     *
+     * @since 26.10
+     */
+    default <R> R getContinuousAggregationResult(int nPartition,
+            InvocableMap.StreamingAggregator<?, ?, ?, R> aggregator)
+        {
+        return getContinuousAggregationResult(nPartition, null, aggregator);
+        }
+
+    /**
+     * Return the finalized result of a registered continuous aggregation for
+     * the specified partition.
+     * <p>
+     * The complete {@code (filter, aggregator)} pair identifies the
+     * registration. The returned value is detached from the maintained state
+     * and represents an exact result for only the specified partition.
+     *
+     * @param <R>         the type of the final aggregation result
+     * @param nPartition  the partition to query
+     * @param filter      the registered filter, or {@code null} for all entries
+     * @param aggregator  the registered streaming aggregator definition
+     *
+     * @return the finalized, exact partition result
+     *
+     * @throws IllegalArgumentException if the registration does not apply to
+     *         the specified partition
+     * @throws IllegalStateException if the aggregation is not registered
+     * @throws UnsupportedOperationException if continuous aggregation is not
+     *         supported by this context
+     *
+     * @since 26.10
+     */
+    default <R> R getContinuousAggregationResult(int nPartition, Filter<?> filter,
+            InvocableMap.StreamingAggregator<?, ?, ?, R> aggregator)
+        {
+        throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                + getClass().getName());
         }
 
     /**

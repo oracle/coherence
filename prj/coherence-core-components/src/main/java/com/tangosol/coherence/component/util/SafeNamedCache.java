@@ -58,6 +58,7 @@ public class SafeNamedCache
         extends    com.tangosol.coherence.component.Util
         implements com.oracle.coherence.common.base.Lockable,
                    com.tangosol.io.ClassLoaderAware,
+                   com.tangosol.internal.net.ContinuousAggregationSupport,
                    com.tangosol.net.NamedCache,
                    com.tangosol.net.cache.BinaryEntryStore,
                    com.tangosol.net.cache.CacheStore,
@@ -315,6 +316,63 @@ public class SafeNamedCache
             {
             addIndex$Router(prepareExtractor(extractor), fOrdered, comparator);
             }
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        com.tangosol.net.NamedCache cache = getRunningNamedCache();
+        if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                    + cache.getClass().getName());
+            }
+        ((com.tangosol.internal.net.ContinuousAggregationSupport) cache)
+                .registerContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        com.tangosol.net.NamedCache cache = getRunningNamedCache();
+        if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                    + cache.getClass().getName());
+            }
+        ((com.tangosol.internal.net.ContinuousAggregationSupport) cache)
+                .removeContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public Object aggregateContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        com.tangosol.net.NamedCache cache = getRunningNamedCache();
+        if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                    + cache.getClass().getName());
+            }
+        return ((com.tangosol.internal.net.ContinuousAggregationSupport) cache)
+                .aggregateContinuousAggregation(definition);
+        }
+
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public com.tangosol.internal.net.ContinuousAggregationDefinition
+            prepareContinuousAggregation(
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        com.tangosol.net.NamedCache cache = getRunningNamedCache();
+        if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException("continuous aggregation is not supported by "
+                    + cache.getClass().getName());
+            }
+        return ((com.tangosol.internal.net.ContinuousAggregationSupport) cache)
+                .prepareContinuousAggregation(definition);
         }
     private Object aggregate$Router(com.tangosol.util.Filter filter, com.tangosol.util.InvocableMap.EntryAggregator agent)
         {

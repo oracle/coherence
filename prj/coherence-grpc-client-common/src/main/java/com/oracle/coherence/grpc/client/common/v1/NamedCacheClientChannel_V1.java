@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -26,6 +26,7 @@ import com.oracle.coherence.grpc.client.common.GrpcConnection;
 import com.oracle.coherence.grpc.client.common.NamedCacheClientChannel;
 import com.oracle.coherence.grpc.client.common.StreamStreamObserver;
 import com.oracle.coherence.grpc.messages.cache.v1.EnsureCacheRequest;
+import com.oracle.coherence.grpc.messages.cache.v1.ContinuousAggregationRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.ExecuteRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.IndexRequest;
 import com.oracle.coherence.grpc.messages.cache.v1.KeyOrFilter;
@@ -167,6 +168,33 @@ public class NamedCacheClientChannel_V1
 
         return poll(NamedCacheRequestType.Aggregate, request)
                 .thenApply(this::unpackBytes);
+        }
+
+    @Override
+    public CompletableFuture<BytesValue> continuousAggregation(
+            ContinuousAggregationRequest.Operation operation,
+            ByteString filter, ByteString aggregator)
+        {
+        if (getVersion() < 2)
+            {
+            CompletableFuture<BytesValue> future = new CompletableFuture<>();
+            future.completeExceptionally(new UnsupportedOperationException(
+                    "continuous aggregation requires gRPC CacheService protocol version 2"
+                    + " (Coherence "
+                    + com.tangosol.internal.net.ContinuousAggregationSupport
+                            .getMinimumVersionDescription() + ')'));
+            return future;
+            }
+
+        ContinuousAggregationRequest request = ContinuousAggregationRequest.newBuilder()
+                .setOperation(operation)
+                .setFilter(filter)
+                .setAggregator(aggregator)
+                .build();
+        return poll(NamedCacheRequestType.ContinuousAggregation, request)
+                .thenApply(response -> operation == ContinuousAggregationRequest.Operation.Query
+                        ? unpackBytes(response)
+                        : BytesValue.getDefaultInstance());
         }
 
     @Override

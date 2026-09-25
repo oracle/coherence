@@ -417,9 +417,19 @@ public class VersionHelper
     public static final int VERSION_15_1_2_0_0 = encodeVersion(15, 1, 2, 0, 0);
 
     /**
+     * The encoded 26.1.0.0.0 version.
+     */
+    public static final int VERSION_26_1_0_0_0 = encodeVersion(26, 1, 0, 0, 0);
+
+    /**
      * The encoded CE 26.01.0 version.
      */
     public static final int VERSION_26_01 = encodeVersion(26, 1, 0);
+
+    /**
+     * The encoded CE 26.10.0 version.
+     */
+    public static final int VERSION_26_10 = encodeVersion(26, 10, 0);
 
     /**
      * The encoded CE 26.01.0 cluster-service version.

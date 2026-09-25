@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
  */
 package com.tangosol.internal.net;
+
+import java.util.function.IntPredicate;
 
 /**
  * MessageComponent is an internal interface used to expose methods on the
@@ -48,6 +50,17 @@ public interface MessageComponent
     public boolean isSenderCompatible(int nEncodedVersion);
 
     /**
+     * Determine whether the sender's encoded version satisfies the specified
+     * compatibility predicate.
+     *
+     * @param predicate  the compatibility predicate
+     *
+     * @return {@code true} iff the sender's encoded version satisfies the
+     *         specified predicate
+     */
+    public boolean isSenderCompatible(IntPredicate predicate);
+
+    /**
      * Determine whether all the recipients of the content of this BufferOutput
      * run versions that supersede (greater or equal to) the specified
      * version.
@@ -76,6 +89,17 @@ public interface MessageComponent
      *         to the specified one
      */
     public boolean isRecipientCompatible(int nEncodedVersion);
+
+    /**
+     * Determine whether every recipient's encoded version satisfies the
+     * specified compatibility predicate.
+     *
+     * @param predicate  the compatibility predicate
+     *
+     * @return {@code true} iff every recipient's encoded version satisfies
+     *         the specified predicate
+     */
+    public boolean isRecipientCompatible(IntPredicate predicate);
 
     /**
      * Determine whether all the sender of the content of this message

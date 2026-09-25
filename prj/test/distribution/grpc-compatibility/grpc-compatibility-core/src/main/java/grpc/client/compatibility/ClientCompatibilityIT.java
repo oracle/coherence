@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -46,6 +46,8 @@ import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.util.Threads;
 import com.oracle.coherence.testing.Junit5CheckJDK;
 import com.tangosol.coherence.config.Config;
+
+import com.tangosol.internal.net.ContinuousAggregationSupport;
 
 import com.tangosol.io.Serializer;
 
@@ -350,6 +352,16 @@ public class ClientCompatibilityIT
         return s_ccfExtend.ensureCache(sName, loader);
         }
 
+    @Override
+    protected boolean isContinuousAggregationSupported()
+        {
+        String sVersion = s_sCoherenceVersion;
+        String sGroup   = Config.getProperty(
+                "coherence.compatability.groupId", "com.oracle.coherence");
+        return ContinuousAggregationSupport.isVersionCompatible(
+                sVersion, "com.oracle.coherence.ce".equals(sGroup));
+        }
+
 
     public static Option createClasspath()
         {
@@ -406,6 +418,7 @@ public class ClientCompatibilityIT
             assertThat(sCoherenceVersion, is(notNullValue()));
             assertThat(sCoherenceVersion.isBlank(), is(false));
             System.out.println("Running gRPC Compatability tests using Coherence version " + sCoherenceVersion);
+            s_sCoherenceVersion = sCoherenceVersion;
 
             ClassPath cp = ClassPath.of(
                     ClassPath.ofClass(ClientCompatibilityIT.class),
@@ -469,4 +482,6 @@ public class ClientCompatibilityIT
     static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     static final String COHERENCE_MODE = Config.getProperty("coherence.mode");
+
+    static volatile String s_sCoherenceVersion;
     }

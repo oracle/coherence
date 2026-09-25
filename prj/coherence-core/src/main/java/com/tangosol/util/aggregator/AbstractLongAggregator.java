@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2020, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.util.aggregator;
@@ -74,6 +74,33 @@ public abstract class AbstractLongAggregator<T>
     protected Long finalizeResult(boolean fFinal)
         {
         return m_count == 0 ? null : m_lResult;
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new Object[] {Integer.valueOf(m_count), Long.valueOf(m_lResult)};
+        }
+
+    @Override
+    public void restoreState(Object state)
+        {
+        if (!(state instanceof Object[]) || ((Object[]) state).length != 2)
+            {
+            throw new IllegalArgumentException("invalid long aggregator state snapshot");
+            }
+
+        Object[] aoState = (Object[]) state;
+        int      cValues = ((Number) aoState[0]).intValue();
+        if (cValues < 0)
+            {
+            throw new IllegalArgumentException("negative long aggregator value count");
+            }
+
+        ensureInitialized(false);
+        m_count   = cValues;
+        m_lResult = ((Number) aoState[1]).longValue();
         }
 
 

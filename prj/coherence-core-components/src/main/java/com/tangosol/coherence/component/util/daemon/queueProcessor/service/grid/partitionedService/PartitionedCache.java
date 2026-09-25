@@ -210,6 +210,7 @@ import javax.security.auth.Subject;
  * 86    BackupListenerAllRequest
  * 87    PartitionedQueryRequest
  * 88    PartitionedQueryResponse
+ * 89    ContinuousAggregationRequest
  */
 @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked", "ConstantConditions", "DuplicatedCode", "ForLoopReplaceableByForEach", "IfCanBeSwitch", "RedundantArrayCreation", "RedundantSuppression", "SameParameterValue", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches", "UnnecessaryBoxing", "UnnecessaryUnboxing", "UnusedAssignment"})
 public class PartitionedCache
@@ -629,6 +630,7 @@ public class PartitionedCache
         __mapChildren.put("ContainsAllRequest", PartitionedCache.ContainsAllRequest.get_CLASS());
         __mapChildren.put("ContainsKeyRequest", PartitionedCache.ContainsKeyRequest.get_CLASS());
         __mapChildren.put("ContainsValueRequest", PartitionedCache.ContainsValueRequest.get_CLASS());
+        __mapChildren.put("ContinuousAggregationRequest", PartitionedCache.ContinuousAggregationRequest.get_CLASS());
         __mapChildren.put("Contention", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.Contention.get_CLASS());
         __mapChildren.put("ConverterFromBinary", PartitionedCache.ConverterFromBinary.get_CLASS());
         __mapChildren.put("ConverterKeyToBinary", com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.PartitionedService.ConverterKeyToBinary.get_CLASS());
@@ -1308,6 +1310,33 @@ public class PartitionedCache
                                     msg.setOrdered(comparator != null);
                                     msg.setComparator(comparator);
         
+                                    listRequests.add(msg);
+                                    }
+                                }
+
+                            Map mapAggregations = storage.getContinuousAggregationMap();
+
+                            // Rolling upgrades and downgrades must not block
+                            // service membership changes. Older members do not
+                            // understand ContinuousAggregationRequest, so omit
+                            // definitions from their welcome stream. CA
+                            // operations remain unavailable until every
+                            // storage-enabled member is compatible.
+                            if (!mapAggregations.isEmpty()
+                                    && isContinuousAggregationCompatible(member))
+                                {
+                                for (Iterator iter = mapAggregations.keySet().iterator(); iter.hasNext(); )
+                                    {
+                                    com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                                            (com.tangosol.internal.net.ContinuousAggregationDefinition) iter.next();
+                                    PartitionedCache.ContinuousAggregationRequest msg =
+                                            (PartitionedCache.ContinuousAggregationRequest)
+                                                    instantiateMessage("ContinuousAggregationRequest");
+                                    msg.setCacheId(storage.getCacheId());
+                                    msg.setAdd(true);
+                                    msg.setFilter(definition.getFilter());
+                                    msg.setAggregator(definition.getAggregator());
+
                                     listRequests.add(msg);
                                     }
                                 }
@@ -6106,6 +6135,120 @@ public class PartitionedCache
             }
         
         post(msgResponse);
+        }
+
+    /**
+     * Process a global continuous aggregation registration request.
+     *
+     * @param msgRequest  the registration request
+     */
+    public void onContinuousAggregationRequest(
+            PartitionedCache.ContinuousAggregationRequest msgRequest)
+        {
+        PartitionedCache.Response msgResponse =
+                (PartitionedCache.Response) instantiateMessage("Response");
+        msgResponse.respondTo(msgRequest);
+
+        Storage storage = validateRequestForStorage(msgRequest, msgResponse, false);
+        if (storage == null)
+            {
+            return;
+            }
+
+        try
+            {
+            ensureContinuousAggregationCompatible();
+
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                    new com.tangosol.internal.net.ContinuousAggregationDefinition(
+                            msgRequest.getFilter(), msgRequest.getAggregator());
+            PartitionSet partsMask = calculatePartitionSet(getThisMember(), 0);
+
+            if (msgRequest.isAdd())
+                {
+                storage.addContinuousAggregation(
+                        msgRequest.getRequestContext(), partsMask, definition);
+                }
+            else
+                {
+                storage.removeContinuousAggregation(
+                        msgRequest.getRequestContext(), partsMask, definition);
+                }
+
+            msgResponse.setValue(partsMask);
+
+            // Global storage requests are idempotent and always relayed by the
+            // ownership senior so every current owner sees the definition.
+            if (getThisMember() == getOwnershipSenior())
+                {
+                msgRequest.relayRequest(msgResponse);
+                return;
+                }
+            }
+        catch (Throwable e)
+            {
+            msgResponse.setResult(PartitionedCache.Response.RESULT_FAILURE);
+            msgResponse.setValue(tagException(e));
+            }
+
+        post(msgResponse);
+        }
+
+    /**
+     * Ensure that every storage-enabled member of this service supports
+     * continuous aggregation messages and partition transfer state.
+     */
+    public void ensureContinuousAggregationCompatible()
+        {
+        if (!isContinuousAggregationCompatible(getOwnershipMemberSet()))
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation requires all storage-enabled members "
+                    + "of the cache service to run "
+                    + com.tangosol.internal.net.ContinuousAggregationSupport
+                            .getMinimumVersionDescription());
+            }
+        }
+
+    /**
+     * Return whether the specified service member advertises support for
+     * continuous aggregation messages and partition transfer state.
+     *
+     * @param member  the service member to test
+     *
+     * @return {@code true} if the member supports continuous aggregation
+     */
+    public boolean isContinuousAggregationCompatible(
+            com.tangosol.coherence.component.net.Member member)
+        {
+        return member != null
+                && com.tangosol.internal.net.ContinuousAggregationSupport
+                        .isMemberCompatible(getServiceMemberSet()
+                                .getMemberConfigMap(member.getId()));
+        }
+
+    /**
+     * Return whether all of the specified service members advertise support
+     * for continuous aggregation messages and partition transfer state.
+     *
+     * @param setMembers  the service members to test
+     *
+     * @return {@code true} if every member supports continuous aggregation
+     */
+    public boolean isContinuousAggregationCompatible(
+            com.tangosol.coherence.component.net.MemberSet setMembers)
+        {
+        int[] anMember = setMembers.toIdArray();
+        for (int i = 0, c = anMember.length; i < c; i++)
+            {
+            if (!com.tangosol.internal.net.ContinuousAggregationSupport
+                    .isMemberCompatible(getServiceMemberSet()
+                            .getMemberConfigMap(anMember[i])))
+                {
+                return false;
+                }
+            }
+        return true;
         }
     
     // Declared at the super level
@@ -12115,6 +12258,10 @@ public class PartitionedCache
                         storage.insertPrimaryTransfer        (iPartition, msgTransfer.getResource());
                         storage.insertPrimaryLeaseTransfer   (iPartition, msgTransfer.getLease());
                         storage.insertPrimaryListenerTransfer(iPartition, msgTransfer.getListener());
+                        storage.restoreContinuousAggregationTransfer(iPartition,
+                                msgTransfer.getContinuousAggregationState(),
+                                msgTransfer.getPartitionVersion(),
+                                msgTransfer.getMapEventVersion());
         
                         // ensure that any "global" meta-data are properly persisted
                         if (storage.isPersistent())
@@ -12305,6 +12452,25 @@ public class PartitionedCache
                 if (!fJournalMaterialized)
                     {
                     storeFrom.iterate(visitorPersistence);
+                    }
+                }
+
+            if (isActivePersistence() && storeTo != null)
+                {
+                // A recovered checkpoint is exact for the immutable source
+                // snapshot, but the active store will subsequently receive
+                // data-only mutation writes. Consume the checkpoint once and
+                // remove it before the active store becomes recoverable.
+                for (com.tangosol.util.LongArray.Iterator iter = laStorage.iterator();
+                     iter.hasNext(); )
+                    {
+                    Storage storage = (Storage) iter.next();
+                    if (storage.isPersistent())
+                        {
+                        com.tangosol.persistence.CachePersistenceHelper
+                                .deleteContinuousAggregationStates(
+                                        storeTo, storage.getCacheId());
+                        }
                     }
                 }
 
@@ -13128,6 +13294,87 @@ public class PartitionedCache
         if (isIndexDebugEnabled())
             {
             _trace("Index debug: " + sMessage, 3);
+            }
+        }
+
+    /**
+     * Schedule a stable rebuild of one continuously maintained partition
+     * result. The rebuild pins the partition and excludes cache mutations for
+     * the storage while it scans, so no transition can be lost between the
+     * scan and state publication.
+     *
+     * @param storage      the cache storage
+     * @param definition   the aggregation definition
+     * @param nPartition   the partition to rebuild
+     * @param state        the state being rebuilt
+     */
+    public void scheduleContinuousAggregationBuild(
+            final Storage storage,
+            final com.tangosol.internal.net.ContinuousAggregationDefinition definition,
+            final int nPartition,
+            final com.tangosol.internal.net.ContinuousAggregationState state)
+        {
+        if (!state.scheduleBuild())
+            {
+            return;
+            }
+
+        Runnable task = () ->
+            {
+            boolean fPinned = false;
+            boolean fLocked = false;
+            try
+                {
+                if (!storage.isValid() || !(fPinned = pinOwnedPartition(nPartition))
+                        || !isPrimaryOwner(nPartition))
+                    {
+                    state.failBuild(null);
+                    return;
+                    }
+
+                PartitionedCache.ResourceCoordinator coordinator = getResourceCoordinator();
+                if (!(fLocked = coordinator.lockAll(storage, -1L)))
+                    {
+                    throw new IllegalStateException("Unable to lock storage for continuous aggregation build");
+                    }
+
+                storage.buildContinuousAggregation(definition, nPartition, state);
+                }
+            catch (Throwable t)
+                {
+                state.failBuild(t);
+                _trace("Continuous aggregation build failed for cache "
+                        + storage.getCacheName() + ", partition " + nPartition
+                        + ", definition " + definition + ": " + t, 1);
+                }
+            finally
+                {
+                if (fLocked)
+                    {
+                    getResourceCoordinator().unlockAll(storage);
+                    }
+                if (fPinned)
+                    {
+                    unpinPartition(nPartition);
+                    }
+                }
+            };
+
+        if (getDaemonPool().isStarted())
+            {
+            try
+                {
+                getDaemonPool().add(task);
+                }
+            catch (RuntimeException | Error e)
+                {
+                state.failBuild(e);
+                throw e;
+                }
+            }
+        else
+            {
+            task.run();
             }
         }
 
@@ -14126,7 +14373,21 @@ public class PartitionedCache
                 msgTransfer.setResource((java.util.Map.Entry[]) listResource.toArray(new java.util.Map.Entry[listResource.size()]));
                 msgTransfer.setLease((Lease[]) listLease.toArray(new Lease[listLease.size()]));
                 msgTransfer.setListener((java.util.Map.Entry[]) listListen.toArray(new java.util.Map.Entry[listListen.size()]));
-                msgTransfer.setMapEventVersion(storage.getVersion().getSubmittedVersion(iPartition));
+                long lMapEventVersion = storage.getVersion().getSubmittedVersion(iPartition);
+                msgTransfer.setMapEventVersion(lMapEventVersion);
+                if (fPrimary)
+                    {
+                    java.util.Map.Entry[] aContinuousState =
+                            storage.snapshotContinuousAggregationTransfer(
+                                    iPartition, lVersion, lMapEventVersion);
+                    msgTransfer.setContinuousAggregationState(aContinuousState);
+                    for (int i = 0; i < aContinuousState.length; i++)
+                        {
+                        Binary binDefinition = (Binary) aContinuousState[i].getKey();
+                        Binary binState      = (Binary) aContinuousState[i].getValue();
+                        cbTransfer += binDefinition.length() + binState.length();
+                        }
+                    }
         
                 fLastInTransfer |= control.recordTransfer(msgTransfer, cbTransfer);
         
@@ -18614,7 +18875,7 @@ public class PartitionedCache
          * @see MapEvent#getVersion
          */
         private long __m_MapEventVersion;
-        
+
         /**
          * Property MESSAGE_TYPE
          *
@@ -24607,6 +24868,241 @@ public class PartitionedCache
             * Note: the class generator will ignore any custom implementation
             * for this behavior.
              */
+            private com.tangosol.coherence.Component get_Module()
+                {
+                return this.get_Parent().get_Parent();
+                }
+            }
+        }
+
+    // ---- class: com.tangosol.coherence.component.util.daemon.queueProcessor.service.grid.partitionedService.PartitionedCache$ContinuousAggregationRequest
+
+    /**
+     * A global request to register or unregister a continuously maintained
+     * aggregation definition.
+     */
+    @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked"})
+    public static class ContinuousAggregationRequest
+            extends com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.StorageRequest
+        {
+        // ---- Fields declarations ----
+
+        /** If true, register the definition; otherwise remove it. */
+        private boolean __m_Add;
+
+        /** The optional entry filter. */
+        private com.tangosol.util.Filter __m_Filter;
+
+        /** The streaming aggregator definition. */
+        private com.tangosol.util.InvocableMap.StreamingAggregator __m_Aggregator;
+
+        private static com.tangosol.util.ListMap __mapChildren;
+
+        static
+            {
+            __initStatic();
+            }
+
+        private static void __initStatic()
+            {
+            __mapChildren = new com.tangosol.util.ListMap();
+            __mapChildren.put("Poll", PartitionedCache.ContinuousAggregationRequest.Poll.get_CLASS());
+            }
+
+        public ContinuousAggregationRequest()
+            {
+            this(null, null, true);
+            }
+
+        public ContinuousAggregationRequest(String sName,
+                com.tangosol.coherence.Component compParent, boolean fInit)
+            {
+            super(sName, compParent, false);
+            if (fInit)
+                {
+                __init();
+                }
+            }
+
+        public void __init()
+            {
+            __initPrivate();
+            try
+                {
+                setMessageType(89);
+                }
+            catch (java.lang.Exception e)
+                {
+                throw new com.tangosol.util.WrapperException(e);
+                }
+            set_Constructed(true);
+            }
+
+        protected void __initPrivate()
+            {
+            super.__initPrivate();
+            }
+
+        public boolean isReadOnly()
+            {
+            return false;
+            }
+
+        public static com.tangosol.coherence.Component get_Instance()
+            {
+            return new PartitionedCache.ContinuousAggregationRequest();
+            }
+
+        public static Class get_CLASS()
+            {
+            return PartitionedCache.ContinuousAggregationRequest.class;
+            }
+
+        private com.tangosol.coherence.Component get_Module()
+            {
+            return this.get_Parent();
+            }
+
+        protected java.util.Map get_ChildClasses()
+            {
+            return __mapChildren;
+            }
+
+        public com.tangosol.coherence.component.net.Message cloneMessage()
+            {
+            PartitionedCache.ContinuousAggregationRequest msg =
+                    (PartitionedCache.ContinuousAggregationRequest) super.cloneMessage();
+            msg.setAdd(isAdd());
+            msg.setFilter(getFilter());
+            msg.setAggregator(getAggregator());
+            return msg;
+            }
+
+        public boolean isAdd()
+            {
+            return __m_Add;
+            }
+
+        public void setAdd(boolean fAdd)
+            {
+            __m_Add = fAdd;
+            }
+
+        public com.tangosol.util.Filter getFilter()
+            {
+            return __m_Filter;
+            }
+
+        public void setFilter(com.tangosol.util.Filter filter)
+            {
+            __m_Filter = filter;
+            }
+
+        public com.tangosol.util.InvocableMap.StreamingAggregator getAggregator()
+            {
+            return __m_Aggregator;
+            }
+
+        public void setAggregator(
+                com.tangosol.util.InvocableMap.StreamingAggregator aggregator)
+            {
+            __m_Aggregator = aggregator;
+            }
+
+        public void onReceived()
+            {
+            ((PartitionedCache) getService()).onContinuousAggregationRequest(this);
+            }
+
+        public void read(com.tangosol.io.ReadBuffer.BufferInput input)
+                throws java.io.IOException
+            {
+            super.read(input);
+            setAdd(input.readBoolean());
+            try
+                {
+                setFilter((com.tangosol.util.Filter) readObject(input));
+                setAggregator((com.tangosol.util.InvocableMap.StreamingAggregator) readObject(input));
+                }
+            catch (Throwable t)
+                {
+                setReadException(com.tangosol.util.Base.ensureRuntimeException(t));
+                }
+            readTracing(input);
+            }
+
+        public void run()
+            {
+            throw new IllegalStateException();
+            }
+
+        public void setRequestTimeout(long ldtTimeout)
+            {
+            super.setRequestTimeout(ldtTimeout);
+            }
+
+        public void write(com.tangosol.io.WriteBuffer.BufferOutput output)
+                throws java.io.IOException
+            {
+            super.write(output);
+            output.writeBoolean(isAdd());
+            try
+                {
+                writeObject(output, getFilter());
+                writeObject(output, getAggregator());
+                }
+            catch (java.io.IOException e)
+                {
+                _trace("Continuous aggregation definition is not serializable: filter="
+                        + getFilter() + ", aggregator=" + getAggregator(), 1);
+                throw e;
+                }
+            writeTracing(output);
+            }
+
+        // ---- class: ContinuousAggregationRequest$Poll -------------------
+
+        /** Poll for a continuous aggregation registration request. */
+        @SuppressWarnings({"deprecation", "rawtypes", "unused", "unchecked"})
+        public static class Poll
+                extends com.tangosol.coherence.component.net.message.requestMessage.distributedCacheRequest.StorageRequest.Poll
+            {
+            public Poll()
+                {
+                this(null, null, true);
+                }
+
+            public Poll(String sName,
+                    com.tangosol.coherence.Component compParent, boolean fInit)
+                {
+                super(sName, compParent, false);
+                if (fInit)
+                    {
+                    __init();
+                    }
+                }
+
+            public void __init()
+                {
+                __initPrivate();
+                set_Constructed(true);
+                }
+
+            protected void __initPrivate()
+                {
+                super.__initPrivate();
+                }
+
+            public static com.tangosol.coherence.Component get_Instance()
+                {
+                return new PartitionedCache.ContinuousAggregationRequest.Poll();
+                }
+
+            public static Class get_CLASS()
+                {
+                return PartitionedCache.ContinuousAggregationRequest.Poll.class;
+                }
+
             private com.tangosol.coherence.Component get_Module()
                 {
                 return this.get_Parent().get_Parent();
@@ -35766,6 +36262,99 @@ public class PartitionedCache
                 
                 return true;
                 }
+
+            // From interface: com.tangosol.persistence.CachePersistenceHelper$Visitor
+            public boolean visitContinuousAggregation(long lOldCacheId, int nFormat,
+                    com.tangosol.util.Binary binDefinition)
+                {
+                PartitionedCache service = (PartitionedCache) get_Module();
+                Storage          storage = getStorage(lOldCacheId);
+                if (storage == null)
+                    {
+                    return true;
+                    }
+
+                try
+                    {
+                    service.ensureContinuousAggregationCompatible();
+
+                    if (nFormat != com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .DEFINITION_FORMAT_VERSION)
+                        {
+                        throw new IllegalArgumentException(
+                                "unsupported definition format " + nFormat);
+                        }
+
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                            com.tangosol.internal.net.ContinuousAggregationPersistence
+                                    .fromDefinitionBinary(binDefinition, service.getSerializer());
+                    List listRequests = getRequestList();
+                    if (listRequests != null)
+                        {
+                        PartitionedCache.ContinuousAggregationRequest msgRequest =
+                                (PartitionedCache.ContinuousAggregationRequest)
+                                        service.instantiateMessage("ContinuousAggregationRequest");
+                        msgRequest.setCacheId(storage.getCacheId());
+                        msgRequest.setAdd(true);
+                        msgRequest.setFilter(definition.getFilter());
+                        msgRequest.setAggregator(definition.getAggregator());
+                        msgRequest.addToMember(service.getOwnershipSenior(true));
+                        listRequests.add(msgRequest);
+                        }
+                    }
+                catch (Throwable t)
+                    {
+                    _trace("Ignoring invalid continuous aggregation definition for cache "
+                            + lOldCacheId + ": " + t, 2);
+                    }
+                return true;
+                }
+
+            // From interface: com.tangosol.persistence.CachePersistenceHelper$Visitor
+            public boolean visitContinuousAggregationState(long lOldCacheId, int nFormat,
+                    int nPartition, long lOwnershipVersion, long lDataVersion,
+                    com.tangosol.util.Binary binDefinition,
+                    com.tangosol.util.Binary binState)
+                {
+                PartitionedCache service = (PartitionedCache) get_Module();
+                Storage          storage = getStorage(lOldCacheId);
+                if (storage == null || nPartition != getPartition())
+                    {
+                    return true;
+                    }
+
+                try
+                    {
+                    if (nFormat != com.tangosol.internal.net.ContinuousAggregationPersistence
+                            .STATE_FORMAT_VERSION)
+                        {
+                        throw new IllegalArgumentException(
+                                "unsupported state format " + nFormat);
+                        }
+
+                    com.tangosol.internal.net.ContinuousAggregationDefinition definition =
+                            com.tangosol.internal.net.ContinuousAggregationPersistence
+                                    .fromDefinitionBinary(binDefinition, service.getSerializer());
+                    com.tangosol.internal.net.ContinuousAggregationPersistence.StateRecord record =
+                            com.tangosol.internal.net.ContinuousAggregationPersistence
+                                    .fromStateBinary(binState, binDefinition, nPartition,
+                                            lOwnershipVersion, lDataVersion,
+                                            service.getSerializer());
+                    if (!storage.restoreContinuousAggregationState(
+                            nPartition, definition, record.getState()))
+                        {
+                        throw new IllegalArgumentException("aggregator rejected checkpoint state");
+                        }
+                    }
+                catch (Throwable t)
+                    {
+                    // The definition registration is recovered independently;
+                    // ignoring this optional state causes the normal rebuild.
+                    _trace("Ignoring invalid continuous aggregation state for partition "
+                            + nPartition + ", cache " + lOldCacheId + ": " + t, 3);
+                    }
+                return true;
+                }
             
             // From interface: com.tangosol.persistence.CachePersistenceHelper$Visitor
             public boolean visitListener(long lOldCacheId, com.tangosol.util.Binary binKey, long lMemberId, boolean fLite)
@@ -41596,6 +42185,7 @@ public class PartitionedCache
                 boolean       fKeyIndex   = true;
                 boolean       fExpiryOnly = false;
                 boolean       fIndex      = storage.isIndexed();
+                boolean       fContinuous = storage.hasContinuousAggregations(status.getPartition());
                 boolean       fEvents     = storage.hasListeners();
                 boolean       fIncptrs    = storage.hasInterceptors() ||
                                             evtHelper.hasServiceInterceptors(com.tangosol.net.events.partition.TransactionEvent.Type.COMMITTED) ||
@@ -41614,11 +42204,12 @@ public class PartitionedCache
                             // neither index nor interceptors for expiry-only events
                             fEvents  = false;
                             fIndex   = false;
+                            fContinuous = false;
                             fIncptrs = false;
                             }
             
                         // check for a decoration-only update
-                        if ((fIndex || fEvents || fIncptrs) &&
+                        if ((fIndex || fContinuous || fEvents || fIncptrs) &&
                             (com.tangosol.util.ExternalizableHelper.isDecorated(binValueOld) || com.tangosol.util.ExternalizableHelper.isDecorated(binValueNew)) &&
                             com.tangosol.util.ExternalizableHelper.getUndecorated(binValueOld).equals(com.tangosol.util.ExternalizableHelper.getUndecorated(binValueNew)))
                             {
@@ -41635,6 +42226,7 @@ public class PartitionedCache
                     
                             // no need update user indices for decoration updates
                             fIndex = false;
+                            fContinuous = false;
                             }
                         }
             
@@ -41643,18 +42235,19 @@ public class PartitionedCache
                     }
                 // check for cachestore write-behind remove
                 else if (nEventType == com.tangosol.util.MapEvent.ENTRY_DELETED &&
-                         (fIndex || fEvents || fIncptrs) &&
+                         (fIndex || fContinuous || fEvents || fIncptrs) &&
                          (binValueOld != null && binValueOld.equals(ReadWriteBackingMap.BIN_ERASE_PENDING)))
                     {
                     // RWBM write-behind remove - suppress these events as they were processed on the original remove
                     fEvents   = false;
                     fIncptrs  = false;
                     fIndex    = false;
+                    fContinuous = false;
                     fKeyIndex = false;
                     status.setSuppressEvents(true);
                     }
 
-                if (fIndex || fEvents || fIncptrs)
+                if (fIndex || fContinuous || fEvents || fIncptrs)
                     {
                     fSynthetic = event instanceof CacheEvent &&
                                 ((CacheEvent) event).isSynthetic();
@@ -41714,6 +42307,13 @@ public class PartitionedCache
                         {
                         // update the user indices
                         storage.updateIndex(event.getId(), entry, null);
+                        }
+
+                    if (fContinuous)
+                        {
+                        // update partition-local continuous aggregation state;
+                        // maintenance failures are contained by Storage
+                        storage.updateContinuousAggregations(entry);
                         }
                     }
                 finally
@@ -44749,6 +45349,18 @@ public class PartitionedCache
             // import java.util.Map$Entry as java.util.Map.Entry;
             
             super.finalizeReceivePartition(iPartition, listXferRequests);
+
+            if (!listXferRequests.isEmpty()
+                    && ((PartitionedCache.TransferRequest) listXferRequests.get(0)).getStore() == 0)
+                {
+                PartitionedCache serviceContinuous = (PartitionedCache) get_Module();
+                for (Iterator iterStore = serviceContinuous.getStorageArray().iterator();
+                     iterStore.hasNext(); )
+                    {
+                    ((Storage) iterStore.next())
+                            .ensureContinuousAggregationPartition(iPartition);
+                    }
+                }
             
             // only after all the addenums are processed, schedule an index update
             PartitionedCache service = (PartitionedCache) get_Module();
@@ -44934,6 +45546,7 @@ public class PartitionedCache
                         {
                         storage.getPartitionedIndexMap().remove(iPartition);
                         }
+                    storage.removeContinuousAggregationPartition(iPartition);
                     }
             
                 // drop the pending index rebuild for this partition
@@ -45074,6 +45687,13 @@ public class PartitionedCache
          * The version of the last MapEvent for this partition.
          */
         private long __m_MapEventVersion;
+
+        /**
+         * Property ContinuousAggregationState
+         *
+         * Exact definition-to-state Binary entries for a primary transfer.
+         */
+        private java.util.Map.Entry[] __m_ContinuousAggregationState;
         
         /**
          * Property Resource
@@ -45282,6 +45902,18 @@ public class PartitionedCache
             {
             return __m_MapEventVersion;
             }
+
+        // Accessor for the property "ContinuousAggregationState"
+        /**
+         * Return exact definition-to-state Binary entries carried by this
+         * primary transfer.
+         *
+         * @return the checkpoint entries, or {@code null}
+         */
+        public java.util.Map.Entry[] getContinuousAggregationState()
+            {
+            return __m_ContinuousAggregationState;
+            }
         
         // Accessor for the property "Resource"
         /**
@@ -45453,6 +46085,19 @@ public class PartitionedCache
             if (service.isVersionCompatible(getFromMember(), 21, 6, 0))
                 {
                 setMapEventVersion(com.tangosol.util.ExternalizableHelper.readLong(input));
+                }
+
+            if (service.isContinuousAggregationCompatible(getFromMember()))
+                {
+                int cStates = com.tangosol.util.ExternalizableHelper.readInt(input);
+                java.util.Map.Entry[] aState = new java.util.Map.Entry[cStates];
+                for (int i = 0; i < cStates; i++)
+                    {
+                    aState[i] = new SimpleMapEntry(
+                            readBinary(input, "continuous aggregation definition", false),
+                            readBinary(input, "continuous aggregation state", false));
+                    }
+                setContinuousAggregationState(aState);
                 }
                 }
             }
@@ -45822,6 +46467,17 @@ public class PartitionedCache
             {
             __m_MapEventVersion = lVersion;
             }
+
+        // Accessor for the property "ContinuousAggregationState"
+        /**
+         * Set exact definition-to-state Binary entries for this transfer.
+         *
+         * @param aState  the checkpoint entries
+         */
+        public void setContinuousAggregationState(java.util.Map.Entry[] aState)
+            {
+            __m_ContinuousAggregationState = aState;
+            }
         
         // Declared at the super level
         /**
@@ -46010,6 +46666,22 @@ public class PartitionedCache
             
             // latest event version @since 21.06
             com.tangosol.util.ExternalizableHelper.writeLong(output, getMapEventVersion());
+
+            // exact continuous aggregation state @since 26.10
+            java.util.Map.Entry[] aState = getContinuousAggregationState();
+            if (((PartitionedCache) getService())
+                    .isContinuousAggregationCompatible(getToMemberSet()))
+                {
+                int cStates = aState == null ? 0 : aState.length;
+                com.tangosol.util.ExternalizableHelper.writeInt(output, cStates);
+                for (int i = 0; i < cStates; i++)
+                    {
+                    com.tangosol.util.ExternalizableHelper.writeObject(output, aState[i].getKey());
+                    com.tangosol.util.ExternalizableHelper.writeObject(output, aState[i].getValue());
+                    aState[i] = null;
+                    }
+                }
+            setContinuousAggregationState(null);
             }
         }
 

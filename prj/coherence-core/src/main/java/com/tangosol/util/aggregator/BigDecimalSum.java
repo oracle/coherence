@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -78,7 +78,7 @@ public class BigDecimalSum<T>
     @Override
     public int characteristics()
         {
-        return PARALLEL | PRESENT_ONLY;
+        return PARALLEL | PRESENT_ONLY | CONTINUOUS | STATE_CHECKPOINTABLE;
         }
 
     // ----- AbstractAggregator methods -------------------------------------
@@ -105,5 +105,52 @@ public class BigDecimalSum<T>
             m_decResult = decResult == null ? dec : decResult.add(dec);
             m_count++;
             }
+        }
+
+    /**
+    * {@inheritDoc}
+    */
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult remove(Object o)
+        {
+        if (o != null)
+            {
+            if (m_count == 0)
+                {
+                return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+                }
+
+            m_decResult = m_decResult.subtract(ensureBigDecimal((Number) o));
+            if (--m_count == 0)
+                {
+                m_decResult = null;
+                }
+            }
+
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected InvocableMap.StreamingAggregator.RetractionResult replace(
+            Object oOriginal, Object oCurrent)
+        {
+        if (oOriginal == null || oCurrent == null)
+            {
+            return super.replace(oOriginal, oCurrent);
+            }
+        if (m_count == 0)
+            {
+            return InvocableMap.StreamingAggregator.RetractionResult.REBUILD_REQUIRED;
+            }
+
+        m_decResult = m_decResult.subtract(ensureBigDecimal((Number) oOriginal))
+                .add(ensureBigDecimal((Number) oCurrent));
+        return InvocableMap.StreamingAggregator.RetractionResult.UPDATED;
+        }
+
+    @Override
+    protected boolean isReplacementRequired(Object oOriginal, Object oCurrent)
+        {
+        return true;
         }
     }

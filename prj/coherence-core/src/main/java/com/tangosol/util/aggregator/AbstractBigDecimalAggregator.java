@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -111,6 +111,33 @@ public abstract class AbstractBigDecimalAggregator<T>
             {
             return new BigDecimalSerializationWrapper(m_decResult);
             }
+        }
+
+    @Override
+    public Object snapshotState()
+        {
+        ensureInitialized(false);
+        return new Object[] {Integer.valueOf(m_count), m_decResult};
+        }
+
+    @Override
+    public void restoreState(Object state)
+        {
+        if (!(state instanceof Object[]) || ((Object[]) state).length != 2)
+            {
+            throw new IllegalArgumentException("invalid BigDecimal aggregator state snapshot");
+            }
+
+        Object[] aoState = (Object[]) state;
+        int      cValues = ((Number) aoState[0]).intValue();
+        if (cValues < 0 || cValues > 0 && !(aoState[1] instanceof BigDecimal))
+            {
+            throw new IllegalArgumentException("invalid BigDecimal aggregator state values");
+            }
+
+        ensureInitialized(false);
+        m_count     = cValues;
+        m_decResult = (BigDecimal) aoState[1];
         }
 
     // ----- Object methods -------------------------------------------------

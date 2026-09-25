@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, 2024, Oracle and/or its affiliates.
+ * Copyright (c) 2020, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -198,6 +198,24 @@ enum NamedCacheRequestType {
     // The message field should not be set.
     // The response will just be a Complete message corresponding to the request id.
     Truncate = 28;
+    // Register, remove, or query a continuously maintained aggregation.
+    // The message field must contain a ContinuousAggregationRequest.
+    // Register and remove return Complete; query returns a BytesValue.
+    ContinuousAggregation = 29;
+}
+
+// A request to register, remove, or query a continuous aggregation.
+message ContinuousAggregationRequest {
+    enum Operation {
+        Unknown = 0;
+        Register = 1;
+        Remove = 2;
+        Query = 3;
+    }
+
+    Operation operation = 1;
+    bytes filter = 2;
+    bytes aggregator = 3;
 }
 
 // A request to perform an operation on a remote NamedCache.

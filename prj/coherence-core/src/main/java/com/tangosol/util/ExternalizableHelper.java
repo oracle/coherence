@@ -141,6 +141,7 @@ import java.util.WeakHashMap;
 
 import java.util.concurrent.Callable;
 import java.util.function.BinaryOperator;
+import java.util.function.IntPredicate;
 
 /**
 * Helpers for the Serializable, Externalizable and the ExternalizableLite
@@ -614,6 +615,30 @@ public abstract class ExternalizableHelper
         }
 
     /**
+     * Determine whether the sender's encoded version satisfies the specified
+     * compatibility predicate.
+     *
+     * @param in         the DataInput to interrogate
+     * @param predicate  the compatibility predicate
+     *
+     * @return true iff the sender's encoded version satisfies the specified
+     *         predicate
+     *
+     * @throws IllegalArgumentException if the DataInput is not a {@link
+     *         WrapperBufferInput.VersionAwareBufferInput VersionAwareBufferInput}
+     */
+    public static boolean isVersionCompatible(DataInput in, IntPredicate predicate)
+        {
+        if (!(in instanceof WrapperBufferInput.VersionAwareBufferInput))
+            {
+            throw new IllegalArgumentException("Unexpected DataInput");
+            }
+
+        return ((WrapperBufferInput.VersionAwareBufferInput) in)
+                .isVersionCompatible(predicate);
+        }
+
+    /**
      * Determine whether all the recipients of the content (the given DataOutput)
      * run versions that supersede (greater or equal to) the specified
      * version.
@@ -692,6 +717,30 @@ public abstract class ExternalizableHelper
 
         return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
                 .isVersionCompatible(nEncodedVersion);
+        }
+
+    /**
+     * Determine whether every recipient's encoded version satisfies the
+     * specified compatibility predicate.
+     *
+     * @param out        the DataOutput to interrogate
+     * @param predicate  the compatibility predicate
+     *
+     * @return true iff every recipient's encoded version satisfies the
+     *         specified predicate
+     *
+     * @throws IllegalArgumentException if the DataOutput is not a {@link
+     *         WrapperBufferOutput.VersionAwareBufferOutput VersionAwareBufferOutput}
+     */
+    public static boolean isVersionCompatible(DataOutput out, IntPredicate predicate)
+        {
+        if (!(out instanceof WrapperBufferOutput.VersionAwareBufferOutput))
+            {
+            throw new IllegalArgumentException("Unexpected DataOutput");
+            }
+
+        return ((WrapperBufferOutput.VersionAwareBufferOutput) out)
+                .isVersionCompatible(predicate);
         }
 
     /**

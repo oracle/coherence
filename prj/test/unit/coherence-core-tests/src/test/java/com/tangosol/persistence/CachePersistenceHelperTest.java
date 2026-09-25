@@ -713,6 +713,44 @@ public class CachePersistenceHelperTest
         }
 
     @Test
+    public void testContinuousAggregationLifecycle()
+        {
+        Binary binDefinition = new Binary(new byte[] {1, 2, 3});
+        Binary binState      = new Binary(new byte[] {4, 5, 6});
+
+        TestVisitor visitor = new TestVisitor();
+        testPersistenceVisitor(visitor);
+        assertTrue(visitor.f_mapContinuousAggregations.isEmpty());
+        assertTrue(visitor.f_mapContinuousAggregationStates.isEmpty());
+
+        CachePersistenceHelper.registerContinuousAggregation(
+                m_store, 1L, 1, binDefinition, null);
+        CachePersistenceHelper.registerContinuousAggregationState(
+                m_store, 1L, 1, 7, 11L, 13L,
+                binDefinition, binState, null);
+
+        visitor = new TestVisitor();
+        testPersistenceVisitor(visitor);
+        assertEquals(Integer.valueOf(1),
+                visitor.f_mapContinuousAggregations.get(binDefinition));
+        Object[] aoState = visitor.f_mapContinuousAggregationStates.get(binDefinition);
+        assertArrayEquals(new Object[] {Integer.valueOf(1), Integer.valueOf(7),
+                Long.valueOf(11L), Long.valueOf(13L), binState}, aoState);
+
+        CachePersistenceHelper.unregisterContinuousAggregation(
+                m_store, 1L, 1, binDefinition, null);
+        visitor = new TestVisitor();
+        testPersistenceVisitor(visitor);
+        assertTrue(visitor.f_mapContinuousAggregations.isEmpty());
+        assertEquals(1, visitor.f_mapContinuousAggregationStates.size());
+
+        CachePersistenceHelper.deleteContinuousAggregationStates(m_store, 1L);
+        visitor = new TestVisitor();
+        testPersistenceVisitor(visitor);
+        assertTrue(visitor.f_mapContinuousAggregationStates.isEmpty());
+        }
+
+    @Test
     public void testMetadata()
         {
         File fileData  = null;
@@ -918,6 +956,28 @@ public class CachePersistenceHelperTest
             return true;
             }
 
+        @Override
+        public boolean visitContinuousAggregation(long lOldCacheId,
+                int nFormat, Binary binDefinition)
+            {
+            assertEquals(1L, lOldCacheId);
+            f_mapContinuousAggregations.put(binDefinition, Integer.valueOf(nFormat));
+            return true;
+            }
+
+        @Override
+        public boolean visitContinuousAggregationState(long lOldCacheId,
+                int nFormat, int nPartition, long lOwnershipVersion,
+                long lDataVersion, Binary binDefinition, Binary binState)
+            {
+            assertEquals(1L, lOldCacheId);
+            f_mapContinuousAggregationStates.put(binDefinition,
+                    new Object[] {Integer.valueOf(nFormat), Integer.valueOf(nPartition),
+                            Long.valueOf(lOwnershipVersion), Long.valueOf(lDataVersion),
+                            binState});
+            return true;
+            }
+
         protected final Map<Binary, Map.Entry<Binary, Binary>> f_mapEntries
                 = new HashMap<Binary, Map.Entry<Binary, Binary>>();
 
@@ -932,6 +992,12 @@ public class CachePersistenceHelperTest
 
         protected final Map<Binary, Binary> f_mapTriggers
                 = new HashMap<Binary, Binary>();
+
+        protected final Map<Binary, Integer> f_mapContinuousAggregations
+                = new HashMap<Binary, Integer>();
+
+        protected final Map<Binary, Object[]> f_mapContinuousAggregationStates
+                = new HashMap<Binary, Object[]>();
         }
 
     // ----- constants ------------------------------------------------------

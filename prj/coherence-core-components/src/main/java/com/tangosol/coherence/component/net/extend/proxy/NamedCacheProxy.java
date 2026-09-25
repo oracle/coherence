@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -48,6 +48,7 @@ import java.util.Map;
 public class NamedCacheProxy
         extends    com.tangosol.coherence.component.net.extend.Proxy
         implements com.tangosol.internal.net.NamedCacheDeactivationListener,
+                   com.tangosol.internal.net.ContinuousAggregationSupport,
                    com.tangosol.net.MemberListener,
                    com.tangosol.net.NamedCache,
                    com.tangosol.net.messaging.Channel.Receiver,
@@ -290,6 +291,24 @@ public class NamedCacheProxy
         {
         assertWriteable();
         addIndex$Router(extractor, fOrdered, comparator);
+        }
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void registerContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().registerContinuousAggregation(definition);
+        }
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public void removeContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        getContinuousAggregationSupport().removeContinuousAggregation(definition);
+        }
+    // From interface: com.tangosol.internal.net.ContinuousAggregationSupport
+    public Object aggregateContinuousAggregation(
+            com.tangosol.internal.net.ContinuousAggregationDefinition definition)
+        {
+        return getContinuousAggregationSupport().aggregateContinuousAggregation(definition);
         }
     public void addMapListener(com.tangosol.util.MapListener listener)
         {
@@ -701,6 +720,22 @@ public class NamedCacheProxy
     public com.tangosol.net.NamedCache getNamedCache()
         {
         return __m_NamedCache;
+        }
+
+    /**
+     * Return the continuous aggregation support implemented by the proxied
+     * cache.
+     */
+    protected com.tangosol.internal.net.ContinuousAggregationSupport
+            getContinuousAggregationSupport()
+        {
+        com.tangosol.net.NamedCache cache = getNamedCache();
+        if (!(cache instanceof com.tangosol.internal.net.ContinuousAggregationSupport))
+            {
+            throw new UnsupportedOperationException(
+                    "continuous aggregation is not supported by " + cache.getClass().getName());
+            }
+        return (com.tangosol.internal.net.ContinuousAggregationSupport) cache;
         }
     
     // From interface: com.tangosol.net.messaging.Channel$Receiver

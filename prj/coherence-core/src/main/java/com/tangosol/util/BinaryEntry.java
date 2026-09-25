@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -356,6 +356,53 @@ public interface BinaryEntry<K, V>
     default Map<ValueExtractor, MapIndex> getIndexMap()
         {
         return getBackingMapContext().getIndexMap(getKeyPartition());
+        }
+
+    /**
+     * Return the finalized result of a registered continuous aggregation for
+     * this entry's partition.
+     * <p>
+     * The entry does not need to be present. The returned result is detached
+     * from the maintained aggregation state and is exact for this partition.
+     *
+     * @param <P>         the type of the partial aggregation result
+     * @param <R>         the type of the final aggregation result
+     * @param aggregator  the registered streaming aggregator definition
+     *
+     * @return the finalized partition result
+     *
+     * @since 26.10
+     */
+    default <P, R> R getContinuousAggregationResult(
+            InvocableMap.StreamingAggregator<? super K, ? super V, P, R> aggregator)
+        {
+        return getBackingMapContext().getContinuousAggregationResult(
+                getKeyPartition(), aggregator);
+        }
+
+    /**
+     * Return the finalized result of a registered filtered continuous
+     * aggregation for this entry's partition.
+     * <p>
+     * The complete {@code (filter, aggregator)} pair identifies the
+     * registration. The entry does not need to be present. The returned result
+     * is detached from the maintained aggregation state and is exact for this
+     * partition.
+     *
+     * @param <P>         the type of the partial aggregation result
+     * @param <R>         the type of the final aggregation result
+     * @param filter      the registered filter, or {@code null} for all entries
+     * @param aggregator  the registered streaming aggregator definition
+     *
+     * @return the finalized partition result
+     *
+     * @since 26.10
+     */
+    default <P, R> R getContinuousAggregationResult(Filter<?> filter,
+            InvocableMap.StreamingAggregator<? super K, ? super V, P, R> aggregator)
+        {
+        return getBackingMapContext().getContinuousAggregationResult(
+                getKeyPartition(), filter, aggregator);
         }
 
     // ----- InvocableMap.Entry interface -----------------------------------

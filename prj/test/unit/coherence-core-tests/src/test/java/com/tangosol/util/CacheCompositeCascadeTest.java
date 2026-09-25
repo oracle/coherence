@@ -9,6 +9,8 @@ package com.tangosol.util;
 import com.oracle.coherence.testing.util.CoherenceModeHelper;
 
 import com.tangosol.internal.util.CoherenceMode;
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
+import com.tangosol.internal.net.ContinuousAggregationProcessor;
 import com.tangosol.internal.util.security.RemoteExecutionMode;
 import com.tangosol.internal.util.security.RemoteInstallGate;
 import com.tangosol.internal.util.security.SecurityConfig;
@@ -18,6 +20,8 @@ import com.tangosol.io.internal.SerializationTelemetry;
 
 import com.tangosol.util.aggregator.CompositeAggregator;
 import com.tangosol.util.aggregator.GroupAggregator;
+import com.tangosol.util.aggregator.Count;
+import com.tangosol.util.aggregator.LongSum;
 import com.tangosol.util.aggregator.ReducerAggregator;
 import com.tangosol.util.comparator.ChainedComparator;
 import com.tangosol.util.comparator.EntryComparator;
@@ -42,6 +46,8 @@ import com.tangosol.util.processor.PriorityProcessor;
 import com.tangosol.util.processor.PropertyManipulator;
 import com.tangosol.util.processor.UpdaterProcessor;
 import com.tangosol.util.transformer.SemiLiteEventTransformer;
+
+import com.tangosol.util.function.Remote;
 
 import com.tangosol.util.extractor.ReflectionUpdater;
 
@@ -153,6 +159,36 @@ public class CacheCompositeCascadeTest
                 new CacheNamedCacheInstallGateTest.AnnotatedProcessor()), SerializationRole.EXTEND_PROXY, null);
         assertAllowed(OperationReason.PROCESS_ENTRY, 2L);
         assertAllowed(OperationReason.EVALUATE_FILTER, 1L);
+        }
+
+    @Test
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public void cascadesContinuousAggregationProcessor()
+        {
+        assertProcessorRejected(new ContinuousAggregationProcessor<>(
+                new ContinuousAggregationDefinition(
+                        new CacheNamedCacheInstallGateTest.PlainFilter(), new Count<>()),
+                Remote.Function.<Integer>identity()),
+                OperationReason.EVALUATE_FILTER);
+
+        assertProcessorRejected(new ContinuousAggregationProcessor<>(
+                new ContinuousAggregationDefinition(
+                        new CacheNamedCacheInstallGateTest.AnnotatedFilter(),
+                        new LongSum(new CacheNamedCacheInstallGateTest.PlainExtractor())),
+                Remote.Function.<Long>identity()),
+                OperationReason.EXTRACT);
+
+        RemoteInstallGate.enforceCacheProcessorInstall(
+                new ContinuousAggregationProcessor<>(
+                        new ContinuousAggregationDefinition(
+                                new CacheNamedCacheInstallGateTest.AnnotatedFilter(),
+                                new LongSum(new CacheNamedCacheInstallGateTest.AnnotatedExtractor())),
+                        Remote.Function.<Long>identity()),
+                SerializationRole.EXTEND_PROXY, null);
+        assertAllowed(OperationReason.PROCESS_ENTRY, 1L);
+        assertAllowed(OperationReason.AGGREGATE, 1L);
+        assertAllowed(OperationReason.EVALUATE_FILTER, 1L);
+        assertAllowed(OperationReason.EXTRACT, 1L);
         }
 
     @Test

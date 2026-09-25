@@ -884,6 +884,12 @@ public class Message
         }
 
     @Override
+    public boolean isRecipientCompatible(java.util.function.IntPredicate predicate)
+        {
+        return getService().isVersionCompatible(getToMemberSet(), predicate);
+        }
+
+    @Override
     public boolean isRecipientPatchCompatible(int nEncodedVersion)
         {
         return getService().isPatchCompatible(getToMemberSet(), nEncodedVersion);
@@ -905,6 +911,12 @@ public class Message
     public boolean isSenderCompatible(int nEncodedVersion)
         {
         return getService().isVersionCompatible(getFromMember(), nEncodedVersion);
+        }
+
+    @Override
+    public boolean isSenderCompatible(java.util.function.IntPredicate predicate)
+        {
+        return getService().isVersionCompatible(getFromMember(), predicate);
         }
 
     @Override

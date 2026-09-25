@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -14,7 +14,9 @@ import com.google.protobuf.Int32Value;
 
 import com.oracle.coherence.common.base.Exceptions;
 import com.oracle.coherence.common.base.Logger;
+import com.oracle.coherence.grpc.messages.cache.v1.ContinuousAggregationRequest;
 
+import com.tangosol.internal.net.ContinuousAggregationDefinition;
 import com.tangosol.internal.net.NamedCacheDeactivationListener;
 
 import com.tangosol.net.AsyncNamedCache;
@@ -165,6 +167,61 @@ public class AsyncNamedCacheClient<K, V>
 
                 return f_client.aggregate(toByteString(filter), toByteString(entryAggregator), nDeadline)
                         .thenApply(this::fromBytesValue);
+                }
+            catch (Throwable t)
+                {
+                return failedFuture(t);
+                }
+            });
+        }
+
+    /**
+     * Register a continuously maintained aggregation definition.
+     */
+    public CompletableFuture<Void> registerContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        return continuousAggregation(
+                ContinuousAggregationRequest.Operation.Register, definition)
+                .thenApply(ignored -> VOID);
+        }
+
+    /**
+     * Remove a continuously maintained aggregation definition.
+     */
+    public CompletableFuture<Void> removeContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        return continuousAggregation(
+                ContinuousAggregationRequest.Operation.Remove, definition)
+                .thenApply(ignored -> VOID);
+        }
+
+    /**
+     * Query a continuously maintained aggregation definition.
+     */
+    public CompletableFuture<Object> aggregateContinuousAggregation(
+            ContinuousAggregationDefinition definition)
+        {
+        return continuousAggregation(
+                ContinuousAggregationRequest.Operation.Query, definition)
+                .thenApply(this::fromBytesValue);
+        }
+
+    /**
+     * Send a continuous aggregation operation.
+     */
+    protected CompletableFuture<BytesValue> continuousAggregation(
+            ContinuousAggregationRequest.Operation operation,
+            ContinuousAggregationDefinition definition)
+        {
+        return executeIfActive(() ->
+            {
+            try
+                {
+                return f_client.continuousAggregation(operation,
+                        toByteString(definition.getFilter()),
+                        toByteString(definition.getAggregator()));
                 }
             catch (Throwable t)
                 {
