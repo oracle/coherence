@@ -30,9 +30,13 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.PrintWriter;
+
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
@@ -669,6 +673,8 @@ public class MessageBusTestTests
 
     /**
      * Test the direct-to-MPSC ownership transition while receipts advance and the active transport starts migration.
+     * Hold the peer's sends until the direct producer pauses, then keep sending so the receipt and migration
+     * do not depend on when the peer reads the first receipt request.
      */
     @Test
     public void testAdaptiveDirectToMpscReceiptMigration()
@@ -697,7 +703,8 @@ public class MessageBusTestTests
                 "-cached",
                 "-txRate",         "64KBps",
                 "-txMaxBacklog",   "16m",
-                "-reportInterval", "1s"
+                "-reportInterval", "1s",
+                "-prompt"
                 };
 
         OptionsByType optionsSender = OptionsByType.of(
@@ -713,27 +720,52 @@ public class MessageBusTestTests
                 SystemProperty.of(AbstractSocketBus.class.getName() + ".trackReconnectAttempts", "true"),
                 SystemProperty.of(BufferedSocketBus.class.getName() + ".trackDeferredWriteProgression", "true"));
         OptionsByType optionsPeer = OptionsByType.of(
-                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "0"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.autoFlushThreshold", "1KB"),
+                SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.maxReceiptDelayMillis", "3600000"),
                 SystemProperty.of("com.oracle.coherence.common.internal.net.socketbus.SocketBusDriver.reconnectDelayMillis", "1000"));
 
         CapturingApplicationConsole console1     = new CapturingApplicationConsole();
         CapturingApplicationConsole console2     = new CapturingApplicationConsole();
         JavaApplication             application1 = startMessageBusTest(optionsSender, asArg1, console1);
         JavaApplication             application2 = null;
+        ScheduledExecutorService   peerInputFeeder = null;
 
         try
             {
+            Eventually.assertDeferred(
+                    () -> console1.getCapturedErrorLines().stream().anyMatch(line -> line.contains("OPEN event for")),
+                    is(true), within(30, TimeUnit.SECONDS));
             application2 = startMessageBusTest(optionsPeer, asArg2, console2);
 
-            Eventually.assertDeferred(
-                    () -> application1.invoke(SocketMessageBus::getAdaptiveDirectSendBlocksForTesting),
-                    is(1L), within(30, TimeUnit.SECONDS));
+            try
+                {
+                Eventually.assertDeferred(
+                        () -> application1.invoke(SocketMessageBus::getAdaptiveDirectSendBlocksForTesting),
+                        is(1L), within(30, TimeUnit.SECONDS));
+                }
+            catch (AssertionError e)
+                {
+                throw new AssertionError("adaptive direct send did not block; sender="
+                        + console1.getCapturedOutputLines() + ", peer=" + console2.getCapturedOutputLines()
+                        + ", sender errors=" + console1.getCapturedErrorLines()
+                        + ", peer errors=" + console2.getCapturedErrorLines(), e);
+                }
             Eventually.assertDeferred(
                     () -> application1.invoke(SocketMessageBus::getAdaptiveMpscFallbacksDuringDirectForTesting),
                     greaterThan(0L), within(30, TimeUnit.SECONDS));
+            assertThat(application1.invoke(SocketMessageBus::getAdaptiveReceiptsDuringDirectForTesting), is(0L));
+
+            PrintWriter peerInput = console2.getInputWriter();
+            peerInputFeeder = Executors.newSingleThreadScheduledExecutor();
+            peerInputFeeder.scheduleWithFixedDelay(() ->
+                {
+                peerInput.write('\n');
+                peerInput.flush();
+                }, 0L, 50L, TimeUnit.MILLISECONDS);
             Eventually.assertDeferred(
                     () -> application1.invoke(SocketMessageBus::getAdaptiveReceiptsDuringDirectForTesting),
                     greaterThan(0L), within(30, TimeUnit.SECONDS));
+
             Eventually.assertDeferred(
                     () -> application1.invoke(BufferedSocketBus::getDeferredWriteProgressionRequestsForTesting),
                     greaterThan(0L), within(30, TimeUnit.SECONDS));
@@ -761,6 +793,10 @@ public class MessageBusTestTests
             }
         finally
             {
+            if (peerInputFeeder != null)
+                {
+                peerInputFeeder.shutdownNow();
+                }
             if (application1 != null)
                 {
                 try
