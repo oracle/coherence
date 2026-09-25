@@ -99,7 +99,26 @@ public class JournalPersistenceManager
     public JournalPersistenceManager(File fileData, File fileTrash, String sName)
             throws IOException
         {
+        this(fileData, fileTrash, sName, false);
+        }
+
+    /**
+     * Create a new {@link JournalPersistenceManager}.
+     *
+     * @param fileData         the directory containing persistent stores
+     * @param fileTrash        an optional trash directory
+     * @param sName            an optional manager name
+     * @param fStagingManager  {@code true} when the manager writes into an
+     *                         isolated promotion directory
+     *
+     * @throws IOException if the directories cannot be created
+     */
+    private JournalPersistenceManager(File fileData, File fileTrash, String sName, boolean fStagingManager)
+            throws IOException
+        {
         super(fileData, fileTrash, sName);
+
+        f_fStagingManager = fStagingManager;
 
         File fileDataAbsolute = fileData.getAbsoluteFile();
         f_dirPromotion = new File(fileDataAbsolute.getParentFile(),
@@ -538,6 +557,22 @@ public class JournalPersistenceManager
         }
 
     /**
+     * Create an isolated work directory for a store promotion.
+     *
+     * @param sId  store identifier
+     *
+     * @return the promotion work directory
+     *
+     * @throws IOException if the directory cannot be created
+     */
+    protected File createPromotionDirectory(String sId)
+            throws IOException
+        {
+        File dirPromotionRoot = FileHelper.ensureDir(f_dirPromotion);
+        return Files.createTempDirectory(dirPromotionRoot.toPath(), sId + '-').toFile();
+        }
+
+    /**
      * List journal files in the supplied directory.
      *
      * @param dirStore  store directory
@@ -702,13 +737,14 @@ public class JournalPersistenceManager
             {
             storeFrom = SafePersistenceWrappers.unwrap(storeFrom);
 
-            if (storeFrom instanceof JournalPersistentStore)
+            if (storeFrom != null && !f_fStagingManager)
                 {
                 try
                     {
-                    JournalPersistentStore storeJournal = (JournalPersistentStore) storeFrom;
-
-                    storeJournal.validateMetadata();
+                    if (storeFrom instanceof JournalPersistentStore)
+                        {
+                        ((JournalPersistentStore) storeFrom).validateMetadata();
+                        }
 
                     File[] aTargetFile = f_dirStore.listFiles();
                     if (aTargetFile == null || aTargetFile.length != 0)
@@ -723,31 +759,32 @@ public class JournalPersistenceManager
                     // can suppress an older valid recovery candidate.
                     Files.delete(f_dirStore.toPath());
 
-                    File    dirPromotionRoot = FileHelper.ensureDir(f_dirPromotion);
-                    File    dirPromotion     = Files.createTempDirectory(
-                            dirPromotionRoot.toPath(), f_sId + '-').toFile();
-                    boolean fPublished       = false;
+                    File dirPromotionWork = JournalPersistenceManager.this.createPromotionDirectory(f_sId);
+                    File dirPromotion     = new File(dirPromotionWork, f_sId);
                     try
                         {
-                        copyStoreFiles(storeJournal.f_dirStore, dirPromotion);
-                        JournalPersistenceManager.this.writeMetadata(dirPromotion);
+                        if (storeFrom instanceof JournalPersistentStore)
+                            {
+                            JournalPersistentStore storeJournal = (JournalPersistentStore) storeFrom;
+
+                            copyStoreFiles(storeJournal.f_dirStore, dirPromotion);
+                            JournalPersistenceManager.this.writeMetadata(dirPromotion);
+                            }
+                        else
+                            {
+                            copyIntoStagedStore(storeFrom, dirPromotionWork);
+                            }
+
                         JournalPersistenceManager.this.publishStagedStore(dirPromotion, f_dirStore);
-                        fPublished = true;
                         }
                     finally
                         {
-                        if (!fPublished && dirPromotion.exists())
-                            {
-                            FileHelper.deleteDir(dirPromotion);
-                            }
-                        if (dirPromotionRoot.isDirectory())
-                            {
-                            File[] aFile = dirPromotionRoot.listFiles();
-                            if (aFile != null && aFile.length == 0)
-                                {
-                                Files.deleteIfExists(dirPromotionRoot.toPath());
-                                }
-                            }
+                        // The shared promotion root belongs to the manager and
+                        // may contain work owned by other recovery threads.
+                        // Cleanup is deliberately limited to this operation's
+                        // private directory and must not invalidate a store
+                        // that has already been published successfully.
+                        FileHelper.deleteDirSilent(dirPromotionWork);
                         }
 
                     openInternal();
@@ -768,6 +805,31 @@ public class JournalPersistenceManager
                 }
 
             attachMBeanIfConfigured();
+            }
+
+        /**
+         * Copy a non-journal source into an isolated journal manager so the
+         * fully written store can be atomically published by this manager.
+         *
+         * @param storeFrom         source store
+         * @param dirPromotionWork  isolated promotion work directory
+         *
+         * @throws IOException if the staging manager cannot be created
+         */
+        private void copyIntoStagedStore(PersistentStore<ReadBuffer> storeFrom, File dirPromotionWork)
+                throws IOException
+            {
+            JournalPersistenceManager managerPromotion =
+                    new JournalPersistenceManager(dirPromotionWork, null, null, true);
+            try
+                {
+                managerPromotion.setJournalConfig(m_journalConfig);
+                managerPromotion.open(f_sId, storeFrom);
+                }
+            finally
+                {
+                managerPromotion.release();
+                }
             }
 
         /**
@@ -3898,4 +3960,10 @@ public class JournalPersistenceManager
      * publication into the live persistence directory.
      */
     private final File f_dirPromotion;
+
+    /**
+     * Whether this manager writes into an already isolated promotion
+     * directory and should therefore copy directly into its store directory.
+     */
+    private final boolean f_fStagingManager;
     }
