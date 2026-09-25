@@ -2162,7 +2162,7 @@ public class X509PeerProofProviderTest
         {
         String aes128 = "2.16.840.1.101.3.4.1.2";
         String aes256 = "2.16.840.1.101.3.4.1.42";
-        String hmac1 = "1.2.840.113549.2.7";
+        String hmac1 = HMAC_SHA1_OID;
         String hmac224 = "1.2.840.113549.2.8";
         String hmac256 = "1.2.840.113549.2.9";
         String hmac384 = "1.2.840.113549.2.10";
@@ -2180,8 +2180,10 @@ public class X509PeerProofProviderTest
                 "PBEWithHmacSHA384AndAES_256", "HmacPBESHA256");
         Path sha512 = pkcs12PlatformFamily("p77-aes256-sha512-sha384",
                 "PBEWithHmacSHA512AndAES_256", "HmacPBESHA384");
+        Path explicitSha1 = mutatePbkdf2("p77-explicit-sha1-prf.p12", sha1,
+                Pbkdf2Mutation.INCLUDE_DEFAULT_PRF);
         return Arrays.asList(
-                new PfxPlatformFamily(sha1, aes128, 16, hmac1, ParameterShape.NULL,
+                new PfxPlatformFamily(explicitSha1, aes128, 16, hmac1, ParameterShape.NULL,
                         mac256, ParameterShape.NULL),
                 new PfxPlatformFamily(sha224, aes128, 16, hmac224, ParameterShape.NULL,
                         mac384, ParameterShape.NULL),
@@ -2213,7 +2215,7 @@ public class X509PeerProofProviderTest
                         Pbkdf2Mutation.OMIT_PRF_PARAMETERS), aes256, 32, hmac512,
                         ParameterShape.ABSENT, mac384, ParameterShape.NULL),
                 new PfxPlatformFamily(omitOuterMacParameters(
-                        "p78-absent-sha256-mac-parameters.p12", sha1), aes128, 16, hmac1,
+                        "p78-absent-sha256-mac-parameters.p12", explicitSha1), aes128, 16, hmac1,
                         ParameterShape.NULL, mac256, ParameterShape.ABSENT),
                 new PfxPlatformFamily(omitOuterMacParameters(
                         "p78-absent-sha384-mac-parameters.p12", sha224), aes128, 16, hmac224,
@@ -2295,7 +2297,7 @@ public class X509PeerProofProviderTest
             }
         else
             {
-            assertEquals(index + 1, pbkdf2.f_listChildren.size());
+            assertEquals(family.f_path.toString(), index + 1, pbkdf2.f_listChildren.size());
             assertAlgorithmIdentifier(pbkdf2.child(index), family.f_sPrfOid, family.f_prfShape);
             }
 
@@ -3480,6 +3482,14 @@ public class X509PeerProofProviderTest
 
     private enum Pbkdf2Mutation
         {
+        INCLUDE_DEFAULT_PRF
+            {
+            @Override
+            void apply(PfxDer parameters) throws IOException
+                {
+                setPrf(parameters, HMAC_SHA1_OID, ParameterShape.NULL);
+                }
+            },
         OMIT_KEY_LENGTH
             {
             @Override
@@ -3495,28 +3505,71 @@ public class X509PeerProofProviderTest
         OMIT_PRF
             {
             @Override
-            void apply(PfxDer parameters)
+            void apply(PfxDer parameters) throws IOException
                 {
-                int index = parameters.child(2).f_nTag == 0x02 ? 3 : 2;
-                parameters.f_listChildren.remove(index);
+                int index = prfIndex(parameters);
+                if (parameters.f_listChildren.size() > index)
+                    {
+                    if (!parameters.child(index).isOidChild(0, HMAC_SHA1_OID))
+                        {
+                        throw new AssertionError("only the default HmacSHA1 PRF may be omitted");
+                        }
+                    setPrf(parameters, HMAC_SHA1_OID, ParameterShape.OMITTED);
+                    }
                 }
             },
         OMIT_PRF_PARAMETERS
             {
             @Override
-            void apply(PfxDer parameters)
+            void apply(PfxDer parameters) throws IOException
                 {
-                int index = parameters.child(2).f_nTag == 0x02 ? 3 : 2;
-                PfxDer prf = parameters.child(index);
-                if (prf.f_listChildren.size() != 2 || prf.child(1).f_nTag != 0x05)
-                    {
-                    throw new AssertionError("expected explicit NULL PRF parameters");
-                    }
-                prf.f_listChildren.remove(1);
+                int index = prfIndex(parameters);
+                String oid = parameters.f_listChildren.size() == index
+                        ? HMAC_SHA1_OID : parameters.child(index, 0).oid();
+                setPrf(parameters, oid, ParameterShape.ABSENT);
                 }
             };
 
-        abstract void apply(PfxDer parameters);
+        private static int prfIndex(PfxDer parameters)
+            {
+            if (parameters.f_listChildren.size() < 2)
+                {
+                throw new AssertionError("missing required PBKDF2 parameters");
+                }
+            int index = parameters.f_listChildren.size() > 2
+                    && parameters.child(2).f_nTag == 0x02 ? 3 : 2;
+            if (parameters.f_listChildren.size() > index + 1)
+                {
+                throw new AssertionError("unexpected trailing PBKDF2 parameters");
+                }
+            return index;
+            }
+
+        private static void setPrf(PfxDer parameters, String oid, ParameterShape shape)
+                throws IOException
+            {
+            int index = prfIndex(parameters);
+            if (shape == ParameterShape.OMITTED)
+                {
+                if (parameters.f_listChildren.size() > index)
+                    {
+                    parameters.f_listChildren.remove(index);
+                    }
+                return;
+                }
+
+            PfxDer prf = PfxDer.parse(algorithmIdentifier(oid, shape, false));
+            if (parameters.f_listChildren.size() == index)
+                {
+                parameters.f_listChildren.add(prf);
+                }
+            else
+                {
+                parameters.f_listChildren.set(index, prf);
+                }
+            }
+
+        abstract void apply(PfxDer parameters) throws IOException;
         }
 
     /** Minimal mutable DER tree used only to create integrity-correct platform fixtures. */
@@ -3955,6 +4008,7 @@ public class X509PeerProofProviderTest
 
     private static final String PASSWORD = "changeit";
     private static final String ALIAS = "peer-signing";
+    private static final String HMAC_SHA1_OID = "1.2.840.113549.2.7";
     private static Path s_dir;
     private static Credential s_memberOne;
     private static Credential s_memberTwo;
