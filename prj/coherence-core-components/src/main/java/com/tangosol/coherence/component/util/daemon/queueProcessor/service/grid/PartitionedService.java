@@ -6391,6 +6391,15 @@ public abstract class PartitionedService
                                 parts.add(iPart);
                                 }
                             }
+
+                        // Partitions that still require persistent recovery are
+                        // not restored yet. Their obsolete stores must remain
+                        // available until recovery reports success; otherwise a
+                        // failed recovery can delete its final valid fallback.
+                        if (partsRecover != null)
+                            {
+                            parts.remove(partsRecover);
+                            }
         
                         if (!parts.isEmpty())
                             {
@@ -7000,8 +7009,30 @@ public abstract class PartitionedService
                     }
                 catch (PersistenceException e)
                     {
-                    partsFail.add(iPart);
-                    onStoreOpenFailed(mgrRecover, iPart, sGUID, e);
+                    PersistenceManager mgrFailed = fBackup ? backupMgr : mgrRecover;
+                    onStoreOpenFailed(mgrFailed, iPart, sGUID, e);
+
+                    // An interrupted promotion can leave a newer active store
+                    // that is present but incomplete. Do not allow that store
+                    // to suppress a complete retained backup. Recovery may
+                    // fail this attempt and retry globally, but use a local
+                    // backup immediately when one is available.
+                    PersistentStore storeFallback = fSnapshot
+                            ? null
+                            : openBackupStoreForRecovery(backupMgr, aBackupStores, iPart,
+                                    fBackup ? sGUID : null);
+                    if (storeFallback == null)
+                        {
+                        partsFail.add(iPart);
+                        }
+                    else
+                        {
+                        mapStoresFrom.put(Integer.valueOf(iPart),
+                                new Object[] {storeFallback, Boolean.TRUE, Boolean.FALSE});
+                        _trace("Recovering partition " + iPart + " from retained backup store "
+                                + storeFallback.getId() + " after active store " + sGUID
+                                + " failed validation", 3);
+                        }
                     }
                 }
             }
@@ -7010,6 +7041,68 @@ public abstract class PartitionedService
         
         // the poll will be responded to when the all recovery job completes; see #onFinalizeRecoverPrimary
         recoverPartitions(job, mapStoresFrom, mapStoresTo, partsFail, partsEventsFail);
+        }
+
+    /**
+     * Open the newest non-empty local backup candidate for a partition.
+     * Invalid candidates are quarantined and the next candidate is tried.
+     *
+     * @param mgrBackup      backup persistence manager
+     * @param aBackupStores  locally visible backup stores
+     * @param iPart          partition to recover
+     * @param sExclude       backup GUID already attempted, or {@code null}
+     *
+     * @return an opened backup store, or {@code null}
+     */
+    protected com.oracle.coherence.persistence.PersistentStore openBackupStoreForRecovery(
+            com.oracle.coherence.persistence.PersistenceManager mgrBackup,
+            com.oracle.coherence.persistence.PersistentStoreInfo[] aBackupStores,
+            int iPart, String sExclude)
+        {
+        // import com.oracle.coherence.persistence.PersistenceException;
+        // import com.oracle.coherence.persistence.PersistentStore;
+        // import com.oracle.coherence.persistence.PersistentStoreInfo;
+        // import com.tangosol.persistence.GUIDHelper;
+        // import java.util.ArrayList;
+        // import java.util.List;
+
+        if (mgrBackup == null || aBackupStores == null)
+            {
+            return null;
+            }
+
+        List listCandidates = new ArrayList();
+        for (int i = 0, c = aBackupStores.length; i < c; i++)
+            {
+            PersistentStoreInfo info = aBackupStores[i];
+            String              sGUID = info.getId();
+            if (!info.isEmpty() && GUIDHelper.getPartition(sGUID) == iPart &&
+                    (sExclude == null || !sExclude.equals(sGUID)))
+                {
+                listCandidates.add(info);
+                }
+            }
+
+        listCandidates.sort((o1, o2) -> Long.compare(
+                GUIDHelper.getVersion(((PersistentStoreInfo) o2).getId()),
+                GUIDHelper.getVersion(((PersistentStoreInfo) o1).getId())));
+
+        PartitionedService.PersistenceControl ctrl = getPersistenceControl();
+        for (int i = 0, c = listCandidates.size(); i < c; i++)
+            {
+            PersistentStoreInfo info  = (PersistentStoreInfo) listCandidates.get(i);
+            String              sGUID = info.getId();
+            try
+                {
+                return ctrl.openStoreForRead(mgrBackup, sGUID);
+                }
+            catch (PersistenceException e)
+                {
+                onStoreOpenFailed(mgrBackup, iPart, sGUID, e);
+                }
+            }
+
+        return null;
         }
     
     /**
@@ -13242,14 +13335,16 @@ public abstract class PartitionedService
             
                 ctrlPersistence.getActiveRecoveryRequests().set(cRequests);
             
-                PartitionSet partsRecovered = service.instantiatePartitionSet(false);
+                PartitionSet partsFailed            = service.instantiatePartitionSet(false);
+                PartitionSet partsRecoveryRequested = new PartitionSet(partsRecover);
                 for (Iterator iter = mapMemberMsg.values().iterator(); iter.hasNext(); )
                     {
                     PartitionedService.PartitionRecoverRequest msgRequest = (PartitionedService.PartitionRecoverRequest) iter.next();
             
                     msgRequest.setSnapshotToRecover(sSnapshot);
                     msgRequest.setGUIDs(resolverGUID.getNewestGUIDs(msgRequest.getPartsRecover()));
-                    msgRequest.setPartsRecovered(partsRecovered);
+                    msgRequest.setPartsRecovered(partsFailed);
+                    msgRequest.setPartsRecoveryRequested(partsRecoveryRequested);
             
                     service.post(msgRequest);
                     }
@@ -24387,10 +24482,19 @@ public abstract class PartitionedService
         /**
          * Property PartsRecovered
          *
-         * Transient (shared) set of partitions that were successfully
-         * recovered.
+         * Transient (shared) set of partitions that failed recovery. The
+         * historical property name is retained for component compatibility.
          */
         private com.tangosol.net.partition.PartitionSet __m_PartsRecovered;
+
+        /**
+         * Property PartsRecoveryRequested
+         *
+         * Coordinator-side set of all partitions requested by the complete
+         * recovery operation. This shared transient set allows the final poll
+         * to clean only successful partitions.
+         */
+        private transient com.tangosol.net.partition.PartitionSet __m_PartsRecoveryRequested;
 
         /**
          * Property RecoveryStartNanos
@@ -24616,11 +24720,22 @@ public abstract class PartitionedService
         // Accessor for the property "PartsRecovered"
         /**
          * Getter for property PartsRecovered.<p>
-        * Transient (shared) set of partitions that were successfully recovered.
+        * Transient (shared) set of partitions that failed recovery. The
+        * historical property name is retained for component compatibility.
          */
         public com.tangosol.net.partition.PartitionSet getPartsRecovered()
             {
             return __m_PartsRecovered;
+            }
+
+        /**
+         * Return all partitions requested by this recovery operation.
+         *
+         * @return the complete requested partition set
+         */
+        public com.tangosol.net.partition.PartitionSet getPartsRecoveryRequested()
+            {
+            return __m_PartsRecoveryRequested;
             }
 
         /**
@@ -24916,11 +25031,22 @@ public abstract class PartitionedService
         // Accessor for the property "PartsRecovered"
         /**
          * Setter for property PartsRecovered.<p>
-        * Transient (shared) set of partitions that were successfully recovered.
+        * Transient (shared) set of partitions that failed recovery. The
+        * historical property name is retained for component compatibility.
          */
         public void setPartsRecovered(com.tangosol.net.partition.PartitionSet setRecovered)
             {
             __m_PartsRecovered = setRecovered;
+            }
+
+        /**
+         * Set all partitions requested by this recovery operation.
+         *
+         * @param parts  the complete requested partition set
+         */
+        public void setPartsRecoveryRequested(com.tangosol.net.partition.PartitionSet parts)
+            {
+            __m_PartsRecoveryRequested = parts;
             }
 
         /**
@@ -25148,15 +25274,33 @@ public abstract class PartitionedService
                         {
                         if (sSnapshot == null)
                             {
-                            // automatic recovery from "active" persistence;
-                            // send a message to all storage members requesting them to delete old
-                            // versions of persisted partitions
-                            PartitionedService.PartitionRecoverCleanup msg = (PartitionedService.PartitionRecoverCleanup)
-                                    service.instantiateMessage("PartitionRecoverCleanup");
-                            msg.setPartitions(msgRequest.getPartsRecovered());
-                            msg.setToMemberSet(service.getOwnershipMemberSet());
-                
-                            service.post(msg);
+                            // Automatic recovery from active persistence. The
+                            // legacy PartsRecovered property actually contains
+                            // the aggregate failed set returned by recovery
+                            // members. Clean only requested partitions that are
+                            // absent from that failed set; deleting a failed
+                            // partition's alternate store destroys the source
+                            // needed by the next recovery attempt.
+                            PartitionSet partsRequested = msgRequest.getPartsRecoveryRequested();
+                            if (partsRequested != null)
+                                {
+                                PartitionSet partsCleanup = new PartitionSet(partsRequested);
+                                PartitionSet partsFailed  = msgRequest.getPartsRecovered();
+                                if (partsFailed != null)
+                                    {
+                                    partsCleanup.remove(partsFailed);
+                                    }
+                                if (!partsCleanup.isEmpty())
+                                    {
+                                    PartitionedService.PartitionRecoverCleanup msg =
+                                            (PartitionedService.PartitionRecoverCleanup)
+                                                    service.instantiateMessage("PartitionRecoverCleanup");
+                                    msg.setPartitions(partsCleanup);
+                                    msg.setToMemberSet(service.getOwnershipMemberSet());
+
+                                    service.post(msg);
+                                    }
+                                }
                             }
                 
                         // signal the persistence controller that recovery has completed
@@ -25199,7 +25343,7 @@ public abstract class PartitionedService
                 //       as the response is always processed on the service thread
                 // _assert(Thread.currentThread() == get_Module().getThread());
                 
-                PartitionSet partsRecovered    = null;
+                PartitionSet partsFailed       = null;
                 PartitionSet partsFailedEvents = null;
                 Object       oResponseValue    = msgResponse.getValue();
                 
@@ -25211,15 +25355,15 @@ public abstract class PartitionedService
                     {
                     Object[] aoResult = (Object[]) oResponseValue;
                 
-                    partsRecovered    = (PartitionSet) aoResult[0];
+                    partsFailed       = (PartitionSet) aoResult[0];
                     partsFailedEvents = (PartitionSet) aoResult[1];
                     }
                 else
                     {
-                    partsRecovered = (PartitionSet) oResponseValue;
+                    partsFailed = (PartitionSet) oResponseValue;
                     }
                 
-                msgRequest.getPartsRecovered().add(partsRecovered);
+                msgRequest.getPartsRecovered().add(partsFailed);
                 
                 if (partsFailedEvents != null)
                     {

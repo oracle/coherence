@@ -100,6 +100,19 @@ public class JournalPersistenceManager
             throws IOException
         {
         super(fileData, fileTrash, sName);
+
+        File fileDataAbsolute = fileData.getAbsoluteFile();
+        f_dirPromotion = new File(fileDataAbsolute.getParentFile(),
+                '.' + fileDataAbsolute.getName() + ".journal-promotion");
+
+        // A promotion is built outside the live store directory and published
+        // with a single atomic rename. Anything left here is necessarily from
+        // a process that stopped before publication and can never be a recovery
+        // candidate.
+        if (f_dirPromotion.exists())
+            {
+            FileHelper.deleteDir(f_dirPromotion);
+            }
         }
 
 
@@ -506,6 +519,25 @@ public class JournalPersistenceManager
         }
 
     /**
+     * Publish a completely copied journal store.
+     * <p>
+     * Promotion deliberately requires an atomic directory move. Falling
+     * back to a recursive copy would recreate the crash window this method
+     * exists to close; failure is safer because the source store remains
+     * available for a subsequent recovery attempt.
+     *
+     * @param dirPromotion  fully copied staging directory
+     * @param dirStore      final store directory
+     *
+     * @throws IOException if the store cannot be published atomically
+     */
+    protected void publishStagedStore(File dirPromotion, File dirStore)
+            throws IOException
+        {
+        Files.move(dirPromotion.toPath(), dirStore.toPath(), StandardCopyOption.ATOMIC_MOVE);
+        }
+
+    /**
      * List journal files in the supplied directory.
      *
      * @param dirStore  store directory
@@ -677,7 +709,47 @@ public class JournalPersistenceManager
                     JournalPersistentStore storeJournal = (JournalPersistentStore) storeFrom;
 
                     storeJournal.validateMetadata();
-                    copyStoreFiles(storeJournal.f_dirStore, f_dirStore);
+
+                    File[] aTargetFile = f_dirStore.listFiles();
+                    if (aTargetFile == null || aTargetFile.length != 0)
+                        {
+                        throw new IOException("journal promotion target is not empty: " + f_dirStore);
+                        }
+
+                    // AbstractPersistentStore creates the final directory as a
+                    // lifecycle marker. Remove it before copying so that a
+                    // process failure can leave either no target or one fully
+                    // published target, never a partially copied target that
+                    // can suppress an older valid recovery candidate.
+                    Files.delete(f_dirStore.toPath());
+
+                    File    dirPromotionRoot = FileHelper.ensureDir(f_dirPromotion);
+                    File    dirPromotion     = Files.createTempDirectory(
+                            dirPromotionRoot.toPath(), f_sId + '-').toFile();
+                    boolean fPublished       = false;
+                    try
+                        {
+                        copyStoreFiles(storeJournal.f_dirStore, dirPromotion);
+                        JournalPersistenceManager.this.writeMetadata(dirPromotion);
+                        JournalPersistenceManager.this.publishStagedStore(dirPromotion, f_dirStore);
+                        fPublished = true;
+                        }
+                    finally
+                        {
+                        if (!fPublished && dirPromotion.exists())
+                            {
+                            FileHelper.deleteDir(dirPromotion);
+                            }
+                        if (dirPromotionRoot.isDirectory())
+                            {
+                            File[] aFile = dirPromotionRoot.listFiles();
+                            if (aFile != null && aFile.length == 0)
+                                {
+                                Files.deleteIfExists(dirPromotionRoot.toPath());
+                                }
+                            }
+                        }
+
                     openInternal();
                     }
                 catch (IOException | PersistenceException e)
@@ -3820,4 +3892,10 @@ public class JournalPersistenceManager
      * Guard ensuring MBean attach/detach is once per manager lifecycle.
      */
     private final AtomicBoolean f_fMBeanAttached = new AtomicBoolean();
+
+    /**
+     * Sibling directory used to stage journal-store promotion before atomic
+     * publication into the live persistence directory.
+     */
+    private final File f_dirPromotion;
     }
