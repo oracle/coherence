@@ -14,6 +14,7 @@ import com.tangosol.io.journal2.PartitionJournalConfig;
 import com.tangosol.persistence.AbstractPersistenceManager;
 import com.tangosol.persistence.AbstractPersistenceManager.AbstractPersistentStore;
 import com.tangosol.persistence.AbstractPersistenceManagerTest;
+import com.tangosol.persistence.bdb.BerkeleyDBManager;
 import com.tangosol.persistence.journal.JournalPersistenceMBeanRegistry.ManagerRole;
 import com.tangosol.persistence.journal.JournalPersistenceMBeanRegistry.MBeanRegistrar;
 
@@ -27,6 +28,11 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.regex.Pattern;
@@ -193,6 +199,148 @@ public class JournalPersistenceManagerTest
                 {
                 restart.release();
                 }
+            FileHelper.deleteDir(fileData);
+            FileHelper.deleteDir(fileTrash);
+            }
+        }
+
+    /**
+     * Verify a process failure before publishing a store converted from BDB
+     * cannot expose a partially copied journal store.
+     *
+     * @throws IOException on test failure
+     */
+    @Test
+    public void testInterruptedBdbPromotionDoesNotPublishPartialStore()
+            throws IOException
+        {
+        File fileBdbData     = FileHelper.createTempDir();
+        File fileJournalData = FileHelper.createTempDir();
+        File fileTrash       = FileHelper.createTempDir();
+        BerkeleyDBManager                      managerBdb     = null;
+        InterruptingJournalPersistenceManager managerJournal = null;
+        JournalPersistenceManager              restart        = null;
+
+        try
+            {
+            managerBdb = new BerkeleyDBManager(fileBdbData, fileTrash, null);
+            AbstractPersistentStore storeFrom =
+                    (AbstractPersistentStore) managerBdb.open(TEST_FROM_STORE_ID, null);
+            Binary binKey   = new Binary(new byte[] {2});
+            Binary binValue = new Binary(new byte[] {22});
+
+            storeFrom.ensureExtent(1L);
+            storeFrom.store(1L, binKey, binValue, null);
+
+            managerJournal = new InterruptingJournalPersistenceManager(fileJournalData, fileTrash);
+            managerJournal.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+            managerJournal.interruptBeforePublish();
+
+            try
+                {
+                managerJournal.open(TEST_STORE_ID, storeFrom);
+                org.junit.Assert.fail("expected simulated process interruption");
+                }
+            catch (SimulatedProcessInterruption expected)
+                {
+                // expected
+                }
+
+            assertFalse(new File(fileJournalData, TEST_STORE_ID).exists());
+            assertEquals(binValue, storeFrom.load(1L, binKey));
+
+            managerJournal.release();
+            managerJournal = null;
+
+            restart = new JournalPersistenceManager(fileJournalData, fileTrash, null);
+            restart.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            assertEquals(0, storeIds(restart).length);
+            }
+        finally
+            {
+            if (managerBdb != null)
+                {
+                managerBdb.release();
+                }
+            if (managerJournal != null)
+                {
+                managerJournal.release();
+                }
+            if (restart != null)
+                {
+                restart.release();
+                }
+            FileHelper.deleteDir(fileBdbData);
+            FileHelper.deleteDir(fileJournalData);
+            FileHelper.deleteDir(fileTrash);
+            }
+        }
+
+    /**
+     * Verify one completed promotion cannot remove the shared staging root
+     * while another promotion is about to create its private work directory.
+     *
+     * @throws Exception on test failure
+     */
+    @Test
+    public void testConcurrentPromotionsDoNotDeleteSharedRoot()
+            throws Exception
+        {
+        File fileData  = FileHelper.createTempDir();
+        File fileTrash = FileHelper.createTempDir();
+        DelayingJournalPersistenceManager manager  = null;
+        ExecutorService                   executor = Executors.newSingleThreadExecutor();
+
+        try
+            {
+            manager = new DelayingJournalPersistenceManager(fileData, fileTrash);
+            manager.setJournalConfig(new PartitionJournalConfig().setMaximumFileSize(1024 * 1024));
+
+            String sSourceOne = "source-one";
+            String sSourceTwo = "source-two";
+            String sTargetOne = "target-one";
+            String sTargetTwo = "target-two";
+            Binary binKeyOne   = new Binary(new byte[] {3});
+            Binary binKeyTwo   = new Binary(new byte[] {4});
+            Binary binValueOne = new Binary(new byte[] {33});
+            Binary binValueTwo = new Binary(new byte[] {44});
+
+            AbstractPersistentStore storeSourceOne =
+                    (AbstractPersistentStore) manager.open(sSourceOne, null);
+            AbstractPersistentStore storeSourceTwo =
+                    (AbstractPersistentStore) manager.open(sSourceTwo, null);
+
+            storeSourceOne.ensureExtent(1L);
+            storeSourceOne.store(1L, binKeyOne, binValueOne, null);
+            storeSourceTwo.ensureExtent(1L);
+            storeSourceTwo.store(1L, binKeyTwo, binValueTwo, null);
+
+            manager.delayPromotion(sTargetTwo);
+            DelayingJournalPersistenceManager managerFinal = manager;
+            Future<AbstractPersistentStore> futureTargetTwo = executor.submit(() ->
+                    (AbstractPersistentStore) managerFinal.open(sTargetTwo, storeSourceTwo));
+
+            assertTrue("second promotion did not reach the staging boundary",
+                    manager.awaitPromotionDelay());
+
+            AbstractPersistentStore storeTargetOne =
+                    (AbstractPersistentStore) manager.open(sTargetOne, storeSourceOne);
+
+            manager.continuePromotion();
+            AbstractPersistentStore storeTargetTwo = futureTargetTwo.get(30, TimeUnit.SECONDS);
+
+            assertEquals(binValueOne, storeTargetOne.load(1L, binKeyOne));
+            assertEquals(binValueTwo, storeTargetTwo.load(1L, binKeyTwo));
+            }
+        finally
+            {
+            if (manager != null)
+                {
+                manager.continuePromotion();
+                manager.release();
+                }
+            executor.shutdownNow();
             FileHelper.deleteDir(fileData);
             FileHelper.deleteDir(fileTrash);
             }
@@ -695,6 +843,67 @@ public class JournalPersistenceManagerTest
             }
 
         private boolean m_fInterrupt;
+        }
+
+
+    // ----- inner class: DelayingJournalPersistenceManager --------------
+
+    /**
+     * Journal manager that pauses one promotion immediately before creating
+     * its private staging directory.
+     */
+    private static class DelayingJournalPersistenceManager
+            extends JournalPersistenceManager
+        {
+        private DelayingJournalPersistenceManager(File fileData, File fileTrash)
+                throws IOException
+            {
+            super(fileData, fileTrash, null);
+            }
+
+        private void delayPromotion(String sId)
+            {
+            m_sDelayedId = sId;
+            }
+
+        private boolean awaitPromotionDelay()
+                throws InterruptedException
+            {
+            return f_latchDelayed.await(30, TimeUnit.SECONDS);
+            }
+
+        private void continuePromotion()
+            {
+            f_latchContinue.countDown();
+            }
+
+        @Override
+        protected File createPromotionDirectory(String sId)
+                throws IOException
+            {
+            if (sId.equals(m_sDelayedId))
+                {
+                f_latchDelayed.countDown();
+                try
+                    {
+                    if (!f_latchContinue.await(30, TimeUnit.SECONDS))
+                        {
+                        throw new IOException("timed out waiting to continue promotion");
+                        }
+                    }
+                catch (InterruptedException e)
+                    {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("interrupted while waiting to continue promotion", e);
+                    }
+                }
+
+            return super.createPromotionDirectory(sId);
+            }
+
+        private volatile String m_sDelayedId;
+        private final CountDownLatch f_latchDelayed  = new CountDownLatch(1);
+        private final CountDownLatch f_latchContinue = new CountDownLatch(1);
         }
 
 
