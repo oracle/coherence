@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -18,6 +18,7 @@ import com.tangosol.io.pof.PortableObject;
 import com.tangosol.net.Member;
 import com.tangosol.net.partition.KeyPartitioningStrategy;
 
+import com.tangosol.util.Binary;
 import com.tangosol.util.Filter;
 import com.tangosol.util.HashHelper;
 import com.tangosol.util.ValueExtractor;
@@ -663,6 +664,13 @@ public class Subscription
         }
 
     @Override
+    public void setFutureData(Binary binFuture)
+        {
+        // only retain data written by a future version
+        super.setFutureData(getDataVersion() > getImplVersion() ? binFuture : null);
+        }
+
+    @Override
     public void readExternal(PofReader in)
         throws IOException
         {
@@ -706,7 +714,9 @@ public class Subscription
 
         if (nVersion >= 4)
             {
-            m_cChannel = in.readInt(12);
+            m_cChannel             = in.readInt(12);
+            // property 13 was introduced without incrementing the data version
+            m_lastPolledSubscriber = in.readObject(13);
             }
         }
 
@@ -1024,7 +1034,7 @@ public class Subscription
     /**
      * {@link EvolvablePortableObject} data version of this class.
      */
-    public static final int DATA_VERSION = 4;
+    public static final int DATA_VERSION = 5;
 
     // ----- data members ---------------------------------------------------
 
