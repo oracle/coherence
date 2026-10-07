@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -482,9 +482,10 @@ public class SafeAsyncNamedCache
                 if (serviceSafe == null || !serviceSafe.isRunning() ||
                     cache == null || !cache.isActive() || !isStarted())
                     {
-                    if (cache.isReleased() || cache.isDestroyed())
+                    SafeNamedCache cacheSafe = getSafeNamedCache();
+                    if (cacheSafe.isReleased() || cacheSafe.isDestroyed())
                         {
-                        String reason = cache.isDestroyed() ? "destroyed" : "released";
+                        String reason = cacheSafe.isDestroyed() ? "destroyed" : "released";
                         throw new IllegalStateException("SafeAsyncNamedCache was explicitly " + reason);
                         }
                     else
@@ -496,7 +497,6 @@ public class SafeAsyncNamedCache
                             _trace("Restarting AsyncNamedCache: " + getCacheName(), 3);
                             }
         
-                        SafeNamedCache cacheSafe = getSafeNamedCache();
                         setInternalNamedCache(asyncCache = cacheSafe.ensureRunningNamedCache().async(getOptions()));
         
                         setStarted(true);
