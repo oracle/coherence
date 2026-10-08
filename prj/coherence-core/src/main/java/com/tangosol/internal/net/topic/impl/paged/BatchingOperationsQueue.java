@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -29,6 +29,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -466,7 +467,11 @@ public class BatchingOperationsQueue<V, R>
      */
     public void resetTrigger()
         {
-        getTrigger().set(TRIGGER_OPEN);
+        AtomicInteger trigger = getTrigger();
+        synchronized (trigger)
+            {
+            trigger.set(TRIGGER_OPEN);
+            }
         }
 
     /**
@@ -474,12 +479,20 @@ public class BatchingOperationsQueue<V, R>
      */
     public void pause()
         {
-        getTrigger().set(TRIGGER_WAIT);
+        AtomicInteger trigger = getTrigger();
+        synchronized (trigger)
+            {
+            trigger.set(TRIGGER_WAIT);
+            }
         }
 
     public boolean resume()
         {
-        return getTrigger().compareAndSet(TRIGGER_WAIT, TRIGGER_CLOSED);
+        AtomicInteger trigger = getTrigger();
+        synchronized (trigger)
+            {
+            return trigger.compareAndSet(TRIGGER_WAIT, TRIGGER_CLOSED);
+            }
         }
 
     /**
@@ -492,6 +505,75 @@ public class BatchingOperationsQueue<V, R>
         }
 
     /**
+     * Rearm the existing current batch if it is waiting for an operation that
+     * failed before it was submitted. The current batch is left unchanged and
+     * the caller must own the decision to perform the retry.
+     *
+     * @param lFailedOperation  the identifier of the operation that failed
+     *
+     * @return the rearm result
+     */
+    public RearmResult rearmCurrentBatch(long lFailedOperation)
+        {
+        AtomicInteger trigger = getTrigger();
+        boolean       fStart  = false;
+
+        while (!fStart)
+            {
+            synchronized (trigger)
+                {
+                long lOperation = f_operationSequence.get();
+                if (lOperation > lFailedOperation)
+                    {
+                    return RearmResult.ALREADY_STARTED;
+                    }
+                if (lOperation < lFailedOperation)
+                    {
+                    throw new IllegalArgumentException("Unknown failed operation " + lFailedOperation
+                            + ", current operation is " + lOperation);
+                    }
+                if (getCurrentBatch().isEmpty())
+                    {
+                    return RearmResult.NO_CURRENT_BATCH;
+                    }
+
+                int nState = trigger.get();
+                if (nState == TRIGGER_WAIT)
+                    {
+                    return RearmResult.DEFERRED;
+                    }
+                if (nState == TRIGGER_CLOSED && lOperation == lFailedOperation
+                        && !trigger.compareAndSet(TRIGGER_CLOSED, TRIGGER_OPEN))
+                    {
+                    continue;
+                    }
+                if (trigger.compareAndSet(TRIGGER_OPEN, TRIGGER_CLOSED))
+                    {
+                    f_operationSequence.incrementAndGet();
+                    fStart = true;
+                    }
+                else if (f_operationSequence.get() > lFailedOperation)
+                    {
+                    return RearmResult.ALREADY_STARTED;
+                    }
+                }
+            }
+
+        f_functionBatch.accept(this, Math.max(f_cbInitialBatch, 1));
+        return RearmResult.STARTED;
+        }
+
+    /**
+     * Return the identifier of the most recently started batch operation.
+     *
+     * @return the current local operation identifier
+     */
+    public long getOperationSequence()
+        {
+        return f_operationSequence.get();
+        }
+
+    /**
      * If a batch of operations is not already in progress then
      * trigger a new batch of operations using the specified
      * batch size.
@@ -501,8 +583,17 @@ public class BatchingOperationsQueue<V, R>
     protected void triggerOperations(int cBatchSize)
         {
         AtomicInteger trigger = getTrigger();
+        boolean       fStart;
 
-        if (trigger.get() == TRIGGER_OPEN && trigger.compareAndSet(TRIGGER_OPEN, TRIGGER_CLOSED))
+        synchronized (trigger)
+            {
+            fStart = trigger.compareAndSet(TRIGGER_OPEN, TRIGGER_CLOSED);
+            if (fStart)
+                {
+                f_operationSequence.incrementAndGet();
+                }
+            }
+        if (fStart)
             {
             f_functionBatch.accept(this, cBatchSize);
             }
@@ -1168,6 +1259,17 @@ public class BatchingOperationsQueue<V, R>
     // ----- constants ------------------------------------------------------
 
     /**
+     * The result of attempting to rearm a failed batch operation.
+     */
+    public enum RearmResult
+        {
+        STARTED,
+        ALREADY_STARTED,
+        DEFERRED,
+        NO_CURRENT_BATCH
+        }
+
+    /**
      * Trigger state indicating that there is no request in progress.
      */
     public static final int TRIGGER_OPEN = 0;
@@ -1220,6 +1322,11 @@ public class BatchingOperationsQueue<V, R>
      * The lock for submitting operations.
      */
     private final AtomicInteger f_lockTrigger = new AtomicInteger(TRIGGER_OPEN);
+
+    /**
+     * The sequence of successfully started local batch operations.
+     */
+    private final AtomicLong f_operationSequence = new AtomicLong();
 
     /**
      * The FlowControl object.
