@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -17,6 +17,7 @@ import com.tangosol.internal.net.topic.impl.paged.model.SubscriberInfo;
 import com.tangosol.net.topic.Position;
 import com.tangosol.net.topic.Subscriber;
 import com.tangosol.net.topic.TopicDependencies;
+import com.tangosol.net.topic.TopicException;
 
 import com.tangosol.util.Binary;
 import com.tangosol.util.Filter;
@@ -558,6 +559,69 @@ public interface SubscriberConnector<V>
          * The continuation function.
          */
         void onContinue();
+        }
+
+    // ----- inner class: RecoverableReceiveException ----------------------
+
+    /**
+     * An exception thrown before a receive request has been submitted that
+     * indicates that reconnecting the subscriber can recover the receive.
+     */
+    class RecoverableReceiveException
+            extends TopicException
+        {
+        /**
+         * Create a recoverable receive exception.
+         *
+         * @param sMessage      the error message
+         * @param subscriberId  the subscriber identifier
+         * @param groupId       the subscriber group identifier
+         * @param nChannel      the channel being received from
+         */
+        public RecoverableReceiveException(String sMessage, SubscriberId subscriberId,
+                SubscriberGroupId groupId, int nChannel)
+            {
+            super(sMessage);
+            f_subscriberId = subscriberId;
+            f_groupId      = groupId;
+            f_nChannel     = nChannel;
+            }
+
+        /**
+         * Return the subscriber identifier.
+         *
+         * @return the subscriber identifier
+         */
+        public SubscriberId getSubscriberId()
+            {
+            return f_subscriberId;
+            }
+
+        /**
+         * Return the subscriber group identifier.
+         *
+         * @return the subscriber group identifier
+         */
+        public SubscriberGroupId getSubscriberGroupId()
+            {
+            return f_groupId;
+            }
+
+        /**
+         * Return the channel being received from.
+         *
+         * @return the channel identifier
+         */
+        public int getChannel()
+            {
+            return f_nChannel;
+            }
+
+        // ----- data members -----------------------------------------------
+
+        private final SubscriberId      f_subscriberId;
+        private final SubscriberGroupId f_groupId;
+        private final int               f_nChannel;
         }
 
     // ----- inner class: SubscriberListener ---------------------------------
