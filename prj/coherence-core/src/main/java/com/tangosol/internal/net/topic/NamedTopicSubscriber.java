@@ -1049,6 +1049,8 @@ public class NamedTopicSubscriber<V>
 
                     cChannel = aChannel.length;
 
+                    long lGeneration = f_allocationGeneration.incrementAndGet();
+
                     if (f_fAnonymous)
                         {
                         // anonymous so we own all channels
@@ -1067,12 +1069,12 @@ public class NamedTopicSubscriber<V>
                                     .boxed()
                                     .collect(Collectors.toCollection(TreeSet::new));
                             }
-                        updateChannelOwnership(setChannel, false);
+                        applyChannelOwnershipSnapshot(immutableChannelSet(setChannel), false);
                         }
                     else
                         {
-                        SortedSet<Integer> setChannel = f_connector.getOwnedChannels(this);
-                        updateChannelOwnership(setChannel, false);
+                        SortedSet<Integer> setChannel = immutableChannelSet(f_connector.getOwnedChannels(this));
+                        applyChannelOwnershipSnapshot(setChannel, false);
                         }
 
                     heartbeat();
@@ -1080,6 +1082,7 @@ public class NamedTopicSubscriber<V>
                     if (casState(STATE_CONNECTING, STATE_CONNECTED))
                         {
                         switchChannel();
+                        m_lAcceptedAllocationGeneration = lGeneration;
                         }
                     }
                 catch (Throwable t)
@@ -1134,10 +1137,21 @@ public class NamedTopicSubscriber<V>
                 // we have emptied the pre-fetch queue but the batch has more in it, so fetch more
                 TopicChannel channel  = m_aChannel[nChannel];
                 long         lVersion = channel.getVersion();
+                long         lOperation = queueRequest.getOperationSequence();
 
-                f_connector.receive(this, nChannel, channel.getHead(), lVersion, Integer.MAX_VALUE, (lVersion1, result, e1, continuation) ->
-                        onReceiveResult(channel, lVersion1, result, e1, continuation))
-                            .handleAsync((r, e) ->
+                CompletableFuture<ReceiveResult> future;
+                try
+                    {
+                    future = f_connector.receive(this, nChannel, channel.getHead(), lVersion, Integer.MAX_VALUE,
+                            (lVersion1, result, e1, continuation) ->
+                                    onReceiveResult(channel, lVersion1, result, e1, continuation));
+                    }
+                catch (SubscriberConnector.RecoverableReceiveException e)
+                    {
+                    recoverReceive(lOperation);
+                    return;
+                    }
+                future.handleAsync((r, e) ->
                                 {
                                 if (e != null)
                                     {
@@ -1195,6 +1209,52 @@ public class NamedTopicSubscriber<V>
                     }
                 }
             }
+        }
+
+    /**
+     * Recover a receive that failed before the connector submitted its poll.
+     * The existing current batch remains untouched until reconnect has
+     * resynchronized the channel heads.
+     *
+     * @param lOperation  the failed local queue operation identifier
+     */
+    private void recoverReceive(long lOperation)
+        {
+        if (f_receiveRecoveryPending.compareAndSet(NO_PENDING_RECEIVE_RECOVERY, lOperation))
+            {
+            try
+                {
+                f_daemon.executeTask(() -> recoverReceiveInternal(lOperation));
+                }
+            catch (Throwable t)
+                {
+                f_receiveRecoveryPending.compareAndSet(lOperation, NO_PENDING_RECEIVE_RECOVERY);
+                }
+            }
+        }
+
+    /**
+     * Disconnect after a synchronous receive failure, outside the receive call stack.
+     *
+     * @param lOperation  the failed local queue operation identifier
+     */
+    private void recoverReceiveInternal(long lOperation)
+        {
+        if (f_receiveRecoveryPending.get() != lOperation)
+            {
+            return;
+            }
+        if (!isActive())
+            {
+            f_receiveRecoveryPending.compareAndSet(lOperation, NO_PENDING_RECEIVE_RECOVERY);
+            return;
+            }
+        if (!isConnected())
+            {
+            return;
+            }
+
+        disconnectInternal(true);
         }
 
     /**
@@ -1541,6 +1601,7 @@ public class NamedTopicSubscriber<V>
             {
             // resume receives from the new positions
             f_queueReceiveOrders.resetTrigger();
+            resumeReceiveRecovery();
             }
         }
 
@@ -1575,6 +1636,7 @@ public class NamedTopicSubscriber<V>
             {
             // resume receives from the new position
             f_queueReceiveOrders.resetTrigger();
+            resumeReceiveRecovery();
             }
         }
 
@@ -1911,7 +1973,7 @@ public class NamedTopicSubscriber<V>
                                 }
                             }
                         }
-                    if (error == null)
+                    if (error == null && (!isConnected() || shouldTriggerAfterReconnect(rearmReceiveBatch())))
                         {
                         f_queueReceiveOrders.triggerOperations();
                         }
@@ -1921,6 +1983,50 @@ public class NamedTopicSubscriber<V>
                     {
                     throw Exceptions.ensureRuntimeException(error);
                     }
+                }
+            }
+        }
+
+    /**
+     * Rearm a receive batch after a successful reconnect has resynchronized
+     * subscriber and channel state.
+     *
+     * @return the queue rearm result, or {@code null} if no recovery is pending
+     */
+    private BatchingOperationsQueue.RearmResult rearmReceiveBatch()
+        {
+        long lOperation = f_receiveRecoveryPending.get();
+        if (lOperation != NO_PENDING_RECEIVE_RECOVERY)
+            {
+            BatchingOperationsQueue.RearmResult result = f_queueReceiveOrders.rearmCurrentBatch(lOperation);
+            if (result != BatchingOperationsQueue.RearmResult.DEFERRED)
+                {
+                f_receiveRecoveryPending.compareAndSet(lOperation, NO_PENDING_RECEIVE_RECOVERY);
+                }
+            return result;
+            }
+        return null;
+        }
+
+    /**
+     * Return whether normal queue triggering should follow a reconnect rearm attempt.
+     */
+    private boolean shouldTriggerAfterReconnect(BatchingOperationsQueue.RearmResult result)
+        {
+        return result == null || result == BatchingOperationsQueue.RearmResult.NO_CURRENT_BATCH;
+        }
+
+    /**
+     * Retry a receive recovery deferred by a seek pause.
+     */
+    private void resumeReceiveRecovery()
+        {
+        if (isConnected())
+            {
+            BatchingOperationsQueue.RearmResult result = rearmReceiveBatch();
+            if (result == BatchingOperationsQueue.RearmResult.NO_CURRENT_BATCH)
+                {
+                f_queueReceiveOrders.triggerOperations();
                 }
             }
         }
@@ -1987,15 +2093,7 @@ public class NamedTopicSubscriber<V>
 
                         if (isActive() && casState(nState, STATE_DISCONNECTED))
                             {
-                            m_fForceReconnect = fForceReconnect;
-                            m_cDisconnect.mark();
-                            // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
-                            m_queueValuesPrefetched.clear();
-
-                            TopicDependencies  dependencies = f_connector.getTopicDependencies();
-                            long               cWaitMillis  = dependencies.getReconnectWaitMillis();
-                            Logger.finest("Disconnected Subscriber " + this);
-                            f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
+                            onDisconnectedLocked(fForceReconnect);
                             }
                         }
                     }
@@ -2008,6 +2106,24 @@ public class NamedTopicSubscriber<V>
                     }
                 }
             }
+        }
+
+    /**
+     * Complete a connected-to-disconnected transition while holding {@link #f_gate}.
+     *
+     * @param fForceReconnect  force the subscriber to reconnect
+     */
+    private void onDisconnectedLocked(boolean fForceReconnect)
+        {
+        m_fForceReconnect = fForceReconnect;
+        m_cDisconnect.mark();
+        // clear out the pre-fetch queue because we have no idea what we'll get on reconnection
+        m_queueValuesPrefetched.clear();
+
+        TopicDependencies dependencies = f_connector.getTopicDependencies();
+        long              cWaitMillis  = dependencies.getReconnectWaitMillis();
+        Logger.finest("Disconnected Subscriber " + this);
+        f_daemon.scheduleTask(f_taskReconnect, TimeHelper.getSafeTimeMillis() + cWaitMillis);
         }
 
     /**
@@ -2125,18 +2241,60 @@ public class NamedTopicSubscriber<V>
         f_connector.heartbeat(this, true);
         }
 
-    private void updateChannelOwnership(SortedSet<Integer> setChannel, boolean fLost)
+    /**
+     * Apply the authoritative channel ownership snapshot for an initialization candidate.
+     * This method must be called while holding {@link #f_gate}.
+     *
+     * @param setChannel  the immutable channel ownership snapshot
+     * @param fLost       {@code true} if revoked channels were lost
+     */
+    private void applyChannelOwnershipSnapshot(SortedSet<Integer> setChannel, boolean fLost)
+        {
+        updateChannelOwnershipInternal(setChannel, fLost);
+        }
+
+    /**
+     * Apply a queued ownership change if it belongs to the currently accepted initialization.
+     *
+     * @param setChannel       the immutable channel ownership snapshot
+     * @param fLost            {@code true} if revoked channels were lost
+     * @param lGeneration      the generation captured when the change was queued
+     */
+    private void updateChannelOwnership(SortedSet<Integer> setChannel, boolean fLost, long lGeneration)
         {
         if (!isActive())
             {
             return;
             }
 
-        if (setChannel == null)
+        // channel ownership change must be done under a lock
+        try (Sentry<?> ignored = f_gate.close())
             {
-            setChannel = Collections.emptySortedSet();
-            }
+            if (!isActive())
+                {
+                return;
+                }
 
+            long         lCurrent  = f_allocationGeneration.get();
+            long         lAccepted = m_lAcceptedAllocationGeneration;
+            boolean      fApply    = lGeneration == lCurrent && lGeneration == lAccepted;
+            if (!fApply)
+                {
+                return;
+                }
+
+            updateChannelOwnershipInternal(setChannel, fLost);
+            }
+        }
+
+    /**
+     * Update channel ownership while holding {@link #f_gate}.
+     *
+     * @param setChannel  the new channel ownership
+     * @param fLost       {@code true} if revoked channels were lost
+     */
+    private void updateChannelOwnershipInternal(SortedSet<Integer> setChannel, boolean fLost)
+        {
         if (f_anManualChannel != null && f_anManualChannel.length > 0)
             {
             SortedSet<Integer> setManual = IntStream.of(f_anManualChannel)
@@ -2149,138 +2307,129 @@ public class NamedTopicSubscriber<V>
         int[] anOwned     = setChannel.stream().mapToInt(i -> i).toArray();
         int   nMaxChannel = setChannel.stream().mapToInt(i -> i).max().orElse(getChannelCount() - 1);
 
-        // channel ownership change must be done under a lock
-        try (Sentry<?> ignored = f_gate.close())
+        TopicChannel[] aExistingChannel = m_aChannel;
+        if (nMaxChannel >= aExistingChannel.length)
             {
-            if (!isActive())
-                {
-                return;
-                }
+            // This subscriber has fewer channels than the server so needs to be resized
+            // We disconnect as the subscription may not be properly initialized for
+            // the new channel count if this has happened due to a rolling upgrade
+            // from an earlier buggy topics version
+            Logger.finer(() -> String.format("Disconnecting subscriber %d on topic %s due to increase in channel count from %d to %d",
+                    f_subscriberId.getId(), f_topic.getName(), aExistingChannel.length, nMaxChannel));
+            disconnectInternal(true);
+            return;
+            }
 
-            TopicChannel[] aExistingChannel = m_aChannel;
-            if (nMaxChannel >= aExistingChannel.length)
+        if (!Arrays.equals(m_aChannelOwned, anOwned))
+            {
+            Set<Integer> setRevoked = new HashSet<>();
+            Set<Integer> setAdded   = new HashSet<>(setChannel);
+            if (m_aChannelOwned != null && m_aChannelOwned.length > 0)
                 {
-                // This subscriber has fewer channels than the server so needs to be resized
-                // We disconnect as the subscription may not be properly initialized for
-                // the new channel count if this has happened due to a rolling upgrade
-                // from an earlier buggy topics version
-                Logger.finer(() -> String.format("Disconnecting subscriber %d on topic %s due to increase in channel count from %d to %d",
-                        f_subscriberId.getId(), f_topic.getName(), aExistingChannel.length, nMaxChannel));
-                disconnectInternal(true);
-                return;
-                }
-
-            if (!Arrays.equals(m_aChannelOwned, anOwned))
-                {
-                Set<Integer> setRevoked = new HashSet<>();
-                Set<Integer> setAdded   = new HashSet<>(setChannel);
-                if (m_aChannelOwned != null && m_aChannelOwned.length > 0)
+                for (int nChannel : m_aChannelOwned)
                     {
-                    for (int nChannel : m_aChannelOwned)
-                        {
-                        setRevoked.add(nChannel);
-                        setAdded.remove(nChannel);
-                        }
-                    setChannel.forEach(setRevoked::remove);
+                    setRevoked.add(nChannel);
+                    setAdded.remove(nChannel);
                     }
-                setRevoked = Collections.unmodifiableSet(setRevoked);
+                setChannel.forEach(setRevoked::remove);
+                }
+            setRevoked = Collections.unmodifiableSet(setRevoked);
 
-                Set<Integer> setAssigned = Set.copyOf(setChannel);
+            Set<Integer> setAssigned = Set.copyOf(setChannel);
 
-                Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s added=%s revoked=%s",
-                        f_subscriberId.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));
+            Logger.finest(String.format("Subscriber %d (name=%s) channel allocation changed, assigned=%s added=%s revoked=%s",
+                    f_subscriberId.getId(), f_sIdentifyingName, setAssigned, setAdded, setRevoked));
 
-                m_aChannelOwned = anOwned;
+            m_aChannelOwned = anOwned;
 
-                if (!f_fAnonymous)
+            if (!f_fAnonymous)
+                {
+                // reset channel heads - we'll re-sync added channels from the group head
+                TopicChannel[] aChannel = m_aChannel;
+
+                // if we're initializing and not anonymous, we do not own any channels,
+                // we'll update with the allocated ownership
+                if (m_nState == STATE_INITIAL)
                     {
-                    // reset channel heads - we'll re-sync added channels from the group head
-                    TopicChannel[] aChannel = m_aChannel;
-
-                    // if we're initializing and not anonymous, we do not own any channels,
-                    // we'll update with the allocated ownership
-                    if (m_nState == STATE_INITIAL)
-                        {
-                        for (TopicChannel channel : aChannel)
-                            {
-                            channel.setUnowned();
-                            channel.setPopulated();
-                            }
-                        }
-
-                    // clear all channel flags
                     for (TopicChannel channel : aChannel)
                         {
-                        channel.m_fContended = false;
                         channel.setUnowned();
                         channel.setPopulated();
                         }
-                    // reset channel flags for channels we now own
-                    for (int c : m_aChannelOwned)
-                        {
-                        TopicChannel channel = aChannel[c];
-                        channel.m_fContended = false;
-                        channel.setOwned();
-                        channel.setPopulated();
-                        }
-                    for (int c : setAdded)
-                        {
-                        TopicChannel channel = aChannel[c];
-                        channel.resetHead();
-                        channel.clearPolled();
-                        channel.clearHit();
-                        }
-                    for (int c : setRevoked)
-                        {
-                        TopicChannel channel = aChannel[c];
-                        channel.resetHead();
-                        channel.clearPolled();
-                        channel.clearHit();
-                        }
                     }
 
-                // if the pre-fetch queue contains the empty marker, we need to remove it
-                CommittableElement element = m_queueValuesPrefetched.peek();
-                if (element != null && element.isEmpty())
+                // clear all channel flags
+                for (TopicChannel channel : aChannel)
                     {
-                    m_queueValuesPrefetched.poll();
+                    channel.m_fContended = false;
+                    channel.setUnowned();
+                    channel.setPopulated();
                     }
-
-                for (ChannelOwnershipListener listener : m_aChannelOwnershipListener)
+                // reset channel flags for channels we now own
+                for (int c : m_aChannelOwned)
                     {
-                    if (!setRevoked.isEmpty())
-                        {
-                        try
-                            {
-                            if (fLost)
-                                {
-                                listener.onChannelsLost(setRevoked);
-                                }
-                            else
-                                {
-                                listener.onChannelsRevoked(setRevoked);
-                                }
-                            }
-                        catch (Throwable t)
-                            {
-                            Logger.err(t);
-                            }
-                        }
-                    if (!setAssigned.isEmpty())
-                        {
-                        try
-                            {
-                            listener.onChannelsAssigned(setAssigned);
-                            }
-                        catch (Throwable t)
-                            {
-                            Logger.err(t);
-                            }
-                        }
+                    TopicChannel channel = aChannel[c];
+                    channel.m_fContended = false;
+                    channel.setOwned();
+                    channel.setPopulated();
                     }
-
-                onChannelPopulatedNotification(m_aChannelOwned);
+                for (int c : setAdded)
+                    {
+                    TopicChannel channel = aChannel[c];
+                    channel.resetHead();
+                    channel.clearPolled();
+                    channel.clearHit();
+                    }
+                for (int c : setRevoked)
+                    {
+                    TopicChannel channel = aChannel[c];
+                    channel.resetHead();
+                    channel.clearPolled();
+                    channel.clearHit();
+                    }
                 }
+
+            // if the pre-fetch queue contains the empty marker, we need to remove it
+            CommittableElement element = m_queueValuesPrefetched.peek();
+            if (element != null && element.isEmpty())
+                {
+                m_queueValuesPrefetched.poll();
+                }
+
+            for (ChannelOwnershipListener listener : m_aChannelOwnershipListener)
+                {
+                if (!setRevoked.isEmpty())
+                    {
+                    try
+                        {
+                        if (fLost)
+                            {
+                            listener.onChannelsLost(setRevoked);
+                            }
+                        else
+                            {
+                            listener.onChannelsRevoked(setRevoked);
+                            }
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                if (!setAssigned.isEmpty())
+                    {
+                    try
+                        {
+                        listener.onChannelsAssigned(setAssigned);
+                        }
+                    catch (Throwable t)
+                        {
+                        Logger.err(t);
+                        }
+                    }
+                }
+
+            onChannelPopulatedNotification(m_aChannelOwned);
             }
         }
 
@@ -2678,7 +2827,76 @@ public class NamedTopicSubscriber<V>
 
     public void onChannelAllocation(SortedSet<Integer> setChannel, boolean fLost)
         {
-        f_daemonChannels.executeTask(() -> updateChannelOwnership(setChannel, fLost));
+        queueChannelAllocation(setChannel, fLost, f_allocationGeneration.get());
+        }
+
+    /**
+     * Queue a connector channel ownership event.
+     *
+     * @param setChannel   the proposed channel ownership
+     * @param fLost        {@code true} if revoked channels were lost
+     * @param lGeneration  the generation captured by the connector listener
+     */
+    private void queueChannelAllocation(SortedSet<Integer> setChannel, boolean fLost, long lGeneration)
+        {
+        SortedSet<Integer> setSnapshot = immutableChannelSet(setChannel);
+        f_daemonChannels.executeTask(() -> updateChannelOwnership(setSnapshot, fLost, lGeneration));
+        }
+
+    /**
+     * Queue the compound ownership and disconnect effects of an unsubscribe event.
+     *
+     * @param lGeneration  the generation captured by the connector listener
+     */
+    private void queueUnsubscribed(long lGeneration)
+        {
+        f_daemonChannels.executeTask(() -> applyUnsubscribed(lGeneration));
+        }
+
+    /**
+     * Apply both effects of an unsubscribe event using one generation decision.
+     *
+     * @param lGeneration   the generation captured by the connector listener
+     */
+    private void applyUnsubscribed(long lGeneration)
+        {
+        if (!isActive())
+            {
+            return;
+            }
+
+        try (Sentry<?> ignored = f_gate.close())
+            {
+            long    lCurrent  = f_allocationGeneration.get();
+            long    lAccepted = m_lAcceptedAllocationGeneration;
+            boolean fApply    = isActive() && lGeneration == lCurrent && lGeneration == lAccepted;
+            if (!fApply)
+                {
+                return;
+                }
+
+            updateChannelOwnershipInternal(PagedTopicSubscription.NO_CHANNELS, true);
+            if (casState(STATE_CONNECTED, STATE_DISCONNECTED))
+                {
+                onDisconnectedLocked(false);
+                }
+            }
+        }
+
+    /**
+     * Return an immutable value snapshot of a channel set.
+     *
+     * @param setChannel  the source channel set
+     *
+     * @return an immutable sorted set
+     */
+    private static SortedSet<Integer> immutableChannelSet(SortedSet<Integer> setChannel)
+        {
+        if (setChannel == null || setChannel.isEmpty())
+            {
+            return Collections.emptySortedSet();
+            }
+        return Collections.unmodifiableSortedSet(new TreeSet<>(setChannel));
         }
 
     /**
@@ -3958,14 +4176,15 @@ public class NamedTopicSubscriber<V>
                             }
                         break;
                     case ChannelAllocation:
-                        onChannelAllocation(evt.getAllocatedChannels(), false);
+                        queueChannelAllocation(evt.getAllocatedChannels(), false,
+                                f_allocationGeneration.get());
                         break;
                     case ChannelsLost:
-                        onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
+                        queueChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true,
+                                f_allocationGeneration.get());
                         break;
                     case Unsubscribed:
-                        onChannelAllocation(PagedTopicSubscription.NO_CHANNELS, true);
-                        CompletableFuture.runAsync(() -> disconnectInternal(false), f_executor);
+                        queueUnsubscribed(f_allocationGeneration.get());
                         break;
                     case ChannelPopulated:
                         // must use the channel executor
@@ -4224,12 +4443,32 @@ public class NamedTopicSubscriber<V>
      */
     private static final int[] NO_CHANNELS = new int[0];
 
+    /**
+     * Marker indicating that no initialization generation has been accepted.
+     */
+    private static final long NO_ACCEPTED_GENERATION = -1L;
+
+    /**
+     * Marker indicating that no receive recovery is pending.
+     */
+    private static final long NO_PENDING_RECEIVE_RECOVERY = -1L;
+
     // ----- data members ---------------------------------------------------
 
     /**
      * The connector to connect to server side topic resources.
      */
     private final SubscriberConnector<V> f_connector;
+
+    /**
+     * The current subscriber-local initialization candidate generation.
+     */
+    private final AtomicLong f_allocationGeneration = new AtomicLong();
+
+    /**
+     * The failed local queue operation that must be rearmed after reconnect.
+     */
+    private final AtomicLong f_receiveRecoveryPending = new AtomicLong(NO_PENDING_RECEIVE_RECOVERY);
 
     /**
      * The underlying {@link NamedTopic} being subscribed to.
@@ -4291,6 +4530,11 @@ public class NamedTopicSubscriber<V>
      * The owned channels.
      */
     protected volatile int[] m_aChannelOwned;
+
+    /**
+     * The most recent generation whose initialization completed successfully.
+     */
+    private volatile long m_lAcceptedAllocationGeneration = NO_ACCEPTED_GENERATION;
 
     /**
      * The current channel.

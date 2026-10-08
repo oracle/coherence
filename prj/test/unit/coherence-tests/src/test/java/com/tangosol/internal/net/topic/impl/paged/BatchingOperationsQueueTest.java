@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -21,7 +21,10 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
@@ -114,6 +117,188 @@ public class BatchingOperationsQueueTest
 
         assertThat(futureTrigger.get(), is(BatchingOperationsQueue.TRIGGER_CLOSED));
         assertThat(intValue.get(), is(cInitial));
+        }
+
+    @Test
+    public void shouldRearmCurrentBatchWithoutMovingOrCompletingElements()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        CompletableFuture<Void> future = queue.add(new Binary());
+        queue.fillCurrentBatch(1);
+        long lOperation = queue.getOperationSequence();
+
+        assertThat(queue.rearmCurrentBatch(lOperation), is(BatchingOperationsQueue.RearmResult.STARTED));
+        assertThat(cTrigger.get(), is(2));
+        assertThat(queue.getOperationSequence(), is(lOperation + 1));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(queue.getPendingSize(), is(0));
+        assertThat(future.isDone(), is(false));
+        assertThat(queue.getTrigger().get(), is(BatchingOperationsQueue.TRIGGER_CLOSED));
+        }
+
+    @Test
+    public void shouldOnlyRearmEachFailedOperationOnce()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        CompletableFuture<Void> future = queue.add(new Binary());
+        queue.fillCurrentBatch(1);
+        long lFirst = queue.getOperationSequence();
+
+        assertThat(queue.rearmCurrentBatch(lFirst), is(BatchingOperationsQueue.RearmResult.STARTED));
+        assertThat(queue.rearmCurrentBatch(lFirst), is(BatchingOperationsQueue.RearmResult.ALREADY_STARTED));
+        assertThat(cTrigger.get(), is(2));
+
+        long lReplacement = queue.getOperationSequence();
+        assertThat(queue.rearmCurrentBatch(lReplacement), is(BatchingOperationsQueue.RearmResult.STARTED));
+        assertThat(cTrigger.get(), is(3));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(queue.getPendingSize(), is(0));
+        assertThat(future.isDone(), is(false));
+        }
+
+    @Test
+    public void shouldDeferRearmWhilePausedAndStartAfterReset()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        CompletableFuture<Void> future = queue.add(new Binary());
+        queue.fillCurrentBatch(1);
+        long lOperation = queue.getOperationSequence();
+        queue.pause();
+
+        assertThat(queue.rearmCurrentBatch(lOperation), is(BatchingOperationsQueue.RearmResult.DEFERRED));
+        assertThat(cTrigger.get(), is(1));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(future.isDone(), is(false));
+
+        queue.resetTrigger();
+        assertThat(queue.rearmCurrentBatch(lOperation), is(BatchingOperationsQueue.RearmResult.STARTED));
+        assertThat(cTrigger.get(), is(2));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(queue.getPendingSize(), is(0));
+        assertThat(future.isDone(), is(false));
+        }
+
+    @Test
+    public void shouldStartRearmFromOpenTrigger()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        CompletableFuture<Void> future = queue.add(new Binary());
+        queue.fillCurrentBatch(1);
+        long lOperation = queue.getOperationSequence();
+        queue.resetTrigger();
+
+        assertThat(queue.rearmCurrentBatch(lOperation), is(BatchingOperationsQueue.RearmResult.STARTED));
+        assertThat(cTrigger.get(), is(2));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(queue.getPendingSize(), is(0));
+        assertThat(future.isDone(), is(false));
+        }
+
+    @Test
+    public void shouldNotRearmAnEmptyCurrentBatch()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        assertThat(queue.rearmCurrentBatch(queue.getOperationSequence()),
+                is(BatchingOperationsQueue.RearmResult.NO_CURRENT_BATCH));
+        assertThat(cTrigger.get(), is(0));
+        assertThat(queue.getCurrentBatchSize(), is(0));
+        assertThat(queue.getPendingSize(), is(0));
+        }
+
+    @Test
+    public void shouldRejectFutureOperationIdentifier()
+        {
+        AtomicInteger                         cTrigger = new AtomicInteger();
+        BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+
+        CompletableFuture<Void> future = queue.add(new Binary());
+        queue.fillCurrentBatch(1);
+        long lOperation = queue.getOperationSequence();
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> queue.rearmCurrentBatch(lOperation + 1));
+
+        assertThat(error.getMessage(), is("Unknown failed operation " + (lOperation + 1)
+                + ", current operation is " + lOperation));
+        assertThat(cTrigger.get(), is(1));
+        assertThat(queue.getOperationSequence(), is(lOperation));
+        assertThat(queue.getCurrentBatchSize(), is(1));
+        assertThat(queue.getPendingSize(), is(0));
+        assertThat(future.isDone(), is(false));
+        }
+
+    @Test
+    public void shouldStartOneRearmForConcurrentCallers() throws Exception
+        {
+        ExecutorService                       executor = Executors.newFixedThreadPool(2);
+
+        try
+            {
+            for (int i = 0; i < 100; i++)
+                {
+                AtomicInteger                         cTrigger = new AtomicInteger();
+                BatchingOperationsQueue<Binary, Void> queue    = new BatchingOperationsQueue<>(ignored -> cTrigger.incrementAndGet(), 1);
+                CompletableFuture<Void>               future   = queue.add(new Binary());
+                CountDownLatch                        ready    = new CountDownLatch(2);
+                CountDownLatch                        start    = new CountDownLatch(1);
+
+                queue.fillCurrentBatch(1);
+                long lOperation = queue.getOperationSequence();
+                CompletableFuture<BatchingOperationsQueue.RearmResult> first = CompletableFuture.supplyAsync(() ->
+                    {
+                    ready.countDown();
+                    await(start);
+                    return queue.rearmCurrentBatch(lOperation);
+                    }, executor);
+                CompletableFuture<BatchingOperationsQueue.RearmResult> second = CompletableFuture.supplyAsync(() ->
+                    {
+                    ready.countDown();
+                    await(start);
+                    return queue.rearmCurrentBatch(lOperation);
+                    }, executor);
+
+                assertThat(ready.await(1, TimeUnit.MINUTES), is(true));
+                start.countDown();
+                BatchingOperationsQueue.RearmResult resultOne = first.get(1, TimeUnit.MINUTES);
+                BatchingOperationsQueue.RearmResult resultTwo = second.get(1, TimeUnit.MINUTES);
+
+                assertThat(resultOne == BatchingOperationsQueue.RearmResult.STARTED
+                        || resultTwo == BatchingOperationsQueue.RearmResult.STARTED, is(true));
+                assertThat(resultOne == BatchingOperationsQueue.RearmResult.ALREADY_STARTED
+                        || resultTwo == BatchingOperationsQueue.RearmResult.ALREADY_STARTED, is(true));
+                assertThat(cTrigger.get(), is(2));
+                assertThat(queue.getCurrentBatchSize(), is(1));
+                assertThat(queue.getPendingSize(), is(0));
+                assertThat(future.isDone(), is(false));
+                }
+            }
+        finally
+            {
+            executor.shutdownNow();
+            }
+        }
+
+    private static void await(CountDownLatch latch)
+        {
+        try
+            {
+            assertThat(latch.await(1, TimeUnit.MINUTES), is(true));
+            }
+        catch (InterruptedException e)
+            {
+            Thread.currentThread().interrupt();
+            throw new AssertionError(e);
+            }
         }
 
     @Test

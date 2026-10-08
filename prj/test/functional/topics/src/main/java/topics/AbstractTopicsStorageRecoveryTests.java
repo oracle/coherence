@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -98,7 +99,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
         String clientCacheConfig = getClientConfig();
 
-        System.setProperty(ClusterName.PROPERTY, sMethodName);
+        System.setProperty(ClusterName.PROPERTY, sMethodName + '-' + CLUSTER_SUFFIX);
         System.setProperty(LocalStorage.PROPERTY, "false");
         System.setProperty(WellKnownAddress.PROPERTY, "127.0.0.1");
         System.setProperty("test.log.level", "9");
@@ -193,7 +194,13 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
         Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(),
                 Publisher.OnFailure.Continue, NamedTopicPublisher.ChannelCount.of(10));
-        try
+        try (AutoCloseable cleanup = () ->
+            {
+            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
+            assertThat(member, is(notNullValue()));
+            resumeService(sServiceName);
+            CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
+            })
             {
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
@@ -391,13 +398,6 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 }
             assertThat(count, greaterThanOrEqualTo(cPublished.get()));
             }
-        finally
-            {
-            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-            resumeService(sServiceName);
-            CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
-            }
         }
 
     @Test
@@ -578,8 +578,9 @@ public abstract class AbstractTopicsStorageRecoveryTests
                                                         JmxFeature.enabled(),
                                                         s_testLogs.builder());
 
-        builder.with(ClusterName.of(sMethodName),
+        builder.with(ClusterName.of(sMethodName + '-' + CLUSTER_SUFFIX),
                     SystemProperty.of("coherence.guard.timeout", 60000),
+                    SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                     CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
 //                    OperationalOverride.of("common-tangosol-coherence-override.xml"),
                     Logging.atMax(),
@@ -678,6 +679,8 @@ public abstract class AbstractTopicsStorageRecoveryTests
         }
 
     // ----- constants ------------------------------------------------------
+
+    private static final String CLUSTER_SUFFIX = UUID.randomUUID().toString().replace("-", "").substring(0, 10);
 
     private static final AtomicInteger s_count = new AtomicInteger();
 
