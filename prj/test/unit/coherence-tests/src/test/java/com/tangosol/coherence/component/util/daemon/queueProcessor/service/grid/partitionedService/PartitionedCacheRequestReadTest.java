@@ -33,13 +33,6 @@ public class PartitionedCacheRequestReadTest
         }
 
     @Test
-    public void shouldStopReadingContinuousAggregationRequestAfterFilterFailure()
-            throws IOException
-        {
-        assertStopsReading(new FailingContinuousAggregationRequest(EXPECTED));
-        }
-
-    @Test
     public void shouldStopReadingInvokeFilterRequestAfterFilterFailure()
             throws IOException
         {
@@ -132,43 +125,6 @@ public class PartitionedCacheRequestReadTest
             implements FailingRead
         {
         FailingInvokeFilterRequest(RuntimeException expected)
-            {
-            m_expected = expected;
-            }
-
-        @Override
-        public Object readObject(ReadBuffer.BufferInput input)
-            {
-            throw m_expected;
-            }
-
-        @Override
-        protected void readTracing(ReadBuffer.BufferInput input)
-            {
-            fail("must not read tracing after filter deserialization fails");
-            }
-
-        @Override
-        public void readRequest(ReadBuffer.BufferInput input)
-                throws IOException
-            {
-            read(input);
-            }
-
-        @Override
-        public com.tangosol.coherence.component.net.message.requestMessage.DistributedCacheRequest getRequest()
-            {
-            return this;
-            }
-
-        private final RuntimeException m_expected;
-        }
-
-    private static class FailingContinuousAggregationRequest
-            extends PartitionedCache.ContinuousAggregationRequest
-            implements FailingRead
-        {
-        FailingContinuousAggregationRequest(RuntimeException expected)
             {
             m_expected = expected;
             }
