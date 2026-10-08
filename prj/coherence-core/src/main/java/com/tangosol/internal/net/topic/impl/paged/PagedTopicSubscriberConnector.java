@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -810,6 +810,12 @@ public class PagedTopicSubscriberConnector<V>
         {
         Subscription.Key  syncKey      = f_aSubscriberPartitionSync.get(nChannel);
         Subscription      subscription = f_caches.Subscriptions.get(syncKey);
+        if (subscription == null)
+            {
+            throw new RecoverableReceiveException("Cannot resolve the subscription head for subscriber "
+                    + f_subscriberId + " in group " + f_subscriberGroupId + " channel " + nChannel,
+                    f_subscriberId, f_subscriberGroupId, nChannel);
+            }
         return subscription.getSubscriptionHead();
         }
 

@@ -193,7 +193,13 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
         Publisher<Message> publisher = topic.createPublisher(Publisher.OrderBy.roundRobin(),
                 Publisher.OnFailure.Continue, NamedTopicPublisher.ChannelCount.of(10));
-        try
+        try (AutoCloseable cleanup = () ->
+            {
+            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
+            assertThat(member, is(notNullValue()));
+            resumeService(sServiceName);
+            CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
+            })
             {
             AtomicBoolean fPublish    = new AtomicBoolean(true);
             AtomicBoolean fSubscribe  = new AtomicBoolean(true);
@@ -391,13 +397,6 @@ public abstract class AbstractTopicsStorageRecoveryTests
                 }
             assertThat(count, greaterThanOrEqualTo(cPublished.get()));
             }
-        finally
-            {
-            CoherenceClusterMember member = s_storageCluster.stream().findAny().orElse(null);
-            assertThat(member, is(notNullValue()));
-            resumeService(sServiceName);
-            CompletableFuture.runAsync(publisher::close).get(1, TimeUnit.MINUTES);
-            }
         }
 
     @Test
@@ -580,6 +579,7 @@ public abstract class AbstractTopicsStorageRecoveryTests
 
         builder.with(ClusterName.of(sMethodName),
                     SystemProperty.of("coherence.guard.timeout", 60000),
+                    SystemProperty.of("java.rmi.server.hostname", "127.0.0.1"),
                     CacheConfig.of("simple-persistence-bdb-cache-config.xml"),
 //                    OperationalOverride.of("common-tangosol-coherence-override.xml"),
                     Logging.atMax(),
