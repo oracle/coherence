@@ -840,6 +840,12 @@ public class PagedTopicSubscriberConnector<V>
         {
         Subscription.Key  syncKey      = f_aSubscriberPartitionSync.get(nChannel);
         Subscription      subscription = f_caches.Subscriptions.get(syncKey);
+        if (subscription == null)
+            {
+            throw new RecoverableReceiveException("Cannot resolve the subscription head for subscriber "
+                    + f_subscriberId + " in group " + f_subscriberGroupId + " channel " + nChannel,
+                    f_subscriberId, f_subscriberGroupId, nChannel);
+            }
         return subscription.getSubscriptionHead();
         }
 
