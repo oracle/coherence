@@ -1,12 +1,14 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.net;
 
+
+import com.tangosol.coherence.config.builder.ListBasedAddressProviderBuilder;
 
 import com.tangosol.run.xml.XmlElement;
 import com.tangosol.run.xml.XmlHelper;
@@ -30,6 +32,29 @@ import static org.junit.Assert.*;
 public class ConfigurableAddressProviderTest
     {
     // ----- tests ----------------------------------------------------------
+
+    @Test
+    public void testRealizedProvidersHaveIndependentIterationState()
+        {
+        ListBasedAddressProviderBuilder builder = new ListBasedAddressProviderBuilder()
+                .add("127.0.0.1", 40000);
+        AddressProvider outbound = builder.realize(null, null, null);
+        InetSocketAddress expected = new InetSocketAddress("127.0.0.1", 40000);
+
+        assertEquals(expected, outbound.getNextAddress());
+        for (int i = 0; i < 3; i++)
+            {
+            AddressProvider validation = builder.realize(null, null, null);
+            assertEquals(expected, validation.getNextAddress());
+            assertNull(validation.getNextAddress());
+            }
+
+        // validation must neither consume nor reset the outbound provider's state
+        assertNull(outbound.getNextAddress());
+        assertEquals(expected, outbound.getNextAddress());
+        outbound.accept();
+        assertEquals(expected, outbound.getNextAddress());
+        }
 
     /**
     * Assert that address rejection followed by address acceptance will
