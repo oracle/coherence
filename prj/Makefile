@@ -11,10 +11,11 @@
 #
 # ----------------------------------------------------------------------------------------------------------------------
 
+MVN             ?= mvn
 ARGS            ?=
-CURRENT_VERSION ?= $(shell mvn help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
-OS_NAME         ?= $(shell mvn help:evaluate -Dexpression=os.name -q -DforceStdout -nsu)
-OS_ARCH         ?= $(shell mvn help:evaluate -Dexpression=os.arch -q -DforceStdout -nsu)
+CURRENT_VERSION ?= $(shell $(MVN) help:evaluate -Dexpression=project.version -q -DforceStdout -nsu)
+OS_NAME         ?= $(shell $(MVN) help:evaluate -Dexpression=os.name -q -DforceStdout -nsu)
+OS_ARCH         ?= $(shell $(MVN) help:evaluate -Dexpression=os.arch -q -DforceStdout -nsu)
 
 # ======================================================================================================================
 # Makefile targets start here
@@ -46,51 +47,51 @@ modules: ## Build Coherence modules
 
 .PHONY: docker
 docker: ## Build the Coherence image (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
+	$(MVN) clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu $(ARGS)
 
 .PHONY: buildah
 buildah: ## Run Buildah (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,buildah -pl coherence-docker/ -nsu $(ARGS)
+	$(MVN) clean install -Pmodules,-coherence,buildah -pl coherence-docker/ -nsu $(ARGS)
 
 .PHONY: docker-no-graal
 docker-no-graal: ## Build the Coherence images without including Graal (does not rebuild Coherence jars)
-	mvn clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraalvm.image.skip=true $(ARGS)
+	$(MVN) clean install -Pmodules,-coherence,docker -pl coherence-docker/ -nsu -Dgraalvm.image.skip=true $(ARGS)
 
 .PHONY: docker-test
 docker-test: ## Build the Coherence image (does not rebuild Coherence image)
-	mvn verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu $(ARGS)
+	$(MVN) verify -Pmodules,-coherence,docker-test -pl coherence-docker/ -nsu $(ARGS)
 
 .PHONY: docker-push
 docker-push: ## Push the Coherence image (does not rebuild Coherence image)
-	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu $(ARGS)
+	$(MVN) -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu $(ARGS)
 
 .PHONY: docker-push-no-graal
 docker-push-no-graal: ## Push the Coherence images without including Graal (does not rebuild Coherence image)
-	mvn -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu -Dgraalvm.image.skip=true $(ARGS)
+	$(MVN) -DskipTests install -Pmodules,-coherence,docker-push -pl coherence-docker -nsu -Dgraalvm.image.skip=true $(ARGS)
 
 .PHONY: pof
 pof: ## Dump the POF config information
-	mvn exec:exec -pl coherence-liberte/ -nsu -Pmodules,-coherence
+	$(MVN) exec:exec -pl coherence-liberte/ -nsu -Pmodules,-coherence
 
 TEST_MODULE ?=
 TEST_CLASS ?=
 .PHONY: test-security
 test-security: ## Run a functional test with security manager enabled (must specify TEST_MODULE and TEST_CLASS)
-	mvn clean verify -Pmodules,-coherence -nsu -Dtest.security.enabled=true -Dproject.official=true \
+	$(MVN) clean verify -Pmodules,-coherence -nsu -Dtest.security.enabled=true -Dproject.official=true \
 		-pl test/functional/$(TEST_MODULE)/ -Dit.test=$(TEST_CLASS) -am -Dtest=_  \
 		-Dfailsafe.failIfNoSpecifiedTests=false -Dsurefire.failIfNoSpecifiedTests=false
 
 define mvn_build_coherence
-	mvn clean install -T 1.5C -U -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
+	$(MVN) clean install -T 1.5C -U -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
 define mvn_build_modules
-	mvn clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
+	$(MVN) clean install -T 1.5C -nsu -Pmodules,-coherence -Dgradle.skip.test=true -DskipTests $(1) $(ARGS)
 endef
 
 .PHONY: docs
 docs: ## Build the documentation
-	mvn clean install -DskipTests -pl docs -P docs -nsu
+	$(MVN) clean install -DskipTests -pl docs -P docs -nsu
 	cd docs/target/docs && zip -r ../docs.zip *
 
 # ======================================================================================================================

@@ -1,4 +1,4 @@
-# Copyright 2020, 2025, Oracle Corporation and/or its affiliates.
+# Copyright 2020, 2026, Oracle Corporation and/or its affiliates.
 #
 # Licensed under the Universal Permissive License v 1.0 as shown at
 # http://oss.oracle.com/licenses/upl.
@@ -23,6 +23,10 @@ env:
 jobs:
   build:
     runs-on: ${{ inputs.runner }}
+    defaults:
+      run:
+        working-directory: prj
+        shell: bash
     strategy:
       fail-fast: false
       matrix:
@@ -51,15 +55,15 @@ jobs:
         website: oracle.com
         release: 25
 
-    - name: Print Maven & Java version
-      run: mvn -version
-
     - name: Cache Maven packages
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('prj/.mvn/wrapper/maven-wrapper.properties', '**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2-
+
+    - name: Print Maven & Java version
+      run: ./mvnw -version
 
       # Run the Verify stages in parallel
     - name: Verify
@@ -70,10 +74,10 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         echo "Building and running tests in ${{ matrix.stage }}"
-        export DEV_ROOT=$(pwd)
-        export SETTINGS_XML=${DEV_ROOT}/.github/maven/settings.xml
-        mvn --file prj/pom.xml --batch-mode -U -e -s ${SETTINGS_XML} -P-modules,${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean install
-        mvn --file prj/pom.xml --batch-mode -e -s ${SETTINGS_XML} -Pmodules,-coherence,${{ matrix.stage }} -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true -Dcoherence.compatability.settings=${SETTINGS_XML} clean install
+        export DEV_ROOT="${GITHUB_WORKSPACE}"
+        export SETTINGS_XML="${DEV_ROOT}/.github/maven/settings.xml"
+        ./mvnw --file pom.xml --batch-mode -U -e -s "${SETTINGS_XML}" -P-modules,${{ matrix.stage }} -Doptional -Dcoherence.SkipLargeMemoryTests=true clean install
+        ./mvnw --file pom.xml --batch-mode -e -s "${SETTINGS_XML}" -Pmodules,-coherence,${{ matrix.stage }} -nsu -Doptional -Dcoherence.SkipLargeMemoryTests=true -Dcoherence.compatability.settings="${SETTINGS_XML}" clean install
 
     # Upload build artifacts for diagnosing failures
     - name: Build Artifacts test logs
