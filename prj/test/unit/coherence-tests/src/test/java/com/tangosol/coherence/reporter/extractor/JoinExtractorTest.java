@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
- * http://oss.oracle.com/licenses/upl.
+ * https://oss.oracle.com/licenses/upl.
  */
 
 package com.tangosol.coherence.reporter.extractor;
@@ -13,6 +13,7 @@ import com.tangosol.io.pof.ConfigurablePofContext;
 import com.tangosol.util.ExternalizableHelper;
 import com.tangosol.util.ValueExtractor;
 import com.tangosol.util.WrapperException;
+import com.tangosol.util.extractor.IdentityExtractor;
 import com.tangosol.util.extractor.ReflectionExtractor;
 
 import org.junit.Test;
@@ -27,8 +28,23 @@ import java.io.ObjectOutputStream;
 
 import java.net.URL;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Function;
+
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import static com.tangosol.util.ExternalizableHelper.ensureSerializer;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.junit.Assert.fail;
 
 /**
@@ -127,6 +143,88 @@ public class JoinExtractorTest
         ObjectOutputStream os = new ObjectOutputStream(new ByteArrayOutputStream());
         os.writeObject(createJoinExtractor());
         fail("instances of JoinExtractor must not serialize");
+        }
+
+    @Test
+    public void shouldPreserveDirectQueryAndCardinalityHandling() throws Exception
+        {
+        ObjectName  pattern = new ObjectName("Coherence:type=Node,nodeId=1,*");
+        ObjectName  first   = new ObjectName("Coherence:type=Node,nodeId=1,member=first");
+        ObjectName  second  = new ObjectName("Coherence:type=Node,nodeId=1,member=second");
+        MBeanServer server  = mock(MBeanServer.class);
+        when(server.queryNames(pattern, null)).thenReturn(Collections.emptySet(), Set.of(first), Set.of(first, second));
+        JoinExtractor join = new JoinExtractor(new ValueExtractor[] {IdentityExtractor.INSTANCE},
+                "Coherence:type=Node,nodeId={node},*", IdentityExtractor.INSTANCE, server);
+
+        assertEquals(pattern, join.extract("1"));
+        assertEquals(first, join.extract("1"));
+        assertEquals(pattern, join.extract("1"));
+        verify(server, times(3)).queryNames(pattern, null);
+        }
+
+    @Test
+    public void shouldUseResolverAndExtractValueEveryTime() throws Exception
+        {
+        ObjectName pattern = new ObjectName("Coherence:type=Node,nodeId=1,*");
+        ObjectName target  = new ObjectName("Coherence:type=Node,nodeId=1,member=one");
+        MBeanServer server = mock(MBeanServer.class);
+        AtomicInteger cResolutions = new AtomicInteger();
+        AtomicInteger cValues      = new AtomicInteger();
+        Function<ObjectName, ObjectName> resolver = name ->
+            {
+            assertEquals(pattern, name);
+            cResolutions.incrementAndGet();
+            return target;
+            };
+        ValueExtractor source = name ->
+            {
+            assertEquals(target, name);
+            return cValues.incrementAndGet();
+            };
+        JoinExtractor join = new JoinExtractor(new ValueExtractor[] {IdentityExtractor.INSTANCE},
+                "Coherence:type=Node,nodeId={node},*", source, server, resolver);
+
+        assertEquals(1, join.extract("1"));
+        assertEquals(2, join.extract("1"));
+        assertEquals(2, cResolutions.get());
+        verifyNoInteractions(server);
+        }
+
+    @Test
+    public void shouldBypassResolverForExactAndQuestionMarkNames() throws Exception
+        {
+        MBeanServer server = mock(MBeanServer.class);
+        Function<ObjectName, ObjectName> resolver = name ->
+            {
+            throw new AssertionError("unexpected wildcard resolution");
+            };
+        for (String sNode : new String[] {"1", "?"})
+            {
+            JoinExtractor join = new JoinExtractor(new ValueExtractor[] {IdentityExtractor.INSTANCE},
+                    "Coherence:type=Node,nodeId={node}", IdentityExtractor.INSTANCE, server, resolver);
+            assertEquals(new ObjectName("Coherence:type=Node,nodeId=" + sNode), join.extract(sNode));
+            }
+        verifyNoInteractions(server);
+        }
+
+    @Test
+    public void shouldReturnNullForMalformedExpandedName()
+        {
+        MBeanServer server = mock(MBeanServer.class);
+        JoinExtractor join = new JoinExtractor(new ValueExtractor[] {IdentityExtractor.INSTANCE},
+                "Coherence::nodeId={node},*", IdentityExtractor.INSTANCE, server,
+                name -> { throw new AssertionError("invalid name reached resolver"); });
+        assertNull(join.extract("1"));
+        verifyNoInteractions(server);
+        }
+
+    @Test(expected = SecurityException.class)
+    public void shouldPropagateResolverSecurityFailure()
+        {
+        JoinExtractor join = new JoinExtractor(new ValueExtractor[] {IdentityExtractor.INSTANCE},
+                "Coherence:type=Node,nodeId={node},*", IdentityExtractor.INSTANCE, null,
+                name -> { throw new SecurityException("denied"); });
+        join.extract("1");
         }
 
     // ----- helpers --------------------------------------------------------

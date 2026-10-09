@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2025, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -15,6 +15,7 @@ import com.tangosol.util.extractor.MultiExtractor;
 import com.tangosol.run.xml.XmlElement;
 
 import com.tangosol.coherence.reporter.Constants;
+import com.tangosol.coherence.reporter.DataSource;
 import com.tangosol.coherence.reporter.JMXQueryHandler;
 import com.tangosol.coherence.reporter.Reporter;
 
@@ -105,12 +106,13 @@ public class SubQueryExtractor
         // filter definitions from the outer context.
         inner.setContext(m_xmlQuery, m_jmxqOuter.getContext());
 
-        // execute the inner query.
-        inner.execute();
+        try (DataSource.JoinResolution scope = inner.beginJoinResolution())
+            {
+            inner.execute();
 
-        //  get the value of the inner query.  null is passed because inner
-        // queries can only be aggregates.
-        return inner.getValue(null, m_sColumnId);
+            // inner queries can only be aggregates
+            return inner.getValue(null, m_sColumnId);
+            }
         }
 
     /**

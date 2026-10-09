@@ -167,34 +167,37 @@ public class Reporter
             XmlElement   xmlQuery = xmlConfig.getElement(TAG_QUERY);
             QueryHandler handler  = ensureQueryHandler(xmlConfig, xmlQuery, lBatch);
 
-            // Execute the query.
-            handler.execute();
-
-            Set<MBeanQuery.Entry> setBeans = handler.getKeys();
-
-            if (setBeans.size() > 0)
+            try (DataSource.JoinResolution scope = ((JMXQueryHandler) handler).beginJoinResolution())
                 {
-                if (!m_fInitialized)
+                // Execute the query.
+                handler.execute();
+
+                Set<MBeanQuery.Entry> setBeans = handler.getKeys();
+
+                if (setBeans.size() > 0)
                     {
-                    initDisplayColumns(handler.isMultiTenant());
-                    m_fInitialized = true;
+                    if (!m_fInitialized)
+                        {
+                        initDisplayColumns(handler.isMultiTenant());
+                        m_fInitialized = true;
+                        }
+
+                    if (fReportFile)
+                        {
+                        writeReportFile(sPathTemplate, handler);
+                        }
+
+                    if (fTabular)
+                        {
+                        tabData = tabular(handler, sTabularType);
+                        }
                     }
 
-                if (fReportFile)
-                    {
-                    writeReportFile(sPathTemplate, handler);
-                    }
+                // apply deltas and clean up
+                handler.postProcess();
 
-                if (fTabular)
-                    {
-                    tabData = tabular(handler, sTabularType);
-                    }
+                return tabData;
                 }
-
-            // apply deltas and clean up
-            handler.postProcess();
-
-            return tabData;
             }
         finally
             {
