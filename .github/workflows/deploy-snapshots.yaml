@@ -44,8 +44,13 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.m2
-        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        key: ${{ runner.os }}-m2-${{ hashFiles('prj/.mvn/wrapper/maven-wrapper.properties', '**/pom.xml') }}
         restore-keys: ${{ runner.os }}-m2
+
+    - name: Print Maven & Java version
+      working-directory: prj
+      shell: bash
+      run: ./mvnw -version
 
     - name: Build with Maven
       env:
@@ -62,7 +67,7 @@ jobs:
         MAVEN_PASSWORD: ${{ secrets.MavenPassword }}
       run: |
         cd prj
-        make docs
+        make docs MVN=./mvnw
 
     - name: Upload Docs
       uses: actions/upload-artifact@v4
