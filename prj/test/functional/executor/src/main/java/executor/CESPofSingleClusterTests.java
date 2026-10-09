@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2026, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -98,7 +98,7 @@ public class CESPofSingleClusterTests
                           Logging.at(9),
                           Pof.config(POF_CONFIG),
                           ClusterPort.of(7574),
-                          ClusterName.of(CESPofSingleClusterTests.class.getSimpleName()), // default name is too long
+                          ClusterName.of(CESPofSingleClusterTests.class.getSimpleName() + "-" + System.nanoTime()), // default name is too long
                           SystemProperty.of(EXTEND_ADDRESS_PROPERTY, EXTEND_HOST),
                           SystemProperty.of(EXTEND_PORT_PROPERTY, EXTEND_PORT),
                           JmxFeature.enabled(),

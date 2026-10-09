@@ -644,6 +644,10 @@ public class ClusteredExecutorService
                                     {
                                     ee = exception;
                                     }
+                                catch (CancellationException exception)
+                                    {
+                                    ee = new ExecutionException(exception);
+                                    }
                                 }
                             iter.remove(); // don't bother checking this entry again
                             }

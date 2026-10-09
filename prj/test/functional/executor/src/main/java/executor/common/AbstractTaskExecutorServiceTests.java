@@ -1395,18 +1395,29 @@ public abstract class AbstractTaskExecutorServiceTests
             results = executorService.invokeAll(colCallables, 1, TimeUnit.MILLISECONDS);
             assertEquals(results.size(), 10);
 
-            try
+            boolean fCancelled = false;
+            for (Future<String> r : results)
                 {
-                for (Future<String> r : results)
+                assertTrue("invokeAll must return only completed futures", r.isDone());
+                if (r.isCancelled())
+                    {
+                    fCancelled = true;
+                    try
+                        {
+                        r.get(0, TimeUnit.MILLISECONDS);
+                        fail("Cancelled future must throw CancellationException.");
+                        }
+                    catch (CancellationException expected)
+                        {
+                        // success
+                        }
+                    }
+                else
                     {
                     r.get(0, TimeUnit.MILLISECONDS);
                     }
-                fail("Should fail with Exception.");
                 }
-            catch (ExecutionException | InterruptedException | NoSuchElementException | CancellationException e)
-                {
-                // success
-                }
+            assertTrue("Short timeout must cancel unfinished tasks", fCancelled);
 
             System.out.println("Calling invokeAny() with a short timeout.");
             try

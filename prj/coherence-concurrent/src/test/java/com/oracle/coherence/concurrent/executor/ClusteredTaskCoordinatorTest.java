@@ -16,12 +16,18 @@ import com.tangosol.net.MemberListener;
 import com.tangosol.net.NamedCache;
 import com.tangosol.net.ServiceInfo;
 
+import com.tangosol.util.MapEvent;
+import com.tangosol.util.MapListener;
+import com.tangosol.util.processor.ConditionalPut;
+
 import java.util.Collections;
 import java.util.List;
 
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,13 +35,18 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,6 +58,99 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class ClusteredTaskCoordinatorTest
     {
+    @Test
+    public void shouldCompleteFutureCancellationBeforeCacheEvent()
+        {
+        TestContext context = createContext();
+        ClusteredTaskManager initial = manager(0, Result.none(), false);
+        when(context.tasks.get(TASK_ID)).thenReturn(initial);
+        when(context.tasks.invoke(eq(TASK_ID), any(ClusteredTaskManager.CancellationProcessor.class)))
+                .thenReturn(true);
+
+        FutureSubscriber<String> subscriber = new FutureSubscriber<>();
+        subscriber.setCoordinator(context.coordinator);
+        context.coordinator.subscribe(subscriber);
+
+        // the cache accepts cancellation without delivering an entryUpdated event
+        assertTrue(subscriber.cancel(false));
+        assertTrue(subscriber.isCancelled());
+        assertTrue(subscriber.isDone());
+        assertThrows(CancellationException.class, () -> subscriber.get(0, TimeUnit.MILLISECONDS));
+        }
+
+    @Test
+    public void shouldRemainPendingWhenClusteredCancellationIsRefused()
+        {
+        TestContext context = createContext();
+        ClusteredTaskManager running = manager(0, Result.none(), false);
+        when(context.tasks.get(TASK_ID)).thenReturn(running);
+        when(context.tasks.invoke(eq(TASK_ID), any(ClusteredTaskManager.CancellationProcessor.class)))
+                .thenReturn(false);
+        FutureSubscriber<String> subscriber = new FutureSubscriber<>();
+        context.coordinator.subscribe(subscriber);
+
+        assertFalse(subscriber.cancel(false));
+        assertFalse(subscriber.isDone());
+        assertFalse(subscriber.isCancelled());
+        assertThrows(TimeoutException.class, () -> subscriber.get(0, TimeUnit.MILLISECONDS));
+        }
+
+    @Test
+    public void shouldRejectCancelledFutureBeforeTaskInstallation()
+        {
+        CacheService service = mock(CacheService.class);
+        NamedCache tasks = mock(NamedCache.class);
+        when(service.ensureCache(Caches.TASKS_CACHE_NAME, null)).thenReturn(tasks);
+        ClusteredTaskManager initial = manager(0, Result.none(), false);
+        FutureSubscriber<String> subscriber = new FutureSubscriber<>();
+        assertTrue(subscriber.cancel(false));
+
+        assertThrows(UnsupportedOperationException.class,
+                () -> new ClusteredTaskCoordinator<String>(service, initial, new DirectExecutorService(), null,
+                        Collections.<Task.Subscriber<? super String>>singletonList(subscriber).iterator()));
+        assertFalse(subscriber.isSubscribed());
+        verifyNoInteractions(tasks);
+        }
+
+    @Test
+    public void shouldRemainPendingWhenCancellationPrecedesTaskInstallation()
+            throws Exception
+        {
+        CacheService service = mock(CacheService.class);
+        NamedCache   tasks   = mock(NamedCache.class);
+        when(service.ensureCache(Caches.TASKS_CACHE_NAME, null)).thenReturn(tasks);
+        ClusteredTaskManager initial = manager(0, Result.none(), false);
+        FutureSubscriber<String> subscriber = new FutureSubscriber<>();
+
+        // cancellation occurs after subscription publication, before task installation
+        doAnswer(invocation ->
+            {
+            assertTrue(subscriber.isSubscribed());
+            assertFalse(subscriber.cancel(false));
+            assertFalse(subscriber.isDone());
+            assertFalse(subscriber.isCancelled());
+            assertThrows(TimeoutException.class, () -> subscriber.get(0, TimeUnit.MILLISECONDS));
+            return null;
+            }).when(tasks).addMapListener(any(MapListener.class), eq(TASK_ID), eq(false));
+        when(tasks.invoke(eq(TASK_ID), any(ConditionalPut.class))).thenAnswer(invocation ->
+            {
+            when(tasks.get(TASK_ID)).thenReturn(initial);
+            return null;
+            });
+
+        ClusteredTaskCoordinator<String> coordinator = new ClusteredTaskCoordinator<>(service, initial,
+                new DirectExecutorService(), null,
+                Collections.<Task.Subscriber<? super String>>singletonList(subscriber).iterator());
+        verify(tasks).invoke(eq(TASK_ID), any(ConditionalPut.class));
+        assertFalse(coordinator.isDone());
+
+        ClusteredTaskManager completed = manager(1, Result.of("result"), true);
+        coordinator.entryUpdated(new MapEvent(tasks, MapEvent.ENTRY_UPDATED, TASK_ID, initial, completed));
+        assertEquals("result", subscriber.get(0, TimeUnit.MILLISECONDS));
+        assertTrue(subscriber.isDone());
+        assertFalse(subscriber.isCancelled());
+        }
+
     @Test
     public void shouldRecoverMissedCompletionWhenRemoteMemberLeaves()
             throws Exception
