@@ -11,5 +11,8 @@
     <class name="com.oracle.coherence.testing.AirDealComparator" source="manual" executable="true"/>
     <class name="com.oracle.coherence.testing.CaseInsensitiveComparator" source="manual" executable="true"/>
     <class name="com.oracle.coherence.testing.FilterFetcher" source="manual" executable="true"/>
+    <class name="com.oracle.coherence.testing.util.BaseMapTest$TestValue" source="manual"/>
+    <class name="com.oracle.coherence.testing.util.BaseMapTest$TestValueEL" source="manual"/>
+    <class name="com.oracle.coherence.testing.util.OldLiteSet" source="manual"/>
   </allowed-classes>
 </security-config>
